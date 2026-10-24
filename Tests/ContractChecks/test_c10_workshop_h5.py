@@ -115,11 +115,13 @@ class C10WorkshopH5Contracts(unittest.TestCase):
         self.assertIn("recoverOriginal(originalRequestID: \"req-c10-1\")", tests)
         self.assertIn("installCount, 1", tests)
         consumer = self.sources["Core/WorkshopOriginalInstallConsumer.swift"]
-        self.assertIn("does not keep a second", consumer)
+        self.assertIn("ModInstallationController.recover", consumer)
         self.assertNotIn("serverPass", consumer)
-        self.assertIn("testSameRequestReadsOriginalReceiptAndUnknownDoesNotInstall",
+        self.assertNotIn("struct WorkshopOriginalInstallRecord", consumer)
+        self.assertIn("func request(_ requestID: String, identity: WorkshopInstallIdentity) async throws", consumer)
+        self.assertIn("testCanonicalUUIDRequestReadsOriginalReceipt",
                       self.sources["Tests/CoreTests/WorkshopOriginalInstallConsumerTests.swift"])
-        self.assertIn("testRestartRevokeAndLateFactKeepTheOriginalRequest",
+        self.assertIn("testNonUUIDDoesNotReadAndMissingReceiptThrows",
                       self.sources["Tests/CoreTests/WorkshopOriginalInstallConsumerTests.swift"])
 
     def test_javascript_self_report_is_rejected(self):
