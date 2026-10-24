@@ -584,7 +584,7 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
             page["nextAfter"] = NSNull()
             return page
         })
-        XCTAssertEqual((empty["list"] as? [Any])?.count, 0)
+        XCTAssertEqual((empty["list"] as? [[String: Any]])?.count, 0)
     }
 
     func testLateIdentityDoesNotReadHistoryOrAcknowledge() throws {

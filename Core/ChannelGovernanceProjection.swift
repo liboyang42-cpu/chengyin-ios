@@ -545,7 +545,9 @@ public struct MessageContainerHistory: Equatable, Sendable {
               page["operation"] as? String != "ACK" else {
             throw ChannelAuthorizationError.invalidCatalog
         }
-        return page
+        var decoded = page
+        decoded["list"] = try projectList(page["list"], channelID: channelID)
+        return decoded
     }
 
     private func aliasesAgree(_ left: Any?, _ right: Any?, _ parse: (Any?) -> String?) -> Bool {
@@ -586,7 +588,6 @@ public struct MessageContainerHistory: Equatable, Sendable {
         guard Int64(lease.identity.accountID) == actor, Int64(lease.conversationID) == channelID else {
             throw ChannelAuthorizationError.account4Mismatch
         }
-        page["list"] = try projectList(page["list"], channelID: channelID)
         guard canReadHistory(actor, channelID) else { throw ChannelAuthorizationError.notMember }
         return page
     }
