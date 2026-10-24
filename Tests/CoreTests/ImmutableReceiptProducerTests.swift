@@ -236,13 +236,22 @@ final class ImmutableReceiptProducerTests: XCTestCase {
                                      channelSend: nil)
         }, .waitingSource(capability: ImmutableReceiptProducer.channelMessageSend))
         XCTAssertEqual(calls, 0)
+        let missingDigest = try producer.sendOriginal(
+            reply, actorID: 7, conversationID: 12, msgType: 1, content: "hello", extraJSON: nil,
+            replyToID: 88120, mentionMemberIDs: [], mentionRoleIDs: [], mentionEveryone: false,
+            channelSend: { _, _, _, _, _, _, _, _, _, _ in
+                ["client_message_id": "c09-send-01", "operation": "SEND", "content": "hello"]
+            })
+        XCTAssertEqual(missingDigest?.outcome, ImmutableReceiptProducer.outcomeUnknown)
+        XCTAssertNil(missingDigest?.originalBody)
         let receipt = try producer.sendOriginal(
             reply, actorID: 7, conversationID: 12, msgType: 1, content: "hello", extraJSON: nil,
             replyToID: 88120, mentionMemberIDs: [], mentionRoleIDs: [], mentionEveryone: false,
             channelSend: { actor, conversation, clientID, _, content, _, reply, _, _, _ in
                 calls += 1
                 return actor == 7 && conversation == 12 && content == "hello" && clientID == "c09-send-01" && reply == 88120
-                    ? ["client_message_id": "c09-send-01", "content": "hello", "request_hash": "hash-send-01"] : nil
+                    ? ["client_message_id": "c09-send-01", "operation": "SEND", "digest": "send-digest-01", "content": "hello"]
+                    : nil
             })
         XCTAssertEqual(receipt?.originalBody, "hello")
         XCTAssertEqual(calls, 1)

@@ -268,10 +268,14 @@ public struct ImmutableReceiptProducer: Equatable {
                                       mentionMemberIDs, mentionRoleIDs, mentionEveryone) else {
             return Self.unknownReceipt(requestId: id, projection: nil)
         }
+        let digest = sent["digest"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard sent["client_message_id"] == id, sent["operation"] == "SEND", !digest.isEmpty else {
+            return Self.unknownReceipt(requestId: id, projection: nil)
+        }
         return OriginalReceipt(
-            requestId: Self.parse(sent["client_message_id"]) ?? id,
+            requestId: id,
             kind: nil,
-            payloadHash: sent["request_hash"],
+            payloadHash: digest,
             outcome: Self.outcomeUnknown,
             originalBody: sent["content"],
             currentProjectionClaimsApplied: false,
