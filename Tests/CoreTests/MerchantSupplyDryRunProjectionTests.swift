@@ -255,10 +255,44 @@ final class MerchantSupplyDryRunProjectionTests: XCTestCase {
         XCTAssertNil(body["ownerMemberId"])
         XCTAssertNil(body["action"])
         XCTAssertTrue(journey.detailMatches(44, intent: frozen))
+        XCTAssertEqual(journey.accessRequest().path, "api/merchant/access/me")
+        let receiptRequest = try XCTUnwrap(journey.receiptRequest(requestID: "desk-req-01"))
+        XCTAssertEqual(receiptRequest.path, "api/merchant/desk/receipt")
+        guard case .json(let receiptBody) = receiptRequest.body else { return XCTFail("receipt json") }
+        XCTAssertEqual(receiptBody["requestId"], .string("desk-req-01"))
+        let detailValue = MerchantBusinessValue.object([
+            "productId": .int(3),
+            "skus": .array([.object([
+                "skuId": .int(44), "skuName": .string("door"), "price": .string("1"), "stock": .int(2)
+            ])])
+        ])
+        let row = try XCTUnwrap(journey.readBack(detail: detailValue, intent: frozen, laterFormPrice: "99"))
+        XCTAssertEqual(row.price, "1")
+        XCTAssertEqual(row.skuName, "door")
+        let rebuilt = MerchantBusinessValue.object([
+            "productId": .int(3),
+            "skus": .array([.object([
+                "skuId": .int(44), "skuName": .string("door"), "price": .string("99"), "stock": .int(2)
+            ])])
+        ])
+        XCTAssertNil(journey.readBack(detail: rebuilt, intent: frozen, laterFormPrice: "99"))
         let restarted = journey.recover(requestID: "desk-req-01", skuID: 44, currentForm: "price=99")
         XCTAssertEqual(restarted.outcome, "UNKNOWN")
         XCTAssertEqual(restarted.requestID, "desk-req-01")
         XCTAssertNil(restarted.payload)
+        let missingReceipt = journey.recover(requestID: "desk-req-01", receipt: .object([
+            "requestId": .string("desk-req-01"), "state": .string("NOT_FOUND")
+        ]), currentForm: "price=99")
+        XCTAssertEqual(missingReceipt.outcome, "UNKNOWN")
+        XCTAssertNil(missingReceipt.payload)
+        let applied = journey.recover(requestID: "desk-req-01", receipt: .object([
+            "requestId": .string("desk-req-01"), "state": .string("APPLIED"),
+            "action": .string("SKU_SAVE"), "targetType": .string("pms_sku"), "targetId": .int(44)
+        ]), currentForm: "price=99")
+        XCTAssertEqual(applied.outcome, "APPLIED")
+        XCTAssertEqual(applied.skuID, 44)
+        XCTAssertNil(applied.payload)
+        XCTAssertFalse(String(describing: applied).contains("99"))
         let storeUsedAsAccount = try await supply.recoverFromDeskReceipt(
             ownerMemberID: 7, requestID: "desk-req-01", storeID: 7, receipt: { _, _ in .string("APPLIED") })
         XCTAssertNil(storeUsedAsAccount)

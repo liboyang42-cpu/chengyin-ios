@@ -225,6 +225,39 @@ public struct MerchantSkuSaveJourney: Equatable, Sendable {
         return true
     }
 
+    public func accessRequest() -> MerchantBusinessRequest {
+        .empty("api/merchant/access/me")
+    }
+
+    public func receiptRequest(requestID: String) -> MerchantBusinessRequest? {
+        guard let id = MerchantSupplyDryRunProjection.parse(requestID) else { return nil }
+        return .json("api/merchant/desk/receipt", ["requestId": .string(id)])
+    }
+
+    public struct SkuRow: Equatable, Sendable {
+        public let skuID: Int64
+        public let skuName: String
+        public let price: String
+        public let stock: Int
+    }
+
+    /// `productDetail` nests `skus`. The later form is not a saved row.
+    public func readBack(detail: MerchantBusinessValue, intent: Intent, laterFormPrice: String) -> SkuRow? {
+        _ = laterFormPrice
+        guard let product = detail.object,
+              product["productId"]?.integer == Int(exactly: intent.productID),
+              let skus = product["skus"]?.array else { return nil }
+        for sku in skus {
+            guard let row = sku.object,
+                  let skuID = row["skuId"]?.integer, Int64(skuID) == intent.skuID,
+                  row["skuName"]?.string == intent.skuName,
+                  row["stock"]?.integer == intent.stock,
+                  let price = row["price"]?.numberText, price == intent.price else { continue }
+            return SkuRow(skuID: intent.skuID, skuName: intent.skuName, price: price, stock: intent.stock)
+        }
+        return nil
+    }
+
     public func detailMatches(_ detailSkuID: Int64, intent: Intent) -> Bool {
         detailSkuID == intent.skuID
     }
@@ -233,6 +266,19 @@ public struct MerchantSkuSaveJourney: Equatable, Sendable {
         _ = currentForm
         let id = MerchantSupplyDryRunProjection.parse(requestID) ?? requestID
         return Recovery(requestID: id, skuID: skuID, payload: nil, outcome: "UNKNOWN")
+    }
+
+    /// Same request id reads the original receipt. The form is not a new save body.
+    public func recover(requestID: String, receipt: MerchantBusinessValue?, currentForm: String) -> Recovery {
+        _ = currentForm
+        let parsed = MerchantSupplyDryRunProjection.parse(requestID)
+        let unknown = Recovery(requestID: parsed ?? requestID, skuID: 0, payload: nil, outcome: "UNKNOWN")
+        guard let parsed, let fields = receipt?.object, fields["requestId"]?.string == parsed,
+              let state = fields["state"]?.string, state != "NOT_FOUND" else { return unknown }
+        guard state == "APPLIED", fields["action"]?.string == "SKU_SAVE",
+              fields["targetType"]?.string == "pms_sku",
+              let target = fields["targetId"]?.integer, target > 0 else { return unknown }
+        return Recovery(requestID: parsed, skuID: Int64(target), payload: nil, outcome: "APPLIED")
     }
 }
     private func compute(_ fact: MerchantSupplyDryRunFact?, serverNow: Date?,

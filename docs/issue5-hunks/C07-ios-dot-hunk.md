@@ -60,3 +60,7 @@ WAITING_SOURCE: transfer-sold policy + designated recipient authorization + irre
 ## Parent addendum 2026-10-23 20:40 America/Los_Angeles
 
 `EntitlementHoldProjection.projectFromLedger` 只读既有 `perkLedger.listEntitlements`。缺端口 WAITING_SOURCE。未见 chapter 保持 UNKNOWN，不占容量。不调用 reserve/redeem。XCTest NOT_RUN on Linux. Not 100%。
+
+## Parent addendum 2026-10-24 04:34 America/Los_Angeles
+
+Detail readback uses nested `productId` and `skus` (`skuId`, `skuName`, `price`, `stock`). A later form price is not the saved row. Restart with the same request id reads `api/merchant/desk/receipt`. `NOT_FOUND` stays `UNKNOWN` and the payload stays nil. `APPLIED` requires `SKU_SAVE` and `pms_sku`. Entry and PBX are still not delivered. XCTest NOT_RUN. Not 100%.

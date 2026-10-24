@@ -85,6 +85,21 @@ final class MerchantBusinessServiceTests: XCTestCase {
         XCTAssertFalse(body.contains("ownerMemberId"))
         XCTAssertFalse(body.contains("\"action\""))
     }
+    func testDeskDetailAndReceiptUseOriginalPaths() async throws {
+        let fake = BusinessRecordingTransport("{}")
+        let service = try service(fake)
+        let journey = MerchantSkuSaveJourney()
+        let detail = try service.makeRequest(XCTUnwrap(journey.detailRequest(productID: 3)), token: "synthetic-token")
+        XCTAssertEqual(detail.url?.path, "/test/api/merchant/desk/products/detail")
+        let receipt = try service.makeRequest(XCTUnwrap(journey.receiptRequest(requestID: "desk-req-01")), token: "synthetic-token")
+        XCTAssertEqual(receipt.httpMethod, "POST")
+        XCTAssertEqual(receipt.url?.path, "/test/api/merchant/desk/receipt")
+        let access = try service.makeRequest(journey.accessRequest(), token: "synthetic-token")
+        XCTAssertEqual(access.url?.path, "/test/api/merchant/access/me")
+        XCTAssertNil(access.httpBody)
+        let requests = await fake.requests
+        XCTAssertTrue(requests.isEmpty)
+    }
     func testRequestBuilderNeverIncludesMerchantOwnerOrMemberScope() throws {
         let fake = BusinessRecordingTransport("{}"), service = try service(fake)
         let request = try service.makeRequest(MerchantBusinessQuery.batches(page: 1).request(), token: "synthetic-token")
