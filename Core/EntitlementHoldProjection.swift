@@ -63,7 +63,24 @@ public struct EntitlementHoldView: Equatable, Sendable {
     }
 }
 
+public enum EntitlementHoldFailure: Error, Equatable {
+    case waitingSource(capability: String)
+}
+
+public struct LedgerEntitlementRow: Equatable, Sendable {
+    public let chapterID: Int64
+    public let status: Int?
+    public let invalidReason: String?
+    public init(chapterID: Int64, status: Int?, invalidReason: String?) {
+        self.chapterID = chapterID
+        self.status = status
+        let trimmed = invalidReason?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.invalidReason = (trimmed?.isEmpty == false) ? trimmed : nil
+    }
+}
+
 public struct EntitlementHoldProjection: Equatable {
+    public static let perkList = "perkLedger.listEntitlements"
     public private(set) var occupyCountByRequestID: [String: Int] = [:]
     public private(set) var originalIntentByRequestID: [String: EntitlementHoldView] = [:]
     public init() {}
@@ -100,6 +117,25 @@ public struct EntitlementHoldProjection: Equatable {
             return original
         }
         return Self.unknown(requestID)
+    }
+    public mutating func projectFromLedger(originalRequestID: String?, registrationID: Int64?,
+                                           chapterID: Int64?, merchantID: Int64?,
+                                           validEndExclusive: Date?, serverNow: Date?,
+                                           listEntitlements: ((Int64) -> [LedgerEntitlementRow])?) throws -> EntitlementHoldView {
+        guard let listEntitlements else {
+            throw EntitlementHoldFailure.waitingSource(capability: Self.perkList)
+        }
+        guard let registrationID, registrationID > 0 else {
+            throw EntitlementHoldFailure.waitingSource(capability: Self.perkList)
+        }
+        let rows = listEntitlements(registrationID)
+        guard let chapterID, let match = rows.first(where: { $0.chapterID == chapterID }) else {
+            return recoverOriginal(originalRequestID: originalRequestID ?? "")
+        }
+        let fact = EntitlementHoldFact(originalRequestID: originalRequestID, registrationID: registrationID,
+                                       chapterID: chapterID, merchantID: merchantID, status: match.status,
+                                       validEndExclusive: validEndExclusive, invalidReason: match.invalidReason)
+        return project(fact, serverNow: serverNow)
     }
     private func compute(_ fact: EntitlementHoldFact?, serverNow: Date?) -> EntitlementHoldView {
         guard let serverNow else { return Self.unknown(Self.parse(fact?.originalRequestID)) }

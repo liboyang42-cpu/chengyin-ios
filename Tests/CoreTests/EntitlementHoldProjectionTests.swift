@@ -101,4 +101,37 @@ final class EntitlementHoldProjectionTests: XCTestCase {
         XCTAssertEqual(projection.occupyCount(originalRequestID: "c07-hold-never-seen"), 1)
         XCTAssertEqual(projection.recoverOriginal(originalRequestID: "c07-hold-never-seen").outcome, .held)
     }
+    func testProjectFromLedgerRequiresPerkListAndNewInstanceReadsExistingEntitlement() throws {
+        var missing = EntitlementHoldProjection()
+        XCTAssertThrowsError(try missing.projectFromLedger(originalRequestID: "c07-hold-led1", registrationID: 78,
+                                                           chapterID: 124, merchantID: 9, validEndExclusive: end,
+                                                           serverNow: now, listEntitlements: nil)) {
+            XCTAssertEqual($0 as? EntitlementHoldFailure,
+                           .waitingSource(capability: EntitlementHoldProjection.perkList))
+        }
+        XCTAssertEqual(missing.occupyCount(originalRequestID: "c07-hold-led1"), 0)
+        let row = LedgerEntitlementRow(chapterID: 124, status: EntitlementHoldStatus.held, invalidReason: nil)
+        let list: (Int64) -> [LedgerEntitlementRow] = { registrationID in
+            registrationID == 78 ? [row] : []
+        }
+        var wired = EntitlementHoldProjection()
+        let neverSeen = try wired.projectFromLedger(originalRequestID: "c07-hold-led1", registrationID: 78,
+                                                    chapterID: 999, merchantID: 9, validEndExclusive: end,
+                                                    serverNow: now, listEntitlements: list)
+        XCTAssertEqual(neverSeen.outcome, .unknown)
+        XCTAssertEqual(wired.occupyCount(originalRequestID: "c07-hold-led1"), 0)
+        let held = try wired.projectFromLedger(originalRequestID: "c07-hold-led1", registrationID: 78,
+                                               chapterID: 124, merchantID: 9, validEndExclusive: end,
+                                               serverNow: now, listEntitlements: list)
+        XCTAssertEqual(held.outcome, .held)
+        XCTAssertTrue(held.occupiesCapacity)
+        XCTAssertFalse(held.executedReserve)
+        XCTAssertEqual(wired.occupyCount(originalRequestID: "c07-hold-led1"), 1)
+        var restarted = EntitlementHoldProjection()
+        XCTAssertEqual(try restarted.projectFromLedger(originalRequestID: "c07-hold-led1", registrationID: 78,
+                                                       chapterID: 124, merchantID: 9, validEndExclusive: end,
+                                                       serverNow: now, listEntitlements: list).outcome, .held)
+        XCTAssertEqual(restarted.recoverOriginal(originalRequestID: "c07-hold-missing").outcome, .unknown)
+        XCTAssertEqual(restarted.occupyCount(originalRequestID: "c07-hold-missing"), 0)
+    }
 }

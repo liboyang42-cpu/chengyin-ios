@@ -56,3 +56,7 @@ Swift XCTest / App / CI: authored isolation tests, **NOT_RUN** on Linux.
 No real payment / refund / redeem / award.
 
 WAITING_SOURCE: transfer-sold policy + designated recipient authorization + irrevocable-effect originals; invoice file storage; 25-App T01–20 / T43–58 not signed as Git objects on this public tree. Not 100% of T01–20.
+
+## Parent addendum 2026-10-23 20:40 America/Los_Angeles
+
+`EntitlementHoldProjection.projectFromLedger` 只读既有 `perkLedger.listEntitlements`。缺端口 WAITING_SOURCE。未见 chapter 保持 UNKNOWN，不占容量。不调用 reserve/redeem。XCTest NOT_RUN on Linux. Not 100%。

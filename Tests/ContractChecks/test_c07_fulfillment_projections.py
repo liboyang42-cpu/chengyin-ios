@@ -130,9 +130,12 @@ class C07FulfillmentProjectionContracts(unittest.TestCase):
         self.assertIn("executedRedeem", hold)
         self.assertIn("executedAward", hold)
         self.assertIn("occupyCountByRequestID", hold)
+        self.assertIn("perkLedger.listEntitlements", hold)
+        self.assertIn("projectFromLedger", hold)
         tests = self.sources["Tests/CoreTests/EntitlementHoldProjectionTests.swift"]
         self.assertIn("holdingIsIssuance", tests)
         self.assertIn("occupyCount(originalRequestID: \"c07-hold-1\"), 1", tests)
+        self.assertIn("testProjectFromLedgerRequiresPerkListAndNewInstanceReadsExistingEntitlement", tests)
 
     def test_account_switch_isolation_markers_present(self):
         evidence = self.sources["Tests/CoreTests/FulfillmentEvidenceProjectionTests.swift"]
