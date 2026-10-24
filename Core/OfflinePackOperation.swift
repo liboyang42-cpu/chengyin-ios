@@ -52,7 +52,8 @@ public struct OfflinePackManifest: Equatable, Sendable {
     public let expiresAt: Date
     public init?(packID: String, operationID: String, version: String, byteSize: Int,
                  checksum: String, publicPlaceIDs: [Int], expiresAt: Date) {
-        guard !packID.isEmpty, packID.count <= 64, !operationID.isEmpty, operationID.count <= 64,
+        guard !OfflinePackOperation.isBlank(packID), packID.count <= 64,
+              !OfflinePackOperation.isBlank(operationID), operationID.count <= 64,
               OfflinePackOperation.versionOK(version), byteSize > 0, byteSize <= 500_000_000,
               checksum.count == 64, checksum.allSatisfy(\.isHexDigit),
               publicPlaceIDs.count <= 256, publicPlaceIDs.allSatisfy({ $0 > 0 }),
@@ -84,6 +85,9 @@ public struct OfflinePackOperation: Equatable {
         guard let operationID else { return nil }
         return OfflinePackSnapshot(operationID: operationID, phase: phase,
                                    manifest: manifest, retainedPriorVersion: retainedPrior?.version)
+    }
+    public static func isBlank(_ value: String) -> Bool {
+        value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     public static func versionOK(_ value: String) -> Bool {
         !value.isEmpty && value.count <= 64 && value == value.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -225,6 +229,10 @@ public struct OfflinePackOperation: Equatable {
     private mutating func verifyPayload(_ payload: Data) throws {
         guard let manifest, payload.count == manifest.byteSize,
               Self.sha256Hex(payload).caseInsensitiveCompare(manifest.checksum) == .orderedSame else {
+            if let prior = retainedPrior, phase == .updating {
+                restorePrior(prior)
+                throw OfflinePackFailure.corrupt
+            }
             phase = .corrupt
             failure = .corrupt
             throw OfflinePackFailure.corrupt

@@ -204,6 +204,33 @@ final class OfflinePackOperationTests: XCTestCase {
         XCTAssertEqual(pack.operationID, "op-fin")
         XCTAssertEqual(pack.manifest?.version, "pack-v2")
     }
+    func testBlankAuthorityIsInvalidAndBadUpdateShaRestoresKeptPrior() throws {
+        XCTAssertNil(OfflinePackManifest(
+            packID: "   ", operationID: "op-1", version: "pack-v1", byteSize: payload.count,
+            checksum: checksum, publicPlaceIDs: [11], expiresAt: later))
+        XCTAssertNil(OfflinePackManifest(
+            packID: "pack-a", operationID: " \n", version: "pack-v1", byteSize: payload.count,
+            checksum: checksum, publicPlaceIDs: [11], expiresAt: later))
+        var pack = OfflinePackOperation()
+        try pack.startDownload(try manifest(operationID: "op-bad"))
+        try pack.finishDownload(payload: payload)
+        try pack.applyUpdate(try manifest(version: "pack-v2", operationID: "op-bad"), keepOld: true)
+        var wrong = payload
+        wrong[0] ^= 0xff
+        XCTAssertEqual(wrong.count, payload.count)
+        XCTAssertThrowsError(try pack.finishUpdate(payload: wrong)) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .corrupt)
+        }
+        XCTAssertEqual(pack.phase, .ready)
+        XCTAssertEqual(pack.manifest?.version, "pack-v1")
+        XCTAssertEqual(pack.operationID, "op-bad")
+        try pack.applyUpdate(try manifest(version: "pack-v2", operationID: "op-bad"), keepOld: false)
+        XCTAssertThrowsError(try pack.finishUpdate(payload: wrong)) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .corrupt)
+        }
+        XCTAssertEqual(pack.phase, .corrupt)
+        XCTAssertEqual(pack.manifest?.version, "pack-v2")
+    }
     func testAnswersAndHiddenCoordinatesAreNotShipped() throws {
         XCTAssertThrowsError(try OfflinePackOperation.inspect(["answer": "42"])) { error in
             XCTAssertEqual(error as? OfflinePackFailure, .answersOrHiddenCoordinatesForbidden)
