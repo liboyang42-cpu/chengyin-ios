@@ -249,9 +249,24 @@ public enum GameReceiptOriginalRecovery {
         } catch PlayExperienceError.unknownResult {
             guard generation == stamp, currentSession() == session else { return }
             do {
-                _ = try await service.playerReceipt(command, token: session.token)
-                try check(session, stamp)
-                await load()
+                let recovered = try await GameReceiptOriginalRecovery.recoverFromGameReceipt(
+                    memberID: Int64(session.accountID),
+                    activityID: Int64(command.activityID),
+                    requestID: command.requestID,
+                    receipt: { _, _, _ in
+                        let found = try await service.playerReceipt(command, token: session.token)
+                        return (found.requestID, Int64(found.activityID), found.outcome, false)
+                    })
+                guard let recovered else {
+                    availability = .unknown
+                    return
+                }
+                if recovered.applied || recovered.outcome == "FAILED" || recovered.outcome == "APPLIED" {
+                    try check(session, stamp)
+                    await load()
+                    return
+                }
+                availability = .unknown
             } catch {
                 guard generation == stamp else { return }
                 issue = error as? PlayExperienceError ?? .unknownResult
