@@ -218,6 +218,17 @@ final class MerchantSupplyDryRunProjectionTests: XCTestCase {
         })
         XCTAssertEqual(recovered, .object(["requestId": .string("desk-req-01"), "state": .string("APPLIED"),
                                            "action": .string("SAVE_SKU"), "targetId": .int(44)]))
+        do {
+            _ = try await supply.recoverFromDeskReceipt(ownerMemberID: 7, requestID: "desk-req-01",
+                                                        receipt: { _, id in
+                .object(["requestId": .string(id), "state": .string("APPLIED"),
+                         "action": .string("SAVE_SKU"), "targetId": .int(44),
+                         "ownerMemberId": .int(8)])
+            })
+            XCTFail("another owner is not this desk receipt")
+        } catch let wrongOwner as MerchantSupplyDryRunProjection.WireFailure {
+            XCTAssertEqual(wrongOwner, .notThisRequest)
+        }
         XCTAssertEqual(supply.holdCount(originalRequestID: "desk-req-01"), 0)
         XCTAssertEqual(supply.recoverOriginal(originalRequestID: "desk-req-01").outcome, .unknown)
     }

@@ -106,8 +106,9 @@ public struct MerchantSupplyDryRunProjection: Equatable {
         }
         return Self.unknown(requestID, "original intent unknown")
     }
-    /// Read IMerchantDeskService.receipt. NOT_FOUND returns nil and does not hold.
-    /// Does not save a SKU.
+    /// Read IMerchantDeskService.receipt. A matching NOT_FOUND wire is returned and does not hold.
+    /// Does not save a SKU. A numeric ownerMemberId for another member is not this receipt.
+    /// The public receipt does not echo ownerMemberId, so a missing owner stays on the wire.
     public indirect enum Wire: Equatable, Sendable {
         case null
         case bool(Bool)
@@ -137,6 +138,9 @@ public struct MerchantSupplyDryRunProjection: Equatable {
         }
         if case .string(let state) = fields["state"], state == "NOT_FOUND" {
             return found
+        }
+        if case .int(let owner) = fields["ownerMemberId"], owner != ownerMemberID {
+            throw WireFailure.notThisRequest
         }
         guard case .string(let action) = fields["action"], !action.isEmpty,
               case .int = fields["targetId"] else {
