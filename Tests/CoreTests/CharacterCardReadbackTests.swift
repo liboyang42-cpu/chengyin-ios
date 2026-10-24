@@ -188,6 +188,30 @@ import FoundationNetworking
         XCTAssertNotEqual(model.originalRequestID, other.requestID)
         XCTAssertNotEqual(model.originalRequestID, "")
     }
+    func testRecoverFromRouteActionReadsExistingActionWithoutOccupyingRequestID() throws {
+        XCTAssertNil(try RouteActionOriginalRecovery.recoverFromRouteAction(
+            sessionID: nil, memberID: 7, actionID: "ask:40:why", selectAction: { _, _, _ in "ask:40:why" }))
+        XCTAssertNil(try RouteActionOriginalRecovery.recoverFromRouteAction(
+            sessionID: 30, memberID: nil, actionID: "ask:40:why", selectAction: { _, _, _ in "ask:40:why" }))
+        XCTAssertNil(try RouteActionOriginalRecovery.recoverFromRouteAction(
+            sessionID: 30, memberID: 7, actionID: "   ", selectAction: { _, _, _ in "ask:40:why" }))
+        do {
+            _ = try RouteActionOriginalRecovery.recoverFromRouteAction(
+                sessionID: 30, memberID: 7, actionID: "ask:40:why", selectAction: nil)
+            XCTFail("missing mapper must WAITING_SOURCE")
+        } catch let waiting as RouteActionOriginalRecovery.WaitingSource {
+            XCTAssertEqual(waiting.capability, RouteActionOriginalRecovery.rpgRequestReceipts)
+        }
+        let neverSeen = try RouteActionOriginalRecovery.recoverFromRouteAction(
+            sessionID: 30, memberID: 7, actionID: "c02-route-missing",
+            selectAction: { _, _, id in id == "ask:40:why" ? id : nil })
+        XCTAssertNil(neverSeen)
+        let recovered = try RouteActionOriginalRecovery.recoverFromRouteAction(
+            sessionID: 30, memberID: 7, actionID: "ask:40:why",
+            selectAction: { _, _, id in id == "ask:40:why" ? id : nil })
+        XCTAssertEqual(recovered?.actionID, "ask:40:why")
+        XCTAssertEqual(recovered?.replay, true)
+    }
 }
 
 @MainActor private final class Owner {

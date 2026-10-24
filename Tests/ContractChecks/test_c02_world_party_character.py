@@ -45,6 +45,9 @@ class C02WorldPartyCharacterContracts(unittest.TestCase):
         self.assertNotIn('UUID().uuidString', card)
         self.assertIn('PlayPlayerTeamState', CORE['party'].read_text())
         self.assertIn('PlayAdvancedTeamProjection', CORE['party'].read_text())
+        self.assertIn('recoverFromRouteAction', card)
+        self.assertIn('rpgv2.RpgRequestReceipts', card)
+        self.assertNotIn('rpg2:', card)
 
     def test_missing_api_is_waiting_source_or_unknown_not_fake_success(self):
         for path in CORE.values():

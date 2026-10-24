@@ -79,6 +79,33 @@ public struct CharacterCard: Equatable {
     }
 }
 
+/// Read-only original route action. Caller supplies an already-resolved actionId;
+/// this does not invent a hashed action-id prefix. Missing mapper is WAITING_SOURCE.
+public enum RouteActionOriginalRecovery {
+    public static let rpgRequestReceipts = "rpgv2.RpgRequestReceipts"
+    public struct Receipt: Equatable {
+        public let actionID: String
+        public let replay: Bool
+    }
+    public struct WaitingSource: Error, Equatable {
+        public let capability: String
+    }
+    public static func recoverFromRouteAction(
+        sessionID: Int64?,
+        memberID: Int64?,
+        actionID: String?,
+        selectAction: ((Int64, Int64, String) -> String?)?
+    ) throws -> Receipt? {
+        let trimmed = actionID?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard let sessionID, let memberID, !trimmed.isEmpty else { return nil }
+        guard let selectAction else {
+            throw WaitingSource(capability: rpgRequestReceipts)
+        }
+        guard let found = selectAction(sessionID, memberID, trimmed) else { return nil }
+        return Receipt(actionID: found, replay: true)
+    }
+}
+
 /// Existing Play/RPG surfaces (`PlayExperienceView`, `PlayAdvancedView`,
 /// `PlayPlayerTeamStatusView`, `JourneyCheckCoordinator`, `PlayObjectCardRevealView`)
 /// stay the host. This lease only projects character / world facts through
