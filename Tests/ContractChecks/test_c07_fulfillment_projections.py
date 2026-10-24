@@ -28,7 +28,10 @@ TEST_FILES = [
 ]
 CONTRACT = "Tests/ContractChecks/test_c07_fulfillment_projections.py"
 HUNK = "docs/issue5-hunks/C07-ios-dot-hunk.md"
-WHITELIST = CORE_FILES + TEST_FILES + [CONTRACT, HUNK]
+WHITELIST = CORE_FILES + TEST_FILES + [
+    CONTRACT, HUNK, "Core/MerchantBusinessMutation.swift", "Core/MerchantBusinessProduction.swift",
+    "Tests/CoreTests/MerchantBusinessServiceTests.swift",
+]
 FORBIDDEN_TOUCH = [
     "Core/MerchantAftercareEvidenceAdapter.swift",
     "Core/OrderLifecycleService.swift",

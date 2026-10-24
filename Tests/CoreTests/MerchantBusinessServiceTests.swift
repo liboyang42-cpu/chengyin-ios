@@ -70,6 +70,21 @@ final class MerchantBusinessServiceTests: XCTestCase {
         XCTAssertEqual(financial.value(forHTTPHeaderField: "Content-Type"), "application/json")
         XCTAssertNotEqual(verification.url, financial.url)
     }
+    func testDeskSkuSaveDispatchesOriginalPath() async throws {
+        let fake = BusinessRecordingTransport(#"{"code":200,"msg":"Synthetic saved","data":{"skuId":44}}"#)
+        let sent = try await service(fake, writes: true).execute(
+            .saveSku(productID: 3, skuID: 44, name: "door", price: "1", stock: 2),
+            requestID: "desk-req-01", token: "synthetic-token")
+        XCTAssertEqual(sent.data.object?["skuId"], .int(44))
+        let request = try XCTUnwrap(await fake.requests.first)
+        XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertEqual(request.url?.path, "/test/api/merchant/desk/products/sku/save")
+        let body = String(decoding: try XCTUnwrap(request.httpBody), as: UTF8.self)
+        XCTAssertTrue(body.contains("\"skuName\":\"door\""))
+        XCTAssertTrue(body.contains("\"price\":\"1\""))
+        XCTAssertFalse(body.contains("ownerMemberId"))
+        XCTAssertFalse(body.contains("\"action\""))
+    }
     func testRequestBuilderNeverIncludesMerchantOwnerOrMemberScope() throws {
         let fake = BusinessRecordingTransport("{}"), service = try service(fake)
         let request = try service.makeRequest(MerchantBusinessQuery.batches(page: 1).request(), token: "synthetic-token")

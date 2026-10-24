@@ -14,6 +14,7 @@ public enum MerchantBusinessMutation: Equatable {
     case operatorRole(id: MerchantOperatorID, version: Int, role: String)
     case removeOperator(id: MerchantOperatorID, version: Int, reason: String)
     case revokeInvite(id: MerchantOperatorInviteID, version: Int, reason: String)
+    case saveSku(productID: Int, skuID: Int, name: String, price: String, stock: Int)
     public var titleKey: String {
         switch self {
         case .addNote(_, _, let correction): return correction == nil ? "merchant.business.addNote" : "merchant.business.correctNote"
@@ -23,6 +24,7 @@ public enum MerchantBusinessMutation: Equatable {
         case .review(_, _, let action, _): return "merchant.business.review.\(action.rawValue)"
         case .inviteOperator: return "merchant.business.inviteOperator"; case .operatorRole: return "merchant.business.changeRole"
         case .removeOperator: return "merchant.business.removeOperator"; case .revokeInvite: return "merchant.business.revokeInvite"
+        case .saveSku: return "merchant.desk.saveSku"
         }
     }
     public var permissions: [String] {
@@ -31,6 +33,7 @@ public enum MerchantBusinessMutation: Equatable {
         case .aftercare(_, let decision, _, _): return ["merchant:aftercare:read", decision == .evidence ? "merchant:aftercare:evidence" : "merchant:aftercare:decide"]
         case .review: return [] // The source row's explicit can* fields are checked below.
         case .inviteOperator, .operatorRole, .removeOperator, .revokeInvite: return ["merchant:operator:manage"]
+        case .saveSku: return ["merchant:project:manage"]
         }
     }
     public var targetKey: String {
@@ -42,6 +45,7 @@ public enum MerchantBusinessMutation: Equatable {
         case .inviteOperator: return "operator-invite"
         case .operatorRole(let id, _, _), .removeOperator(let id, _, _): return "operator:\(id.rawValue)"
         case .revokeInvite(let id, _, _): return "invite:\(id.rawValue)"
+        case .saveSku(_, let skuID, _, _, _): return "sku:\(skuID)"
         }
     }
     public func request(requestID: String) throws -> MerchantBusinessRequest {
@@ -100,6 +104,15 @@ public enum MerchantBusinessMutation: Equatable {
         case .revokeInvite(let id, let current, let reason):
             try version(current)
             return .json("api/merchant/operators/invite/revoke", ["inviteId": .int(id.rawValue), "version": .int(current), "reason": .string(try text(reason, min: 1, max: 200)), "requestId": rid])
+        case .saveSku(let productID, let skuID, let name, let price, let stock):
+            guard productID > 0, skuID > 0, (1...60).contains(name.count), (0...1_000_000).contains(stock),
+                  price.range(of: #"^[0-9]+(?:\.[0-9]{1,2})?$"#, options: .regularExpression) != nil else {
+                throw MerchantBusinessFailure.invalid
+            }
+            return .json("api/merchant/desk/products/sku/save", [
+                "requestId": rid, "productId": .int(productID), "skuId": .int(skuID),
+                "skuName": .string(name), "price": .string(price), "stock": .int(stock)
+            ])
         }
     }
     /// The authorization is freshly fetched again at dispatch. Current server capability flags
@@ -144,6 +157,8 @@ public enum MerchantBusinessMutation: Equatable {
         case .revokeInvite(let id, let version, _):
             let row = try find(.invite, id.rawValue)
             guard row["version"]?.integer == version, row.mbText("status") == "PENDING" else { throw MerchantBusinessFailure.conflict }
+        case .saveSku:
+            guard access.role == "MERCHANT_OWNER" else { throw MerchantBusinessFailure.denied }
         }
     }
 }
