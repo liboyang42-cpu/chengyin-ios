@@ -760,7 +760,7 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .invalidCatalog) }
         XCTAssertNil(rejected.intent)
         XCTAssertEqual(writes, 1)
-        let fresh = MessageHistoryAckEntry()
+        var fresh = MessageHistoryAckEntry()
         XCTAssertThrowsError(try fresh.recover(originalAccount: { _, _ in true }, receipt: { _, _ in
             writes += 1
             return [:]
