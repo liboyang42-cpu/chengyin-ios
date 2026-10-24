@@ -11,6 +11,12 @@ struct MerchantOperationsEditor: View {
     @State private var assist: MerchantTemplateAssistPresentation?
     @State private var categoryPicker: MerchantTemplateCategoryPickerModel?
     var imageContext: ((MerchantImageField) -> RetainedImageSelectionContext?)? = nil
+    /// Supplied by the session. Nil stays on this page and does not construct a publisher.
+    var authorFlow: MerchantNPCKnowledgeAuthorFlow? = nil
+    var draftReadMemberID: Int64? = nil
+    var draftReadRequestID: String? = nil
+    var draftRead: ((Int64, String) -> MerchantNPCDraftReadFact?)? = nil
+    @State private var showsUnpublishedDraft = false
     private var coordinator: MerchantOperationsCoordinator { model.coordinator }
     private var isExample: Bool { coordinator.reader.isOfflineExample }
     var body: some View {
@@ -158,6 +164,16 @@ struct MerchantOperationsEditor: View {
                     Text("merchantPreset.emptyPersona").font(.footnote).foregroundStyle(.secondary)
                 }
                 Text("merchant.operations.characterReviewHint").font(.footnote).foregroundStyle(.secondary)
+                if authorFlow != nil {
+                    Button("merchantNPC.author.submit") { Task { await submitAuthoredFields() } }
+                        .font(.body)
+                        .disabled(!coordinator.isCurrent || coordinator.isBusy || coordinator.isLocked || coordinator.confirmation != nil)
+                        .accessibilityIdentifier("merchantNPC.author.submit")
+                    if showsUnpublishedDraft || authorFlow?.gate.published == nil {
+                        Text("merchantNPC.draft.unpublished").font(.footnote).foregroundStyle(.secondary)
+                            .accessibilityIdentifier("merchantNPC.author.unpublished")
+                    }
+                }
             }
             mediaSection("merchant.operations.avatar", field: .avatar)
             MerchantNPCGreetingPreviewEntry(document: model).id(coordinator.draftIdentity)
@@ -300,6 +316,40 @@ struct MerchantOperationsEditor: View {
         TextField(title, text: Binding(get: { currentTemplate?[keyPath: key] ?? "" }, set: { text in
             guard var value = currentTemplate else { return }; value[keyPath: key] = text; model.edit(.template(value))
         }), axis: .vertical).accessibilityIdentifier("merchant.operations.field." + id)
+    }
+
+    /// The merchant submits name, greeting, persona, and knowledge on this character page.
+    /// The existing author flow ingests an AI draft and stops at original review.
+    /// A missing publisher stays unpublished. Draft readback does not change the phase.
+    private func submitAuthoredFields() async {
+        guard let flow = authorFlow else { return }
+        guard let source = coordinator.draft, case .character = source,
+              let name = MerchantNPCFieldDraft(field: .name, source: source),
+              let greeting = MerchantNPCFieldDraft(field: .greeting, source: source),
+              let persona = MerchantNPCFieldDraft(field: .persona, source: source),
+              let knowledge = MerchantNPCFieldDraft(field: .knowledge, source: source) else { return }
+        do {
+            _ = try flow.supply(name: name, greeting: greeting, persona: persona, knowledge: knowledge, source: source)
+            try flow.ingestAsAIDraft()
+            if let authorizer = MerchantNPCAuthorizer(accountID: flow.gate.scope.accountID, merchantRowID: flow.gate.scope.merchantRowID) {
+                try flow.verify(authorizer)
+                _ = try await flow.submitForOriginalReview(requestID: UUID())
+            }
+        } catch {
+            // Missing review or draft capability stays on the authored character.
+        }
+        let phase = flow.gate.phase
+        do {
+            _ = try flow.recoverFromDraftRead(memberID: draftReadMemberID, requestID: draftReadRequestID, read: draftRead)
+        } catch {
+            // A missing read closure stays on the same phase.
+        }
+        guard flow.gate.phase == phase else { return }
+        if flow.stayedOnMissingPublisher {
+            showsUnpublishedDraft = flow.gate.published == nil
+        } else {
+            showsUnpublishedDraft = flow.gate.published == nil && flow.gate.phase != .published
+        }
     }
 }
 
