@@ -126,3 +126,11 @@ Must run from the chengyin-ios worktree cwd (not `/tmp`). Swift XCTest: authored
 `WebhookSameEventRetryTests.testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueDeliverApplies`：未见 `evt-retry-never-c09` 的 `recoverOriginal` 保持 `UNKNOWN_NOT_RECOVERED` 且 `originalByEventID` 仍空；后续唯一 `deliver` 才是第一笔 DELIVERED。`recoverOriginal` 对未见 id 不 mint 新 request。
 
 XCTest NOT_RUN on Linux. Not 100%.
+
+## 6. Parent addendum 2026-10-23 19:08 America/Los_Angeles
+
+HEAD `34a00334` tests. Did not invent recoverOriginal.
+
+`DevicePushRegistrationLifecycleTests.testUnusedRevokeOfNeverSeenDoesNotOccupyThenUniqueRegisterApplies`：未见 `dev-revoke-never-c09` 的 `revoke` 抛 `originalMissing` 且 `originalByDeviceID` 仍空；后续唯一 `register` 才是 ACTIVE。
+
+Parent python `Tests.ContractChecks.test_c09_notify_webhook_projections` **9/0**. XCTest NOT_RUN on Linux. Not 100%.
