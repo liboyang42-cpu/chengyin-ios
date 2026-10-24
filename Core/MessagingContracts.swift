@@ -20,6 +20,52 @@ public struct MessagingCounterparty: Decodable, Equatable {
     public let nickname: String?
     public let avatar: String?
     public let bizKey: String?
+    /// Present only when this object already carries channel, guild kind, and guild id together.
+    public let directoryContext: MessagingDirectoryContext?
+
+    private enum CodingKeys: String, CodingKey {
+        case id, nickname, avatar, bizKey, channel_id, guild_kind, guild_id
+    }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decodeIfPresent(Int.self, forKey: .id)
+        nickname = try c.decodeIfPresent(String.self, forKey: .nickname)
+        avatar = try c.decodeIfPresent(String.self, forKey: .avatar)
+        bizKey = try c.decodeIfPresent(String.self, forKey: .bizKey)
+        directoryContext = MessagingDirectoryFacts.context(c, channel: .channel_id, space: .guild_id, kind: .guild_kind)
+    }
+}
+
+/// Channel and space already present together. A conversation id is not a channel id.
+public struct MessagingDirectoryContext: Equatable {
+    public let channelID: Int
+    public let spaceID: Int64
+    public let kind: Int
+}
+
+enum MessagingDirectoryFacts {
+    static func context<K: CodingKey>(_ container: KeyedDecodingContainer<K>, channel: K, space: K, kind: K) -> MessagingDirectoryContext? {
+        guard let channelID = positive(container, channel), channelID <= Int64(Int.max),
+              let spaceID = positive(container, space),
+              let kind = guildKind(container, kind) else { return nil }
+        return MessagingDirectoryContext(channelID: Int(channelID), spaceID: spaceID, kind: kind)
+    }
+
+    private static func positive<K: CodingKey>(_ container: KeyedDecodingContainer<K>, _ key: K) -> Int64? {
+        if let number = try? container.decode(Int64.self, forKey: key) {
+            return number > 0 ? number : nil
+        }
+        guard let text = try? container.decode(String.self, forKey: key),
+              text.count <= 19, text.allSatisfy({ $0.isASCII && $0.isNumber }),
+              !(text.count > 1 && text.hasPrefix("0")),
+              let number = Int64(text), String(number) == text, number > 0 else { return nil }
+        return number
+    }
+
+    private static func guildKind<K: CodingKey>(_ container: KeyedDecodingContainer<K>, _ key: K) -> Int? {
+        guard let number = positive(container, key), number == 1 || number == 3 else { return nil }
+        return Int(number)
+    }
 }
 
 public struct MessagingConversation: Decodable, Equatable, Identifiable {
@@ -33,10 +79,13 @@ public struct MessagingConversation: Decodable, Equatable, Identifiable {
     public let unread: Int?
     /// Only documented 0/1 or "0"/"1" values are accepted; absent/other stays unknown.
     public let muted: Bool?
+    /// Own fields, then an existing context object, then the counterparty. Never mixed, never invented.
+    public let directoryContext: MessagingDirectoryContext?
     public var kind: MessagingConversationKind { .init(rawValue: type) }
 
     private enum CodingKeys: String, CodingKey {
         case conversationId, type, counterparty, lastMsgType, lastMsgText, lastMsgAt, unread, muted
+        case channel_id, guild_kind, guild_id, context
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -44,6 +93,12 @@ public struct MessagingConversation: Decodable, Equatable, Identifiable {
         guard id > 0 else { throw APIError.malformedResponse }
         type = try c.decodeIfPresent(Int.self, forKey: .type)
         counterparty = try c.decodeIfPresent(MessagingCounterparty.self, forKey: .counterparty)
+        let own = MessagingDirectoryFacts.context(c, channel: .channel_id, space: .guild_id, kind: .guild_kind)
+        var nested: MessagingDirectoryContext?
+        if let box = try? c.decodeIfPresent(MessagingDirectoryContextBox.self, forKey: .context) {
+            nested = box?.value
+        }
+        directoryContext = own ?? nested ?? counterparty?.directoryContext
         // The conversation response has no last-message status provenance. It may
         // retain recalled text, so never keep its unverified preview payload.
         lastMessageType = nil
@@ -199,6 +254,15 @@ public struct MessagingCardResult: Equatable {
     public let reason: String?
     public let followUp: String?
     public var isEmpty: Bool { [taskID, businessID, outcome, reason, followUp].allSatisfy { $0 == nil } }
+}
+
+private struct MessagingDirectoryContextBox: Decodable {
+    let value: MessagingDirectoryContext?
+    private enum CodingKeys: String, CodingKey { case channel_id, guild_kind, guild_id }
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        value = MessagingDirectoryFacts.context(c, channel: .channel_id, space: .guild_id, kind: .guild_kind)
+    }
 }
 
 private struct MessagingWireText: Decodable {

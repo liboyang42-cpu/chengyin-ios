@@ -59,6 +59,7 @@ private struct MessagingConversationListView: View {
                             ForEach(Array(rows.prefix(displayLimit))) { conversation in
                                 NavigationLink {
                                     MessagingHistoryView(conversationID:conversation.id,conversation:conversation,reader:reader,sender:senderForConversation?(conversation.id),mediaReader:mediaReader,expanded:expanded,
+                                        directory: messagingHistoryDirectoryRequest(reader: reader, conversation: conversation),
                                         onConversationMutationAccepted: conversationInvalidation(for: conversation.id))
                                 } label: { MessagingConversationRow(conversation: conversation) }
                                 .accessibilityIdentifier("messaging.conversation.\(conversation.id)")
@@ -224,6 +225,16 @@ private struct MessagingConversationListView: View {
         if conversation.lastMessageType == 3 { return appLocalized("messaging.card",locale:locale) }
         return ""
     }
+}
+
+/// Uses the channel and space already on this conversation. Missing guild kind or guild id stays closed.
+@MainActor func messagingHistoryDirectoryRequest(reader: any MessagingReading, conversation: MessagingConversation) -> ChannelDirectoryAdmissionRequest? {
+    guard let context = conversation.directoryContext,
+          let hold = (reader as? MessagingSessionReader)?.directoryTransportHold() else { return nil }
+    return ChannelDirectoryTransportInjection.request(
+        configuration: hold.configuration, transport: hold.transport, token: hold.token,
+        accountID: hold.accountID, epoch: hold.epoch,
+        selection: ChannelDirectorySelection(channelID: context.channelID, spaceID: context.spaceID, kind: context.kind))
 }
 
 private struct MessagingConversationRow: View {

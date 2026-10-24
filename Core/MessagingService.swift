@@ -25,6 +25,11 @@ public struct MessagingService {
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {
         self.configuration = configuration; self.transport = transport
     }
+    func directoryTransportHold(token: String, accountID: Int, epoch: UInt64) -> MessagingDirectoryTransportHold? {
+        guard accountID > 0, AuthRequestBuilder.isValidToken(token) else { return nil }
+        return MessagingDirectoryTransportHold(configuration: configuration, transport: transport, token: token,
+            accountID: accountID, epoch: epoch)
+    }
     /// Source returns a bare data array and accepts no paging/search/account arguments.
     public func conversations(token: String) async throws -> [MessagingConversation] {
         let rows: [MessagingConversation] = try await execute(path: "api/im/conversations", fields: [:], token: token)
