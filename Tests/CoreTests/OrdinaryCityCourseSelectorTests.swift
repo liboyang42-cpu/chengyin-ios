@@ -437,4 +437,26 @@ final class OrdinaryCityCourseSelectorTests: XCTestCase {
         XCTAssertEqual(recovered?["state"], "PARTIAL")
         XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "c04-reward-missing").outcome, .notFound)
     }
+    func testRecoverFromScoringReceiptReadsOriginalWithoutOccupyingFinishLedger() throws {
+        var ledger = EventScoreOriginalLedger()
+        XCTAssertNil(try ledger.recoverFromScoringReceipt(
+            memberID: 7, kind: "SCORE", sessionID: 30, idempotencyKey: "scr-rcpt-01",
+            receipt: { _, _, _, _ in ["state": "ACCEPTED"] }))
+        do {
+            _ = try ledger.recoverFromScoringReceipt(
+                memberID: 7, kind: "APPEAL", sessionID: 30, idempotencyKey: "scr-rcpt-01", receipt: nil)
+            XCTFail("missing scoring receipt must WAITING_SOURCE")
+        } catch let waiting as EventScoreOriginalLedger.WaitingSource {
+            XCTAssertEqual(waiting.capability, EventScoreOriginalLedger.scoringReceipt)
+        }
+        XCTAssertNil(try ledger.recoverFromScoringReceipt(
+            memberID: 7, kind: "APPEAL", sessionID: 30, idempotencyKey: "scr-rcpt-none",
+            receipt: { _, _, _, _ in ["state": "NOT_FOUND"] }))
+        XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "scr-rcpt-none").outcome, .notFound)
+        let recovered = try ledger.recoverFromScoringReceipt(
+            memberID: 7, kind: "APPEAL", sessionID: 30, idempotencyKey: "scr-rcpt-01",
+            receipt: { _, kind, _, key in kind == "APPEAL" && key == "scr-rcpt-01" ? ["state": "ACCEPTED"] : nil })
+        XCTAssertEqual(recovered?["state"], "ACCEPTED")
+        XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "scr-rcpt-01").outcome, .notFound)
+    }
 }

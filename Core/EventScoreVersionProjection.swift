@@ -231,6 +231,8 @@ public struct EventScoreOriginalLedger: Equatable {
     }
 
     public static let originalRewardRead = "orientation.originalRewardRead"
+    public static let scoringReceipt = "orientScoring.receipt"
+    public static let receiptKinds: Set<String> = ["SETTLE", "APPEAL", "DISPUTE"]
     public struct WaitingSource: Error, Equatable {
         public let capability: String
     }
@@ -248,6 +250,26 @@ public struct EventScoreOriginalLedger: Equatable {
             throw WaitingSource(capability: Self.originalRewardRead)
         }
         return read(memberID, sessionID)
+    }
+
+    /// Read IOrientScoringService.receipt. Kind must be SETTLE, APPEAL, or DISPUTE.
+    /// NOT_FOUND returns nil and does not occupy freeze/finish keys. Does not append.
+    public func recoverFromScoringReceipt(
+        memberID: Int64?,
+        kind: String?,
+        sessionID: Int64?,
+        idempotencyKey: String?,
+        receipt: ((Int64, String, Int64, String) -> [String: String]?)?
+    ) throws -> [String: String]? {
+        guard let memberID, memberID > 0, let sessionID, sessionID > 0,
+              let key = EventScoreRequestIdentity.parse(idempotencyKey),
+              let kind, Self.receiptKinds.contains(kind) else { return nil }
+        guard let receipt else {
+            throw WaitingSource(capability: Self.scoringReceipt)
+        }
+        guard let found = receipt(memberID, kind, sessionID, key) else { return nil }
+        if found["state"] == "NOT_FOUND" { return nil }
+        return found
     }
 
     private func runMatching(_ start: EventScoreStartPayload) -> Run? {
