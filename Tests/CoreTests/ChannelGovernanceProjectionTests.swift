@@ -270,6 +270,34 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         XCTAssertNil(journey.grant)
     }
 
+    func testAuthorizeFromMembershipRequiresImActiveGroupMemberThenLiveMemberIssuesGrant() throws {
+        var missing = try memberReady()
+        XCTAssertThrowsError(try missing.authorizeFromMembership(memberID: 70, isActiveGroupMember: nil)) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .waitingSource)
+        }
+        XCTAssertNil(missing.grant)
+        XCTAssertEqual(missing.phase, .memberRoleAssigned)
+        var denied = try memberReady()
+        XCTAssertThrowsError(try denied.authorizeFromMembership(memberID: 70, isActiveGroupMember: { _, _ in false })) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .notMember)
+        }
+        XCTAssertNil(denied.grant)
+        var live = try memberReady()
+        let grant = try live.authorizeFromMembership(memberID: 70, isActiveGroupMember: { memberID, conversationID in
+            memberID == 70 && conversationID == 12
+        })
+        XCTAssertEqual(live.phase, .authorizedReadWrite)
+        XCTAssertEqual(grant.identity.accountID, 7)
+    }
+
+    private func memberReady() throws -> ChannelGovernanceProjection {
+        var journey = ChannelGovernanceProjection(catalog: try catalog(), identity: try identity())
+        try journey.consentToPublishedRules(try admission(try identity()))
+        try journey.submitInviteOrApply()
+        try journey.assignMemberRole(.member)
+        return journey
+    }
+
     func testMissingACCOUNT4StaysMismatchNeverEmptyIdentity() {
         XCTAssertThrowsError(try ChannelAccount4Identity(accountID: 0, epoch: 1)) {
             XCTAssertEqual($0 as? ChannelAuthorizationError, .account4Mismatch)

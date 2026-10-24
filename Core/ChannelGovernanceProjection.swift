@@ -104,6 +104,7 @@ public struct ChannelCatalogEntry: Equatable, Sendable {
 /// → leave/ban/appeal projection. Does not own public IM send/receipt, journal, or
 /// native 43/45/46/47 adapters.
 public struct ChannelGovernanceProjection: Equatable, Sendable {
+    public static let imActiveGroupMember = "im.isActiveGroupMember"
     public let catalog: ChannelCatalogEntry
     public let identity: ChannelAccount4Identity
     public private(set) var phase: ChannelGovernancePhase
@@ -174,6 +175,15 @@ public struct ChannelGovernanceProjection: Equatable, Sendable {
         phase = .authorizedReadWrite
         bump()
         return grant!
+    }
+
+    public mutating func authorizeFromMembership(memberID: Int64,
+                                                 isActiveGroupMember: ((Int64, Int64) -> Bool)?) throws -> ChannelAuthorizationGrant {
+        guard let isActiveGroupMember else { throw ChannelAuthorizationError.waitingSource }
+        guard isActiveGroupMember(memberID, Int64(catalog.conversationID)) else {
+            throw ChannelAuthorizationError.notMember
+        }
+        return try authorizeReadWrite()
     }
 
     public mutating func govern() throws {
