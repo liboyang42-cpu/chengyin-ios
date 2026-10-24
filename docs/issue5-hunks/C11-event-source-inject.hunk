@@ -1,0 +1,61 @@
+# C11 event-source inject — DO NOT APPLY
+
+Issue: https://github.com/liboyang42-cpu/chengyin-remote-ops/issues/5
+Repo: github.com/liboyang42-cpu/chengyin-ios
+Base: origin/cursor/c11-profile-orders-lookup-e504 6272cd2d16957959397ebf68b94a8e1447bdf6c0
+Branch: cursor/c11-event-source-inject-e504
+
+DO NOT APPLY this hunk. Do not edit App/AppSession.swift, App/AppCompositionRoot.swift, or Questify.xcodeproj/project.pbxproj from this branch.
+
+## Where the rows are
+
+No original-event read on this branch returns already loaded `[OriginalAuditEvent]` rows.
+`SupportEventLocator` only reads an `OriginalEventSource` the caller passes in.
+`InMemoryOriginalEventSource` exists only in tests.
+
+The signed-in order reads are only on AppSession:
+
+- `ownedOrderReader` / `currentOwnedOrderSession` / `ownedOrderSignedInIdentity` (around line 3096)
+- `profileReader` (around line 3113)
+- `orderLifecycleReader` / `orderLifecycleJournal` (`orders-v1.json` reservations, not original audit rows)
+
+Those readers return `ProfileOrder` or `OrderLifecycleDetail` on demand. They do not store original audit rows. Do not synthesize `OriginalAuditEvent` from `ProfileOrder`. Do not call an admin audit-log API.
+
+## What the page can call
+
+`Core/ProfileOrderEventSourceInjection.swift` accepts an explicit source.
+
+- Rows present: pass them into the existing `SupportLookupEntry.lookupByOrderId`. The request's first ORDER id must equal the opened order. A different id is `originalMissing`.
+- Source absent (`nil`): `entry()` and `lookupOpenedOrder` return nil, `lookups` stays 0, and nothing is sent.
+
+```swift
+var injection = ProfileOrderEventSourceInjection(events: loadedOriginalOrderEvents)
+if let entry = injection.entry() {
+    orderSupport = ProfileOrderSupportLookup(entry: entry, currentProjection: nil)
+}
+let opened = try injection.lookupOpenedOrder(openedOrderID)
+```
+
+`loadedOriginalOrderEvents` is not a member of AppSession. Until a real array is passed, the orders page keeps `orderSupport == nil` and stays quiet.
+
+## Withheld call site (signed-in orders host)
+
+File: `App/OwnedOrderComposition.swift` `SessionOwnedOrdersView`
+Do not apply. AppSession has no original-event array to pass.
+
+```
+         ProfileOrdersView(reader: session.ownedOrderReader, ticketReader: session.ticketWalletReader)
++            orderSupport stays nil while loadedOriginalOrderEvents is absent
+```
+
+## Xcode ref (generator id only — do not edit pbxproj here)
+
+```
+Core/ProfileOrderEventSourceInjection.swift
+  PBXFileReference E4EBDBD8004184448257DAD7
+  PBXBuildFile     0ACC7EDB105A7757E4509C27  fileRef = E4EBDBD8004184448257DAD7
+```
+
+`python3 tools/generate_project.py` emits those ids from `ident(path)` / `ident("build:"+path)`. Tests/CoreTests stay SwiftPM-only.
+
+App / XCTest / CI = NOT_RUN. swiftc was not required to land this file. Not 100%.

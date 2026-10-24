@@ -16,6 +16,7 @@ CORE_FILES = [
     "Core/DataDeletionEvidenceTable.swift",
     "Core/ReviewResultVisibilityAdapter.swift",
     "Core/VersionedLocaleDisplay.swift",
+    "Core/ProfileOrderEventSourceInjection.swift",
 ]
 TEST_FILES = [
     "Tests/CoreTests/SupportEventLocatorTests.swift",
@@ -24,15 +25,19 @@ TEST_FILES = [
     "Tests/CoreTests/DataDeletionEvidenceTableTests.swift",
     "Tests/CoreTests/ReviewResultVisibilityAdapterTests.swift",
     "Tests/CoreTests/VersionedLocaleDisplayTests.swift",
+    "Tests/CoreTests/ProfileOrderEventSourceInjectionTests.swift",
 ]
 CONTRACT = "Tests/ContractChecks/test_c11_ops_support_projections.py"
 HUNK = "docs/issue5-hunks/C11-ios-dot-hunk.md"
+EVENT_SOURCE_HUNK = "docs/issue5-hunks/C11-event-source-inject.hunk"
 WHITELIST = CORE_FILES + TEST_FILES + [
     CONTRACT,
     HUNK,
+    EVENT_SOURCE_HUNK,
     "App/WithdrawalSupportLandingView.swift",
     "App/ProfileOrdersView.swift",
 ]
+EVENT_SOURCE_PARENT = "6272cd2d16957959397ebf68b94a8e1447bdf6c0"
 FORBIDDEN_TOUCH = [
     "App/AppSession.swift",
     "App/AppCompositionRoot.swift",
@@ -347,6 +352,48 @@ class C11OpsSupportProjectionContracts(unittest.TestCase):
         self.assertIn("XCTest on Linux is NOT_RUN", Path(__file__).read_text())
         self.assertIn("not 100%", Path(__file__).read_text())
         self.assertIn("App / XCTest / CI = NOT_RUN", Path(__file__).read_text())
+
+    def test_event_source_injection_accepts_explicit_rows_and_stays_quiet(self):
+        source = self.sources["Core/ProfileOrderEventSourceInjection.swift"]
+        tests = self.sources["Tests/CoreTests/ProfileOrderEventSourceInjectionTests.swift"]
+        hunk = (ROOT / EVENT_SOURCE_HUNK).read_text()
+        self.assertTrue(source.startswith("import Foundation"))
+        self.assertIn("struct ProfileOrderEventSourceInjection", source)
+        self.assertIn("func entry()", source)
+        self.assertIn("func lookupOpenedOrder(", source)
+        self.assertIn("func recoverOriginal(", source)
+        self.assertIn("SupportLookupEntry", source)
+        self.assertIn("SupportEventLocator", source)
+        self.assertIn("originalMissing", source)
+        self.assertIn("first ORDER id", source)
+        self.assertIn("guard let events else { return nil }", source)
+        self.assertIn("Not a second audit store", source)
+        self.assertNotIn("audit-log", source.lower())
+        self.assertNotIn("admin/audit", source.lower())
+        self.assertNotIn("gradient", source.lower())
+        self.assertNotIn("glow", source.lower())
+        self.assertIn("testFirstJourneyOpenedOrderPassesLoadedEventsAndRecoverOriginal", tests)
+        self.assertIn('originalMissing(requestId: "ORDER:9")', tests)
+        self.assertIn('originalMissing(requestId: "ORDER:501")', tests)
+        self.assertIn("testAbsentSourceStaysQuietAndDoesNotInventEvents", tests)
+        self.assertIn("DO NOT APPLY", hunk)
+        self.assertIn("AppSession", hunk)
+        self.assertIn("E4EBDBD8004184448257DAD7", hunk)
+        self.assertIn("0ACC7EDB105A7757E4509C27", hunk)
+        self.assertIn("Not 100%", hunk)
+        self.assertIn("NOT_RUN", hunk)
+        untouched = [
+            "App/ProfileOrdersView.swift",
+            "App/WithdrawalSupportLandingView.swift",
+            "Core/SupportLookupEntry.swift",
+            "App/AppSession.swift",
+            "App/AppCompositionRoot.swift",
+            "Questify.xcodeproj/project.pbxproj",
+        ]
+        for path in untouched:
+            current = (ROOT / path).read_bytes()
+            original = subprocess.check_output(["git", "show", f"{EVENT_SOURCE_PARENT}:{path}"], cwd=str(ROOT))
+            self.assertEqual(current, original, path)
 
     def test_sha256_payload_covers_whitelist(self):
         digest = hashlib.sha256()
