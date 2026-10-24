@@ -107,6 +107,67 @@ class MerchantNPCKnowledgeAuthorFlowContracts(unittest.TestCase):
         self.assertEqual(self.tests.count('func test'), 4)
         self.assertIn('NOT_RUN', Path(__file__).read_text())
 
+    def test_theme_draft_request_read_calls_held_get_and_does_not_publish(self):
+        caller = read('Core/MerchantNPCThemeDraftRequestRead.swift')
+        tests = read('Tests/CoreTests/MerchantNPCThemeDraftRequestReadTests.swift')
+        hunk = read('docs/issue5-hunks/C06-theme-draft-request-read.hunk')
+        page = read('App/MerchantOperationsEditor.swift')
+        session = read('App/AppSession.swift')
+        root = read('App/AppCompositionRoot.swift')
+        project = read('Questify.xcodeproj/project.pbxproj')
+        self.assertIn('api/ai/theme/draft/request', caller)
+        self.assertIn('URLQueryItem(name: "requestId"', caller)
+        self.assertIn('httpMethod = "GET"', caller)
+        self.assertIn('forHTTPHeaderField: "Authorization"', caller)
+        self.assertIn('heldThemeDraftRequestID', caller)
+        self.assertIn('memberId', caller)
+        self.assertIn('recoverFromDraftRead', caller)
+        self.assertIn('NOT_FOUND', caller)
+        self.assertIn('isThemeDraftRequestID', caller)
+        self.assertLess(caller.index('isThemeDraftRequestID'), caller.index('transport.send'))
+        self.assertNotIn('publishApproved', caller)
+        self.assertNotIn('httpMethod = "POST"', caller)
+        self.assertNotIn('UUID()', caller)
+        self.assertNotIn('URLSession(', caller)
+        self.assertNotIn('Bearer ', caller)
+        self.assertNotIn('api/ai/theme/draft/quota', caller)
+        self.assertNotIn('api/ai/theme/draft"', caller)
+        self.assertNotIn("api/ai/theme/draft'", caller)
+        self.assertIn('holdThemeDraftRequest', self.flow)
+        self.assertIn('heldThemeDraftRequestID', self.flow)
+        self.assertIn('isThemeDraftRequestID', self.flow)
+        self.assertNotIn('theme/draft', self.flow)
+        self.assertNotIn('publishApproved', self.flow)
+        self.assertNotIn('UUID()', self.flow)
+        for name in ['testMatchingRequestAndMemberPassesHitAndDoesNotPublish',
+                     'testNotFoundLeavesPhaseUnchanged',
+                     'testMismatchedRequestIdDoesNotPassHit',
+                     'testReturnedMemberIdMismatchDoesNotPassHit',
+                     'testMismatchedMemberDoesNotSendOrPublish',
+                     'testInvalidRequestIdIsRejectedBeforeRead',
+                     'testMissingHeldRequestDoesNotInventOne',
+                     'testReadFailureLeavesPhaseUnchanged']:
+            self.assertIn(name, tests)
+        self.assertEqual(tests.count('func test'), 8)
+        self.assertIn('httpMethod, "GET"', tests)
+        self.assertIn('"/api/ai/theme/draft/request"', tests)
+        self.assertIn('NOT_FOUND', tests)
+        self.assertIn('publisher.published, 0', tests)
+        self.assertNotIn('MerchantNPCThemeDraftRequestRead', page)
+        self.assertNotIn('func submitAuthoredFields()', page.replace('func submitAuthoredFields()', '', 1))
+        for source in (session, root, project):
+            self.assertNotIn('MerchantNPCThemeDraftRequestRead', source)
+            self.assertNotIn('holdThemeDraftRequest', source)
+        for token in ['Do not apply', 'App/AppSession.swift', 'App/AppCompositionRoot.swift',
+                      'Questify.xcodeproj/project.pbxproj', 'merchantOperationsDestination',
+                      'publisher: nil', 'let caller = MerchantNPCThemeDraftRequestRead',
+                      'Not inserted', 'submitAuthoredFields', 'api/ai/theme/draft/request',
+                      'NOT_FOUND', 'does not invent']:
+            self.assertIn(token, hunk)
+        self.assertNotIn('readAndRecover(flow)', hunk)
+        self.assertIn('NOT_RUN', Path(__file__).read_text())
+        self.assertIn('NOT_RUN', hunk)
+
 
 if __name__ == '__main__':
     unittest.main()

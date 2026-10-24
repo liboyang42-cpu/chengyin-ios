@@ -25,6 +25,9 @@ import Foundation
     public private(set) var authored: AuthoredFields?
     /// Set when original review cannot leave the missing publisher capabilities. Publish is not attempted.
     public private(set) var stayedOnMissingPublisher = false
+    /// Theme-draft request id this author flow already has. Never minted here.
+    public private(set) var heldThemeDraftMemberID: Int64?
+    public private(set) var heldThemeDraftRequestID: String?
 
     public init(scope: MerchantNPCScope, publisher: (any MerchantNPCOriginalReviewPublishing)? = nil,
                 isolation: MerchantNPCPublicPrivateIsolation = .init(),
@@ -82,6 +85,28 @@ import Foundation
             }
             throw error
         }
+    }
+
+    /// Remember a request id the author already has. An invalid id is refused and does not replace a held id.
+    /// Does not read the network, does not mint an id, and does not publish.
+    @discardableResult
+    public func holdThemeDraftRequest(memberID: Int64, requestID: String) -> Bool {
+        let trimmed = requestID.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard memberID > 0, Self.isThemeDraftRequestID(trimmed) else { return false }
+        heldThemeDraftMemberID = memberID
+        heldThemeDraftRequestID = trimmed
+        return true
+    }
+
+    /// UUID shape the server accepts before it will read a theme draft request. This does not create one.
+    public static func isThemeDraftRequestID(_ value: String) -> Bool {
+        let parts = value.split(separator: "-", omittingEmptySubsequences: false)
+        let lengths = [8, 4, 4, 4, 12]
+        guard parts.count == lengths.count else { return false }
+        for (part, length) in zip(parts, lengths) {
+            guard part.count == length, part.allSatisfy(\.isHexDigit) else { return false }
+        }
+        return true
     }
 
     /// Read an existing draft fact. Does not publish and does not change phase.
