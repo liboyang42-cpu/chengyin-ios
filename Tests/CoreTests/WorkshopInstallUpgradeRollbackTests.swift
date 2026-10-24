@@ -45,6 +45,27 @@ final class WorkshopInstallUpgradeRollbackTests: XCTestCase {
         XCTAssertEqual(machine.installCount, 1)
         XCTAssertEqual(machine.snapshot?.installedVersion, "1.0.0")
     }
+    func testNotHeldInstallOfNeverSeenIdDoesNotOccupyThenUniqueHoldApplies() throws {
+        var machine = WorkshopInstallUpgradeRollback()
+        XCTAssertNil(machine.originalRequestID)
+        XCTAssertEqual(machine.phase, .idle)
+        XCTAssertEqual(machine.installCount, 0)
+        XCTAssertThrowsError(try machine.install(originalRequestID: "c10-ins-never-c10")) { error in
+            XCTAssertEqual(error as? WorkshopInstallFailure, .notHeld)
+        }
+        XCTAssertNil(machine.originalRequestID)
+        XCTAssertEqual(machine.phase, .idle)
+        XCTAssertEqual(machine.installCount, 0)
+        try machine.authorizedHold(originalRequestID: "c10-ins-never-c10", versionLabel: "1.0.0")
+        XCTAssertEqual(machine.originalRequestID, "c10-ins-never-c10")
+        XCTAssertEqual(machine.phase, .held)
+        try machine.install(originalRequestID: "c10-ins-never-c10")
+        XCTAssertEqual(machine.phase, .installed)
+        XCTAssertEqual(machine.installCount, 1)
+        try machine.install(originalRequestID: "c10-ins-never-c10")
+        XCTAssertEqual(machine.installCount, 1)
+        XCTAssertEqual(machine.originalRequestID, "c10-ins-never-c10")
+    }
     private func waiting(_ body: () throws -> Never) -> WorkshopInstallFailure? {
         do { try body(); return nil } catch let error as WorkshopInstallFailure { return error } catch { return nil }
     }

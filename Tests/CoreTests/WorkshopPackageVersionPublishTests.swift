@@ -53,6 +53,30 @@ final class WorkshopPackageVersionPublishTests: XCTestCase {
         }
         XCTAssertEqual(publish.frozen?.originalRequestID, "req-p1")
     }
+    func testNotReviewedFreezeOfNeverSeenIdDoesNotOccupyThenUniqueFreezeApplies() throws {
+        var publish = WorkshopPackageVersionPublish()
+        XCTAssertNil(publish.frozen)
+        XCTAssertEqual(publish.phase, .idle)
+        XCTAssertEqual(publish.publishCount, 0)
+        XCTAssertThrowsError(try publish.freeze(contentHash: content, termsHash: terms,
+                                                versionLabel: "1.0.0",
+                                                originalRequestID: "c10-pub-never-c10",
+                                                reviewed: false)) { error in
+            XCTAssertEqual(error as? WorkshopPackagePublishFailure, .notReviewed)
+        }
+        XCTAssertNil(publish.frozen)
+        XCTAssertEqual(publish.phase, .idle)
+        XCTAssertEqual(publish.publishCount, 0)
+        try publish.freeze(contentHash: content, termsHash: terms, versionLabel: "1.0.0",
+                           originalRequestID: "c10-pub-never-c10", reviewed: true)
+        XCTAssertEqual(publish.frozen?.originalRequestID, "c10-pub-never-c10")
+        XCTAssertEqual(publish.phase, .frozen)
+        XCTAssertEqual(publish.publishCount, 1)
+        try publish.freeze(contentHash: content, termsHash: terms, versionLabel: "1.0.0",
+                           originalRequestID: "c10-pub-never-c10", reviewed: true)
+        XCTAssertEqual(publish.publishCount, 1)
+        XCTAssertEqual(publish.frozen?.originalRequestID, "c10-pub-never-c10")
+    }
     private func waiting(_ body: () throws -> Never) -> WorkshopPackagePublishFailure? {
         do { try body(); return nil } catch let error as WorkshopPackagePublishFailure { return error } catch { return nil }
     }

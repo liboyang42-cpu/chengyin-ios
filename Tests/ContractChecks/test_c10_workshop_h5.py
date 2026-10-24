@@ -225,8 +225,18 @@ class C10WorkshopH5Contracts(unittest.TestCase):
             "testOtherRequestIdCannotRewriteAuthorizedHold",
             self.sources["Tests/CoreTests/WorkshopInstallUpgradeRollbackTests.swift"])
         self.assertIn(
+            "testNotHeldInstallOfNeverSeenIdDoesNotOccupyThenUniqueHoldApplies",
+            self.sources["Tests/CoreTests/WorkshopInstallUpgradeRollbackTests.swift"])
+        self.assertIn("c10-ins-never-c10",
+                      self.sources["Tests/CoreTests/WorkshopInstallUpgradeRollbackTests.swift"])
+        self.assertIn(
             "testOtherRequestIdCannotMutateFrozenOriginal",
             self.sources["Tests/CoreTests/WorkshopPackageVersionPublishTests.swift"])
+        self.assertIn(
+            "testNotReviewedFreezeOfNeverSeenIdDoesNotOccupyThenUniqueFreezeApplies",
+            self.sources["Tests/CoreTests/WorkshopPackageVersionPublishTests.swift"])
+        self.assertIn("c10-pub-never-c10",
+                      self.sources["Tests/CoreTests/WorkshopPackageVersionPublishTests.swift"])
         answers = self.sources["Core/H5AnswerProtection.swift"]
         self.assertIn("case requestMismatch", answers)
         self.assertIn("guard existing == originalRequestID, matchedHash == serverFrozenHash else", answers)
