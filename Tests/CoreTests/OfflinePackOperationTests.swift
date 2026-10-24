@@ -127,6 +127,24 @@ final class OfflinePackOperationTests: XCTestCase {
         XCTAssertEqual(pack.phase, .expired)
         XCTAssertEqual(pack.operationID, "op-exp")
     }
+    func testUnusedRecordCorruptOfIdleDoesNotOccupyThenUniqueStartThenCorruptApplies() throws {
+        var pack = OfflinePackOperation()
+        XCTAssertEqual(pack.phase, .idle)
+        XCTAssertNil(pack.operationID)
+        XCTAssertThrowsError(try pack.recordCorrupt()) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .invalidManifest)
+        }
+        XCTAssertEqual(pack.phase, .idle, "未见下载 recordCorrupt 观察不得占 CORRUPT")
+        XCTAssertNil(pack.operationID)
+        try pack.startDownload(try manifest(operationID: "op-cor"))
+        XCTAssertEqual(pack.operationID, "op-cor")
+        XCTAssertEqual(pack.phase, .downloading)
+        XCTAssertThrowsError(try pack.recordCorrupt()) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .corrupt)
+        }
+        XCTAssertEqual(pack.phase, .corrupt)
+        XCTAssertEqual(pack.operationID, "op-cor")
+    }
     func testAnswersAndHiddenCoordinatesAreNotShipped() throws {
         XCTAssertThrowsError(try OfflinePackOperation.inspect(["answer": "42"])) { error in
             XCTAssertEqual(error as? OfflinePackFailure, .answersOrHiddenCoordinatesForbidden)
