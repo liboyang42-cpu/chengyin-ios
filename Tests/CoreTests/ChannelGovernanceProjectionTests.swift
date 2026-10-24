@@ -696,6 +696,56 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         XCTAssertFalse(applied.markedReadOnLoad)
     }
 
+    func testHistoryOpenDoesNotAckAndRecoverUsesTheSameRequest() throws {
+        let (journey, _, lease) = try joined()
+        let openIsolation = ChannelRevokeIsolation(channelID: lease.channelID, identity: lease.identity,
+                                                   revokedAtGeneration: nil, reason: nil, phase: journey.phase)
+        var entry = MessageHistoryAckEntry()
+        var reads = 0
+        var writes = 0
+        let actor = Int64(lease.identity.accountID)
+        let channel = Int64(lease.conversationID)
+        let page = try entry.open(actor: actor, channelID: channel, before: nil, after: nil, limit: 20,
+                                  conversationType: 5, channelKind: 1, lease: lease, currentLease: { lease },
+                                  isolation: openIsolation, canReadHistory: { _, _ in true }, listMessages: { _, _, _, _, _ in
+            reads += 1
+            return Self.historyPage(after: nil)
+        })
+        XCTAssertEqual(reads, 1)
+        XCTAssertEqual(writes, 0)
+        XCTAssertEqual((page["list"] as? [[String: Any]])?.count, 0)
+        XCTAssertNil(entry.requestID)
+        let receipt = try entry.acknowledge(actor: actor, channelID: channel, lastMessageID: 4, channelKind: 1,
+                                            lease: lease, currentLease: { lease }, isolation: openIsolation,
+                                            sameScope: { _, _ in true }, writer: { _, _, _, request in
+            writes += 1
+            return try json([
+                "request_id": request, "operation": "ACK", "scope_type": 1, "scope_id": String(channel),
+                "status": "APPLIED", "replayed": false, "must_refresh_state": false, "result_redacted": false
+            ])
+        })
+        XCTAssertEqual(writes, 1)
+        XCTAssertEqual(receipt.requestID, entry.requestID)
+        XCTAssertFalse(receipt.markedReadOnLoad)
+        XCTAssertThrowsError(try entry.acknowledge(actor: actor, channelID: channel, lastMessageID: 4, channelKind: 1,
+                                                   lease: lease, currentLease: { lease }, isolation: openIsolation,
+                                                   sameScope: { _, _ in true }, writer: { _, _, _, _ in
+            writes += 1
+            return [:]
+        })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .invalidCatalog) }
+        XCTAssertEqual(writes, 1)
+        let recovered = try entry.recover(actor: actor, channelID: channel, channelKind: 1,
+                                          originalAccount: { _, _ in true }, receipt: { _, request in
+            try json([
+                "request_id": request, "operation": "ACK", "scope_type": 1, "scope_id": String(channel),
+                "status": "APPLIED", "replayed": true, "must_refresh_state": true, "result_redacted": true
+            ])
+        })
+        XCTAssertEqual(recovered.requestID, entry.requestID)
+        XCTAssertEqual(recovered.outcome, "APPLIED")
+        XCTAssertEqual(writes, 1)
+    }
+
     private static func historyPage(after: String?) -> [String: Any] {
         var page: [String: Any] = [
             "list": [] as [Any], "next_cursor": "9", "has_more": NSNumber(value: false), "nextCursor": "9",
