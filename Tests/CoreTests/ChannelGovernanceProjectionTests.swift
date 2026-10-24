@@ -12,6 +12,12 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
     private func catalog() throws -> ChannelCatalogEntry {
         try ChannelCatalogEntry(channelID: 21, conversationID: 12, kind: .group, rules: try rules())
     }
+    private func acceptOriginalApplication(_ journey: inout ChannelGovernanceProjection) throws {
+        try journey.submitInviteOrApply(kind: 1, spaceID: 12, requestID: "c08-join-01") { _, _, _, _, _, request in
+            ["request_id": request, "status": 0, "join_state": "PENDING_REVIEW"]
+        }
+    }
+
     private func admission(_ identity: ChannelAccount4Identity, version: Int = 3) throws -> ChannelRulesAdmission {
         try ChannelRulesAdmission(identity: identity, consentedVersion: version)
     }
@@ -19,7 +25,7 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         var journey = ChannelGovernanceProjection(catalog: try catalog(), identity: try identity())
         try journey.requireRulesConsent()
         try journey.consentToPublishedRules(try admission(try identity()))
-        try journey.submitInviteOrApply()
+        try acceptOriginalApplication(&journey)
         try journey.assignMemberRole(.member)
         let grant = try journey.authorizeReadWrite()
         return (journey, grant, try journey.pageLease())
@@ -72,7 +78,7 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         try journey.requireRulesConsent()
         try journey.consentToPublishedRules(try admission(try identity()))
         XCTAssertEqual(journey.phase, .inviteOrApply)
-        try journey.submitInviteOrApply()
+        try acceptOriginalApplication(&journey)
         try journey.assignMemberRole(.member)
         let grant = try journey.authorizeReadWrite()
         XCTAssertEqual(journey.phase, .authorizedReadWrite)
@@ -107,7 +113,7 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
     func testModeratorGovernanceThenBanKeepsAppealDistinctFromLateRW() throws {
         var journey = ChannelGovernanceProjection(catalog: try catalog(), identity: try identity())
         try journey.consentToPublishedRules(try admission(try identity()))
-        try journey.submitInviteOrApply()
+        try acceptOriginalApplication(&journey)
         try journey.assignMemberRole(.moderator)
         try journey.govern()
         XCTAssertEqual(journey.phase, .governing)
@@ -125,7 +131,7 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
     func testApplicantCannotBorrowMemberRWAndWrongACCOUNT4CannotConsent() throws {
         var journey = ChannelGovernanceProjection(catalog: try catalog(), identity: try identity())
         try journey.consentToPublishedRules(try admission(try identity()))
-        try journey.submitInviteOrApply()
+        try acceptOriginalApplication(&journey)
         XCTAssertEqual(journey.role, .applicant)
         XCTAssertThrowsError(try journey.authorizeReadWrite()) {
             XCTAssertEqual($0 as? ChannelAuthorizationError, .roleRequired)
@@ -193,7 +199,7 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         XCTAssertNil(journey.grant)
         try journey.consentToPublishedRules(try admission(try identity()))
         XCTAssertNil(journey.grant)
-        try journey.submitInviteOrApply()
+        try acceptOriginalApplication(&journey)
         XCTAssertNil(journey.grant)
         try journey.assignMemberRole(.member)
         XCTAssertEqual(journey.phase, .memberRoleAssigned)
@@ -229,7 +235,7 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         XCTAssertEqual(journey.phase, .cataloged, "cataloged leave 观察不得占 LEFT")
         XCTAssertNil(journey.grant)
         try journey.consentToPublishedRules(try admission(try identity()))
-        try journey.submitInviteOrApply()
+        try acceptOriginalApplication(&journey)
         try journey.assignMemberRole(.member)
         _ = try journey.authorizeReadWrite()
         try journey.leave()
@@ -247,7 +253,12 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         XCTAssertEqual(journey.phase, .cataloged)
         try journey.consentToPublishedRules(try admission(try identity()))
         XCTAssertEqual(journey.role, .none)
-        try journey.submitInviteOrApply()
+        XCTAssertThrowsError(try journey.submitInviteOrApply()) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .waitingSource)
+        }
+        XCTAssertEqual(journey.role, .none)
+        XCTAssertEqual(journey.phase, .inviteOrApply)
+        try acceptOriginalApplication(&journey)
         XCTAssertEqual(journey.role, .applicant)
         XCTAssertEqual(journey.phase, .inviteOrApply)
         XCTAssertNil(journey.grant)
@@ -262,7 +273,7 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         XCTAssertEqual(journey.role, .none, "cataloged assign 观察不得占 member")
         XCTAssertEqual(journey.phase, .cataloged)
         try journey.consentToPublishedRules(try admission(try identity()))
-        try journey.submitInviteOrApply()
+        try acceptOriginalApplication(&journey)
         XCTAssertEqual(journey.role, .applicant)
         try journey.assignMemberRole(.member)
         XCTAssertEqual(journey.role, .member)
@@ -361,7 +372,7 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
     private func memberReady() throws -> ChannelGovernanceProjection {
         var journey = ChannelGovernanceProjection(catalog: try catalog(), identity: try identity())
         try journey.consentToPublishedRules(try admission(try identity()))
-        try journey.submitInviteOrApply()
+        try acceptOriginalApplication(&journey)
         try journey.assignMemberRole(.member)
         return journey
     }

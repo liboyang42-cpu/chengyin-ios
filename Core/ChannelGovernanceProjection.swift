@@ -148,11 +148,34 @@ public struct ChannelGovernanceProjection: Equatable, Sendable {
         bump()
     }
 
+    /// No original port is available here, so the phase does not advance.
     public mutating func submitInviteOrApply() throws {
         try ensureActive()
         guard phase == .inviteOrApply, consentedRulesVersion != nil else { throw ChannelAuthorizationError.rulesConsentRequired }
+        throw ChannelAuthorizationError.waitingSource
+    }
+
+    /// The applicant phase follows the original `ChannelAdmissionService.submit` receipt.
+    /// A missing port leaves the phase unchanged.
+    public mutating func submitInviteOrApply(kind: Int, spaceID: Int64, inviteID: Int64? = nil, message: String? = nil,
+                                             requestID: String, channel: ChannelRulesAdmission.OriginalAdmissionSubmit?) throws {
+        try ensureActive()
+        guard phase == .inviteOrApply, let consentedRulesVersion else { throw ChannelAuthorizationError.rulesConsentRequired }
+        let admission = try ChannelRulesAdmission(identity: identity, consentedVersion: consentedRulesVersion)
+        let sent = try admission.submitOriginal(catalog: catalog, kind: kind, spaceID: spaceID, inviteID: inviteID,
+                                                message: message, requestID: requestID, channel: channel)
+        guard Self.exactAdmissionStatus(sent["status"]) == 0 || Self.exactAdmissionStatus(sent["status"]) == 5 else {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
         role = .applicant
         bump()
+    }
+
+    private static func exactAdmissionStatus(_ value: Any?) -> Int? {
+        guard let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() else { return nil }
+        let int = number.intValue
+        guard number.doubleValue == Double(int) else { return nil }
+        return int
     }
 
     public mutating func assignMemberRole(_ role: ChannelRole) throws {

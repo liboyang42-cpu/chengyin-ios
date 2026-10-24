@@ -12,7 +12,9 @@ final class ChannelRevokeIsolationTests: XCTestCase {
             catalog: try ChannelCatalogEntry(channelID: 21, conversationID: 12, kind: .group, rules: try rules()),
             identity: try identity())
         try value.consentToPublishedRules(try ChannelRulesAdmission(identity: try identity(), consentedVersion: 3))
-        try value.submitInviteOrApply()
+        try value.submitInviteOrApply(kind: 1, spaceID: 12, requestID: "c08-join-01") { _, _, _, _, _, request in
+            ["request_id": request, "status": 0, "join_state": "PENDING_REVIEW"]
+        }
         try value.assignMemberRole(.member)
         _ = try value.authorizeReadWrite()
         return value
