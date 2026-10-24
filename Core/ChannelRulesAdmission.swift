@@ -127,6 +127,36 @@ public struct ChannelRulesAdmission: Equatable, Sendable {
         return sent
     }
 
+    /// Original `ChannelAdmissionService.pause`. A reason is required and stays within 120 characters.
+    /// Unpausing does not keep an until time. One call, no local store.
+    public typealias OriginalAdmissionPause = (
+        _ actorID: Int64, _ kind: Int, _ spaceID: Int64, _ paused: Bool, _ until: String?, _ reason: String, _ requestID: String
+    ) throws -> [String: Any]
+
+    public func pauseOriginal(kind: Int, spaceID: Int64, paused: Bool, until: String?, reason: String, requestID: String,
+                              channel: OriginalAdmissionPause? = nil) throws -> [String: Any] {
+        let trimmedReason = reason.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedUntil = until?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let untilValue = (paused && trimmedUntil?.isEmpty == false) ? trimmedUntil : nil
+        guard (kind == 1 || kind == 3), spaceID > 0, Self.validRequestID(requestID),
+              !trimmedReason.isEmpty, trimmedReason.count <= 120 else {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+        guard let channel else { throw ChannelAuthorizationError.waitingSource }
+        let sent = try channel(Int64(identity.accountID), kind, spaceID, paused, untilValue, trimmedReason, requestID)
+        if let echoed = sent["request_id"] as? String, echoed != requestID {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+        guard (sent["join_paused"] as? Bool) == paused else { throw ChannelAuthorizationError.invalidCatalog }
+        if let echoedKind = Self.exactInt(sent["guild_kind"]), echoedKind != kind {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+        if let echoedSpace = Self.positiveID(sent["guild_id"]), echoedSpace != spaceID {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+        return sent
+    }
+
     /// Original `receipt`. It does not submit again. A missing row stays UNKNOWN on the same request id.
     public func recoverOriginal(requestID: String, receipt: (Int64, String) throws -> [String: Any]) throws -> [String: Any] {
         guard Self.validRequestID(requestID) else { throw ChannelAuthorizationError.invalidCatalog }

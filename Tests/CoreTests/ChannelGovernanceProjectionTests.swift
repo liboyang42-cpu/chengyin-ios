@@ -867,6 +867,34 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         XCTAssertEqual(rejected["status"] as? Int, 2)
     }
 
+    func testAdmissionPauseCallsTheOriginalPortOnce() throws {
+        let gate = try admission(try identity())
+        XCTAssertThrowsError(try gate.pauseOriginal(
+            kind: 1, spaceID: 12, paused: true, until: nil, reason: "  full  ", requestID: "c08-pause-01")) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .waitingSource)
+        }
+        var calls = 0
+        XCTAssertThrowsError(try gate.pauseOriginal(
+            kind: 1, spaceID: 12, paused: true, until: nil, reason: " ", requestID: "c08-pause-01",
+            channel: { _, _, _, _, _, _, _ in calls += 1; return [:] }))
+        XCTAssertEqual(calls, 0)
+        let opened = try gate.pauseOriginal(
+            kind: 1, spaceID: 12, paused: false, until: "2026-10-25T00:00:00Z", reason: " reopen ", requestID: "c08-pause-01",
+            channel: { actor, kind, space, paused, until, reason, request in
+                calls += 1
+                XCTAssertEqual(actor, 7)
+                XCTAssertEqual(kind, 1)
+                XCTAssertEqual(space, 12)
+                XCTAssertFalse(paused)
+                XCTAssertNil(until)
+                XCTAssertEqual(reason, "reopen")
+                XCTAssertEqual(request, "c08-pause-01")
+                return ["guild_kind": 1, "guild_id": "12", "join_paused": false]
+            })
+        XCTAssertEqual(calls, 1)
+        XCTAssertEqual(opened["join_paused"] as? Bool, false)
+    }
+
     private static func historyPage(after: String?) -> [String: Any] {
         var page: [String: Any] = [
             "list": [] as [Any], "next_cursor": "9", "has_more": NSNumber(value: false), "nextCursor": "9",
