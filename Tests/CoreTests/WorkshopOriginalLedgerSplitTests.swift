@@ -39,35 +39,31 @@ final class WorkshopOriginalLedgerSplitTests: XCTestCase {
         }
     }
 
-    func testNativeFreezeRejectsExecutableTextAndDoesNotAdmitH5() async throws {
-        let source = LedgerRead()
-        source.artifact = Data("""
-        {"moduleId":"mod-1","releaseId":"rel-1","contentHash":"\(hash)","status":"ACTIVE","template":{"title":"door"}}
+    func testRegisteredArtifactReceiptDoesNotAdmitH5() throws {
+        let receipt = Data("""
+        {"moduleId":"mod-1","releaseId":"rel-1","contentHash":"\(hash)","title":"door","contentApprovalReference":"audit-task:4","schema":"w18-native-text-template-v1","requiredBindings":[]}
         """.utf8)
-        let freeze = try await WorkshopOriginalLedgerSplit().readArtifactFreeze(
-            moduleID: "mod-1", releaseID: "rel-1", memberID: 3, source: source)
+        let freeze = try WorkshopOriginalLedgerSplit().acceptRegisteredArtifact(receipt, moduleID: "mod-1", releaseID: "rel-1")
         XCTAssertFalse(freeze.h5Admitted)
         XCTAssertNil(freeze.sdkVersion)
         XCTAssertEqual(freeze.contentHash, hash)
-        source.artifact = Data("""
-        {"moduleId":"mod-1","releaseId":"rel-1","contentHash":"\(hash)","status":"ACTIVE","template":{"title":"<script>"}}
+        let internalRow = Data("""
+        {"moduleId":"mod-1","releaseId":"rel-1","contentHash":"\(hash)","title":"door","contentApprovalReference":"audit-task:4","schema":"w18-native-text-template-v1","requiredBindings":[],"status":"ACTIVE","template":{"title":"<script>"}}
         """.utf8)
-        do {
-            _ = try await WorkshopOriginalLedgerSplit().readArtifactFreeze(
-                moduleID: "mod-1", releaseID: "rel-1", memberID: 3, source: source)
-            XCTFail("script")
-        } catch let error as WorkshopOriginalLedgerError {
-            XCTAssertEqual(error, .unknown)
+        XCTAssertThrowsError(try WorkshopOriginalLedgerSplit().acceptRegisteredArtifact(
+            internalRow, moduleID: "mod-1", releaseID: "rel-1")) { error in
+            XCTAssertEqual(error as? WorkshopOriginalLedgerError, .mixed)
         }
     }
 
     func testLargeActivityIdStaysLongAndFractionIsNotAVersion() async throws {
         let source = LedgerRead()
-        source.game = Data(#"{"receiptId":"1","activityId":"9007199254740993","requestId":"req-large","action":"MOVE","outcome":"UNKNOWN","replayed":false,"revision":"1"}"#.utf8)
+        source.game = Data(#"{"receiptId":"1","activityId":"9007199254740993","requestId":"req-large","action":"MOVE","outcome":"FAILED","reasonCode":"GAME_BAD_REQUEST","replayed":false,"result":{"reason":"synthetic"}}"#.utf8)
         let fact = try await WorkshopOriginalLedgerSplit().readGameSession(
             activityID: 9007199254740993, memberID: 3, requestID: "req-large", source: source)
         XCTAssertEqual(fact.activityID, 9007199254740993)
-        XCTAssertEqual(fact.outcome, "UNKNOWN")
+        XCTAssertEqual(fact.outcome, "FAILED")
+        XCTAssertEqual(fact.reasonCode, "GAME_BAD_REQUEST")
         XCTAssertFalse(fact.grantsServerPass)
         source.game = Data(#"{"receiptId":1.5,"activityId":9,"requestId":"req-1","action":"MOVE","outcome":"APPLIED","replayed":false}"#.utf8)
         do {
@@ -82,8 +78,6 @@ final class WorkshopOriginalLedgerSplitTests: XCTestCase {
 private final class LedgerRead: WorkshopOriginalLedgerReading {
     var game: Data?
     var advanced: Data?
-    var artifact: Data?
     func gameSession(activityID: Int64, memberID: Int64, requestID: String) async throws -> Data? { game }
     func advancedState(sessionID: Int64, memberID: Int64) async throws -> Data? { advanced }
-    func artifact(moduleID: String, releaseID: String) async throws -> Data? { artifact }
 }

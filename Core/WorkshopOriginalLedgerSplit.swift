@@ -48,7 +48,6 @@ public struct WorkshopNativeArtifactFreeze: Equatable, Sendable {
 public protocol WorkshopOriginalLedgerReading: Sendable {
     func gameSession(activityID: Int64, memberID: Int64, requestID: String) async throws -> Data?
     func advancedState(sessionID: Int64, memberID: Int64) async throws -> Data?
-    func artifact(moduleID: String, releaseID: String) async throws -> Data?
 }
 
 public struct WorkshopOriginalLedgerSplit: Sendable {
@@ -69,7 +68,7 @@ public struct WorkshopOriginalLedgerSplit: Sendable {
             throw WorkshopOriginalLedgerError.unknown
         }
         let outcome = object["outcome"] as? String
-        guard outcome == "PENDING" || outcome == "APPLIED" || outcome == "UNKNOWN" else {
+        guard outcome == "PENDING" || outcome == "APPLIED" || outcome == "FAILED" else {
             throw WorkshopOriginalLedgerError.unknown
         }
         let replayed = jsonBool(object["replayed"])
@@ -90,9 +89,13 @@ public struct WorkshopOriginalLedgerSplit: Sendable {
         guard let receiptID, let action = object["action"] as? String, !action.isEmpty else {
             throw WorkshopOriginalLedgerError.unknown
         }
+        let reasonCode = object["reasonCode"] as? String
+        if outcome == "FAILED" {
+            guard let reasonCode, !reasonCode.isEmpty else { throw WorkshopOriginalLedgerError.unknown }
+        }
         return WorkshopGameSessionFact(receiptID: receiptID, activityID: activityID, memberID: memberID,
                                        requestID: requestID, action: action, outcome: outcome!,
-                                       reasonCode: object["reasonCode"] as? String,
+                                       reasonCode: reasonCode,
                                        revision: exactLong(object["revision"]), replayed: replayed, confirmed: true)
     }
 
@@ -120,26 +123,26 @@ public struct WorkshopOriginalLedgerSplit: Sendable {
                                           topicID: topicID, nodeID: nodeID, memberID: memberID)
     }
 
-    public func readArtifactFreeze(moduleID: String, releaseID: String, memberID: Int64,
-                                   source: any WorkshopOriginalLedgerReading) async throws -> WorkshopNativeArtifactFreeze {
-        guard WorkshopModuleImportGate.idOK(moduleID), WorkshopModuleImportGate.idOK(releaseID), memberID > 0 else {
-            throw WorkshopOriginalLedgerError.invalid
-        }
-        guard let data = try await source.artifact(moduleID: moduleID, releaseID: releaseID),
-              let object = jsonObject(data),
-              !mixes(object, foreign: ["outcome", "sourceHash", "runHash", "serverPass"]) else {
+    /// Public `ArtifactReceipt` from the authorized register response.
+    /// There is no module/release read, and `status` or `template` are not this receipt.
+    public func acceptRegisteredArtifact(_ data: Data, moduleID: String, releaseID: String) throws -> WorkshopNativeArtifactFreeze {
+        guard WorkshopModuleImportGate.idOK(moduleID), WorkshopModuleImportGate.idOK(releaseID),
+              let object = jsonObject(data) else { throw WorkshopOriginalLedgerError.invalid }
+        if mixes(object, foreign: ["status", "template", "outcome", "sourceHash", "serverPass"]) {
             throw WorkshopOriginalLedgerError.mixed
         }
+        let schemas = ["w18-native-text-template-v1", "w18-qmod-choice-topic-v1", "w18-qmod-qa-pick-topic-v1"]
         guard object["moduleId"] as? String == moduleID,
               object["releaseId"] as? String == releaseID,
-              object["status"] as? String == "ACTIVE",
-              let contentHash = object["contentHash"] as? String,
-              WorkshopModuleImportGate.sha256Hex(contentHash),
-              nativeTemplate(object["template"]) else {
+              let schema = object["schema"] as? String, schemas.contains(schema),
+              let title = object["title"] as? String, !title.isEmpty,
+              let approval = object["contentApprovalReference"] as? String, !approval.isEmpty,
+              let contentHash = object["contentHash"] as? String, WorkshopModuleImportGate.sha256Hex(contentHash),
+              bindings(object["requiredBindings"]) else {
             throw WorkshopOriginalLedgerError.unknown
         }
         return WorkshopNativeArtifactFreeze(moduleID: moduleID, releaseID: releaseID,
-                                            contentHash: contentHash, memberID: memberID)
+                                            contentHash: contentHash, memberID: 0)
     }
 
     private func jsonObject(_ data: Data) -> [String: Any]? {
@@ -150,15 +153,12 @@ public struct WorkshopOriginalLedgerSplit: Sendable {
         foreign.contains { object[$0] != nil }
     }
 
-    private func nativeTemplate(_ value: Any?) -> Bool {
-        guard let template = value as? [String: Any] else { return false }
-        for entry in template.values {
-            guard let text = entry as? String else { continue }
-            let lower = text.lowercased()
-            if lower.contains("<script") || lower.contains("javascript:") || lower.contains("http://")
-                || lower.contains("https://") || lower.contains("file://") || lower.contains("<iframe") {
-                return false
-            }
+    private func bindings(_ value: Any?) -> Bool {
+        guard let rows = value as? [Any] else { return false }
+        for row in rows {
+            guard let item = row as? [String: Any],
+                  let key = item["key"] as? String, !key.isEmpty,
+                  let kind = item["kind"] as? String, !kind.isEmpty else { return false }
         }
         return true
     }

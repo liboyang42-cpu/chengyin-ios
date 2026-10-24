@@ -274,7 +274,10 @@ class C10WorkshopH5Contracts(unittest.TestCase):
         self.assertIn("SDK version identity is not this native registry", split)
         self.assertIn("testAppliedCommandDoesNotGrantServerPassAndMissingStaysPending", tests)
         self.assertIn("testAdvancedProvenanceIsNotACommandReceipt", tests)
-        self.assertIn("testNativeFreezeRejectsExecutableTextAndDoesNotAdmitH5", tests)
+        self.assertIn("outcome == \"FAILED\"", split)
+        self.assertIn("acceptRegisteredArtifact", split)
+        self.assertIn("w18-native-text-template-v1", split)
+        self.assertIn("testRegisteredArtifactReceiptDoesNotAdmitH5", tests)
         self.assertNotIn("serverPass", self.sources["Core/WorkshopOriginalInstallConsumer.swift"])
 
     def test_linux_xctest_app_ci_are_explicitly_not_run(self):
