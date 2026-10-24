@@ -181,6 +181,24 @@ final class OfflinePackOperationTests: XCTestCase {
         XCTAssertEqual(pack.operationID, "op-upd")
         XCTAssertEqual(pack.manifest?.version, "pack-v2")
     }
+    func testUnusedFinishUpdateOfIdleDoesNotOccupyThenUniqueUpdateThenFinishApplies() throws {
+        var pack = OfflinePackOperation()
+        XCTAssertEqual(pack.phase, .idle)
+        XCTAssertNil(pack.operationID)
+        XCTAssertThrowsError(try pack.finishUpdate()) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .notDownloading)
+        }
+        XCTAssertEqual(pack.phase, .idle, "未见下载 finishUpdate 观察不得占 READY-after-update")
+        XCTAssertNil(pack.operationID)
+        try pack.startDownload(try manifest(operationID: "op-fin"))
+        try pack.finishDownload()
+        try pack.applyUpdate(try manifest(version: "pack-v2", operationID: "op-fin"), keepOld: true)
+        XCTAssertEqual(pack.phase, .updating)
+        try pack.finishUpdate()
+        XCTAssertEqual(pack.phase, .ready)
+        XCTAssertEqual(pack.operationID, "op-fin")
+        XCTAssertEqual(pack.manifest?.version, "pack-v2")
+    }
     func testAnswersAndHiddenCoordinatesAreNotShipped() throws {
         XCTAssertThrowsError(try OfflinePackOperation.inspect(["answer": "42"])) { error in
             XCTAssertEqual(error as? OfflinePackFailure, .answersOrHiddenCoordinatesForbidden)
