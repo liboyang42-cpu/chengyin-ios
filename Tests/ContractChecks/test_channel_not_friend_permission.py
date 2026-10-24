@@ -139,6 +139,8 @@ class ChannelNotFriendPermissionContracts(unittest.TestCase):
         self.assertIn('DirectoryMyState.jsonBool(page["has_more"])', governance)
         self.assertIn('DirectoryMyState.decimal(page["mutation_cursor"])', governance)
         self.assertIn('number > 0', governance)
+        self.assertIn('next == String(after)', governance)
+        self.assertIn('samePage', governance)
         self.assertIn('DirectoryMyState.exactInt(row["status"]) != 0', governance)
         self.assertIn('raw as? [Any] else { throw ChannelAuthorizationError.invalidCatalog }', governance)
         self.assertIn('RELOAD_ON_RESUME', governance)

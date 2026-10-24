@@ -431,21 +431,28 @@ public struct MessageContainerOriginalAck: Equatable, Sendable {
 
     /// Explicit ack only. A late lease does not call the writer. Page load does not use this.
     public func acknowledgeExplicit(actor: Int64, channelID: Int64, lastMessageID: Int64, requestID: String,
-                                    channelKind: Int, lease: ChannelPageLease, isolation: ChannelRevokeIsolation,
-                                    sameScope: (Int64, Int64) -> Bool,
+                                    channelKind: Int, lease: ChannelPageLease, currentLease: () -> ChannelPageLease,
+                                    isolation: ChannelRevokeIsolation, sameScope: (Int64, Int64) -> Bool,
                                     writer: (Int64, Int64, Int64, String) throws -> [String: Any]) throws -> Receipt {
+        guard samePage(lease, currentLease()) else { throw ChannelAuthorizationError.isolatedLateRequest }
         guard Int64(lease.identity.accountID) == actor, Int64(lease.conversationID) == channelID else {
             throw ChannelAuthorizationError.account4Mismatch
         }
         _ = try isolation.admit(ChannelIsolatedRequest(lease: lease, action: .channelWrite))
         let receipt = try acknowledge(actor: actor, channelID: channelID, lastMessageID: lastMessageID,
                                       requestID: requestID, channelKind: channelKind, sameScope: sameScope, writer: writer)
+        guard samePage(lease, currentLease()) else { throw ChannelAuthorizationError.isolatedLateRequest }
         guard sameScope(actor, channelID) else { throw ChannelAuthorizationError.notMember }
         guard Int64(lease.identity.accountID) == actor, Int64(lease.conversationID) == channelID else {
             throw ChannelAuthorizationError.account4Mismatch
         }
         _ = try isolation.admit(ChannelIsolatedRequest(lease: lease, action: .channelWrite))
         return receipt
+    }
+
+    static func samePage(_ started: ChannelPageLease, _ current: ChannelPageLease) -> Bool {
+        started.generation == current.generation && started.identity == current.identity
+            && started.channelID == current.channelID && started.conversationID == current.conversationID
     }
 
     /// Current membership is not this gate. The original account can read a redacted receipt after revoke.
@@ -545,6 +552,18 @@ public struct MessageContainerHistory: Equatable, Sendable {
               page["operation"] as? String != "ACK" else {
             throw ChannelAuthorizationError.invalidCatalog
         }
+        if let after {
+            let rows = page["list"] as? [Any] ?? []
+            guard let next = DirectoryMyState.decimal(page["nextAfter"]),
+                  aliasesAgree(page["next_after"], page["nextAfter"], DirectoryMyState.decimal) else {
+                throw ChannelAuthorizationError.invalidCatalog
+            }
+            if rows.isEmpty {
+                guard next == String(after) else { throw ChannelAuthorizationError.invalidCatalog }
+            } else if Int64(next) == nil || Int64(next)! <= 0 {
+                throw ChannelAuthorizationError.invalidCatalog
+            }
+        }
         var decoded = page
         decoded["list"] = try projectList(page["list"], channelID: channelID)
         return decoded
@@ -574,19 +593,22 @@ public struct MessageContainerHistory: Equatable, Sendable {
     /// another conversation is dropped, and a non-normal status keeps empty content.
     public func readIsolated(actor: Int64, channelID: Int64, before: Int64?, after: Int64?, limit: Int,
                              conversationType: Int, channelKind: Int, lease: ChannelPageLease,
-                             isolation: ChannelRevokeIsolation, canReadHistory: (Int64, Int64) -> Bool,
+                             currentLease: () -> ChannelPageLease, isolation: ChannelRevokeIsolation,
+                             canReadHistory: (Int64, Int64) -> Bool,
                              listMessages: ((Int64, Int64, Int64?, Int, Int64?) -> [String: Any])?) throws -> [String: Any] {
+        guard MessageContainerOriginalAck.samePage(lease, currentLease()) else {
+            throw ChannelAuthorizationError.isolatedLateRequest
+        }
         guard Int64(lease.identity.accountID) == actor, Int64(lease.conversationID) == channelID else {
             throw ChannelAuthorizationError.account4Mismatch
         }
         guard canReadHistory(actor, channelID) else { throw ChannelAuthorizationError.notMember }
         _ = try isolation.admit(ChannelIsolatedRequest(lease: lease, action: .channelRead))
-        var page = try read(actor: actor, channelID: channelID, before: before, after: after, limit: limit,
+        let page = try read(actor: actor, channelID: channelID, before: before, after: after, limit: limit,
                             conversationType: conversationType, channelKind: channelKind,
                             canReadHistory: canReadHistory, listMessages: listMessages)
-        guard canReadHistory(actor, channelID) else { throw ChannelAuthorizationError.notMember }
-        guard Int64(lease.identity.accountID) == actor, Int64(lease.conversationID) == channelID else {
-            throw ChannelAuthorizationError.account4Mismatch
+        guard MessageContainerOriginalAck.samePage(lease, currentLease()) else {
+            throw ChannelAuthorizationError.isolatedLateRequest
         }
         guard canReadHistory(actor, channelID) else { throw ChannelAuthorizationError.notMember }
         return page

@@ -574,17 +574,36 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
                                               canReadHistory: { _, _ in true }, listMessages: { _, _, _, _, _ in
             conflict
         })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .invalidCatalog) }
-        let empty = try history.read(actor: 70, channelID: 12, before: nil, after: 0, limit: 20,
-                                     conversationType: 5, channelKind: 1, canReadHistory: { _, _ in true },
-                                     listMessages: { _, _, _, _, _ in
+        XCTAssertThrowsError(try history.read(actor: 70, channelID: 12, before: nil, after: 0, limit: 20,
+                                              conversationType: 5, channelKind: 1, canReadHistory: { _, _ in true },
+                                              listMessages: { _, _, _, _, _ in
             var page = Self.historyPage(after: nil)
             page["list"] = [] as [Any]
             page["mutation_cursor"] = 0
             page["next_after"] = NSNull()
             page["nextAfter"] = NSNull()
             return page
+        })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .invalidCatalog) }
+        let kept = try history.read(actor: 70, channelID: 12, before: nil, after: 0, limit: 20,
+                                    conversationType: 5, channelKind: 1, canReadHistory: { _, _ in true },
+                                    listMessages: { _, _, _, _, _ in
+            var page = Self.historyPage(after: nil)
+            page["list"] = [] as [Any]
+            page["next_after"] = "0"
+            page["nextAfter"] = "0"
+            return page
         })
-        XCTAssertEqual((empty["list"] as? [[String: Any]])?.count, 0)
+        XCTAssertEqual(kept["nextAfter"] as? String, "0")
+        let ordinary = try history.read(actor: 70, channelID: 12, before: nil, after: nil, limit: 20,
+                                        conversationType: 5, channelKind: 1, canReadHistory: { _, _ in true },
+                                        listMessages: { _, _, _, _, _ in
+            var page = Self.historyPage(after: nil)
+            page["list"] = [] as [Any]
+            page["next_cursor"] = NSNull()
+            page["nextCursor"] = NSNull()
+            return page
+        })
+        XCTAssertEqual((ordinary["list"] as? [[String: Any]])?.count, 0)
     }
 
     func testLateIdentityDoesNotReadHistoryOrAcknowledge() throws {
@@ -594,7 +613,7 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
                                           revokedAtGeneration: nil, reason: nil, phase: journey.phase)
         var reads = 0
         let page = try history.readIsolated(actor: 7, channelID: 12, before: nil, after: nil, limit: 20,
-                                            conversationType: 5, channelKind: 1, lease: lease, isolation: open,
+                                            conversationType: 5, channelKind: 1, lease: lease, currentLease: { lease }, isolation: open,
                                             canReadHistory: { _, _ in true }, listMessages: { _, _, _, _, _ in
             reads += 1
             var page = Self.historyPage(after: nil)
@@ -618,7 +637,7 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         var allow = true
         var revokedDuringRead = 0
         XCTAssertThrowsError(try history.readIsolated(actor: 7, channelID: 12, before: nil, after: nil, limit: 20,
-                                                      conversationType: 5, channelKind: 1, lease: lease, isolation: open,
+                                                      conversationType: 5, channelKind: 1, lease: lease, currentLease: { lease }, isolation: open,
                                                       canReadHistory: { _, _ in allow }, listMessages: { _, _, _, _, _ in
             revokedDuringRead += 1
             allow = false
@@ -628,12 +647,26 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         XCTAssertThrowsError(try history.projectList(NSNull(), channelID: 12)) {
             XCTAssertEqual($0 as? ChannelAuthorizationError, .invalidCatalog)
         }
+        var generation = lease.generation
+        var rejoined = 0
+        XCTAssertThrowsError(try history.readIsolated(actor: 7, channelID: 12, before: nil, after: nil, limit: 20,
+                                                      conversationType: 5, channelKind: 1, lease: lease,
+                                                      currentLease: {
+            ChannelPageLease(channelID: lease.channelID, conversationID: lease.conversationID,
+                             generation: generation, identity: lease.identity, capabilities: lease.capabilities,
+                             consentedRulesVersion: lease.consentedRulesVersion)
+        }, isolation: open, canReadHistory: { _, _ in true }, listMessages: { _, _, _, _, _ in
+            rejoined += 1
+            generation += 1
+            return Self.historyPage(after: nil)
+        })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .isolatedLateRequest) }
+        XCTAssertEqual(rejoined, 1)
         var left = journey
         try left.leave()
         let closed = ChannelRevokeIsolation(channelID: left.catalog.channelID, identity: left.identity,
                                             revokedAtGeneration: left.generation, reason: left.revokeReason, phase: left.phase)
         XCTAssertThrowsError(try history.readIsolated(actor: 7, channelID: 12, before: nil, after: nil, limit: 20,
-                                                      conversationType: 5, channelKind: 1, lease: lease, isolation: closed,
+                                                      conversationType: 5, channelKind: 1, lease: lease, currentLease: { lease }, isolation: closed,
                                                       canReadHistory: { _, _ in true }, listMessages: { _, _, _, _, _ in
             reads += 1
             return Self.historyPage(after: nil)
@@ -643,14 +676,14 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         let requestID = "ack-request-0001"
         var writes = 0
         XCTAssertThrowsError(try ack.acknowledgeExplicit(actor: 7, channelID: 12, lastMessageID: 4, requestID: requestID,
-                                                         channelKind: 1, lease: lease, isolation: closed,
+                                                         channelKind: 1, lease: lease, currentLease: { lease }, isolation: closed,
                                                          sameScope: { _, _ in true }, writer: { _, _, _, _ in
             writes += 1
             return [:]
         })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .isolatedLateRequest) }
         XCTAssertEqual(writes, 0)
         let applied = try ack.acknowledgeExplicit(actor: 7, channelID: 12, lastMessageID: 4, requestID: requestID,
-                                                  channelKind: 1, lease: lease, isolation: open,
+                                                  channelKind: 1, lease: lease, currentLease: { lease }, isolation: open,
                                                   sameScope: { _, _ in true }, writer: { _, _, _, request in
             writes += 1
             return try json([
