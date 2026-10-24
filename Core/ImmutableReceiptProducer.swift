@@ -243,10 +243,10 @@ public struct ImmutableReceiptProducer: Equatable {
         replyToID: Int64?,
         mentionMemberIDs: [Int64],
         mentionRoleIDs: [Int64],
-        mentionEveryone: Bool,
-        channelSend: ((Int64, Int64, String, Int, String, String?, Int64?, [Int64], [Int64], Bool) -> [String: String]?)?
+        mentionEveryone: Bool
     ) throws -> OriginalReceipt? {
-        let id = try Self.requireRequestID(request.requestId)
+        _ = try Self.requireRequestID(request.requestId)
+        _ = extraJSON
         guard let kind = request.kind else { throw NotASend.missingKind }
         guard kind == .reply || kind == .mention else { throw NotASend.kind(kind) }
         let trimmedContent = content?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -261,26 +261,7 @@ public struct ImmutableReceiptProducer: Equatable {
         } else if mentionMemberIDs.isEmpty && mentionRoleIDs.isEmpty && !mentionEveryone {
             throw NotifyFailure.waitingSource(capability: Self.imSendWire)
         }
-        guard let channelSend else {
-            throw NotifyFailure.waitingSource(capability: Self.channelMessageSend)
-        }
-        guard let sent = channelSend(actorID, conversationID, id, msgType, trimmedContent, extraJSON, replyToID,
-                                      mentionMemberIDs, mentionRoleIDs, mentionEveryone) else {
-            return Self.unknownReceipt(requestId: id, projection: nil)
-        }
-        let digest = sent["digest"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        guard sent["client_message_id"] == id, sent["operation"] == "SEND", !digest.isEmpty else {
-            return Self.unknownReceipt(requestId: id, projection: nil)
-        }
-        return OriginalReceipt(
-            requestId: id,
-            kind: nil,
-            payloadHash: digest,
-            outcome: Self.outcomeUnknown,
-            originalBody: sent["content"],
-            currentProjectionClaimsApplied: false,
-            recoveryNote: nil,
-            mintedNewRequest: false)
+        throw NotifyFailure.waitingSource(capability: Self.channelMessageSend)
     }
 
     public func recoverFromJournal(memberId: Int64?, conversationId: Int64?,
