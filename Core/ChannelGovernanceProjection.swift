@@ -438,8 +438,14 @@ public struct MessageContainerOriginalAck: Equatable, Sendable {
             throw ChannelAuthorizationError.account4Mismatch
         }
         _ = try isolation.admit(ChannelIsolatedRequest(lease: lease, action: .channelWrite))
-        return try acknowledge(actor: actor, channelID: channelID, lastMessageID: lastMessageID, requestID: requestID,
-                               channelKind: channelKind, sameScope: sameScope, writer: writer)
+        let receipt = try acknowledge(actor: actor, channelID: channelID, lastMessageID: lastMessageID,
+                                      requestID: requestID, channelKind: channelKind, sameScope: sameScope, writer: writer)
+        guard sameScope(actor, channelID) else { throw ChannelAuthorizationError.notMember }
+        guard Int64(lease.identity.accountID) == actor, Int64(lease.conversationID) == channelID else {
+            throw ChannelAuthorizationError.account4Mismatch
+        }
+        _ = try isolation.admit(ChannelIsolatedRequest(lease: lease, action: .channelWrite))
+        return receipt
     }
 
     /// Current membership is not this gate. The original account can read a redacted receipt after revoke.
@@ -451,6 +457,7 @@ public struct MessageContainerOriginalAck: Equatable, Sendable {
         }
         guard originalAccount(actor, requestID) else { throw ChannelAuthorizationError.notMember }
         let body = try receipt(actor, requestID)
+        guard originalAccount(actor, requestID) else { throw ChannelAuthorizationError.notMember }
         if body["status"] as? String == "NOT_FOUND" {
             guard body["request_id"] as? String == requestID,
                   body["outcome"] as? String == "UNKNOWN",
@@ -552,11 +559,11 @@ public struct MessageContainerHistory: Equatable, Sendable {
             guard !text.isEmpty, text.unicodeScalars.allSatisfy({ (48...57).contains($0.value) }) else { return nil }
             return text
         }
-        if let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID(), number.intValue >= 0,
-           number.doubleValue == Double(number.intValue) {
-            return number.stringValue
+        if let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID(),
+           number.doubleValue == Double(number.int64Value), number.int64Value >= 0,
+           number.stringValue == String(number.int64Value) {
+            return String(number.int64Value)
         }
-        if let number = value as? Int, number >= 0 { return String(number) }
         return nil
     }
 
@@ -589,23 +596,30 @@ public struct MessageContainerHistory: Equatable, Sendable {
         guard Int64(lease.identity.accountID) == actor, Int64(lease.conversationID) == channelID else {
             throw ChannelAuthorizationError.account4Mismatch
         }
+        guard canReadHistory(actor, channelID) else { throw ChannelAuthorizationError.notMember }
         _ = try isolation.admit(ChannelIsolatedRequest(lease: lease, action: .channelRead))
         var page = try read(actor: actor, channelID: channelID, before: before, after: after, limit: limit,
                             conversationType: conversationType, channelKind: channelKind,
                             canReadHistory: canReadHistory, listMessages: listMessages)
-        page["list"] = projectList(page["list"], channelID: channelID)
+        guard canReadHistory(actor, channelID) else { throw ChannelAuthorizationError.notMember }
+        guard Int64(lease.identity.accountID) == actor, Int64(lease.conversationID) == channelID else {
+            throw ChannelAuthorizationError.account4Mismatch
+        }
+        page["list"] = try projectList(page["list"], channelID: channelID)
+        guard canReadHistory(actor, channelID) else { throw ChannelAuthorizationError.notMember }
         return page
     }
 
-    func projectList(_ raw: Any?, channelID: Int64) -> [[String: Any]] {
+    func projectList(_ raw: Any?, channelID: Int64) throws -> [[String: Any]] {
+        guard let rows = raw as? [Any] else { throw ChannelAuthorizationError.invalidCatalog }
         let channel = String(channelID)
-        guard let rows = raw as? [Any] else { return [] }
         var projected: [[String: Any]] = []
-        for case let row as [String: Any] in rows {
+        for row in rows {
+            guard let row = row as? [String: Any] else { throw ChannelAuthorizationError.invalidCatalog }
             guard let conversation = text(row["conversationId"]), conversation == channel,
-                  text(row["id"]) != nil, row["senderId"] != nil, row["status"] != nil else { continue }
+                  text(row["id"]) != nil, text(row["senderId"]) != nil else { continue }
             var copy = row
-            if !normalStatus(row["status"]) {
+            if DirectoryMyState.exactInt(row["status"]) != 0 {
                 copy["content"] = ""
                 copy["extraJson"] = NSNull()
             }
@@ -616,14 +630,7 @@ public struct MessageContainerHistory: Equatable, Sendable {
 
     private func text(_ value: Any?) -> String? {
         if let text = value as? String, !text.isEmpty { return text }
-        if let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() { return number.stringValue }
+        if let number = DirectoryMyState.exactInt(value), number >= 0 { return String(number) }
         return nil
-    }
-
-    private func normalStatus(_ value: Any?) -> Bool {
-        if let number = value as? Int { return number == 0 }
-        if let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() { return number.intValue == 0 }
-        if let text = value as? String { return text == "0" }
-        return false
     }
 }

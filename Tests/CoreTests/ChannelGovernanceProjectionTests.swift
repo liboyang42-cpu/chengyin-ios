@@ -599,16 +599,35 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
             reads += 1
             var page = Self.historyPage(after: nil)
             page["list"] = [
-                ["id": "8", "conversationId": "12", "senderId": "3", "content": "secret", "status": 2, "extraJson": ["x": 1]],
-                ["id": "9", "conversationId": "99", "senderId": "3", "content": "other", "status": 0]
+                ["id": "7", "conversationId": "12", "senderId": "3", "content": "hello", "status": NSNumber(value: 0)],
+                ["id": "8", "conversationId": "12", "senderId": "3", "content": "secret", "status": NSNumber(value: 2), "extraJson": ["x": 1]],
+                ["id": "6", "conversationId": "12", "senderId": "3", "content": "nope", "status": NSNumber(value: false)],
+                ["id": "5", "conversationId": "12", "senderId": "3", "content": "half", "status": NSNumber(value: 0.5)],
+                ["id": "9", "conversationId": "99", "senderId": "3", "content": "other", "status": NSNumber(value: 0)]
             ]
             return page
         })
         XCTAssertEqual(reads, 1)
         let rows = try XCTUnwrap(page["list"] as? [[String: Any]])
-        XCTAssertEqual(rows.count, 1)
-        XCTAssertEqual(rows[0]["content"] as? String, "")
-        XCTAssertTrue(rows[0]["extraJson"] is NSNull)
+        XCTAssertEqual(rows.count, 4)
+        XCTAssertEqual(rows[0]["content"] as? String, "hello")
+        XCTAssertEqual(rows[1]["content"] as? String, "")
+        XCTAssertTrue(rows[1]["extraJson"] is NSNull)
+        XCTAssertEqual(rows[2]["content"] as? String, "")
+        XCTAssertEqual(rows[3]["content"] as? String, "")
+        var allow = true
+        var revokedDuringRead = 0
+        XCTAssertThrowsError(try history.readIsolated(actor: 7, channelID: 12, before: nil, after: nil, limit: 20,
+                                                      conversationType: 5, channelKind: 1, lease: lease, isolation: open,
+                                                      canReadHistory: { _, _ in allow }, listMessages: { _, _, _, _, _ in
+            revokedDuringRead += 1
+            allow = false
+            return Self.historyPage(after: nil)
+        })) { XCTAssertEqual($0 as? ChannelAuthorizationError, .notMember) }
+        XCTAssertEqual(revokedDuringRead, 1)
+        XCTAssertThrowsError(try history.projectList(NSNull(), channelID: 12)) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .invalidCatalog)
+        }
         var left = journey
         try left.leave()
         let closed = ChannelRevokeIsolation(channelID: left.catalog.channelID, identity: left.identity,

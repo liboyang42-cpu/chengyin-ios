@@ -138,6 +138,8 @@ class ChannelNotFriendPermissionContracts(unittest.TestCase):
         self.assertIn('VISIBLE_ORDER_PLUS_MUTATIONS_V1', governance)
         self.assertIn('func exactBool(', governance)
         self.assertIn('func exactCursor(', governance)
+        self.assertIn('DirectoryMyState.exactInt(row["status"]) != 0', governance)
+        self.assertIn('raw as? [Any] else { throw ChannelAuthorizationError.invalidCatalog }', governance)
         self.assertIn('RELOAD_ON_RESUME', governance)
         self.assertIn('testType5HistoryUsesOriginalCursorOrderAndDoesNotAcknowledge', tests)
         self.assertIn('func readIsolated(', governance)
