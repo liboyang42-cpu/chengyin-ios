@@ -113,3 +113,7 @@ python3 -m unittest Tests.ContractChecks.test_c11_ops_support_projections
 ```
 
 Must run from the chengyin-ios worktree cwd (not `/tmp`). Swift XCTest: authored, **NOT_RUN** on Linux. Not 100%.
+
+## Parent addendum 2026-10-23 17:30 America/Los_Angeles
+
+`testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueAuditApplies`：未见 `c11-comp-never` 的 `recoverOriginal` 回读空 audit 且不把 id 写入 keyed ledger；后续唯一 freeze 才是第一笔。空白 / nil requestId 返回 nil，不写成空串。XCTest NOT_RUN。Not 100%.

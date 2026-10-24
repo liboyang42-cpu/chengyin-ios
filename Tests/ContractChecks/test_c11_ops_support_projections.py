@@ -133,6 +133,8 @@ class C11OpsSupportProjectionContracts(unittest.TestCase):
         self.assertIn("200.00", tests)
         self.assertIn("999.00", tests)
         self.assertIn("denied viewer must not read audit", tests)
+        self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueAuditApplies", tests)
+        self.assertIn("c11-comp-never", tests)
 
     def test_deletion_evidence_is_table_not_cleaner(self):
         table = self.sources["Core/DataDeletionEvidenceTable.swift"]
@@ -206,6 +208,8 @@ class C11OpsSupportProjectionContracts(unittest.TestCase):
         self.assertIn("originalMissing(requestId: \"req-other\")", tests)
         compensation = self.sources["Tests/CoreTests/CompensationEntryProjectionTests.swift"]
         self.assertIn("testOtherViewerDoesNotRewriteFrozenOriginal", compensation)
+        self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueAuditApplies", compensation)
+        self.assertIn("c11-comp-never", compensation)
         self.assertIn("viewerId: 3", compensation)
 
     def test_waiting_source_unsigned_originals(self):

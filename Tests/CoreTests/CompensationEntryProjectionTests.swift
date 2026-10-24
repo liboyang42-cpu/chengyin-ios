@@ -100,6 +100,36 @@ final class CompensationEntryProjectionTests: XCTestCase {
         XCTAssertNil(try projection.project(requestId: "  ", topicId: 10, viewer: viewer, currentFinal: nil))
     }
 
+    func testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueAuditApplies() throws {
+        let audit = RequestKeyedAuditSource()
+        let projection = CompensationEntryProjection(
+            termsSource: FixedFrozenTerms(terms: frozenTerms()),
+            auditSource: audit)
+        let viewer = CompensationViewerGrant(
+            viewerId: 88, existingPermissionCodes: [ExtraApproverGrant.approvePermission])
+        XCTAssertNil(try projection.recoverOriginal(
+            originalRequestID: nil, topicId: 10, viewer: viewer, currentFinal: nil))
+        XCTAssertNil(try projection.recoverOriginal(
+            originalRequestID: "  ", topicId: 10, viewer: viewer, currentFinal: nil))
+        let recovered = try XCTUnwrap(projection.recoverOriginal(
+            originalRequestID: "c11-comp-never", topicId: 10, viewer: viewer, currentFinal: nil))
+        XCTAssertEqual(recovered.requestId, "c11-comp-never")
+        XCTAssertTrue(recovered.originalAudit.isEmpty)
+        XCTAssertTrue(audit.byRequest.isEmpty)
+        audit.byRequest["c11-comp-never"] = [
+            OriginalAuditEvent(
+                requestId: "c11-comp-never", targetType: "ORDER", targetId: 10,
+                action: "COMPENSATION_FREEZE", afterJson: "FROZEN")
+        ]
+        let first = try XCTUnwrap(projection.recoverOriginal(
+            originalRequestID: "c11-comp-never", topicId: 10, viewer: viewer, currentFinal: nil))
+        XCTAssertEqual(first.requestId, "c11-comp-never")
+        XCTAssertEqual(first.originalAudit.count, 1)
+        XCTAssertEqual(first.originalAudit[0].afterJson, "FROZEN")
+        XCTAssertEqual(audit.byRequest["c11-comp-never"]?.count, 1)
+        XCTAssertEqual(audit.byRequest.count, 1)
+    }
+
     private func frozenTerms() -> FrozenCompensationTerms {
         FrozenCompensationTerms(
             topicId: 10, executingClubId: 7,
@@ -119,6 +149,19 @@ final class ForbiddenAuditSource: CompensationEntryProjection.CompensationAuditS
     func trailForTopic(_ topicId: Int64) -> [AuditTrailEntry] {
         reads += 1
         XCTFail("denied viewer must not read trail")
+        return []
+    }
+}
+
+final class RequestKeyedAuditSource: CompensationEntryProjection.CompensationAuditSource {
+    var byRequest: [String: [OriginalAuditEvent]] = [:]
+
+    func eventsForRequest(_ requestId: String) -> [OriginalAuditEvent] {
+        byRequest[requestId] ?? []
+    }
+
+    func trailForTopic(_ topicId: Int64) -> [AuditTrailEntry] {
+        _ = topicId
         return []
     }
 }
