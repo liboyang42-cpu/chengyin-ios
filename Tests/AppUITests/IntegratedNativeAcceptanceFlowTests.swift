@@ -234,6 +234,68 @@ import XCTest
         XCTAssertFalse(app.buttons["profile.order.lifecycle"].exists)
     }
 
+    /// Actual SettingsView, reached through the normal Account toolbar and sheet.
+    /// The existing integrated fixture deliberately supplies no favorites grants.
+    /// This is unavailable-state navigation acceptance, not enabled removal coverage.
+    /// Authored offline; compilation and simulator execution remain NOT_RUN.
+    func testActualSettingsFavoritesNoGrantBackDoneAndRepeatedReopen() throws {
+        let app = launch(); signIn(app)
+        tab("Account", app)
+        let favoritesTabs = app.segmentedControls["accountCollection.favorites.tabs"]
+        let unavailable = app.staticTexts["Collection service is not configured"]
+        func expectDismissed(_ element: XCUIElement) {
+            let absent = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: element)
+            XCTAssertEqual(XCTWaiter.wait(for: [absent], timeout: 5), .completed, app.debugDescription)
+        }
+
+        // Repeat the entire sheet lifetime, not just the collection push.
+        for _ in 0..<2 {
+            tap("Settings", app)
+            XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
+            XCTAssertTrue(app.buttons["settingsNative.openFavorites"].waitForExistence(timeout: 5))
+            XCTAssertFalse(favoritesTabs.exists, "Reopening Settings must not restore a stale collection")
+
+            // Returning from Topics must consume the old route and local tab state.
+            for _ in 0..<2 {
+                tap("settingsNative.openFavorites", app)
+                XCTAssertTrue(favoritesTabs.waitForExistence(timeout: 5))
+                XCTAssertTrue(favoritesTabs.buttons["Posts"].isSelected,
+                              "A fresh collection route starts on Posts")
+                XCTAssertTrue(unavailable.waitForExistence(timeout: 5))
+                XCTAssertFalse(app.buttons["accountCollection.retry"].exists)
+                XCTAssertFalse(app.buttons.matching(NSPredicate(
+                    format: "identifier BEGINSWITH %@", "profile.favoriteRemoval.")).firstMatch.exists)
+                favoritesTabs.buttons["Topics"].tap()
+                XCTAssertTrue(favoritesTabs.buttons["Topics"].isSelected)
+                XCTAssertTrue(unavailable.waitForExistence(timeout: 5))
+                XCTAssertFalse(app.buttons["accountCollection.retry"].exists)
+
+                // Scope the native Back button to the destination navigation bar.
+                let back = app.navigationBars["Favorites"].buttons["Settings"]
+                XCTAssertTrue(back.waitForExistence(timeout: 5), app.debugDescription)
+                back.tap()
+                XCTAssertTrue(app.buttons["settingsNative.openFavorites"].waitForExistence(timeout: 5))
+                expectDismissed(favoritesTabs)
+            }
+            tap("Done", app)
+            expectDismissed(app.buttons["settingsNative.openFavorites"])
+            XCTAssertTrue(app.navigationBars["Account"].waitForExistence(timeout: 5))
+            expectDismissed(favoritesTabs)
+        }
+        // Evidence is read after sheet dismissal, when the normal root is accessible.
+        // The fixture rejects unreviewed requests before logging successful entries;
+        // evidence() also asserts its separate violations list is empty.
+        let result = try evidence(app)
+        XCTAssertEqual(result.accountID, 7)
+        let forbidden = ["/api/creativesquare/list", "/api/topic/like_list",
+                         "/api/creativesquare/info", "/api/comment/list",
+                         "/api/creativesquare/bookmark"]
+        XCTAssertFalse(result.ledger.contains { entry in
+            guard let path = URL(string: entry.url)?.path else { return true }
+            return forbidden.contains { path.hasSuffix($0) }
+        }, "No favorites list, detail or removal request is authorized by this fixture")
+    }
+
     func testNormalRootOwnedConfigurationReadOnlyAndStoryReturn() throws {
         let app = launch(); signIn(app, owner: 7)
         tab("Account", app); tap("account.templateAuthoring", app); tap("templateAuthor.openMine", app)

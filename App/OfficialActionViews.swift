@@ -216,11 +216,38 @@ import SwiftUI
     }
 }
 
+/// One sheet occurrence stays occupied until its matching dismissal finishes.
+struct OfficialParticipationPresentation {
+    struct Entry {
+        let id = UUID()
+        let command: OfficialActionCommand
+        let onReturn: (() -> Void)?
+    }
+    private(set) var entry: Entry?
+    private(set) var isPresented = false
+    mutating func open(command: OfficialActionCommand, onReturn: (() -> Void)?) {
+        guard entry == nil else { return }
+        entry = Entry(command: command, onReturn: onReturn)
+        isPresented = true
+    }
+    mutating func beginDismiss(id: UUID) {
+        guard entry?.id == id else { return }
+        isPresented = false
+    }
+    mutating func finishDismiss(id: UUID) -> (() -> Void)? {
+        guard let current = entry, current.id == id else { return nil }
+        entry = nil
+        isPresented = false
+        return current.onReturn
+    }
+}
+
 @MainActor struct OfficialParticipationActions: View {
     let coordinator: OfficialActionCoordinator
     let event: OfficialEvent
     var arrival: OfficialArrivalEvidence? = nil
-    @State private var reviewed: OfficialActionCommand?
+    var onReturn: (() -> Void)? = nil
+    @State private var presentation = OfficialParticipationPresentation()
     private var command: OfficialActionCommand? {
         guard !event.paused else { return nil }
         if event.signed == false && [2, 3].contains(event.status ?? -1) { return .signup(event.id) }
@@ -232,13 +259,23 @@ import SwiftUI
         return nil
     }
     var body: some View {
+        let presentationID = presentation.entry?.id
         Section("officialAction.participation") {
             if let command {
-                Button(LocalizedStringKey(command.titleKey)) { reviewed = command }.frame(minHeight: 44)
+                Button(LocalizedStringKey(command.titleKey)) {
+                    // Capture the detail visit at presentation time. A late dismissal
+                    // must not use a callback supplied by a newer account or page.
+                    presentation.open(command: command, onReturn: onReturn)
+                }.frame(minHeight: 44)
+                    .disabled(presentation.entry != nil)
                     .accessibilityIdentifier("officialAction.participationReview")
             } else { Text("officialAction.noAction").foregroundStyle(.secondary) }
-        }.sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) {
-            if let reviewed { OfficialActionSheet(coordinator: coordinator, command: reviewed) }
+        }.sheet(isPresented: Binding(get: { presentation.isPresented }, set: { if !$0, let presentationID { presentation.beginDismiss(id: presentationID) } }), onDismiss: {
+            guard let presentationID else { return }
+            let callback = presentation.finishDismiss(id: presentationID)
+            callback?()
+        }) {
+            if let entry = presentation.entry { OfficialActionSheet(coordinator: coordinator, command: entry.command) }
         }
     }
 }

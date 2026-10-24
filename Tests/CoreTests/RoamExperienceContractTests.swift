@@ -242,3 +242,52 @@ extension RoamExperienceContractTests {
         XCTAssertNil(summary.knownShops); XCTAssertEqual(summary.tripsWithShops, 2)
     }
 }
+
+final class RoamFinishedStoryContractTests: XCTestCase {
+    private func decode(_ story: Any? = nil, complete: Bool = true, state: String = "FINISHED",
+                        removeTotal: Bool = false) throws -> RoamSessionFact {
+        var result: [String: Any] = ["tileXp": 1, "poiXp": 2, "totalXp": 3,
+            "newTiles": 4, "newPois": 5, "tilesEver": 6, "sessionShops": 7]
+        if let story { result["routeStory"] = story }
+        if removeTotal { result.removeValue(forKey: "totalXp") }
+        let object: [String: Any] = ["state": state, "sessionId": 12,
+            "resultComplete": complete, "result": result]
+        return try JSONDecoder().decode(RoamSessionFact.self, from: JSONSerialization.data(withJSONObject: object))
+    }
+    func testMissingNullAndMalformedOptionalStoryKeepOldSettlementFacts() throws {
+        let original = try decode()
+        XCTAssertTrue(original.hasCompleteSettlement); XCTAssertNil(original.result?.routeStory)
+        for value in [NSNull(), 0, true, ["text": "Not a string"], ["Not a string"]] as [Any] {
+            let fact = try decode(value)
+            XCTAssertEqual(fact, original)
+            XCTAssertTrue(fact.hasCompleteSettlement); XCTAssertNil(fact.result?.routeStory)
+        }
+    }
+    func testStoryPreservesReturnedUnicodeAndSurroundingWhitespaceBytes() throws {
+        for text in ["  e\u{301} 与 👩🏽‍🚀\r\n", "\u{00A0}Returned reflection\u{2003}", "  **Received text**  "] {
+            let returned = try XCTUnwrap(decode(text).result?.routeStory)
+            XCTAssertEqual(Array(returned.utf8), Array(text.utf8))
+        }
+        for blank in ["", " \t\r\n", "\u{00A0}\u{2003}"] {
+            XCTAssertNil(try decode(blank).result?.routeStory)
+            XCTAssertTrue(try decode(blank).hasCompleteSettlement)
+        }
+    }
+    func testConsumerDoesNotTruncateOrRejectReceivedTextAtEightyUTF16Units() throws {
+        for text in [String(repeating: "a", count: 80), String(repeating: "a", count: 81),
+                     String(repeating: "😀", count: 40), String(repeating: "😀", count: 40) + "x",
+                     String(repeating: "\u{00A0}", count: 80) + "x", String(repeating: "\u{2003}", count: 80) + "x"] {
+            let returned = try XCTUnwrap(decode(text).result?.routeStory)
+            XCTAssertEqual(Array(returned.utf8), Array(text.utf8))
+            XCTAssertTrue(try decode(text).hasCompleteSettlement)
+        }
+    }
+    func testStoryNeverMakesIncompleteActiveOrMissingFactsComplete() throws {
+        XCTAssertFalse(try decode("Returned reflection", complete: false).hasCompleteSettlement)
+        XCTAssertFalse(try decode("Returned reflection", removeTotal: true).hasCompleteSettlement)
+        for state in ["ACTIVE", "NOT_FOUND"] {
+            let fact = try decode("Returned reflection", state: state)
+            XCTAssertNil(fact.result); XCTAssertFalse(fact.hasCompleteSettlement)
+        }
+    }
+}

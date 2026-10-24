@@ -100,6 +100,7 @@ import SwiftUI
                             .disabled(!model.draft.choiceOptionMedia.isSupported)
                             .accessibilityIdentifier("templateAuthor.optionMedia." + letter.rawValue + "." + kind.rawValue)
                     }
+                    TemplateBasicFieldClearButton(model: model, field: .optionMedia(letter))
                     Button("templateChoiceRows.remove", role: .destructive, action: editor.action(.remove(letter)))
                         .disabled(!editor.rows.canRemove)
                         .accessibilityLabel(Text("templateChoiceRows.removeLetter \(letter.rawValue)"))

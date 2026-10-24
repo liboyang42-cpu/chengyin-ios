@@ -61,3 +61,44 @@ public struct MerchantDiscoveryRow: Decodable, Equatable, Identifiable {
         return trimmed.isEmpty ? nil : trimmed
     }
 }
+
+/// One listed owner and one presentation occurrence; row IDs never confer ownership.
+public struct MerchantDiscoveryPresentation {
+    public struct Selection: Identifiable {
+        public let id: UUID
+        public let target: PublicMerchantHomeTarget
+        public let scope: UUID
+    }
+    public private(set) var revision = UUID()
+    public private(set) var selection: Selection?
+    public private(set) var occupiedID: UUID?
+    private var appearedID: UUID?
+    public init() {}
+    public mutating func invalidate() {
+        revision = UUID(); selection = nil
+        if appearedID != occupiedID { occupiedID = nil }
+    }
+    public mutating func didAppear(expectedID: UUID) {
+        guard occupiedID == expectedID, selection?.id == expectedID else { return }
+        appearedID = expectedID
+    }
+    public mutating func endHost() {
+        revision = UUID(); selection = nil; occupiedID = nil; appearedID = nil
+    }
+    @discardableResult public mutating func open(_ row: MerchantDiscoveryRow, among rows: [MerchantDiscoveryRow],
+                                                 scope: UUID, expectedRevision: UUID) -> Bool {
+        guard expectedRevision == revision, occupiedID == nil, rows.contains(row), let target = row.target else { return false }
+        let id = UUID()
+        occupiedID = id; selection = .init(id: id, target: target, scope: scope)
+        return true
+    }
+    public mutating func close(expectedID: UUID) {
+        guard selection?.id == expectedID else { return }
+        selection = nil
+    }
+    /// Keep the slot occupied throughout the platform dismissal transition.
+    public mutating func finishDismiss(expectedID: UUID) {
+        guard occupiedID == expectedID, selection == nil else { return }
+        occupiedID = nil; appearedID = nil
+    }
+}

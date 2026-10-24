@@ -5,6 +5,7 @@ import SwiftUI
     let service: PublishingService?
     let account: PublishingSession?
     var openResource: (PublishedResource) -> Void
+    var readOnly = false
     @State private var type = "all"
     @State private var state = "all"
     @State private var owner = "all"
@@ -31,11 +32,15 @@ import SwiftUI
             if unknown > 0 { Text("publishModes.unknownTypes").foregroundStyle(.secondary) }
             ForEach(rows) { project in
                 Section {
-                    Button { openResource(project.resource) } label: { VStack(alignment: .leading) { Text(project.title); if let state = project.stateText { Text(state).font(.caption) } } }
+                    if readOnly {
+                        VStack(alignment: .leading) { Text(project.title); if let state = project.stateText { Text(state).font(.caption) } }
+                    } else {
+                        Button { openProject(project.resource) } label: { VStack(alignment: .leading) { Text(project.title); if let state = project.stateText { Text(state).font(.caption) } } }
+                    }
                     if project.signupCount > 0 { Text("\(project.signupCount) " + appLocalized("publishModes.signups", locale: locale)) }
-                    if project.canToggle { Button(LocalizedStringKey(project.online ? "publishModes.takeOffline" : "publishModes.putOnline")) { Task { await prepare(project, action: .toggle) } }.disabled(busy) }
-                    if project.canDelete { Button("publishModes.remove", role: .destructive) { Task { await prepare(project, action: .remove) } }.disabled(busy) }
-                    if project.canCancelWithRefund { Text("publishModes.refundHandoff").font(.caption).foregroundStyle(.secondary) }
+                    if !readOnly && project.canToggle { Button(LocalizedStringKey(project.online ? "publishModes.takeOffline" : "publishModes.putOnline")) { Task { await prepare(project, action: .toggle) } }.disabled(busy) }
+                    if !readOnly && project.canDelete { Button("publishModes.remove", role: .destructive) { Task { await prepare(project, action: .remove) } }.disabled(busy) }
+                    if !readOnly && project.canCancelWithRefund { Text("publishModes.refundHandoff").font(.caption).foregroundStyle(.secondary) }
                 }
             }
             if !message.isEmpty { Text(message).accessibilityIdentifier("publishModes.management.message") }
@@ -58,6 +63,8 @@ import SwiftUI
             }
         }
     }
+    /// The result destination must not escape into detail editors or lifecycle actions.
+    func openProject(_ resource: PublishedResource) { guard !readOnly else { return }; openResource(resource) }
     private func load() async {
         generation += 1; let stamp = generation; if let review { service?.cancel(review) }; review = nil; busy = true; failed = false; rows = []
         guard let service, let account else { busy = false; failed = true; return }
@@ -65,12 +72,12 @@ import SwiftUI
         catch { guard stamp == generation else { return }; busy = false; failed = true }
     }
     private func prepare(_ project: PublishingProject, action: PublishingProjectAction) async {
-        guard let service, let account else { return }; let stamp = generation; busy = true
+        guard !readOnly, let service, let account else { return }; let stamp = generation; busy = true
         do { let value = try await service.prepareProject(project, action: action, query: query, session: account); guard stamp == generation else { service.cancel(value); return }; review = value; busy = false }
         catch { guard stamp == generation else { return }; busy = false; message = appLocalized("publishModes.conflict", locale: locale) }
     }
     private func submit(_ snapshot: PublishingReview) async {
-        guard let service else { return }; busy = true; review = nil
+        guard !readOnly, let service else { return }; busy = true; review = nil
         let outcome = await service.submit(snapshot); guard service.currentSession == account else { busy = false; return }; busy = false
         switch outcome {
         case .acknowledged: message = appLocalized("publishModes.acknowledged", locale: locale); await load()

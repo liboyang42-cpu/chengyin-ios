@@ -6,6 +6,7 @@ struct MerchantOperationsEditor: View {
     var templateAssistFactory: ((MerchantOperationsCoordinator) -> MerchantTemplateAssistFlow)? = nil
     @StateObject private var storeFieldPresentation = MerchantStoreFieldPresentation()
     @StateObject private var npcFieldPresentation = MerchantNPCFieldPresentation()
+    @StateObject private var presetPresentation = MerchantNPCPresetPresentation()
     @State private var coopFieldRoute: MerchantCoopFieldSession?
     @State private var assist: MerchantTemplateAssistPresentation?
     @State private var categoryPicker: MerchantTemplateCategoryPickerModel?
@@ -36,6 +37,7 @@ struct MerchantOperationsEditor: View {
         .modifier(MerchantBrandImagesPresentation(document: model))
         .modifier(MerchantStoreFieldStablePresentation(document: model, presentation: storeFieldPresentation))
         .modifier(MerchantNPCFieldStablePresentation(document: model, presentation: npcFieldPresentation))
+        .modifier(MerchantNPCPresetStablePresentation(document: model, presentation: presetPresentation))
         .modifier(MerchantCoopFieldStablePresentation(document: model, route: $coopFieldRoute))
     }
     @ViewBuilder private func fields(_ draft: MerchantOperationsDraft) -> some View {
@@ -139,7 +141,7 @@ struct MerchantOperationsEditor: View {
             if !value.avatar.hasPrefix("px1:") {
                 MerchantOperationsMediaPreview(source: value.avatar, title: "merchant.operations.avatar", isExample: isExample)
             }
-            MerchantNPCPresetSection(document: model)
+            MerchantNPCPresetSection(document: model, presentation: presetPresentation)
             Section("merchant.operations.character") {
                 LabeledContent("merchantPreset.lastReview") {
                     Text(LocalizedStringKey(value.reviewKey)).accessibilityIdentifier("merchant.operations.character.review")

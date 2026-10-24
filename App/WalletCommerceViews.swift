@@ -7,7 +7,7 @@ enum WalletReadFailurePresentation {
     }
 }
 
-@MainActor private final class WalletScreen<Value>: ObservableObject {
+@MainActor final class WalletScreen<Value>: ObservableObject {
     @Published var value: Value?
     @Published var failed = false
     @Published var loading = false
@@ -20,16 +20,31 @@ enum WalletReadFailurePresentation {
     func load(_ reader: WalletCommerceReader, operation: (WalletCommerceService, String) async throws -> Value) async {
         let stamp = UUID(); generation = stamp; value = nil; failed = false; requiresLogin = false; unavailable = false; loading = true
         let scope = reader.scope
+        loadedScope = nil
+        defer { if stamp == generation { loading = false } }
         do {
             let result = try await reader.read(operation)
-            guard stamp == generation, scope == reader.scope else { return }
+            guard stamp == generation else { return }
+            guard scope == reader.scope else { clear(); return }
             value = result; loadedScope = scope
         } catch {
-            guard stamp == generation, scope == reader.scope else { return }
+            guard stamp == generation else { return }
+            guard scope == reader.scope else { clear(); return }
+            if error is CancellationError { return }
+            if (error as? WalletCommerceSafetyError) == .staleSession { clear(); return }
             failed = true; requiresLogin = (error as? APIError) == .unauthorized
             unavailable = WalletReadFailurePresentation.isUnavailable(error)
         }
-        loading = false
+    }
+}
+/// The account earnings overview uses the same owner-scoped read as withdrawal support.
+/// It does not load fund stages or authorize any payout operation.
+extension WalletScreen where Value == WithdrawalBalance {
+    func loadEarnings(_ reader: WalletCommerceReader) async {
+        guard let owner = reader.scope?.accountID else { clear(); return }
+        await load(reader) { service, token in
+            try await service.withdrawalBalance(memberID: owner, token: token)
+        }
     }
 }
 @MainActor private struct WalletIssueView: View {
@@ -48,36 +63,85 @@ enum WalletReadFailurePresentation {
         }
     }
 }
-private struct WalletFormatting {
-    let locale: Locale
-    func amount(_ value: WalletAmount?, currency: String? = nil) -> String {
-        guard let value else { return appLocalized("wallet.unknown", locale: locale) }
-        return value.text + " " + (currency ?? appLocalized("wallet.currencyUnknown", locale: locale))
-    }
-    func points(_ value: WalletAmount?) -> String {
-        guard let value else { return appLocalized("wallet.unknownPoints", locale: locale) }
-        return value.text + " " + appLocalized("wallet.pointsUnit", locale: locale)
-    }
-}
 /// Additive destination only. Host must keep existing entry gates and reset .id(reader.scope)
 /// whenever deployment/account/epoch changes; no new root navigation entry is installed here.
 @MainActor struct WalletCommerceHomeView: View {
+    @Environment(\.scenePhase) private var scenePhase
+    @StateObject private var earnings = WalletScreen<WithdrawalBalance>()
+    @StateObject private var funds = WalletScreen<WalletFundsStages>()
+    @State private var isVisible = false
     @Environment(\.locale) private var locale
     private var format: WalletFormatting { .init(locale: locale) }
     let reader: WalletCommerceReader
     let visibility: WalletCommerceVisibility
     let onCooperationFinance: () -> Void
+    var invitationHistory: WalletInvitationHistoryAccess? = nil
+    var showsWithdrawalSupport = true
+    var showsCooperationFinance = true
+    var organizerFinance: WalletOrganizerFinanceAccess? = nil
     var body: some View {
         List {
+            if visibility.income {
+                Section("withdrawal.support.balance") {
+                    if earnings.loading {
+                        ProgressView("wallet.loading").accessibilityIdentifier("wallet.earnings.loading")
+                    } else if let value = earnings.value, reader.isConfigured,
+                              earnings.loadedScope == reader.scope, reader.scope != nil {
+                        Text(verbatim: format.amount(value.balance, currency: value.currency))
+                            .font(.title2.bold()).privacySensitive()
+                            .accessibilityIdentifier("wallet.earnings.balance")
+                    } else {
+                        WalletIssueView(reader: reader, requiresLogin: earnings.requiresLogin,
+                            unavailable: earnings.unavailable) { Task { await loadEarnings() } }
+                    }
+                }.accessibilityIdentifier("wallet.earnings.overview")
+            }
+            if visibility.assets {
+                Section("wallet.fundStages") {
+                    WalletFundsStagesInline(reader: reader, funds: funds) { Task { await loadFunds() } }
+                }.accessibilityIdentifier("wallet.earnings.stages.home")
+            }
             if visibility.assets { NavigationLink("wallet.assets") { WalletAssetsView(reader: reader) } }
-            if visibility.income { NavigationLink("wallet.income") { WalletIncomeView(reader: reader, onCooperationFinance: onCooperationFinance) } }
+            if visibility.income { NavigationLink("wallet.income") { WalletIncomeView(reader: reader, onCooperationFinance: onCooperationFinance, showsCooperationFinance: showsCooperationFinance, organizerFinance: organizerFinance) } }
+            if visibility.income, let invitationHistory {
+                NavigationLink {
+                    SocialInviteHistoryView(reader: invitationHistory.reader,
+                        squareReader: invitationHistory.squareReader, actions: invitationHistory.actions)
+                        .id(invitationHistory.reader.identity)
+                } label: {
+                    Label("social.invites.title", systemImage: "person.2.badge.plus")
+                }.accessibilityIdentifier("wallet.inviteHistory")
+            }
             if visibility.points { NavigationLink("wallet.points") { WalletLedgerView(reader: reader, kind: .points) } }
             if visibility.mall { NavigationLink("wallet.mall") { WalletProductsView(reader: reader) } }
             if visibility.withdrawalRecords {
-                NavigationLink("withdrawal.support.title") { WithdrawalSupportLandingView(reader: reader) }
-                NavigationLink("wallet.withdrawals") { WalletWithdrawalsView(reader: reader) }
+                if showsWithdrawalSupport {
+                    NavigationLink("withdrawal.support.title") { WithdrawalSupportLandingView(reader: reader) }
+                }
+                NavigationLink("wallet.withdrawals") { WalletWithdrawalsView(reader: reader, showsSupportContact: showsWithdrawalSupport) }
             }
         }.appNavigationTitle("wallet.title")
+            .task(id: reader.scope) {
+                isVisible = true
+                earnings.clear()
+                funds.clear()
+                await loadEarnings()
+                await loadFunds()
+            }
+            .onDisappear { isVisible = false; earnings.clear(); funds.clear() }
+            .onChange(of: scenePhase) { _, phase in
+                if phase != .active { earnings.clear(); funds.clear() }
+                else if isVisible { Task { await loadEarnings(); await loadFunds() } }
+            }
+            .refreshable { await loadEarnings(); await loadFunds() }
+    }
+    private func loadEarnings() async {
+        guard visibility.income, isVisible, scenePhase == .active else { return }
+        await earnings.loadEarnings(reader)
+    }
+    private func loadFunds() async {
+        guard visibility.assets, isVisible, scenePhase == .active else { return }
+        await funds.load(reader) { try await $0.stages(token: $1) }
     }
 }
 @MainActor struct WalletAssetsView: View {
@@ -88,24 +152,30 @@ private struct WalletFormatting {
     var body: some View {
         List {
             Section("wallet.fundStages") {
-                if funds.loading { ProgressView("wallet.loading") }
+                if funds.loading { ProgressView("wallet.loading").accessibilityIdentifier("wallet.assets.loading") }
                 else if let value = funds.value, funds.loadedScope == reader.scope {
-                    if !value.amountsKnown { Text("wallet.amountsUnknown") }
-                    if value.pendingSettlement.value > 0 { LabeledContent("wallet.pendingSettlement", value: format.amount(value.pendingSettlement, currency: value.currency)) }
-                    ForEach(Array(value.complaintPeriod.enumerated()), id: \.offset) { _, item in
-                        LabeledContent { Text(format.amount(item.amount, currency: value.currency)) } label: {
-                            Text("wallet.complaintPeriod"); Text(verbatim: item.availableDate)
+                    if !value.amountsKnown {
+                        Text("wallet.amountsUnknown").accessibilityIdentifier("wallet.assets.unknown")
+                    } else {
+                        if value.pendingSettlement.value > 0 { LabeledContent("wallet.pendingSettlement", value: format.amount(value.pendingSettlement, currency: value.currency)) }
+                        ForEach(Array(value.complaintPeriod.enumerated()), id: \.offset) { _, item in
+                            LabeledContent { Text(format.amount(item.amount, currency: value.currency)) } label: {
+                                Text("wallet.complaintPeriod"); Text(verbatim: WalletCivilDateLocalization.text(item.availableDate, locale: locale))
+                            }
                         }
+                        if value.disputed.value > 0 { LabeledContent("wallet.disputed", value: format.amount(value.disputed, currency: value.currency)) }
+                        LabeledContent("wallet.available", value: format.amount(value.withdrawable, currency: value.currency))
+                            .accessibilityIdentifier("wallet.assets.available")
                     }
-                    if value.disputed.value > 0 { LabeledContent("wallet.disputed", value: format.amount(value.disputed, currency: value.currency)) }
-                    LabeledContent("wallet.available", value: format.amount(value.withdrawable, currency: value.currency))
                     Text("wallet.notPayout")
-                } else { WalletIssueView(reader: reader, requiresLogin: funds.requiresLogin) { Task { await load() } } }
+                } else { WalletIssueView(reader: reader, requiresLogin: funds.requiresLogin, unavailable: funds.unavailable) { Task { await load() } } }
             }
             Section {
                 NavigationLink("withdrawal.support.title") { WithdrawalSupportLandingView(reader: reader) }
                 NavigationLink("wallet.balanceLedger") { WalletLedgerView(reader: reader, kind: .balance) }
+                    .accessibilityIdentifier("wallet.assets.balanceLedger")
                 NavigationLink("wallet.pointsLedger") { WalletLedgerView(reader: reader, kind: .assetPoints) }
+                    .accessibilityIdentifier("wallet.assets.pointsLedger")
             }
         }.appNavigationTitle("wallet.assets").task(id: reader.scope) { funds.clear(); await load() }
             .onDisappear { funds.cancel() }.refreshable { await load() }
@@ -122,12 +192,14 @@ private struct WalletFormatting {
     }
 }
 @MainActor struct WalletLedgerView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     private var format: WalletFormatting { .init(locale: locale) }
     let reader: WalletCommerceReader
     let kind: WalletLedgerKind
     @StateObject private var model = WalletPagerScreen()
     @State private var direction = "all"
+    @State private var incomeDetail: WalletIncomeDetailSelection?
     private var points: Bool { kind == .points || kind == .assetPoints }
     private var income: Bool { if case .income = kind { return true }; return false }
     private var filtered: [WalletLedgerRow] {
@@ -141,54 +213,152 @@ private struct WalletFormatting {
                 Text("wallet.all").tag("all"); Text("wallet.inflow").tag("income"); Text("wallet.outflow").tag("expense")
             }.pickerStyle(.menu)
             if points { Text("wallet.loadedFilter"); NavigationLink("wallet.tasks") { WalletPointsTasksView(reader: reader) } }
-            if model.pager.loadedScope == reader.scope {
+            if model.pager.hasLoadedPage && model.pager.loadedScope == reader.scope {
                 if points { LabeledContent("wallet.pointsBalance", value: format.points(model.pager.rows.first?.afterPoints)) }
-                if filtered.isEmpty && !model.pager.isLoading && !model.pager.failed { Text("wallet.empty") }
+                if filtered.isEmpty && !model.pager.isLoading && !model.pager.failed {
+                    Text("wallet.empty").accessibilityIdentifier("wallet.ledger.empty")
+                }
                 ForEach(filtered) { row in
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale))
-                        if income { Text(LocalizedStringKey(row.incomeEventKey)) }
-                        Text(LocalizedStringKey("wallet.direction." + (income ? row.incomeDirection : row.assetDirection).rawValue))
-                        HStack {
-                            Text(verbatim: row.signedText(points: points, income: income) ?? appLocalized("wallet.unknown", locale: locale))
-                            if points { Text("wallet.pointsUnit") }
-                            else { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }
+                    if income {
+                        Button {
+                            incomeDetail = model.pager.incomeDetail(rowID: row.id, reader: reader)
+                        } label: {
+                            HStack { ledgerRow(row); Spacer(); Image(systemName: "chevron.right").foregroundStyle(.secondary).accessibilityHidden(true) }
+                                .contentShape(Rectangle()).frame(minHeight: 44)
                         }
-                        if !points, let balance = row.afterBalance { LabeledContent("wallet.balanceAfter", value: format.amount(balance, currency: row.currency)) }
-                        if let date = row.createTime { Text(verbatim: date).font(.caption) }
-                    }.accessibilityElement(children: .combine).accessibilityIdentifier("wallet.ledger.\(row.id)")
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("wallet.income.detail.open.\(row.id)")
+                    } else { ledgerRow(row) }
                 }
             }
             if model.pager.failed || !reader.isConfigured || reader.scope == nil {
-                WalletIssueView(reader: reader) { Task { await model.load(reader, kind: kind) } }
+                WalletIssueView(reader: reader, requiresLogin: model.pager.requiresLogin, unavailable: model.pager.unavailable) { Task { await model.load(reader, kind: kind) } }
             }
             if model.pager.isLoading { ProgressView("wallet.loading") }
-            else if model.pager.hasMore && reader.isConfigured && reader.scope != nil {
+            else if model.pager.hasLoadedPage && model.pager.hasMore && !model.pager.failed && reader.isConfigured && reader.scope != nil {
                 Button("wallet.loadMore") { Task { await model.load(reader, kind: kind) } }.frame(minHeight: 44)
+                    .accessibilityIdentifier("wallet.ledger.loadMore")
             }
-        }.appNavigationTitle(key: points ? "wallet.pointsLedger" : "wallet.balanceLedger")
+        }.appNavigationTitle(key: income ? "wallet.income" : points ? "wallet.pointsLedger" : "wallet.balanceLedger")
             .task(id: reader.scope) { model.reset(); await model.load(reader, kind: kind) }
-            .onDisappear { model.cancel() }
-            .refreshable { model.reset(); await model.load(reader, kind: kind) }
+            .onDisappear { if incomeDetail == nil { model.cancel() } }
+            .refreshable { incomeDetail = nil; model.reset(); await model.load(reader, kind: kind) }
+            .onChange(of: reader.scope) { _, _ in incomeDetail = nil }
+            .onChange(of: direction) { _, _ in incomeDetail = nil }
+            .onChange(of: scenePhase) { _, phase in if phase != .active { incomeDetail = nil } }
+            .sheet(item: $incomeDetail) { selection in
+                NavigationStack {
+                    List {
+                        if let row = model.pager.incomeDetailRow(selection, reader: reader) {
+                            Section { ledgerRow(row) }
+                            Section { LabeledContent("wallet.entry", value: String(row.id)) }
+                        } else {
+                            Text(LocalizedStringKey(reader.scope == nil ? "wallet.login" : "wallet.failed"))
+                                .accessibilityIdentifier("wallet.income.detail.retired")
+                        }
+                    }
+                    .privacySensitive()
+                    .appNavigationTitle("wallet.income")
+                    .toolbar { ToolbarItem(placement: .confirmationAction) {
+                        Button("action.close") { incomeDetail = nil }
+                            .accessibilityIdentifier("wallet.income.detail.close")
+                    } }
+                    .accessibilityIdentifier("wallet.income.detail")
+                }
+            }
+    }
+    private func ledgerRow(_ row: WalletLedgerRow) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale))
+            if income { Text(LocalizedStringKey(row.incomeEventKey)) }
+            Text(LocalizedStringKey("wallet.direction." + (income ? row.incomeDirection : row.assetDirection).rawValue))
+            HStack {
+                Text(verbatim: format.signed(row, points: points, income: income))
+                if points { Text(verbatim: format.pointsUnit(for: row.changePoints)) }
+                else { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }
+            }
+            if !points, let balance = row.afterBalance { LabeledContent("wallet.balanceAfter", value: format.amount(balance, currency: row.currency)) }
+            if let date = row.createTime { Text(verbatim: date).font(.caption) }
+        }.accessibilityElement(children: .combine).accessibilityIdentifier("wallet.ledger.\(row.id)")
     }
 }
 @MainActor struct WalletIncomeView: View {
-    @Environment(\.locale) private var locale
-    private var format: WalletFormatting { .init(locale: locale) }
+    @Environment(\.scenePhase) private var scenePhase
     let reader: WalletCommerceReader
     let onCooperationFinance: () -> Void
+    var showsCooperationFinance = true
+    var organizerFinance: WalletOrganizerFinanceAccess? = nil
     @State private var filter = WalletIncomeFilter.all
+    @State private var hold = WalletEarningsTabHold()
+    #if DEBUG
+    @StateObject private var debugFinance = WalletEarningsDebugFinance()
+    @StateObject private var debugStages = WalletScreen<WalletFundsStages>()
+    #endif
+    private var financeAccess: WalletOrganizerFinanceAccess? {
+        #if DEBUG
+        if WalletEarningsDebugFinance.enabled { return debugFinance.access }
+        #endif
+        return organizerFinance
+    }
+    private var showIncome: Bool { financeAccess == nil || hold.tab == .income }
     var body: some View {
+        VStack(spacing: 0) {
+            if financeAccess != nil {
+                WalletEarningsTabBar(tab: hold.tab) { hold.select($0) }
+                #if DEBUG
+                if WalletEarningsDebugFinance.enabled {
+                    Text(verbatim: String(debugFinance.financeReads))
+                        .accessibilityIdentifier("wallet.earnings.finance.reads")
+                    WalletFundsStagesInline(reader: reader, funds: debugStages) { Task { await loadDebugStages() } }
+                }
+                #endif
+            }
+            ZStack {
+                incomeBody
+                    .opacity(showIncome ? 1 : 0)
+                    .allowsHitTesting(showIncome)
+                    .accessibilityHidden(!showIncome)
+                    .zIndex(showIncome ? 1 : 0)
+                // ponytail: finance stays mounted across tab switches so the finance task does not restart; background drops it.
+                if let access = financeAccess, hold.mounted {
+                    WalletOrganizerFinancePane(access: access, mounted: hold.mounted)
+                        .opacity(hold.tab == .organizer ? 1 : 0)
+                        .allowsHitTesting(hold.tab == .organizer)
+                        .accessibilityHidden(hold.tab != .organizer)
+                        .zIndex(hold.tab == .organizer ? 1 : 0)
+                }
+            }.frame(maxWidth: .infinity, maxHeight: .infinity)
+        }.appNavigationTitle("wallet.income")
+            .onChange(of: scenePhase) { _, phase in
+                guard financeAccess != nil else { return }
+                if phase != .active { hold.background() } else { hold.foreground() }
+            }
+            #if DEBUG
+            .task(id: reader.scope) {
+                guard WalletEarningsDebugFinance.enabled else { return }
+                debugStages.clear(); await loadDebugStages()
+            }
+            #endif
+    }
+    private var incomeBody: some View {
         VStack {
             Picker("wallet.income", selection: $filter) {
                 Text("wallet.all").tag(WalletIncomeFilter.all)
                 Text("wallet.creationIncome").tag(WalletIncomeFilter.create)
                 Text("wallet.brandIncome").tag(WalletIncomeFilter.brand)
             }.pickerStyle(.segmented).padding()
-            Button("wallet.clubFinance", action: onCooperationFinance).frame(minHeight: 44)
+            if financeAccess == nil, showsCooperationFinance {
+                Button("wallet.clubFinance", action: onCooperationFinance).frame(minHeight: 44)
+            }
             WalletLedgerView(reader: reader, kind: .income(filter)).id(filter.rawValue)
-        }.appNavigationTitle("wallet.income")
+        }
     }
+    #if DEBUG
+    private func loadDebugStages() async {
+        guard WalletEarningsDebugFinance.enabled else { return }
+        await debugStages.load(reader) { try await $0.stages(token: $1) }
+    }
+    #endif
 }
 @MainActor struct WalletProductsView: View {
     @Environment(\.locale) private var locale
@@ -196,13 +366,16 @@ private struct WalletFormatting {
     let reader: WalletCommerceReader
     @StateObject private var model = WalletScreen<WalletPage<WalletProduct>>()
     @State private var keyword = ""
+    @State private var submittedKeyword = ""
     @State private var sort = 0
+    @State private var isVisible = false
+    @State private var pendingLoad: Task<Void, Never>?
     var body: some View {
         List {
             NavigationLink("wallet.cart") { WalletCartView(reader: reader) }
             Picker("wallet.sort", selection: $sort) {
                 ForEach(0..<5) { value in Text(LocalizedStringKey("wallet.sort." + String(value))).tag(value) }
-            }.onChange(of: sort) { _, _ in Task { await load() } }
+            }.onChange(of: sort) { _, _ in scheduleLoad() }
             if model.loading { ProgressView("wallet.loading") }
             else if let page = model.value, model.loadedScope == reader.scope {
                 if page.rows.isEmpty { Text("wallet.empty") }
@@ -215,14 +388,56 @@ private struct WalletFormatting {
                     }
                 }
                 if let total = page.total, total > page.rows.count { Text("wallet.sourceLimited") }
-            } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin) { Task { await load() } } }
+            } else if model.failed || !reader.isConfigured || reader.scope == nil {
+                WalletIssueView(reader: reader, requiresLogin: model.requiresLogin, unavailable: model.unavailable) { scheduleLoad() }
+            } else {
+                // An interrupted read is retryable, not a reported business failure.
+                Button("wallet.retry") { scheduleLoad() }.frame(minHeight: 44)
+            }
         }.appNavigationTitle("wallet.mall").searchable(text: $keyword)
-            .onSubmit(of: .search) { Task { await load() } }
-            .task(id: reader.scope) { model.clear(); await load() }
-            .onDisappear { model.cancel() }.refreshable { await load() }
+            .onSubmit(of: .search) { submitSearch() }
+            .onChange(of: keyword) { _, value in
+                // Clearing or cancelling search must restore the unfiltered catalogue.
+                guard value.isEmpty, !submittedKeyword.isEmpty else { return }
+                submitSearch()
+            }
+            .task(id: reader.scope) {
+                guard !Task.isCancelled else { return }
+                pendingLoad?.cancel()
+                isVisible = true
+                model.clear()
+                await load()
+            }
+            .onDisappear {
+                isVisible = false
+                pendingLoad?.cancel()
+                model.cancel()
+            }.refreshable {
+                guard isVisible, !Task.isCancelled else { return }
+                pendingLoad?.cancel()
+                await load()
+            }
+    }
+    private func submitSearch() {
+        submittedKeyword = keyword
+        scheduleLoad()
+    }
+    private func scheduleLoad() {
+        guard isVisible else { return }
+        pendingLoad?.cancel()
+        // Retire old results synchronously, without painting an interim failure.
+        model.clear()
+        model.loading = true
+        let scope = reader.scope
+        pendingLoad = Task {
+            guard !Task.isCancelled, isVisible, scope == reader.scope else { return }
+            await load()
+        }
     }
     private func load() async {
-        let search = keyword; let order = sort
+        guard isVisible, !Task.isCancelled else { return }
+        // Draft edits do not change refresh, retry, or sorting until submitted.
+        let search = submittedKeyword; let order = sort
         await model.load(reader) { try await $0.products(sortType: order, keyword: search, token: $1) }
     }
 }
@@ -238,12 +453,12 @@ private struct WalletFormatting {
             else if let item = model.value, model.loadedScope == reader.scope {
                 Text(verbatim: item.productName ?? appLocalized("wallet.product", locale: locale)).font(.title2)
                 LabeledContent("wallet.price", value: format.points(item.price))
-                LabeledContent("wallet.stock", value: item.stock.map(String.init) ?? appLocalized("wallet.unknown", locale: locale))
+                LabeledContent("wallet.stock", value: format.count(item.stock))
                 ForEach(item.skuList ?? []) { sku in
                     VStack(alignment: .leading) {
                         Text(verbatim: sku.skuName ?? appLocalized("wallet.sku", locale: locale))
                         Text(format.points(sku.price))
-                        LabeledContent("wallet.stock", value: sku.stock.map(String.init) ?? appLocalized("wallet.unknown", locale: locale))
+                        LabeledContent("wallet.stock", value: format.count(sku.stock))
                     }.accessibilityElement(children: .combine)
                 }
                 if let html = item.detailHtml {
@@ -274,7 +489,7 @@ private struct WalletFormatting {
                         VStack(alignment: .leading) {
                             Text(verbatim: item.productName ?? appLocalized("wallet.product", locale: locale))
                             Text(format.points(item.price))
-                            LabeledContent("wallet.quantity", value: String(item.quantity))
+                            LabeledContent("wallet.quantity", value: format.count(item.quantity))
                             LabeledContent("wallet.subtotal", value: format.points(item.subtotalPoints.map(WalletAmount.init)))
                         }
                     }.accessibilityIdentifier("wallet.cart.\(item.id)")
@@ -323,13 +538,15 @@ private struct WalletFormatting {
     @Environment(\.locale) private var locale
     private var format: WalletFormatting { .init(locale: locale) }
     let reader: WalletCommerceReader
+    var showsSupportContact = true
     @StateObject private var model = WalletScreen<WalletPage<WalletWithdrawalRecord>>()
+    @State private var showContact = false
     var body: some View {
         List {
             Text("bank.withdrawal.historyNotice")
             if model.loading { ProgressView("wallet.loading") }
             else if let page = model.value, model.loadedScope == reader.scope {
-                if page.rows.isEmpty { Text("wallet.empty") }
+                if page.rows.isEmpty { Text("wallet.empty").accessibilityIdentifier("wallet.withdrawals.empty") }
                 ForEach(page.rows) { item in
                     VStack(alignment: .leading, spacing: 6) {
                         Text(format.amount(item.amount, currency: item.currency))
@@ -339,9 +556,18 @@ private struct WalletFormatting {
                     }.accessibilityElement(children: .combine).accessibilityIdentifier("wallet.withdrawal.\(item.id)")
                 }
                 if let total = page.total, total > page.rows.count { Text("wallet.sourceLimited") }
-            } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin) { Task { await load() } } }
-        }.appNavigationTitle("wallet.withdrawals").task(id: reader.scope) { model.clear(); await load() }
+            } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin, unavailable: model.unavailable) { Task { await load() } } }
+            if showsSupportContact {
+                Section {
+                    Button("withdrawal.support.contact") { showContact = true }
+                        .accessibilityIdentifier("wallet.withdrawals.support")
+                }
+            }
+        }.appNavigationTitle("wallet.withdrawals").task(id: reader.scope) { showContact = false; model.clear(); await load() }
             .onDisappear { model.cancel() }.refreshable { await load() }
+            // Uses the inherited, independently reviewed support reader. History access
+            // does not supply a contact or authorize support configuration/copying.
+            .sheet(isPresented: $showContact) { WithdrawalSupportContactView() }
     }
     private func load() async { await model.load(reader) { try await $0.withdrawals(token: $1) } }
 }
@@ -361,7 +587,7 @@ private struct WalletFormatting {
                         Text(verbatim: item.title ?? appLocalized("wallet.entry", locale: locale))
                         if let description = item.description { Text(verbatim: description) }
                         Text(format.points(item.value))
-                        LabeledContent("wallet.doneCount", value: item.pointsNum.map(String.init) ?? appLocalized("wallet.unknown", locale: locale))
+                        LabeledContent("wallet.doneCount", value: format.count(item.pointsNum))
                     }.accessibilityElement(children: .combine)
                 }
             } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin, unavailable: model.unavailable) { Task { await load() } } }

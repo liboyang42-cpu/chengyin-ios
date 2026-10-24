@@ -58,9 +58,14 @@ private struct ActivityListDestination: Hashable { let id: Int }
             .appNavigationTitle("activity.browse")
             .searchable(text:$query,placement:.navigationBarDrawer(displayMode:.always),prompt:"activity.search")
             .onSubmit(of:.search) { loads.start { await model.load(reader: reader, reset: true, keyword: query) } }
+            .onChange(of: query) { _, text in
+                if text.isEmpty, model.canClearSearch(reader: reader) {
+                    loads.start { await model.clearSearchIfNeeded(reader: reader) }
+                }
+            }
             .task(id: identity) {
                 if model.identity != identity { query = "" }
-                await loads.run { await model.load(reader: reader, reset: true, keyword: query) }
+                await loads.run { await model.resume(reader: reader, keyword: query) }
             }
             .onDisappear { loads.cancel(); model.cancelPending() }
             // Kept outside replaceable List content, preserving a pushed Activity→topic route.
@@ -84,6 +89,22 @@ private struct ActivityListDestination: Hashable { let id: Int }
     private var generation: UInt64 = 0
     private var appliedQuery = ""
     func cancelPending() { generation &+= 1; isLoading = false }
+    /// Navigation return is not a new search. Preserve accepted pages and any
+    /// later-page retry; only an initial unfinished read or changed reader needs loading.
+    func resume(reader: any ActivityReading, keyword: String) async {
+        guard !Task.isCancelled else { return }
+        let sameReader = identity == ActivityListReadIdentity(reader)
+        if sameReader, page > 0 { return }
+        await load(reader: reader, reset: true, keyword: sameReader ? appliedQuery : keyword)
+    }
+    /// Clearing the search field explicitly returns to the unfiltered first page.
+    func canClearSearch(reader: any ActivityReading) -> Bool {
+        identity == ActivityListReadIdentity(reader) && !appliedQuery.isEmpty
+    }
+    func clearSearchIfNeeded(reader: any ActivityReading) async {
+        guard !Task.isCancelled, canClearSearch(reader: reader) else { return }
+        await load(reader: reader, reset: true, keyword: "")
+    }
     func load(reader: any ActivityReading, reset: Bool, keyword: String) async {
         let captured = ActivityListReadIdentity(reader)
         let replaced = identity != captured

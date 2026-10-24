@@ -57,6 +57,7 @@ public final class RegistrationUIFlow {
     public private(set) var waitlistOutcomeUnknown = false
     public private(set) var durableCreation: RegistrationDurableCreation = .none
     public private(set) var durableStatus: RegistrationStatusSnapshot?
+    public private(set) var durableStatusFailed = false
     public private(set) var activeWaitlistOffer: RegistrationWaitlistOffer?
     private let waitlistService: (any RegistrationWaitlistServing)?
     private let now: () -> Date
@@ -67,6 +68,9 @@ public final class RegistrationUIFlow {
     private let onReadback: (RegistrationStatusSnapshot) -> Void
     private var openedIdentity: ProfileReadIdentity?
     private var generation: UInt64 = 0
+    // Navigation evidence belongs to this opening, never a later reconstructed form.
+    public private(set) var resultOrderVisitID = UUID()
+    public func retireResultOrderNavigation() { resultOrderVisitID = UUID(); changed() }
     private var quoteGeneration: UInt64 = 0
     private var participantGeneration: UInt64 = 0
     private var manuallyEdited = false
@@ -125,6 +129,7 @@ public final class RegistrationUIFlow {
 
     /// Called when the sheet opens or the host's session identity changes. No requests.
     public func open() {
+        resultOrderVisitID = UUID()
         generation &+= 1; quoteGeneration &+= 1; participantGeneration &+= 1
         clearForm()
         openedIdentity = currentIdentity()
@@ -256,12 +261,13 @@ public final class RegistrationUIFlow {
     /// Dismissal invalidates callbacks and scrubs form fields. It never resets/recreates
     /// the host's retained intent, sends cancellation, or claims a dispatched write failed.
     public func leave() {
+        resultOrderVisitID = UUID()
         if hasCurrentSession { coordinator.cancelPendingOperations() }
         generation &+= 1; quoteGeneration &+= 1; participantGeneration &+= 1
         clearForm(); openedIdentity = nil; changed()
     }
     private func refreshCreationLock() {
-        durableStatus = nil
+        durableStatus = nil; durableStatusFailed = false
         guard case .approved = creationPolicy, let service = waitlistService as? any RegistrationPendingServing, let scope = waitlistScope else { durableCreation = .none; return }
         do { durableCreation = try service.creationLock(scope) }
         catch { durableCreation = .pending(registrationID: nil) }
@@ -270,14 +276,20 @@ public final class RegistrationUIFlow {
         guard hasCurrentSession, !isReadingStatus, case .pending(let id) = durableCreation, id != nil,
               let scope = waitlistScope, let service = waitlistService as? any RegistrationPendingServing else { return }
         let stamp = generation, identity = openedIdentity
+        durableStatus = nil; durableStatusFailed = false; resultOrderVisitID = UUID()
         isReadingStatus = true; changed()
+        defer {
+            if matches(stamp, identity), waitlistScope == scope { isReadingStatus = false; changed() }
+        }
         do {
             let snapshot = try await service.readRetainedStatus(scope)
             guard matches(stamp, identity), waitlistScope == scope, !Task.isCancelled else { return }
             guard snapshot.registrationID == id else { throw APIError.malformedResponse }
             durableStatus = snapshot; onReadback(snapshot)
-        } catch { guard matches(stamp, identity) else { return }; block = .quoteUnavailable }
-        isReadingStatus = false; changed()
+        } catch {
+            guard matches(stamp, identity), waitlistScope == scope, !Task.isCancelled else { return }
+            durableStatusFailed = true
+        }
     }
     public var waitlistReadKey: RegistrationWaitlistReadKey? {
         guard hasCurrentSession, let openedIdentity, let scope = waitlistScope else { return nil }
@@ -437,10 +449,11 @@ public final class RegistrationUIFlow {
     }
     private func invalidateConfirmation() { confirmation = nil; waitlistCancellation = nil; block = nil }
     private func clearForm() {
-        resetWaitlist(); quoteReceivedAt = nil; durableCreation = .none; durableStatus = nil
+        resetWaitlist(); quoteReceivedAt = nil; durableCreation = .none; durableStatus = nil; durableStatusFailed = false
         draft = .init(); participants = []; participantsState = .idle; selectedParticipantID = nil
         selectedTicketID = nil; usePoints = false; consented = false; confirmation = nil; block = nil
         manuallyEdited = false; isQuoting = false; isSubmitting = false; isReadingStatus = false
     }
     private func changed() { onChange?() }
 }
+

@@ -82,7 +82,7 @@ import SwiftUI
                 case .activity(let id): return AnyView(ActivityDetailView(id: id, reader: session)
                     .toolbar { if let resource = try? PublishedResource(kind: .activity, value: id) { PublisherLifecycleNavigationLink(session: session, resource: resource) } })
                 case .playTemplate(let id): return AnyView(DiscoveryTemplateDetailView(id: id, reader: session,
-                    authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision).id(session.templateAuthoringViewIdentity))
+                    authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext).id(session.templateAuthoringViewIdentity))
                 }
             }, editorContextID: session.projectEditorContextID, publisherClient: session.publisherLifecycleContext?.client,
             publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) })

@@ -35,11 +35,18 @@ public struct MerchantBusinessSnapshot: Equatable {
     func access() async throws -> MerchantBusinessAccess
     func cityNodeRedemption(journal: any MerchantBusinessIntentStore) -> CityNodeRedemptionCoordinator
     func snapshot(_ query: MerchantBusinessQuery) async throws -> MerchantBusinessSnapshot
+    func snapshot(_ query: MerchantBusinessQuery, isCurrent: () -> Bool) async throws -> MerchantBusinessSnapshot
     func execute(_ mutation: MerchantBusinessMutation, requestID: String, scope: MerchantBusinessScope) async throws -> MerchantBusinessReceipt
     func execute(_ review: MerchantBusinessConfirmation, check: () throws -> Void) async throws -> MerchantBusinessReceipt
     func execute(_ review: MerchantBusinessConfirmation, authorization: MerchantBusinessDispatchAuthorization, check: () throws -> Void) async throws -> MerchantBusinessReceipt
 }
 public extension MerchantBusinessReading {
+    func snapshot(_ query: MerchantBusinessQuery, isCurrent: () -> Bool) async throws -> MerchantBusinessSnapshot {
+        guard isCurrent(), !Task.isCancelled else { throw MerchantBusinessFailure.stale }
+        let result = try await snapshot(query)
+        guard isCurrent(), !Task.isCancelled else { throw MerchantBusinessFailure.stale }
+        return result
+    }
     var authorizationGeneration: UUID? { nil }
     var journalRealm: String? { scope?.realm }
     func canExecute(_ mutation: MerchantBusinessMutation, merchantID: Int) -> Bool { canExecuteSyntheticMutation }
@@ -94,11 +101,14 @@ public extension MerchantBusinessReading {
     }
     public func access() async throws -> MerchantBusinessAccess { try await read { try await $0.access(token: $1.token) } }
     public func snapshot(_ query: MerchantBusinessQuery) async throws -> MerchantBusinessSnapshot {
-        try await read { service, session in
+        try await snapshot(query, isCurrent: { true })
+    }
+    public func snapshot(_ query: MerchantBusinessQuery, isCurrent: () -> Bool) async throws -> MerchantBusinessSnapshot {
+        try await read(isCurrent: isCurrent) { service, session in
             let access = try await service.access(token: session.token)
-            guard currentSession() == session, !Task.isCancelled else { throw MerchantBusinessFailure.stale }
+            guard isCurrent(), currentSession() == session, !Task.isCancelled else { throw MerchantBusinessFailure.stale }
             let document = try await service.document(query, access: access, token: session.token)
-            guard currentSession() == session, !Task.isCancelled else { throw MerchantBusinessFailure.stale }
+            guard isCurrent(), currentSession() == session, !Task.isCancelled else { throw MerchantBusinessFailure.stale }
             var roles: MerchantBusinessDocument?
             if query == .operators { roles = try await service.document(.roles, access: access, token: session.token) }
             return .init(access: access, document: document, roles: roles)
@@ -137,16 +147,17 @@ public extension MerchantBusinessReading {
             throw error
         }
     }
-    private func read<Value>(_ block: (MerchantBusinessService, MerchantBusinessSession) async throws -> Value) async throws -> Value {
+    private func read<Value>(isCurrent: () -> Bool = { true }, _ block: (MerchantBusinessService, MerchantBusinessSession) async throws -> Value) async throws -> Value {
+        guard isCurrent() else { throw MerchantBusinessFailure.stale }
         guard let session = currentSession() else { throw APIError.unauthorized }
         guard let service else { throw APIError.notConfigured }
         do {
             try Task.checkCancellation()
             let value = try await block(service, session)
-            guard currentSession() == session, !Task.isCancelled else { throw MerchantBusinessFailure.stale }
+            guard isCurrent(), currentSession() == session, !Task.isCancelled else { throw MerchantBusinessFailure.stale }
             return value
         } catch {
-            guard currentSession() == session, !Task.isCancelled else { throw MerchantBusinessFailure.stale }
+            guard isCurrent(), currentSession() == session, !Task.isCancelled else { throw MerchantBusinessFailure.stale }
             if error as? APIError == .unauthorized { unauthorized(session) }
             throw error
         }

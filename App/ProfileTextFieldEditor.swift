@@ -19,7 +19,7 @@ enum ProfileTextField: String, CaseIterable {
         case .caseIntroduction: return draft.caseIntroduction ?? ""
         case .contactQR: return "" // Contact QR uses the action-only editor; never expose a raw URL input.
         case .preferences: return "" // Selection actions use a dedicated editor, never free-form IDs.
-        case .casePictures: return "" // All-image removal has an action-only editor.
+        case .casePictures: return "" // Source-index removal has an action-only editor.
         }
     }
 }
@@ -78,7 +78,7 @@ struct ProfileTextFieldEditor: View {
                 if edit.draft.removesCasePictures {
                     Text("profile.caseRemoval.staged").accessibilityIdentifier("profile.caseRemoval.stagedInDescription")
                 } else {
-                    ProfileCasePortfolioSection(casePics: edit.snapshot.casePics, scope: edit.id, reader: caseImageReader)
+                    ProfileCasePortfolioSection(casePics: edit.draft.casePictureSubset.flatMap { $0.matches(source: edit.snapshot.casePics) ? $0.wireValue : nil } ?? edit.snapshot.casePics, scope: edit.id, reader: caseImageReader)
                 }
             }
         }

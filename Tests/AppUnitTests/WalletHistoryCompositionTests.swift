@@ -4,19 +4,101 @@ import XCTest
 /// Real AppSession factories and the outer transport, with synthetic HTTP only.
 @MainActor final class WalletHistoryCompositionTests: XCTestCase {
     private let base = URL(string: "https://example.test/native")!
-    private func root(_ wire: Wire, _ grants: Grants, _ vault: Vault) throws -> AppCompositionRoot {
+    private func root(_ wire: Wire, _ grants: Grants, _ vault: Vault, invite: InviteGrants? = nil) throws -> AppCompositionRoot {
         let suite = "wallet-history-" + UUID().uuidString, defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
         let deployment = try ReviewedAppDeployment(market: .china, baseURL: base.absoluteString,
             approvedBaseURLs: [.china: [base.absoluteString]], verifiedCapabilities: [.domesticChinaPhone],
             bundleIdentifier: "test.wallet-history", realm: "synthetic")
         return .init(deployment: .reviewed(deployment), storage: .init(defaults: defaults, tokenStore: { _ in vault }),
-            makeTransport: { wire }, walletHistoryReadApproval: { grants.select($0) })
+            makeTransport: { wire }, walletHistoryReadApproval: { grants.select($0) },
+            profileInviteHistoryReadAccess: { invite?.select($0) })
     }
     private func login(_ session: AppSession) async {
         session.authChannels.cancel(); await session.authChannels.loginWithPhone(phone: "10000000000", code: "123456")
         XCTAssertNotNil(session.account)
     }
+    func testIncomeDetailUsesNormalReadLeaseAndRetiresWhenRevokedOrRoleChanges() async throws {
+        let wire = Wire(), grants = Grants(), session = try root(wire, grants, Vault()).makeSession()
+        await login(session); wire.requests = []
+        let reader = session.walletHistoryReader, pager = WalletLedgerPager()
+        await pager.load(reader: reader, kind: .income(.all))
+        let selection = try XCTUnwrap(pager.incomeDetail(rowID: 61, reader: reader))
+        let count = wire.requests.count
+        XCTAssertEqual(pager.incomeDetailRow(selection, reader: reader)?.id, 61)
+        XCTAssertEqual(wire.requests.count, count) // Detail is an existing server row, never a write or guessed endpoint.
+        grants.retained?.revoke()
+        XCTAssertNil(pager.incomeDetailRow(selection, reader: reader))
+        grants.retained = nil
+        let fresh = session.walletHistoryReader
+        XCTAssertNil(pager.incomeDetailRow(selection, reader: fresh))
+        let beforeFreshRead = wire.requests.count
+        await pager.load(reader: fresh, kind: .income(.all))
+        XCTAssertEqual(wire.requests.count, beforeFreshRead + 1)
+        let second = try XCTUnwrap(pager.incomeDetail(rowID: 61, reader: fresh))
+        wire.role = "merchant"; await session.refreshOwnAccount()
+        wire.role = "player"; await session.refreshOwnAccount()
+        XCTAssertNil(pager.incomeDetailRow(second, reader: fresh))
+    }
+
+    func testWalletInvitationEntryUsesIndependentReaderWithoutLoading() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession()
+        await login(session); wire.requests = []
+        let access = WalletInvitationHistoryAccess(session: session)
+        XCTAssertEqual(access.reader.identity, session.profileInviteHistoryReader.identity)
+        XCTAssertFalse(access.reader.isConfigured) // Wallet approval does not grant invitation reads.
+        XCTAssertTrue(wire.requests.isEmpty)
+        do {
+            _ = try await access.reader.invitationHistory(page: 1)
+            XCTFail("Missing invitation approval must not use wallet authority")
+        } catch { }
+        XCTAssertTrue(wire.requests.isEmpty)
+    }
+
+    func testWalletInvitationEntrySignedOutDoesNotIssueRequests() throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession()
+        let access = WalletInvitationHistoryAccess(session: session)
+        XCTAssertNil(access.reader.identity.accountID)
+        XCTAssertFalse(access.reader.isConfigured)
+        XCTAssertTrue(wire.requests.isEmpty)
+    }
+
+    func testWalletInvitationEntryLoadsExistingMonthAndRewardProjection() async throws {
+        let wire = Wire(), grants = Grants(), invite = InviteGrants()
+        let session = try root(wire, grants, Vault(), invite: invite).makeSession()
+        await login(session); wire.requests = []
+        let access = WalletInvitationHistoryAccess(session: session)
+        XCTAssertTrue(wire.requests.isEmpty)
+        let model = SocialInviteHistoryModel()
+        await model.appear(access.reader)?.value
+        XCTAssertEqual(model.pagination.members.map(\.id), [201])
+        XCTAssertEqual(model.timeline(access.reader)?.months.map(\.id), ["2026-10"])
+        XCTAssertEqual(ProfileInviteRewardReview(scan: model.scan).cumulativePoints, Decimal(string: "2.5"))
+        XCTAssertEqual(wire.requests.compactMap { $0.url?.lastPathComponent }, ["invite_list", "list"])
+        model.suspend()
+        await model.appear(access.reader)?.value
+        XCTAssertEqual(model.pagination.members.map(\.id), [201])
+        XCTAssertEqual(wire.requests.count, 4)
+    }
+
+    func testWalletInvitationGrantDoesNotBorrowWalletLeaseAndRevocationHidesResults() async throws {
+        let wire = Wire(), grants = Grants(), invite = InviteGrants()
+        let session = try root(wire, grants, Vault(), invite: invite).makeSession()
+        await login(session)
+        _ = session.walletHistoryReader.isConfigured
+        let access = WalletInvitationHistoryAccess(session: session), model = SocialInviteHistoryModel()
+        grants.retained?.revoke(); grants.enabled = false
+        XCTAssertTrue(access.reader.isConfigured)
+        await model.appear(access.reader)?.value
+        XCTAssertNotNil(model.timeline(access.reader))
+        invite.retained?.revoke()
+        XCTAssertFalse(access.reader.isConfigured)
+        XCTAssertNil(model.timeline(access.reader))
+        wire.requests = []
+        do { _ = try await access.reader.invitationHistory(page: 1); XCTFail() } catch { }
+        XCTAssertTrue(wire.requests.isEmpty)
+    }
+
     func testNormalFactoryReadsOnlyVisibleHistoryRoutes() async throws {
         let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession(); await login(session); wire.requests = []
         let reader = session.walletHistoryReader
@@ -149,8 +231,316 @@ import XCTest
         XCTAssertFalse(WalletReadFailurePresentation.isUnavailable(APIError.unauthorized))
         XCTAssertFalse(WalletReadFailurePresentation.isUnavailable(CancellationError()))
     }
+    func testAssetScreenLoadingThenResultUsesCurrentScope() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession(); await login(session)
+        let reader = session.walletHistoryReader, screen = WalletScreen<WalletFundsStages>()
+        wire.pause = true; let paused = expectation(description: "asset read suspended"); wire.onPaused = { paused.fulfill() }
+        let task = Task { await screen.load(reader) { try await $0.stages(token: $1) } }
+        await fulfillment(of: [paused], timeout: 2)
+        XCTAssertTrue(screen.loading); XCTAssertNil(screen.value); XCTAssertFalse(screen.failed)
+        wire.finish(code: 200); await task.value
+        XCTAssertFalse(screen.loading); XCTAssertFalse(screen.failed)
+        XCTAssertEqual(screen.value?.withdrawable.value, 3); XCTAssertEqual(screen.loadedScope, reader.scope)
+    }
+    func testAssetScreenDistinguishesDeniedAndTransientThenRecovers() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession(); await login(session)
+        let reader = session.walletHistoryReader, screen = WalletScreen<WalletFundsStages>()
+        await screen.load(reader) { _, _ in throw APIError.notConfigured }
+        XCTAssertTrue(reader.isConfigured); XCTAssertTrue(screen.failed); XCTAssertTrue(screen.unavailable)
+        XCTAssertFalse(screen.requiresLogin); XCTAssertNil(screen.value)
+        await screen.load(reader) { _, _ in throw APIError.httpStatus(503) }
+        XCTAssertTrue(screen.failed); XCTAssertFalse(screen.unavailable); XCTAssertFalse(screen.requiresLogin)
+        await screen.load(reader) { try await $0.stages(token: $1) }
+        XCTAssertFalse(screen.failed); XCTAssertFalse(screen.unavailable); XCTAssertNotNil(screen.value)
+    }
+    func testAssetScreenCancelledLateResultCannotOverwriteReopenedRead() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession(); await login(session)
+        let reader = session.walletHistoryReader, screen = WalletScreen<WalletFundsStages>()
+        wire.pause = true; let paused = expectation(description: "old asset read"); wire.onPaused = { paused.fulfill() }
+        let old = Task { await screen.load(reader) { try await $0.stages(token: $1) } }
+        await fulfillment(of: [paused], timeout: 2)
+        screen.cancel(); screen.clear(); wire.pause = false
+        await screen.load(reader) { _, _ in throw APIError.httpStatus(503) }
+        wire.finish(code: 200); await old.value
+        XCTAssertNil(screen.value); XCTAssertTrue(screen.failed); XCTAssertFalse(screen.loading)
+        await screen.load(reader) { try await $0.stages(token: $1) }
+        XCTAssertNotNil(screen.value); XCTAssertFalse(screen.failed)
+    }
+    func testAssetScreenNewestRefreshWinsOverNonCooperativeOlderRead() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession(); await login(session)
+        let reader = session.walletHistoryReader, screen = WalletScreen<WalletFundsStages>()
+        wire.pause = true; let paused = expectation(description: "older refresh"); wire.onPaused = { paused.fulfill() }
+        let old = Task { await screen.load(reader) { try await $0.stages(token: $1) } }
+        await fulfillment(of: [paused], timeout: 2)
+        wire.pause = false; await screen.load(reader) { _, _ in throw APIError.notConfigured }
+        wire.finish(code: 200); await old.value
+        XCTAssertNil(screen.value); XCTAssertTrue(screen.unavailable); XCTAssertFalse(screen.loading)
+    }
+    func testAssetScreenScopeSwitchCannotRefillOldResult() async throws {
+        let wire = Wire(), grants = Grants(), session = try root(wire, grants, Vault()).makeSession(); await login(session)
+        let reader = session.walletHistoryReader, screen = WalletScreen<WalletFundsStages>()
+        wire.pause = true; let paused = expectation(description: "old scope read"); wire.onPaused = { paused.fulfill() }
+        let old = Task { await screen.load(reader) { try await $0.stages(token: $1) } }
+        await fulfillment(of: [paused], timeout: 2)
+        grants.retained?.revoke(); grants.enabled = false; screen.clear()
+        XCTAssertNil(reader.scope)
+        wire.finish(code: 200); await old.value
+        XCTAssertNil(screen.value); XCTAssertNil(screen.loadedScope); XCTAssertFalse(screen.loading)
+    }
+    func testWithdrawalScreenDenialAnd401AreNotEmptySuccess() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession(); await login(session)
+        let reader = session.walletHistoryReader, screen = WalletScreen<WalletPage<WalletWithdrawalRecord>>()
+        await screen.load(reader) { _, _ in throw APIError.notConfigured }
+        XCTAssertTrue(screen.unavailable); XCTAssertFalse(screen.requiresLogin)
+        XCTAssertNil(screen.value); XCTAssertNil(screen.loadedScope); XCTAssertFalse(screen.loading)
+        // Use a reader without session teardown to prove the presentation flag itself.
+        let active = try XCTUnwrap(reader.scope)
+        let isolated = WalletCommerceReader(service: WalletCommerceService(configuration: try APIConfiguration(baseURL: base), transport: wire)) { (active, "synthetic") }
+        await screen.load(isolated) { _, _ in throw APIError.unauthorized }
+        XCTAssertTrue(screen.requiresLogin); XCTAssertFalse(screen.unavailable)
+        XCTAssertNil(screen.value); XCTAssertNil(screen.loadedScope); XCTAssertFalse(screen.loading)
+        await screen.load(isolated) { try await $0.withdrawals(token: $1) }
+        XCTAssertFalse(screen.failed); XCTAssertEqual(screen.value?.rows.count, 0)
+        XCTAssertEqual(screen.loadedScope, active)
+    }
+    func testScreenTaskCancellationRejectsNonCooperatingLateSuccess() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession(); await login(session)
+        let reader = session.walletHistoryReader, screen = WalletScreen<Int>()
+        let started = expectation(description: "screen operation suspended")
+        var pending: CheckedContinuation<Int, Never>?
+        let task = Task { await screen.load(reader) { _, _ in
+            await withCheckedContinuation { pending = $0; started.fulfill() }
+        } }
+        await fulfillment(of: [started], timeout: 2)
+        task.cancel() // No screen.cancel(): exercise structured task cancellation.
+        pending?.resume(returning: 1); await task.value
+        XCTAssertFalse(screen.loading); XCTAssertFalse(screen.failed)
+        XCTAssertNil(screen.value); XCTAssertNil(screen.loadedScope)
+        await screen.load(reader) { _, _ in 2 }
+        XCTAssertEqual(screen.value, 2); XCTAssertFalse(screen.loading)
+    }
+    func testOldScreenCompletionCannotClearNewInflightLoading() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession(); await login(session)
+        let reader = session.walletHistoryReader, screen = WalletScreen<Int>()
+        let firstStarted = expectation(description: "old screen read"), nextStarted = expectation(description: "new screen read")
+        var first: CheckedContinuation<Int, Never>?, next: CheckedContinuation<Int, Never>?
+        let old = Task { await screen.load(reader) { _, _ in
+            await withCheckedContinuation { first = $0; firstStarted.fulfill() }
+        } }
+        await fulfillment(of: [firstStarted], timeout: 2)
+        screen.cancel()
+        let newer = Task { await screen.load(reader) { _, _ in
+            await withCheckedContinuation { next = $0; nextStarted.fulfill() }
+        } }
+        await fulfillment(of: [nextStarted], timeout: 2)
+        first?.resume(returning: 1); await old.value
+        XCTAssertTrue(screen.loading); XCTAssertNil(screen.value); XCTAssertNil(screen.loadedScope)
+        XCTAssertFalse(screen.failed)
+        next?.resume(returning: 2); await newer.value
+        XCTAssertFalse(screen.loading); XCTAssertEqual(screen.value, 2)
+        XCTAssertEqual(screen.loadedScope, reader.scope)
+    }
+    func testScreenScopeChangeWithoutExplicitClearCannotStickLoading() async throws {
+        let wire = Wire(), grants = Grants(), session = try root(wire, grants, Vault()).makeSession(); await login(session)
+        let reader = session.walletHistoryReader, screen = WalletScreen<Int>()
+        await screen.load(reader) { _, _ in
+            grants.retained?.revoke(); grants.enabled = false
+            return 1
+        }
+        XCTAssertFalse(screen.loading); XCTAssertFalse(screen.failed)
+        XCTAssertNil(screen.value); XCTAssertNil(screen.loadedScope)
+        grants.retained = nil; grants.enabled = true
+        let fresh = session.walletHistoryReader
+        await screen.load(fresh) { _, _ in 2 }
+        XCTAssertEqual(screen.value, 2); XCTAssertEqual(screen.loadedScope, fresh.scope)
+    }
+    func testEarningsOverviewUsesOnlyCurrentOwnerReadAndPreservesLedgerDestination() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession()
+        await login(session); wire.requests = []
+        let reader = session.walletHistoryReader, screen = WalletScreen<WithdrawalBalance>()
+        await screen.loadEarnings(reader)
+        XCTAssertEqual(screen.value?.balance.text, "12")
+        XCTAssertNil(screen.value?.currency)
+        XCTAssertEqual(screen.loadedScope, reader.scope)
+        XCTAssertEqual(wire.requests.compactMap { $0.url?.lastPathComponent }, ["info"])
+        let body = String(data: try XCTUnwrap(wire.requests.first?.httpBody), encoding: .utf8) ?? ""
+        XCTAssertTrue(body.contains("name=\"member_id\"")); XCTAssertTrue(body.contains("\r\n7\r\n"))
+        let pager = WalletLedgerPager()
+        await pager.load(reader: reader, kind: .income(.all))
+        let detail = try XCTUnwrap(pager.incomeDetail(rowID: 61, reader: reader))
+        XCTAssertEqual(pager.incomeDetailRow(detail, reader: reader)?.id, 61)
+        screen.clear() // Leave for the existing income or history destination.
+        XCTAssertNil(screen.value); XCTAssertNil(screen.loadedScope)
+        await screen.loadEarnings(reader) // Return/reopen refreshes the owner read.
+        XCTAssertEqual(screen.value?.balance.text, "12")
+        _ = try await reader.read { try await $0.withdrawals(token: $1) }
+        XCTAssertFalse(wire.requests.contains { $0.url?.path.contains("withdrawal/create") == true })
+    }
+    func testEarningsOverviewFailureRetryAndMissingApproval() async throws {
+        let wire = Wire(), grants = Grants(), session = try root(wire, grants, Vault()).makeSession()
+        await login(session); wire.code = 500
+        let screen = WalletScreen<WithdrawalBalance>(), reader = session.walletHistoryReader
+        await screen.loadEarnings(reader)
+        XCTAssertTrue(screen.failed); XCTAssertNil(screen.value)
+        wire.code = 200
+        await screen.loadEarnings(reader)
+        XCTAssertFalse(screen.failed); XCTAssertNotNil(screen.value)
+        grants.retained?.revoke(); grants.enabled = false; wire.requests = []
+        await screen.loadEarnings(session.walletHistoryReader)
+        XCTAssertNil(screen.value); XCTAssertNil(screen.loadedScope)
+        XCTAssertTrue(wire.requests.isEmpty)
+    }
+    func testEarningsOverviewRetirementRejectsLateBalanceAndCanReload() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession()
+        await login(session); wire.pause = true
+        let screen = WalletScreen<WithdrawalBalance>(), reader = session.walletHistoryReader
+        let started = expectation(description: "earnings suspended")
+        wire.onPaused = { started.fulfill() }
+        let task = Task { await screen.loadEarnings(reader) }
+        await fulfillment(of: [started], timeout: 2)
+        screen.clear() // Background/disappear must remove private values and retire the request.
+        wire.finish(code: 200); await task.value
+        XCTAssertNil(screen.value); XCTAssertNil(screen.loadedScope); XCTAssertFalse(screen.loading)
+        wire.pause = false
+        await screen.loadEarnings(reader)
+        XCTAssertEqual(screen.value?.balance.text, "12")
+    }
+    func testEarningsOverviewRoleReplacementRejectsLateBalance() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession()
+        await login(session); wire.pause = true
+        let screen = WalletScreen<WithdrawalBalance>(), reader = session.walletHistoryReader
+        let started = expectation(description: "old owner scope")
+        wire.onPaused = { started.fulfill() }
+        let task = Task { await screen.loadEarnings(reader) }
+        await fulfillment(of: [started], timeout: 2)
+        wire.role = "merchant"; await session.refreshOwnAccount()
+        wire.finish(code: 200); await task.value
+        XCTAssertNil(screen.value); XCTAssertNil(screen.loadedScope)
+        XCTAssertFalse(screen.loading)
+    }
+    func testPersonalEarningsFactoryHidesSupportAndFinanceBranches() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession()
+        await login(session); wire.requests = []
+        let home = ProfilePersonalToolsAssociation.earningsHome(reader: session.walletHistoryReader)
+        XCTAssertTrue(home.visibility.income); XCTAssertTrue(home.visibility.withdrawalRecords)
+        XCTAssertFalse(home.visibility.assets); XCTAssertFalse(home.visibility.points); XCTAssertFalse(home.visibility.mall)
+        XCTAssertFalse(home.showsWithdrawalSupport); XCTAssertFalse(home.showsCooperationFinance)
+        XCTAssertNil(home.invitationHistory); XCTAssertTrue(wire.requests.isEmpty)
+        let ordinary = WalletCommerceHomeView(reader: session.walletHistoryReader,
+            visibility: home.visibility, onCooperationFinance: {})
+        XCTAssertTrue(ordinary.showsWithdrawalSupport); XCTAssertTrue(ordinary.showsCooperationFinance)
+        XCTAssertTrue(WalletWithdrawalsView(reader: session.walletHistoryReader).showsSupportContact)
+    }
+    func testPersonalToolsAdmitIndependentOwnerReadsWithoutDispatch() async throws {
+        let wire = Wire(), grants = Grants(), session = try root(wire, grants, Vault()).makeSession()
+        await login(session); wire.requests = []
+        let social = PersonalToolsSocial(), coop = try PersonalToolsCoop()
+        let access = ProfilePersonalToolsAccess(owner: social.identity, wallet: session.walletHistoryReader, complaint: coop)
+        let association = ProfilePersonalToolsAssociation(memberID: 7, social: social, access: access, isCurrent: { true })
+        XCTAssertTrue(association.walletIsCurrent); XCTAssertTrue(association.complaintIsCurrent)
+        XCTAssertTrue(wire.requests.isEmpty); XCTAssertTrue(coop.calls.isEmpty)
+        grants.retained?.revoke(); grants.enabled = false
+        XCTAssertFalse(association.walletIsCurrent); XCTAssertTrue(association.complaintIsCurrent)
+        social.identity = .init(accountID: 7, epoch: 1, role: "merchant")
+        XCTAssertFalse(association.walletIsCurrent); XCTAssertFalse(association.complaintIsCurrent)
+    }
+    func testPersonalEarningsOwnerReadAndLate401Retirement() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession()
+        await login(session); wire.requests = []
+        let social = PersonalToolsSocial(), coop = try PersonalToolsCoop()
+        let access = ProfilePersonalToolsAccess(owner: social.identity, wallet: session.walletHistoryReader, complaint: coop)
+        let association = ProfilePersonalToolsAssociation(memberID: 7, social: social, access: access, isCurrent: { true })
+        let reader = association.walletReader(), screen = WalletScreen<WithdrawalBalance>()
+        await screen.loadEarnings(reader)
+        XCTAssertEqual(screen.value?.balance.text, "12")
+        _ = try await reader.read { try await $0.withdrawals(token: $1) }
+        wire.pause = true; let started = expectation(description: "personal earnings 401"); wire.onPaused = { started.fulfill() }
+        let task = Task { await screen.loadEarnings(reader) }
+        await fulfillment(of: [started], timeout: 2)
+        social.presentationRevision += 1
+        wire.finish(code: 401); await task.value
+        XCTAssertNil(screen.value); XCTAssertNil(reader.scope); XCTAssertNotNil(session.account)
+        let count = wire.requests.count
+        do { _ = try await reader.read { try await $0.withdrawals(token: $1) }; XCTFail() } catch { }
+        XCTAssertEqual(wire.requests.count, count)
+    }
+    func testPersonalToolsRejectForeignGuestMerchantAndRetiredOwner() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession()
+        await login(session)
+        for role in ["player", "club", "merchant"] {
+            let social = PersonalToolsSocial(); social.identity = .init(accountID: 7, epoch: 1, role: role)
+            let access = ProfilePersonalToolsAccess(owner: social.identity, wallet: session.walletHistoryReader, complaint: try PersonalToolsCoop())
+            let same = ProfilePersonalToolsAssociation(memberID: 7, social: social, access: access, isCurrent: { true })
+            XCTAssertEqual(same.ownerIsCurrent, role != "merchant")
+            XCTAssertFalse(ProfilePersonalToolsAssociation(memberID: 8, social: social, access: access, isCurrent: { true }).ownerIsCurrent)
+            XCTAssertFalse(ProfilePersonalToolsAssociation(memberID: 7, social: social, access: access, isCurrent: { false }).ownerIsCurrent)
+            social.identity = .init(accountID: nil, epoch: 2)
+            XCTAssertFalse(same.ownerIsCurrent)
+        }
+    }
+    func testPersonalComplaintOnlyAllowsPreparationReadAndRetiresBefore401() async throws {
+        let wire = Wire(), session = try root(wire, Grants(), Vault()).makeSession()
+        await login(session)
+        let social = PersonalToolsSocial(), coop = try PersonalToolsCoop()
+        let association = ProfilePersonalToolsAssociation(memberID: 7, social: social,
+            access: .init(owner: social.identity, wallet: session.walletHistoryReader, complaint: coop), isCurrent: { true })
+        let reader = ProfilePersonalComplaintReader(association)
+        _ = try await reader.read(.complaintTopics)
+        do { _ = try await reader.read(.finance); XCTFail() } catch { XCTAssertEqual(error as? APIError, .notConfigured) }
+        XCTAssertEqual(coop.calls, [.complaintTopics])
+        coop.pause = true; let started = expectation(description: "complaint preparation 401"); coop.onPaused = { started.fulfill() }
+        let task = Task { try await reader.read(.complaintTopics, isCurrent: { true }) }
+        await fulfillment(of: [started], timeout: 2)
+        social.presentationRevision += 1
+        coop.pending?.resume(throwing: APIError.unauthorized); coop.pending = nil
+        do { _ = try await task.value; XCTFail() } catch { XCTAssertEqual(error as? CoopFlowFailure, .stale) }
+        XCTAssertEqual(coop.unauthorized, 0); XCTAssertNil(reader.session)
+    }
+    @MainActor private final class PersonalToolsSocial: SocialAccountReading {
+        var identity = SocialAccountIdentity(accountID: 7, epoch: 1, role: "player")
+        var presentationRevision: UInt64 = 0
+        var isConfigured = true
+        var isOfflineExample = false
+        func publicProfile(memberID: Int) async throws -> SocialPublicProfile { throw APIError.notConfigured }
+        func informationList() async throws -> [SocialInformation] { throw APIError.notConfigured }
+        func information(id: Int) async throws -> SocialInformation { throw APIError.notConfigured }
+        func invitationHistory(page: Int) async throws -> SocialInviteHistory { throw APIError.notConfigured }
+    }
+    @MainActor private final class PersonalToolsCoop: CoopFlowReading {
+        var session: CoopFlowSession?
+        var calls: [CoopFlowRead] = [], pause = false, unauthorized = 0
+        var onPaused: (() -> Void)?, pending: CheckedContinuation<CoopFlowJSON, Error>?
+        init() throws { session = try .init(accountID: 7, epoch: 1, token: "synthetic") }
+        func read(_ resource: CoopFlowRead) async throws -> CoopFlowJSON { try await read(resource, isCurrent: { true }) }
+        func read(_ resource: CoopFlowRead, isCurrent: @escaping () -> Bool) async throws -> CoopFlowJSON {
+            guard isCurrent() else { throw CoopFlowFailure.stale }; calls.append(resource)
+            do {
+                let result: CoopFlowJSON
+                if pause { result = try await withCheckedThrowingContinuation { pending = $0; onPaused?() } }
+                else { result = .array([]) }
+                guard isCurrent() else { throw CoopFlowFailure.stale }; return result
+            } catch {
+                guard isCurrent() else { throw CoopFlowFailure.stale }
+                if error as? APIError == .unauthorized { unauthorized += 1 }
+                throw error
+            }
+        }
+        func settlement(source: CoopFlowSettlement.Source, id: Int) async throws -> CoopFlowSettlement { throw APIError.notConfigured }
+    }
     private func form(_ path: String, _ fields: [String: String]) throws -> URLRequest {
         try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent(path), fields: fields, token: "synthetic-7", boundary: "wallet-test")
+    }
+    @MainActor private final class InviteGrants {
+        var retained: ProfileInviteHistoryReadAccess?
+        func select(_ context: RuntimeDependencyContext) -> ProfileInviteHistoryReadAccess? {
+            if retained == nil {
+                let approval = try? OperationEndpointApproval(baseURL: context.baseURL,
+                    namespace: context.session.namespace, accountID: context.session.accountID,
+                    paths: ProfileInviteHistoryReadRoute.paths)
+                if let approval { retained = try? .init(context: context, approval: approval) }
+            }
+            return retained
+        }
     }
     @MainActor private final class Grants {
         var enabled = true, freeze = false; var retained: WalletHistoryReadApproval?
@@ -171,6 +561,8 @@ import XCTest
             requests.append(request); let path = request.url!.path, json: String
             if path.hasSuffix("/phone") { json = "{\"code\":200,\"token\":\"synthetic-\(account)\",\"data\":{\"id\":\(account),\"role\":\"\(role)\"}}" }
             else if path.hasSuffix("/userInfo") { json = "{\"code\":200,\"appUser\":{\"userId\":\(account),\"role\":\"\(role)\"}}" }
+            else if path.hasSuffix("/user/invite_list") { json = #"{"code":200,"data":{"rows":[{"id":201,"nickname":"Synthetic invite","createTime":"2026-10-01 00:30:00"}],"total":1}}"# }
+            else if path.hasSuffix("/user/points/list") { json = #"{"code":200,"data":{"rows":[{"eventType":5,"eventId":"201","changePoints":"2.5","createTime":"2026-10-02 10:00:00"}],"total":1}}"# }
             else if path.hasSuffix("/wallet/stages") { json = "{\"code\":\(code),\"data\":{\"pendingSettlement\":1,\"disputed\":2,\"withdrawable\":3,\"complaintPeriod\":[]}}" }
             else if path.hasSuffix("/user/balance/list") { json = "{\"code\":\(code),\"data\":{\"rows\":[{\"id\":61,\"changeBalance\":12}],\"total\":1}}" }
             else if path.hasSuffix("/user/info") { json = "{\"code\":\(code),\"data\":{\"id\":\(account),\"balance\":12}}" }

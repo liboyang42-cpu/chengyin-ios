@@ -63,6 +63,35 @@ public struct MerchantNPCVoiceUploadReview: Identifiable {
     public private(set) var busy = false
     public private(set) var review: MerchantNPCVoiceUploadReview?
     public private(set) var failure: MerchantNPCFailure?
+    public struct ResetReview: Identifiable {
+        public let id = UUID()
+        fileprivate let generation: Int
+        fileprivate let sampleIDs: [Int: UUID]
+        fileprivate let script: MerchantNPCVoiceScript
+    }
+    public private(set) var resetReview: ResetReview?
+    public var canResetLocalSamples: Bool {
+        ready && recording == nil && uploaded.isEmpty && !clips.isEmpty && review == nil && resources.review == nil
+    }
+    public func prepareLocalReset() {
+        guard resetReview == nil, canResetLocalSamples, let script else { return }
+        resetReview = .init(generation: generation, sampleIDs: clips.mapValues(\.id), script: script)
+        onChange?()
+    }
+    public func cancelLocalReset(_ id: UUID) {
+        guard resetReview?.id == id else { return }
+        resetReview = nil; onChange?()
+    }
+    @discardableResult public func confirmLocalReset(_ id: UUID) -> Bool {
+        guard let expected = resetReview, expected.id == id else { return false }
+        guard canResetLocalSamples, generation == expected.generation,
+              clips.mapValues(\.id) == expected.sampleIDs, script == expected.script else {
+            resetReview = nil; onChange?(); return false
+        }
+        resetReview = nil
+        clearEphemeral(); failure = nil; onChange?()
+        return true
+    }
     public private(set) var ownsVoice = false
     public private(set) var consent = false
     private var script: MerchantNPCVoiceScript?
@@ -138,6 +167,6 @@ public struct MerchantNPCVoiceUploadReview: Identifiable {
         do { try resources.prepare(.enroll(samples: (0..<5).compactMap { uploaded[$0] }, requestID: UUID()), ownsVoice: ownsVoice, explicitConsent: consent) }
         catch { failure = error as? MerchantNPCFailure ?? .invalid }; onChange?()
     }
-    private func clearEphemeral() { generation += 1; device.cancel(); clips.removeAll(); uploaded.removeAll(); review = nil; recording = nil; busy = false; resources.discardReview() }
+    private func clearEphemeral() { resetReview = nil; generation += 1; device.cancel(); clips.removeAll(); uploaded.removeAll(); review = nil; recording = nil; busy = false; resources.discardReview() }
     public func invalidate() { active = false; clearEphemeral(); ownsVoice = false; consent = false; script = nil; onChange?() }
 }

@@ -10,9 +10,15 @@ public enum PlayCompletionEvidence: Codable, Equatable {
     case answer(String)
     case scan(String)
     /// Provider must return GCJ-02 for the source CN arrive contract. No conversion guess.
-    case location(longitude: Double, latitude: Double, coordinateSystem: String)
+    case location(longitude: Double, latitude: Double, coordinateSystem: String, accuracyMeters: Double? = nil, measuredAt: Date? = nil)
     case photo(uploadedURL: String)
     case sensor(type: String, payload: [String: PlayWireValue])
+    /// Only for a new command. Recovery encodes the immutable original evidence.
+    func validateNewLocationMeasurement(now: Date = Date()) throws {
+        if case .location(_, _, _, let accuracy, let time) = self {
+            try PlayLocationMeasurement.validate(accuracyMeters: accuracy, measuredAt: time, now: now)
+        }
+    }
     var path: String {
         switch self { case .answer: return "answer"; case .scan: return "checkin"; case .location: return "arrive"; case .photo: return "photo"; case .sensor: return "sensor-result" }
     }
@@ -51,8 +57,20 @@ public struct PlayExperienceService {
     /// Raw payload entry remains useful for sealed in-process fixture recording only.
     /// Network-capable transports require the coordinator's one-shot durable attempt.
     public func complete(scope: PlaySessionScope, nodeID: Int, evidence: PlayCompletionEvidence, advance: PlayRouteAdvance?, token: String) async throws -> PlayWireValue {
+        try evidence.validateNewLocationMeasurement()
         let request = try completionRequest(scope: scope, nodeID: nodeID, evidence: evidence, advance: advance, token: token, boundary: UUID().uuidString)
         return try await send(request, capability: .classicCompletion)
+    }
+    /// Prefab's journal must be written only after all known pre-send checks.
+    /// Freshness and synchronous persistence form one preparation step; the exact
+    /// request is sent next without aging the already-journaled evidence again.
+    @MainActor func completePreparingJournal(scope: PlaySessionScope, nodeID: Int, evidence: PlayCompletionEvidence,
+        token: String, measurementNow: () -> Date = Date.init, persist: () throws -> Void) async throws -> PlayWireValue {
+        let request = try completionRequest(scope: scope, nodeID: nodeID, evidence: evidence, advance: nil, token: token, boundary: UUID().uuidString)
+        return try await send(request, capability: .classicCompletion, beforeTransport: {
+            try evidence.validateNewLocationMeasurement(now: measurementNow())
+            try persist()
+        })
     }
     func completionRequest(scope: PlaySessionScope, nodeID: Int, evidence: PlayCompletionEvidence, advance: PlayRouteAdvance?, token: String, boundary: String) throws -> URLRequest {
         guard nodeID > 0 else { throw APIError.invalidRequest }
@@ -66,10 +84,16 @@ public struct PlayExperienceService {
             guard !code.isEmpty else { throw APIError.invalidRequest }
             // Source checkin resolves node from code; never invent a nodeId argument.
             fields.removeValue(forKey: "nodeId"); fields["code"] = code
-        case .location(let longitude, let latitude, let coordinateSystem):
+        case .location(let longitude, let latitude, let coordinateSystem, let accuracyMeters, let measuredAt):
             guard coordinateSystem == "GCJ02", longitude.isFinite, latitude.isFinite,
                   abs(longitude) <= 180, abs(latitude) <= 90 else { throw APIError.invalidRequest }
+            // Encoding a durable retry must not refresh or age out its evidence.
+            // Freshness is checked before creating a new command, not on replay.
+            try PlayLocationMeasurement.validate(accuracyMeters: accuracyMeters, measuredAt: measuredAt, now: nil)
             fields["longitude"] = String(longitude); fields["latitude"] = String(latitude)
+            // Frozen BK-GPS defines only accuracy on the wire. Keep sample time in the
+            // local evidence/journal; do not invent a backend timestamp parameter.
+            if let accuracyMeters { fields["accuracy"] = String(accuracyMeters) }
         case .photo(let url):
             guard Self.validHTTPS(url) else { throw APIError.invalidRequest }
             fields["picUrl"] = url
@@ -202,7 +226,7 @@ public struct PlayExperienceService {
         } else { request.httpMethod = postWithoutBody ? "POST" : "GET" }
         return request
     }
-    @MainActor private func send(_ request: URLRequest, capability: PlayExperienceCapability, attempt: PlayPreparedDispatch? = nil) async throws -> PlayWireValue {
+    @MainActor private func send(_ request: URLRequest, capability: PlayExperienceCapability, attempt: PlayPreparedDispatch? = nil, beforeTransport: () throws -> Void = {}) async throws -> PlayWireValue {
         try checkReadLifetime()
         guard enabled.contains(capability) else { throw PlayExperienceError.disabled }
         guard let url = request.url, var route = URLComponents(url: url, resolvingAgainstBaseURL: false) else { throw APIError.invalidRequest }
@@ -236,6 +260,7 @@ public struct PlayExperienceService {
         let data: Data, status: Int
         do {
             try checkReadLifetime()
+            try beforeTransport()
             (data, status) = try await transport.send(request)
         } catch {
             // A stale response/error cannot expire or mutate the new context.

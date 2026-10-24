@@ -330,6 +330,19 @@ final class ModuleFlowTests: XCTestCase {
         let submit=app.buttons["play.answer.submit"]
         for _ in 0..<6 { if submit.exists && submit.isHittable { break };app.swipeUp() }
         tap(submit)
+        let cancelReview=app.buttons["play.answer.review.cancel"]
+        XCTAssertTrue(cancelReview.waitForExistence(timeout:5),app.debugDescription)
+        let reviewedAnswer=app.staticTexts["play.answer.review.value"]
+        XCTAssertTrue(reviewedAnswer.exists)
+        let originalReviewValue=reviewedAnswer.label
+        XCTAssertFalse(originalReviewValue.isEmpty)
+        tap(cancelReview)
+        XCTAssertFalse(app.descendants(matching:.any)["play.answer.receipt"].exists,"Cancelling a review never submits")
+        tap(submit)
+        let confirmReview=app.buttons["play.answer.review.confirm"]
+        XCTAssertTrue(confirmReview.waitForExistence(timeout:5),app.debugDescription)
+        XCTAssertEqual(reviewedAnswer.label,originalReviewValue,"Cancelling keeps the staged choice")
+        tap(confirmReview)
         let receipt=app.descendants(matching:.any)["play.answer.receipt"]
         for _ in 0..<4 { if receipt.exists { break };app.swipeUp() }
         XCTAssertTrue(receipt.waitForExistence(timeout:10),app.debugDescription)

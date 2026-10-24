@@ -8,6 +8,7 @@ import SwiftUI
     @State private var filter = AccountCollectionCouponFilter.all
     @State private var searchText = ""
     @State private var submittedQuery = ""
+    @State private var needsReturnRefresh = false
     private var key: AccountCollectionLoadKey { AccountCollectionLoadKey(reader: reader, query: submittedQuery) }
     private var request: OwnedCouponReadRequest { .list(ownerScope: key.scope, keyword: submittedQuery.isEmpty ? nil : submittedQuery) }
     var body: some View {
@@ -67,7 +68,12 @@ import SwiftUI
         }
         .onAppear {
             guard let permit = appearance.begin(model: model, request: offeredRequest, foreground: scenePhase == .active) else { return }
-            model.schedule(request: offeredRequest, reader: reader, presentation: permit)
+            if needsReturnRefresh {
+                model.schedule(request: offeredRequest, reader: reader, presentation: permit)
+            } else {
+                model.scheduleListIfNeeded(request: offeredRequest, reader: reader, presentation: permit)
+            }
+            if scenePhase == .active { needsReturnRefresh = false }
         }
         .onChange(of: key) { _, _ in
             guard let permit = appearance.replace(model: model, request: offeredRequest, foreground: scenePhase == .active) else { return }
@@ -75,7 +81,11 @@ import SwiftUI
         }
         .refreshable { await model.refresh(request: offeredRequest, reader: reader, presentation: presentation) }
         .onChange(of: scenePhase) { _, phase in
+            // A hidden list must still reread after the app left the foreground.
+            if phase != .active { needsReturnRefresh = true }
             model.setForeground(phase == .active, request: offeredRequest, reader: reader, presentation: presentation)
+            if phase == .active, let presentation, presentation.isActive,
+               model.presentation === presentation { needsReturnRefresh = false }
         }
         .onDisappear {
             appearance.end(model: model)
@@ -98,6 +108,11 @@ struct AccountCollectionCouponRow: View {
             if let description = coupon.displayDescription, !description.isEmpty {
                 Text(verbatim: description).font(.subheadline).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+            }
+            if let day = coupon.futureStartDay(relativeTo: Date()) {
+                Text("accountCollection.coupon.startsLater").font(.footnote.weight(.semibold))
+                    .accessibilityIdentifier("accountCollection.coupon.futureStart")
+                QuestifyMetadataLine(label: "accountCollection.coupon.validFrom", value: day, systemImage: "calendar.badge.clock")
             }
             if coupon.status == .invalid {
                 Label("accountCollection.coupon.invalidHint", systemImage: "xmark.circle").font(.footnote)

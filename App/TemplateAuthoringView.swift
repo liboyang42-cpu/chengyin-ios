@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 @MainActor final class TemplateAuthoringModel: ObservableObject {
     let coordinator: TemplateAuthoringCoordinator
@@ -285,6 +286,7 @@ import SwiftUI
     private var name: some View {
         Section("templateAuthor.nameStep") {
             TextField("templateAuthor.field.title", text: $model.draft.title).accessibilityIdentifier("templateAuthor.field.title")
+            TemplateBasicFieldClearButton(model: model, field: .title)
             Button("templateAuthor.continue") { step = .edit }.disabled(!model.draft.canSave || !model.canEdit).accessibilityIdentifier("templateAuthor.continue")
         }
     }
@@ -292,7 +294,9 @@ import SwiftUI
         Group {
             Section("templateAuthor.basics") {
                 TemplateAuthoringField("title", text: $model.draft.title)
+                TemplateBasicFieldClearButton(model: model, field: .title)
                 TemplateAuthoringField("description", text: $model.draft.description, multiline: true)
+                TemplateBasicFieldClearButton(model: model, field: .description)
                 TemplateAuthoringMetadataFields(model: model, reader: metadataReader)
                 TemplateAuthoringField("difficulty", text: model.optional(\.difficulty))
                 TemplateAuthoringVenueField(model: model)
@@ -300,6 +304,7 @@ import SwiftUI
                 TemplateAuthoringField("categoryId", text: model.number(\.categoryId))
                 TemplateAuthoringRuleFields(model: model)
                 TemplateAuthoringField("imgUrl", text: model.optional(\.imgUrl))
+                TemplateBasicFieldClearButton(model: model, field: .cover)
                 Text("templateAuthor.mediaHint").font(.caption).foregroundStyle(.secondary)
                 Toggle("templateAuthor.sync", isOn: .init(get: { model.draft.isSync == 1 }, set: { model.draft.isSync = $0 ? 1 : 0 }))
             }
@@ -411,11 +416,11 @@ struct TemplateAuthoringReviewView: View {
                 }
                 ForEach(draft.advanced.enabledGames) { game in
                     Text(LocalizedStringKey(game.labelKey))
-                    if game.isMiniProgramAddition { NavigationLink("playkitAuthor.preview") { TemplateMiniGamePreviewView(draft: draft.advanced, game: game) } }
-                    else if game == .dice && draft.advanced.diceMode == "d20" { NavigationLink("creatorRoot.d20Preview") { TemplateD20RehearsalView(draft: draft.advanced) } }
-                    else if let configuredRehearsals, configuredRehearsals.route(for: game) != nil {
+                    if let configuredRehearsals, configuredRehearsals.route(for: game) != nil {
                         TemplateConfiguredRehearsalPreviewButton(controller: configuredRehearsals, game: game)
                     }
+                    else if game.isMiniProgramAddition { NavigationLink("playkitAuthor.preview") { TemplateMiniGamePreviewView(draft: draft.advanced, game: game) } }
+                    else if game == .dice && draft.advanced.diceMode == "d20" { NavigationLink("creatorRoot.d20Preview") { TemplateD20RehearsalView(draft: draft.advanced) } }
                     else { Text("templateAuthor.noGameplay").foregroundStyle(.secondary) }
                 }
             }
@@ -448,5 +453,153 @@ struct TemplateAuthoringReviewView: View {
             .toolbar { ToolbarItem(placement: .cancellationAction) { if let configuredRehearsals {
                 TemplateConfiguredRehearsalCloseButton(controller: configuredRehearsals)
             } else { Button("templateAuthor.close") { dismiss() } } } }
+    }
+}
+
+// These actions affect only the current unsaved basic fields.
+enum TemplateBasicClearField {
+    case title, description, cover, questionImage, questionAudio
+    case optionMedia(TemplateChoiceOptionMedia.Letter)
+    var rawValue: String {
+        switch self {
+        case .title: return "title"
+        case .description: return "description"
+        case .cover: return "cover"
+        case .questionImage: return "questionImage"
+        case .questionAudio: return "questionAudio"
+        case .optionMedia(let letter): return "optionMedia." + letter.rawValue
+        }
+    }
+    func value(in draft: TemplateAuthoringDraft) -> String {
+        switch self {
+        case .title: return draft.title
+        case .description: return draft.description
+        case .cover: return draft.imgUrl ?? ""
+        case .questionImage, .questionAudio:
+            guard draft.finishEnabled, [.text, .choice].contains(draft.validationMethod) else { return "" }
+            switch self { case .questionImage: return draft.questionImg ?? ""; default: return draft.questionAudio ?? "" }
+        case .optionMedia(let letter):
+            let media = draft.choiceOptionMedia
+            guard draft.finishEnabled, draft.validationMethod == .choice, media.isSupported,
+                  TemplateChoiceOptionRows(draft: draft).letters.contains(letter),
+                  Self.hasUniqueMediaKeys(draft.questionOptionMediaJson) else { return "" }
+            return [media.text(letter, .image), media.text(letter, .audio)].compactMap { $0 }.first { !$0.isEmpty } ?? ""
+        }
+    }
+    func label(_ locale: Locale) -> String {
+        let chinese = locale.language.languageCode?.identifier == "zh"
+        switch self {
+        case .title: return chinese ? "清空标题" : "Clear title"
+        case .description: return chinese ? "清空描述" : "Clear description"
+        case .cover: return chinese ? "清空封面引用" : "Clear cover reference"
+        case .questionImage: return chinese ? "清空题干配图引用" : "Clear question image reference"
+        case .questionAudio: return chinese ? "清空题干音频引用" : "Clear question audio reference"
+        case .optionMedia(let letter): return chinese ? "清空选项 \(letter.rawValue) 媒体引用" : "Clear option \(letter.rawValue) media references"
+        }
+    }
+    // The existing projection validates the schema. This narrow lexical guard also
+    // rejects duplicate or escaped-alias keys before an explicit edit rewrites JSON.
+    private static func hasUniqueMediaKeys(_ raw: String?) -> Bool {
+        guard let raw, !raw.isEmpty else { return true }
+        let bytes = Array(raw.utf8)
+        var index = 0, objects: [Set<Data>] = []
+        while index < bytes.count {
+            let byte = bytes[index]
+            if byte == 123 { objects.append([]); index += 1 }
+            else if byte == 125 {
+                guard !objects.isEmpty else { return false }; objects.removeLast(); index += 1
+            } else if byte == 34 {
+                let start = index; index += 1
+                var closed = false
+                while index < bytes.count {
+                    let value = bytes[index]; index += 1
+                    if value == 92 { guard index < bytes.count else { return false }; index += 1 }
+                    else if value == 34 { closed = true; break }
+                }
+                guard closed else { return false }
+                var next = index
+                while next < bytes.count && [9, 10, 13, 32].contains(bytes[next]) { next += 1 }
+                if next < bytes.count && bytes[next] == 58 {
+                    guard !objects.isEmpty,
+                          let key = try? JSONDecoder().decode(String.self, from: Data(bytes[start..<index])),
+                          objects[objects.count - 1].insert(Data(key.utf8)).inserted else { return false }
+                }
+            } else { index += 1 }
+        }
+        return objects.isEmpty
+    }
+}
+
+@MainActor final class TemplateBasicFieldClearController: ObservableObject {
+    private let model: TemplateAuthoringModel
+    let field: TemplateBasicClearField
+    private var observation: AnyCancellable?
+    private var visible = false, active = false
+    @Published private(set) var generation = UUID()
+    init(model: TemplateAuthoringModel, field: TemplateBasicClearField) {
+        self.model = model; self.field = field
+        observation = model.objectWillChange.sink { [weak self] _ in self?.generation = UUID() }
+    }
+    var canClear: Bool {
+        visible && active && model.canEdit && !model.busy && model.review == nil &&
+        model.coordinator.review == nil && !field.value(in: model.draft).isEmpty
+    }
+    func appear(sceneIsActive: Bool) {
+        if !visible || active != sceneIsActive { generation = UUID() }
+        visible = true; active = sceneIsActive
+    }
+    func disappear() { visible = false; active = false; generation = UUID() }
+    func sceneChanged(isActive: Bool) {
+        let next = visible && isActive
+        if next != active { generation = UUID() }
+        active = next
+    }
+    func clearAction() -> () -> Void {
+        let stamp = generation, session = model.coordinator.session, identity = model.coordinator.identity
+        let metadata = model.metadataGeneration, media = model.mediaReviewGeneration
+        let source = TemplateSamplePreview.snapshot(model.draft)
+        return { [weak self] in
+            guard let self, self.canClear, self.generation == stamp, session != nil,
+                  self.model.coordinator.session == session, self.model.coordinator.identity == identity,
+                  self.model.metadataGeneration == metadata, self.model.mediaReviewGeneration == media,
+                  source != nil, source == TemplateSamplePreview.snapshot(self.model.draft) else { return }
+            switch self.field {
+            case .title: self.model.draft.title = ""
+            case .description: self.model.draft.description = ""
+            case .cover: self.model.draft.imgUrl = nil
+            case .questionImage:
+                self.model.mediaReferencesWillChange()
+                self.model.draft.questionImg = nil
+            case .questionAudio:
+                self.model.mediaReferencesWillChange()
+                self.model.draft.questionAudio = nil
+            case .optionMedia(let letter):
+                do {
+                    var next = self.model.draft
+                    try next.setChoiceOptionMedia(letter, .image, to: "")
+                    try next.setChoiceOptionMedia(letter, .audio, to: "")
+                    self.model.mediaReferencesWillChange()
+                    self.model.draft = next
+                } catch { return }
+            }
+            self.model.changed()
+        }
+    }
+}
+
+@MainActor struct TemplateBasicFieldClearButton: View {
+    @StateObject private var controller: TemplateBasicFieldClearController
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
+    init(model: TemplateAuthoringModel, field: TemplateBasicClearField) {
+        _controller = StateObject(wrappedValue: .init(model: model, field: field))
+    }
+    var body: some View {
+        Button(controller.field.label(locale), action: controller.clearAction())
+            .disabled(!controller.canClear)
+            .accessibilityIdentifier("templateBasicClear." + controller.field.rawValue)
+            .onAppear { controller.appear(sceneIsActive: scenePhase == .active) }
+            .onDisappear { controller.disappear() }
+            .onChange(of: scenePhase) { _, phase in controller.sceneChanged(isActive: phase == .active) }
     }
 }

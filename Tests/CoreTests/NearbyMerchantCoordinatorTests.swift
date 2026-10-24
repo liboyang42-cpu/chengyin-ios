@@ -95,6 +95,106 @@ import FoundationNetworking
         await model.search(purposeAccepted: true)
         XCTAssertEqual(model.phase, .failed); XCTAssertTrue(model.rows.isEmpty)
     }
+    func testPublicHomeSelectionKeepsSearchResultForDismissWithoutAnotherLocationRequest() async throws {
+        let reader = try NearbyTestReader(), location = NearbyTestLocation(try fix())
+        let model = NearbyMerchantCoordinator(reader: reader, location: location, approved: { true }, now: { self.date })
+        await model.search(purposeAccepted: true)
+        let selection = try XCTUnwrap(model.publicHomeSelection(rowID: 91))
+        XCTAssertEqual(selection.target, .ownerMemberID(PublicMerchantOwnerID(801)!))
+        XCTAssertEqual(model.phase, .ready); XCTAssertEqual(model.rows.count, 2)
+        XCTAssertTrue(model.isCurrent(selection))
+        XCTAssertEqual(location.calls, 1); XCTAssertEqual(reader.reads.count, 1)
+        // Closing the sheet dismisses only the navigation item; the settled browser result remains.
+        let reopened = try XCTUnwrap(model.publicHomeSelection(rowID: 91))
+        XCTAssertNotEqual(selection.id, reopened.id)
+        XCTAssertEqual(reopened.target, selection.target)
+    }
+    func testLeavingBrowserWithoutDestinationClearsResultAndInvalidatesSelection() async throws {
+        let reader = try NearbyTestReader(), location = NearbyTestLocation(try fix())
+        let model = NearbyMerchantCoordinator(reader: reader, location: location, approved: { true }, now: { self.date })
+        await model.search(purposeAccepted: true)
+        let selection = try XCTUnwrap(model.publicHomeSelection(rowID: 91))
+        model.cancel()
+        XCTAssertEqual(model.phase, .idle); XCTAssertTrue(model.rows.isEmpty)
+        XCTAssertFalse(model.isCurrent(selection)); XCTAssertNil(model.publicHomeSelection(rowID: 91))
+    }
+    func testPublicHomeNeverSubstitutesMerchantRowForMissingOwner() async throws {
+        let reader = try NearbyTestReader(), location = NearbyTestLocation(try fix())
+        let model = NearbyMerchantCoordinator(reader: reader, location: location, approved: { true }, now: { self.date })
+        await model.search(purposeAccepted: true)
+        XCTAssertNil(model.publicHomeSelection(rowID: 92))
+        XCTAssertNil(model.publicHomeSelection(rowID: 801))
+        XCTAssertNil(model.publicHomeSelection(rowID: -1))
+    }
+    func testPublicHomeSelectionCannotCrossARepeatedSearch() async throws {
+        let reader = try NearbyTestReader(), location = NearbyTestLocation(try fix())
+        let model = NearbyMerchantCoordinator(reader: reader, location: location, approved: { true }, now: { self.date })
+        await model.search(purposeAccepted: true)
+        let selection = try XCTUnwrap(model.publicHomeSelection(rowID: 91))
+        await model.search(purposeAccepted: true)
+        XCTAssertFalse(model.isCurrent(selection))
+        XCTAssertNotNil(model.publicHomeSelection(rowID: 91))
+        XCTAssertEqual(model.phase, .ready); XCTAssertEqual(model.rows.count, 2)
+    }
+    func testClosedBrowserAndSameOwnerNewSearchCannotReviveOldSelection() async throws {
+        let reader = try NearbyTestReader(), location = NearbyTestLocation(try fix())
+        let model = NearbyMerchantCoordinator(reader: reader, location: location, approved: { true }, now: { self.date })
+        await model.search(purposeAccepted: true)
+        let old = try XCTUnwrap(model.publicHomeSelection(rowID: 91))
+        model.cancel()
+        await model.search(purposeAccepted: true)
+        let fresh = try XCTUnwrap(model.publicHomeSelection(rowID: 91))
+        XCTAssertEqual(old.target, fresh.target)
+        XCTAssertNotEqual(old.id, fresh.id)
+        XCTAssertFalse(model.isCurrent(old)); XCTAssertTrue(model.isCurrent(fresh))
+    }
+    func testPublicHomeSelectionRevokesWithAccountOrApproval() async throws {
+        let reader = try NearbyTestReader(), location = NearbyTestLocation(try fix())
+        var approved = true
+        let model = NearbyMerchantCoordinator(reader: reader, location: location, approved: { approved }, now: { self.date })
+        await model.search(purposeAccepted: true)
+        let selection = try XCTUnwrap(model.publicHomeSelection(rowID: 91))
+        approved = false
+        XCTAssertFalse(model.isCurrent(selection)); XCTAssertNil(model.publicHomeSelection(rowID: 91))
+        model.cancel()
+        approved = true
+        XCTAssertFalse(model.isCurrent(selection))
+        await model.search(purposeAccepted: true)
+        let next = try XCTUnwrap(model.publicHomeSelection(rowID: 91))
+        reader.session = try .init(accountID: 8, epoch: 2, token: "synthetic-other")
+        XCTAssertFalse(model.isCurrent(next)); XCTAssertTrue(model.rows.isEmpty)
+        model.cancel(); XCTAssertEqual(model.phase, .idle)
+    }
+    func testLeavingWhileLocatingStillRejectsLateFix() async throws {
+        let reader = try NearbyTestReader(), location = NearbySuspendedLocation()
+        let model = NearbyMerchantCoordinator(reader: reader, location: location, approved: { true }, now: { self.date })
+        let task = Task { await model.search(purposeAccepted: true) }
+        while location.pending == nil { await Task.yield() }
+        XCTAssertNil(model.publicHomeSelection(rowID: 91))
+        model.cancel()
+        location.pending?.resume(returning: try fix()); location.pending = nil
+        await task.value
+        XCTAssertTrue(reader.reads.isEmpty); XCTAssertEqual(model.phase, .idle)
+    }
+    func testConsentRevocationDuringReadRejectsLateRowsAndRequiresFreshSearch() async throws {
+        let reader = try NearbyTestReader(), location = NearbyTestLocation(try fix())
+        reader.suspendRead = true
+        let model = NearbyMerchantCoordinator(reader: reader, location: location, approved: { true }, now: { self.date })
+        let task = Task { await model.search(purposeAccepted: true) }
+        while reader.pendingRead == nil { await Task.yield() }
+        XCTAssertEqual(model.phase, .loading)
+        // The view's revoked-consent, background and disappearance paths call cancel.
+        model.cancel()
+        reader.pendingRead?.resume(); reader.pendingRead = nil
+        await task.value
+        XCTAssertTrue(model.rows.isEmpty); XCTAssertEqual(model.phase, .idle)
+        XCTAssertNil(model.publicHomeSelection(rowID: 91))
+        await model.search(purposeAccepted: false)
+        XCTAssertEqual(location.calls, 1); XCTAssertEqual(reader.reads.count, 1)
+        reader.suspendRead = false
+        await model.search(purposeAccepted: true)
+        XCTAssertEqual(location.calls, 2); XCTAssertNotNil(model.publicHomeSelection(rowID: 91))
+    }
 }
 
 @MainActor private final class NearbyTestLocation: RoamDeviceLocationProviding {
@@ -105,12 +205,18 @@ import FoundationNetworking
 }
 @MainActor private final class NearbyTestReader: CoopFlowReading {
     var session: CoopFlowSession?
+    var suspendRead = false
+    var pendingRead: CheckedContinuation<Void, Never>?
     var reads: [CoopFlowRead] = []; var beforeReply: (() -> Void)?
     var result: CoopFlowJSON = .array([
         .object(["id": .id(91), "memberId": .id(801), "name": .string("Synthetic shop"), "distance": .number(125)]),
         .object(["id": .id(92), "name": .string("Synthetic lead")])])
     init() throws { session = try .init(accountID: 7, epoch: 1, token: "synthetic") }
-    func read(_ resource: CoopFlowRead) async throws -> CoopFlowJSON { reads.append(resource); beforeReply?(); return result }
+    func read(_ resource: CoopFlowRead) async throws -> CoopFlowJSON {
+        reads.append(resource); beforeReply?()
+        if suspendRead { await withCheckedContinuation { pendingRead = $0 } }
+        return result
+    }
     func settlement(source: CoopFlowSettlement.Source, id: Int) async throws -> CoopFlowSettlement { throw CoopFlowFailure.unavailable }
 }
 

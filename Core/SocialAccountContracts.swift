@@ -48,6 +48,9 @@ public struct SocialInformation: Decodable, Equatable, Identifiable {
             (!title.utf8.allSatisfy { (48...57).contains($0) } || summary != nil)
     }
     public var isRemoved: Bool { id <= 0 }
+    /// A successful explicit missing-article reply, never a network/error fallback.
+    static let removed = SocialInformation(removed: ())
+    private init(removed: Void) { id = 0; title = ""; subtitle = nil; contents = nil }
     public init(from decoder: Decoder) throws {
         let v = try SocialValue(from: decoder)
         guard v.object != nil else { throw APIError.malformedResponse }

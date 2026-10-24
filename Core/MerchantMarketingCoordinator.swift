@@ -66,8 +66,16 @@ import Observation
         guard valid(ticket, scope) else { return }; busy = false
     }
     public func cancelReview() { guard !busy else { return }; review = nil; service.discardReview() }
+    public func cancelReview(id: UUID) {
+        guard review?.id == id else { return }
+        cancelReview()
+    }
     public func confirm(couponEffectsAcknowledged: Bool) async {
-        guard !busy, let accepted = review else { return }
+        guard let id = review?.id else { return }
+        await confirm(reviewID: id, couponEffectsAcknowledged: couponEffectsAcknowledged)
+    }
+    public func confirm(reviewID: UUID, couponEffectsAcknowledged: Bool) async {
+        guard !busy, let accepted = review, accepted.id == reviewID else { return }
         let ticket = generation, scope = service.scope; busy = true; failure = nil
         do {
             let result = try await service.settle(accepted, acknowledgedCouponEffects: couponEffectsAcknowledged)

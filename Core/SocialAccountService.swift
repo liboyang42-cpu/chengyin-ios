@@ -19,7 +19,8 @@ public struct SocialAccountService {
     }
     public func information(id: Int, token: String? = nil) async throws -> SocialInformation {
         guard id > 0 else { throw APIError.invalidRequest }
-        let value: SocialInformation = try await read("api/common/infomation_detail", fields: ["id": String(id)], token: token)
+        let result: InformationDetail = try await read("api/common/infomation_detail", fields: ["id": String(id)], token: token)
+        let value = result.value
         guard value.isRemoved || value.id == id else { throw APIError.malformedResponse }; return value
     }
     public func invitations(page: Int, token: String) async throws -> SocialInvitePage {
@@ -54,6 +55,15 @@ public struct SocialAccountService {
         guard code == 200 else { throw SocialAccountFailure.rejected(code: code, message: envelope?["msg"].text) }
         do { return try JSONDecoder().decode(Payload<T>.self, from: data).data }
         catch { throw APIError.malformedResponse }
+    }
+    private struct InformationDetail: Decodable {
+        let value: SocialInformation
+        init(from decoder: Decoder) throws {
+            let raw = try SocialValue(from: decoder)
+            if raw.isNull || raw.object?.isEmpty == true { value = .removed; return }
+            value = try SocialInformation(from: decoder)
+            guard value.id > 0 else { throw APIError.malformedResponse }
+        }
     }
     private struct Payload<T: Decodable>: Decodable { let data: T }
     private struct Rows<T: Decodable>: Decodable {

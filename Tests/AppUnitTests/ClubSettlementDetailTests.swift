@@ -123,3 +123,100 @@ import XCTest
         access.isConfigured = false; await model.load(permit, target: target, access: access, current: { true }); XCTAssertEqual(model.failure, .notConfigured); XCTAssertTrue(access.resources.isEmpty); XCTAssertEqual(access.sends, 0)
     }
 }
+
+@MainActor extension ClubSettlementDetailTests {
+    private func returnSource(_ access: Access, generation: UInt64 = 4) throws -> ClubSettlementReturnOwner.Source {
+        .init(presentation: try ClubSettlementDetailPresentation(snapshot: access.response(), context: access.sourceContext()),
+              context: access.sourceContext(), generation: generation, namespace: access.storageNamespace)
+    }
+    private func opened(_ access: Access) throws -> (ClubSettlementReturnOwner, ClubSettlementReturnOwner.Source, ClubSettlementReturnOwner.Item) {
+        let owner = ClubSettlementReturnOwner(), source = try returnSource(access), target = try access.target()
+        owner.appear(source.context, namespace: source.namespace)
+        owner.open(target, source: source, current: source, active: true)
+        return (owner, source, try XCTUnwrap(owner.item))
+    }
+    func testStableParentRetainsExactSecondRowWhileOwnDetailCoversList() throws {
+        let access = Access(), (owner, source, item) = try opened(access)
+        owner.hide()
+        XCTAssertTrue(owner.retainsChild); XCTAssertTrue(owner.current(item, source: source, active: true))
+        XCTAssertEqual(item.target.recordID, 202); XCTAssertEqual(item.target.topicID, 91)
+        XCTAssertEqual(access.sends, 0)
+    }
+    func testCloseBeforeParentAppearsDefersFreshReadAdmission() throws {
+        let access = Access(), (owner, source, item) = try opened(access)
+        owner.hide(); owner.binding(item, source: { source }, active: { true }).wrappedValue = false
+        XCTAssertFalse(owner.current(item, source: source, active: true))
+        XCTAssertTrue(owner.dismissed(item, source: source, active: true)); XCTAssertTrue(owner.needsRefresh)
+        XCTAssertFalse(owner.acceptsRead(item.attachment, context: source.context, namespace: source.namespace, active: true))
+        owner.appear(source.context, namespace: source.namespace)
+        XCTAssertTrue(owner.acceptsRead(item.attachment, context: source.context, namespace: source.namespace, active: true))
+    }
+    func testParentAppearsBeforeDismissDoesNotStartReadBehindDetail() throws {
+        let access = Access(), (owner, source, item) = try opened(access)
+        owner.hide(); owner.appear(source.context, namespace: source.namespace)
+        XCTAssertFalse(owner.acceptsRead(item.attachment, context: source.context, namespace: source.namespace, active: true))
+        owner.binding(item, source: { source }, active: { true }).wrappedValue = false
+        XCTAssertTrue(owner.dismissed(item, source: source, active: true))
+        XCTAssertTrue(owner.acceptsRead(item.attachment, context: source.context, namespace: source.namespace, active: true))
+    }
+    func testOldDismissCannotCloseNewSameRecordPresentation() throws {
+        let access = Access(), (owner, source, old) = try opened(access), binding = owner.binding(old, source: { source }, active: { true })
+        binding.wrappedValue = false; XCTAssertTrue(owner.dismissed(old, source: source, active: true))
+        owner.open(try access.target(), source: source, current: source, active: true)
+        let fresh = try XCTUnwrap(owner.item); XCTAssertNotEqual(old.id, fresh.id)
+        binding.wrappedValue = false
+        XCTAssertFalse(owner.dismissed(old, source: source, active: true)); XCTAssertEqual(owner.item, fresh)
+    }
+    func testTrueDepartureAndOldAttachmentCannotClearReturnedParent() throws {
+        let access = Access(), (owner, source, old) = try opened(access)
+        XCTAssertTrue(owner.depart(old.attachment)); owner.appear(source.context, namespace: source.namespace)
+        let freshAttachment = try XCTUnwrap(owner.attachment)
+        XCTAssertFalse(owner.depart(old.attachment)); XCTAssertEqual(owner.attachment, freshAttachment)
+        XCTAssertFalse(owner.current(old, source: source, active: true))
+        owner.finishedRead(old.attachment, context: source.context, namespace: source.namespace, active: true, succeeded: true)
+        XCTAssertTrue(owner.needsRefresh)
+    }
+    func testNamespaceAndAuthorizationChangesRetireOldChildBeforeNewRead() throws {
+        let access = Access(), (owner, source, old) = try opened(access)
+        access.storageNamespace = "replacement"
+        XCTAssertTrue(owner.synchronize(access.sourceContext(), namespace: access.storageNamespace))
+        XCTAssertNil(owner.item); XCTAssertTrue(owner.needsRefresh)
+        XCTAssertFalse(owner.current(old, source: source, active: true))
+        let before = owner.attachment; access.authorizationGeneration = UUID()
+        XCTAssertTrue(owner.synchronize(access.sourceContext(), namespace: access.storageNamespace))
+        XCTAssertNotEqual(before, owner.attachment)
+    }
+    func testBackgroundInterruptKeepsReadNeededUntilCurrentVisibleSuccess() throws {
+        let access = Access(), (owner, source, item) = try opened(access)
+        owner.background()
+        XCTAssertNil(owner.item); XCTAssertTrue(owner.needsRefresh)
+        owner.finishedRead(item.attachment, context: source.context, namespace: source.namespace, active: false, succeeded: true)
+        XCTAssertTrue(owner.needsRefresh)
+        owner.finishedRead(item.attachment, context: source.context, namespace: source.namespace, active: true, succeeded: false)
+        XCTAssertTrue(owner.needsRefresh)
+        owner.finishedRead(item.attachment, context: source.context, namespace: source.namespace, active: true, succeeded: true)
+        XCTAssertFalse(owner.needsRefresh); XCTAssertEqual(access.sends, 0)
+    }
+    func testFreshSourceRecordChangeCannotReuseOldTarget() throws {
+        let access = Access(), source = try returnSource(access), target = try access.target(), owner = ClubSettlementReturnOwner()
+        owner.appear(source.context, namespace: source.namespace); access.amount = "Changed authoritative amount"
+        let changed = try returnSource(access)
+        owner.open(target, source: source, current: changed, active: true)
+        XCTAssertNil(owner.item); XCTAssertEqual(access.sends, 0)
+    }
+    func testDetailFreshReadStillRequiresCurrentParentAndExactRow() async throws {
+        let access = Access(), (owner, source, item) = try opened(access), model = ClubSettlementDetailReadModel()
+        let context = self.context(access, item.target), permit = try activate(model, context)
+        owner.hide()
+        await model.load(permit, target: item.target, access: access, current: { owner.current(item, source: source, active: true) })
+        XCTAssertEqual(model.accepted(context, access: access)?.id, 202)
+        XCTAssertEqual(access.resources, [.settlement]); XCTAssertEqual(access.sends, 0)
+        owner.depart(item.attachment)
+        await model.load(permit, target: item.target, access: access, current: { owner.current(item, source: source, active: true) })
+        XCTAssertEqual(access.resources, [.settlement]); XCTAssertEqual(access.sends, 0)
+    }
+    func testMissingFinancePermissionCannotBuildAParentSource() throws {
+        let access = Access(); access.allowed = false
+        XCTAssertThrowsError(try returnSource(access)); XCTAssertEqual(access.sends, 0)
+    }
+}

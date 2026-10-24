@@ -117,6 +117,13 @@ struct ClubStoryChapterHeader: View {
     let imageReader: (any RetainedPublicImageReading)?
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
+            if let minutes = stop.estimatedWalkingMinutes {
+                VStack(alignment: .leading, spacing: 4) {
+                    LabeledContent("topic.itinerary.estimatedWalkMinutes") { Text(minutes, format: .number) }
+                    Text("topic.itinerary.estimateNotice").font(.caption).foregroundStyle(.secondary)
+                }.accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("club.story.walk.\(stop.id)")
+            }
             Label("club.story.stop \(stop.sequence)", systemImage: "mappin.circle.fill").font(.caption.weight(.semibold))
             ClubStoryCover(raw: stop.imgUrl, imageReader: imageReader)
             if let name = stop.name { Text(verbatim: name).font(.headline) }

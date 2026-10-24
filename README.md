@@ -1,5 +1,7 @@
 # Questify · native iOS
 
+> **当前统一入口 / Current entry (2026-10-15): [iOS 范围、状态与证据](docs/ios-current-status.md).** Start there for the exact current source baseline and backend control precedence. The module overview below is not a current completion tally.
+
 SwiftUI-first iOS app, with UIKit bridges only when a feature needs them. Independent of the preserved Flutter app, which remains a candidate Android client. This folder is a new implementation, not a completed migration.
 
 ## Current implemented slices, with limits

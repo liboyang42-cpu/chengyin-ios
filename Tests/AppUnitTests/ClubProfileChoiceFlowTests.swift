@@ -81,3 +81,72 @@ import XCTest
         performs += 1; return .init(clubID: 81, message: "Fake saved")
     }
 }
+
+extension ClubProfileChoiceFlowTests {
+    func testLateFalseBindingFromCancelledAOnlyRetiresAAfterSameFieldReopen() throws {
+        let a = ChoiceAccess(), c = try context(a, revision: UUID()), m = ClubProfileChoiceController(), d = ClubOperationsDraft(profile: a.profile)
+        m.open(kind: .type, source: d, context: c, isCurrent: { _ in true })
+        let first = try XCTUnwrap(m.session), oldBinding = m.presentationBinding(for: first, isCurrent: { true })
+        XCTAssertTrue(oldBinding.wrappedValue)
+        oldBinding.wrappedValue = false
+        m.open(kind: .type, source: d, context: c, isCurrent: { _ in true })
+        let second = try XCTUnwrap(m.session)
+        XCTAssertNotEqual(first.id, second.id); XCTAssertFalse(oldBinding.wrappedValue)
+        oldBinding.wrappedValue = false
+        XCTAssertEqual(m.session, second); XCTAssertEqual(a.performs, 0)
+    }
+    func testLateCancelAndDismissFromACannotCloseDifferentFieldB() throws {
+        let a = ChoiceAccess(), c = try context(a, revision: UUID()), m = ClubProfileChoiceController(), d = ClubOperationsDraft(profile: a.profile)
+        m.open(kind: .type, source: d, context: c, isCurrent: { _ in true }); let first = try XCTUnwrap(m.session)
+        m.close(expectedID: first.id)
+        m.open(kind: .directions, source: d, context: c, isCurrent: { _ in true }); let second = try XCTUnwrap(m.session)
+        m.close(expectedID: first.id); m.close(expectedID: first.id)
+        XCTAssertEqual(m.session, second); XCTAssertEqual(m.session?.draft.kind, .directions); XCTAssertEqual(a.performs, 0)
+    }
+    func testPresentationBindingCannotResurrectClosedOwner() throws {
+        let a = ChoiceAccess(), c = try context(a, revision: UUID()), m = ClubProfileChoiceController(), d = ClubOperationsDraft(profile: a.profile)
+        m.open(kind: .type, source: d, context: c, isCurrent: { _ in true }); let session = try XCTUnwrap(m.session)
+        let binding = m.presentationBinding(for: session, isCurrent: { true })
+        m.close(expectedID: session.id); binding.wrappedValue = true
+        XCTAssertFalse(binding.wrappedValue); XCTAssertNil(m.session); XCTAssertEqual(a.performs, 0)
+    }
+    func testPresentationGetterUsesCurrentOwnerGateWithoutADeferredClose() throws {
+        let a = ChoiceAccess(), c = try context(a, revision: UUID()), m = ClubProfileChoiceController(), d = ClubOperationsDraft(profile: a.profile)
+        m.open(kind: .type, source: d, context: c, isCurrent: { _ in true }); let session = try XCTUnwrap(m.session)
+        var visibleAndActive = true
+        let binding = m.presentationBinding(for: session, isCurrent: { visibleAndActive })
+        XCTAssertTrue(binding.wrappedValue); visibleAndActive = false
+        XCTAssertFalse(binding.wrappedValue); XCTAssertEqual(m.session, session)
+        XCTAssertNil(m.apply(session.draft, session: session, current: d, isCurrent: { _ in visibleAndActive }))
+        binding.wrappedValue = false; XCTAssertNil(m.session)
+    }
+    func testStaleApplyAfterReopenDoesNotAlterParentOrNewSession() throws {
+        let a = ChoiceAccess(), c = try context(a, revision: UUID()), m = ClubProfileChoiceController(), d = ClubOperationsDraft(profile: a.profile)
+        m.open(kind: .type, source: d, context: c, isCurrent: { _ in true }); let first = try XCTUnwrap(m.session)
+        var staged = first.draft; _ = staged.selectType("旅行组织")
+        m.close(expectedID: first.id); m.open(kind: .type, source: d, context: c, isCurrent: { _ in true })
+        let second = try XCTUnwrap(m.session)
+        XCTAssertNil(m.apply(staged, session: first, current: d, isCurrent: { _ in true }))
+        XCTAssertEqual(m.session, second); XCTAssertEqual(d.clubType, "兴趣社群"); XCTAssertEqual(a.performs, 0)
+    }
+    func testExactCurrentBindingCancelDiscardsOnlyStagedDirections() throws {
+        let a = ChoiceAccess(), c = try context(a, revision: UUID()), m = ClubProfileChoiceController(), d = ClubOperationsDraft(profile: a.profile)
+        m.open(kind: .directions, source: d, context: c, isCurrent: { _ in true }); let session = try XCTUnwrap(m.session)
+        var staged = session.draft; _ = staged.toggleDirection("轻社交")
+        XCTAssertNotEqual(staged.directions, d.activityPrefs)
+        m.presentationBinding(for: session, isCurrent: { true }).wrappedValue = false
+        XCTAssertNil(m.session); XCTAssertEqual(d.activityPrefs, ["轻社交"])
+        m.open(kind: .directions, source: d, context: c, isCurrent: { _ in true })
+        XCTAssertEqual(m.session?.draft.directions, d.activityPrefs); XCTAssertEqual(a.performs, 0)
+    }
+    func testHostInvalidationRetiresSelectionAndOldBindingBeforeFreshReopen() throws {
+        let a = ChoiceAccess(), c = try context(a, revision: UUID()), m = ClubProfileChoiceController(), d = ClubOperationsDraft(profile: a.profile)
+        m.open(kind: .type, source: d, context: c, isCurrent: { _ in true }); let first = try XCTUnwrap(m.session)
+        let binding = m.presentationBinding(for: first, isCurrent: { true })
+        m.close(); XCTAssertFalse(binding.wrappedValue)
+        let fresh = try context(a, revision: UUID())
+        m.open(kind: .type, source: d, context: fresh, isCurrent: { _ in true }); let second = try XCTUnwrap(m.session)
+        binding.wrappedValue = false; XCTAssertEqual(m.session, second)
+        XCTAssertEqual(m.session?.context, fresh); XCTAssertEqual(a.performs, 0)
+    }
+}

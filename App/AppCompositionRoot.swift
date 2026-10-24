@@ -82,6 +82,18 @@ extension KeychainTokenStore: AppTokenStorage {}
     let deployment: DeploymentState
     let storage: AppScopedStorageFactory
     private let makeTransport: () -> any HTTPTransport
+    func favoriteRemovalTransport(accesses: [ProfileFavoriteRemovalAccess], context: RuntimeDependencyContext,
+                                  collectionScope: UUID, current: @escaping () -> RuntimeDependencyContext?,
+                                  currentScope: @escaping () -> UUID?,
+                                  select: @escaping (RuntimeDependencyContext, UUID) -> [ProfileFavoriteRemovalAccess]) -> (any HTTPTransport)? {
+        guard case .reviewed(let reviewed) = deployment,
+              let api = reviewed.regional.apiConfiguration, reviewed.regional.market == context.market,
+              api.baseURL == context.baseURL, reviewed.storageScope.service == context.session.namespace,
+              !accesses.isEmpty else { return nil }
+        return ProfileFavoriteRemovalTransport(accesses: accesses, collectionScope: collectionScope,
+            underlying: makeTransport(), current: current, currentScope: currentScope, select: select)
+    }
+
     /// Select independently reviewed approvals for the exact context. This builder must not
     /// turn authentication, roles, or remote booleans into OperationEndpointApproval values.
     let projectStoryAudioUploadApproval: @MainActor (RuntimeDependencyContext) -> ProjectStoryAudioUploadApproval?
@@ -98,6 +110,20 @@ extension KeychainTokenStore: AppTokenStorage {}
     let manualMapReadApproval: @MainActor (RuntimeDependencyContext) -> ManualMapReadApproval?
     let templateShelfReadApproval: @MainActor (RuntimeDependencyContext) -> TemplateShelfReadApproval?
     let messagingHistoryReadApproval: @MainActor (RuntimeDependencyContext) -> MessagingHistoryReadApproval?
+    let roamSessionFactReadAccess: @MainActor (RuntimeDependencyContext) -> RoamSessionFactReadAccess?
+    let roamNearbyEventsReadAccess: @MainActor (RuntimeDependencyContext) -> RoamNearbyEventsReadAccess?
+    let roamNearbyPlayersReadAccess: @MainActor (RuntimeDependencyContext) -> RoamNearbyPlayersReadAccess?
+    let profileOwnedCouponReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileOwnedCouponReadAccess?
+    let roamAlbumMetadataReadAccess: @MainActor (RuntimeDependencyContext) -> RoamAlbumMetadataReadAccess?
+    let roamTileMemoryReadAccess: @MainActor (RuntimeDependencyContext) -> RoamTileMemoryReadAccess?
+    let profilePublicInfoReadAccess: @MainActor (RuntimeDependencyContext) -> ProfilePublicInfoReadAccess?
+    let profileGuideReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileGuideReadAccess?
+    let profileFavoritesReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileFavoritesReadAccess?
+    var profileFavoriteRemovalAccesses: @MainActor (RuntimeDependencyContext, UUID) -> [ProfileFavoriteRemovalAccess] = { _, _ in [] }
+    let profileFavoriteTopicReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileFavoriteTopicReadAccess?
+    let profileFavoriteDetailAccess: @MainActor (RuntimeDependencyContext) -> ProfileFavoriteDetailAccess?
+    let profileInviteHistoryReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileInviteHistoryReadAccess?
+    let profileWeeklyPointsReadApproval: @MainActor (RuntimeDependencyContext) -> ProfileWeeklyPointsReadApproval?
     let walletHistoryReadApproval: @MainActor (RuntimeDependencyContext) -> WalletHistoryReadApproval?
     let cityPlayerReadApproval: @MainActor (RuntimeDependencyContext) -> CityPlayerReadApproval?
     let teamReadApproval: @MainActor (RuntimeDependencyContext) -> TeamReadApproval?
@@ -137,6 +163,19 @@ extension KeychainTokenStore: AppTokenStorage {}
          templateShelfReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> TemplateShelfReadApproval? = { _ in nil },
          messagingHistoryReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> MessagingHistoryReadApproval? = { _ in nil },
          walletHistoryReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> WalletHistoryReadApproval? = { _ in nil },
+         roamSessionFactReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamSessionFactReadAccess? = { _ in nil },
+         roamNearbyEventsReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamNearbyEventsReadAccess? = { _ in nil },
+         roamNearbyPlayersReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamNearbyPlayersReadAccess? = { _ in nil },
+         profileOwnedCouponReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileOwnedCouponReadAccess? = { _ in nil },
+         roamAlbumMetadataReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamAlbumMetadataReadAccess? = { _ in nil },
+         roamTileMemoryReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamTileMemoryReadAccess? = { _ in nil },
+         profilePublicInfoReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfilePublicInfoReadAccess? = { _ in nil },
+         profileGuideReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileGuideReadAccess? = { _ in nil },
+         profileFavoritesReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileFavoritesReadAccess? = { _ in nil },
+         profileFavoriteTopicReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileFavoriteTopicReadAccess? = { _ in nil },
+         profileFavoriteDetailAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileFavoriteDetailAccess? = { _ in nil },
+         profileInviteHistoryReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileInviteHistoryReadAccess? = { _ in nil },
+         profileWeeklyPointsReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ProfileWeeklyPointsReadApproval? = { _ in nil },
          cityPlayerReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> CityPlayerReadApproval? = { _ in nil },
          teamReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> TeamReadApproval? = { _ in nil },
          workshopCreatorDeclarationTargets: @escaping @MainActor (RuntimeDependencyContext, Int64) -> [WorkshopCreatorDeclarationTarget] = { _, _ in [] },
@@ -166,6 +205,19 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.templateShelfReadApproval = templateShelfReadApproval
         self.messagingHistoryReadApproval = messagingHistoryReadApproval
         self.walletHistoryReadApproval = walletHistoryReadApproval
+        self.roamSessionFactReadAccess = roamSessionFactReadAccess
+        self.roamNearbyEventsReadAccess = roamNearbyEventsReadAccess
+        self.roamNearbyPlayersReadAccess = roamNearbyPlayersReadAccess
+        self.profileOwnedCouponReadAccess = profileOwnedCouponReadAccess
+        self.roamAlbumMetadataReadAccess = roamAlbumMetadataReadAccess
+        self.roamTileMemoryReadAccess = roamTileMemoryReadAccess
+        self.profilePublicInfoReadAccess = profilePublicInfoReadAccess
+        self.profileGuideReadAccess = profileGuideReadAccess
+        self.profileFavoritesReadAccess = profileFavoritesReadAccess
+        self.profileFavoriteTopicReadAccess = profileFavoriteTopicReadAccess
+        self.profileFavoriteDetailAccess = profileFavoriteDetailAccess
+        self.profileInviteHistoryReadAccess = profileInviteHistoryReadAccess
+        self.profileWeeklyPointsReadApproval = profileWeeklyPointsReadApproval
         self.cityPlayerReadApproval = cityPlayerReadApproval
         self.teamReadApproval = teamReadApproval
         self.workshopCreatorDeclarationTargets = workshopCreatorDeclarationTargets
@@ -206,7 +258,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         return .available
     }
     func transport() -> CompositionHTTPTransport {
-        CompositionHTTPTransport(deployment: reviewed, underlying: makeTransport(), couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval, templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopCreatorPendingAuthorApproval: workshopCreatorPendingAuthorApproval, workshopCreatorPendingListApproval: workshopCreatorPendingListApproval, workshopCreatorPendingDetailApproval: workshopCreatorPendingDetailApproval, workshopCreatorConsentReadApproval: workshopCreatorConsentReadApproval, workshopCreatorConsentWriteApproval: workshopCreatorConsentWriteApproval, workshopPaidProfessionalReadApproval: workshopPaidProfessionalReadApproval, workshopPaidProfessionalWriteApproval: workshopPaidProfessionalWriteApproval, workshopPaidInstalledTextApproval: workshopPaidInstalledTextApproval, workshopPaidInstallApproval: workshopPaidInstallApproval, workshopPurchasedReadApproval: workshopPurchasedReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval, ownedOrderReadApproval: ownedOrderReadApproval)
+        CompositionHTTPTransport(deployment: reviewed, underlying: makeTransport(), couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval, templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, roamSessionFactReadAccess: roamSessionFactReadAccess, roamNearbyEventsReadAccess: roamNearbyEventsReadAccess, roamNearbyPlayersReadAccess: roamNearbyPlayersReadAccess, profileOwnedCouponReadAccess: profileOwnedCouponReadAccess, roamAlbumMetadataReadAccess: roamAlbumMetadataReadAccess, roamTileMemoryReadAccess: roamTileMemoryReadAccess, profilePublicInfoReadAccess: profilePublicInfoReadAccess, profileGuideReadAccess: profileGuideReadAccess, profileFavoritesReadAccess: profileFavoritesReadAccess, profileFavoriteTopicReadAccess: profileFavoriteTopicReadAccess, profileFavoriteDetailAccess: profileFavoriteDetailAccess, profileInviteHistoryReadAccess: profileInviteHistoryReadAccess, profileWeeklyPointsReadApproval: profileWeeklyPointsReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopCreatorPendingAuthorApproval: workshopCreatorPendingAuthorApproval, workshopCreatorPendingListApproval: workshopCreatorPendingListApproval, workshopCreatorPendingDetailApproval: workshopCreatorPendingDetailApproval, workshopCreatorConsentReadApproval: workshopCreatorConsentReadApproval, workshopCreatorConsentWriteApproval: workshopCreatorConsentWriteApproval, workshopPaidProfessionalReadApproval: workshopPaidProfessionalReadApproval, workshopPaidProfessionalWriteApproval: workshopPaidProfessionalWriteApproval, workshopPaidInstalledTextApproval: workshopPaidInstalledTextApproval, workshopPaidInstallApproval: workshopPaidInstallApproval, workshopPurchasedReadApproval: workshopPurchasedReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval, ownedOrderReadApproval: ownedOrderReadApproval)
     }
     func makeSession() -> AppSession { AppSession(composition: self) }
 }
@@ -215,7 +267,10 @@ extension KeychainTokenStore: AppTokenStorage {}
 /// require a one-use confirmed dispatch ticket. Private home keeps its separate owner grant.
 /// All other paths stay closed.
 /// No device/provider work or authorization is inferred from a feature grant.
-@MainActor final class CompositionHTTPTransport: CouponManagementConfirmedHTTPTransport, WorkshopPaidInstallMutationTransport, WorkshopPaidProfessionalMutationTransport, WorkshopCreatorConsentMutationTransport, WorkshopCreatorPendingMutationTransport {
+@MainActor final class CompositionHTTPTransport: ActivityCoverHTTPTransport, PublisherIdentityRegistrationHTTPTransport, ActivityEditingHTTPTransport, CouponManagementConfirmedHTTPTransport, WorkshopPaidInstallMutationTransport, WorkshopPaidProfessionalMutationTransport, WorkshopCreatorConsentMutationTransport, WorkshopCreatorPendingMutationTransport {
+    var publisherIdentityRegistrationApproval: @MainActor (RuntimeDependencyContext) -> PublisherIdentityRegistrationGrants = { _ in .init() }
+    var activityCoverApproval: @MainActor (RuntimeDependencyContext) -> ActivityCoverApproval? = { _ in nil }
+    var activityEditingApproval: @MainActor (RuntimeDependencyContext) -> ActivityEditingGrants = { _ in .init() }
     var workshopPaidInstallBeforeForward: (() async -> Void)?
     struct SessionIdentity: Equatable {
         let epoch: UInt64
@@ -247,6 +302,231 @@ extension KeychainTokenStore: AppTokenStorage {}
             return true
         }
     }
+    private struct MerchantOverviewScope {
+        let approval: MerchantOverviewReadApproval
+        let context: RuntimeDependencyContext
+        let viewer: SessionIdentity
+        let approved: () -> Bool
+        func matches(deployment: ReviewedAppDeployment, viewer current: SessionIdentity) -> Bool {
+            guard approved(), current == viewer, current.isSignedInContentViewer,
+                  let api = deployment.regional.apiConfiguration, let account = current.accountID,
+                  let role = current.role, let token = current.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: current.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { return false }
+            return context == RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session) && approval.matches(context)
+        }
+        static func accepts(_ request: URLRequest, baseURL: URL) -> Bool {
+            guard request.httpMethod == "POST", request.url?.query == nil, request.url?.fragment == nil,
+                  !request.httpShouldHandleCookies, request.httpBodyStream == nil,
+                  request.value(forHTTPHeaderField: "Cookie") == nil,
+                  request.value(forHTTPHeaderField: "Proxy-Authorization") == nil else { return false }
+            if request.url?.absoluteString == baseURL.appendingPathComponent("api/merchant/events").absoluteString {
+                return request.value(forHTTPHeaderField: "Content-Type") == "application/json" && request.httpBody == Data("{}".utf8)
+            }
+            guard request.httpBody == nil, request.value(forHTTPHeaderField: "Content-Type") == nil else { return false }
+            return ["api/merchant/access/me", "api/merchant/dashboard", "api/merchant/todo-summary"].contains {
+                request.url?.absoluteString == baseURL.appendingPathComponent($0).absoluteString
+            }
+        }
+    }
+    private struct MerchantPredictionScope {
+        let approval: MerchantPredictionReadApproval
+        let context: RuntimeDependencyContext
+        let viewer: SessionIdentity
+        let approved: () -> Bool
+        func matches(deployment: ReviewedAppDeployment, viewer current: SessionIdentity) -> Bool {
+            guard approved(), current == viewer, current.isSignedInContentViewer,
+                  let api = deployment.regional.apiConfiguration, let account = current.accountID,
+                  let role = current.role, let token = current.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: current.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { return false }
+            let actual = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            return actual == context && approval.matches(actual)
+        }
+        static func accepts(_ request: URLRequest, baseURL: URL) -> Bool {
+            guard request.httpMethod == "POST", request.url?.query == nil, request.url?.fragment == nil,
+                  !request.httpShouldHandleCookies, request.httpBody == nil, request.httpBodyStream == nil,
+                  request.value(forHTTPHeaderField: "Content-Type") == nil,
+                  request.value(forHTTPHeaderField: "Cookie") == nil,
+                  request.value(forHTTPHeaderField: "Proxy-Authorization") == nil else { return false }
+            return ["api/merchant/access/me", "api/merchant/predict/inbox"].contains {
+                request.url?.absoluteString == baseURL.appendingPathComponent($0).absoluteString
+            }
+        }
+    }
+    private struct MerchantProjectParticipantsScope {
+        let approval: MerchantProjectParticipantsReadApproval
+        let topicID: Int
+        let context: RuntimeDependencyContext
+        let viewer: SessionIdentity
+        let approved: () -> Bool
+        func matches(deployment: ReviewedAppDeployment, viewer current: SessionIdentity) -> Bool {
+            guard approved(), current == viewer, current.isSignedInContentViewer,
+                  let api = deployment.regional.apiConfiguration, let account = current.accountID,
+                  let role = current.role, let token = current.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: current.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { return false }
+            let actual = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            return actual == context && approval.matches(actual)
+        }
+        func accepts(_ request: URLRequest, baseURL: URL) -> Bool {
+            guard topicID > 0, request.httpMethod == "POST", request.url?.query == nil, request.url?.fragment == nil,
+                  !request.httpShouldHandleCookies, request.httpBodyStream == nil,
+                  request.value(forHTTPHeaderField: "Cookie") == nil,
+                  request.value(forHTTPHeaderField: "Proxy-Authorization") == nil else { return false }
+            if request.url?.absoluteString == baseURL.appendingPathComponent("api/merchant/access/me").absoluteString {
+                return request.httpBody == nil && request.value(forHTTPHeaderField: "Content-Type") == nil
+            }
+            guard request.url?.absoluteString == baseURL.appendingPathComponent("api/project/players").absoluteString,
+                  request.value(forHTTPHeaderField: "Content-Type") == "application/json", let body = request.httpBody else { return false }
+            // Exactly the two JSONEncoder field orders; no extra, duplicate, coerced or alternate-topic keys.
+            let first = "{\"topicId\":\(topicID),\"scope\":\"MERCHANT\"}"
+            let second = "{\"scope\":\"MERCHANT\",\"topicId\":\(topicID)}"
+            return body == Data(first.utf8) || body == Data(second.utf8)
+        }
+    }
+    private struct MerchantProjectWorkspaceScope {
+        let approval: MerchantProjectWorkspaceReadApproval
+        let topicID: Int
+        let context: RuntimeDependencyContext
+        let viewer: SessionIdentity
+        let approved: () -> Bool
+        func matches(deployment: ReviewedAppDeployment, viewer current: SessionIdentity) -> Bool {
+            guard approved(), current == viewer, current.isSignedInContentViewer,
+                  let api = deployment.regional.apiConfiguration, let account = current.accountID,
+                  let role = current.role, let token = current.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: current.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { return false }
+            let actual = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            return actual == context && approval.matches(actual)
+        }
+        func accepts(_ request: URLRequest, baseURL: URL) -> Bool {
+            guard topicID > 0, request.httpMethod == "POST", request.url?.query == nil, request.url?.fragment == nil,
+                  !request.httpShouldHandleCookies, request.httpBodyStream == nil,
+                  request.value(forHTTPHeaderField: "Cookie") == nil,
+                  request.value(forHTTPHeaderField: "Proxy-Authorization") == nil else { return false }
+            if request.url?.absoluteString == baseURL.appendingPathComponent("api/merchant/access/me").absoluteString {
+                return request.httpBody == nil && request.value(forHTTPHeaderField: "Content-Type") == nil
+            }
+            guard request.url?.absoluteString == baseURL.appendingPathComponent("api/project/home").absoluteString,
+                  request.value(forHTTPHeaderField: "Content-Type") == "application/json", let body = request.httpBody else { return false }
+            // Exactly the two JSONEncoder field orders; no extra, duplicate, coerced or alternate-topic keys.
+            let first = "{\"topicId\":\(topicID),\"scope\":\"MERCHANT\"}"
+            let second = "{\"scope\":\"MERCHANT\",\"topicId\":\(topicID)}"
+            return body == Data(first.utf8) || body == Data(second.utf8)
+        }
+    }
+    private struct MerchantProjectBrowseScope {
+        let approval: MerchantProjectBrowseApproval
+        let context: RuntimeDependencyContext
+        let viewer: SessionIdentity
+        let approved: () -> Bool
+        func matches(deployment: ReviewedAppDeployment, viewer current: SessionIdentity) -> Bool {
+            guard approved(), current == viewer, current.isSignedInContentViewer,
+                  let api = deployment.regional.apiConfiguration, let account = current.accountID,
+                  let role = current.role, let token = current.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: current.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { return false }
+            let actual = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            return actual == context && approval.matches(actual)
+        }
+        static func accepts(_ request: URLRequest, baseURL: URL) -> Bool {
+            guard request.httpMethod == "POST", request.url?.query == nil, request.url?.fragment == nil,
+                  !request.httpShouldHandleCookies, request.httpBodyStream == nil,
+                  request.value(forHTTPHeaderField: "Cookie") == nil,
+                  request.value(forHTTPHeaderField: "Proxy-Authorization") == nil else { return false }
+            if request.url?.absoluteString == baseURL.appendingPathComponent("api/merchant/access/me").absoluteString {
+                return request.httpBody == nil && request.value(forHTTPHeaderField: "Content-Type") == nil
+            }
+            guard request.url?.absoluteString == baseURL.appendingPathComponent("api/project/my").absoluteString,
+                  let type = request.value(forHTTPHeaderField: "Content-Type"),
+                  type.hasPrefix("multipart/form-data; boundary="), let body = request.httpBody, body.count <= 4096 else { return false }
+            let boundary = String(type.dropFirst("multipart/form-data; boundary=".count))
+            guard UUID(uuidString: boundary)?.uuidString == boundary,
+                  let expected = try? AuthRequestBuilder.makeFormRequest(url: baseURL.appendingPathComponent("api/project/my"),
+                    fields: ["type": "all", "state": "all", "ownerType": "all", "scope": "MERCHANT", "pageNum": "1", "pageSize": "200"],
+                    token: nil, boundary: boundary) else { return false }
+            return body == expected.httpBody
+        }
+    }
+    private struct NearbyMerchantCompositionScope {
+        let configuration: RuntimeDependencyConfiguration
+        let context: RuntimeDependencyContext
+        let viewer: SessionIdentity
+        func matches(deployment: ReviewedAppDeployment, viewer current: SessionIdentity) -> Bool {
+            guard current == viewer, current.isSignedInContentViewer,
+                  configuration.nearbyLocation, configuration.endpoints.paths.contains("api/merchant/nearby"),
+                  let api = deployment.regional.apiConfiguration,
+                  let account = current.accountID, let role = current.role, let token = current.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: current.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { return false }
+            let actual = RuntimeDependencyContext(market: deployment.regional.market,
+                baseURL: api.baseURL, role: role, session: session)
+            return actual == context && configuration.matches(actual)
+        }
+        /// Accept only the four canonical fields emitted by CoopFlowService.nearby.
+        static func accepts(_ request: URLRequest, baseURL: URL) -> Bool {
+            guard request.httpMethod == "POST",
+                  request.url?.absoluteString == baseURL.appendingPathComponent("api/merchant/nearby").absoluteString,
+                  request.url?.query == nil, request.url?.fragment == nil,
+                  request.httpBodyStream == nil, !request.httpShouldHandleCookies,
+                  request.value(forHTTPHeaderField: "Cookie") == nil,
+                  request.value(forHTTPHeaderField: "Proxy-Authorization") == nil,
+                  let contentType = request.value(forHTTPHeaderField: "Content-Type"),
+                  contentType.hasPrefix("multipart/form-data; boundary=CoopNative-"),
+                  let body = request.httpBody, body.count <= 2048,
+                  let text = String(data: body, encoding: .utf8) else { return false }
+            let boundary = String(contentType.dropFirst("multipart/form-data; boundary=".count))
+            let uuidText = String(boundary.dropFirst("CoopNative-".count))
+            guard UUID(uuidString: uuidText)?.uuidString == uuidText else { return false }
+            let keys = ["latitude", "limit", "longitude", "radius"]
+            var remainder = text, fields: [String: String] = [:]
+            for key in keys {
+                let prefix = "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(key)\"\r\n\r\n"
+                guard remainder.hasPrefix(prefix) else { return false }
+                remainder.removeFirst(prefix.count)
+                guard let end = remainder.range(of: "\r\n") else { return false }
+                fields[key] = String(remainder[..<end.lowerBound])
+                remainder = String(remainder[end.upperBound...])
+            }
+            guard remainder == "--\(boundary)--\r\n", fields["limit"] == "30", fields["radius"] == "5000",
+                  let rawLat = fields["latitude"], let lat = Double(rawLat), lat.isFinite,
+                  (-90...90).contains(lat), String(lat) == rawLat,
+                  let rawLng = fields["longitude"], let lng = Double(rawLng), lng.isFinite,
+                  (-180...180).contains(lng), String(lng) == rawLng else { return false }
+            return true
+        }
+    }
+    private struct PublicMerchantHomeCompositionScope {
+        let approval: MerchantPublicProductionApproval
+        let context: MerchantPublicHostContext
+        let viewer: SessionIdentity
+        func matches(deployment: ReviewedAppDeployment, viewer current: SessionIdentity) -> Bool {
+            guard current == viewer, current.isPublicTemplateViewer, approval.publicHomeRead,
+                  let api = deployment.regional.apiConfiguration,
+                  let actual = try? MerchantPublicHostContext(market: deployment.regional.market,
+                    baseURL: api.baseURL, namespace: deployment.storageScope.service,
+                    accountID: current.accountID, epoch: current.epoch, role: current.role, token: current.token)
+            else { return false }
+            return actual == context && approval.matches(actual)
+        }
+        static func accepts(_ request: URLRequest, baseURL: URL) -> Bool {
+            let endpoint = baseURL.appendingPathComponent("api/merchant/public-home")
+            guard request.httpMethod == "POST", request.url?.absoluteString == endpoint.absoluteString,
+                  request.url?.query == nil, request.url?.fragment == nil,
+                  request.httpBodyStream == nil, !request.httpShouldHandleCookies,
+                  request.value(forHTTPHeaderField: "Authorization") == nil,
+                  request.value(forHTTPHeaderField: "Proxy-Authorization") == nil,
+                  request.value(forHTTPHeaderField: "Cookie") == nil,
+                  request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+                  let body = request.httpBody, body.count <= 128,
+                  let fields = try? JSONDecoder().decode([String: Int].self, from: body),
+                  fields.count == 1, let entry = fields.first,
+                  ["id", "memberId"].contains(entry.key), entry.value > 0,
+                  let canonical = try? JSONSerialization.data(withJSONObject: fields), canonical == body else { return false }
+            return true
+        }
+    }
     var current: () -> SessionIdentity? = { nil }
     /// Internal scheduling seam, never a grant; the one-use final fence runs after it.
     var couponBeforeForward: (@MainActor () async -> Void)?
@@ -267,8 +547,38 @@ extension KeychainTokenStore: AppTokenStorage {}
     private let ownedOrderReadApproval: @MainActor (RuntimeDependencyContext) -> OwnedOrderReadApproval?
     private let couponReadApproval: @MainActor (RuntimeDependencyContext) -> CouponManagementReadApproval?
     private let couponWriteApproval: @MainActor (RuntimeDependencyContext) -> CouponManagementWriteApproval?
+    private var profileFavoriteTopicSelection: ProfileFavoriteTopicSelection?
+    private var profilePublicInfoTarget: ProfilePublicInfoTarget?
+    private var publicMerchantHomeScope: PublicMerchantHomeCompositionScope?
+    private var nearbyMerchantScope: NearbyMerchantCompositionScope?
+    private var nearbyMerchantOnly = false
+    private var merchantOverviewOnly = false
+    private var merchantOverviewScope: MerchantOverviewScope?
+    private var merchantPredictionOnly = false
+    private var merchantPredictionScope: MerchantPredictionScope?
+    private var merchantProjectParticipantsOnly = false
+    private var merchantProjectParticipantsScope: MerchantProjectParticipantsScope?
+    private var merchantProjectWorkspaceOnly = false
+    private var merchantProjectWorkspaceScope: MerchantProjectWorkspaceScope?
+    private var merchantProjectBrowseOnly = false
+    private var merchantProjectBrowseScope: MerchantProjectBrowseScope?
+    private var profileGuideSelection: ProfileGuideArticleSelection?
+    private var profileFavoriteSelection: ProfileFavoritePostSelection?
     private let manualMapSelection: ManualMapAreaSelection?
     private let messagingHistoryReadApproval: @MainActor (RuntimeDependencyContext) -> MessagingHistoryReadApproval?
+    private let roamSessionFactReadAccess: @MainActor (RuntimeDependencyContext) -> RoamSessionFactReadAccess?
+    private let roamNearbyEventsReadAccess: @MainActor (RuntimeDependencyContext) -> RoamNearbyEventsReadAccess?
+    private let roamNearbyPlayersReadAccess: @MainActor (RuntimeDependencyContext) -> RoamNearbyPlayersReadAccess?
+    private let profileOwnedCouponReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileOwnedCouponReadAccess?
+    private let roamAlbumMetadataReadAccess: @MainActor (RuntimeDependencyContext) -> RoamAlbumMetadataReadAccess?
+    private let roamTileMemoryReadAccess: @MainActor (RuntimeDependencyContext) -> RoamTileMemoryReadAccess?
+    private let profilePublicInfoReadAccess: @MainActor (RuntimeDependencyContext) -> ProfilePublicInfoReadAccess?
+    private let profileGuideReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileGuideReadAccess?
+    private let profileFavoritesReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileFavoritesReadAccess?
+    private let profileFavoriteTopicReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileFavoriteTopicReadAccess?
+    private let profileFavoriteDetailAccess: @MainActor (RuntimeDependencyContext) -> ProfileFavoriteDetailAccess?
+    private let profileInviteHistoryReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileInviteHistoryReadAccess?
+    private let profileWeeklyPointsReadApproval: @MainActor (RuntimeDependencyContext) -> ProfileWeeklyPointsReadApproval?
     private let walletHistoryReadApproval: @MainActor (RuntimeDependencyContext) -> WalletHistoryReadApproval?
     private let templateShelfReadApproval: @MainActor (RuntimeDependencyContext) -> TemplateShelfReadApproval?
     private let cityPlayerReadApproval: @MainActor (RuntimeDependencyContext) -> CityPlayerReadApproval?
@@ -291,6 +601,19 @@ extension KeychainTokenStore: AppTokenStorage {}
          templateShelfReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> TemplateShelfReadApproval? = { _ in nil },
          messagingHistoryReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> MessagingHistoryReadApproval? = { _ in nil },
          walletHistoryReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> WalletHistoryReadApproval? = { _ in nil },
+         roamSessionFactReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamSessionFactReadAccess? = { _ in nil },
+         roamNearbyEventsReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamNearbyEventsReadAccess? = { _ in nil },
+         roamNearbyPlayersReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamNearbyPlayersReadAccess? = { _ in nil },
+         profileOwnedCouponReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileOwnedCouponReadAccess? = { _ in nil },
+         roamAlbumMetadataReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamAlbumMetadataReadAccess? = { _ in nil },
+         roamTileMemoryReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamTileMemoryReadAccess? = { _ in nil },
+         profilePublicInfoReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfilePublicInfoReadAccess? = { _ in nil },
+         profileGuideReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileGuideReadAccess? = { _ in nil },
+         profileFavoritesReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileFavoritesReadAccess? = { _ in nil },
+         profileFavoriteTopicReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileFavoriteTopicReadAccess? = { _ in nil },
+         profileFavoriteDetailAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileFavoriteDetailAccess? = { _ in nil },
+         profileInviteHistoryReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileInviteHistoryReadAccess? = { _ in nil },
+         profileWeeklyPointsReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ProfileWeeklyPointsReadApproval? = { _ in nil },
          cityPlayerReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> CityPlayerReadApproval? = { _ in nil },
          teamReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> TeamReadApproval? = { _ in nil },
          workshopCreatorPendingAuthorApproval: @escaping @MainActor (RuntimeDependencyContext) -> WorkshopCreatorPendingAuthorApproval? = { _ in nil },
@@ -312,6 +635,19 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.templateShelfReadApproval = templateShelfReadApproval
         self.messagingHistoryReadApproval = messagingHistoryReadApproval
         self.walletHistoryReadApproval = walletHistoryReadApproval
+        self.roamSessionFactReadAccess = roamSessionFactReadAccess
+        self.roamNearbyEventsReadAccess = roamNearbyEventsReadAccess
+        self.roamNearbyPlayersReadAccess = roamNearbyPlayersReadAccess
+        self.profileOwnedCouponReadAccess = profileOwnedCouponReadAccess
+        self.roamAlbumMetadataReadAccess = roamAlbumMetadataReadAccess
+        self.roamTileMemoryReadAccess = roamTileMemoryReadAccess
+        self.profilePublicInfoReadAccess = profilePublicInfoReadAccess
+        self.profileGuideReadAccess = profileGuideReadAccess
+        self.profileFavoritesReadAccess = profileFavoritesReadAccess
+        self.profileFavoriteTopicReadAccess = profileFavoriteTopicReadAccess
+        self.profileFavoriteDetailAccess = profileFavoriteDetailAccess
+        self.profileInviteHistoryReadAccess = profileInviteHistoryReadAccess
+        self.profileWeeklyPointsReadApproval = profileWeeklyPointsReadApproval
         self.cityPlayerReadApproval = cityPlayerReadApproval
         self.teamReadApproval = teamReadApproval
         self.workshopCreatorPendingAuthorApproval = workshopCreatorPendingAuthorApproval
@@ -329,6 +665,88 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.manualMapReadApproval = manualMapReadApproval; self.manualMapSelection = manualMapSelection
         self.ownedOrderReadApproval = ownedOrderReadApproval
     }
+    func scopedForProfileFavoriteTopic(_ selection: ProfileFavoriteTopicSelection) -> CompositionHTTPTransport {
+        let transport = copy(underlying: underlying, manualMapSelection: manualMapSelection)
+        transport.profileFavoriteTopicSelection = selection
+        return transport
+    }
+    /// Forward only an already-issued public-home approval. This does not create one.
+    func scopedForPublicMerchantHome(approval: MerchantPublicProductionApproval,
+                                     context: MerchantPublicHostContext) -> CompositionHTTPTransport {
+        let transport = copy(underlying: underlying, manualMapSelection: manualMapSelection)
+        if let viewer = current() {
+            transport.publicMerchantHomeScope = .init(approval: approval, context: context, viewer: viewer)
+        }
+        return transport
+    }
+    func scopedForMerchantOverview(approval: MerchantOverviewReadApproval, context: RuntimeDependencyContext,
+                                   approved: @escaping () -> Bool) -> CompositionHTTPTransport {
+        let transport = copy(underlying: underlying, manualMapSelection: manualMapSelection)
+        transport.merchantOverviewOnly = true; transport.merchantOverviewScope = nil
+        if let viewer = current() { transport.merchantOverviewScope = .init(approval: approval, context: context, viewer: viewer, approved: approved) }
+        return transport
+    }
+    func scopedForMerchantPrediction(approval: MerchantPredictionReadApproval, context: RuntimeDependencyContext,
+                                     approved: @escaping () -> Bool) -> CompositionHTTPTransport {
+        let transport = copy(underlying: underlying, manualMapSelection: manualMapSelection)
+        transport.merchantPredictionOnly = true
+        transport.merchantPredictionScope = nil
+        if let viewer = current() { transport.merchantPredictionScope = .init(approval: approval, context: context, viewer: viewer, approved: approved) }
+        return transport
+    }
+    func scopedForMerchantProjectParticipants(approval: MerchantProjectParticipantsReadApproval, context: RuntimeDependencyContext,
+                                          topicID: Int, approved: @escaping () -> Bool) -> CompositionHTTPTransport {
+        let transport = copy(underlying: underlying, manualMapSelection: manualMapSelection)
+        transport.merchantProjectParticipantsOnly = true; transport.merchantProjectParticipantsScope = nil
+        if topicID > 0, let viewer = current() {
+            transport.merchantProjectParticipantsScope = .init(approval: approval, topicID: topicID, context: context, viewer: viewer, approved: approved)
+        }
+        return transport
+    }
+    func scopedForMerchantProjectWorkspace(approval: MerchantProjectWorkspaceReadApproval, context: RuntimeDependencyContext,
+                                          topicID: Int, approved: @escaping () -> Bool) -> CompositionHTTPTransport {
+        let transport = copy(underlying: underlying, manualMapSelection: manualMapSelection)
+        transport.merchantProjectWorkspaceOnly = true; transport.merchantProjectWorkspaceScope = nil
+        if topicID > 0, let viewer = current() {
+            transport.merchantProjectWorkspaceScope = .init(approval: approval, topicID: topicID, context: context, viewer: viewer, approved: approved)
+        }
+        return transport
+    }
+    /// Dedicated read-only scope; no general merchant endpoint receives this grant.
+    func scopedForMerchantProjectBrowse(approval: MerchantProjectBrowseApproval, context: RuntimeDependencyContext,
+                                       approved: @escaping () -> Bool) -> CompositionHTTPTransport {
+        let transport = copy(underlying: underlying, manualMapSelection: manualMapSelection)
+        transport.merchantProjectBrowseOnly = true
+        transport.merchantProjectBrowseScope = nil
+        if let viewer = current() { transport.merchantProjectBrowseScope = .init(approval: approval, context: context, viewer: viewer, approved: approved) }
+        return transport
+    }
+    /// Carries an existing nearby grant; it never enables the general runtime transport.
+    func scopedForNearbyMerchants(configuration: RuntimeDependencyConfiguration,
+                                  context: RuntimeDependencyContext) -> CompositionHTTPTransport {
+        let transport = copy(underlying: underlying, manualMapSelection: manualMapSelection)
+        transport.nearbyMerchantOnly = true
+        if let viewer = current() {
+            transport.nearbyMerchantScope = .init(configuration: configuration, context: context, viewer: viewer)
+        }
+        return transport
+    }
+    func scopedForProfilePublicInfo(_ target: ProfilePublicInfoTarget) -> CompositionHTTPTransport {
+        let transport = copy(underlying: underlying, manualMapSelection: manualMapSelection)
+        transport.profilePublicInfoTarget = target
+        return transport
+    }
+    func scopedForProfileGuide(_ selection: ProfileGuideArticleSelection) -> CompositionHTTPTransport {
+        let transport = copy(underlying: underlying, manualMapSelection: manualMapSelection)
+        transport.profileGuideSelection = selection
+        return transport
+    }
+    func scopedForProfileFavorite(_ selection: ProfileFavoritePostSelection) -> CompositionHTTPTransport {
+        let transport = copy(underlying: underlying, manualMapSelection: manualMapSelection)
+        transport.profileGuideSelection = profileGuideSelection
+        transport.profileFavoriteSelection = selection
+        return transport
+    }
     func scopedForManualMap(_ selection: ManualMapAreaSelection) -> CompositionHTTPTransport {
         copy(underlying: underlying, manualMapSelection: selection)
     }
@@ -339,11 +757,31 @@ extension KeychainTokenStore: AppTokenStorage {}
     private func copy(underlying: any HTTPTransport, manualMapSelection: ManualMapAreaSelection?) -> CompositionHTTPTransport {
         let transport = CompositionHTTPTransport(deployment: deployment, underlying: underlying,
             couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval,
-            templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopCreatorPendingAuthorApproval: workshopCreatorPendingAuthorApproval, workshopCreatorPendingListApproval: workshopCreatorPendingListApproval, workshopCreatorPendingDetailApproval: workshopCreatorPendingDetailApproval, workshopCreatorConsentReadApproval: workshopCreatorConsentReadApproval, workshopCreatorConsentWriteApproval: workshopCreatorConsentWriteApproval, workshopPaidProfessionalReadApproval: workshopPaidProfessionalReadApproval, workshopPaidProfessionalWriteApproval: workshopPaidProfessionalWriteApproval, workshopPaidInstalledTextApproval: workshopPaidInstalledTextApproval, workshopPaidInstallApproval: workshopPaidInstallApproval, workshopPurchasedReadApproval: workshopPurchasedReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval,
+            templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, roamSessionFactReadAccess: roamSessionFactReadAccess, roamNearbyEventsReadAccess: roamNearbyEventsReadAccess, roamNearbyPlayersReadAccess: roamNearbyPlayersReadAccess, profileOwnedCouponReadAccess: profileOwnedCouponReadAccess, roamAlbumMetadataReadAccess: roamAlbumMetadataReadAccess, roamTileMemoryReadAccess: roamTileMemoryReadAccess, profilePublicInfoReadAccess: profilePublicInfoReadAccess, profileGuideReadAccess: profileGuideReadAccess, profileFavoritesReadAccess: profileFavoritesReadAccess, profileFavoriteTopicReadAccess: profileFavoriteTopicReadAccess, profileFavoriteDetailAccess: profileFavoriteDetailAccess, profileInviteHistoryReadAccess: profileInviteHistoryReadAccess, profileWeeklyPointsReadApproval: profileWeeklyPointsReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopCreatorPendingAuthorApproval: workshopCreatorPendingAuthorApproval, workshopCreatorPendingListApproval: workshopCreatorPendingListApproval, workshopCreatorPendingDetailApproval: workshopCreatorPendingDetailApproval, workshopCreatorConsentReadApproval: workshopCreatorConsentReadApproval, workshopCreatorConsentWriteApproval: workshopCreatorConsentWriteApproval, workshopPaidProfessionalReadApproval: workshopPaidProfessionalReadApproval, workshopPaidProfessionalWriteApproval: workshopPaidProfessionalWriteApproval, workshopPaidInstalledTextApproval: workshopPaidInstalledTextApproval, workshopPaidInstallApproval: workshopPaidInstallApproval, workshopPurchasedReadApproval: workshopPurchasedReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval,
             manualMapSelection: manualMapSelection, ownedOrderReadApproval: ownedOrderReadApproval)
         // Retain the identity source across temporary clone chains. Its AppSession
         // callback is weak, so this does not retain or extend the signed-in session.
         transport.current = { self.current() }
+        transport.profileFavoriteTopicSelection = profileFavoriteTopicSelection
+        transport.profilePublicInfoTarget = profilePublicInfoTarget
+        transport.publicMerchantHomeScope = publicMerchantHomeScope
+        transport.nearbyMerchantScope = nearbyMerchantScope
+        transport.nearbyMerchantOnly = nearbyMerchantOnly
+        transport.merchantOverviewOnly = merchantOverviewOnly
+        transport.merchantOverviewScope = merchantOverviewScope
+        transport.merchantPredictionOnly = merchantPredictionOnly
+        transport.merchantPredictionScope = merchantPredictionScope
+        transport.merchantProjectParticipantsOnly = merchantProjectParticipantsOnly
+        transport.merchantProjectParticipantsScope = merchantProjectParticipantsScope
+        transport.merchantProjectWorkspaceOnly = merchantProjectWorkspaceOnly
+        transport.merchantProjectWorkspaceScope = merchantProjectWorkspaceScope
+        transport.merchantProjectBrowseOnly = merchantProjectBrowseOnly
+        transport.merchantProjectBrowseScope = merchantProjectBrowseScope
+        transport.profileGuideSelection = profileGuideSelection
+        transport.profileFavoriteSelection = profileFavoriteSelection
+        transport.activityCoverApproval = { self.activityCoverApproval($0) }
+        transport.activityEditingApproval = { self.activityEditingApproval($0) }
+        transport.publisherIdentityRegistrationApproval = { self.publisherIdentityRegistrationApproval($0) }
         transport.workshopPaidInstallBeforeForward = { if let barrier = self.workshopPaidInstallBeforeForward { await barrier() } }
         transport.couponBeforeForward = { if let barrier = self.couponBeforeForward { await barrier() } }
         // Forward the mutable selector itself: later installation or revocation on
@@ -475,25 +913,183 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard valid(), !Task.isCancelled else { throw CancellationError() }; try authorization.validate(); throw error
         }
     }
+    func sendPublisherIdentityRegistration(_ request: URLRequest, session: PublishingSession,
+        grants: PublisherIdentityRegistrationGrants) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.market == .china, let api = deployment.regional.apiConfiguration,
+              let captured = current(), captured.isSignedInContentViewer,
+              let account = captured.accountID, let role = captured.role, role == "club", let token = captured.token,
+              session.region == .china, session.accountID == account, session.role == role,
+              session.namespace == deployment.storageScope.service,
+              request.value(forHTTPHeaderField: "Authorization").map({ Data($0.utf8) }) == Data(token.utf8),
+              let runtime = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                  namespace: deployment.storageScope.service, token: token),
+              let path = PublisherIdentityRegistrationWire.path(request, configuration: api) else { throw APIError.notConfigured }
+        let context = RuntimeDependencyContext(market: .china, baseURL: api.baseURL, role: role, session: runtime)
+        func permitted() -> Bool {
+            let live = publisherIdentityRegistrationApproval(context)
+            let approval = path == PublisherIdentityRegistrationWire.statusPath ? live.read : live.register
+            return live == grants && live.revision != nil &&
+                approval?.allows(configuration: api, namespace: session.namespace, accountID: account, path: path) == true
+        }
+        try Task.checkCancellation(); guard current() == captured, permitted() else { throw APIError.notConfigured }
+        let response = try await underlying.send(request)
+        try Task.checkCancellation(); guard current() == captured, permitted() else { throw CancellationError() }
+        return response
+    }
+
+    func sendActivityCover(_ request: URLRequest, session: PublishingSession, approval: ActivityCoverApproval,
+                           current ownerCurrent: @escaping () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.market == .china, let api = deployment.regional.apiConfiguration,
+              let captured = current(), captured.isSignedInContentViewer, let account = captured.accountID,
+              let role = captured.role, let token = captured.token, ["club", "merchant"].contains(role),
+              session.region == .china, session.accountID == account, session.role == role,
+              session.namespace == deployment.storageScope.service,
+              request.value(forHTTPHeaderField: "Authorization").map({ Data($0.utf8) }) == Data(token.utf8),
+              let runtime = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                  namespace: deployment.storageScope.service, token: token),
+              ActivityCoverWire.accepts(request, configuration: api) else { throw APIError.notConfigured }
+        let context = RuntimeDependencyContext(market: .china, baseURL: api.baseURL, role: role, session: runtime)
+        func permitted() -> Bool {
+            ownerCurrent() && current() == captured && activityCoverApproval(context) == approval &&
+                approval.endpoint.allows(configuration: api, namespace: session.namespace, accountID: account, path: ActivityCoverService.path)
+        }
+        try Task.checkCancellation(); guard permitted() else { throw APIError.notConfigured }
+        let result = try await underlying.send(request)
+        try Task.checkCancellation(); guard permitted() else { throw CancellationError() }
+        return result
+    }
+
+    func sendActivityEditing(_ request: URLRequest, activityID: Int, session: PublishingSession,
+                             grants: ActivityEditingGrants) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.market == .china, let api = deployment.regional.apiConfiguration,
+              let captured = current(), captured.isSignedInContentViewer,
+              let account = captured.accountID, let role = captured.role, let token = captured.token,
+              ["club", "merchant"].contains(role), session.region == .china, session.accountID == account, session.role == role,
+              session.namespace == deployment.storageScope.service,
+              request.value(forHTTPHeaderField: "Authorization").map({ Data($0.utf8) }) == Data(token.utf8),
+              let runtime = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                  namespace: deployment.storageScope.service, token: token),
+              let path = ActivityEditingWire.path(request, activityID: activityID, configuration: api) else { throw APIError.notConfigured }
+        if path == ActivityEditingService.updatePath {
+            guard let body = request.httpBody, let fields = try? JSONDecoder().decode([String: ProjectEditJSON].self, from: body),
+                  fields["scope"] == (role == "merchant" ? .string("MERCHANT") : nil) else { throw APIError.notConfigured }
+        }
+        let context = RuntimeDependencyContext(market: .china, baseURL: api.baseURL, role: role, session: runtime)
+        func permitted() -> Bool {
+            let currentGrant = activityEditingApproval(context)
+            let approval = path == ActivityEditingService.readPath ? currentGrant.read : currentGrant.update
+            return currentGrant == grants && currentGrant.revision != nil &&
+                approval?.allows(configuration: api, namespace: session.namespace, accountID: account, path: path) == true
+        }
+        try Task.checkCancellation()
+        guard current() == captured, permitted() else { throw APIError.notConfigured }
+        let reply = try await underlying.send(request)
+        try Task.checkCancellation()
+        guard current() == captured, permitted() else { throw CancellationError() }
+        return reply
+    }
+
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         guard let deployment, let api = deployment.regional.apiConfiguration,
               let url = request.url, url.fragment == nil else { throw APIError.notConfigured }
+        let merchantOverview = MerchantOverviewScope.accepts(request, baseURL: api.baseURL)
+        guard !merchantOverviewOnly || merchantOverview else { throw APIError.notConfigured }
+        let merchantPrediction = MerchantPredictionScope.accepts(request, baseURL: api.baseURL)
+        guard !merchantPredictionOnly || merchantPrediction else { throw APIError.notConfigured }
+        let merchantProjectParticipants = merchantProjectParticipantsScope?.accepts(request, baseURL: api.baseURL) == true
+        guard !merchantProjectParticipantsOnly || merchantProjectParticipants else { throw APIError.notConfigured }
+        let merchantProjectWorkspace = merchantProjectWorkspaceScope?.accepts(request, baseURL: api.baseURL) == true
+        guard !merchantProjectWorkspaceOnly || merchantProjectWorkspace else { throw APIError.notConfigured }
+        let merchantProjectBrowse = MerchantProjectBrowseScope.accepts(request, baseURL: api.baseURL)
+        guard !merchantProjectBrowseOnly || merchantProjectBrowse else { throw APIError.notConfigured }
+        let nearbyMerchant = NearbyMerchantCompositionScope.accepts(request, baseURL: api.baseURL)
+        guard !nearbyMerchantOnly || nearbyMerchant else { throw APIError.notConfigured }
         let selectedArea = manualMapSelection?.snapshot
         let manualRead = selectedArea.flatMap { ManualMapReadRoute(request: request, baseURL: api.baseURL, area: $0.area) }
         let cityRead = CityReadRoute(request: request, baseURL: api.baseURL)
         let playRead = PlayReadRoute(request: request, baseURL: api.baseURL)
         let ownedCover = OwnedTopicCoverCompositionRoute(request: request, baseURL: api.baseURL)
+        let sessionFactRoute = RoamSessionFactReadRoute(request: request, baseURL: api.baseURL)
+        let nearbyEventsArea = manualMapSelection?.snapshot
+        let nearbyEvents = nearbyEventsArea.flatMap { RoamNearbyEventsReadRoute(request: request, baseURL: api.baseURL, area: $0.area) }
+        let nearbyPlayersArea = manualMapSelection?.snapshot
+        let nearbyPlayers = nearbyPlayersArea.flatMap { RoamNearbyPlayersReadRoute(request: request, baseURL: api.baseURL, area: $0.area) }
+        let ownedCoupon = ProfileOwnedCouponReadRoute(request: request, baseURL: api.baseURL)
+        let albumMetadata = RoamAlbumMetadataReadRoute(request: request, baseURL: api.baseURL)
+        let tileMemory = RoamTileMemoryReadRoute(request: request, baseURL: api.baseURL)
+        let favoriteTopic = profileFavoriteTopicSelection == nil ? nil : ProfileFavoriteTopicReadRoute(request: request, baseURL: api.baseURL)
+        guard profileFavoriteTopicSelection == nil || favoriteTopic != nil else { throw APIError.notConfigured }
+        let publicInfo = profilePublicInfoTarget == nil ? nil : ProfilePublicInfoReadRoute(request: request, baseURL: api.baseURL)
+        guard profilePublicInfoTarget == nil || publicInfo != nil else { throw APIError.notConfigured }
+        let guideRead = ProfileGuideReadRoute(request: request, baseURL: api.baseURL)
+        if profileGuideSelection != nil {
+            guard let guideRead, case .detail = guideRead else { throw APIError.notConfigured }
+        }
+        let favoriteList = ProfileFavoritesReadRoute(request: request, baseURL: api.baseURL)
+        let favoriteDetail = ProfileFavoriteDetailRoute(request: request, baseURL: api.baseURL)
         let ticketWalletList = TicketWalletListReadRoute(request: request, baseURL: api.baseURL)
-        guard url.query == nil || manualRead != nil || playRead != nil || cityRead != nil || ownedCover != nil else { throw APIError.notConfigured }
+        guard nearbyEvents != nil || url.query == nil || manualRead != nil || playRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
         guard let captured = current() else { throw CancellationError() }
         let authPaths = [AuthEndpoint.smsSend, .phone, .userInfo, .logout].map { api.url(for: $0) }
         let auth = authPaths.contains(url)
+        let publicHome = PublicMerchantHomeCompositionScope.accepts(request, baseURL: api.baseURL)
         var readApprovalStillValid: (() -> Bool)?
         let reads = ["api/common/banner", "api/category/list", "api/topic/list", "api/activity/list", "api/club/list", "api/merchant/list"]
         if auth {
             guard deployment.regional.market == .china,
                   deployment.regional.canUseDomesticChinaPhone,
                   CNAccountSessionService.accepts(request, configuration: api) else { throw APIError.notConfigured }
+        } else if merchantOverviewOnly {
+            guard merchantOverview, let scope = merchantOverviewScope,
+                  scope.matches(deployment: deployment, viewer: captured) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [weak self] in
+                guard let self, let viewer = self.current() else { return false }
+                return scope.matches(deployment: deployment, viewer: viewer)
+            }
+        } else if merchantPredictionOnly {
+            guard merchantPrediction, let scope = merchantPredictionScope,
+                  scope.matches(deployment: deployment, viewer: captured) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [weak self] in
+                guard let self, let viewer = self.current() else { return false }
+                return scope.matches(deployment: deployment, viewer: viewer)
+            }
+        } else if merchantProjectParticipantsOnly {
+            guard merchantProjectParticipants, let scope = merchantProjectParticipantsScope,
+                  scope.matches(deployment: deployment, viewer: captured) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [weak self] in
+                guard let self, let viewer = self.current() else { return false }
+                return scope.matches(deployment: deployment, viewer: viewer)
+            }
+        } else if merchantProjectWorkspaceOnly {
+            guard merchantProjectWorkspace, let scope = merchantProjectWorkspaceScope,
+                  scope.matches(deployment: deployment, viewer: captured) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [weak self] in
+                guard let self, let viewer = self.current() else { return false }
+                return scope.matches(deployment: deployment, viewer: viewer)
+            }
+        } else if merchantProjectBrowseOnly {
+            guard merchantProjectBrowse, let scope = merchantProjectBrowseScope,
+                  scope.matches(deployment: deployment, viewer: captured) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [weak self] in
+                guard let self, let viewer = self.current() else { return false }
+                return scope.matches(deployment: deployment, viewer: viewer)
+            }
+        } else if nearbyMerchant {
+            guard let scope = nearbyMerchantScope, scope.matches(deployment: deployment, viewer: captured) else {
+                throw APIError.notConfigured
+            }
+            readApprovalStillValid = { [weak self] in
+                guard let self, let viewer = self.current() else { return false }
+                return scope.matches(deployment: deployment, viewer: viewer)
+            }
+        } else if publicHome {
+            guard let scope = publicMerchantHomeScope, scope.matches(deployment: deployment, viewer: captured) else {
+                throw APIError.notConfigured
+            }
+            readApprovalStillValid = { [weak self] in
+                guard let self, let viewer = self.current() else { return false }
+                return scope.matches(deployment: deployment, viewer: viewer)
+            }
         } else if ProjectStoryAudioCompositionRoute.accepts(request, baseURL: api.baseURL) {
             guard deployment.regional.market == .china, captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
@@ -597,6 +1193,192 @@ extension KeychainTokenStore: AppTokenStorage {}
             readApprovalStillValid = { [couponReadApproval] in
                 guard let currentApproval = couponReadApproval(context) else { return false }
                 return currentApproval.revision == approval.revision && currentApproval.matches(context)
+            }
+        } else if ownedCoupon != nil {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let selected = profileOwnedCouponReadAccess(context), selected.matches(context),
+                  selected.endpoints.allows(configuration: api, namespace: session.namespace,
+                    accountID: account, path: ProfileOwnedCouponReadRoute.path) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [profileOwnedCouponReadAccess] in
+                guard let fresh = profileOwnedCouponReadAccess(context) else { return false }
+                return fresh === selected && fresh.matches(context)
+            }
+        } else if albumMetadata != nil {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let selected = roamAlbumMetadataReadAccess(context), selected.matches(context),
+                  selected.endpoints.allows(configuration: api, namespace: session.namespace,
+                    accountID: account, path: RoamAlbumMetadataReadRoute.path) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [roamAlbumMetadataReadAccess] in
+                guard let fresh = roamAlbumMetadataReadAccess(context) else { return false }
+                return fresh === selected && fresh.matches(context)
+            }
+        } else if tileMemory != nil {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let selected = roamTileMemoryReadAccess(context), selected.matches(context),
+                  selected.endpoints.allows(configuration: api, namespace: session.namespace,
+                    accountID: account, path: RoamTileMemoryReadRoute.path) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [roamTileMemoryReadAccess] in
+                guard let fresh = roamTileMemoryReadAccess(context) else { return false }
+                return fresh === selected && fresh.matches(context)
+            }
+        } else if let favoriteTopic {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let selection = profileFavoriteTopicSelection, selection.isCurrent,
+                  selection.topicID == favoriteTopic.topicID, selection.viewerRevision == captured.viewerRevision,
+                  ContentDraftContextFence.matches(selection.context, context),
+                  let selected = profileFavoriteTopicReadAccess(context), selected.matches(context),
+                  selected.endpoints.allows(configuration: api, namespace: session.namespace,
+                    accountID: account, path: ProfileFavoriteTopicReadRoute.path) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [profileFavoriteTopicReadAccess] in
+                guard selection.isCurrent, let fresh = profileFavoriteTopicReadAccess(context) else { return false }
+                return fresh === selected && fresh.matches(context)
+            }
+        } else if let publicInfo {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let target = profilePublicInfoTarget, target.isCurrent,
+                  target.memberID == publicInfo.memberID, target.viewerRevision == captured.viewerRevision,
+                  ContentDraftContextFence.matches(target.context, context),
+                  let selected = profilePublicInfoReadAccess(context), selected.matches(context),
+                  selected.endpoints.allows(configuration: api, namespace: session.namespace,
+                    accountID: account, path: ProfilePublicInfoReadRoute.path) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [profilePublicInfoReadAccess] in
+                guard target.isCurrent, let fresh = profilePublicInfoReadAccess(context) else { return false }
+                return fresh === selected && fresh.matches(context)
+            }
+        } else if let guideRead {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let selected = profileGuideReadAccess(context), selected.matches(context),
+                  selected.endpoints.allows(configuration: api, namespace: session.namespace,
+                    accountID: account, path: guideRead.path) else { throw APIError.notConfigured }
+            let selection = profileGuideSelection
+            if case .detail(let id) = guideRead {
+                guard let selection, selection.isCurrent, selection.row.id == id,
+                      selection.viewerRevision == captured.viewerRevision,
+                      ContentDraftContextFence.matches(selection.context, context) else { throw APIError.notConfigured }
+            }
+            readApprovalStillValid = { [profileGuideReadAccess] in
+                guard selection?.isCurrent != false, let fresh = profileGuideReadAccess(context) else { return false }
+                return fresh === selected && fresh.matches(context)
+            }
+        } else if let favoriteList {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let selected = profileFavoritesReadAccess(context), selected.matches(context),
+                  selected.endpoints.allows(configuration: api, namespace: session.namespace,
+                    accountID: account, path: favoriteList.path) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [profileFavoritesReadAccess] in
+                guard let fresh = profileFavoritesReadAccess(context) else { return false }
+                return fresh === selected && fresh.matches(context)
+            }
+        } else if let favoriteDetail {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let selection = profileFavoriteSelection, selection.isCurrent,
+                  selection.route.generation == .legacySquare, selection.route.id == favoriteDetail.postID,
+                  selection.viewerRevision == captured.viewerRevision,
+                  ContentDraftContextFence.matches(selection.context, context),
+                  let selected = profileFavoriteDetailAccess(context), selected.matches(context),
+                  selected.endpoints.allows(configuration: api, namespace: session.namespace,
+                    accountID: account, path: favoriteDetail.path),
+                  favoriteDetail.pageNumber == nil || selection.permitsComments(access: selected) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [profileFavoriteDetailAccess] in
+                guard selection.isCurrent, let fresh = profileFavoriteDetailAccess(context) else { return false }
+                return fresh === selected && fresh.matches(context)
+            }
+        } else if sessionFactRoute != nil {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let selected = roamSessionFactReadAccess(context), selected.matches(context),
+                  selected.endpoints.allows(configuration: api, namespace: session.namespace,
+                    accountID: account, path: RoamSessionFactReadRoute.path) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [roamSessionFactReadAccess] in
+                guard let fresh = roamSessionFactReadAccess(context) else { return false }
+                return fresh === selected && fresh.matches(context)
+            }
+        } else if nearbyEvents != nil {
+            guard captured.isSignedInContentViewer, let snapshot = nearbyEventsArea,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let selected = roamNearbyEventsReadAccess(context), selected.matches(context),
+                  selected.endpoints.allows(configuration: api, namespace: session.namespace,
+                    accountID: account, path: RoamNearbyEventsReadRoute.path) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [roamNearbyEventsReadAccess, manualMapSelection] in
+                guard manualMapSelection?.snapshot == snapshot,
+                      let fresh = roamNearbyEventsReadAccess(context) else { return false }
+                return fresh === selected && fresh.matches(context)
+            }
+        } else if nearbyPlayers != nil {
+            guard captured.isSignedInContentViewer, let snapshot = nearbyPlayersArea,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let selected = roamNearbyPlayersReadAccess(context), selected.matches(context),
+                  selected.endpoints.allows(configuration: api, namespace: session.namespace,
+                    accountID: account, path: RoamNearbyPlayersReadRoute.path) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [roamNearbyPlayersReadAccess, manualMapSelection] in
+                guard manualMapSelection?.snapshot == snapshot,
+                      let fresh = roamNearbyPlayersReadAccess(context) else { return false }
+                return fresh === selected && fresh.matches(context)
+            }
+        } else if let inviteRoute = ProfileInviteHistoryReadRoute(request: request, baseURL: api.baseURL) {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let selected = profileInviteHistoryReadAccess(context), selected.matches(context),
+                  selected.endpoints.allows(configuration: api, namespace: session.namespace,
+                    accountID: account, path: inviteRoute.path) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [profileInviteHistoryReadAccess] in
+                guard let fresh = profileInviteHistoryReadAccess(context) else { return false }
+                return fresh === selected && fresh.matches(context)
+            }
+        } else if ProfileWeeklyPointsReadRoute.accepts(request, baseURL: api.baseURL) {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let approval = profileWeeklyPointsReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [profileWeeklyPointsReadApproval] in
+                guard let selected = profileWeeklyPointsReadApproval(context) else { return false }
+                return selected === approval && selected.matches(context)
             }
         } else if WalletHistoryReadRoute(request: request, baseURL: api.baseURL, accountID: captured.accountID ?? 0) != nil {
             guard captured.isSignedInContentViewer,
@@ -803,7 +1585,7 @@ extension KeychainTokenStore: AppTokenStorage {}
                   captured.isPublicTemplateViewer,
                   reads.contains(where: { api.baseURL.appendingPathComponent($0) == url }) else { throw APIError.notConfigured }
         }
-        if !auth, request.value(forHTTPHeaderField: "Authorization").map({ Data($0.utf8) }) != captured.token.map({ Data($0.utf8) }) { throw CancellationError() }
+        if !auth && !publicHome, request.value(forHTTPHeaderField: "Authorization").map({ Data($0.utf8) }) != captured.token.map({ Data($0.utf8) }) { throw CancellationError() }
         try Task.checkCancellation()
         guard current() == captured, readApprovalStillValid?() != false else { throw CancellationError() }
         do {
@@ -813,6 +1595,17 @@ extension KeychainTokenStore: AppTokenStorage {}
             if let ticketWalletList {
                 try ticketWalletList.validateResponse(result, expectedAccountID: captured.accountID ?? 0)
             }
+            try ownedCoupon?.validateResponse(result, accountID: captured.accountID ?? 0)
+            try albumMetadata?.validateResponse(result)
+            try tileMemory?.validateResponse(result)
+            try favoriteList?.validateResponse(result)
+            try favoriteDetail?.validateResponse(result)
+            try guideRead?.validateResponse(result)
+            try sessionFactRoute?.validateResponse(result)
+            try favoriteTopic?.validateResponse(result)
+            try nearbyEvents?.validateResponse(result)
+            try nearbyPlayers?.validateResponse(result)
+            try publicInfo?.validateResponse(result)
             return result
         } catch {
             guard current() == captured, !Task.isCancelled, readApprovalStillValid?() != false else { throw CancellationError() }

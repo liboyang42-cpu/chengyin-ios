@@ -28,7 +28,10 @@ import SwiftUI
                         .buttonStyle(.plain).accessibilityIdentifier("team.row.\(team.id)")
                 }
                 if model.coordinator.authenticated && model.coordinator.configured {
-                    Button("team.refresh") { Task { await reload() } }.frame(minHeight: 44).disabled(model.running).accessibilityIdentifier("team.refresh")
+                    Button("team.refresh") {
+                        let permit = model.captureRun()
+                        Task { await reload(permit: permit) }
+                    }.frame(minHeight: 44).disabled(model.running).accessibilityIdentifier("team.refresh")
                 }
             }.padding()
         }.appNavigationTitle("team.title")
@@ -36,7 +39,9 @@ import SwiftUI
             .task { await reload() }.refreshable { await reload() }
             .onDisappear { model.leave() }
     }
-    private func reload() async { await model.run { await model.coordinator.loadTeams() } }
+    private func reload(permit: TeamScreenModel.RunPermit? = nil) async {
+        await model.run(permit: permit) { await model.coordinator.loadTeams() }
+    }
 }
 @MainActor struct TeamDetailView: View {
     let lookup: TeamLookup
@@ -61,7 +66,7 @@ import SwiftUI
                         .accessibilityIdentifier("teamMembershipRetired")
                 }
                 if let detail = model.coordinator.detail {
-                    TeamCard(team: detail.team).accessibilityIdentifier("team.detail.card")
+                    TeamCard(team: detail.team, confirmedJoinMode: model.coordinator.confirmedJoinMode).accessibilityIdentifier("team.detail.card")
                     LabeledContent("team.sessionStart") { Text(verbatim: detail.team.expireTime?.isEmpty == false ? detail.team.expireTime! : "—") }
                     if detail.team.expireTime?.isEmpty != false { Text("team.timeUnknown").font(.footnote) }
                     Text("team.ticketSeparation").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
@@ -99,24 +104,40 @@ import SwiftUI
                     if detail.leader == true, detail.team.status == .recruiting {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("team.mode.title").font(.headline)
-                            Text(LocalizedStringKey(detail.team.joinMode.key))
-                            Text("team.mode.provisional").font(.footnote).foregroundStyle(.secondary)
+                            Text(LocalizedStringKey((model.coordinator.confirmedJoinMode ?? detail.team.joinMode).key))
+                                .accessibilityIdentifier("team.mode.current")
+                            if !readOnly {
+                                ForEach([TeamJoinMode.invitation, .publicApplication], id: \.rawValue) { mode in
+                                    let action = TeamAction.changeJoinMode(teamID: detail.team.id, mode: mode)
+                                    if action.isAllowed(detail: detail) {
+                                        Button { model.prepare(action) } label: { Text(LocalizedStringKey(mode.key)) }
+                                            .frame(minHeight: 44).disabled(model.actionLocked)
+                                            .accessibilityIdentifier("team.mode.change.\(mode.rawValue)")
+                                    }
+                                }
+                            }
                         }
                     }
                 }
                 if !readOnly, model.coordinator.pending != nil {
-                    Button("team.checkOutcome") { Task { await model.run { await model.coordinator.checkOutcome() } } }
+                    Button("team.checkOutcome") {
+                        let permit = model.captureRun()
+                        Task { await model.run(permit: permit) { await model.coordinator.checkOutcome() } }
+                    }
                         .frame(minHeight: 44).disabled(model.running || !model.coordinator.canSimulate).accessibilityIdentifier("team.checkOutcome")
                 }
                 if lookup.isValid && model.coordinator.authenticated && model.coordinator.retiredMembershipTeamID == nil {
-                    Button("team.refresh") { Task { await reload() } }.frame(minHeight: 44).disabled(model.running).accessibilityIdentifier("team.refresh")
+                    Button("team.refresh") {
+                        let permit = model.captureRun()
+                        Task { await reload(permit: permit) }
+                    }.frame(minHeight: 44).disabled(model.running).accessibilityIdentifier("team.refresh")
                 }
             }.padding()
         }.appNavigationTitle(invitationCode == nil ? "team.detail" : "team.invitation")
             .task { await reload() }.refreshable { await reload() }
             .onDisappear { model.leave() }
             .sheet(item: model.reviewBinding) { TeamReviewSheet(model: model, review: $0) }
-            .sheet(isPresented: $invitationPreview) { if let team = model.coordinator.detail?.team { TeamInvitePreview(team: team) } }
+            .sheet(isPresented: $invitationPreview) { if let team = model.coordinator.detail?.team { TeamInvitePreview(team: team, model: model) } }
     }
     @ViewBuilder private func actionButton(_ action: TeamAction, detail: TeamDetail) -> some View {
         if !readOnly, action.isAllowed(detail: detail) {
@@ -125,8 +146,8 @@ import SwiftUI
                 .accessibilityIdentifier(action.key)
         }
     }
-    private func reload() async {
-        await model.run {
+    private func reload(permit: TeamScreenModel.RunPermit? = nil) async {
+        await model.run(permit: permit) {
             if readOnly, case .id(let teamID) = lookup { await model.coordinator.loadPostJoinDetail(teamID: teamID) }
             else { await model.coordinator.loadDetail(lookup, requireMembership: requiresMembership) }
         }

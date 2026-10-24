@@ -231,3 +231,228 @@ private final class PlayExperienceTestTransport: HTTPTransport {
     init(_ operation: @escaping @MainActor (URLRequest) async throws -> (Data, Int)) { self.operation = operation }
     func send(_ request: URLRequest) async throws -> (Data, Int) { requests.append(request); return try await operation(request) }
 }
+
+@available(macOS 14.0, *)
+@MainActor final class PlayLocationFidelityTests: XCTestCase {
+    private let now = Date(timeIntervalSince1970: 1_800_000_000)
+    private func api() throws -> PlayExperienceService {
+        .init(configuration: try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://example.com/fixture/"))),
+              transport: PlayExperienceTestTransport { _ in XCTFail("No live dispatch"); return (Data(), 200) })
+    }
+    private func request(_ evidence: PlayCompletionEvidence, boundary: String = "stable-intent") throws -> URLRequest {
+        try api().completionRequest(scope: .topic(71), nodeID: 701, evidence: evidence, advance: nil, token: "synthetic", boundary: boundary)
+    }
+    private func evidence(_ accuracy: Double?, time: Date?) -> PlayCompletionEvidence {
+        .location(longitude: 116.4, latitude: 39.9, coordinateSystem: "GCJ02", accuracyMeters: accuracy, measuredAt: time)
+    }
+    func testLegacyThreeArgumentConstructionKeepsAbsentMetadata() throws {
+        let output = PlayDeviceOutput.location(116.4, 39.9, coordinateSystem: "GCJ02")
+        guard case .location(_, _, _, let accuracy, let time) = output else { return XCTFail() }
+        XCTAssertNil(accuracy); XCTAssertNil(time)
+        let legacy = PlayCompletionEvidence.location(longitude: 116.4, latitude: 39.9, coordinateSystem: "GCJ02")
+        XCTAssertEqual(legacy, evidence(nil, time: nil))
+        XCTAssertEqual(try request(legacy).httpBody, try request(evidence(nil, time: nil)).httpBody)
+    }
+    func testMeasurementRejectsInvalidAndIncompleteMetadataWithoutOmission() throws {
+        for accuracy in [-1.0, .infinity, -.infinity, .nan] {
+            XCTAssertThrowsError(try request(evidence(accuracy, time: now)))
+        }
+        XCTAssertThrowsError(try request(evidence(nil, time: now)))
+        XCTAssertThrowsError(try request(evidence(5, time: nil)))
+        XCTAssertThrowsError(try request(evidence(5, time: Date(timeIntervalSinceReferenceDate: .infinity))))
+        XCTAssertThrowsError(try request(.location(longitude: 116, latitude: 39, coordinateSystem: "WGS84", accuracyMeters: 5, measuredAt: now)))
+    }
+    func testNewMeasurementFreshnessBoundaries() throws {
+        for age in [0.0, 30.0] {
+            XCTAssertNoThrow(try evidence(0, time: now.addingTimeInterval(-age)).validateNewLocationMeasurement(now: now))
+        }
+        for age in [-0.001, -31.0, 30.001, 31.0] {
+            XCTAssertThrowsError(try evidence(5, time: now.addingTimeInterval(-age)).validateNewLocationMeasurement(now: now))
+        }
+        XCTAssertThrowsError(try evidence(5, time: now).validateNewLocationMeasurement(now: Date(timeIntervalSinceReferenceDate: .nan)))
+    }
+    func testProposedServerBoundaryPreservesBoth80And81RatherThanDroppingPoorAccuracy() throws {
+        for accuracy in [0.0, 80.0, 81.0] {
+            let body = String(decoding: try XCTUnwrap(request(evidence(accuracy, time: now)).httpBody), as: UTF8.self)
+            XCTAssertTrue(body.contains("name=\"accuracy\"\r\n\r\n\(accuracy)\r\n"))
+            XCTAssertFalse(body.contains("measuredAt")); XCTAssertFalse(body.contains("timestamp"))
+        }
+    }
+    func testProjectionRetainsAccuracyAndTimeAndConvertsWGS84ExactlyOnce() throws {
+        let original = try RoamDeviceFix(coordinate: XCTUnwrap(RoamCoordinate(latitude: 39.916527, longitude: 116.397128)), accuracyMeters: 81, measuredAt: now, datum: .wgs84)
+        let projected = try RuntimeLocationProjection.gcj02(original, now: now)
+        XCTAssertEqual(projected.accuracyMeters, 81); XCTAssertEqual(projected.measuredAt, now)
+        XCTAssertEqual(projected.datum, .gcj02); XCTAssertNotEqual(projected.coordinate, original.coordinate)
+        XCTAssertEqual(try RuntimeLocationProjection.gcj02(projected, now: now), projected)
+    }
+    func testLegacyStoredEvidenceDecodesWithoutInventingAccuracyAndKeepsBody() throws {
+        let bytes = Data(#"{"location":{"longitude":116.4,"latitude":39.9,"coordinateSystem":"GCJ02"}}"#.utf8)
+        let decoded = try JSONDecoder().decode(PlayCompletionEvidence.self, from: bytes)
+        let legacy = evidence(nil, time: nil)
+        XCTAssertEqual(decoded, legacy)
+        XCTAssertEqual(try request(decoded).httpBody, try request(legacy).httpBody)
+        let body = String(decoding: try XCTUnwrap(request(decoded).httpBody), as: UTF8.self)
+        XCTAssertFalse(body.contains("accuracy")); XCTAssertFalse(body.contains("measuredAt"))
+        XCTAssertNoThrow(try decoded.validateNewLocationMeasurement(now: now))
+    }
+    func testUnknownJournalRoundTripKeepsMeasurementIdentityAndRequestBytes() throws {
+        let session = try PlayExperienceSession(accountID: 9001, epoch: 1, namespace: "synthetic-cn", token: "synthetic")
+        let review = PlayCompletionReview(nodeID: 701, evidence: evidence(81, time: now),
+            advance: try .init(actionID: "stable-route-action", expectedVersion: 2), session: session,
+            generation: 1, routeSessionID: 22, gameplayMode: .cityOrientation)
+        let pending = PlayPendingCompletion(intent: .init(review: review), state: .unknown, dispatchProcess: UUID())
+        let decoded = try JSONDecoder().decode(PlayPendingCompletion.self, from: JSONEncoder().encode(pending))
+        XCTAssertEqual(decoded, pending); XCTAssertEqual(decoded.intent.id, pending.intent.id)
+        XCTAssertEqual(decoded.intent.advance, pending.intent.advance)
+        let first = try api().completionRequest(scope: .topic(71), nodeID: 701, evidence: pending.intent.evidence,
+            advance: pending.intent.advance, token: "synthetic", boundary: pending.intent.id.uuidString)
+        let replay = try api().completionRequest(scope: .topic(71), nodeID: 701, evidence: decoded.intent.evidence,
+            advance: decoded.intent.advance, token: "synthetic", boundary: decoded.intent.id.uuidString)
+        XCTAssertEqual(first, replay)
+        // A new command is stale, but encoding the original UNKNOWN command is
+        // independent of elapsed wall-clock time and never acquires a new sample.
+        XCTAssertThrowsError(try decoded.intent.evidence.validateNewLocationMeasurement(now: now.addingTimeInterval(60)))
+        XCTAssertEqual(try request(decoded.intent.evidence).httpBody, try request(pending.intent.evidence).httpBody)
+    }
+    func testScanRouteAndDormantCapabilitiesAreUnchanged() throws {
+        let req = try request(.scan("synthetic-qr"))
+        XCTAssertEqual(req.url?.path, "/fixture/api/play/checkin")
+        let body = String(decoding: try XCTUnwrap(req.httpBody), as: UTF8.self)
+        XCTAssertFalse(body.contains("accuracy")); XCTAssertFalse(body.contains("latitude")); XCTAssertFalse(body.contains("nodeId"))
+        XCTAssertTrue(try api().enabled.isEmpty)
+    }
+    func testStaleNewSubmitDoesNotCreatePendingOrDispatch() async throws {
+        let session = try PlayExperienceSession(accountID: 9001, epoch: 1, namespace: "synthetic-cn", token: "synthetic")
+        let transport = PlayRecoveryRecordingTransport()
+        let nodes = PlayExperienceSyntheticFixtures.classic.replacingOccurrences(of: "\"validationMethod\":1", with: "\"validationMethod\":0")
+        transport.responses["/fixture/api/play/nodes"] = .reply(PlayExperienceSyntheticFixtures.envelope(nodes), 200)
+        let service = PlayExperienceService(configuration: try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://example.com/fixture/"))),
+            transport: transport, enabled: [.reads, .classicCompletion])
+        let store = PlayMemoryCompletionRecovery()
+        let model = PlayExperienceCoordinator(scope: .topic(71), service: service, recovery: store,
+            pausedStorage: PlayMemoryPausedStorage(), currentSession: { session })
+        await model.load()
+        let review = try model.review(nodeID: 701, evidence: evidence(5, time: Date().addingTimeInterval(-60)))
+        await model.submit(review)
+        XCTAssertEqual(model.issue, .invalidAction); XCTAssertFalse(model.unresolved)
+        XCTAssertFalse(transport.requests.contains { $0.httpMethod == "POST" })
+        let pending = try await store.read(PlayRunStorageKey.make(session: session, scope: .topic(71)))
+        XCTAssertNil(pending)
+    }
+    func testLegacyUnknownJournalKeepsItsIDAndAbsentMeasurementAfterRestart() throws {
+        // Fixed pre-I01 schema fixture, not bytes emitted by the new encoder.
+        let fixture = Data(#"{"intent":{"id":"11111111-2222-3333-4444-555555555555","owner":{"namespace":"synthetic-cn","accountID":9001,"role":"player"},"originEpoch":7,"nodeID":701,"evidence":{"location":{"longitude":116.4,"latitude":39.9,"coordinateSystem":"GCJ02"}},"advance":{"actionID":"legacy-route-action","expectedVersion":2},"routeSessionID":22,"gameplayMode":1},"state":"unknown","dispatchProcess":"AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE"}"#.utf8)
+        let restored = try JSONDecoder().decode(PlayPendingCompletion.self, from: fixture)
+        XCTAssertEqual(restored.state, .unknown)
+        XCTAssertEqual(restored.intent.id.uuidString, "11111111-2222-3333-4444-555555555555")
+        XCTAssertEqual(restored.intent.advance?.actionID, "legacy-route-action")
+        XCTAssertEqual(restored.intent.advance?.expectedVersion, 2)
+        XCTAssertEqual(restored.intent.originEpoch, 7); XCTAssertEqual(restored.intent.routeSessionID, 22)
+        XCTAssertEqual(restored.intent.owner.accountID, 9001); XCTAssertEqual(restored.intent.owner.namespace, "synthetic-cn")
+        XCTAssertEqual(restored.dispatchProcess?.uuidString, "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE")
+        XCTAssertEqual(restored.intent.evidence, evidence(nil, time: nil))
+        let req = try api().completionRequest(scope: .topic(71), nodeID: restored.intent.nodeID,
+            evidence: restored.intent.evidence, advance: restored.intent.advance, token: "synthetic",
+            boundary: restored.intent.id.uuidString)
+        // Fixed legacy multipart bytes: no timestamp/accuracy, unchanged ordering,
+        // action ID, node/scope and boundary. Do not derive this using the encoder.
+        let expected = [
+            "--11111111-2222-3333-4444-555555555555",
+            "Content-Disposition: form-data; name=\"expectedRouteVersion\"", "", "2",
+            "--11111111-2222-3333-4444-555555555555",
+            "Content-Disposition: form-data; name=\"latitude\"", "", "39.9",
+            "--11111111-2222-3333-4444-555555555555",
+            "Content-Disposition: form-data; name=\"longitude\"", "", "116.4",
+            "--11111111-2222-3333-4444-555555555555",
+            "Content-Disposition: form-data; name=\"nodeId\"", "", "701",
+            "--11111111-2222-3333-4444-555555555555",
+            "Content-Disposition: form-data; name=\"routeActionId\"", "", "legacy-route-action",
+            "--11111111-2222-3333-4444-555555555555",
+            "Content-Disposition: form-data; name=\"topicId\"", "", "71",
+            "--11111111-2222-3333-4444-555555555555--", ""
+        ].joined(separator: "\r\n")
+        XCTAssertEqual(req.httpBody, Data(expected.utf8))
+        let reopened = try JSONDecoder().decode(PlayPendingCompletion.self, from: JSONEncoder().encode(restored))
+        XCTAssertEqual(reopened, restored)
+        XCTAssertEqual(try api().completionRequest(scope: .topic(71), nodeID: reopened.intent.nodeID,
+            evidence: reopened.intent.evidence, advance: reopened.intent.advance, token: "synthetic",
+            boundary: reopened.intent.id.uuidString).httpBody, Data(expected.utf8))
+    }
+    func testPrefabInvalidMeasurementNeverCreatesPendingArrivalOrPOST() async throws {
+        for measurement in [evidence(5, time: Date().addingTimeInterval(-60)), evidence(-1, time: Date()), evidence(nil, time: Date())] {
+            let session = try PlayExperienceSession(accountID: 9001, epoch: 1, namespace: "synthetic-prefab", token: "synthetic")
+            let transport = PlayRecoveryRecordingTransport()
+            let nodes = #"{"topicId":71,"topicName":"预制人生","mode":1,"playable":true,"nodes":[{"nodeId":701,"name":"Synthetic hall","done":false,"arrived":false,"validationMethod":0}]}"#
+            transport.responses["/fixture/api/play/nodes"] = .reply(PlayExperienceSyntheticFixtures.envelope(nodes), 200)
+            let service = PlayExperienceService(configuration: try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://example.com/fixture/"))), transport: transport, enabled: [.reads, .classicCompletion])
+            let store = PlayPrefabRuntimeStore(storage: PlayLocationJournalMemory())
+            let model = PlayPrefabRuntimeCoordinator(scope: .topic(71), service: service, provider: PlayLocationJournalProvider(measurement), store: store, currentSession: { session })
+            await model.load(); XCTAssertEqual(model.phase, "ready")
+            await model.arriveAndCaptureHallPhoto()
+            XCTAssertNil(model.record?.pendingArrivalNodeID)
+            XCTAssertNil(try store.load(session: session, scope: .topic(71))?.pendingArrivalNodeID)
+            XCTAssertNotEqual(model.phase, "unknown")
+            XCTAssertFalse(transport.requests.contains { $0.httpMethod == "POST" })
+        }
+    }
+    func testPrefabPreparationChecksClockOnceBeforeJournalAndKeepsTransportUnknown() async throws {
+        let transport = PlayRecoveryRecordingTransport()
+        transport.responses["/fixture/api/play/arrive"] = .failure(.unknownResult)
+        let service = PlayExperienceService(configuration: try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://example.com/fixture/"))), transport: transport, enabled: [.classicCompletion])
+        var clock = now, checks = 0, pending = false
+        do {
+            _ = try await service.completePreparingJournal(scope: .topic(71), nodeID: 701, evidence: evidence(81, time: now.addingTimeInterval(-30)), token: "synthetic", measurementNow: { checks += 1; return clock }) {
+                pending = true
+                clock = self.now.addingTimeInterval(60) // Simulate a slow synchronous durable write.
+            }
+            XCTFail("Unknown transport must remain unknown")
+        } catch { XCTAssertEqual(error as? PlayExperienceError, .unknownResult) }
+        XCTAssertEqual(checks, 1); XCTAssertTrue(pending)
+        XCTAssertEqual(transport.requests.count, 1)
+        XCTAssertTrue(String(decoding: try XCTUnwrap(transport.requests.first?.httpBody), as: UTF8.self).contains("81.0"))
+    }
+    func testPrefabPreparationFailureDoesNotDispatchOrBypassAuthority() async throws {
+        for enabled in [Set<PlayExperienceCapability>(), Set<PlayExperienceCapability>([.classicCompletion])] {
+            let transport = PlayRecoveryRecordingTransport()
+            let service = PlayExperienceService(configuration: try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://example.com/fixture/"))), transport: transport, enabled: enabled)
+            var writes = 0
+            do {
+                _ = try await service.completePreparingJournal(scope: .topic(71), nodeID: 701, evidence: evidence(5, time: now), token: "synthetic", measurementNow: { self.now }) {
+                    writes += 1; throw PlayExperienceError.persistenceUnavailable
+                }
+                XCTFail("No dispatch allowed")
+            } catch {}
+            XCTAssertEqual(writes, enabled.isEmpty ? 0 : 1); XCTAssertTrue(transport.requests.isEmpty)
+        }
+        let network = PlayExperienceTestTransport { _ in XCTFail("Protected transport must remain blocked"); return (Data(), 200) }
+        let guarded = PlayExperienceService(configuration: try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://example.com/fixture/"))), transport: network, enabled: [.classicCompletion])
+        do {
+            _ = try await guarded.completePreparingJournal(scope: .topic(71), nodeID: 701, evidence: evidence(5, time: now), token: "synthetic", measurementNow: { self.now }) { XCTFail("Journal must not precede authority gate") }
+            XCTFail()
+        } catch { XCTAssertEqual(error as? PlayExperienceError, .persistenceUnavailable) }
+    }
+    func testStaleDirectCompletionNeverReachesTransport() async throws {
+        do {
+            _ = try await api().complete(scope: .topic(71), nodeID: 701,
+                evidence: evidence(5, time: Date().addingTimeInterval(-60)), advance: nil, token: "synthetic")
+            XCTFail("Stale new evidence accepted")
+        } catch { XCTAssertEqual(error as? APIError, .invalidRequest) }
+    }
+}
+
+@MainActor private final class PlayLocationJournalMemory: TemplateAuthoringStorage {
+    var values: [String: Data] = [:]
+    func read(_ key: String) throws -> Data? { values[key] }
+    func write(_ data: Data, key: String) throws { values[key] = data }
+    func remove(_ key: String) throws { values.removeValue(forKey: key) }
+}
+@MainActor private final class PlayLocationJournalProvider: PlayDeviceProviding {
+    let supported: Set<PlayDeviceKind> = [.location, .photo]
+    let evidence: PlayCompletionEvidence
+    init(_ evidence: PlayCompletionEvidence) { self.evidence = evidence }
+    func capture(_ kind: PlayDeviceKind, context: PlayDeviceContext) async throws -> PlayDeviceOutput {
+        guard kind == .location, case .location(let x, let y, let datum, let accuracy, let time) = evidence else { throw PlayExperienceError.unsupported }
+        return .location(x, y, coordinateSystem: datum, accuracyMeters: accuracy, measuredAt: time)
+    }
+    func cancel() {}
+}

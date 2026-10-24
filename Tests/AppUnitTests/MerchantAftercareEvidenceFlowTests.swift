@@ -303,3 +303,140 @@ import UIKit
         XCTAssertEqual(h.draft.value.evidence, "old key")
     }
 }
+
+@MainActor final class MerchantRefundNumberCopyTests: XCTestCase {
+    private final class Reader: MerchantBusinessReading {
+        var scope: MerchantBusinessScope? = .init(realm: "synthetic://refund-copy", accountID: 7, epoch: 1)
+        var authorizationGeneration: UUID? = UUID()
+        var isConfigured = true
+        let isOfflineExample = true
+        let canExecuteSyntheticMutation = false
+        var reads = 0, writes = 0
+        func access() async throws -> MerchantBusinessAccess { reads += 1; throw MerchantBusinessFailure.disabled }
+        func snapshot(_ query: MerchantBusinessQuery) async throws -> MerchantBusinessSnapshot { reads += 1; throw MerchantBusinessFailure.disabled }
+        func execute(_ mutation: MerchantBusinessMutation, requestID: String, scope: MerchantBusinessScope) async throws -> MerchantBusinessReceipt {
+            writes += 1; throw MerchantBusinessFailure.disabled
+        }
+    }
+    private final class Current { var snapshot: MerchantBusinessSnapshot?; init(_ value: MerchantBusinessSnapshot) { snapshot = value } }
+    private func snapshot(number: MerchantBusinessValue? = .string("EXAMPLE-REFUND"), allowed: Bool = true) throws -> MerchantBusinessSnapshot {
+        var fields = try XCTUnwrap(MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.refund).object)
+        fields["refundNo"] = number
+        var access = try XCTUnwrap(MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.access).object)
+        if !allowed { access["permissions"] = .array([]); access["canManageOperators"] = .bool(false) }
+        return try .init(access: .init(access), document: .init(query: .refund(.init(62001)), payload: .object(fields)))
+    }
+    private func model(_ value: MerchantBusinessSnapshot, _ reader: Reader, _ current: Current) throws -> MerchantRefundNumberCopyModel {
+        let row = try XCTUnwrap(value.document.rows.first(where: { $0.kind == .refund }))
+        return .init(row: row, snapshot: value, reader: reader, currentSnapshot: { current.snapshot })
+    }
+    func testExactServerNumberCopiesOnlyOnExplicitGestureWithoutServiceWork() throws {
+        let text = "  REF-e\u{0301}-中文  ", value = try snapshot(number: .string(text)), reader = Reader(), current = Current(value)
+        let subject = try model(value, reader, current)
+        var copied: [String] = []
+        XCTAssertFalse(subject.canCopy); subject.appear(active: true)
+        XCTAssertTrue(subject.canCopy); XCTAssertTrue(copied.isEmpty)
+        XCTAssertTrue(subject.copy(intent: subject.intentID) { copied.append($0) })
+        XCTAssertEqual(copied.map { Data($0.utf8) }, [Data(text.utf8)])
+        XCTAssertTrue(subject.copied); XCTAssertEqual(reader.reads, 0); XCTAssertEqual(reader.writes, 0)
+    }
+    func testMissingBlankAndNonStringNumberNeverCopiesFallbackIDOrTitle() throws {
+        for number in [nil, .null, .string(""), .string(" \n\t"), .int(62001), .bool(true)] as [MerchantBusinessValue?] {
+            if let number, number != .null, number.string == nil {
+                XCTAssertThrowsError(try snapshot(number: number)) { error in
+                    XCTAssertEqual(error as? MerchantBusinessFailure, .malformed)
+                }
+                continue
+            }
+            let value = try snapshot(number: number), reader = Reader(), current = Current(value)
+            let row = try XCTUnwrap(value.document.rows.first(where: { $0.kind == .refund }))
+            XCTAssertNil(MerchantRefundNumberCopyModel.number(in: row, snapshot: value))
+            let subject = try model(value, reader, current); subject.appear(active: true)
+            var count = 0
+            XCTAssertFalse(subject.copy(intent: subject.intentID) { _ in count += 1 }); XCTAssertEqual(count, 0)
+        }
+    }
+    func testDeniedDetailAndWrongRefundCannotCreateCopyValue() throws {
+        let denied = try snapshot(allowed: false)
+        XCTAssertNil(MerchantRefundNumberCopyModel.number(in: try XCTUnwrap(denied.document.rows.first), snapshot: denied))
+        let value = try snapshot(), row = try XCTUnwrap(value.document.rows.first)
+        var fields = row.fields; fields["refundId"] = .int(62002)
+        let other = try MerchantBusinessRecord(kind: .refund, fields: fields)
+        XCTAssertNil(MerchantRefundNumberCopyModel.number(in: other, snapshot: value))
+    }
+    func testHiddenAndReappearedOldCallbacksCannotWrite() throws {
+        let value = try snapshot(), reader = Reader(), current = Current(value), subject = try model(value, reader, current)
+        subject.appear(active: true); let old = subject.intentID
+        subject.disappear(); subject.sceneChanged(active: false); subject.sceneChanged(active: true)
+        var count = 0
+        XCTAssertFalse(subject.canCopy); XCTAssertFalse(subject.copy(intent: old) { _ in count += 1 })
+        subject.appear(active: true)
+        XCTAssertFalse(subject.copy(intent: old) { _ in count += 1 })
+        XCTAssertTrue(subject.copy(intent: subject.intentID) { _ in count += 1 }); XCTAssertEqual(count, 1)
+    }
+    func testBackgroundRequiresNewIntentAndInactiveAppearanceCannotCopy() throws {
+        let value = try snapshot(), reader = Reader(), current = Current(value), subject = try model(value, reader, current)
+        subject.appear(active: false); var count = 0
+        XCTAssertFalse(subject.copy(intent: subject.intentID) { _ in count += 1 })
+        subject.sceneChanged(active: true); let old = subject.intentID
+        subject.sceneChanged(active: false); subject.sceneChanged(active: true)
+        XCTAssertFalse(subject.copy(intent: old) { _ in count += 1 })
+        XCTAssertTrue(subject.copy(intent: subject.intentID) { _ in count += 1 }); XCTAssertEqual(count, 1)
+    }
+    func testScopeAuthorizationSnapshotAndConfigurationLossFailBeforeObservers() throws {
+        for mode in 0..<4 {
+            let value = try snapshot(), reader = Reader(), current = Current(value), subject = try model(value, reader, current)
+            subject.appear(active: true); let intent = subject.intentID
+            switch mode {
+            case 0: reader.scope = .init(realm: "synthetic://refund-copy", accountID: 8, epoch: 2)
+            case 1: reader.authorizationGeneration = UUID()
+            case 2: current.snapshot = try snapshot(number: .string("REPLACEMENT"))
+            default: reader.isConfigured = false
+            }
+            var count = 0
+            XCTAssertFalse(subject.copy(intent: intent) { _ in count += 1 }); XCTAssertEqual(count, 0)
+            XCTAssertFalse(subject.canCopy); XCTAssertEqual(reader.reads, 0); XCTAssertEqual(reader.writes, 0)
+        }
+    }
+    func testRepeatedAndReentrantOldGestureWritesOnceButNewGestureMayCopyAgain() throws {
+        let value = try snapshot(), reader = Reader(), current = Current(value), subject = try model(value, reader, current)
+        subject.appear(active: true); let intent = subject.intentID; var count = 0
+        XCTAssertTrue(subject.copy(intent: intent) { _ in
+            count += 1
+            XCTAssertFalse(subject.copy(intent: intent) { _ in count += 1 })
+        })
+        XCTAssertFalse(subject.copy(intent: intent) { _ in count += 1 }); XCTAssertEqual(count, 1)
+        XCTAssertTrue(subject.copy(intent: subject.intentID) { _ in count += 1 }); XCTAssertEqual(count, 2)
+    }
+    func testRetiredOwnerNeverReactivatesAndEffectCannotSetStaleSuccess() throws {
+        let value = try snapshot(), reader = Reader(), current = Current(value), subject = try model(value, reader, current)
+        subject.appear(active: true)
+        XCTAssertTrue(subject.copy(intent: subject.intentID) { _ in subject.disappear(); subject.appear(active: true) })
+        XCTAssertFalse(subject.copied)
+        subject.retire(); subject.appear(active: true); subject.sceneChanged(active: true)
+        XCTAssertFalse(subject.canCopy)
+        XCTAssertFalse(subject.copy(intent: subject.intentID) { _ in XCTFail("retired owner wrote") })
+    }
+}
+
+
+@MainActor extension MerchantRefundNumberCopyTests {
+    func testCanonicallyEquivalentChangedNumberRejectsOldBytesAndFreshOwnerCopiesNewBytes() throws {
+        let original = "REF-\u{00e9}", replacement = "REF-e\u{0301}"
+        XCTAssertEqual(original, replacement)
+        XCTAssertNotEqual(Data(original.utf8), Data(replacement.utf8))
+        let value = try snapshot(number: .string(original)), reader = Reader(), current = Current(value)
+        let old = try model(value, reader, current); old.appear(active: true); let intent = old.intentID
+        let updated = try snapshot(number: .string(replacement)); current.snapshot = updated
+        XCTAssertEqual(value, updated)
+        XCTAssertNotEqual(MerchantRefundNumberCopyModel.displayIdentity(try XCTUnwrap(value.document.rows.first)),
+                          MerchantRefundNumberCopyModel.displayIdentity(try XCTUnwrap(updated.document.rows.first)))
+        var writes: [Data] = []
+        XCTAssertFalse(old.copy(intent: intent) { writes.append(Data($0.utf8)) })
+        XCTAssertTrue(writes.isEmpty); XCTAssertFalse(old.canCopy)
+        let fresh = try model(updated, reader, current); fresh.appear(active: true)
+        XCTAssertTrue(fresh.copy(intent: fresh.intentID) { writes.append(Data($0.utf8)) })
+        XCTAssertEqual(writes, [Data(replacement.utf8)])
+        XCTAssertEqual(reader.reads, 0); XCTAssertEqual(reader.writes, 0)
+    }
+}

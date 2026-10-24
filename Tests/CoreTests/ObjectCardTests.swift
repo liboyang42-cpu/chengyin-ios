@@ -133,3 +133,110 @@ final class ObjectCardTests: XCTestCase {
         do { _ = try await reader.list(category: .all); XCTFail("not gated") } catch { XCTAssertEqual(error as? APIError, .notConfigured) }
     }
 }
+
+@MainActor final class ProfileObjectCardsAssociationTests: XCTestCase {
+    private final class AccountReader: SocialAccountReading {
+        var identity = SocialAccountIdentity(accountID: 81, epoch: 1, role: "player")
+        var presentationRevision: UInt64 = 1
+        var isConfigured = true
+        let isOfflineExample = false
+        func publicProfile(memberID: Int) async throws -> SocialPublicProfile { throw APIError.notConfigured }
+        func informationList() async throws -> [SocialInformation] { [] }
+        func information(id: Int) async throws -> SocialInformation { throw APIError.notConfigured }
+        func invitationHistory(page: Int) async throws -> SocialInviteHistory { throw APIError.notConfigured }
+    }
+    private final class CardsReader: ObjectCardReading {
+        var scope = UUID()
+        var isConfigured = true
+        var isAuthenticated = true
+        var reads: [ObjectCardCategory] = []
+        var waits = false
+        var pending: CheckedContinuation<ObjectCardCollection, Error>?
+        func list(category: ObjectCardCategory) async throws -> ObjectCardCollection {
+            reads.append(category)
+            if waits { return try await withCheckedThrowingContinuation { pending = $0 } }
+            return try ObjectCardSyntheticFixtures.collection()
+        }
+    }
+    private let account = AccountReader(), cards = CardsReader()
+    private func context(member: Int = 81, current: Bool = true) -> ProfileObjectCardsContext? {
+        .capture(memberID: member, accountReader: account, objectReader: cards,
+            owner: account.identity, ownerScope: cards.scope, isCurrent: current)
+    }
+    private func scoped(current: @escaping @MainActor () -> Bool = { true }) throws -> ProfileObjectCardsScopedReader {
+        .init(context: try XCTUnwrap(context()), accountReader: account, objectReader: cards, isCurrent: current)
+    }
+    func testOtherProfileGuestAndRetiredParentCannotAssociate() {
+        XCTAssertNil(context(member: 82)); XCTAssertNil(context(member: 0)); XCTAssertNil(context(current: false))
+        account.identity = .init(accountID: nil, epoch: 2)
+        XCTAssertNil(context()); XCTAssertTrue(cards.reads.isEmpty)
+    }
+    func testContextBindsBothReaderInstancesAndOriginalScope() throws {
+        let original = try XCTUnwrap(context())
+        let other = AccountReader()
+        let replaced = ProfileObjectCardsContext.capture(memberID: 81, accountReader: other, objectReader: cards,
+            owner: account.identity, ownerScope: cards.scope, isCurrent: true)
+        XCTAssertNotEqual(original, replaced)
+        cards.scope = UUID()
+        XCTAssertNil(ProfileObjectCardsContext.capture(memberID: 81, accountReader: account, objectReader: cards,
+            owner: account.identity, ownerScope: original.objectScope, isCurrent: true))
+    }
+    func testConstructionIsInertAndExactCategoryUsesExistingReader() async throws {
+        let reader = try scoped()
+        XCTAssertTrue(cards.reads.isEmpty)
+        let value = try await reader.list(category: .books)
+        XCTAssertEqual(cards.reads, [.books]); XCTAssertEqual(value.total, 52)
+    }
+    func testUnconfiguredAssociationPreservesDisabledStateWithoutReading() async throws {
+        cards.isConfigured = false
+        let reader = try scoped()
+        XCTAssertTrue(reader.isAuthenticated); XCTAssertFalse(reader.isConfigured)
+        do { _ = try await reader.list(category: .all); XCTFail("unconfigured read") }
+        catch { XCTAssertEqual(error as? APIError, .notConfigured) }
+        XCTAssertTrue(cards.reads.isEmpty)
+    }
+    func testQueuedReadAfterRevisionChangeIsRejected() async throws {
+        let reader = try scoped(); account.presentationRevision += 1
+        do { _ = try await reader.list(category: .all); XCTFail("retired read") }
+        catch { XCTAssertTrue(error is CancellationError) }
+        XCTAssertFalse(reader.isAuthenticated); XCTAssertTrue(cards.reads.isEmpty)
+    }
+    func testSameAccountReloginAndGrantRevocationRetireAssociation() throws {
+        let first = try scoped()
+        account.identity = .init(accountID: 81, epoch: 2, role: "player")
+        XCTAssertFalse(first.associationIsCurrent)
+        let second = try scoped(); cards.isConfigured = false
+        XCTAssertFalse(second.associationIsCurrent); XCTAssertFalse(second.isAuthenticated)
+    }
+    func testLateSuccessAndFailureCannotReachRetiredProfile() async throws {
+        for failure in [false, true] {
+            cards.waits = true
+            let reader = try scoped()
+            let task = Task { try await reader.list(category: .food) }
+            for _ in 0..<100 where cards.pending == nil { await Task.yield() }
+            guard let pending = cards.pending else { task.cancel(); XCTFail("request not started"); return }
+            account.presentationRevision += 1
+            cards.pending = nil
+            if failure { pending.resume(throwing: APIError.unauthorized) }
+            else { pending.resume(returning: try ObjectCardSyntheticFixtures.collection()) }
+            do { _ = try await task.value; XCTFail("stale result") }
+            catch { XCTAssertTrue(error is CancellationError) }
+        }
+    }
+    func testRetainedDetailEligibilityClosesOnScopeRotationAndLogout() throws {
+        let old = try scoped()
+        XCTAssertTrue(old.isAuthenticated)
+        cards.scope = UUID()
+        XCTAssertFalse(old.isAuthenticated)
+        let next = try scoped(); cards.isAuthenticated = false
+        XCTAssertFalse(next.isAuthenticated)
+        // ObjectCardDetailView checks this flag before rendering retained card data.
+    }
+    func testParentRetirementPreventsQueuedCollectionRequest() async throws {
+        var current = true
+        let reader = try scoped(current: { current }); current = false
+        do { _ = try await reader.list(category: .all); XCTFail("retired parent") }
+        catch { XCTAssertTrue(error is CancellationError) }
+        XCTAssertTrue(cards.reads.isEmpty)
+    }
+}

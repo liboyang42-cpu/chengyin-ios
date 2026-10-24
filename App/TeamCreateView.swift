@@ -26,7 +26,10 @@ import SwiftUI
                 }
             }
             if model.coordinator.pending != nil {
-                Button("team.checkOutcome") { Task { await model.run { await model.coordinator.checkOutcome() } } }
+                Button("team.checkOutcome") {
+                    let permit = model.captureRun()
+                    Task { await model.run(permit: permit) { await model.coordinator.checkOutcome() } }
+                }
                     .disabled(model.running || !model.coordinator.canSimulate).accessibilityIdentifier("team.checkOutcome")
             }
         }.appNavigationTitle("team.create")

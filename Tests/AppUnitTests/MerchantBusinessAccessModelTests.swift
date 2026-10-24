@@ -896,3 +896,142 @@ import XCTest
         XCTAssertEqual(try journal.intents(), [intent])
     }
 }
+
+@MainActor extension MerchantBusinessAccessModelTests {
+    func testWorkbenchThreeDirectRoutesKeepExactFirstPageTargetsWithoutReading() throws {
+        let reader = Reader(), journal = MerchantBusinessMemoryIntentStore()
+        let expected: [MerchantBusinessQuery] = [.customers(.init()), .overview, .aftercare(.pending, page: 1)]
+        let routes = try MerchantWorkbenchBusinessShortcut.allCases.map {
+            try XCTUnwrap(MerchantWorkbenchBusinessRoute(shortcut: $0, reader: reader, journal: journal))
+        }
+        XCTAssertEqual(routes.map(\.shortcut.query), expected)
+        XCTAssertEqual(Set(routes).count, 3)
+        XCTAssertTrue(routes.allSatisfy { $0.reader === reader && $0.journal === journal })
+        XCTAssertEqual(reader.accessCalls, 0); XCTAssertEqual(reader.snapshotCalls, 0)
+        assertReadOnly(reader)
+    }
+    func testWorkbenchUnavailableOrSignedOutCannotCreateDirectDestination() {
+        let reader = Reader(), journal = MerchantBusinessMemoryIntentStore()
+        reader.scope = nil
+        for target in MerchantWorkbenchBusinessShortcut.allCases {
+            XCTAssertNil(MerchantWorkbenchBusinessRoute(shortcut: target, reader: reader, journal: journal))
+        }
+        reader.scope = .init(realm: "synthetic://home-access", accountID: 99001, epoch: 1)
+        reader.isConfigured = false
+        for target in MerchantWorkbenchBusinessShortcut.allCases {
+            XCTAssertNil(MerchantWorkbenchBusinessRoute(shortcut: target, reader: reader, journal: journal))
+        }
+        XCTAssertEqual(reader.accessCalls, 0); assertReadOnly(reader)
+    }
+    func testWorkbenchOldDirectRouteRejectsAllCurrentContextChanges() throws {
+        for target in MerchantWorkbenchBusinessShortcut.allCases {
+            for change in ContextChange.allCases {
+                let reader = Reader(), journal = MerchantBusinessMemoryIntentStore()
+                let route = try XCTUnwrap(MerchantWorkbenchBusinessRoute(shortcut: target, reader: reader, journal: journal))
+                change.apply(to: reader)
+                XCTAssertFalse(route.isCurrent(reader: reader, journal: journal), "\(target), \(change)")
+                XCTAssertEqual(route.shortcut, target)
+                assertReadOnly(reader)
+            }
+        }
+    }
+    func testWorkbenchReplacementDependenciesNeverRebindAnOldDirectRoute() throws {
+        let reader = Reader(), journal = MerchantBusinessMemoryIntentStore()
+        let replacement = Reader(), otherJournal = MerchantBusinessMemoryIntentStore()
+        replacement.restore(MerchantBusinessAccessLoadKey(reader: reader))
+        for target in MerchantWorkbenchBusinessShortcut.allCases {
+            let route = try XCTUnwrap(MerchantWorkbenchBusinessRoute(shortcut: target, reader: reader, journal: journal))
+            XCTAssertFalse(route.isCurrent(reader: replacement, journal: journal))
+            XCTAssertFalse(route.isCurrent(reader: reader, journal: otherJournal))
+            XCTAssertTrue(route.reader === reader); XCTAssertTrue(route.journal === journal)
+        }
+        assertReadOnly(reader); assertReadOnly(replacement)
+    }
+    func testWorkbenchPushSurvivesParentCleanupAndReturningToAnotherTargetIsDistinct() async throws {
+        let (model, reader) = makeSystem(), journal = MerchantBusinessMemoryIntentStore()
+        let loaded = try await startFreshRead(model, reader: reader)
+        await finish(loaded, reader: reader, with: .success(try grant()))
+        let customer = try XCTUnwrap(MerchantWorkbenchBusinessRoute(shortcut: .customers, reader: reader, journal: journal))
+        retire(model)
+        XCTAssertTrue(customer.isCurrent(reader: reader, journal: journal))
+        let returned = try XCTUnwrap(MerchantWorkbenchBusinessRoute(shortcut: .aftercare, reader: reader, journal: journal))
+        XCTAssertNotEqual(customer, returned)
+        XCTAssertEqual(customer.shortcut.query, .customers(.init()))
+        XCTAssertEqual(returned.shortcut.query, .aftercare(.pending, page: 1))
+        XCTAssertEqual(reader.accessCalls, 1); assertReadOnly(reader)
+    }
+}
+
+@MainActor final class MerchantWorkbenchDirectPageTests: XCTestCase {
+    @MainActor private final class Reader: MerchantBusinessReading {
+        var scope: MerchantBusinessScope? = .init(realm: "synthetic://workbench-direct", accountID: 99001, epoch: 1)
+        var authorizationGeneration: UUID? = UUID()
+        let isConfigured = true
+        let isOfflineExample = true
+        let canExecuteSyntheticMutation = false
+        var permitted = false
+        var failRead = false
+        var queries: [MerchantBusinessQuery] = []
+        var documents = 0
+        var writes = 0
+        func access() async throws -> MerchantBusinessAccess {
+            var fields = try XCTUnwrap(MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.access).object)
+            if !permitted {
+                fields["permissions"] = .array([])
+                fields["canManageOperators"] = .bool(false)
+            }
+            return try .init(fields)
+        }
+        func snapshot(_ query: MerchantBusinessQuery) async throws -> MerchantBusinessSnapshot {
+            queries.append(query)
+            let grant = try await access()
+            try grant.require(query.permissions)
+            if failRead { throw APIError.httpStatus(503) }
+            documents += 1
+            return try .init(access: grant, document: .init(query: query, payload: MerchantBusinessSyntheticFixtures.payload(query)))
+        }
+        func execute(_ mutation: MerchantBusinessMutation, requestID: String, scope: MerchantBusinessScope) async throws -> MerchantBusinessReceipt {
+            writes += 1; throw MerchantBusinessFailure.disabled
+        }
+    }
+    func testDirectDestinationStillRejectsFreshPermissionWithNoDocumentOrWrite() async throws {
+        for shortcut in MerchantWorkbenchBusinessShortcut.allCases {
+            let reader = Reader(), journal = MerchantBusinessMemoryIntentStore()
+            let route = try XCTUnwrap(MerchantWorkbenchBusinessRoute(shortcut: shortcut, reader: reader, journal: journal))
+            let model = MerchantBusinessViewModel(reader: route.reader, journal: route.journal)
+            await model.load(route.shortcut.query)
+            XCTAssertNil(model.coordinator.snapshot)
+            XCTAssertNotNil(model.coordinator.failureKey)
+            XCTAssertEqual(reader.documents, 0); XCTAssertEqual(reader.writes, 0)
+            XCTAssertEqual(reader.queries, [shortcut.query])
+        }
+    }
+    func testExplicitRetryUsesSameFrozenTargetAndExistingReadFlow() async throws {
+        for shortcut in MerchantWorkbenchBusinessShortcut.allCases {
+            let reader = Reader(), journal = MerchantBusinessMemoryIntentStore()
+            reader.permitted = true; reader.failRead = true
+            let route = try XCTUnwrap(MerchantWorkbenchBusinessRoute(shortcut: shortcut, reader: reader, journal: journal))
+            let model = MerchantBusinessViewModel(reader: route.reader, journal: route.journal)
+            await model.load(route.shortcut.query)
+            XCTAssertNil(model.coordinator.snapshot); XCTAssertNotNil(model.coordinator.failureKey)
+            reader.failRead = false
+            await model.load(route.shortcut.query)
+            XCTAssertEqual(model.coordinator.snapshot?.document.query, shortcut.query)
+            XCTAssertNil(model.coordinator.failureKey)
+            XCTAssertEqual(reader.queries, [shortcut.query, shortcut.query])
+            XCTAssertEqual(reader.documents, 1); XCTAssertEqual(reader.writes, 0)
+            XCTAssertTrue(try journal.intents().isEmpty)
+        }
+    }
+    func testReturningClearsOldPageWithoutChangingNewDestination() async throws {
+        let reader = Reader(), journal = MerchantBusinessMemoryIntentStore(); reader.permitted = true
+        let old = MerchantBusinessViewModel(reader: reader, journal: journal)
+        await old.load(.customers(.init())); old.invalidate()
+        let next = MerchantBusinessViewModel(reader: reader, journal: journal)
+        await next.load(.aftercare(.pending, page: 1))
+        XCTAssertNil(old.coordinator.snapshot)
+        XCTAssertEqual(next.coordinator.snapshot?.document.query, .aftercare(.pending, page: 1))
+        XCTAssertEqual(reader.queries, [.customers(.init()), .aftercare(.pending, page: 1)])
+        XCTAssertEqual(reader.writes, 0)
+    }
+}

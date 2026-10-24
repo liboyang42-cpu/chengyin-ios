@@ -284,6 +284,7 @@ import SwiftUI
     var body: some View {
         let context = model.interactionContext
         List {
+            PlayTaskOutcomeSection(model: model, nodeID: nodeID)
             if let node {
                 if let journey { PlayJourneyCheckView(model: journey, nodeDone: node.done == true) }
                 if let narrative, model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false {

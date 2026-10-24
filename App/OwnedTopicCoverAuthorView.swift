@@ -16,8 +16,8 @@ extension RetainedNativeImagePicker: OwnedTopicCoverSelecting {}
     private let selected: (OwnedTopicCoverAuthorPresentation.Presentation) -> Void
     private let injectedPicker: (any OwnedTopicCoverSelecting)?
     private lazy var nativePicker = pickerHost.makePicker(selectionApproval: { [weak self] in
-        guard let self else { return false }
-        return self.original.flow.isCurrent && self.original.opening.source.permitsNativePicker(session:self.original.opening.session)
+        guard let self, let id = self.pickerID else { return false }
+        return self.flow.canContinuePicking(id)
     })
     private var picker: any OwnedTopicCoverSelecting { injectedPicker ?? nativePicker }
     private var pickerTask: Task<Void,Never>?
@@ -35,6 +35,7 @@ extension RetainedNativeImagePicker: OwnedTopicCoverSelecting {}
         let task = Task { [weak self] in
             guard let self else { return }
             defer { if self.pickerID == id { self.pickerTask = nil; self.pickerID = nil; self.revision += 1 } }
+            guard self.flow.canContinuePicking(id) else { self.flow.finishPicking(nil, original: id); return }
             do {
                 let picked = try await selectedPicker.select()
                 guard self.pickerID == id, !Task.isCancelled, self.flow.isCurrent else { return }

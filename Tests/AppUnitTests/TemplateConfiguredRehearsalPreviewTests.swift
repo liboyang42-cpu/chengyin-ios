@@ -22,6 +22,64 @@ import Combine
         if visible { controller.viewAppeared(sceneIsActive: true) }
         return (model, controller, owner)
     }
+    func testExtendedRoutesRequireValidatedConfigurationAndRetireOnBackground() throws {
+        for game in [TemplateAdvancedGame.sort, .match, .classify, .compass, .shout] {
+            let (model, _, _) = try setup()
+            model.draft.advanced.setGameEnabled(game, true)
+            if game.isReasoning {
+                model.draft.advanced.set(game.section, "prompt", .string("Current question"))
+                let fields = game == .sort ? ["items"] : game == .match ? ["left", "right"] : ["items", "bins"]
+                for field in fields {
+                    for index in model.draft.advanced.rows(game.section, field).indices {
+                        model.draft.advanced.setRow(game.section, field, index: index, key: "label", text: "\(field) \(index)")
+                    }
+                }
+            }
+            if game == .compass { model.draft.advanced.set("compass", "bearing", .number(90)) }
+            model.changed()
+            let controller = TemplateConfiguredRehearsalPreviewController(model: model)
+            controller.viewAppeared(sceneIsActive: true)
+            XCTAssertNotNil(controller.route(for: game))
+            let valid = game.isReasoning
+                ? TemplateReasoningRehearsal(model.draft.advanced, game: game) != nil
+                : TemplateSensorRehearsal(model.draft.advanced, game: game) != nil
+            XCTAssertTrue(valid, "Fixture must exercise a real valid route: \(game)")
+            XCTAssertTrue(controller.canOpen(game))
+            let open = controller.openAction(game)
+            open()
+            XCTAssertEqual(controller.path.count, 1)
+            let destination = try XCTUnwrap(controller.path.first)
+            XCTAssertTrue(controller.currentModel(for: destination) === model)
+            controller.sceneChanged(isActive: false)
+            controller.sceneChanged(isActive: true)
+            open()
+            XCTAssertTrue(controller.path.isEmpty)
+            XCTAssertFalse(controller.canOpen(game))
+        }
+    }
+    func testExtendedRoutesRejectDisabledAndMalformedDrafts() throws {
+        for game in [TemplateAdvancedGame.sort, .match, .classify, .compass, .shout] {
+            for malformed in [false, true] {
+                let (model, _, _) = try setup()
+                model.draft.advanced.setGameEnabled(game, malformed)
+                if malformed {
+                    if game.isReasoning {
+                        model.draft.advanced.set(game.section, "prompt", .string(""))
+                    } else if game == .compass {
+                        model.draft.advanced.set("compass", "bearing", .number(360))
+                    } else {
+                        model.draft.advanced.set("shout", "seconds", .number(-1))
+                    }
+                    XCTAssertTrue(model.draft.advanced.enabled(game.section))
+                }
+                let controller = TemplateConfiguredRehearsalPreviewController(model: model)
+                controller.viewAppeared(sceneIsActive: true)
+                controller.openAction(game)()
+                XCTAssertFalse(controller.canOpen(game))
+                XCTAssertTrue(controller.path.isEmpty)
+            }
+        }
+    }
     func testNewAndInactiveOwnerCannotOpenOrClose() throws {
         let (_, controller, _) = try setup(visible: false); var closes = 0
         let oldOpen = controller.openAction(.coin), oldClose = controller.closeAction { closes += 1 }
@@ -44,7 +102,7 @@ import Combine
     }
     func testD20MiniAndDeviceGamesKeepTheirExistingBranches() throws {
         let (model, controller, _) = try setup()
-        for game in [TemplateAdvancedGame.shake, .quiet, .sort, .match, .classify, .compass, .shout] {
+        for game in [TemplateAdvancedGame.shake, .quiet] {
             XCTAssertNil(controller.route(for: game)); controller.openAction(game)(); XCTAssertTrue(controller.path.isEmpty)
         }
         model.draft.advanced.setDiceMode("d20")
@@ -288,5 +346,228 @@ import Combine
         fresh.openAction(.coin)(); let current = fresh.path
         pop.wrappedValue = []; old.openAction(.coin)(); XCTAssertEqual(fresh.path, current)
         XCTAssertFalse(old.isCurrent); XCTAssertTrue(fresh.isCurrent)
+    }
+}
+
+@MainActor final class TemplateLowHPPresetTests: XCTestCase {
+    private final class Owner {
+        var session: TemplateAuthoringSession?
+        init(_ session: TemplateAuthoringSession) { self.session = session }
+    }
+    private struct Fixture {
+        let model: TemplateAuthoringModel
+        let controller: TemplateLowHPPresetController
+        let storage: TemplateAuthoringMemoryStorage
+        let owner: Owner
+    }
+    private func validDraft() -> TemplateAdvancedDraft {
+        var draft = TemplateAdvancedDraft()
+        draft.set("timer", "enabled", .bool(true))
+        draft.set("stopwatch", "enabled", .bool(true))
+        return draft
+    }
+    private func fixture(appear: Bool = true) throws -> Fixture {
+        let owner = Owner(try .init(accountID: 992, namespace: "low-hp-preset", epoch: 1, authorizationRevision: "member"))
+        let storage = TemplateAuthoringMemoryStorage()
+        let model = TemplateAuthoringModel(coordinator: .init(store: .init(storage: storage), currentSession: { owner.session }))
+        model.load(); model.draft.title = "Current draft"; model.draft.advanced = validDraft(); model.changed()
+        let controller = TemplateLowHPPresetController(model: model)
+        if appear { controller.viewAppeared(sceneIsActive: true) }
+        return .init(model: model, controller: controller, storage: storage, owner: owner)
+    }
+    private func custom(_ hp: Int, operation: String = "+10") -> TemplateAuthoringJSON {
+        .object(["when": .object(["var": .string("sys.hp"), "op": .string("LTE"), "value": .number(Double(hp))]),
+                 "relax": .object(["timer.durationSeconds": .string(operation)])])
+    }
+    func testOptionsUseCurrentEnabledFieldsAndKeepKnownBounds() {
+        let value = TemplateLowHPPresetConfiguration(validDraft())
+        let ids = Set(value.options.map(\.id))
+        XCTAssertTrue(value.isSupported)
+        XCTAssertTrue(ids.contains("timer.durationSeconds:+30"))
+        XCTAssertTrue(ids.contains("stopwatch.tries:+2")); XCTAssertTrue(ids.contains("stopwatch.tries:=0"))
+        XCTAssertTrue(ids.contains("stopwatch.toleranceMs:+300"))
+        XCTAssertFalse(ids.contains(where: { $0.hasPrefix("typeIn.") }))
+        for option in value.options {
+            let result = value.applying(option.id)
+            XCTAssertNotNil(result); XCTAssertTrue(result?.rootCreatorIssues.isEmpty == true)
+        }
+    }
+    func testBoundsRemoveInvalidOptionsAndUnlimitedHasNoFurtherAttemptOption() {
+        var draft = validDraft(); draft.set("timer", "durationSeconds", .number(86400))
+        draft.set("stopwatch", "tries", .number(10)); draft.set("stopwatch", "toleranceMs", .number(5000))
+        let ids = Set(TemplateLowHPPresetConfiguration(draft).options.map(\.id))
+        XCTAssertFalse(ids.contains("timer.durationSeconds:+30"))
+        XCTAssertFalse(ids.contains("stopwatch.tries:+2")); XCTAssertTrue(ids.contains("stopwatch.tries:=0"))
+        XCTAssertFalse(ids.contains("stopwatch.toleranceMs:+5000"))
+        draft.set("stopwatch", "tries", .number(0))
+        XCTAssertFalse(TemplateLowHPPresetConfiguration(draft).options.contains { $0.field == .stopwatchAttempts })
+    }
+    func testMalformedBooleanCannotExposeOrActivateAnAdjustment() {
+        for malformed in [TemplateAuthoringJSON.string("true"), .string("false"), .number(1), .null] {
+            var draft = TemplateAdvancedDraft(); draft.set("timer", "enabled", malformed)
+            let config = TemplateLowHPPresetConfiguration(draft)
+            XCTAssertTrue(config.options.isEmpty)
+            XCTAssertNil(config.applying("timer.durationSeconds:+30"))
+            XCTAssertEqual(draft.value["timer"]?.object?["enabled"], malformed)
+        }
+    }
+    func testInactiveDeviceCapabilitiesAreNeverOffered() {
+        var draft = TemplateAdvancedDraft()
+        for section in ["compass", "shout"] { draft.set(section, "enabled", .bool(true)) }
+        XCTAssertFalse(TemplateLowHPPresetConfiguration(draft).options.contains { [.compassTolerance, .compassHold, .shout].contains($0.field) })
+    }
+    func testLowerDurationTimedShakeAndReactionAreDerivedFromCurrentValues() {
+        var draft = TemplateAdvancedDraft()
+        draft.set("quietHold", "enabled", .bool(true)); draft.set("quietHold", "seconds", .number(15))
+        draft.set("reaction", "enabled", .bool(true)); draft.set("ballShake", "enabled", .bool(true))
+        let first = Set(TemplateLowHPPresetConfiguration(draft).options.map(\.id))
+        XCTAssertTrue(first.contains("quietHold.seconds:-5")); XCTAssertTrue(first.contains("reaction.goalMs:+150"))
+        XCTAssertTrue(first.contains("ballShake.goal:-10")); XCTAssertFalse(first.contains("ballShake.seconds:+5"))
+        draft.set("ballShake", "timed", .bool(true))
+        XCTAssertTrue(TemplateLowHPPresetConfiguration(draft).options.contains { $0.id == "ballShake.seconds:+5" })
+        draft.set("quietHold", "seconds", .number(5)); draft.set("ballShake", "seconds", .number(300))
+        let last = Set(TemplateLowHPPresetConfiguration(draft).options.map(\.id))
+        XCTAssertFalse(last.contains(where: { $0.hasPrefix("quietHold.seconds") })); XCTAssertFalse(last.contains("ballShake.seconds:+5"))
+    }
+    func testBlankAndMalformedVariantsAreNotSilentlyNormalized() {
+        for raw in [TemplateAuthoringJSON.string(""), .object([:]), .null, .bool(false)] {
+            var draft = validDraft(); draft.value["variants"] = raw
+            let config = TemplateLowHPPresetConfiguration(draft)
+            XCTAssertFalse(config.isSupported); XCTAssertNil(config.applying("")); XCTAssertEqual(config.original, draft)
+        }
+    }
+    func testCustomUnknownAndDuplicateLowHPConditionsRemainUntouched() {
+        let known = TemplateLowHPPresetConfiguration.Option(field: .timer, operation: "+30").row
+        var unknown = known.object!; unknown["future"] = .string("keep")
+        let candidates: [[TemplateAuthoringJSON]] = [[custom(3, operation: "+11")], [.object(unknown)], [known, known]]
+        for rows in candidates {
+            var draft = validDraft(); draft.value["variants"] = .array(rows)
+            let config = TemplateLowHPPresetConfiguration(draft)
+            XCTAssertFalse(config.isSupported); XCTAssertNil(config.applying(""))
+            XCTAssertNil(config.applying("stopwatch.tries:+2")); XCTAssertEqual(config.original.value["variants"], .array(rows))
+        }
+    }
+    func testChangingPresetPreservesCustomRulesAndItsExistingPriority() throws {
+        var draft = validDraft()
+        let before = custom(1), after = custom(8)
+        let managed = TemplateLowHPPresetConfiguration.Option(field: .timer, operation: "+30").row
+        draft.value["variants"] = .array([before, managed, after])
+        let config = TemplateLowHPPresetConfiguration(draft)
+        XCTAssertEqual(config.selectedID, "timer.durationSeconds:+30")
+        let next = try XCTUnwrap(config.applying("stopwatch.tries:+2"))
+        XCTAssertEqual(next.rootVariants.count, 3)
+        XCTAssertEqual(next.rootVariants[0], before); XCTAssertEqual(next.rootVariants[2], after)
+        XCTAssertEqual(next.rootVariants[1], TemplateLowHPPresetConfiguration.Option(field: .stopwatchAttempts, operation: "+2").row)
+        var expected = draft; expected.value["variants"] = next.value["variants"]
+        XCTAssertEqual(next, expected)
+    }
+    func testDisablingRemovesOnlyExactManagedRule() throws {
+        var draft = validDraft(); let other = custom(1)
+        draft.value["variants"] = .array([other, TemplateLowHPPresetConfiguration.Option(field: .timer, operation: "+30").row])
+        let next = try XCTUnwrap(TemplateLowHPPresetConfiguration(draft).applying(""))
+        XCTAssertEqual(next.rootVariants, [other])
+        XCTAssertTrue(next.enabled("timer")); XCTAssertEqual(next.text("timer", "durationSeconds"), "300")
+    }
+    func testRuleLimitCannotDropCustomRulesToMakeRoom() {
+        var draft = validDraft(); let rows = (0..<16).map { custom($0 + 4) }
+        draft.value["variants"] = .array(rows)
+        let config = TemplateLowHPPresetConfiguration(draft)
+        XCTAssertNil(config.applying("timer.durationSeconds:+30"))
+        XCTAssertEqual(config.original.rootVariants, rows)
+    }
+    func testPreviewUsesExistingFirstMatchAndDoesNotChangeTheSource() throws {
+        var draft = validDraft(); draft.value["variants"] = .array([custom(5, operation: "+10")])
+        let original = draft
+        let candidate = try XCTUnwrap(TemplateLowHPPresetConfiguration(draft).applying("timer.durationSeconds:+30"))
+        let result = try candidate.rehearsedVariant(sample: .init())
+        XCTAssertEqual(result.index, 0); XCTAssertEqual(result.draft.text("timer", "durationSeconds"), "310")
+        XCTAssertEqual(draft, original); XCTAssertEqual(candidate.text("timer", "durationSeconds"), "300")
+    }
+    func testSelectionAndCancelDoNotChangeDraftStorageOrReview() throws {
+        let f = try fixture(), original = f.model.draft
+        f.controller.selectionBinding.wrappedValue = "timer.durationSeconds:+30"
+        XCTAssertNotNil(f.controller.preview); XCTAssertTrue(f.controller.canApply)
+        XCTAssertEqual(f.model.draft, original); XCTAssertTrue(f.storage.values.isEmpty)
+        var dismissals = 0; let cancel = f.controller.cancelAction { dismissals += 1 }; cancel(); cancel()
+        XCTAssertEqual(dismissals, 1); XCTAssertEqual(f.model.draft, original)
+        XCTAssertTrue(f.storage.values.isEmpty); XCTAssertNil(f.model.review)
+    }
+    func testExplicitApplyChangesOnlyRulesAndDoesNotSaveOrGrant() throws {
+        let f = try fixture(), original = f.model.draft
+        f.controller.selectionBinding.wrappedValue = "timer.durationSeconds:+30"
+        let apply = f.controller.applyAction(); apply(); apply()
+        XCTAssertEqual(f.model.draft.advanced.rootVariants.count, 1)
+        var expected = original; expected.advanced.value["variants"] = f.model.draft.advanced.value["variants"]
+        XCTAssertEqual(f.model.draft, expected); XCTAssertEqual(f.model.coordinator.draft, expected)
+        XCTAssertTrue(f.controller.didApply); XCTAssertFalse(f.controller.canApply)
+        XCTAssertTrue(f.storage.values.isEmpty); XCTAssertFalse(f.model.coordinator.canSubmit)
+        XCTAssertNil(f.model.review); XCTAssertNil(f.model.coordinator.pending)
+    }
+    func testOldBindingCannotReadOrWriteTheNextVisibleSelection() throws {
+        let f = try fixture(), old = f.controller.selectionBinding
+        f.controller.viewDisappeared(); f.controller.viewAppeared(sceneIsActive: true)
+        f.controller.selectionBinding.wrappedValue = "timer.durationSeconds:+30"
+        XCTAssertEqual(old.wrappedValue, ""); old.wrappedValue = "stopwatch.tries:+2"
+        XCTAssertEqual(f.controller.selectionBinding.wrappedValue, "timer.durationSeconds:+30")
+    }
+    func testOldApplyCancelAndReloadCannotCrossRetirement() throws {
+        let f = try fixture(), original = f.model.draft
+        var dismissals = 0
+        let apply = f.controller.applyAction(), cancel = f.controller.cancelAction { dismissals += 1 }, reload = f.controller.reloadAction()
+        f.controller.viewDisappeared(); f.controller.viewAppeared(sceneIsActive: true)
+        f.controller.selectionBinding.wrappedValue = "timer.durationSeconds:+30"
+        apply(); cancel(); reload()
+        XCTAssertEqual(f.model.draft, original); XCTAssertEqual(dismissals, 0)
+        XCTAssertEqual(f.controller.selectionBinding.wrappedValue, "timer.durationSeconds:+30")
+    }
+    func testHiddenSceneAndReloadCannotReactivateTheOwner() throws {
+        let f = try fixture()
+        f.controller.viewDisappeared(); f.controller.sceneChanged(isActive: false); f.controller.sceneChanged(isActive: true); f.controller.reload()
+        XCTAssertFalse(f.controller.isVisible); XCTAssertNil(f.controller.visibleConfiguration)
+        f.controller.viewAppeared(sceneIsActive: false); XCTAssertNil(f.controller.visibleConfiguration)
+        f.controller.sceneChanged(isActive: true); XCTAssertNotNil(f.controller.visibleConfiguration)
+    }
+    func testRepeatedVisibleAppearanceKeepsSelectionAndCurrentBinding() throws {
+        let f = try fixture(), binding = f.controller.selectionBinding
+        binding.wrappedValue = "timer.durationSeconds:+30"
+        f.controller.viewAppeared(sceneIsActive: true); f.controller.sceneChanged(isActive: true)
+        XCTAssertEqual(binding.wrappedValue, "timer.durationSeconds:+30"); XCTAssertTrue(f.controller.canApply)
+    }
+    func testOwnerChangeFencesReadsAndActionsBeforeParentNotification() throws {
+        let f = try fixture(), original = f.model.draft
+        var dismissals = 0
+        let binding = f.controller.selectionBinding, apply = f.controller.applyAction()
+        let cancel = f.controller.cancelAction { dismissals += 1 }, reload = f.controller.reloadAction()
+        binding.wrappedValue = "timer.durationSeconds:+30"
+        f.owner.session = try .init(accountID: 993, namespace: "low-hp-preset", epoch: 2, authorizationRevision: "member")
+        XCTAssertEqual(binding.wrappedValue, ""); XCTAssertNil(f.controller.preview)
+        binding.wrappedValue = "stopwatch.tries:+2"; apply(); cancel(); reload()
+        XCTAssertEqual(f.model.draft, original); XCTAssertEqual(dismissals, 0); XCTAssertTrue(f.storage.values.isEmpty)
+    }
+    func testParentDraftABACannotReviveOldBindingOrApply() throws {
+        let f = try fixture(), original = f.model.draft
+        let binding = f.controller.selectionBinding, apply = f.controller.applyAction()
+        f.model.draft.title = "Different"; f.model.draft = original; f.controller.reload()
+        binding.wrappedValue = "timer.durationSeconds:+30"; apply()
+        XCTAssertEqual(binding.wrappedValue, ""); XCTAssertEqual(f.model.draft, original)
+        XCTAssertFalse(f.controller.canApply); XCTAssertTrue(f.storage.values.isEmpty)
+    }
+    func testLowHPPresetLocalizationKeysAreUniqueAndResolveInBothAppLanguages() {
+        let keys = TemplateLowHPPresetText.allCases.map(\.localizationKey)
+        XCTAssertEqual(keys.count, 14); XCTAssertEqual(Set(keys).count, 14)
+        for text in TemplateLowHPPresetText.allCases {
+            XCTAssertTrue(text.localizationKey.hasPrefix("templateLowHPText."))
+            for language in ["en_US", "zh_CN"] {
+                XCTAssertNotEqual(text.value(Locale(identifier: language)), text.localizationKey)
+            }
+        }
+    }
+    func testBothLocalesDistinguishApplyFromSaveAndPublishing() {
+        for text in TemplateLowHPPresetText.allCases {
+            XCTAssertFalse(text.value(Locale(identifier: "en_US")).isEmpty)
+            XCTAssertFalse(text.value(Locale(identifier: "zh_CN")).isEmpty)
+        }
+        XCTAssertEqual(TemplateLowHPPresetText.applied.value(Locale(identifier: "en_US")), "Applied to the draft. Not saved or published.")
+        XCTAssertEqual(TemplateLowHPPresetText.applied.value(Locale(identifier: "zh_CN")), "已应用到草稿，尚未保存或发布。")
     }
 }

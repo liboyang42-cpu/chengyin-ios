@@ -42,6 +42,44 @@ import XCTest
         playback.approveSelectedMedia(); playback.toggle(); fake.event?(.interrupted); XCTAssertEqual(playback.state, .idle)
         playback.dispose(); pending?(.playing); XCTAssertEqual(playback.state, .disposed)
     }
+    func testInterruptedRunCannotResumeOrEndExplicitReplacement() {
+        let driver = SyntheticPlatformAudioDriver()
+        let playback = PlatformAudioPlayback(driver: driver, policy: policy, enabled: true)
+        playback.select(source()); playback.approveSelectedMedia(); playback.toggle()
+        let interrupted = driver.event
+        interrupted?(.playing); playback.toggle(); XCTAssertEqual(playback.state, .paused)
+        interrupted?(.interrupted); XCTAssertEqual(playback.state, .idle)
+        XCTAssertEqual(driver.starts, 1) // An interruption does not automatically restart.
+        playback.approveSelectedMedia(); playback.toggle(); driver.event?(.playing)
+        XCTAssertEqual(playback.state, .playing); XCTAssertEqual(driver.starts, 2)
+        interrupted?(.playing); interrupted?(.ended); interrupted?(.failed); interrupted?(.interrupted)
+        XCTAssertEqual(playback.state, .playing)
+        playback.dispose()
+    }
+    func testSuspensionRequiresNewApprovalAndDisposeRejectsRetry() {
+        let driver = SyntheticPlatformAudioDriver()
+        let playback = PlatformAudioPlayback(driver: driver, policy: policy, enabled: true)
+        playback.select(source()); playback.approveSelectedMedia(); playback.toggle(); driver.event?(.playing)
+        playback.suspend(); playback.toggle()
+        XCTAssertEqual(playback.state, .idle); XCTAssertEqual(driver.starts, 1)
+        playback.approveSelectedMedia(); playback.toggle(); driver.event?(.playing)
+        XCTAssertEqual(playback.state, .playing); XCTAssertEqual(driver.starts, 2)
+        playback.dispose(); playback.approveSelectedMedia(); playback.toggle()
+        XCTAssertEqual(playback.state, .disposed); XCTAssertEqual(driver.starts, 2)
+    }
+    func testSameURLInNewScopeStopsOldRunAndRequiresApproval() {
+        let driver = SyntheticPlatformAudioDriver()
+        let playback = PlatformAudioPlayback(driver: driver, policy: policy, enabled: true)
+        let url = source().url
+        playback.select(.init(url: url, scope: UUID())); playback.approveSelectedMedia(); playback.toggle()
+        let old = driver.event; old?(.playing)
+        playback.select(.init(url: url, scope: UUID())); playback.toggle()
+        old?(.interrupted); old?(.playing)
+        XCTAssertEqual(playback.state, .idle); XCTAssertEqual(driver.starts, 1)
+        playback.approveSelectedMedia(); playback.toggle(); driver.event?(.playing)
+        XCTAssertEqual(playback.state, .playing); XCTAssertEqual(driver.starts, 2)
+        playback.dispose()
+    }
     func testSelectedDestinationMissingCoordinatesAndFallback() async {
         let fake = SyntheticPlatformMapAdapter()
         let model = PlatformExternalMaps(opener: fake, copier: fake, enabled: true)

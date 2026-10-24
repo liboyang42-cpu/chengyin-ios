@@ -20,9 +20,9 @@ import XCTest
         XCTAssertEqual(app.buttons.matching(identifier: id).count, 1); XCTAssertTrue(target.isEnabled && target.isHittable)
         XCTAssertTrue(app.windows.firstMatch.frame.contains(target.frame)); target.tap()
     }
-    private func value(_ id: String, _ expected: String, in app: XCUIApplication) {
+    private func value(_ id: String, _ expected: String, in app: XCUIApplication, towardTop: Bool = false) {
         let target = app.staticTexts[id]
-        XCTAssertTrue(revealFixtureElement(target, in: app, maximumSwipes: 65, requiresHittable: false), app.debugDescription)
+        XCTAssertTrue(revealFixtureElement(target, in: app, towardTop: towardTop, maximumSwipes: 65, requiresHittable: false), app.debugDescription)
         XCTAssertTrue(target.waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertEqual(Array(target.label.utf8), Array(expected.utf8))
     }
@@ -54,7 +54,7 @@ import XCTest
         tap("approvedRelease.close", in: app, fixed: true); tap("projectEdit.fixture.reopen", in: app, fixed: true)
         tap("approvedRelease.read", in: app)
         value("approvedRelease.publication.requestID", request, in: app)
-        value("approvedRelease.selectedCover.selection", "9", in: app)
+        value("approvedRelease.selectedCover.selection", "9", in: app, towardTop: true)
         tap("approvedRelease.publication.check", in: app)
         value("approvedRelease.publication.releaseID", "501", in: app)
         value("approvedRelease.publication.manifestHash", String(repeating: "a", count: 64), in: app)

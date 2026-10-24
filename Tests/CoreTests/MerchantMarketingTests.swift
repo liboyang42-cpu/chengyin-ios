@@ -1,4 +1,7 @@
 import XCTest
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 @testable import QuestifyCore
 
 @MainActor final class MerchantMarketingTests: XCTestCase {
@@ -13,8 +16,144 @@ import XCTest
         let capturedBox = box ?? SessionBox()
         return try MerchantMarketingService(configuration: APIConfiguration(baseURL: URL(string: "https://merchant-marketing.example")!), transport: transport, gates: gates, locks: locks ?? MerchantPredictionMemoryLocks(), currentSession: { capturedBox.value })
     }
+    private func formBody(_ request: URLRequest) throws -> [String: String] {
+        var components = URLComponents(); components.percentEncodedQuery = try XCTUnwrap(String(data: XCTUnwrap(request.httpBody), encoding: .utf8))
+        let items = try XCTUnwrap(components.queryItems)
+        XCTAssertEqual(Set(items.map(\.name)).count, items.count)
+        return try Dictionary(uniqueKeysWithValues: items.map { ($0.name, try XCTUnwrap($0.value)) })
+    }
     private func review(_ service: MerchantMarketingService) async throws -> MerchantPredictionReview {
         let rounds = try await service.inbox(); return try await service.prepare(round: XCTUnwrap(rounds.first), optionKey: "A")
+    }
+    func testReadOnlyPreparationNeedsNoReplayStoreAndPreservesCompleteSnapshot() async throws {
+        let transport = MerchantMarketingFixtureTransport(), box = SessionBox()
+        let api = MerchantMarketingService(configuration: try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://merchant-marketing.example"))),
+            transport: transport, gates: .init(reads: true), locks: nil, currentSession: { box.value })
+        let accepted = try await review(api)
+        XCTAssertEqual(accepted.round.topicID, 12); XCTAssertEqual(accepted.round.betCount, 7)
+        XCTAssertFalse(api.permitsSettlement)
+        do { _ = try await api.settle(accepted, acknowledgedCouponEffects: true); XCTFail() }
+        catch { XCTAssertEqual(error as? MerchantMarketingFailure, .unavailable) }
+        XCTAssertTrue(transport.requests.allSatisfy { $0.httpBody == nil })
+    }
+    func testCompletePredictionReceiptRequiresMatchingChoiceAndConsistentCounts() throws {
+        let value = try MerchantPredictionAcknowledgement(raw(#"{"settledOption":"A","totalBets":7,"winners":3,"couponsGranted":2,"rewardConfigured":true}"#), expectedOption: "A")
+        XCTAssertEqual(value.totalBets, 7); XCTAssertEqual(value.winners, 3)
+        XCTAssertEqual(value.couponsGranted, 2); XCTAssertTrue(value.rewardConfigured)
+        for bad in [#"{"winners":3}"#,
+                    #"{"settledOption":"B","totalBets":7,"winners":3,"couponsGranted":2,"rewardConfigured":true}"#,
+                    #"{"settledOption":"A","totalBets":2,"winners":3,"couponsGranted":2,"rewardConfigured":true}"#,
+                    #"{"settledOption":"A","totalBets":7,"winners":3,"couponsGranted":4,"rewardConfigured":true}"#,
+                    #"{"settledOption":"A","totalBets":7,"winners":"3","couponsGranted":2,"rewardConfigured":true}"#,
+                    #"{"settledOption":"A","totalBets":7,"winners":3,"couponsGranted":2,"rewardConfigured":1}"#] {
+            XCTAssertThrowsError(try MerchantPredictionAcknowledgement(raw(bad), expectedOption: "A"))
+        }
+    }
+    func testStrictRoundRejectsWhitespaceOptionKeysInvalidDaysAndNegativeCounts() throws {
+        let original = MerchantMarketingFixtureTransport.roundJSON
+        for bad in [original.replacingOccurrences(of: "\"key\":\"A\"", with: "\"key\":\" A \""),
+                    original.replacingOccurrences(of: "2026-10-01", with: "2026-02-30"),
+                    original.replacingOccurrences(of: "\"betCount\":7", with: "\"betCount\":-1"),
+                    original.replacingOccurrences(of: "\"nodeId\":81", with: "\"nodeId\":9007199254740993")] {
+            XCTAssertThrowsError(try MerchantPredictionRound(raw(bad)))
+        }
+    }
+    func testCanonicallyEquivalentUnicodeKeysCannotMatchAnotherBackendKeyOrReceipt() async throws {
+        let composed = "\u{00E9}", decomposed = "e\u{0301}"
+        XCTAssertEqual(composed, decomposed) // Swift equality alone is not the backend contract.
+        let first = MerchantMarketingFixtureTransport.roundJSON.replacingOccurrences(of: "\"key\":\"A\"", with: "\"key\":\"\(composed)\"")
+        let second = MerchantMarketingFixtureTransport.roundJSON.replacingOccurrences(of: "\"key\":\"A\"", with: "\"key\":\"\(decomposed)\"")
+        let round = try MerchantPredictionRound(raw(first))
+        XCTAssertNotEqual(round, try MerchantPredictionRound(raw(second)))
+        let transport = MerchantMarketingFixtureTransport(), api = try service(transport)
+        transport.overrideReply = { request in request.url?.path.hasSuffix("inbox") == true
+            ? (Data("{\"code\":200,\"data\":[\(first)]}".utf8), 200) : nil }
+        do { _ = try await api.prepare(round: round, optionKey: decomposed); XCTFail() }
+        catch { XCTAssertEqual(error as? MerchantMarketingFailure, .stale) }
+        let receipt: MerchantMarketingValue = .object(["settledOption": .string(decomposed), "totalBets": .number(7),
+            "winners": .number(3), "couponsGranted": .number(2), "rewardConfigured": .bool(true)])
+        XCTAssertThrowsError(try MerchantPredictionAcknowledgement(receipt, expectedOption: composed))
+    }
+    func testTopicChangeAfterReviewPreventsSettlementAndIntent() async throws {
+        let transport = MerchantMarketingFixtureTransport(), locks = MerchantPredictionMemoryLocks(), api = try service(transport, locks: locks)
+        let accepted = try await review(api)
+        transport.overrideReply = { request in
+            guard request.url?.path.hasSuffix("inbox") == true else { return nil }
+            let changed = MerchantMarketingFixtureTransport.roundJSON.replacingOccurrences(of: "\"topicId\":12", with: "\"topicId\":13")
+            return (Data("{\"code\":200,\"data\":[\(changed)]}".utf8), 200)
+        }
+        do { _ = try await api.settle(accepted, acknowledgedCouponEffects: true); XCTFail() }
+        catch { XCTAssertEqual(error as? MerchantMarketingFailure, .stale) }
+        XCTAssertTrue(locks.records.isEmpty)
+        XCTAssertFalse(transport.requests.contains { $0.url?.path.hasSuffix("settle") == true })
+    }
+    func testSettlementFormEscapesChosenOptionWithoutAddingFields() async throws {
+        let transport = MerchantMarketingFixtureTransport(), api = try service(transport)
+        transport.overrideReply = { request in
+            guard request.url?.path.hasSuffix("inbox") == true else { return nil }
+            let changed = MerchantMarketingFixtureTransport.roundJSON.replacingOccurrences(of: "\"key\":\"A\"", with: "\"key\":\"A &+\"")
+            return (Data("{\"code\":200,\"data\":[\(changed)]}".utf8), 200)
+        }
+        let rows = try await api.inbox(), round = try XCTUnwrap(rows.first)
+        let review = try await api.prepare(round: round, optionKey: "A &+")
+        let receipt = try await api.settle(review, acknowledgedCouponEffects: true)
+        XCTAssertEqual(receipt.settledOption, "A &+")
+        let request = try XCTUnwrap(transport.requests.last)
+        XCTAssertEqual(try formBody(request), ["nodeId":"81", "playDay":"2026-10-01", "settledOption":"A &+"])
+        XCTAssertTrue(String(data: request.httpBody!, encoding: .utf8)!.contains("settledOption=A%20%26%2B"))
+        XCTAssertFalse(request.httpShouldHandleCookies)
+    }
+    func testEveryDispatchedHTTPFailureKeepsReplayLock() async throws {
+        for status in [401, 403, 404, 408, 409, 429, 500] {
+            let transport = MerchantMarketingFixtureTransport(), locks = MerchantPredictionMemoryLocks(), api = try service(transport, locks: locks)
+            let accepted = try await review(api)
+            transport.overrideReply = { request in request.url?.path.hasSuffix("settle") == true
+                ? (Data("{\"code\":\(status),\"data\":null}".utf8), status) : nil }
+            do { _ = try await api.settle(accepted, acknowledgedCouponEffects: true); XCTFail() }
+            catch { XCTAssertEqual(error as? MerchantMarketingFailure, status == 401 ? .signIn : .unknown) }
+            XCTAssertEqual(locks.records.count, 1)
+            do { _ = try await review(api); XCTFail() } catch { XCTAssertEqual(error as? MerchantMarketingFailure, .locked) }
+        }
+    }
+    func testDiscardDuringPreparationSuppressesSameSessionUnauthorizedCallback() async throws {
+        let transport = MerchantMarketingFixtureTransport(), box = SessionBox()
+        var expired = 0
+        let api = MerchantMarketingService(configuration: try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://merchant-marketing.example"))),
+            transport: transport, gates: .init(reads: true), locks: nil, currentSession: { box.value }, onUnauthorized: { _ in expired += 1 })
+        let rows = try await api.inbox(), round = try XCTUnwrap(rows.first)
+        transport.beforeReply = { _ in api.discardReview() }
+        transport.overrideReply = { _ in (Data(#"{"code":401}"#.utf8), 401) }
+        do { _ = try await api.prepare(round: round, optionKey: "A"); XCTFail() }
+        catch { XCTAssertEqual(error as? MerchantMarketingFailure, .stale) }
+        XCTAssertEqual(expired, 0)
+    }
+    func testReviewRetiredAfterDispatchKeepsLockAndSuppressesSuccessAndUnauthorized() async throws {
+        for status in [200, 401] {
+            let transport = MerchantMarketingFixtureTransport(), box = SessionBox(), locks = MerchantPredictionMemoryLocks()
+            var expired = 0
+            let api = MerchantMarketingService(configuration: try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://merchant-marketing.example"))),
+                transport: transport, gates: .init(reads: true, settlement: true), locks: locks,
+                currentSession: { box.value }, onUnauthorized: { _ in expired += 1 })
+            let accepted = try await review(api)
+            transport.beforeReply = { request in if request.url?.path.hasSuffix("settle") == true { api.discardReview() } }
+            if status == 401 {
+                transport.overrideReply = { request in request.url?.path.hasSuffix("settle") == true ? (Data(#"{"code":401}"#.utf8), 401) : nil }
+            }
+            do { _ = try await api.settle(accepted, acknowledgedCouponEffects: true); XCTFail() }
+            catch { XCTAssertEqual(error as? MerchantMarketingFailure, .stale) }
+            XCTAssertEqual(locks.records.count, 1); XCTAssertEqual(expired, 0)
+            XCTAssertEqual(transport.requests.filter { $0.url?.path.hasSuffix("settle") == true }.count, 1)
+        }
+    }
+    func testFailedPreflightConsumesReviewWithoutCreatingReplayIntent() async throws {
+        let transport = MerchantMarketingFixtureTransport(), locks = MerchantPredictionMemoryLocks(), api = try service(transport, locks: locks)
+        let accepted = try await review(api)
+        transport.overrideReply = { _ in (Data(#"{"code":503}"#.utf8), 503) }
+        do { _ = try await api.settle(accepted, acknowledgedCouponEffects: true); XCTFail() } catch { }
+        let count = transport.requests.count
+        do { _ = try await api.settle(accepted, acknowledgedCouponEffects: true); XCTFail() }
+        catch { XCTAssertEqual(error as? MerchantMarketingFailure, .invalid) }
+        XCTAssertEqual(transport.requests.count, count); XCTAssertTrue(locks.records.isEmpty)
     }
     func testDefaultGatesDispatchNothing() async throws {
         let transport = MerchantMarketingFixtureTransport(), api = try service(transport, gates: .init())
@@ -95,13 +234,14 @@ import XCTest
         do { _ = try await api.settle(review, acknowledgedCouponEffects: false); XCTFail() } catch { XCTAssertEqual(error as? MerchantMarketingFailure, .invalid) }
         XCTAssertFalse(transport.requests.contains { $0.url?.path.hasSuffix("settle") == true })
     }
-    func testSettlementExactStringBodyAndWinners() async throws {
+    func testSettlementExactFormBodyAndCompleteReceipt() async throws {
         let transport = MerchantMarketingFixtureTransport(), locks = MerchantPredictionMemoryLocks(), api = try service(transport, locks: locks), review = try await review(api)
         let result = try await api.settle(review, acknowledgedCouponEffects: true)
         XCTAssertEqual(result.winners, 3); XCTAssertEqual(locks.records.count, 1)
-        let request = try XCTUnwrap(transport.requests.last), body = try JSONDecoder().decode([String: String].self, from: XCTUnwrap(request.httpBody))
+        let request = try XCTUnwrap(transport.requests.last), body = try formBody(request)
         XCTAssertEqual(body, ["nodeId":"81", "playDay":"2026-10-01", "settledOption":"A"])
-        XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/x-www-form-urlencoded; charset=utf-8")
+        XCTAssertFalse(request.httpShouldHandleCookies)
     }
     func testSuccessCannotBeReplayed() async throws {
         let transport = MerchantMarketingFixtureTransport(), api = try service(transport), review = try await review(api)
@@ -122,10 +262,11 @@ import XCTest
         do { _ = try await api.settle(accepted, acknowledgedCouponEffects: true); XCTFail() } catch { XCTAssertEqual(error as? MerchantMarketingFailure, .unknown) }
         XCTAssertEqual(locks.records.count, 1)
     }
-    func testDefinitiveRejectionLeavesRoundAndAllowsNewReview() async throws {
+    func testDispatchedRejectionKeepsRoundLockAndDisallowsNewReview() async throws {
         let transport = MerchantMarketingFixtureTransport(scenario: "rejected"), locks = MerchantPredictionMemoryLocks(), api = try service(transport, locks: locks), accepted = try await review(api)
-        do { _ = try await api.settle(accepted, acknowledgedCouponEffects: true); XCTFail() } catch { XCTAssertEqual(error as? MerchantMarketingFailure, .rejected(403, "Source rejection")) }
-        XCTAssertTrue(locks.records.isEmpty); _ = try await review(api)
+        do { _ = try await api.settle(accepted, acknowledgedCouponEffects: true); XCTFail() } catch { XCTAssertEqual(error as? MerchantMarketingFailure, .unknown) }
+        XCTAssertEqual(locks.records.count, 1)
+        do { _ = try await review(api); XCTFail() } catch { XCTAssertEqual(error as? MerchantMarketingFailure, .locked) }
     }
     func testPermissionChangedAfterReviewDispatchesNoSettlement() async throws {
         let transport = MerchantMarketingFixtureTransport(), api = try service(transport), accepted = try await review(api)
@@ -210,11 +351,67 @@ import XCTest
         transport.beforeReply = { request in if request.url?.path.hasSuffix("settle") == true { XCTAssertEqual(locks.records.count, 1) } }
         _ = try await api.settle(accepted, acknowledgedCouponEffects: true)
     }
-    func testReadGrantDoesNotGrantSettlement() async throws {
+    func testReadGrantAllowsFreshReviewButNeverSettlement() async throws {
         let transport = MerchantMarketingFixtureTransport(), api = try service(transport, gates: .init(reads: true))
         let rows = try await api.inbox(), count = transport.requests.count
-        do { _ = try await api.prepare(round: XCTUnwrap(rows.first), optionKey: "A"); XCTFail() } catch { XCTAssertEqual(error as? MerchantMarketingFailure, .unavailable) }
-        XCTAssertEqual(transport.requests.count, count)
+        let review = try await api.prepare(round: XCTUnwrap(rows.first), optionKey: "A")
+        XCTAssertEqual(transport.requests.count, count + 2)
+        do { _ = try await api.settle(review, acknowledgedCouponEffects: true); XCTFail() } catch { XCTAssertEqual(error as? MerchantMarketingFailure, .unavailable) }
+        XCTAssertEqual(transport.requests.count, count + 2)
+        XCTAssertFalse(transport.requests.contains { $0.url?.path.hasSuffix("settle") == true })
     }
 
+}
+
+extension MerchantMarketingTests {
+    func testOldReviewCancelDoesNotDiscardReopenedServiceReview() async throws {
+        let transport = MerchantMarketingFixtureTransport(), model = MerchantMarketingCoordinator(service: try service(transport))
+        await model.load(.predictions); let round = try XCTUnwrap(model.rounds?.first)
+        await model.prepare(round, option: "A"); let first = try XCTUnwrap(model.review)
+        model.cancelReview(id: first.id)
+        await model.prepare(round, option: "B"); let second = try XCTUnwrap(model.review)
+        let reads = transport.requests.count
+        model.cancelReview(id: first.id)
+        XCTAssertEqual(model.review, second); XCTAssertEqual(transport.requests.count, reads)
+        await model.confirm(reviewID: second.id, couponEffectsAcknowledged: true)
+        XCTAssertEqual(model.acknowledgement?.winners, 3)
+        let request = try XCTUnwrap(transport.requests.last)
+        let body = try formBody(request)
+        XCTAssertEqual(body, ["nodeId": "81", "playDay": "2026-10-01", "settledOption": "B"])
+    }
+    func testOldAcknowledgementCannotConfirmNewReviewOrCreateIntent() async throws {
+        let transport = MerchantMarketingFixtureTransport(), locks = MerchantPredictionMemoryLocks()
+        let model = MerchantMarketingCoordinator(service: try service(transport, locks: locks))
+        await model.load(.predictions); let round = try XCTUnwrap(model.rounds?.first)
+        await model.prepare(round, option: "A"); let first = try XCTUnwrap(model.review)
+        model.cancelReview(id: first.id); await model.prepare(round, option: "B")
+        let second = try XCTUnwrap(model.review), reads = transport.requests.count
+        await model.confirm(reviewID: first.id, couponEffectsAcknowledged: true)
+        XCTAssertEqual(model.review, second); XCTAssertEqual(transport.requests.count, reads)
+        XCTAssertTrue(locks.records.isEmpty); XCTAssertNil(model.acknowledgement); XCTAssertNil(model.failure)
+    }
+    func testCapturedQueuedReviewCannotAdoptReplacementAtExecutionTime() async throws {
+        let transport = MerchantMarketingFixtureTransport(), model = MerchantMarketingCoordinator(service: try service(transport))
+        await model.load(.predictions); let round = try XCTUnwrap(model.rounds?.first)
+        await model.prepare(round, option: "A"); let first = try XCTUnwrap(model.review)
+        let queued = { await model.confirm(reviewID: first.id, couponEffectsAcknowledged: true) }
+        model.cancelReview(id: first.id); await model.prepare(round, option: "B")
+        let second = try XCTUnwrap(model.review), reads = transport.requests.count
+        await queued()
+        XCTAssertEqual(model.review, second); XCTAssertEqual(transport.requests.count, reads)
+    }
+    func testExactReviewStillUsesUnknownOutcomeLockWithoutResending() async throws {
+        let transport = MerchantMarketingFixtureTransport(scenario: "unknown"), locks = MerchantPredictionMemoryLocks()
+        let model = MerchantMarketingCoordinator(service: try service(transport, locks: locks))
+        await model.load(.predictions); let round = try XCTUnwrap(model.rounds?.first)
+        await model.prepare(round, option: "A"); let accepted = try XCTUnwrap(model.review)
+        await model.confirm(reviewID: accepted.id, couponEffectsAcknowledged: true)
+        XCTAssertEqual(model.failure, .unknown); XCTAssertNil(model.review); XCTAssertEqual(locks.records.count, 1)
+        let dispatched = transport.requests.filter { $0.url?.path.hasSuffix("settle") == true }.count
+        model.cancelReview(id: accepted.id)
+        await model.confirm(reviewID: accepted.id, couponEffectsAcknowledged: true)
+        XCTAssertEqual(locks.records.count, 1)
+        XCTAssertEqual(transport.requests.filter { $0.url?.path.hasSuffix("settle") == true }.count, dispatched)
+        XCTAssertEqual(dispatched, 1); XCTAssertNil(model.acknowledgement)
+    }
 }

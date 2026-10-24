@@ -154,3 +154,201 @@ private actor RelationSuspendedWire: HTTPTransport {
     func waitForFirst() async { while first == nil { await Task.yield() } }
     func finishOldUnauthorized() { first?.resume(returning: (Data(#"{"code":401}"#.utf8), 401)); first = nil }
 }
+
+@MainActor final class CooperationPhoneCopyOwnerTests: XCTestCase {
+    @MainActor private final class Reader: CooperationReading {
+        var scope = UUID(), isConfigured = true, isAuthenticated = true
+        let isOfflineExample = true
+        var reads = 0
+        var value: CooperationInviteDetail
+        var suspendNext = false
+        var continuation: CheckedContinuation<CooperationInviteDetail, Error>?
+        init(phone: String? = "  +1 202 555 0100  ") throws {
+            var fields: [String: Any] = ["id": 71, "partner": ["name": "Synthetic partner"]]
+            if let phone { fields["partner"] = ["name": "Synthetic partner", "phone": phone] }
+            let row = try JSONDecoder().decode(CooperationInvite.self, from: JSONSerialization.data(withJSONObject: fields))
+            value = .init(row: row, occupancy: nil)
+        }
+        func detail(key: CooperationInviteKey) async throws -> CooperationInviteDetail {
+            reads += 1
+            if suspendNext {
+                suspendNext = false
+                return try await withCheckedThrowingContinuation { continuation = $0 }
+            }
+            return value
+        }
+        func inbox(direction: CooperationDirection) async throws -> CooperationInbox { throw APIError.invalidRequest }
+        func pool() async throws -> CooperationPool { throw APIError.invalidRequest }
+        func candidates(topicID: Int) async throws -> CooperationCandidates { throw APIError.invalidRequest }
+    }
+    private let key = CooperationInviteKey(id: 71, direction: .received)
+    private func loaded(_ reader: Reader) async throws -> (CooperationPhoneCopyOwner, CooperationInviteDetail) {
+        let owner = CooperationPhoneCopyOwner(reader: reader, key: key)
+        owner.appear(active: true)
+        return (owner, try await owner.load(reader: reader, key: key))
+    }
+    func testExplicitGestureCopiesOnlyExactReturnedPhoneOnceAndReportsResult() async throws {
+        let reader = try Reader(), (owner, detail) = try await loaded(reader)
+        var writes: [String] = []
+        let intent = try XCTUnwrap(owner.intent(detail: detail, reader: reader, key: key))
+        XCTAssertEqual(writes.count, 0); XCTAssertNil(owner.resultKey)
+        XCTAssertTrue(owner.copy(intent) { writes.append($0) })
+        XCTAssertFalse(owner.copy(intent) { writes.append($0) })
+        XCTAssertEqual(writes, ["  +1 202 555 0100  "])
+        XCTAssertEqual(owner.resultKey, "cooperation.phone.copied"); XCTAssertEqual(reader.reads, 1)
+    }
+    func testMissingAndBlankPhoneCannotCopyNameOrID() async throws {
+        let phones: [String?] = [nil, "", "  \n\t"]
+        for phone in phones {
+            let reader = try Reader(phone: phone), (owner, detail) = try await loaded(reader)
+            XCTAssertNil(owner.intent(detail: detail, reader: reader, key: key))
+            XCTAssertNil(owner.resultKey); XCTAssertEqual(reader.reads, 1)
+        }
+    }
+    func testWrongDetailDirectionAndReaderAreRejected() async throws {
+        let reader = try Reader(), (owner, detail) = try await loaded(reader), other = try Reader()
+        XCTAssertNil(owner.intent(detail: detail, reader: reader, key: .init(id: 71, direction: .sent)))
+        XCTAssertNil(owner.intent(detail: detail, reader: other, key: key))
+        XCTAssertNil(owner.intent(detail: detail, reader: reader, key: .init(id: 72, direction: .received)))
+        let returned = try await owner.load(reader: other, key: key)
+        XCTAssertEqual(returned, other.value); XCTAssertEqual(other.reads, 1)
+        XCTAssertNil(owner.intent(detail: returned, reader: other, key: key))
+    }
+    func testScopeSwitchSignoutAndDisabledReaderRejectCapturedGesture() async throws {
+        for kind in 0..<3 {
+            let reader = try Reader(), (owner, detail) = try await loaded(reader)
+            let intent = try XCTUnwrap(owner.intent(detail: detail, reader: reader, key: key))
+            if kind == 0 { reader.scope = UUID() }
+            if kind == 1 { reader.isAuthenticated = false }
+            if kind == 2 { reader.isConfigured = false }
+            var writes = 0
+            XCTAssertFalse(owner.copy(intent) { _ in writes += 1 }); XCTAssertEqual(writes, 0)
+            XCTAssertNil(owner.resultKey)
+        }
+    }
+    func testBackgroundAndHiddenForegroundCannotReuseOldPhone() async throws {
+        let reader = try Reader(), (owner, detail) = try await loaded(reader)
+        let old = try XCTUnwrap(owner.intent(detail: detail, reader: reader, key: key))
+        owner.sceneChanged(active: false); owner.sceneChanged(active: true)
+        var writes = 0
+        XCTAssertFalse(owner.copy(old) { _ in writes += 1 })
+        XCTAssertNil(owner.intent(detail: detail, reader: reader, key: key))
+        let fresh = try await owner.load(reader: reader, key: key)
+        let next = try XCTUnwrap(owner.intent(detail: fresh, reader: reader, key: key))
+        owner.disappear(); owner.sceneChanged(active: true)
+        XCTAssertFalse(owner.copy(next) { _ in writes += 1 }); XCTAssertEqual(writes, 0)
+        let hiddenRead = try await owner.load(reader: reader, key: key)
+        XCTAssertEqual(hiddenRead, reader.value)
+        XCTAssertNil(owner.intent(detail: hiddenRead, reader: reader, key: key))
+        XCTAssertEqual(reader.reads, 3)
+    }
+    func testByteDifferentCanonicalEquivalentPhoneAndOldReadAreRejected() async throws {
+        let reader = try Reader(phone: "REF-é"), (owner, detail) = try await loaded(reader)
+        let old = try XCTUnwrap(owner.intent(detail: detail, reader: reader, key: key))
+        let changed = try Reader(phone: "REF-e\u{0301}").value
+        XCTAssertEqual(detail, changed)
+        XCTAssertNil(owner.intent(detail: changed, reader: reader, key: key))
+        reader.value = changed
+        let fresh = try await owner.load(reader: reader, key: key)
+        var writes: [String] = []
+        XCTAssertFalse(owner.copy(old) { writes.append($0) })
+        let next = try XCTUnwrap(owner.intent(detail: fresh, reader: reader, key: key))
+        XCTAssertTrue(owner.copy(next) { writes.append($0) })
+        XCTAssertTrue(try XCTUnwrap(writes.first).utf8.elementsEqual("REF-e\u{0301}".utf8))
+    }
+    func testInjectedFailureReportsFailureAndNewExplicitGestureCanRetry() async throws {
+        let reader = try Reader(), (owner, detail) = try await loaded(reader)
+        let old = try XCTUnwrap(owner.intent(detail: detail, reader: reader, key: key))
+        var calls = 0
+        XCTAssertFalse(owner.copy(old) { _ in calls += 1; throw APIError.invalidRequest })
+        XCTAssertEqual(owner.resultKey, "cooperation.phone.copyFailed")
+        XCTAssertFalse(owner.copy(old) { _ in calls += 1 })
+        let next = try XCTUnwrap(owner.intent(detail: detail, reader: reader, key: key))
+        XCTAssertTrue(owner.copy(next) { _ in calls += 1 })
+        XCTAssertEqual(calls, 2); XCTAssertEqual(reader.reads, 1)
+    }
+    func testReentrantCopyAndRetiredCompletionCannotPublishSuccess() async throws {
+        let reader = try Reader(), (owner, detail) = try await loaded(reader)
+        let intent = try XCTUnwrap(owner.intent(detail: detail, reader: reader, key: key))
+        var calls = 0
+        XCTAssertTrue(owner.copy(intent) { _ in
+            calls += 1
+            XCTAssertFalse(owner.copy(intent) { _ in calls += 1 })
+            owner.disappear()
+        })
+        XCTAssertEqual(calls, 1); XCTAssertNil(owner.resultKey)
+    }
+    func testLateOldReadCannotReplaceNewSuccessfulDetail() async throws {
+        let reader = try Reader(), owner = CooperationPhoneCopyOwner(reader: reader, key: key)
+        owner.appear(active: true); reader.suspendNext = true
+        let old = Task { try await owner.load(reader: reader, key: key) }
+        while reader.continuation == nil { await Task.yield() }
+        let original = reader.value
+        owner.disappear(); reader.scope = UUID(); owner.appear(active: true)
+        reader.value = try Reader(phone: "New exact phone").value
+        let fresh = try await owner.load(reader: reader, key: key)
+        let next = try XCTUnwrap(owner.intent(detail: fresh, reader: reader, key: key))
+        reader.continuation?.resume(returning: original); reader.continuation = nil
+        let oldReadResult = try await old.value
+        XCTAssertEqual(oldReadResult, original)
+        var writes: [String] = []
+        XCTAssertTrue(owner.copy(next) { writes.append($0) })
+        XCTAssertEqual(writes, ["New exact phone"])
+    }
+}
+
+extension CooperationPhoneCopyOwnerTests {
+    func testOriginalDetailReadBeforeFirstAppearReturnsAndThenEnablesCurrentCopy() async throws {
+        let reader = try Reader(), owner = CooperationPhoneCopyOwner(reader: reader, key: key)
+        let detail = try await owner.load(reader: reader, key: key)
+        XCTAssertEqual(detail, reader.value); XCTAssertEqual(reader.reads, 1)
+        XCTAssertNil(owner.intent(detail: detail, reader: reader, key: key))
+        owner.appear(active: true)
+        XCTAssertNotNil(owner.intent(detail: detail, reader: reader, key: key))
+    }
+    func testRetainedPageTaskBeforeReappearNeverCancelsOriginalDetail() async throws {
+        let reader = try Reader(), (owner, before) = try await loaded(reader)
+        let old = try XCTUnwrap(owner.intent(detail: before, reader: reader, key: key))
+        owner.disappear()
+        let returned = try await owner.load(reader: reader, key: key)
+        XCTAssertEqual(returned, reader.value); XCTAssertEqual(reader.reads, 2)
+        owner.appear(active: true)
+        var writes = 0
+        XCTAssertFalse(owner.copy(old) { _ in writes += 1 })
+        let fresh = try XCTUnwrap(owner.intent(detail: returned, reader: reader, key: key))
+        XCTAssertTrue(owner.copy(fresh) { _ in writes += 1 }); XCTAssertEqual(writes, 1)
+    }
+    func testChangedKeyReadReturnsWithoutOldCopyOwnerInterception() async throws {
+        let reader = try Reader(), (oldOwner, before) = try await loaded(reader)
+        let old = try XCTUnwrap(oldOwner.intent(detail: before, reader: reader, key: key))
+        oldOwner.disappear()
+        let newKey = CooperationInviteKey(id: 72, direction: .sent)
+        let row = try JSONDecoder().decode(CooperationInvite.self,
+            from: Data(#"{"id":72,"partner":{"name":"Synthetic replacement","phone":"New phone"}}"#.utf8))
+        reader.value = .init(row: row, occupancy: nil)
+        let forwarded = try await oldOwner.load(reader: reader, key: newKey)
+        XCTAssertEqual(forwarded, reader.value)
+        XCTAssertNil(oldOwner.intent(detail: forwarded, reader: reader, key: newKey))
+        let newOwner = CooperationPhoneCopyOwner(reader: reader, key: newKey)
+        let accepted = try await newOwner.load(reader: reader, key: newKey)
+        newOwner.appear(active: true)
+        let next = try XCTUnwrap(newOwner.intent(detail: accepted, reader: reader, key: newKey))
+        var writes: [String] = []
+        XCTAssertFalse(oldOwner.copy(old) { writes.append($0) })
+        XCTAssertTrue(newOwner.copy(next) { writes.append($0) }); XCTAssertEqual(writes, ["New phone"])
+    }
+    func testReplacementReaderSameKeyGetsItsOwnCopyOwner() async throws {
+        let first = try Reader(), (oldOwner, oldDetail) = try await loaded(first)
+        let old = try XCTUnwrap(oldOwner.intent(detail: oldDetail, reader: first, key: key))
+        oldOwner.disappear()
+        let replacement = try Reader(phone: "Replacement exact phone")
+        let forwarded = try await oldOwner.load(reader: replacement, key: key)
+        XCTAssertEqual(forwarded, replacement.value)
+        let owner = CooperationPhoneCopyOwner(reader: replacement, key: key)
+        let accepted = try await owner.load(reader: replacement, key: key); owner.appear(active: true)
+        var writes: [String] = []
+        XCTAssertFalse(oldOwner.copy(old) { writes.append($0) })
+        XCTAssertTrue(owner.copy(try XCTUnwrap(owner.intent(detail: accepted, reader: replacement, key: key))) { writes.append($0) })
+        XCTAssertEqual(writes, ["Replacement exact phone"])
+    }
+}

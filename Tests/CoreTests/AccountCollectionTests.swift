@@ -301,3 +301,58 @@ final class AccountCollectionTests: XCTestCase {
     }
 
 }
+
+extension AccountCollectionTests {
+    private func startDayCoupon(_ start: String?, status: Int = 0) throws -> AccountCollectionCoupon {
+        var fields: [String: Any] = ["id": 901, "useStatus": status, "endTime": "2000-01-01"]
+        if let start { fields["startTime"] = start }
+        return try JSONDecoder().decode(AccountCollectionCoupon.self, from: JSONSerialization.data(withJSONObject: fields))
+    }
+    private func startDayNow(_ value: String) throws -> Date {
+        try XCTUnwrap(ISO8601DateFormatter().date(from: value))
+    }
+    func testFutureCouponDayChangesAtChinaMidnightWithoutChangingServerStatusOrExpiry() throws {
+        let value = try startDayCoupon("2027-01-01")
+        XCTAssertEqual(value.futureStartDay(relativeTo: try startDayNow("2026-12-31T15:59:59Z")), "2027.01.01")
+        XCTAssertNil(value.futureStartDay(relativeTo: try startDayNow("2026-12-31T16:00:00Z")))
+        XCTAssertEqual(value.status, .unused)
+        XCTAssertTrue(AccountCollectionCouponFilter.unused.includes(value))
+        XCTAssertEqual(value.endTime, "2000-01-01") // No inferred expiry or usability override.
+    }
+    func testFutureCouponDayUsesBusinessDayInsteadOfDeviceOffsetOrExactCodeTime() throws {
+        let value = try startDayCoupon("2027-01-01 23:59:59")
+        let west = try startDayNow("2026-12-31T04:00:00-12:00")
+        let east = try startDayNow("2027-01-01T06:00:00+14:00")
+        XCTAssertEqual(west, east)
+        XCTAssertNil(value.futureStartDay(relativeTo: west))
+        XCTAssertNil(value.futureStartDay(relativeTo: east))
+        XCTAssertEqual(value.startTime, "2027-01-01 23:59:59")
+    }
+    func testFutureCouponDayValidatesLeapDayAndYearBoundary() throws {
+        let beforeLeap = try startDayNow("2028-02-28T04:00:00Z")
+        XCTAssertEqual(try startDayCoupon("2028-02-29T00:00:00").futureStartDay(relativeTo: beforeLeap), "2028.02.29")
+        XCTAssertNil(try startDayCoupon("2027-02-29").futureStartDay(relativeTo: beforeLeap))
+        XCTAssertEqual(try startDayCoupon("2029-01-01").futureStartDay(relativeTo: try startDayNow("2028-12-31T04:00:00Z")), "2029.01.01")
+    }
+    func testFutureCouponDayMissingInvalidOrTimezoneAmbiguousStaysUnknown() throws {
+        let now = try startDayNow("2026-01-01T00:00:00Z")
+        for source in [nil, "", " ", "2099-02-29", "2099-13-01", "2099-01-32", "0000-01-01", "2099-1-01", "2099-01-01junk", "2099-01-01 24:00:00", "2099-01-01 12:60:00", "2099-01-01 12:00:60", "2099-01-01T00:00:00Z", "2099-01-01T00:00:00+08:00"] as [String?] {
+            let value = try startDayCoupon(source)
+            XCTAssertNil(value.futureStartDay(relativeTo: now), String(describing: source))
+            XCTAssertEqual(value.status, .unused)
+        }
+        XCTAssertNil(try startDayCoupon("2099-01-01").futureStartDay(relativeTo: Date(timeIntervalSinceReferenceDate: .nan)))
+        XCTAssertNil(try startDayCoupon("2099-01-01").futureStartDay(relativeTo: Date(timeIntervalSinceReferenceDate: .infinity)))
+    }
+    func testFutureCouponDayNeverReclassifiesTerminalUnknownOrAlreadyStartedRows() throws {
+        let now = try startDayNow("2026-01-01T00:00:00Z")
+        for status in [1, 2, 3, 99] {
+            let value = try startDayCoupon("2099-01-01", status: status)
+            XCTAssertNil(value.futureStartDay(relativeTo: now))
+            XCTAssertEqual(value.useStatus, status)
+            XCTAssertFalse(AccountCollectionCouponFilter.unused.includes(value))
+        }
+        XCTAssertNil(try startDayCoupon("2025-12-31").futureStartDay(relativeTo: now))
+        XCTAssertNil(try startDayCoupon("2026-01-01").futureStartDay(relativeTo: now))
+    }
+}

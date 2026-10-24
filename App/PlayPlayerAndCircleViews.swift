@@ -4,15 +4,22 @@ import SwiftUI
     @Bindable var model: PlayPlayerGameCoordinator
     var deviceModel: ((Int) -> PlayDeviceCaptureCoordinator)? = nil
     @State private var evidenceTarget: PlayerTaskEvidenceTarget?
-    @State private var evidence: [Int: String] = [:]
-    @State private var review: PlayPlayerCommand?
-    @State private var showReview = false
-    @State private var consequence = ""
+    @Environment(\.scenePhase) private var scenePhase
+    @StateObject private var actionReview: PlayPlayerActionReviewController
+    @FocusState private var focusedNode: Int?
+    private var sameModel: Bool { actionReview.model === model }
+    private var canAct: Bool { sameModel && actionReview.canInteract }
+    init(model: PlayPlayerGameCoordinator, deviceModel: ((Int) -> PlayDeviceCaptureCoordinator)? = nil) {
+        self.model = model; self.deviceModel = deviceModel
+        _actionReview = StateObject(wrappedValue: .init(model: model))
+    }
     @State private var issue: PlayExperienceError?
     @State private var submissionReadback: PlayPlayerSubmissionReadback?
     @State private var teamReadback: PlayPlayerTeamReadback?
     @State private var leaderboardReadback: PlayPlayerLeaderboardReadback?
     var body: some View {
+        let ticket = sameModel ? actionReview.capture() : nil
+        ScrollViewReader { proxy in
         List {
             Section {
                 LabeledContent("playx.state") { PlayRuntimePhaseText(phase: model.phase) }
@@ -20,7 +27,7 @@ import SwiftUI
                     if let readback = submissionReadback { Task { await readback.refresh() } }
                 }
                     .disabled(submissionReadback?.canRefresh != true)
-                if let issue = model.issue ?? issue { PlayExperienceIssueView(issue: issue) }
+                if let issue = model.issue ?? issue ?? actionReview.issue { PlayExperienceIssueView(issue: issue) }
                 if model.phase == "unknown" {
                     Text("playx.unknown.body")
                     Button("playx.reconcile") { Task { await model.recover() } }.accessibilityIdentifier("playx.player.reconcile")
@@ -32,7 +39,7 @@ import SwiftUI
                     if let name = projection.role["name"].text { Text(verbatim: name).font(.headline) }
                     if let brief = projection.role["publicBrief"].text { Text(verbatim: brief) }
                     if projection.roleConfirmed { Label("playx.player.role.confirmed", systemImage: "checkmark.seal") }
-                    else { Button("playx.player.role.confirm") { prepare(.confirmRole, projection: projection) }.disabled(model.phase != "ready") }
+                    else { Button("playx.player.role.confirm") { actionReview.prepare(.role, ticket: ticket) }.disabled(!canAct) }
                 }
                 PlayPlayerTeamStatusView(state: teamReadback?.state ?? .unconfirmed)
                 PlayPlayerLeaderboardView(state: leaderboardReadback?.state ?? .hidden)
@@ -51,14 +58,11 @@ import SwiftUI
                             PlayPlayerSubmissionStatusView(state: submissionReadback?.state(nodeID: node.id) ?? .unconfirmed)
                         }
                         if node.task["inputType"].text == "TEXT" {
-                            TextField("playx.answer.placeholder", text: Binding(get: { evidence[node.id] ?? "" }, set: { evidence[node.id] = $0 }), axis: .vertical)
-                                .accessibilityIdentifier("playx.player.text.\(node.id)")
+                            TextField("playx.answer.placeholder", text: Binding(get: { sameModel ? actionReview.text(nodeID: node.id) : "" }, set: { actionReview.setText($0, nodeID: node.id, ticket: ticket) }), axis: .vertical)
+                                .accessibilityIdentifier("playx.player.text.\(node.id)").disabled(!canAct).focused($focusedNode, equals: node.id)
                             Button("playx.review") {
-                                do {
-                                    let value = try PlayPlayerCommand.textEvidence(evidence[node.id] ?? "")
-                                    prepare(.submit, projection: projection, nodeID: node.id, payload: ["taskCode": node.task["taskCode"], "evidenceUrls": .array([.string(value)])])
-                                } catch { issue = .invalidAction }
-                            }.disabled(model.phase != "ready")
+                                actionReview.prepare(.text(nodeID: node.id, answer: actionReview.text(nodeID: node.id)), ticket: ticket)
+                            }.disabled(!canAct)
                         } else if node.task["inputType"].text == "PHOTO" || node.task["inputType"].text == "SCAN" {
                             Button(node.task["inputType"].text == "SCAN" ? "playerEvidence.scan.title" : "playerEvidence.photo.title") {
                                 do { evidenceTarget = try model.evidenceTarget(nodeID: node.id) }
@@ -67,20 +71,20 @@ import SwiftUI
                         }
                         ForEach(Array(node.choices.enumerated()), id: \.offset) { _, choice in
                             if let id = choice["id"].text, let label = choice["label"].text {
-                                Button { prepare(.choice, projection: projection, nodeID: node.id, payload: ["choiceId": .string(id)]) } label: { Text(verbatim: label) }
-                                    .disabled(model.phase != "ready")
+                                Button { actionReview.prepare(.choice(nodeID: node.id, choiceID: id), ticket: ticket) } label: { Text(verbatim: label) }
+                                    .disabled(!canAct)
                             }
                         }
                         ForEach(Array((node.hint["revealedTexts"].array ?? []).enumerated()), id: \.offset) { _, hint in
                             if let text = hint["text"].text { Text(verbatim: text) }
                         }
                         if let level = node.hint["nextLevel"].integer, let impact = node.hint["nextImpactLabel"].text, !impact.isEmpty {
-                            Button("playx.hints.request") { prepare(.hint, projection: projection, nodeID: node.id, payload: ["level": .int(level)], consequence: impact) }
-                                .disabled(model.phase != "ready")
+                            Button("playx.hints.request") { actionReview.prepare(.hint(nodeID: node.id), ticket: ticket) }
+                                .disabled(!canAct)
                         }
                         if node.hint["revealAvailable"].bool == true, let impact = node.hint["revealImpactLabel"].text, !impact.isEmpty {
-                            Button("playx.player.reveal") { prepare(.reveal, projection: projection, nodeID: node.id, consequence: impact) }
-                                .disabled(model.phase != "ready")
+                            Button("playx.player.reveal") { actionReview.prepare(.reveal(nodeID: node.id), ticket: ticket) }
+                                .disabled(!canAct)
                         }
                         if let completion = node.completionStatus { Text(verbatim: completion).font(.footnote) }
                     }
@@ -99,6 +103,10 @@ import SwiftUI
                     }
                 }
             }
+            if sameModel, let offered = actionReview.review {
+                PlayPlayerActionReviewCard(owner: actionReview, offered: offered).id(offered.id)
+            }
+            if actionReview.working { ProgressView("playerEvidence.working") }
         }.privacySensitive().navigationTitle("playx.player.title").accessibilityIdentifier("playx.player.view")
             .task {
                 guard !Task.isCancelled else { return }
@@ -129,17 +137,23 @@ import SwiftUI
             .navigationDestination(item: $evidenceTarget) { target in
                 PlayerTaskEvidenceView(target: target, player: model, device: deviceModel?(target.nodeID))
             }
-            .confirmationDialog("playx.review", isPresented: $showReview, titleVisibility: .visible) {
-                Button("playx.submit") { if let review { Task { await model.submit(review); self.review = nil } } }
-                Button("playx.cancel", role: .cancel) { review = nil }
-            } message: { if consequence.isEmpty { Text("playx.review.detail") } else { Text(verbatim: consequence) } }
-    }
-    private func prepare(_ action: PlayPlayerCommand.Action, projection: PlayPlayerGameProjection, nodeID: Int? = nil, payload: [String: PlayWireValue] = [:], consequence: String = "") {
-        do {
-            let command = try PlayPlayerCommand(activityID: projection.activityID, nodeID: nodeID, expectedRevision: projection.revision, action: action, payload: payload)
-            guard projection.allows(command) else { throw PlayExperienceError.invalidAction }
-            review = command; self.consequence = consequence; showReview = true; issue = nil
-        } catch { issue = .invalidAction }
+            .scrollDismissesKeyboard(.interactively)
+            .toolbar { ToolbarItemGroup(placement: .keyboard) {
+                Spacer(); Button("action.done") { focusedNode = nil }
+            } }
+            .onChange(of: actionReview.review?.id) { _, id in
+                if let id, actionReview.review?.id == id { focusedNode = nil; issue = nil; proxy.scrollTo(id, anchor: .top) }
+            }
+            .background { PlayPlayerActionRoot(owner: actionReview).frame(width: 0, height: 0) }
+            .onAppear { actionReview.appear(active: scenePhase == .active) }
+            .onDisappear { actionReview.disappear() }
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .background { focusedNode = nil; actionReview.background() }
+                else { actionReview.sceneChanged(active: phase == .active) }
+            }
+            .onChange(of: model.hasCurrentProjection) { _, current in if !current { actionReview.retire() } }
+            .onChange(of: ObjectIdentifier(model)) { _, _ in actionReview.retire() }
+        }
     }
 }
 

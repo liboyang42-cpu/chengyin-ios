@@ -112,7 +112,7 @@ public struct PlayDeviceContext: Equatable {
     }
 }
 public enum PlayDeviceOutput: Equatable {
-    case scan(String), location(Double, Double, coordinateSystem: String), photo(Data, mimeType: String)
+    case scan(String), location(Double, Double, coordinateSystem: String, accuracyMeters: Double? = nil, measuredAt: Date? = nil), photo(Data, mimeType: String)
     case sample(PlayAccelerationSample), unavailable
 }
 @MainActor public protocol PlayDeviceProviding {
@@ -181,7 +181,8 @@ public enum PlayDeviceOutput: Equatable {
     }
     /// Explicit user upload step. Completion still requires the journey's separate review.
     public func uploadPhoto(expectedOutputID: UUID? = nil) async {
-        guard capturedInteraction == nil || (expectedOutputID != nil && expectedOutputID == outputID),
+        guard expectedOutputID == nil || expectedOutputID == outputID,
+              capturedInteraction == nil || expectedOutputID != nil,
               canUpload, let upload, let context = capturedContext, current() == context,
               case .photo(let bytes, let mime) = output else { issue = .disabled; return }
         generation &+= 1; let generation = generation; busy = true; issue = nil; uploadedPhoto = nil
@@ -194,7 +195,8 @@ public enum PlayDeviceOutput: Equatable {
         } catch { if self.generation == generation, current() == context { issue = error as? PlayExperienceError ?? .unknownResult } }
     }
     public func reviewedPhoto(expectedOutputID: UUID? = nil) -> PlayCompletionEvidence? {
-        guard capturedInteraction == nil || (expectedOutputID != nil && expectedOutputID == outputID),
+        guard expectedOutputID == nil || expectedOutputID == outputID,
+              capturedInteraction == nil || expectedOutputID != nil,
               canReviewOutput else { return nil }; return uploadedPhoto
     }
     public var supportsLibraryPhotos: Bool { supports(.photo) && provider is any PlayKitPhotoLibraryProviding }
@@ -229,4 +231,22 @@ public enum PlayDeviceOutput: Equatable {
         if self.generation == generation { busy = false }
     }
     public func cancel() { generation &+= 1; provider.cancel(); output = nil; outputID = nil; uploadedPhoto = nil; capturedContext = nil; capturedInteraction = nil; busy = false }
+}
+
+/// Shared play-only measurement validation. Legacy persisted evidence has neither
+/// field; a supplied measurement must be complete, finite and fresh. In particular
+/// a poor accuracy is never converted to nil to bypass server validation.
+public enum PlayLocationMeasurement {
+    public static func validate(accuracyMeters: Double?, measuredAt: Date?, now: Date? = Date()) throws {
+        if accuracyMeters == nil && measuredAt == nil { return }
+        guard let accuracyMeters, let measuredAt,
+              accuracyMeters.isFinite, accuracyMeters >= 0,
+              measuredAt.timeIntervalSinceReferenceDate.isFinite else { throw APIError.invalidRequest }
+        if let now {
+            let age = now.timeIntervalSince(measuredAt)
+            guard now.timeIntervalSinceReferenceDate.isFinite, age >= 0, age <= 30 else { throw APIError.invalidRequest }
+        }
+        // No new 80 m client threshold: frozen server contract, deployment unverified.
+        // Existing Roam projection policy remains unchanged.
+    }
 }

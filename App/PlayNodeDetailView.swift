@@ -5,6 +5,14 @@ struct PlayNodeDetailView: View {
     let nodeID: Int
     let model: PlayViewModel
     @State private var answer = ""
+    @StateObject private var reviewOwner: PlayAnswerReviewPresentation
+    @State private var answerReviewIssue: PlayLoadIssue?
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
+    init(nodeID: Int, model: PlayViewModel) {
+        self.nodeID = nodeID; self.model = model
+        _reviewOwner = StateObject(wrappedValue: PlayAnswerReviewPresentation(model: model))
+    }
     var body: some View {
         Group {
             if model.reader.identity == nil {
@@ -27,13 +35,24 @@ struct PlayNodeDetailView: View {
         .privacySensitive()
         .appNavigationTitle("play.node.title")
         .navigationBarTitleDisplayMode(.inline)
-        .onChange(of: model.reader.identity) { _, _ in answer = "" }
-        .onChange(of: nodeID) { _, _ in answer = "" }
-        .onChange(of: model.visibleSnapshot) { _, _ in answer = "" }
+        .background { PlayAnswerReviewRoot(owner: reviewOwner).frame(width: 0, height: 0) }
+        .background {
+            if let offered = reviewOwner.review {
+                PlayAnswerReviewPresenter(owner: reviewOwner, offered: offered).id(offered.id)
+            }
+        }
+        .onAppear { reviewOwner.appear(active: scenePhase == .active) }
+        .onDisappear { reviewOwner.disappear(); if !reviewOwner.hasVisibleVisit { answer = "" } }
+        .onChange(of: scenePhase) { _, value in reviewOwner.sceneChanged(active: value == .active) }
+        .onChange(of: model.reader.identity) { _, _ in reviewOwner.reset(); answer = "" }
+        .onChange(of: nodeID) { _, _ in reviewOwner.reset(); answer = "" }
+        .onChange(of: model.visibleSnapshot) { _, _ in answer = ""; answerReviewIssue = nil; reviewOwner.discardInvalidUnclaimedReview() }
+        .onChange(of: reviewOwner.readGeneration) { _, _ in reviewOwner.discardInvalidUnclaimedReview() }
     }
     private func detail(_ node: PlayNode, snapshot: PlaySnapshot) -> some View {
         let availability = snapshot.answerAvailability(for: node)
         let selectedAnswer = model.acceptedChoice(for: nodeID) ?? answer
+        let offeredAnswer = reviewOwner.capture(nodeID: nodeID)
         return Form {
             Section {
                 if let name = node.name, !name.isEmpty { Text(verbatim: name).font(.title2.bold()) }
@@ -91,6 +110,9 @@ struct PlayNodeDetailView: View {
             }
             if let receipt = model.visibleReceipt, receipt.nodeID == nodeID { Section { PlayReceiptView(receipt: receipt) } }
             Section {
+                if answerReviewIssue != nil {
+                    Text(verbatim: reviewLocalized("expired")).accessibilityIdentifier("play.answer.review.issue")
+                }
                 if let issue = model.actionIssue {
                     if let message = issue.message, !message.isEmpty { Text(verbatim: message) }
                     else { Text("play.answer.failed") }
@@ -106,10 +128,13 @@ struct PlayNodeDetailView: View {
                     if model.reader.supportsAnswerSubmission {
                         Text("play.answer.instructions").font(.footnote).foregroundStyle(.secondary)
                         Button {
-                            Task { await model.submit(nodeID: nodeID, answer: answer) }
+                            do {
+                                try reviewOwner.prepare(answer: answer, offered: offeredAnswer)
+                                answerReviewIssue = nil
+                            } catch { answerReviewIssue = PlayLoadIssue(error) }
                         } label: {
                             if model.isSubmitting { ProgressView("play.answer.submitting") }
-                            else { Text("play.answer.submit") }
+                            else { Text(verbatim: reviewLocalized("review")) }
                         }
                         .disabled(answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || model.isSubmitting || !model.reader.canSubmitAnswer)
                         .accessibilityIdentifier("play.answer.submit")
@@ -128,5 +153,8 @@ struct PlayNodeDetailView: View {
             }
         }
         .accessibilityIdentifier("play.nodeDetail")
+    }
+    private func reviewLocalized(_ key: String) -> String {
+        String(localized: LocalizedStringResource(String.LocalizationValue(key), table: "PlayAnswerReview", locale: locale))
     }
 }

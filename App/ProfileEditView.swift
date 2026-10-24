@@ -24,14 +24,25 @@ struct ProfileEditExitConfirmation: Identifiable {
     fileprivate let writeWasLocked: Bool
 }
 
+/// One local category-picker session. This carries no permission to read or save.
+struct ProfilePreferencePickerEdit: Identifiable {
+    let context: ProfileTextFieldEdit
+    let reader: (any DiscoveryReading)?
+    let readerIdentity: String?
+    let readerConfigured: Bool
+    let selected: [Int]
+    var id: UUID { context.id }
+}
+
 @MainActor
 final class ProfileEditModel: ObservableObject {
     let coordinator: ProfileEditCoordinator
-    @Published var draft = ProfileEditDraft() { didSet { retireTextEdit(); avatarDraftRevision &+= 1; if draft.avatarReplacement == nil { avatarPreview = nil }; retireReload() } }
+    @Published var draft = ProfileEditDraft() { didSet { retirePreferencePicker(); retireSavedReturn(); retireTextEdit(); avatarDraftRevision &+= 1; if draft.avatarReplacement == nil { avatarPreview = nil }; retireReload() } }
     @Published var confirmation: ProfileEditConfirmation?
     @Published private(set) var reloadConfirmation: ProfileEditReloadConfirmation?
     @Published private(set) var exitConfirmation: ProfileEditExitConfirmation?
     @Published private(set) var textEdit: ProfileTextFieldEdit?
+    @Published private(set) var preferencePicker: ProfilePreferencePickerEdit?
     private struct ReviewedDraft {
         let reviewID: UUID
         let generation: Int
@@ -42,6 +53,24 @@ final class ProfileEditModel: ObservableObject {
         let viewerRevision: UInt64?
     }
     private var reviewedDraft: ReviewedDraft?
+    private var savedReturnRevision: UInt64 = 0
+    private struct SavedReturnOwner {
+        let receipt: ProfileSavedReturn
+        let generation: Int
+        let revision: UInt64
+        let draft: ProfileEditDraft
+    }
+    private var savedReturnOwner: SavedReturnOwner?
+    func retireSavedReturn() { savedReturnRevision &+= 1; savedReturnOwner = nil }
+    /// The view invokes its navigation callback only after this synchronous fence.
+    func consumeSavedReturn(_ value: ProfileSavedReturn) -> Bool {
+        guard let owner = savedReturnOwner, owner.receipt == value else { return false }
+        savedReturnOwner = nil
+        guard !Task.isCancelled, !exitCommitted, !busy, !coordinator.isBusy,
+              owner.generation == generation, owner.revision == savedReturnRevision,
+              Self.sameDraft(draft, owner.draft), coordinator.consumeSavedReturn(value) else { return false }
+        return true
+    }
     private var exitCommitted = false
     @Published private(set) var busy = false
     @Published private(set) var revision = 0
@@ -66,7 +95,7 @@ final class ProfileEditModel: ObservableObject {
         && lhs.routePreferenceIDs == rhs.routePreferenceIDs && lhs.avatarReplacement == rhs.avatarReplacement
         && ProfileCasePortfolio.sameText(lhs.caseIntroduction, rhs.caseIntroduction)
         && lhs.removesContactQR == rhs.removesContactQR
-        && lhs.removesCasePictures == rhs.removesCasePictures
+        && lhs.removesCasePictures == rhs.removesCasePictures && lhs.casePictureSubset == rhs.casePictureSubset
     }
     private static func sameSnapshot(_ lhs: ProfileEditSnapshot, _ rhs: ProfileEditSnapshot) -> Bool {
         lhs.id == rhs.id && ProfileCasePortfolio.sameText(lhs.caseIntroduction, rhs.caseIntroduction) && zip([lhs.nickname, lhs.introduction, lhs.avatar, lhs.wechat, lhs.casePics, lhs.tagIds],
@@ -82,14 +111,68 @@ final class ProfileEditModel: ObservableObject {
             || (draft.caseIntroduction.map { !ProfileCasePortfolio.sameText($0, snapshot.caseIntroduction) } ?? false)
             || (draft.removesContactQR && !snapshot.wechat.isEmpty)
             || (draft.removesCasePictures && ProfileCasePortfolio(casePics: snapshot.casePics).imageCount > 0)
+            || draft.casePictureSubset?.hasChanges == true
     }
     /// This is local scratch editing, never an independent server save.
     var canBeginTextEdit: Bool {
-        !exitCommitted && !busy && !coordinator.isBusy && !coordinator.isLocked
+        avatarActive && !exitCommitted && !busy && !coordinator.isBusy && !coordinator.isLocked
             && coordinator.isConfigured && coordinator.snapshot != nil
             && confirmation == nil && coordinator.confirmation == nil
             && reloadConfirmation == nil && exitConfirmation == nil
-            && textEdit == nil && !avatarPresentationActive
+            && textEdit == nil && preferencePicker == nil && !avatarPresentationActive
+    }
+    func beginPreferencePicker(reader: (any DiscoveryReading)?) {
+        guard avatarActive, !exitCommitted else { return }
+        synchronizeContext()
+        guard canBeginTextEdit, let identity = coordinator.identity,
+              let snapshot = coordinator.snapshot, snapshot.id == identity.accountID else { return }
+        let context = ProfileTextFieldEdit(field: .preferences, identity: identity,
+            viewerRevision: coordinator.viewerRevision, generation: generation, modelRevision: revision,
+            draftRevision: avatarDraftRevision, snapshot: snapshot, draft: draft)
+        guard let selected = ProfilePreferenceRemoval.selection(draft: draft, snapshot: snapshot) else { return }
+        preferencePicker = .init(context: context, reader: reader,
+            readerIdentity: reader?.discoveryPresentationIdentity, readerConfigured: reader?.isConfigured == true,
+            selected: selected)
+    }
+    func retirePreferencePicker() { preferencePicker = nil }
+    func cancelPreferencePicker(_ value: ProfilePreferencePickerEdit) {
+        guard preferencePicker?.id == value.id else { return }
+        retirePreferencePicker()
+    }
+    private func ownsPreferencePicker(_ value: ProfilePreferencePickerEdit) -> Bool {
+        let context = value.context
+        guard preferencePicker?.id == value.id, avatarActive, !exitCommitted, !busy,
+              !coordinator.isBusy, !coordinator.isLocked, coordinator.isConfigured,
+              textEdit == nil, confirmation == nil, coordinator.confirmation == nil,
+              reloadConfirmation == nil, exitConfirmation == nil, !avatarPresentationActive,
+              coordinator.identity == context.identity, coordinator.viewerRevision == context.viewerRevision,
+              generation == context.generation, revision == context.modelRevision,
+              avatarDraftRevision == context.draftRevision, Self.sameDraft(draft, context.draft),
+              let snapshot = coordinator.snapshot, Self.sameSnapshot(snapshot, context.snapshot),
+              (value.reader?.isConfigured == true) == value.readerConfigured,
+              ProfileCasePortfolio.sameText(value.reader?.discoveryPresentationIdentity, value.readerIdentity) else { return false }
+        return true
+    }
+    /// Shared picker reads and Done both consult this live, captured owner gate.
+    func preferencePickerIdentity(_ value: ProfilePreferencePickerEdit) -> ProfileReadIdentity? {
+        guard ownsPreferencePicker(value) else { cancelPreferencePicker(value); return nil }
+        return value.context.identity
+    }
+    func preferencePickerPresentation(for value: ProfilePreferencePickerEdit?) -> Binding<ProfilePreferencePickerEdit?> {
+        Binding(get: {
+            guard let value, self.ownsPreferencePicker(value) else { return nil }
+            return self.preferencePicker
+        }, set: { next in
+            if next == nil, let value { self.cancelPreferencePicker(value) }
+        })
+    }
+    @discardableResult func confirmPreferencePicker(_ value: ProfilePreferencePickerEdit, selectedIDs: [Int]) -> Bool {
+        guard ownsPreferencePicker(value), value.readerConfigured,
+              ProfilePreferenceRemoval.validIDs(selectedIDs) else { cancelPreferencePicker(value); return false }
+        // Consume synchronously before handing the existing picker result to the local draft.
+        retirePreferencePicker()
+        draft.routePreferenceIDs = selectedIDs
+        return true
     }
     func beginTextEdit(_ field: ProfileTextField) {
         guard !exitCommitted else { return }
@@ -105,9 +188,18 @@ final class ProfileEditModel: ObservableObject {
         retireTextEdit()
     }
     private func retireTextEdit() { textEdit = nil }
+    /// A previously retained sheet binding cannot observe or dismiss a later editor.
+    func textEditPresentation(for presented: ProfileTextFieldEdit?) -> Binding<ProfileTextFieldEdit?> {
+        return .init(get: {
+            guard let presented, self.textEdit?.id == presented.id else { return nil }
+            return self.textEdit
+        }, set: { value in
+            if value == nil, let presented { self.cancelTextEdit(presented) }
+        })
+    }
     @discardableResult func confirmTextEdit(_ value: ProfileTextFieldEdit, text: String) -> Bool {
         guard textEdit?.id == value.id else { return false }
-        guard !exitCommitted, !busy, !coordinator.isBusy, !coordinator.isLocked,
+        guard avatarActive, !exitCommitted, !busy, !coordinator.isBusy, !coordinator.isLocked,
               confirmation == nil, coordinator.confirmation == nil,
               reloadConfirmation == nil, exitConfirmation == nil, !avatarPresentationActive,
               coordinator.identity == value.identity, coordinator.viewerRevision == value.viewerRevision,
@@ -132,6 +224,7 @@ final class ProfileEditModel: ObservableObject {
         case .casePictures:
             guard text.isEmpty || text.utf8.elementsEqual(snapshot.casePics.utf8) else { return false }
             next.removesCasePictures = text.isEmpty && ProfileCasePortfolio(casePics: snapshot.casePics).imageCount > 0
+            next.casePictureSubset = nil
         case .preferences:
             guard let original = ProfilePreferenceRemoval.selection(draft: draft, snapshot: snapshot),
                   let selected = ProfilePreferenceRemoval.parse(text),
@@ -155,6 +248,18 @@ final class ProfileEditModel: ObservableObject {
         guard value.field == .casePictures else { return false }
         return confirmTextEdit(value, text: remove ? "" : value.snapshot.casePics)
     }
+    @discardableResult func confirmCasePictureSubset(_ value: ProfileTextFieldEdit, retainedIndices: [Int]) -> Bool {
+        guard value.field == .casePictures,
+              let subset = try? ProfileCasePictureSubset(source: value.snapshot.casePics, retainedIndices: retainedIndices) else { return false }
+        if retainedIndices.isEmpty, subset.originalCount > 0 {
+            return confirmCasePictureRemoval(value, remove: true)
+        }
+        // Reuse the entire one-use field/source/draft/session fence before staging.
+        guard confirmTextEdit(value, text: value.snapshot.casePics) else { return false }
+        var next = draft; next.casePictureSubset = subset.hasChanges ? subset : nil
+        draft = next
+        return true
+    }
     func ownsAvatarScope(_ scope: ProfileAvatarScope) -> Bool {
         avatarActive && scope.editorID == avatarEditorID && scope.lifetimeID == avatarLifetimeID &&
             coordinator.identity == scope.identity && coordinator.viewerRevision == scope.viewerRevision
@@ -171,10 +276,26 @@ final class ProfileEditModel: ObservableObject {
     }
     func discardAvatar(id: UUID) {
         guard !busy, !coordinator.isLocked, draft.avatarReplacement?.id == id else { return }
-        draft = .init(name: draft.name, introduction: draft.introduction, routePreferenceIDs: draft.routePreferenceIDs, caseIntroduction: draft.caseIntroduction, removesContactQR: draft.removesContactQR, removesCasePictures: draft.removesCasePictures)
+        draft = .init(name: draft.name, introduction: draft.introduction, routePreferenceIDs: draft.routePreferenceIDs, caseIntroduction: draft.caseIntroduction, removesContactQR: draft.removesContactQR, removesCasePictures: draft.removesCasePictures, casePictureSubset: draft.casePictureSubset)
     }
     func observeAvatarRetirement(_ action: @escaping () -> Void) { avatarRetirement = action }
-    func retireAvatar() { cancelExit(); reviewedDraft = nil; avatarActive = false; avatarLifetimeID = UUID(); avatarPreview = nil; avatarRetirement?() }
+    func retireAvatar() { retireTextEdit(); retireAvatarResources() }
+    /// App suspension is not an explicit cancellation of same-owner text scratch.
+    /// Removal/media editors retain the stricter retirement behavior.
+    func suspendForBackground() {
+        let retainsText: Bool
+        if let edit = textEdit, [.name, .introduction, .caseIntroduction].contains(edit.field),
+           edit.identity == coordinator.identity, edit.viewerRevision == coordinator.viewerRevision,
+           edit.generation == generation, edit.modelRevision == revision,
+           edit.draftRevision == avatarDraftRevision, Self.sameDraft(edit.draft, draft),
+           let snapshot = coordinator.snapshot, Self.sameSnapshot(edit.snapshot, snapshot) {
+            retainsText = true
+        } else { retainsText = false }
+        if !retainsText { retireTextEdit() }
+        // The existing confirmTextEdit avatarActive guard denies late Apply while suspended.
+        retireAvatarResources()
+    }
+    private func retireAvatarResources() { retirePreferencePicker(); retireSavedReturn(); cancelExit(); reviewedDraft = nil; avatarActive = false; avatarLifetimeID = UUID(); avatarPreview = nil; avatarRetirement?() }
     func activateAvatar() { avatarActive = true }
     private func avatarSaveValidity(for captured: ProfileEditDraft) -> ProfileAvatarSaveValidity? {
         guard let replacement = captured.avatarReplacement else { return nil }
@@ -232,6 +353,7 @@ final class ProfileEditModel: ObservableObject {
     func cancelReload() { reloadConfirmation = nil }
     func retireReload() { reloadContextRevision &+= 1; cancelReload(); cancelExit() }
     func requestReload() async {
+        retireSavedReturn()
         guard !exitCommitted else { return }
         guard textEdit == nil else { return }
         synchronizeContext()
@@ -284,6 +406,7 @@ final class ProfileEditModel: ObservableObject {
         await load()
     }
     func load() async {
+        retireSavedReturn()
         guard !exitCommitted else { return }
         guard textEdit == nil else { return }
         retireReload()
@@ -307,6 +430,7 @@ final class ProfileEditModel: ObservableObject {
         return true
     }
     func prepare() async {
+        retireSavedReturn()
         guard !exitCommitted else { return }
         guard textEdit == nil else { return }
         retireReload()
@@ -343,19 +467,29 @@ final class ProfileEditModel: ObservableObject {
         draft = snapshot.draft; revision += 1
         return true
     }
-    func save(_ value: ProfileEditConfirmation) async {
-        guard !exitCommitted else { return }
-        guard textEdit == nil else { return }
+    @discardableResult func save(_ value: ProfileEditConfirmation) async -> ProfileSavedReturn? {
+        let returnsReviewedDraft = canRestoreReviewedDraft(value)
+        retireSavedReturn()
+        guard !exitCommitted else { return nil }
+        guard textEdit == nil else { return nil }
         retireReload()
         synchronizeContext()
         let identity = coordinator.identity, viewerRevision = coordinator.viewerRevision
-        let request = generation; reviewedDraft = nil; confirmation = nil; busy = true
-        await coordinator.save(value)
-        guard request == generation else { return }
-        guard retainContext(identity: identity, viewerRevision: viewerRevision) else { return }
+        let request = generation, returnRevision = savedReturnRevision
+        let capturedDraft = draft, capturedDraftRevision = avatarDraftRevision
+        reviewedDraft = nil; confirmation = nil; busy = true
+        let receipt = await coordinator.save(value)
+        guard request == generation else { return nil }
+        guard retainContext(identity: identity, viewerRevision: viewerRevision) else { return nil }
+        let mayReturn = returnsReviewedDraft && !Task.isCancelled && !exitCommitted && returnRevision == savedReturnRevision
+            && capturedDraftRevision == avatarDraftRevision && Self.sameDraft(draft, capturedDraft)
         if coordinator.messageKey == "profile.edit.saved" || coordinator.messageKey == "profile.edit.changed",
            let snapshot = coordinator.snapshot { draft = snapshot.draft }
         busy = false; revision += 1
+        guard mayReturn, let receipt else { return nil }
+        savedReturnOwner = .init(receipt: receipt, generation: generation,
+            revision: savedReturnRevision, draft: draft)
+        return receipt
     }
 }
 
@@ -368,14 +502,15 @@ struct ProfileEditView: View {
     let categoryReader: (any DiscoveryReading)?
     let avatarDependencies: ProfileAvatarDependencies?
     let caseImageReader: (any RetainedPublicImageReading)?
-    @State private var showPreferences = false
+    private let onSaved: (() -> Void)?
     @State private var showReloadConfirmation = false
     @State private var showExitConfirmation = false
     private var selectedPreferences: [Int] {
         model.draft.routePreferenceIDs ?? (model.coordinator.snapshot?.tagIds ?? "").split(separator: ",").compactMap { Int($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
     }
-    init(coordinator: ProfileEditCoordinator, sessionRevision: UInt64, categoryReader: (any DiscoveryReading)? = nil, avatarDependencies: ProfileAvatarDependencies? = nil, caseImageReader: (any RetainedPublicImageReading)? = nil) {
+    init(coordinator: ProfileEditCoordinator, sessionRevision: UInt64, categoryReader: (any DiscoveryReading)? = nil, avatarDependencies: ProfileAvatarDependencies? = nil, caseImageReader: (any RetainedPublicImageReading)? = nil, onSaved: (() -> Void)? = nil) {
         _model = StateObject(wrappedValue: ProfileEditModel(coordinator: coordinator))
+        self.onSaved = onSaved
         self.sessionRevision = sessionRevision; self.categoryReader = categoryReader; self.avatarDependencies = avatarDependencies; self.caseImageReader = caseImageReader
     }
     private var editorForm: some View {
@@ -409,6 +544,10 @@ struct ProfileEditView: View {
                         Button("profile.caseRemoval.open") { model.beginTextEdit(.casePictures) }
                             .disabled(!model.canBeginTextEdit).accessibilityIdentifier("profile.caseRemoval.open")
                         if model.draft.removesCasePictures { Text("profile.caseRemoval.staged") }
+                        else if let subset = model.draft.casePictureSubset {
+                            LabeledContent("profile.caseSubset.remaining", value: String(subset.retainedCount))
+                                .accessibilityIdentifier("profile.caseSubset.stagedCount")
+                        }
                     }
                     ProfileContactQRSection(wechat: model.coordinator.snapshot?.wechat ?? "", removes: model.draft.removesContactQR) {
                         model.beginTextEdit(.contactQR)
@@ -419,8 +558,8 @@ struct ProfileEditView: View {
                         Button("profile.preferenceRemoval.open") { model.beginTextEdit(.preferences) }
                             .disabled(!model.canBeginTextEdit)
                             .accessibilityIdentifier("profile.preferenceRemoval.open")
-                        Button("context.preferences.edit") { showPreferences = true }
-                            .disabled(model.busy || model.coordinator.isLocked || model.textEdit != nil).accessibilityIdentifier("profile.edit.preferences")
+                        Button("context.preferences.edit") { model.beginPreferencePicker(reader: categoryReader) }
+                            .disabled(!model.canBeginTextEdit).accessibilityIdentifier("profile.edit.preferences")
                     }
                     Button { Task { await model.prepare() } } label: { Text("profile.edit.review") }
                         .disabled(model.busy || model.coordinator.isLocked || !model.draft.isValid
@@ -462,7 +601,7 @@ struct ProfileEditView: View {
         }
         .onChange(of: model.exitConfirmation?.id) { _, id in showExitConfirmation = id != nil }
         .onChange(of: showExitConfirmation) { _, showing in if !showing { model.cancelExit() } }
-        .onChange(of: showPreferences) { _, _ in model.cancelExit() }
+        .onChange(of: model.preferencePicker?.id) { _, _ in model.cancelExit() }
         .confirmationDialog("profile.reloadDiscard.title", isPresented: $showReloadConfirmation,
                             titleVisibility: .visible, presenting: model.reloadConfirmation) { value in
             Button("profile.reloadDiscard.confirm", role: .destructive) { _ = model.confirmReload(value) }
@@ -472,7 +611,7 @@ struct ProfileEditView: View {
         .onChange(of: model.reloadConfirmation?.id) { _, id in showReloadConfirmation = id != nil }
         .onChange(of: showReloadConfirmation) { _, showing in if !showing { model.cancelReload() } }
         .onChange(of: model.confirmation?.id) { _, _ in model.retireReload() }
-        .onChange(of: sessionRevision) { _, _ in model.retireReload() }
+        .onChange(of: sessionRevision) { _, _ in model.retireSavedReturn(); model.retireReload() }
         .onChange(of: sessionRevision) { _, _ in
             if let value = model.textEdit { model.cancelTextEdit(value) }
         }
@@ -480,38 +619,24 @@ struct ProfileEditView: View {
     var body: some View {
         editorNavigation
         .onChange(of: scenePhase) { _, phase in
-            if phase != .active { model.retireReload(); model.retireAvatar() } else { model.activateAvatar() }
+            if phase != .active { model.retireReload(); model.suspendForBackground() } else { model.activateAvatar() }
         }
-        .task(id: sessionRevision) { showPreferences = false; await model.resetAndLoad() }
-        .sheet(item: textEditPresentation) { value in
-            NavigationStack {
-                if value.field == .contactQR {
-                    ProfileContactQREditor(edit: value, reader: caseImageReader,
-                        cancel: { model.cancelTextEdit(value) },
-                        confirm: { _ = model.confirmContactQR(value, remove: $0) })
-                        .id(value.id)
-                } else if value.field == .casePictures {
-                    ProfileCasePictureRemovalEditor(edit: value,
-                        cancel: { model.cancelTextEdit(value) },
-                        confirm: { _ = model.confirmCasePictureRemoval(value, remove: $0) })
-                        .id(value.id)
-                } else if value.field == .preferences {
-                    ProfilePreferenceRemovalEditor(edit: value,
-                        cancel: { model.cancelTextEdit(value) },
-                        confirm: { _ = model.confirmPreferenceRemoval(value, selectedIDs: $0) })
-                        .id(value.id)
-                } else {
-                    ProfileTextFieldEditor(edit: value, caseImageReader: caseImageReader,
-                        cancel: { model.cancelTextEdit(value) },
-                        confirm: { _ = model.confirmTextEdit(value, text: $0) })
-                        .id(value.id)
-                }
-            }.interactiveDismissDisabled(false)
+        .task(id: sessionRevision) { model.retirePreferencePicker(); await model.resetAndLoad() }
+        .background {
+            if let edit = model.textEdit {
+                ProfileTextEditPresentationOwner(model: model, edit: edit, caseImageReader: caseImageReader)
+                    .id(edit.id)
+            }
         }
-        .sheet(isPresented: $showPreferences) {
-            NavigationStack { ProfileRoutePreferencePicker(reader: categoryReader, selected: selectedPreferences,
-                currentIdentity: { model.coordinator.identity }) { model.draft.routePreferenceIDs = $0 } }
+        .background {
+            if let edit = model.preferencePicker {
+                ProfilePreferencePickerPresentationOwner(model: model, edit: edit)
+                    .id(edit.id)
+            }
         }
+        .onChange(of: categoryReader.map { ObjectIdentifier($0) }) { _, _ in model.retirePreferencePicker() }
+        .onChange(of: categoryReader?.discoveryPresentationIdentity) { _, _ in model.retirePreferencePicker() }
+        .onChange(of: categoryReader?.isConfigured) { _, _ in model.retirePreferencePicker() }
         .onDisappear(perform: handleEditorDisappear)
         .sheet(item: $model.confirmation) { value in
             NavigationStack {
@@ -528,13 +653,21 @@ struct ProfileEditView: View {
                         }
                         if value.payload.removesContactQR { Text("profile.contactQR.reviewRemoval") }
                         if value.payload.removesCasePictures { Text("profile.caseRemoval.review") }
+                        else if let subset = value.payload.casePictureSubset {
+                            LabeledContent("profile.caseSubset.remaining", value: String(subset.retainedCount))
+                        }
                         if let ids = value.payload.preferenceIDs {
                             ProfilePreferenceRemovalReview(ids: ids)
                         }
                         if value.payload.avatarReplacement != nil { Text("profile.avatar.confirmChange") }
                         Text("profile.edit.confirmHint")
                     }
-                    Button { Task { await model.save(value) } } label: { Text("profile.edit.confirm") }
+                    Button {
+                        Task {
+                            guard let receipt = await model.save(value), model.consumeSavedReturn(receipt) else { return }
+                            if let onSaved { onSaved() } else { dismiss() }
+                        }
+                    } label: { Text("profile.edit.confirm") }
                         .accessibilityIdentifier("profile.edit.confirm")
                     Button(role: .cancel) {
                         model.coordinator.cancel(value); model.confirmation = nil
@@ -542,13 +675,6 @@ struct ProfileEditView: View {
                 }.appNavigationTitle("profile.edit.reviewTitle")
             }.interactiveDismissDisabled(model.busy)
         }
-    }
-    /// Capture this presentation's token so a delayed swipe-dismissal cannot cancel its successor.
-    private var textEditPresentation: Binding<ProfileTextFieldEdit?> {
-        let presented = model.textEdit
-        return .init(get: { model.textEdit }, set: { value in
-            if value == nil, let presented { model.cancelTextEdit(presented) }
-        })
     }
     private func textFieldRow(_ field: ProfileTextField, value: String) -> some View {
         Button { model.beginTextEdit(field) } label: {
@@ -568,9 +694,66 @@ struct ProfileEditView: View {
     }
 
     private func handleEditorDisappear() {
-        if !showPreferences, model.textEdit == nil, model.confirmation == nil, !model.avatarPresentationActive { model.retireAvatar() }
+        if model.preferencePicker == nil, model.textEdit == nil, model.confirmation == nil, !model.avatarPresentationActive { model.retireAvatar() }
         model.retireReload()
         if let value = model.confirmation { model.coordinator.cancel(value) }
     }
 
+}
+
+/// The stable form mounts a separate presenter only after an exact editor exists.
+/// Every callback keeps that UUID even if another editor is opened before dismissal completes.
+@MainActor private struct ProfileTextEditPresentationOwner: View {
+    @ObservedObject var model: ProfileEditModel
+    let edit: ProfileTextFieldEdit
+    let caseImageReader: (any RetainedPublicImageReading)?
+    var body: some View {
+        Color.clear.frame(width: 0, height: 0)
+            .sheet(item: model.textEditPresentation(for: edit), onDismiss: { model.cancelTextEdit(edit) }) { value in
+            NavigationStack {
+                if value.field == .contactQR {
+                    ProfileContactQREditor(edit: value, reader: caseImageReader,
+                        cancel: { model.cancelTextEdit(value) },
+                        confirm: { _ = model.confirmContactQR(value, remove: $0) })
+                        .id(value.id)
+                } else if value.field == .casePictures {
+                    ProfileCasePictureRemovalEditor(edit: value, reader: caseImageReader,
+                        cancel: { model.cancelTextEdit(value) },
+                        confirm: { _ = model.confirmCasePictureRemoval(value, remove: $0) },
+                        confirmSubset: { _ = model.confirmCasePictureSubset(value, retainedIndices: $0) })
+                        .id(value.id)
+                } else if value.field == .preferences {
+                    ProfilePreferenceRemovalEditor(edit: value,
+                        cancel: { model.cancelTextEdit(value) },
+                        confirm: { _ = model.confirmPreferenceRemoval(value, selectedIDs: $0) })
+                        .id(value.id)
+                } else {
+                    ProfileTextFieldEditor(edit: value, caseImageReader: caseImageReader,
+                        cancel: { model.cancelTextEdit(value) },
+                        confirm: { _ = model.confirmTextEdit(value, text: $0) })
+                        .id(value.id)
+                }
+            }.interactiveDismissDisabled(false)
+        }
+    }
+}
+
+/// The stable form mounts this presenter only after a concrete picker UUID exists.
+@MainActor private struct ProfilePreferencePickerPresentationOwner: View {
+    @ObservedObject var model: ProfileEditModel
+    let edit: ProfilePreferencePickerEdit
+    private var categoryReader: (any DiscoveryReading)? { edit.reader }
+    private var selectedPreferences: [Int] { edit.selected }
+    var body: some View {
+        Color.clear.frame(width: 0, height: 0)
+            .sheet(item: model.preferencePickerPresentation(for: edit),
+                   onDismiss: { model.cancelPreferencePicker(edit) }) { offered in
+                NavigationStack {
+                    ProfileRoutePreferencePicker(reader: categoryReader, selected: selectedPreferences,
+                        currentIdentity: { model.preferencePickerIdentity(offered) }) {
+                            _ = model.confirmPreferencePicker(offered, selectedIDs: $0)
+                        }
+                }
+            }
+    }
 }

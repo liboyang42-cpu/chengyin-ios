@@ -1,0 +1,342 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "templateSensor.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sensor configuration rehearsal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "传感器配置预演"
+          }
+        }
+      }
+    },
+    "templateSensor.boundary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Author-only simulation. No microphone, location or compass is used. This does not verify arrival, complete a task or award anything."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅供创作者模拟。不使用麦克风、定位或罗盘，不验证到场、不完成任务、不发奖励。"
+          }
+        }
+      }
+    },
+    "templateSensor.virtualTime": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each click advances one virtual second using the values below. Nothing runs in the background."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每次点击按下方数值推进一秒模拟时间，后台不会继续计时。"
+          }
+        }
+      }
+    },
+    "templateSensor.held": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simulated continuous hold (seconds)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模拟连续保持（秒）"
+          }
+        }
+      }
+    },
+    "templateSensor.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear and try again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清空并重试"
+          }
+        }
+      }
+    },
+    "templateSensor.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft or account changed. Reload the current valid configuration."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿或账号已变化，请重新载入当前有效配置。"
+          }
+        }
+      }
+    },
+    "templateSensor.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload configuration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新载入配置"
+          }
+        }
+      }
+    },
+    "templateSensor.target": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configured target and tolerance"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置目标与容差"
+          }
+        }
+      }
+    },
+    "templateSensor.bearing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simulated bearing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模拟方位"
+          }
+        }
+      }
+    },
+    "templateSensor.accuracy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simulated accuracy error"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模拟精度误差"
+          }
+        }
+      }
+    },
+    "templateSensor.peak": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simulated sound level"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模拟声音强度"
+          }
+        }
+      }
+    },
+    "templateSensor.threshold": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simulated loud threshold"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模拟响度阈值"
+          }
+        }
+      }
+    },
+    "templateSensor.baseline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uses a fixed simulated quiet baseline of 0.10. This is not a real microphone calibration."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用固定 0.10 模拟安静基线，不代表真实麦克风校准。"
+          }
+        }
+      }
+    },
+    "templateSensor.advance": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simulate one second"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模拟一秒"
+          }
+        }
+      }
+    },
+    "templateSensor.feedback.ready": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready for virtual input"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待模拟输入"
+          }
+        }
+      }
+    },
+    "templateSensor.feedback.aligned": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aligned. Continue the simulated hold."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "方向已对准，继续模拟保持。"
+          }
+        }
+      }
+    },
+    "templateSensor.feedback.turn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outside tolerance. Continuous hold resets."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "方向超出容差，连续保持已重置。"
+          }
+        }
+      }
+    },
+    "templateSensor.feedback.inaccurate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accuracy is insufficient. Continuous hold resets."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "精度不足，连续保持已重置。"
+          }
+        }
+      }
+    },
+    "templateSensor.feedback.loud": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Above threshold. Continue the simulated hold."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高于阈值，继续模拟保持。"
+          }
+        }
+      }
+    },
+    "templateSensor.feedback.quiet": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "At or below threshold. Continuous hold resets."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未高于阈值，连续保持已重置。"
+          }
+        }
+      }
+    },
+    "templateSensor.feedback.matched": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simulation reached the configured condition. No real task was completed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模拟已达到配置条件，未完成任何真实任务。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

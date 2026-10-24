@@ -38,6 +38,114 @@ import XCTest
         }
         XCTAssertEqual(writer.mutations, [.read(conversationID: 9), .mute(conversationID: 9, muted: true)])
     }
+    func testControlsReceiptInvalidatesOffscreenListAndReturnReadsAuthoritativeData() async throws {
+        for mutation in [IMMutation.read(conversationID: 9), .mute(conversationID: 9, muted: true), .mute(conversationID: 9, muted: false)] {
+            let writer = Writer(), model = try expandedModel(writer), reader = Reader()
+            let list = MessagingReadScreenModel<Int>(), system = try policy(2)
+            let initial = try XCTUnwrap(list.appear(reader: reader, refreshRevision: 0))
+            var reads = 0
+            await list.perform(initial) { reads += 1; return 1 }
+            list.disappear()
+            XCTAssertNil(list.appear(reader: reader, refreshRevision: 0))
+            XCTAssertEqual(list.value, 1)
+            list.disappear()
+            XCTAssertTrue(model.review(mutation, permits: system.permits))
+            let token = try XCTUnwrap(model.prepare(.confirm, permits: system.permits))
+            var receipts = 0
+            let consume: (IMScope) -> Void = { scope in
+                receipts += 1
+                XCTAssertEqual(scope.conversationID, 9)
+                list.invalidate(reader: reader, identity: scope.identity)
+            }
+            let accepted = await model.perform(token, permits: system.permits, onConversationMutationAccepted: consume)
+            XCTAssertTrue(accepted); XCTAssertNil(list.value); XCTAssertNil(list.appearance)
+            XCTAssertEqual(reads, 1); XCTAssertEqual(receipts, 1)
+            _ = await model.perform(token, permits: system.permits, onConversationMutationAccepted: consume)
+            XCTAssertEqual(receipts, 1)
+            let returning = try XCTUnwrap(list.appear(reader: reader, refreshRevision: 0))
+            await list.perform(returning) { reads += 1; return 2 }
+            XCTAssertEqual(list.value, 2); XCTAssertEqual(reads, 2)
+            list.disappear()
+            XCTAssertNil(list.appear(reader: reader, refreshRevision: 0))
+        }
+    }
+    func testLateControlsReceiptAfterExitInvalidatesWithoutRevivingAppearance() async throws {
+        for mutation in [IMMutation.read(conversationID: 9), .mute(conversationID: 9, muted: true), .mute(conversationID: 9, muted: false)] {
+            for reopen in [false, true] {
+                let writer = Writer(), model = try expandedModel(writer), system = try policy(2)
+                writer.suspend = true
+                let started = expectation(description: "controls dispatched")
+                writer.onSuspend = { started.fulfill() }
+                XCTAssertTrue(model.review(mutation, permits: system.permits))
+                let token = try XCTUnwrap(model.prepare(.confirm, permits: system.permits))
+                var receipts = 0
+                let task = Task { await model.perform(token, permits: system.permits,
+                    onConversationMutationAccepted: { _ in receipts += 1 }) }
+                await fulfillment(of: [started], timeout: 2)
+                model.retire()
+                if reopen { model.observe() }
+                let retiredState = model.state, appearance = model.appearance
+                writer.resume()
+                let accepted = await task.value
+                XCTAssertFalse(accepted); XCTAssertEqual(receipts, 1)
+                XCTAssertEqual(model.appearance, appearance); XCTAssertEqual(model.state, retiredState)
+                XCTAssertEqual(writer.mutations, [mutation])
+            }
+        }
+    }
+    func testQueuedControlsReadRetiredBeforeDispatchDoesNotInvalidate() async throws {
+        let writer = Writer(), model = try expandedModel(writer), system = try policy(2)
+        XCTAssertTrue(model.review(.read(conversationID: 9), permits: system.permits))
+        let token = try XCTUnwrap(model.prepare(.confirm, permits: system.permits))
+        model.retire(); model.observe()
+        _ = await model.perform(token, permits: system.permits,
+            onConversationMutationAccepted: { _ in XCTFail("Retired confirmation must not invalidate") })
+        XCTAssertTrue(writer.mutations.isEmpty)
+    }
+    func testControlsReceiptRejectsUnknownMismatchCancellationAndOldEpoch() async throws {
+        for outcome in ["unknown", "wrongReceipt", "wrongMute", "cancel", "epoch"] {
+            let writer = Writer(), model = try expandedModel(writer), system = try policy(2)
+            writer.suspend = true
+            writer.fail = outcome == "unknown"
+            if outcome == "wrongReceipt" { writer.receiptOverride = .started(conversationID: 9) }
+            if outcome == "wrongMute" { writer.receiptOverride = .muted(false) }
+            let started = expectation(description: outcome)
+            writer.onSuspend = { started.fulfill() }
+            XCTAssertTrue(model.review(.mute(conversationID: 9, muted: true), permits: system.permits))
+            let token = try XCTUnwrap(model.prepare(.confirm, permits: system.permits))
+            var receipts = 0
+            let task = Task { await model.perform(token, permits: system.permits,
+                onConversationMutationAccepted: { _ in receipts += 1 }) }
+            await fulfillment(of: [started], timeout: 2)
+            if outcome == "cancel" { task.cancel() }
+            if outcome == "epoch" { writer.identity = .init(accountID: 7, epoch: 2) }
+            writer.resume()
+            let accepted = await task.value
+            XCTAssertFalse(accepted, outcome)
+            XCTAssertEqual(receipts, 0, outcome)
+        }
+    }
+    func testLateControlsReceiptCannotInvalidateReplacementReaderOrAccount() async throws {
+        for replaceReader in [false, true] {
+            let writer = Writer(), model = try expandedModel(writer), system = try policy(2)
+            let old = Reader(), replacement = Reader(), list = MessagingReadScreenModel<Int>()
+            let initial = try XCTUnwrap(list.appear(reader: old, refreshRevision: 0))
+            await list.perform(initial) { 1 }
+            writer.suspend = true
+            let started = expectation(description: "old source dispatched")
+            writer.onSuspend = { started.fulfill() }
+            XCTAssertTrue(model.review(.read(conversationID: 9), permits: system.permits))
+            let token = try XCTUnwrap(model.prepare(.confirm, permits: system.permits))
+            let task = Task { await model.perform(token, permits: system.permits,
+                onConversationMutationAccepted: { scope in list.invalidate(reader: old, identity: scope.identity) }) }
+            await fulfillment(of: [started], timeout: 2)
+            if !replaceReader { old.identity = .init(accountID: 8, epoch: 2) }
+            let next = try XCTUnwrap(list.appear(reader: replaceReader ? replacement : old, refreshRevision: 0))
+            await list.perform(next) { 2 }
+            writer.resume(); _ = await task.value
+            XCTAssertEqual(list.value, 2); XCTAssertEqual(list.invalidationRevision, 0)
+        }
+    }
     func testQueuedTextRevocationConsumesTokenWithoutRevival() async throws {
         let writer = Writer(), model = textModel(writer)
         let token = try XCTUnwrap(model.prepare(.send("hello"), identity: identity, canReply: true))
@@ -260,6 +368,7 @@ import XCTest
         var texts: [MessageTextIntent] = [], mutations: [IMMutation] = []
         var uploads = 0
         var onSuspend: (() -> Void)?
+        var receiptOverride: IMMutationReceipt?
         private var continuation: CheckedContinuation<Void, Never>?
         func resume() { let pending = continuation; continuation = nil; pending?.resume() }
         func send(_ intent: MessageTextIntent, expectedIdentity: MessagingReadIdentity) async throws -> MessagingMessage {
@@ -270,7 +379,9 @@ import XCTest
         }
         func perform(_ mutation: IMMutation, expectedIdentity: MessagingReadIdentity) async throws -> IMMutationReceipt {
             mutations.append(mutation)
+            if suspend { await withCheckedContinuation { continuation = $0; onSuspend?() } }
             if fail { throw URLError(.timedOut) }
+            if let receiptOverride { return receiptOverride }
             switch mutation {
             case .read: return .read
             case .mute(_, let muted): return .muted(muted)

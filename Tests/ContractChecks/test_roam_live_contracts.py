@@ -33,7 +33,7 @@ class LiveRoamContracts(unittest.TestCase):
             self.assertNotIn(value, data)
         view = source('App/RoamLiveSessionView.swift')
         self.assertIn('owner.setForeground(value == .active)', view)
-        self.assertIn('.onDisappear { owner.pause() }', view)
+        self.assertIn('.onDisappear { nearbyExpanded = true; browse.parentHidden(); owner.pause() }', view)
         catalog = json.loads(source('Resources/Localizable.xcstrings'))['strings']
         self.assertIn('five minutes', catalog['roam.live.presencePrivacy']['localizations']['en']['stringUnit']['value'])
     def test_registration_shop_domain_is_not_node_id(self):

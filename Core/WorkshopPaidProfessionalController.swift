@@ -23,6 +23,7 @@ import Observation
 @MainActor @Observable public final class WorkshopPaidProfessionalController {
     public enum Phase: Equatable { case idle, loading, history, targets, review, submitting, operation, unavailable, invalidated }
     public typealias Action = @MainActor () async -> Void
+    public private(set) var generatedDetailRevision = UUID()
     public let reference: WorkshopPaidInstalledTextReference
     public private(set) var phase: Phase = .idle
     public private(set) var issue: WorkshopPaidProfessionalIssue?
@@ -46,6 +47,16 @@ import Observation
                 lease: ContentDraftSessionLease) {
         self.reference = reference; self.service = service; self.preparation = preparation; self.store = store; self.lease = lease
     }
+    /// Historical creation identifies a destination only. It grants no current read authority.
+    /// Recheck at click and before/after an independently approved owned-template read.
+    public func generatedTemplateID(_ displayed: WorkshopPaidProfessionalAppearance,
+                                    expected: WorkshopPaidProfessionalOperation) -> Int64? {
+        guard lease.isCurrent, phase == .operation, appearance === displayed, !displayed.closed,
+              operation == expected, expected.state == .created,
+              let command, expected.matches(command),
+              let creation = expected.creation, creation.state == .committed else { return nil }
+        return creation.templateId
+    }
     public func invalidate() {
         appearance?.revoke(); appearance = nil; lifetime?.revoke(); lifetime = nil; lease.revoke()
         clearVisible(); phase = .invalidated; issue = .staleSession
@@ -57,6 +68,7 @@ import Observation
         // Durable intent stays until the server returns a matching terminal operation.
     }
     private func clearVisible() {
+        generatedDetailRevision = UUID()
         body = nil; selectedTarget = nil; currentDraft = nil; targets = []; nextTargetCursor = nil
         operations = []; nextOperationCursor = nil; command = nil; operation = nil
     }
@@ -72,6 +84,7 @@ import Observation
     private func offer(_ displayed: WorkshopPaidProfessionalAppearance, phase next: Phase,
                        work: @escaping @MainActor (WorkshopPaidProfessionalLifetime) async throws -> Void) -> Action? {
         guard current(displayed) else { return nil }
+        generatedDetailRevision = UUID()
         displayed.action?.revoke(); lifetime?.revoke()
         let action = WorkshopPaidProfessionalAction(displayed); displayed.action = action
         let life = WorkshopPaidProfessionalLifetime { [weak self, weak displayed, weak action] in

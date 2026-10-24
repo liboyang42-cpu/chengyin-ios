@@ -72,14 +72,19 @@ struct MerchantContentBoundary: View {
     var body: some View { Label("merchant.content.disabled", systemImage: "lock.shield").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("merchant.content.boundary") }
 }
 @MainActor struct MerchantContentDocumentView: View {
+    @Environment(\.locale) private var locale
     @Environment(\.merchantCouponManagementDestination) private var couponManagementDestination
+    let participantsFactory: MerchantProjectParticipantsReadFactory?
+    let readOnlyProject: Bool
     let service: any MerchantContentServing
     let query: MerchantContentQuery
     let focusedTopicID: Int?
     let focusedMerchantID: Int?
     let projectEntryIsCurrent: (() -> Bool)?
     @StateObject private var model: MerchantContentViewModel
-    init(service: any MerchantContentServing, query: MerchantContentQuery, focusedTopicID: Int? = nil, focusedMerchantID: Int? = nil, projectEntryIsCurrent: (() -> Bool)? = nil) {
+    init(service: any MerchantContentServing, query: MerchantContentQuery, focusedTopicID: Int? = nil, focusedMerchantID: Int? = nil, projectEntryIsCurrent: (() -> Bool)? = nil, readOnlyProject: Bool = false, participantsFactory: MerchantProjectParticipantsReadFactory? = nil) {
+        self.participantsFactory = participantsFactory
+        self.readOnlyProject = readOnlyProject
         self.service = service; self.query = query; self.focusedTopicID = focusedTopicID; self.focusedMerchantID = focusedMerchantID
         self.projectEntryIsCurrent = projectEntryIsCurrent
         _model = StateObject(wrappedValue: .init(service: service, query: query, focusedTopicID: focusedTopicID, focusedMerchantID: focusedMerchantID, projectEntryIsCurrent: projectEntryIsCurrent))
@@ -91,7 +96,7 @@ struct MerchantContentBoundary: View {
                 MerchantContentBoundary()
                 if !model.projectPresentationIsCurrent { Text("merchant.projectWorkspace.changed") }
                 else {
-                MerchantContentStatus(model: model)
+                MerchantContentStatus(model: model, allowsRecovery: !readOnlyProject)
                 if c.isCurrent, let snapshot = c.snapshot {
                     if query == .recruiting, let focusedMerchantID, snapshot.access.merchantID != focusedMerchantID {
                         Text("merchantMarketing.stale").accessibilityIdentifier("merchant.insightNavigation.storeChanged")
@@ -120,7 +125,7 @@ struct MerchantContentBoundary: View {
             if focus.unavailable { Text("merchant.insightNavigation.notLoaded").font(.footnote).accessibilityIdentifier("merchant.insightNavigation.notLoaded") }
             MerchantContentRows(service: service, model: model, rows: focus.rows, kind: .query(query), focusedTopicID: focus.matchedID)
         case .chapters(let topic): MerchantContentRecruitView(service: service, snapshot: s, topicID: topic)
-        case .project(let topic): MerchantContentProjectView(service: service, model: model, value: s.value, topicID: topic)
+        case .project(let topic): MerchantContentProjectView(service: service, model: model, value: s.value, topicID: topic, readOnly: readOnlyProject, participantsDestination: participantsDestination(s))
         case .city:
             let quota = MerchantCityQuota(catalog: s.value)
             MerchantCityQuotaSummary(quota: quota, canRetry: !c.busy && !c.locked && c.review == nil) {
@@ -146,6 +151,9 @@ struct MerchantContentBoundary: View {
         case .players:
             if let hint = s.value["contactHint"].text { Text(verbatim: hint).font(.footnote).accessibilityIdentifier("merchant.content.contactHint") }
             MerchantContentFields(value: s.value["summary"], names: ["paidCount", "arrivedCount", "pendingCount", "refundedCount"])
+            if readOnlyProject, let contacted = s.value["summary"]["contactedCount"].integer {
+                LabeledContent(locale.language.languageCode?.identifier == "zh" ? "已联系" : "Contacted", value: String(contacted))
+            }
             MerchantContentRows(service: service, model: model, rows: s.rows, kind: .player)
         case .npc(let node):
             if s.value == .null { Text("merchant.content.npcUnconfigured") }
@@ -165,10 +173,22 @@ struct MerchantContentBoundary: View {
             if let total = s.value["total"].integer, total > s.rows.count { Text("merchant.content.firstPageOnly").font(.footnote) }
         }
     }
+    private func participantsDestination(_ snapshot: MerchantContentSnapshot) -> (() -> AnyView)? {
+        guard readOnlyProject, let factory = participantsFactory, let topicID = focusedTopicID, let merchantID = focusedMerchantID,
+              model.projectPresentationIsCurrent, c.isCurrent, snapshot.query == .project(topicID: topicID),
+              snapshot.access.merchantID == merchantID, MerchantOrdinaryParticipantsProjection.allowsHost(snapshot.value) else { return nil }
+        return {
+            AnyView(MerchantProjectParticipantsReadHost(factory: factory, topicID: topicID, merchantID: merchantID, parentSnapshot: snapshot, isCurrent: {
+                model.projectPresentationIsCurrent && c.isCurrent && c.snapshot == snapshot && c.snapshot?.observedAt == snapshot.observedAt
+            }))
+        }
+    }
+
 }
 @MainActor struct MerchantContentStatus: View {
     @ObservedObject var model: MerchantContentViewModel
     @State private var confirmsRetry = false
+    var allowsRecovery = true
     var allowsReload = true
     var reload: (() async -> Void)? = nil
     var body: some View {
@@ -176,7 +196,7 @@ struct MerchantContentBoundary: View {
         if c.loadedScope == c.service.scope {
             if let message = c.serverMessage { Text(verbatim: message).accessibilityIdentifier("merchant.content.serverMessage") }
             if let issue = c.issue { Text(LocalizedStringKey(issue)).font(.footnote).accessibilityIdentifier("merchant.content.issue") }
-            if c.locked {
+            if c.locked && allowsRecovery {
                 Button("merchant.content.reconcile") { Task { await model.reconcile() } }.disabled(c.busy)
                 Button("merchant.content.retryOriginal") { confirmsRetry = true }.disabled(c.busy || !c.service.permitsWrites)
                     .confirmationDialog("merchant.content.retryOriginalWarning", isPresented: $confirmsRetry, titleVisibility: .visible) {
@@ -372,12 +392,22 @@ struct MerchantContentFields: View {
     @ObservedObject var model: MerchantContentViewModel
     let value: MerchantContentValue
     let topicID: Int?
+    var readOnly = false
+    var participantsDestination: (() -> AnyView)? = nil
     var body: some View {
         MerchantContentFields(value: value["topic"], names: ["name", "title", "city"])
         // Host and participant are independent source projections; both can be present.
         if value["host"].object != nil {
             Text("merchant.content.hosting").font(.headline)
             MerchantContentFields(value: value["host"]["recruit"], names: ["nodeFilled", "nodeTotal", "pendingCount"])
+            if readOnly, !(value["topic"]["circleThemeCode"].text ?? "").isEmpty {
+                MerchantContentFields(value: value["topic"], names: ["circleReviewedAt"])
+            }
+            if readOnly, let participantsDestination {
+                NavigationLink("merchant.content.players") { participantsDestination() }
+                    .accessibilityIdentifier("merchant.project.participants.read")
+            }
+            if !readOnly {
             NavigationLink("merchant.content.players") { MerchantContentDocumentView(service: service, query: .players(topicID: topicID)) }
             if let topicID {
                 NavigationLink("merchant.content.reviews") { MerchantContentDocumentView(service: service, query: .ownerApplications(topicID: topicID)) }
@@ -389,11 +419,12 @@ struct MerchantContentFields: View {
                     Text("merchant.content.circleRules").font(.footnote)
                 }
             }
+            }
         }
         if value["join"].object != nil {
             Text("merchant.content.joining").font(.headline)
             MerchantContentFields(value: value["join"]["registration"], names: ["addressName", "status", "auditStatus"])
-            NavigationLink("merchant.content.registrations") { MerchantContentDocumentView(service: service, query: .registrations(filter: 0)) }
+            if !readOnly { NavigationLink("merchant.content.registrations") { MerchantContentDocumentView(service: service, query: .registrations(filter: 0)) } }
         }
         if value["host"].object == nil && value["join"].object == nil { Text("merchant.content.noWorkspace") }
     }

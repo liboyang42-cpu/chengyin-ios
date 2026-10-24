@@ -12,7 +12,8 @@ public struct RoamSettlement: Decodable, Equatable {
     public let medal: String?
     public let sessionShops: Int?
     public let shopMedal: RoamShopBadge?
-    enum CodingKeys: String, CodingKey { case tileXp, poiXp, totalXp, newTiles, newPois, tilesEver, medal, sessionShops, shopMedal }
+    public let routeStory: String?
+    enum CodingKeys: String, CodingKey { case tileXp, poiXp, totalXp, newTiles, newPois, tilesEver, medal, sessionShops, shopMedal, routeStory }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         tileXp = try c.decodeIfPresent(Int.self, forKey: .tileXp)
@@ -24,6 +25,12 @@ public struct RoamSettlement: Decodable, Equatable {
         sessionShops = try c.decodeIfPresent(Int.self, forKey: .sessionShops)
         medal = try c.roamText(.medal)
         shopMedal = try c.decodeIfPresent(RoamShopBadge.self, forKey: .shopMedal)
+        routeStory = Self.displayableStory(try? c.decode(String.self, forKey: .routeStory))
+    }
+    // Optional display content cannot change whether settlement facts are complete.
+    private static func displayableStory(_ value: String?) -> String? {
+        guard let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+        return value
     }
     public var hasRequiredFacts: Bool {
         [tileXp, poiXp, totalXp, newTiles, newPois, tilesEver, sessionShops].allSatisfy { $0 != nil }

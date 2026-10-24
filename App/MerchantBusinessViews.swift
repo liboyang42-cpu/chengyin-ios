@@ -7,7 +7,86 @@ import SwiftUI
     private(set) var aftercareLoadedPages: MerchantAftercareLoadedPages?
     private(set) var aftercareLoadFailureKey: String?
     private(set) var reviewLoadedPages: MerchantReviewLoadedPages?
+    private var refundPreviewValue: MerchantLedgerRefundPreview?
+    private var refundPreviewBaseline: MerchantBusinessSnapshot?
+    private var refundPreviewScope: MerchantBusinessScope?
+    private var refundPreviewAuthorization: UUID?
+    private var refundPreviewVisible = false
+    private var refundPreviewActive = false
+    private var refundPreviewPermit = UUID()
+    func ledgerPreviewAppeared(active: Bool) {
+        refundPreviewVisible = true; refundPreviewActive = active; refundPreviewPermit = UUID()
+    }
+    func ledgerPreviewDisappeared() {
+        refundPreviewVisible = false; ledgerPreviewSceneChanged(active: false)
+    }
+    func ledgerPreviewSceneChanged(active: Bool) {
+        refundPreviewActive = refundPreviewVisible && active; refundPreviewPermit = UUID()
+        refundPreviewValue = nil; refundPreviewBaseline = nil; revision += 1
+    }
+    var ledgerRefundPreview: MerchantLedgerRefundPreview? {
+        guard refundPreviewVisible, refundPreviewActive, coordinator.reader.isConfigured, coordinator.isCurrent,
+              coordinator.reader.scope == refundPreviewScope,
+              coordinator.reader.authorizationGeneration == refundPreviewAuthorization,
+              coordinator.snapshot == refundPreviewBaseline else { return nil }
+        return refundPreviewValue
+    }
+    private(set) var customerQueryAuthorization: (scope: MerchantBusinessScope, authorization: UUID?)?
     private var loadGeneration = 0
+    private struct TeamResult {
+        let query: MerchantBusinessQuery
+        let id: UUID
+        let scope: MerchantBusinessScope
+        let authorization: UUID?
+        let merchantID: Int
+        let receipt: MerchantBusinessReceipt
+    }
+    private struct TeamReadRecovery {
+        let query: MerchantBusinessQuery
+        let id: UUID
+        let scope: MerchantBusinessScope
+        let authorization: UUID?
+        let merchantID: Int
+    }
+    private var teamReadRecovery: TeamReadRecovery?
+    var teamRecoveryID: UUID? {
+        guard teamPageVisible, teamPageActive, let recovery = teamReadRecovery,
+              coordinator.reader.scope == recovery.scope,
+              coordinator.reader.authorizationGeneration == recovery.authorization else { return nil }
+        return recovery.id
+    }
+    func retryTeamRead(_ id: UUID) async {
+        guard teamRecoveryID == id, let recovery = teamReadRecovery, !coordinator.isBusy else { return }
+        await load(recovery.query, appendAftercare: false, expectedTeamRecovery: id,
+                   expectedTeamMerchantID: recovery.merchantID)
+    }
+    private var teamResult: TeamResult?
+    private var teamPageVisible = false
+    private var teamPageActive = false
+    var teamReturnReceipt: MerchantBusinessReceipt? {
+        guard teamPageVisible, teamPageActive, let result = teamResult,
+              coordinator.reader.scope == result.scope,
+              coordinator.reader.authorizationGeneration == result.authorization else { return nil }
+        return result.receipt
+    }
+    func teamPageAppeared(active: Bool) { teamPageVisible = true; teamPageSceneChanged(active: active) }
+    func teamPageSceneChanged(active: Bool) {
+        teamPageActive = teamPageVisible && active
+        if !teamPageActive {
+            if teamPageVisible, let result = teamResult {
+                teamReadRecovery = .init(query: result.query, id: result.id, scope: result.scope,
+                                         authorization: result.authorization, merchantID: result.merchantID)
+            }
+            teamResult = nil
+        }
+        revision += 1
+    }
+    func teamPageDisappeared() { teamPageVisible = false; teamPageSceneChanged(active: false); teamReadRecovery = nil }
+
+    static func resultRefreshQuery(_ query: MerchantBusinessQuery) -> MerchantBusinessQuery? {
+        switch query { case .operators: return .operators; case .reviews: return .reviews(page: 1); default: return nil }
+    }
+
     private var filterScope: MerchantBusinessScope?
     private var filterMerchantID: Int?
     init(reader: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore) { coordinator = .init(reader: reader, journal: journal) }
@@ -35,17 +114,24 @@ import SwiftUI
               pages.matches(scope: coordinator.reader.scope, authorizationGeneration: coordinator.reader.authorizationGeneration, access: snapshot.access) else { return nil }
         return pages.sourcePage(for: row)
     }
-    private func load(_ requested: MerchantBusinessQuery, appendAftercare: Bool, appendReviews: Bool = false) async {
+    private func load(_ requested: MerchantBusinessQuery, appendAftercare: Bool, appendReviews: Bool = false, expectedTeamResult: UUID? = nil, expectedTeamRecovery: UUID? = nil, expectedTeamMerchantID: Int? = nil) async {
         // A refresh always starts a fresh page-one generation. No old rows survive
         // a refresh, failed replacement, bucket/context change or dismissal.
+        let resultQuery = Self.resultRefreshQuery(requested)
+        if teamReadRecovery?.query != resultQuery { teamReadRecovery = nil }
+        if teamResult?.query != resultQuery || teamReturnReceipt == nil { teamResult = nil }
         let query: MerchantBusinessQuery
         if case .aftercare = requested, !appendAftercare { query = requested.paged(1) }
+        else if !appendReviews, let result = teamResult, result.query == resultQuery { query = result.query }
         else { query = requested }
         if filterScope != coordinator.reader.scope { listFilters = .init(); filterMerchantID = nil }
         filterScope = coordinator.reader.scope
         if !appendAftercare { aftercareLoadedPages = nil }
         if !appendReviews { reviewLoadedPages = nil }
         aftercareLoadFailureKey = nil
+        refundPreviewValue = nil; refundPreviewBaseline = nil
+        let previewPermit = refundPreviewVisible && refundPreviewActive ? refundPreviewPermit : nil
+        customerQueryAuthorization = nil
         loadGeneration += 1
         let generation = loadGeneration, scope = coordinator.reader.scope, authorization = coordinator.reader.authorizationGeneration
         revision += 1; await coordinator.load(query)
@@ -54,9 +140,23 @@ import SwiftUI
         guard !Task.isCancelled, scope == coordinator.reader.scope, authorization == coordinator.reader.authorizationGeneration else {
             aftercareLoadedPages = nil; reviewLoadedPages = nil; coordinator.invalidate(); return
         }
+        if let expectedTeamResult, (teamResult?.id != expectedTeamResult || teamReturnReceipt == nil) {
+            coordinator.invalidate(); return
+        }
+        if let expectedTeamRecovery, teamRecoveryID != expectedTeamRecovery {
+            coordinator.invalidate(); return
+        }
         guard coordinator.isCurrent, let snapshot = coordinator.snapshot, snapshot.document.query == query, coordinator.failureKey == nil else {
             aftercareLoadedPages = nil; reviewLoadedPages = nil; return
         }
+        if let expectedTeamMerchantID, snapshot.access.merchantID != expectedTeamMerchantID {
+            teamReadRecovery = nil; coordinator.invalidate(); aftercareLoadFailureKey = "merchant.business.stale"; return
+        }
+        if expectedTeamRecovery != nil { teamReadRecovery = nil }
+        if let result = teamResult, snapshot.access.merchantID != result.merchantID {
+            teamResult = nil; coordinator.invalidate(); aftercareLoadFailureKey = "merchant.business.stale"; revision += 1; return
+        }
+        if case .customers = query, let scope { customerQueryAuthorization = (scope, authorization) }
         let currentMerchant = snapshot.access.merchantID
         if let filterMerchantID, filterMerchantID != currentMerchant { listFilters = .init() }
         filterMerchantID = currentMerchant
@@ -73,6 +173,11 @@ import SwiftUI
                 reviewLoadedPages = nil; coordinator.invalidate(); aftercareLoadFailureKey = "merchant.business.stale"
             }
         }
+        if case .redemptions(let filter, _) = query, let scope, let previewPermit,
+           !MerchantLedgerRefundPreview.buckets(filter: filter).isEmpty {
+            await loadRefundPreview(snapshot, filter: filter, generation: generation, permit: previewPermit,
+                                    scope: scope, authorization: authorization)
+        }
         if case .aftercare = query, let scope {
             do {
                 if appendAftercare {
@@ -85,6 +190,52 @@ import SwiftUI
             } catch {
                 aftercareLoadedPages = nil; coordinator.invalidate(); aftercareLoadFailureKey = "merchant.business.stale"
             }
+        }
+    }
+    private func loadRefundPreview(_ baseline: MerchantBusinessSnapshot, filter: String, generation: Int,
+                                   permit: UUID, scope: MerchantBusinessScope, authorization: UUID?) async {
+        func current() -> Bool {
+            !Task.isCancelled && refundPreviewVisible && refundPreviewActive && refundPreviewPermit == permit &&
+            generation == loadGeneration && coordinator.reader.isConfigured && coordinator.isCurrent &&
+            coordinator.reader.scope == scope && coordinator.reader.authorizationGeneration == authorization &&
+            coordinator.snapshot == baseline && coordinator.failureKey == nil
+        }
+        guard current() else { return }
+        refundPreviewBaseline = baseline; refundPreviewScope = scope; refundPreviewAuthorization = authorization
+        guard baseline.access.allows("merchant:aftercare:read") else {
+            refundPreviewValue = .init(included: false); return
+        }
+        refundPreviewValue = .init(included: true, loading: true); revision += 1
+        var pages: [MerchantLedgerRefundPreview.Page] = []
+        for bucket in MerchantLedgerRefundPreview.buckets(filter: filter) {
+            guard current() else { return }
+            do {
+                let response = try await coordinator.reader.snapshot(.aftercare(bucket, page: 1))
+                guard current() else { return }
+                guard response.access == baseline.access else {
+                    refundPreviewValue = .init(included: false); return
+                }
+                pages.append(try .init(bucket: bucket, snapshot: response, access: baseline.access))
+            } catch {
+                guard current() else { return }
+                if Self.refundPreviewAccessInvalidated(error) {
+                    refundPreviewValue = .init(included: false); return
+                }
+                if let failed = try? MerchantLedgerRefundPreview.Page(bucket: bucket, snapshot: nil, access: baseline.access) {
+                    pages.append(failed)
+                }
+            }
+        }
+        guard current() else { return }
+        refundPreviewValue = .init(included: true, pages: pages)
+    }
+    private static func refundPreviewAccessInvalidated(_ error: Error) -> Bool {
+        if let error = error as? APIError { return error == .unauthorized || error == .notConfigured }
+        guard let failure = error as? MerchantBusinessFailure else { return false }
+        switch failure {
+        case .denied, .disabled, .stale: return true
+        case .rejected(let status, _) where status == 401 || status == 403: return true
+        default: return false
         }
     }
     func unfilteredRows(in section: MerchantBusinessSection, query: MerchantBusinessQuery) -> [MerchantBusinessRecord] {
@@ -103,10 +254,37 @@ import SwiftUI
         guard let presentation = try? MerchantBusinessSection(section.id, rows: unfilteredRows(in: section, query: query)) else { return [] }
         return listFilters.rows(in: presentation, query: query)
     }
-    func prepare(_ mutation: MerchantBusinessMutation) { coordinator.prepare(mutation); revision += 1 }
+    func prepare(_ mutation: MerchantBusinessMutation) { teamReadRecovery = nil; teamResult = nil; coordinator.prepare(mutation); revision += 1 }
     func cancel() { coordinator.cancelConfirmation(); revision += 1 }
-    func confirm(_ review: MerchantBusinessConfirmation) async { revision += 1; await coordinator.confirm(review); revision += 1 }
+    func confirm(_ review: MerchantBusinessConfirmation) async {
+        let generation = loadGeneration
+        let returnQuery: MerchantBusinessQuery?
+        switch review.mutation {
+        case .operatorRole, .removeOperator, .revokeInvite:
+            returnQuery = review.baseline.document.query == .operators ? .operators : nil
+        case .review(_, _, let action, _) where action != .report:
+            if case .reviews = review.baseline.document.query { returnQuery = .reviews(page: 1) }
+            else { returnQuery = nil }
+        default: returnQuery = nil
+        }
+        let ownsReview = coordinator.confirmation == review
+        revision += 1; await coordinator.confirm(review); revision += 1
+        guard let returnQuery, ownsReview, generation == loadGeneration,
+              teamPageVisible, teamPageActive, !Task.isCancelled,
+              coordinator.reader.scope == review.scope,
+              coordinator.reader.authorizationGeneration == review.authorizationGeneration,
+              !coordinator.isBusy, !coordinator.isLocked, coordinator.failureKey == nil,
+              let receipt = coordinator.receipt else { return }
+        teamResult = .init(query: returnQuery, id: review.id, scope: review.scope, authorization: review.authorizationGeneration,
+                           merchantID: review.baseline.access.merchantID, receipt: receipt)
+        // The existing coordinator has already confirmed the response. This is one read,
+        // never a retry of the acknowledged mutation. Read errors retain the result.
+        await load(returnQuery, appendAftercare: false, expectedTeamResult: review.id)
+    }
     func invalidate() {
+        teamReadRecovery = nil; teamResult = nil
+        refundPreviewPermit = UUID(); refundPreviewValue = nil; refundPreviewBaseline = nil
+        customerQueryAuthorization = nil
         loadGeneration += 1; aftercareLoadedPages = nil; reviewLoadedPages = nil; aftercareLoadFailureKey = nil
         coordinator.invalidate(); listFilters = .init(); filterScope = nil; filterMerchantID = nil; revision += 1
     }
@@ -204,18 +382,23 @@ import SwiftUI
 }
 
 @MainActor struct MerchantBusinessPage: View {
+    @Environment(\.merchantCustomerQueryDestination) private var customerQueryDestination
+    @Environment(\.locale) private var locale
+    @State private var customerQueryRoute: MerchantCustomerAppliedQuery?
     @Environment(\.scenePhase) private var scenePhase
     let reader: any MerchantBusinessReading
     let journal: any MerchantBusinessIntentStore
     @State private var query: MerchantBusinessQuery
     @StateObject private var model: MerchantBusinessViewModel
     @StateObject private var draftReturn: MerchantReviewDraftReturn
+    @StateObject private var aftercareReturn: MerchantAftercareDraftReturn
     @StateObject private var noteDrafts: MerchantCustomerNoteDraft
     @State private var discardNoteDraftGeneration: UUID?
     @State private var keyword = ""
     @FocusState private var aftercareSearchFocused: Bool
     @State private var segment = "all"
     @State private var teamAccessDetailsExpanded = false
+    @StateObject private var customerFilterDisclosure = MerchantCustomerFilterDisclosure()
     @State private var customerContactFlow: MerchantCustomerContactFlow?
     @State private var sourceType = 0
     @State private var sourceStart = ""
@@ -224,6 +407,7 @@ import SwiftUI
     @State private var editor: MerchantBusinessEditorContext?
     @State private var selection: Set<Int> = []
     @State private var pendingMutation: MerchantBusinessMutation?
+    @State private var pendingMutationEditorID: UUID?
     @State private var reviewSourceDestination: MerchantReviewSourcePage?
     private let reviewSource: MerchantReviewSourcePage?
     init(reader: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore, query: MerchantBusinessQuery, reviewSource: MerchantReviewSourcePage? = nil) {
@@ -231,6 +415,7 @@ import SwiftUI
         let owner = MerchantBusinessViewModel(reader: reader, journal: journal)
         _query = State(initialValue: query); _model = StateObject(wrappedValue: owner)
         _draftReturn = StateObject(wrappedValue: .init(owner: owner))
+        _aftercareReturn = StateObject(wrappedValue: .init(owner: owner))
         _noteDrafts = StateObject(wrappedValue: .init(owner: owner))
         if case .customers(let filter) = query {
             _keyword = State(initialValue: filter.keyword); _segment = State(initialValue: filter.segment)
@@ -239,8 +424,11 @@ import SwiftUI
         }
     }
     private var state: MerchantBusinessCoordinator { model.coordinator }
+    private var isRedemptionLedger: Bool { if case .redemptions = query { return true }; return false }
     var body: some View {
+        let capturedCustomerRoute = customerQueryRoute
         let presentedReview = state.confirmation
+        let presentedEditorID = editor?.id
         let renderedTeamScope = reader.scope
         let renderedTeamAuthorization = reader.authorizationGeneration
         List {
@@ -253,7 +441,14 @@ import SwiftUI
                 }
             }
             if state.isLocked { Text("merchant.business.unknownResult").accessibilityIdentifier("merchant.business.locked") }
-            if let receipt = state.receipt {
+            if MerchantBusinessViewModel.resultRefreshQuery(query) != nil, let recoveryID = model.teamRecoveryID {
+                Section {
+                    Text("merchant.business.stale")
+                    Button("action.retry") { Task { await model.retryTeamRead(recoveryID) } }
+                        .disabled(state.isBusy).accessibilityIdentifier("merchant.team.resultRetry")
+                }
+            }
+            if let receipt = state.receipt ?? model.teamReturnReceipt {
                 Section("merchant.business.receipt") {
                     Text(reader.isOfflineExample ? "merchant.business.syntheticSaved" : "merchant.business.productionSaved")
                     if let message = receipt.message { Text(message) }
@@ -294,7 +489,7 @@ import SwiftUI
                         Task { await reload() }
                     }
                 } else if query != .operators, snapshot.document.sections.allSatisfy({ model.unfilteredRows(in: $0, query: snapshot.document.query).isEmpty }) && (snapshot.document.summary.isEmpty || isLocalList) {
-                    Text("merchant.business.empty").foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.empty")
+                    Text(isRedemptionLedger ? "merchant.refundPreview.noRedemptions" : "merchant.business.empty").foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.empty")
                 } else if model.listFilters.isActive(for: snapshot.document.query), snapshot.document.sections.allSatisfy({ visibleRows($0, in: snapshot.document).isEmpty }) {
                     Text(LocalizedStringKey(isAftercare ? "merchant.business.aftercare.noMatches" : "merchant.business.list.noMatches")).foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.list.noMatches")
                 }
@@ -330,6 +525,16 @@ import SwiftUI
                             }
                         }
                     }
+                }
+                if let preview = model.ledgerRefundPreview {
+                    MerchantLedgerRefundPreviewSections(preview: preview, row: { row in
+                        rowView(row, access: snapshot.access)
+                    }, more: { bucket in
+                        NavigationLink {
+                            MerchantBusinessPage(reader: reader, journal: journal, query: .aftercare(bucket, page: 1))
+                        } label: { Text("merchant.refundPreview.openBucket") }
+                        .accessibilityIdentifier("merchant.refundPreview.open." + bucket.rawValue)
+                    })
                 }
                 pageActions(snapshot)
                 if reviewSource == nil, case .reviews = query, let pages = model.reviewLoadedPages, pages.hasMore {
@@ -371,11 +576,24 @@ import SwiftUI
         .modifier(MerchantCustomerContactStablePresentation(owner: model, flow: $customerContactFlow))
         .task(id: reader.scope) { await reload() }
         .refreshable { await reload() }
-        .sheet(item: $editor, onDismiss: { draftReturn.discard(); if let mutation = pendingMutation { pendingMutation = nil; if sourcePageCanPrepare(mutation) { model.prepare(mutation) } } }) { context in
+        .background {
+            Color.clear.frame(width: 0, height: 0)
+        .sheet(item: MerchantAftercareDraftReturn.editorBinding($editor, presentedID: presentedEditorID), onDismiss: {
+            guard editor == nil, let presentedEditorID else { return }
+            if MerchantAftercareDraftReturn.ownsDismissal(presentedID: presentedEditorID,
+                currentEditorID: editor?.id, pendingEditorID: pendingMutationEditorID), let mutation = pendingMutation {
+                pendingMutation = nil; pendingMutationEditorID = nil; draftReturn.discard()
+                if sourcePageCanPrepare(mutation) { model.prepare(mutation) }
+            } else {
+                if draftReturn.resumedEditorID == presentedEditorID { draftReturn.discard() }
+                if aftercareReturn.resumedEditorID == presentedEditorID { aftercareReturn.discard() }
+            }
+        }) { context in
             let roleReturnScope = reader.scope
             let roleReturnAuthorization = reader.authorizationGeneration
             let roleReturnSnapshot = state.snapshot
-            MerchantBusinessEditor(context: context, snapshot: state.snapshot, noteDrafts: noteDrafts, reviewInitialContent: draftReturn.initialContent(for: context.id), aftercareEvidenceOwner: {
+            MerchantBusinessEditor(context: context, snapshot: state.snapshot, noteDrafts: noteDrafts, reviewInitialContent: draftReturn.initialContent(for: context.id),
+                aftercareInitialDraft: aftercareReturn.initialDraft(for: context.id), aftercareEvidenceOwner: {
                 MerchantAftercareEvidenceOwner(editorID: context.id, document: model,
                     editorIsCurrent: { editor?.id == context.id && pendingMutation == nil })
             }, onUnchangedRole: { ticket in
@@ -388,27 +606,43 @@ import SwiftUI
                 editor = nil
                 return true
             }, onReview: { mutation in
+                guard scenePhase == .active, editor?.id == context.id else { return }
                 if case .note = context.kind {
                     guard noteDrafts.retireForReview(editorID: context.id) else { editor = nil; return }
                 }
-                draftReturn.discard()
+                draftReturn.discard(); aftercareReturn.discard()
                 guard sourcePageCanPrepare(mutation) else { pendingMutation = nil; editor = nil; return }
-                pendingMutation = mutation; editor = nil
+                pendingMutation = mutation; pendingMutationEditorID = context.id; editor = nil
             })
         }
-        .sheet(item: Binding(get: { state.confirmation }, set: { value in
-            if value == nil, let presentedReview { draftReturn.cancelReview(id: presentedReview.id) }
+        .id(presentedEditorID)
+        }
+        .sheet(item: Binding(get: { state.confirmation?.id == presentedReview?.id ? state.confirmation : nil }, set: { value in
+            if value == nil, let presentedReview { cancelBusinessReview(presentedReview) }
         })) { review in
             let capture = draftReturn.capture(review)
+            let aftercareCapture = aftercareReturn.capture(review)
+            let editAftercare: (() -> Void)? = aftercareCapture.map { captured in
+                { _ = aftercareReturn.requestReturn(captured) }
+            }
             MerchantBusinessReviewSheet(review: review, canExecute: reader.canExecute(review.mutation, merchantID: review.baseline.access.merchantID), isSynthetic: reader.isOfflineExample, busy: state.isBusy,
-                issue: state.failureKey, cancel: { draftReturn.cancelReview(id: review.id) },
+                issue: state.failureKey, cancel: { cancelBusinessReview(review) },
                 confirm: {
                     if case .review(_, _, let action, _) = review.mutation, action != .delete {
                         if draftReturn.beginConfirmation(id: review.id) { Task { await model.confirm(review) } }
+                    } else if case .aftercare = review.mutation {
+                        if aftercareReturn.beginConfirmation(id: review.id) { Task { await model.confirm(review) } }
                     } else { Task { await model.confirm(review) } }
                 },
-                editDraft: capture.map { captured in { _ = draftReturn.requestReturn(captured) } })
+                editDraft: editAftercare ?? capture.map { captured in { _ = draftReturn.requestReturn(captured) } })
                 .onDisappear {
+                    if let ticket = aftercareReturn.didDismiss(reviewID: review.id) {
+                        Task { @MainActor in
+                            guard let restored = aftercareReturn.resume(ticket,
+                                editorIsVacant: scenePhase == .active && editor == nil && pendingMutation == nil) else { return }
+                            editor = restored
+                        }
+                    }
                     if let ticket = draftReturn.didDismiss(reviewID: review.id) {
                         Task {
                             guard let restored = draftReturn.resume(ticket, editorIsVacant: scenePhase == .active && editor == nil && pendingMutation == nil) else { return }
@@ -425,45 +659,84 @@ import SwiftUI
                     } }
             }
         }
-        .onAppear { if scenePhase == .active { draftReturn.activate(); noteDrafts.activate() } }
+        .background {
+            if let capturedCustomerRoute, let customerQueryDestination {
+                MerchantCustomerQueryNavigationOwner(route: $customerQueryRoute,
+                    captured: capturedCustomerRoute, destination: customerQueryDestination).id(capturedCustomerRoute.id)
+            }
+        }
+        .onAppear { model.teamPageAppeared(active: scenePhase == .active); model.ledgerPreviewAppeared(active: scenePhase == .active); aftercareReturn.appear(active: scenePhase == .active); customerFilterDisclosure.viewAppeared(sceneIsActive: scenePhase == .active); if scenePhase == .active { draftReturn.activate(); noteDrafts.activate() } }
         .onChange(of: model.revision) { _, _ in
+            if let retired = aftercareReturn.synchronize(), editor?.id == retired { editor = nil }
             if let retired = noteDrafts.synchronize(), editor?.id == retired { editor = nil }
             if let retired = draftReturn.synchronize(), editor?.id == retired { editor = nil }
         }
         .onChange(of: scenePhase) { _, phase in
+            model.teamPageSceneChanged(active: phase == .active)
+            model.ledgerPreviewSceneChanged(active: phase == .active)
+            if let retired = aftercareReturn.sceneChanged(active: phase == .active), editor?.id == retired { editor = nil }
+            customerFilterDisclosure.sceneChanged(isActive: phase == .active)
             if phase != .active, let retired = noteDrafts.retire(), editor?.id == retired { editor = nil }
             if phase == .active { draftReturn.activate(); noteDrafts.activate() }
             else if let retired = draftReturn.retire(), editor?.id == retired { editor = nil }
         }
-        .onChange(of: reader.scope) { _, _ in teamAccessDetailsExpanded = false; noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
-        .onChange(of: reader.authorizationGeneration) { _, _ in teamAccessDetailsExpanded = false; noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
-        .onDisappear { teamAccessDetailsExpanded = false; noteDrafts.retire(); draftReturn.retire(); editor = nil; pendingMutation = nil; model.invalidate() }
+        .onChange(of: reader.scope) { _, _ in aftercareReturn.retire(); customerFilterDisclosure.ownerChanged(); teamAccessDetailsExpanded = false; noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; pendingMutationEditorID = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
+        .onChange(of: reader.authorizationGeneration) { _, _ in aftercareReturn.retire(); customerFilterDisclosure.ownerChanged(); teamAccessDetailsExpanded = false; noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; pendingMutationEditorID = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
+        .onDisappear { model.teamPageDisappeared(); model.ledgerPreviewDisappeared(); aftercareReturn.disappear(); customerFilterDisclosure.viewDisappeared(); teamAccessDetailsExpanded = false; noteDrafts.retire(); draftReturn.retire(); editor = nil; pendingMutation = nil; pendingMutationEditorID = nil; model.invalidate() }
+    }
+    private var customerFilterExpansion: Binding<Bool> {
+        let scope = reader.scope, authorization = reader.authorizationGeneration
+        return customerFilterDisclosure.binding {
+            guard case .customers = query else { return false }
+            return reader.scope == scope && reader.authorizationGeneration == authorization
+        }
     }
     @ViewBuilder private var filters: some View {
         if case .customers = query {
             Section("merchant.business.filters") {
                 TextField("merchant.business.search", text: $keyword).submitLabel(.search).onSubmit(applyCustomerFilter)
                     .accessibilityIdentifier("merchant.business.keyword")
+                if customerQueryDestination != nil, let expected = state.snapshot,
+                   expected.document.query == query, case .customers(let applied) = query {
+                    let expectedRevision = model.revision
+                    let appliedExactly = MerchantCustomerAppliedQuery.sameFilter(applied, customerFilterDraft)
+                    Button(locale.language.languageCode?.identifier == "zh" ? "使用当前筛选管理分群与导出" : "Manage segments and exports for this filter") {
+                        guard scenePhase == .active else { return }
+                        customerQueryRoute = model.customerEngagementSelection(query: query, draft: customerFilterDraft,
+                            expected: expected, revision: expectedRevision)
+                    }.disabled(!appliedExactly || !state.isCurrent || state.isBusy || state.isLocked || state.failureKey != nil)
+                        .accessibilityIdentifier("merchant.business.customers.manageAppliedFilter")
+                    if !appliedExactly {
+                        Text(locale.language.languageCode?.identifier == "zh" ? "请先应用当前输入的筛选。" : "Apply your edited filter first.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }
+                }
                 Picker("merchant.business.segment", selection: $segment) {
                     ForEach(["all", "repeat", "new", "noted"], id: \.self) { Text(LocalizedStringKey("merchant.business.segment." + String($0))).tag($0) }
                 }.accessibilityIdentifier("merchant.business.segment")
-                Picker("merchant.business.sourceType", selection: $sourceType) {
-                    Text("merchant.business.segment.all").tag(0)
-                    Text("merchant.business.state.TOPIC").tag(1)
-                    Text("merchant.business.state.ACTIVITY").tag(2)
-                }
-                Picker("merchant.business.tag", selection: $tagID) {
-                    Text("merchant.business.segment.all").tag(0)
-                    ForEach(availableTags, id: \.self) { id in Text(tagName(id)).tag(id) }
-                }
-                TextField("merchant.business.sourceStart", text: $sourceStart).textInputAutocapitalization(.never)
-                TextField("merchant.business.sourceEnd", text: $sourceEnd).textInputAutocapitalization(.never)
-                MerchantCRMDateRangePicker(context: state.isCurrent && !state.isBusy
-                    ? .init(scope: reader.scope, authorization: reader.authorizationGeneration, merchantID: state.snapshot?.access.merchantID) : nil,
-                    start: sourceStart, end: sourceEnd) { value in
-                    sourceStart = value.start; sourceEnd = value.end
-                }
-                Button("merchant.business.applyFilter", action: applyCustomerFilter)
+                let expansion = customerFilterExpansion
+                DisclosureGroup(isExpanded: expansion) {
+                    Picker("merchant.business.sourceType", selection: $sourceType) {
+                        Text("merchant.business.segment.all").tag(0)
+                        Text("merchant.business.state.TOPIC").tag(1)
+                        Text("merchant.business.state.ACTIVITY").tag(2)
+                    }
+                    Picker("merchant.business.tag", selection: $tagID) {
+                        Text("merchant.business.segment.all").tag(0)
+                        ForEach(availableTags, id: \.self) { id in Text(tagName(id)).tag(id) }
+                    }
+                    TextField("merchant.business.sourceStart", text: $sourceStart).textInputAutocapitalization(.never)
+                    TextField("merchant.business.sourceEnd", text: $sourceEnd).textInputAutocapitalization(.never)
+                    MerchantCRMDateRangePicker(context: state.isCurrent && !state.isBusy
+                        ? .init(scope: reader.scope, authorization: reader.authorizationGeneration, merchantID: state.snapshot?.access.merchantID) : nil,
+                        start: sourceStart, end: sourceEnd) { value in
+                        sourceStart = value.start; sourceEnd = value.end
+                    }
+                    Button("merchant.business.applyFilter", action: applyCustomerFilter)
+                    Button("action.close") { expansion.wrappedValue = false }
+                        .accessibilityIdentifier("merchant.business.customers.closeFilters")
+                } label: { Text("merchant.business.filters") }
+                    .accessibilityIdentifier("merchant.business.customers.filterDisclosure")
                 if let expected = state.snapshot, expected.document.query == query, state.isCurrent,
                    case .customers(let applied) = query,
                    customerFilterDraft.hasWorkspaceFilters || applied.hasWorkspaceFilters {
@@ -534,6 +807,13 @@ import SwiftUI
     @ViewBuilder private func summary(_ document: MerchantBusinessDocument) -> some View {
         if !document.summary.isEmpty || document.query == .overview {
             Section("merchant.business.summary") {
+                if document.query == .overview {
+                    MerchantLedgerAssetsEntry(reader: reader, currentSnapshot: {
+                        guard state.isCurrent, !state.isBusy, state.failureKey == nil,
+                              state.snapshot?.document == document else { return nil }
+                        return state.snapshot
+                    })
+                }
                 if case .reviews = document.query {
                     Text("merchant.business.reviews.summaryScope").font(.footnote).foregroundStyle(.secondary)
                 }
@@ -548,6 +828,11 @@ import SwiftUI
                 }
             }
         }
+    }
+    private func cancelBusinessReview(_ review: MerchantBusinessConfirmation) {
+        guard state.confirmation?.id == review.id else { return }
+        if case .aftercare = review.mutation { aftercareReturn.cancelReview(id: review.id) }
+        else { draftReturn.cancelReview(id: review.id) }
     }
     @ViewBuilder private func rowView(_ row: MerchantBusinessRecord, access: MerchantBusinessAccess) -> some View {
         let isDirectory: Bool = { switch query { case .customers, .aftercare, .batches, .redemptions: return true; default: return false } }()
@@ -674,4 +959,166 @@ import SwiftUI
     }
     private func movePage(_ page: Int) { query = query.paged(page); selection = []; Task { await reload() } }
     private func reload() async { selection = []; await model.load(query) }
+}
+
+@MainActor final class MerchantCustomerFilterDisclosure: ObservableObject {
+    @Published private(set) var isExpanded = true
+    private var generation = UUID()
+    @Published private var visible = false
+    @Published private var sceneActive = false
+    func viewAppeared(sceneIsActive: Bool) {
+        if !visible { generation = UUID() }
+        visible = true; sceneActive = sceneIsActive
+    }
+    func viewDisappeared() { visible = false; generation = UUID() }
+    func sceneChanged(isActive: Bool) {
+        if sceneActive != isActive { generation = UUID() }
+        sceneActive = isActive
+    }
+    func ownerChanged() { generation = UUID(); isExpanded = true }
+    func binding(isCurrent: @escaping () -> Bool) -> Binding<Bool> {
+        let captured = generation
+        return .init(get: { [weak self] in
+            guard let self, self.generation == captured, self.visible, self.sceneActive, isCurrent() else { return false }
+            return self.isExpanded
+        }, set: { [weak self] value in
+            guard let self, self.generation == captured, self.visible, self.sceneActive, isCurrent() else { return }
+            self.isExpanded = value
+        })
+    }
+}
+
+struct MerchantCustomerAppliedQuery: Identifiable, Hashable {
+    let id = UUID()
+    let sourceReader: ObjectIdentifier
+    let scope: MerchantBusinessScope
+    let authorization: UUID?
+    let merchantID: Int
+    let filter: MerchantCRMFilter
+    static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
+    static func sameFilter(_ lhs: MerchantCustomerQuery, _ rhs: MerchantCustomerQuery) -> Bool {
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
+        guard let left = try? encoder.encode(MerchantCRMFilter(customerQuery: lhs).exportFields),
+              let right = try? encoder.encode(MerchantCRMFilter(customerQuery: rhs).exportFields) else { return false }
+        return left == right
+    }
+}
+
+@MainActor extension MerchantBusinessViewModel {
+    func customerEngagementSelection(query: MerchantBusinessQuery, draft: MerchantCustomerQuery,
+                                     expected: MerchantBusinessSnapshot, revision: Int) -> MerchantCustomerAppliedQuery? {
+        guard let loaded = customerQueryAuthorization, loaded.scope == coordinator.reader.scope,
+              loaded.authorization == coordinator.reader.authorizationGeneration,
+              self.revision == revision, coordinator.isCurrent, !coordinator.isBusy, !coordinator.isLocked,
+              coordinator.failureKey == nil, coordinator.snapshot == expected,
+              expected.document.query == query, case .customers(let applied) = query,
+              expected.access.allows("merchant:crm:read"), coordinator.reader.isConfigured,
+              let scope = coordinator.reader.scope, MerchantCustomerAppliedQuery.sameFilter(applied, draft) else { return nil }
+        let filter = MerchantCRMFilter(customerQuery: applied)
+        guard (try? filter.validate()) != nil else { return nil }
+        return .init(sourceReader: ObjectIdentifier(coordinator.reader), scope: scope,
+                     authorization: coordinator.reader.authorizationGeneration,
+                     merchantID: expected.access.merchantID, filter: filter)
+    }
+}
+
+private struct MerchantCustomerQueryDestinationKey: EnvironmentKey {
+    static let defaultValue: (@MainActor (MerchantCustomerAppliedQuery) -> AnyView)? = nil
+}
+extension EnvironmentValues {
+    var merchantCustomerQueryDestination: (@MainActor (MerchantCustomerAppliedQuery) -> AnyView)? {
+        get { self[MerchantCustomerQueryDestinationKey.self] }
+        set { self[MerchantCustomerQueryDestinationKey.self] = newValue }
+    }
+}
+
+@MainActor final class MerchantCustomerQueryReader: ObservableObject, MerchantEngagementReading {
+    let selection: MerchantCustomerAppliedQuery
+    private let base: any MerchantEngagementReading
+    private let source: any MerchantBusinessReading
+    private let authorization: UUID?
+    private let originCurrent: () -> Bool
+    @Published private var retired = false
+    init(selection: MerchantCustomerAppliedQuery, base: any MerchantEngagementReading,
+         source: any MerchantBusinessReading, originCurrent: @escaping () -> Bool) {
+        self.selection = selection; self.base = base; self.source = source
+        authorization = base.authorizationGeneration; self.originCurrent = originCurrent
+    }
+    var isCurrent: Bool {
+        !retired && originCurrent() && ObjectIdentifier(source) == selection.sourceReader &&
+        source.isConfigured && base.isConfigured && source.scope == selection.scope && base.scope == selection.scope &&
+        source.authorizationGeneration == selection.authorization && base.authorizationGeneration == authorization
+    }
+    func retire() { retired = true }
+    var scope: MerchantBusinessScope? { isCurrent ? selection.scope : nil }
+    var authorizationGeneration: UUID? { isCurrent ? authorization : nil }
+    var isConfigured: Bool { isCurrent }
+    var isSyntheticEnabled: Bool { isCurrent && base.isSyntheticEnabled }
+    var journalRealm: String? { isCurrent ? base.journalRealm : nil }
+    private func check() throws { guard isCurrent, !Task.isCancelled else { throw MerchantBusinessFailure.stale } }
+    private func checkAccess(_ value: MerchantEngagementAccess) throws {
+        try check(); try value.require(["merchant:crm:read"])
+        guard value.merchantID == selection.merchantID else { throw MerchantBusinessFailure.stale }
+    }
+    func canExecute(_ command: MerchantEngagementCommand, merchantID: Int) -> Bool {
+        isCurrent && merchantID == selection.merchantID && base.canExecute(command, merchantID: merchantID)
+    }
+    func permitsDevice(_ action: MerchantEngagementDeviceGrant.Action, merchantID: Int) -> Bool {
+        isCurrent && merchantID == selection.merchantID && base.permitsDevice(action, merchantID: merchantID)
+    }
+    func access() async throws -> MerchantEngagementAccess {
+        try check(); let result = try await base.access(); try checkAccess(result); return result
+    }
+    func read(_ query: MerchantEngagementQuery) async throws -> MerchantEngagementPayload {
+        try check()
+        do {
+            let result = try await base.read(query, expectedMerchantID: selection.merchantID)
+            try check(); return result
+        } catch {
+            if let failure = error as? MerchantBusinessFailure,
+               [.stale, .denied, .disabled].contains(failure) { retire() }
+            if error as? APIError == .unauthorized || error as? APIError == .notConfigured { retire() }
+            throw error
+        }
+    }
+    func proof(_ command: MerchantEngagementCommand) async throws -> MerchantEngagementProof {
+        try check(); let result = try await base.proof(command, expectedMerchantID: selection.merchantID); try checkAccess(result.access); return result
+    }
+    func execute(_ command: MerchantEngagementCommand, requestID: String, proof: MerchantEngagementProof,
+                 scope: MerchantBusinessScope) async throws -> MerchantEngagementReceipt { throw MerchantBusinessFailure.disabled }
+    func execute(_ review: MerchantEngagementReview, authorization: MerchantEngagementDispatchAuthorization,
+                 check externalCheck: () throws -> Void) async throws -> MerchantEngagementReceipt {
+        try checkAccess(review.proof.access)
+        guard review.scope == selection.scope else { throw MerchantBusinessFailure.stale }
+        let result = try await base.execute(review, authorization: authorization, check: {
+            try self.check(); try externalCheck()
+        })
+        try check(); return result
+    }
+}
+
+extension Binding where Value == MerchantCustomerAppliedQuery? {
+    @MainActor func forMerchantCustomerQuery(_ captured: MerchantCustomerAppliedQuery?) -> Binding<Value> {
+        let source = self
+        return .init(get: {
+            guard let captured, source.wrappedValue?.id == captured.id else { return nil }
+            return captured
+        }, set: { next in
+            guard let captured, source.wrappedValue?.id == captured.id else { return }
+            if next == nil { source.wrappedValue = nil }
+        })
+    }
+}
+
+@MainActor private struct MerchantCustomerQueryNavigationOwner: View {
+    @Binding var route: MerchantCustomerAppliedQuery?
+    let captured: MerchantCustomerAppliedQuery
+    let destination: @MainActor (MerchantCustomerAppliedQuery) -> AnyView
+    var body: some View {
+        Color.clear.frame(width: 0, height: 0)
+            .navigationDestination(item: $route.forMerchantCustomerQuery(captured)) { selection in
+                destination(selection).id(selection.id)
+            }
+    }
 }

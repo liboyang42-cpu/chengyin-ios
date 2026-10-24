@@ -30,10 +30,20 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
     let controller: WorkshopPaidProfessionalController
     let appearance: WorkshopPaidProfessionalAppearance
     let onClose: () -> Void
+    @Environment(\.workshopGeneratedTemplateReaderFactory) private var makeGeneratedTemplateReader
+    @Environment(\.scenePhase) private var scenePhase
     @State private var ownedTask: Task<Void, Never>?
+    @State private var generatedDetail: WorkshopGeneratedDetailSelection?
     @State private var modeConfirmed = false
     @State private var cancelConfirmed = false
     @Environment(\.locale) private var locale
+    private var generatedPresentation: Binding<WorkshopGeneratedDetailSelection?> {
+        let expected = generatedDetail?.id
+        return Binding(get: { generatedDetail?.id == expected ? generatedDetail : nil }, set: { value in
+            guard generatedDetail?.id == expected else { return }
+            generatedDetail?.retire(); generatedDetail = value
+        })
+    }
     var body: some View {
         let displayed = appearance
         NavigationStack {
@@ -64,8 +74,23 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
                     .accessibilityIdentifier("workshopPaidProfessional.close")
             } }
         }
+        .sheet(item: generatedPresentation) { selection in
+            WorkshopGeneratedDetailSheet(selection: selection, controller: controller, appearance: displayed)
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { generatedDetail?.retire(); generatedDetail = nil }
+        }
+        .onChange(of: controller.generatedDetailRevision) { _, _ in
+            generatedDetail?.retire(); generatedDetail = nil
+        }
+        .onChange(of: controller.operation) { _, value in
+            if value != generatedDetail?.operation { generatedDetail?.retire(); generatedDetail = nil }
+        }
+        .onChange(of: controller.phase) { _, phase in
+            if phase != .operation { generatedDetail?.retire(); generatedDetail = nil }
+        }
         .onAppear { schedule(controller.appear(displayed)) }
-        .onDisappear { controller.close(displayed); ownedTask?.cancel() }
+        .onDisappear { generatedDetail?.retire(); generatedDetail = nil; controller.close(displayed); ownedTask?.cancel() }
         .onChange(of: controller.selectedTarget?.ownerModeFingerprint) { _, _ in modeConfirmed = false }
         .onChange(of: controller.command?.requestId) { _, _ in cancelConfirmed = false }
     }
@@ -154,6 +179,14 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
                     if let creation = result.creation, let id = creation.templateId {
                         fact("templateID", String(id)); professionalText("historicalCreation")
                         if let hash = creation.templateContentHash { fact("templateHash", hash) }
+                        Button {
+                            guard let rawID = controller.generatedTemplateID(displayed, expected: result),
+                                  let integerID = Int(exactly: rawID),
+                                  let id = MemberPlayTemplateID(rawValue: integerID) else { return }
+                            generatedDetail?.retire()
+                            generatedDetail = WorkshopGeneratedDetailSelection(templateID: id, operation: result, reader: makeGeneratedTemplateReader?(), revision: controller.generatedDetailRevision)
+                        } label: { Text("memberTemplate.title") }
+                        .accessibilityIdentifier("workshopPaidProfessional.viewGeneratedTemplate")
                     }
                 } else { professionalText("unknownNote") }
                 Button { schedule(controller.offerRefreshStatus(displayed)) } label: { professionalText("checkStatus") }
@@ -178,3 +211,84 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
     }
 }
 private func professionalText(_ key: String) -> Text { Text(LocalizedStringKey("workshopPaidProfessional." + key), tableName: "WorkshopPaidProfessional") }
+
+
+/// A visit owns only a historical identifier; current ownership is always fetched separately.
+@MainActor final class WorkshopGeneratedDetailSelection: Identifiable {
+    let id = UUID()
+    let templateID: MemberPlayTemplateID
+    let operation: WorkshopPaidProfessionalOperation
+    let reader: OwnedMemberTemplateReader?
+    let revision: UUID
+    private(set) var live = true
+    init(templateID: MemberPlayTemplateID, operation: WorkshopPaidProfessionalOperation, reader: OwnedMemberTemplateReader? = nil, revision: UUID = UUID()) {
+        self.templateID = templateID; self.operation = operation; self.reader = reader; self.revision = revision
+    }
+    func retire() { live = false }
+}
+@MainActor struct WorkshopGeneratedDetailSheet: View {
+    let selection: WorkshopGeneratedDetailSelection
+    let controller: WorkshopPaidProfessionalController
+    let appearance: WorkshopPaidProfessionalAppearance
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        NavigationStack {
+            Group {
+            if let reader = selection.reader {
+            MemberTemplateDetailView(id: selection.templateID,
+                reader: WorkshopGeneratedTemplateReader(base: reader) {
+                    selection.live && selection.revision == controller.generatedDetailRevision && controller.generatedTemplateID(appearance, expected: selection.operation) == Int64(selection.templateID.rawValue)
+                })
+                .id(selection.id)
+                .toolbar { ToolbarItem(placement: .primaryAction) {
+                    NavigationLink {
+                        OwnedTemplateConfigurationView(
+                            host: reader.configurationHost(id: selection.templateID, acceptsResult: isCurrentReceipt),
+                            id: selection.templateID)
+                            .id(selection.id)
+                    } label: { Text("templateOwnerConfig.open") }
+                        .disabled(!isCurrentReceipt() || !reader.isConfigured)
+                        .accessibilityIdentifier("workshopPaidProfessional.generatedDetail.configuration")
+                } }
+            } else { Text("memberTemplate.notConfigured") }
+            }
+                .toolbar { ToolbarItem(placement: .cancellationAction) {
+                    Button("action.close") { selection.retire(); dismiss() }
+                        .accessibilityIdentifier("workshopPaidProfessional.generatedDetail.close")
+                } }
+        }.onDisappear { selection.retire() }
+    }
+    private func isCurrentReceipt() -> Bool {
+        selection.live && selection.revision == controller.generatedDetailRevision
+            && controller.generatedTemplateID(appearance, expected: selection.operation) == Int64(selection.templateID.rawValue)
+    }
+}
+/// Read-only adapter: the base owns the independent read approval and verifies both template ID
+/// and member ID. The extra fence prevents a stale receipt or dismissed visit from disclosing it.
+@MainActor final class WorkshopGeneratedTemplateReader: MemberTemplateReading {
+    let base: OwnedMemberTemplateReader
+    let current: () -> Bool
+    init(base: OwnedMemberTemplateReader, current: @escaping () -> Bool) { self.base = base; self.current = current }
+    var scope: UUID { base.scope }
+    var isAuthenticated: Bool { base.isAuthenticated }
+    var isConfigured: Bool { current() && base.isConfigured }
+    func memberTemplate(id: MemberPlayTemplateID) async throws -> MemberTemplateDetail {
+        guard current() else { throw APIError.notConfigured }
+        let value = try await base.memberTemplate(id: id, acceptsResult: current)
+        guard !Task.isCancelled, current(), value.id == id else { throw CancellationError() }
+        return value
+    }
+}
+
+/// Optional injection keeps standalone screens and fixtures safe and unconfigured by default.
+/// The normal account entry supplies only the independently authorized owned-template reader.
+typealias WorkshopGeneratedTemplateReaderFactory = @MainActor @Sendable () -> OwnedMemberTemplateReader?
+private struct WorkshopGeneratedTemplateReaderFactoryKey: EnvironmentKey {
+    static let defaultValue: WorkshopGeneratedTemplateReaderFactory? = nil
+}
+extension EnvironmentValues {
+    var workshopGeneratedTemplateReaderFactory: WorkshopGeneratedTemplateReaderFactory? {
+        get { self[WorkshopGeneratedTemplateReaderFactoryKey.self] }
+        set { self[WorkshopGeneratedTemplateReaderFactoryKey.self] = newValue }
+    }
+}

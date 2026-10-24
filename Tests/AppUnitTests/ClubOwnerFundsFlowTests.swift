@@ -151,3 +151,135 @@ import SwiftUI
         XCTAssertEqual(m.availability, .unknown); XCTAssertNil(m.funds); XCTAssertFalse(m.loading)
     }
 }
+
+@MainActor extension ClubOwnerFundsFlowTests {
+    private func source(_ a: Access, _ f: Funds, generation: UInt64 = 1) throws -> ClubOwnerFundsParent.Source {
+        .init(target: try target(a), readerID: ObjectIdentifier(f), walletScope: f.scope,
+              generation: generation, namespace: a.storageNamespace)
+    }
+    private func parent(_ source: ClubOwnerFundsParent.Source) -> ClubOwnerFundsParent {
+        let parent = ClubOwnerFundsParent(); parent.appear(); parent.synchronize(source); return parent
+    }
+    private func readFunds(_ p: ClubOwnerFundsParent, _ source: ClubOwnerFundsParent.Source, _ a: Access, _ f: Funds) async throws {
+        let ticket = try XCTUnwrap(p.ticket(current: source, active: true, otherPresented: false))
+        await p.load(ticket, access: a, context: context(f), current: { source }, active: { true }, otherPresented: { false })
+    }
+    private func contact(_ p: ClubOwnerFundsParent, _ source: ClubOwnerFundsParent.Source, _ a: Access, _ f: Funds) async throws -> ClubOwnerFundsParent.Contact {
+        let ticket = try XCTUnwrap(p.ticket(current: source, active: true, otherPresented: false))
+        await p.openContact(ticket, access: a, context: context(f), current: { source }, active: { true }, otherPresented: { false })
+        return try XCTUnwrap(p.contact)
+    }
+    func testParentNormalFundsContactAndVisibleReturnRechecksBothFinanceReads() async throws {
+        let a = Access(), f = Funds(), s = try source(a, f), p = parent(s)
+        try await readFunds(p, s, a, f); let item = try await contact(p, s, a, f)
+        XCTAssertEqual(a.reads, 4); XCTAssertEqual(f.reads, 2); XCTAssertTrue(p.current(item, source: s, active: true))
+        p.binding(item, current: { s }, active: { true }).wrappedValue = false
+        XCTAssertFalse(p.current(item, source: s, active: true)); XCTAssertTrue(p.dismissed(item, current: s, active: true))
+        try await readFunds(p, s, a, f)
+        XCTAssertEqual(a.reads, 6); XCTAssertEqual(f.reads, 3); XCTAssertEqual(a.sends, 0)
+    }
+    func testParentSheetCoverageRetainsExactContactAndFreshReturnWaitsForAppearance() async throws {
+        let a = Access(), f = Funds(), s = try source(a, f), p = parent(s)
+        try await readFunds(p, s, a, f); let item = try await contact(p, s, a, f)
+        p.hide(); XCTAssertTrue(p.current(item, source: s, active: true)); XCTAssertNotNil(p.attachment)
+        p.close(item); XCTAssertTrue(p.dismissed(item, current: s, active: true))
+        XCTAssertNil(p.ticket(current: s, active: true, otherPresented: false)); XCTAssertTrue(p.needsRead)
+        XCTAssertEqual(f.reads, 2); p.appear(); try await readFunds(p, s, a, f); XCTAssertEqual(f.reads, 3)
+    }
+    func testParentAppearanceBeforeContactDismissDoesNotReadUntilExactDismissal() async throws {
+        let a = Access(), f = Funds(), s = try source(a, f), p = parent(s)
+        try await readFunds(p, s, a, f); let item = try await contact(p, s, a, f)
+        p.hide(); p.close(item); p.appear()
+        XCTAssertNil(p.ticket(current: s, active: true, otherPresented: false)); XCTAssertEqual(f.reads, 2)
+        XCTAssertTrue(p.dismissed(item, current: s, active: true)); try await readFunds(p, s, a, f); XCTAssertEqual(f.reads, 3)
+    }
+    func testOldContactBindingCloseAndDismissCannotTouchReopenedContact() async throws {
+        let a = Access(), f = Funds(), s = try source(a, f), p = parent(s)
+        try await readFunds(p, s, a, f); let old = try await contact(p, s, a, f)
+        let binding = p.binding(old, current: { s }, active: { true }); p.close(old)
+        XCTAssertTrue(p.dismissed(old, current: s, active: true)); try await readFunds(p, s, a, f)
+        let fresh = try await contact(p, s, a, f); XCTAssertNotEqual(old.id, fresh.id)
+        binding.wrappedValue = false; p.close(old); XCTAssertFalse(p.dismissed(old, current: s, active: true))
+        XCTAssertTrue(p.current(fresh, source: s, active: true)); XCTAssertFalse(binding.wrappedValue)
+    }
+    func testOldRowTicketCannotRestartReadAfterContactReturn() async throws {
+        let a = Access(), f = Funds(), s = try source(a, f), p = parent(s)
+        try await readFunds(p, s, a, f); let old = try XCTUnwrap(p.ticket(current: s, active: true, otherPresented: false))
+        let item = try await contact(p, s, a, f); p.close(item); XCTAssertTrue(p.dismissed(item, current: s, active: true))
+        await p.load(old, access: a, context: context(f), current: { s }, active: { true }, otherPresented: { false }, force: true)
+        XCTAssertEqual(f.reads, 2); XCTAssertTrue(p.needsRead)
+    }
+    func testRealDepartureThenLateDismissCannotReadHiddenOrRetireNewAttachment() async throws {
+        let a = Access(), f = Funds(), s = try source(a, f), p = parent(s)
+        try await readFunds(p, s, a, f); let item = try await contact(p, s, a, f), old = try XCTUnwrap(p.attachment)
+        XCTAssertTrue(p.depart(old)); XCTAssertFalse(p.dismissed(item, current: s, active: true)); XCTAssertNil(p.ticket(current: s, active: true, otherPresented: false))
+        p.appear(); p.synchronize(s); let fresh = try XCTUnwrap(p.attachment); XCTAssertNotEqual(old, fresh)
+        XCTAssertFalse(p.depart(old)); XCTAssertEqual(p.attachment, fresh); try await readFunds(p, s, a, f); XCTAssertEqual(f.reads, 3)
+    }
+    func testHiddenSceneRecoveryCannotRestartFundsButVisibleRecoveryCan() async throws {
+        let a = Access(), f = Funds(), s = try source(a, f), p = parent(s)
+        try await readFunds(p, s, a, f); p.hide(); p.background(); p.synchronize(s)
+        XCTAssertNil(p.ticket(current: s, active: true, otherPresented: false)); XCTAssertNil(p.workflow.funds)
+        p.appear(); try await readFunds(p, s, a, f); XCTAssertEqual(f.reads, 2); XCTAssertEqual(a.sends, 0)
+    }
+    func testPendingFundsReadDepartAndLateResponseCannotRestoreSnapshot() async throws {
+        let a = Access(), f = Funds(), s = try source(a, f), p = parent(s); f.suspend = true
+        let ticket = try XCTUnwrap(p.ticket(current: s, active: true, otherPresented: false))
+        let task = Task { await p.load(ticket, access: a, context: context(f), current: { s }, active: { true }, otherPresented: { false }) }
+        while f.pending == nil { await Task.yield() }
+        XCTAssertTrue(p.depart(try XCTUnwrap(p.attachment))); f.pending?.resume(returning: try f.response()); f.pending = nil; await task.value
+        XCTAssertNil(p.workflow.funds); XCTAssertFalse(p.workflow.loading); XCTAssertNil(p.contact); XCTAssertEqual(a.reads, 1)
+    }
+    func testSourceAndWalletReplacementRejectOldReadAndQueuedContact() async throws {
+        let a = Access(), f = Funds(), s = try source(a, f), p = parent(s)
+        try await readFunds(p, s, a, f); let old = try XCTUnwrap(p.ticket(current: s, active: true, otherPresented: false))
+        f.scope = .init(namespace: f.scope!.namespace, accountID: 701, epoch: UUID()); let fresh = try source(a, f, generation: 2)
+        p.synchronize(fresh); await p.openContact(old, access: a, context: context(f), current: { fresh }, active: { true }, otherPresented: { false })
+        XCTAssertEqual(f.reads, 1); XCTAssertNil(p.contact); XCTAssertNil(p.workflow.funds)
+        try await readFunds(p, fresh, a, f); XCTAssertEqual(p.workflow.loadedScope, f.scope)
+    }
+    func testLedgerPresentationBlocksContactAndPreservesNoWriteSemantics() async throws {
+        let a = Access(), f = Funds(), s = try source(a, f), p = parent(s)
+        try await readFunds(p, s, a, f); let offered = try XCTUnwrap(p.ticket(current: s, active: true, otherPresented: false))
+        XCTAssertNil(p.ticket(current: s, active: true, otherPresented: true))
+        await p.openContact(offered, access: a, context: context(f), current: { s }, active: { true }, otherPresented: { true })
+        XCTAssertEqual(f.reads, 1); XCTAssertNil(p.contact); XCTAssertEqual(a.sends, 0)
+    }
+    func testInterruptedReturnReadRestartsOnVisibleForegroundOnly() async throws {
+        let a = Access(), f = Funds(), s = try source(a, f), p = parent(s)
+        try await readFunds(p, s, a, f); let item = try await contact(p, s, a, f); p.close(item); XCTAssertTrue(p.dismissed(item, current: s, active: true))
+        f.suspend = true; let ticket = try XCTUnwrap(p.ticket(current: s, active: true, otherPresented: false))
+        let task = Task { await p.load(ticket, access: a, context: context(f), current: { s }, active: { true }, otherPresented: { false }) }
+        while f.pending == nil { await Task.yield() }; p.background()
+        f.pending?.resume(returning: try f.response()); f.pending = nil; await task.value
+        XCTAssertNil(p.workflow.funds); XCTAssertTrue(p.needsRead); f.suspend = false
+        try await readFunds(p, s, a, f); XCTAssertEqual(f.reads, 4); XCTAssertEqual(a.sends, 0)
+    }
+}
+
+@MainActor extension ClubOwnerFundsFlowTests {
+    func testAccountSwitchDuringContactReadCannotOpenOrClearReplacementFunds() async throws {
+        let a = Access(), oldFunds = Funds(), oldSource = try source(a, oldFunds), p = parent(oldSource)
+        try await readFunds(p, oldSource, a, oldFunds)
+        let ticket = try XCTUnwrap(p.ticket(current: oldSource, active: true, otherPresented: false)); oldFunds.suspend = true
+        var liveSource = oldSource
+        let pending = Task { await p.openContact(ticket, access: a, context: context(oldFunds), current: { liveSource }, active: { true }, otherPresented: { false }) }
+        while oldFunds.pending == nil { await Task.yield() }
+        a.identity = .init(accountID: 702, epoch: 2)
+        let replacement = Funds(); replacement.scope = .init(namespace: a.storageNamespace, accountID: 702, epoch: UUID())
+        liveSource = try source(a, replacement, generation: 2); p.synchronize(liveSource)
+        try await readFunds(p, liveSource, a, replacement)
+        oldFunds.pending?.resume(returning: try oldFunds.response()); oldFunds.pending = nil; await pending.value
+        XCTAssertNil(p.contact); XCTAssertFalse(p.workflow.contactPresented); XCTAssertFalse(p.workflow.loading); XCTAssertEqual(p.workflow.loadedScope, replacement.scope)
+        XCTAssertEqual(p.workflow.availability, .positive); XCTAssertEqual(replacement.reads, 1); XCTAssertEqual(a.sends, 0)
+    }
+    func testBackgroundDuringContactReadCannotPresentAfterLateWalletResponse() async throws {
+        let a = Access(), f = Funds(), s = try source(a, f), p = parent(s)
+        try await readFunds(p, s, a, f); f.suspend = true
+        let ticket = try XCTUnwrap(p.ticket(current: s, active: true, otherPresented: false))
+        let pending = Task { await p.openContact(ticket, access: a, context: context(f), current: { s }, active: { true }, otherPresented: { false }) }
+        while f.pending == nil { await Task.yield() }; p.background()
+        f.pending?.resume(returning: try f.response()); f.pending = nil; await pending.value
+        XCTAssertNil(p.contact); XCTAssertNil(p.workflow.funds); XCTAssertTrue(p.needsRead); XCTAssertFalse(p.workflow.loading)
+    }
+}

@@ -75,6 +75,7 @@ struct ProfileOrderDetailView: View {
     @State private var ticketPresentationID = UUID()
     var body: some View {
         ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.order.detail", load: { try await reader.profileOrder(id: id) }) { order in
+            ProfileOrderMeetingPointHost(order: order, requestedID: id, reader: reader) { meetingPointEntry in
             List {
                 Section("profile.orders.summary") {
                     if let title = order.title, !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -96,7 +97,11 @@ struct ProfileOrderDetailView: View {
                     ProfileOptionalRow(key: "profile.orders.participateDate", value: order.participateDate)
                     ProfileOrderTicketScheduleRows(order: order)
                     ProfileOptionalRow(key: "profile.orders.location", value: order.addressName)
-                    PlatformExternalMapHost(destination: .init(name: order.meetingPoint ?? "", address: order.meetingPoint, latitude: order.gatherLatitude, longitude: order.gatherLongitude), scope: mediaScope, makeModel: makeExternalMaps)
+                    if let makeExternalMaps {
+                        PlatformExternalMapHost(destination: .init(name: order.meetingPoint ?? "", address: order.meetingPoint, latitude: order.gatherLatitude, longitude: order.gatherLongitude), scope: mediaScope, makeModel: makeExternalMaps)
+                    } else {
+                        meetingPointEntry
+                    }
                     ProfileOptionalRow(key: "profile.orders.expires", value: order.expiresAt)
                 }
                 if order.realName?.isEmpty == false || order.phone?.isEmpty == false {
@@ -149,6 +154,7 @@ struct ProfileOrderDetailView: View {
                 }
                 ExploreCompletionEntry(order: order, requestedID: id, origin: reader)
                 Section { Text("profile.readOnly").foregroundStyle(.secondary) }
+            }
             }
         }
         .appNavigationTitle("profile.orders.detail")

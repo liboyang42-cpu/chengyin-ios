@@ -179,3 +179,40 @@ final class AccountCollectionFlowTests: XCTestCase {
 
 
 }
+
+extension AccountCollectionFlowTests {
+    func testFutureCouponListAndDetailKeepUnusedStatusAndShowStartDayWithoutCode() {
+        launch(); open("accountCollection.openCoupons")
+        let row = app.buttons["accountCollection.coupon.706"]
+        reveal(row); row.tap()
+        XCTAssertTrue(app.navigationBars["Coupon details"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Sample future benefit"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["accountCollection.coupon.futureStart"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["accountCollection.coupon.futureStart"].label, "Not yet started")
+        XCTAssertGreaterThanOrEqual(app.staticTexts.matching(NSPredicate(format: "label == %@", "2099.01.01")).count, 1)
+        XCTAssertFalse(app.buttons["couponCode.open"].exists)
+        XCTAssertFalse(app.images["qrcode"].exists)
+    }
+    func testFutureCouponApprovedCodeEntrySaysViewAvailabilityAndDoesNotRequestCodeOnItsOwn() {
+        launch("codePresentation"); open("accountCollection.openCoupons")
+        let row = app.buttons["accountCollection.coupon.706"]
+        reveal(row); row.tap()
+        let action = app.buttons["couponCode.open"]
+        reveal(action)
+        XCTAssertEqual(action.label, "View availability")
+        XCTAssertEqual(app.staticTexts["ownedCoupon.fixture.issueCount"].label, "0")
+        XCTAssertFalse(app.images["qrcode"].exists)
+    }
+    func testFutureCouponHintCannotRemainAfterCurrentOwnerSignsOut() {
+        launch("sessionChange"); open("accountCollection.openCoupons")
+        let row = app.buttons["accountCollection.coupon.706"]
+        reveal(row); row.tap()
+        XCTAssertTrue(app.staticTexts["accountCollection.coupon.futureStart"].waitForExistence(timeout: 5))
+        open("accountCollection.fixture.signOut")
+        open("accountCollection.openCoupons")
+        XCTAssertTrue(app.staticTexts["Sign in to see your saved collections"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["accountCollection.coupon.futureStart"].exists)
+        XCTAssertFalse(app.buttons["accountCollection.coupon.706"].exists)
+        XCTAssertFalse(app.buttons["couponCode.open"].exists)
+    }
+}

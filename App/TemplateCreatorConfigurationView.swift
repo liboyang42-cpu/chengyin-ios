@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 @MainActor struct TemplateCreatorConfigurationView: View {
     @ObservedObject var model: TemplateAuthoringModel
@@ -14,6 +15,9 @@ import SwiftUI
                 Text(LocalizedStringKey(family.providerKey)).font(.footnote).foregroundStyle(.secondary)
             }
             if model.draft.advanced.enabled(family.rawValue) {
+                if family == .check {
+                    Section { NavigationLink { TemplateCheckPresetView(model: model) } label: { TemplateCheckPresetEntryLabel() } }
+                }
                 if family == .scan && TemplateScanResponseConfiguration(model.draft.advanced).isSupported {
                     Section { NavigationLink("templateScan.title") { TemplateScanResponseEditor(model: model) } }
                     TemplateCreatorFieldsView(model: model, family: family, fields: configurationFields.filter { !TemplateScanResponseConfiguration.managedFields.contains($0.id) }, path: [])
@@ -270,5 +274,293 @@ import SwiftUI
             Button("creator.add") { var copy = rows; copy.append(.string("")); write(.array(copy)) }.disabled(rows.count >= max)
             Text(verbatim: "≤ \(max) × \(length)").font(.caption).foregroundStyle(.secondary)
         }
+    }
+}
+
+// Local editor conveniences; the existing check schema remains authoritative.
+enum TemplateCheckLuckChoice: String, CaseIterable, Identifiable, Hashable {
+    case off, high, low, both
+    var id: String { rawValue }
+}
+
+struct TemplateCheckPresetConfiguration {
+    enum Step: String, CaseIterable, Hashable {
+        case high, low, hurt, severe
+        var label: String {
+            switch self {
+            case .high: return "High luck +1"
+            case .low: return "Low luck -1"
+            case .hurt: return "Injured -1"
+            case .severe: return "Severely injured -1"
+            }
+        }
+        var condition: [String: TemplateAuthoringJSON] {
+            let variable = self == .high || self == .low ? "sys.luck" : "sys.hp"
+            let threshold = self == .low ? 0 : self == .hurt ? 6 : 3
+            return ["var": .string(variable), "op": .string(self == .high ? "GTE" : "LTE"), "value": .number(Double(threshold))]
+        }
+        var row: TemplateAuthoringJSON {
+            .object(["label": .string(label), "value": .number(self == .high ? 1 : -1), "when": .object(condition)])
+        }
+    }
+    let original: TemplateAdvancedDraft
+    let rows: [TemplateAuthoringJSON]
+    let isSupported: Bool
+    let luck: TemplateCheckLuckChoice
+    let hpLadder: Bool
+    private let managed: [Int: Step]
+
+    init(_ original: TemplateAdvancedDraft) {
+        self.original = original
+        let fields = original.value["check"]?.object
+        rows = fields?["mods"]?.array ?? []
+        var supported = fields?["enabled"] == .bool(true)
+            && (fields?["mods"] == nil || fields?["mods"]?.array != nil)
+            && original.creatorIssues(.check).allSatisfy { !$0.path.hasPrefix("mods") }
+        var found: [Int: Step] = [:]
+        var seen = Set<Step>()
+        for (index, row) in rows.enumerated() {
+            if let step = Step.allCases.first(where: { $0.row == row }) {
+                if !seen.insert(step).inserted { supported = false }
+                found[index] = step
+            } else if let object = row.object {
+                // A familiar label or condition does not grant ownership of a custom row.
+                let condition = object["when"]?.object ?? [:]
+                if Step.allCases.contains(where: { step in
+                    object["label"]?.string == step.label ||
+                    (condition["var"] == step.condition["var"] && condition["op"] == step.condition["op"] &&
+                     condition["value"]?.number == step.condition["value"]?.number)
+                }) { supported = false }
+            }
+        }
+        let partialLadder = seen.contains(.hurt) != seen.contains(.severe)
+        if partialLadder { supported = false }
+        managed = found; isSupported = supported
+        switch (seen.contains(.high), seen.contains(.low)) {
+        case (true, true): luck = .both
+        case (true, false): luck = .high
+        case (false, true): luck = .low
+        case (false, false): luck = .off
+        }
+        hpLadder = seen.contains(.hurt) && seen.contains(.severe)
+    }
+
+    func applying(luck: TemplateCheckLuckChoice, hpLadder: Bool) -> TemplateAdvancedDraft? {
+        guard isSupported else { return nil }
+        var selected = Set<Step>()
+        if luck == .high || luck == .both { selected.insert(.high) }
+        if luck == .low || luck == .both { selected.insert(.low) }
+        if hpLadder { selected.formUnion([.hurt, .severe]) }
+        var result: [TemplateAuthoringJSON] = []
+        for (index, row) in rows.enumerated() {
+            if let step = managed[index] {
+                if selected.remove(step) != nil { result.append(row) }
+            } else { result.append(row) }
+        }
+        for step in Step.allCases where selected.contains(step) { result.append(step.row) }
+        guard result.count <= 16 else { return nil }
+        var next = original
+        if !result.isEmpty || original.value["check"]?.object?["mods"] != nil {
+            next.set("check", "mods", .array(result))
+        }
+        guard next.creatorIssues(.check).allSatisfy({ !$0.path.hasPrefix("mods") }) else { return nil }
+        return next
+    }
+
+    static func modifier(in draft: TemplateAdvancedDraft, hp: Int, luck: Int) -> Int? {
+        guard draft.value["check"]?.object?["enabled"] == .bool(true),
+              draft.creatorIssues(.check).allSatisfy({ !$0.path.hasPrefix("mods") }) else { return nil }
+        var sample = TemplateRootSampleState(); sample.values["sys.hp"] = hp; sample.values["sys.luck"] = luck
+        var total = 0
+        for row in draft.rows("check", "mods") {
+            guard let object = row.object, let condition = object["when"]?.object,
+                  let amount = object["value"]?.integer else { return nil }
+            if TemplateAuthorCondition(condition).matches(sample: sample) { total += amount }
+        }
+        return total
+    }
+}
+
+@MainActor final class TemplateCheckPresetController: ObservableObject {
+    private let model: TemplateAuthoringModel
+    private var observation: AnyCancellable?
+    private var generation = UUID(), metadata = UUID(), media = UUID()
+    private var owner: TemplateAuthoringSession?
+    private var identity: TemplateAuthoringIdentity?
+    private var source: Data?
+    private(set) var isVisible = false
+    private var sceneActive = false
+    @Published private(set) var configuration: TemplateCheckPresetConfiguration?
+    @Published private(set) var luck: TemplateCheckLuckChoice = .off
+    @Published private(set) var hpLadder = false
+    @Published private(set) var didApply = false
+
+    init(model: TemplateAuthoringModel) {
+        self.model = model
+        observation = model.objectWillChange.sink { [weak self] _ in self?.retire() }
+    }
+    private var canLoad: Bool { isVisible && sceneActive && model.canEdit && !model.busy && model.review == nil }
+    private var isCurrent: Bool {
+        canLoad && owner != nil && owner == model.coordinator.session && identity == model.coordinator.identity &&
+        metadata == model.metadataGeneration && media == model.mediaReviewGeneration &&
+        source != nil && source == TemplateSamplePreview.snapshot(model.draft)
+    }
+    var visibleConfiguration: TemplateCheckPresetConfiguration? { isCurrent ? configuration : nil }
+    var preview: TemplateAdvancedDraft? { visibleConfiguration?.applying(luck: luck, hpLadder: hpLadder) }
+    var canApply: Bool { preview.map { $0 != model.draft.advanced } ?? false }
+    func viewAppeared(sceneIsActive: Bool) {
+        isVisible = true; sceneActive = sceneIsActive
+        guard sceneActive else { retire(); return }
+        if configuration == nil { reload() }
+    }
+    func viewDisappeared() { isVisible = false; retire() }
+    func sceneChanged(isActive: Bool) {
+        let becameActive = !sceneActive && isActive; sceneActive = isActive
+        guard isVisible && sceneActive else { retire(); return }
+        if becameActive { reload() }
+    }
+    func reload() {
+        retire()
+        guard canLoad, let bytes = TemplateSamplePreview.snapshot(model.draft) else { return }
+        owner = model.coordinator.session; identity = model.coordinator.identity
+        metadata = model.metadataGeneration; media = model.mediaReviewGeneration; source = bytes
+        let config = TemplateCheckPresetConfiguration(model.draft.advanced)
+        configuration = config; luck = config.luck; hpLadder = config.hpLadder
+    }
+    func retire() {
+        generation = UUID(); source = nil; owner = nil; identity = nil
+        configuration = nil; luck = .off; hpLadder = false; didApply = false
+    }
+    var luckBinding: Binding<TemplateCheckLuckChoice> {
+        let stamp = generation
+        return .init(get: { [weak self] in
+            guard let self, self.generation == stamp, self.visibleConfiguration?.isSupported == true else { return .off }
+            return self.luck
+        }, set: { [weak self] value in
+            guard let self, self.generation == stamp, self.visibleConfiguration?.isSupported == true else { return }
+            self.luck = value; self.didApply = false
+        })
+    }
+    var hpBinding: Binding<Bool> {
+        let stamp = generation
+        return .init(get: { [weak self] in
+            guard let self, self.generation == stamp, self.visibleConfiguration?.isSupported == true else { return false }
+            return self.hpLadder
+        }, set: { [weak self] value in
+            guard let self, self.generation == stamp, self.visibleConfiguration?.isSupported == true else { return }
+            self.hpLadder = value; self.didApply = false
+        })
+    }
+    func applyAction() -> () -> Void {
+        let stamp = generation
+        return { [weak self] in
+            guard let self, self.generation == stamp, self.canApply, let next = self.preview else { return }
+            let owner = self.owner, identity = self.identity
+            var draft = self.model.draft; draft.advanced = next
+            self.model.draft = draft; self.model.changed()
+            guard self.canLoad, self.model.coordinator.session == owner, self.model.coordinator.identity == identity else { return }
+            self.reload(); self.didApply = true
+        }
+    }
+    func cancelAction(_ dismiss: @escaping () -> Void) -> () -> Void {
+        let stamp = generation, owner = model.coordinator.session, identity = model.coordinator.identity
+        return { [weak self] in
+            guard let self, self.isVisible, self.sceneActive, self.generation == stamp,
+                  self.model.coordinator.session == owner, self.model.coordinator.identity == identity else { return }
+            self.retire(); dismiss()
+        }
+    }
+    func reloadAction() -> () -> Void {
+        let stamp = generation, owner = model.coordinator.session, identity = model.coordinator.identity
+        return { [weak self] in
+            guard let self, self.generation == stamp, self.model.coordinator.session == owner,
+                  self.model.coordinator.identity == identity else { return }
+            self.reload()
+        }
+    }
+}
+
+enum TemplateCheckPresetText {
+    case title, scope, luck, off, high, low, both, ladder, warning, retained, unsupported, preview, apply, applied, cancel, reload
+    func value(_ locale: Locale) -> String {
+        let chinese = locale.language.languageCode?.identifier == "zh"
+        switch self {
+        case .title: return chinese ? "检定条件修正预设" : "Check modifier presets"
+        case .scope: return chinese ? "仅应用到当前未保存草稿，不会保存、发布或发起检定。" : "Apply to the current unsaved draft only. This does not save, publish or run a check."
+        case .luck: return chinese ? "幸运修正" : "Luck modifier"
+        case .off: return chinese ? "关闭幸运预设" : "Luck presets off"
+        case .high: return chinese ? "幸运 ≥ 3 时加1" : "Luck ≥ 3 adds 1"
+        case .low: return chinese ? "幸运 ≤ 0 时减1" : "Luck ≤ 0 subtracts 1"
+        case .both: return chinese ? "同时使用两档幸运修正" : "Use both luck modifiers"
+        case .ladder: return chinese ? "生命值越低越困难" : "Lower HP makes checks harder"
+        case .warning: return chinese ? "HP ≤ 6 减1，HP ≤ 3 再减1，两档累计最多减2。" : "HP ≤ 6 subtracts 1; HP ≤ 3 subtracts another 1. The ladder totals at most -2."
+        case .retained: return chinese ? "其他条件修正与字段保持原样，所有命中修正逐项累加。" : "Other modifiers and fields are retained. All matching modifiers are added together."
+        case .unsupported: return chinese ? "配置存在未知、自定义冲突、重复或超出数量限制，请使用原条件编辑器检查。本页不会覆盖。" : "Unknown, conflicting, duplicate or over-limit modifiers require the original editor. This page will not overwrite them."
+        case .preview: return chinese ? "本地修正合计（其他状态使用示例值）" : "Local modifier total (other state uses sample values)"
+        case .apply: return chinese ? "应用到当前草稿" : "Apply to current draft"
+        case .applied: return chinese ? "已应用到草稿，尚未保存或发布。" : "Applied to the draft. Not saved or published."
+        case .cancel: return chinese ? "取消未应用的选择" : "Cancel unapplied selection"
+        case .reload: return chinese ? "重新读取当前配置" : "Reload current configuration"
+        }
+    }
+}
+
+@MainActor struct TemplateCheckPresetEntryLabel: View {
+    @Environment(\.locale) private var locale
+    var body: some View { Text(verbatim: TemplateCheckPresetText.title.value(locale)) }
+}
+
+@MainActor struct TemplateCheckPresetView: View {
+    @ObservedObject var model: TemplateAuthoringModel
+    @StateObject private var controller: TemplateCheckPresetController
+    @Environment(\.locale) private var locale
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dismiss) private var dismiss
+    init(model: TemplateAuthoringModel) {
+        self.model = model; _controller = StateObject(wrappedValue: .init(model: model))
+    }
+    private func text(_ key: TemplateCheckPresetText) -> String { key.value(locale) }
+    private func luckText(_ choice: TemplateCheckLuckChoice) -> String {
+        switch choice {
+        case .off: return text(.off)
+        case .high: return text(.high)
+        case .low: return text(.low)
+        case .both: return text(.both)
+        }
+    }
+    var body: some View {
+        Form {
+            Section { Text(verbatim: text(.scope)); Text(verbatim: text(.retained)).font(.footnote) }
+            if controller.visibleConfiguration?.isSupported == true {
+                Section {
+                    Picker(text(.luck), selection: controller.luckBinding) {
+                        ForEach(TemplateCheckLuckChoice.allCases) { choice in Text(verbatim: luckText(choice)).tag(choice) }
+                    }.accessibilityIdentifier("templateCheckPresets.luck")
+                    Toggle(text(.ladder), isOn: controller.hpBinding).accessibilityIdentifier("templateCheckPresets.hp")
+                    Text(verbatim: text(.warning)).font(.footnote)
+                }
+                if let draft = controller.preview {
+                    Section(text(.preview)) {
+                        ForEach([7, 6, 3], id: \.self) { hp in
+                            ForEach([0, 3], id: \.self) { luck in
+                                if let amount = TemplateCheckPresetConfiguration.modifier(in: draft, hp: hp, luck: luck) {
+                                    LabeledContent("HP \(hp), \(text(.luck)) \(luck)", value: String(amount))
+                                }
+                            }
+                        }
+                    }.accessibilityIdentifier("templateCheckPresets.preview")
+                } else { Text(verbatim: text(.unsupported)) }
+                Button(text(.apply), action: controller.applyAction()).disabled(!controller.canApply)
+                    .accessibilityIdentifier("templateCheckPresets.apply")
+                if controller.didApply { Text(verbatim: text(.applied)).accessibilityIdentifier("templateCheckPresets.applied") }
+            } else {
+                Text(verbatim: text(.unsupported))
+                Button(text(.reload), action: controller.reloadAction()).accessibilityIdentifier("templateCheckPresets.reload")
+            }
+            Button(text(.cancel), action: controller.cancelAction { dismiss() }).accessibilityIdentifier("templateCheckPresets.cancel")
+        }.navigationTitle(text(.title))
+            .onAppear { controller.viewAppeared(sceneIsActive: scenePhase == .active) }
+            .onDisappear { controller.viewDisappeared() }
+            .onChange(of: scenePhase) { _, phase in controller.sceneChanged(isActive: phase == .active) }
     }
 }

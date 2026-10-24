@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Inject an observable session adapter; this view deliberately does not own root navigation.
 @MainActor
@@ -15,6 +16,7 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
     var cooperationFlowReader: (any CoopFlowReading)? = nil
     var engagementReader: (any MerchantEngagementReading)? = nil
     var exportRecovery: (any MerchantExportRecoveryStoring)? = nil
+    var showsRecordLinks = true
     @StateObject private var access = MerchantLoadModel<MerchantAccess>()
 
     var body: some View {
@@ -25,7 +27,7 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                 ContentUnavailableView("merchant.title", systemImage: "person.crop.circle.badge.exclamationmark", description: Text("merchant.signIn"))
             } else if access.loadedRevision == reader.sessionRevision, let identity = access.value {
                 if identity.active {
-                    MerchantWorkbench(reader: reader, access: identity, marketingModel: marketingModel, marketingDestination: marketingDestination, operationsReader: operationsReader, operationsDestinationFactory: operationsDestinationFactory, businessReader: businessReader, businessJournal: businessJournal, contentService: contentService, cooperationFlowReader: cooperationFlowReader, engagementReader: engagementReader, exportRecovery: exportRecovery, refreshAccess: reload)
+                    MerchantWorkbench(reader: reader, access: identity, marketingModel: marketingModel, marketingDestination: marketingDestination, operationsReader: operationsReader, operationsDestinationFactory: operationsDestinationFactory, businessReader: businessReader, businessJournal: businessJournal, contentService: contentService, cooperationFlowReader: cooperationFlowReader, engagementReader: engagementReader, exportRecovery: exportRecovery, showsRecordLinks: showsRecordLinks, refreshAccess: reload)
                         .id("\(reader.sessionRevision):\(identity.merchantID ?? 0):\(identity.role?.rawValue ?? "")")
                 } else {
                     List {
@@ -73,11 +75,21 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     let cooperationFlowReader: (any CoopFlowReading)?
     let engagementReader: (any MerchantEngagementReading)?
     let exportRecovery: (any MerchantExportRecoveryStoring)?
+    let showsRecordLinks: Bool
     let refreshAccess: () async -> Void
     @StateObject private var dashboard = MerchantLoadModel<MerchantDashboard>()
     @StateObject private var todo = MerchantLoadModel<MerchantTodo>()
     @StateObject private var events = MerchantLoadModel<[MerchantEvent]>()
 
+    private func customerQueryDestination(source: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore)
+        -> (@MainActor (MerchantCustomerAppliedQuery) -> AnyView)? {
+        guard let engagementReader, let exportRecovery else { return nil }
+        let revision = reader.sessionRevision, merchant = access.merchantID
+        return { selection in
+            AnyView(MerchantCustomerQueryDestinationView(root: reader, source: source, engagement: engagementReader,
+                journal: journal, exports: exportRecovery, selection: selection, revision: revision, merchantID: merchant))
+        }
+    }
     var body: some View {
         List {
             Section {
@@ -104,9 +116,17 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     NavigationLink {
                         MerchantBusinessHomeView(reader: businessReader, journal: businessJournal)
                             .environment(\.merchantAftercareEvidenceDependencies, aftercareEvidenceDependencies(journal: businessJournal))
+                            .environment(\.merchantCustomerQueryDestination, customerQueryDestination(source: businessReader, journal: businessJournal))
                             .id(businessReader.scope)
                     } label: { Label("merchant.business.title", systemImage: "building.2.crop.circle") }
                         .accessibilityIdentifier("merchant.business.open")
+                    ForEach(MerchantWorkbenchBusinessShortcut.allCases) { shortcut in
+                        if let route = MerchantWorkbenchBusinessRoute(shortcut: shortcut, reader: businessReader, journal: businessJournal) {
+                            NavigationLink(value: route) {
+                                Label(LocalizedStringKey(shortcut.query.titleKey), systemImage: shortcut.symbol)
+                            }.accessibilityIdentifier("merchant.workbench.direct." + shortcut.rawValue)
+                        }
+                    }
                 }
             }
             if let engagementReader, let businessJournal, let exportRecovery {
@@ -171,7 +191,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     }
                 }
             }
-            if access.allows(.orders) || access.allows(.projects) {
+            if showsRecordLinks && (access.allows(.orders) || access.allows(.projects)) {
                 Section("merchant.records") {
                     if access.allows(.orders) {
                         NavigationLink { MerchantOrdersView(reader: reader) } label: { Label("merchant.orders", systemImage: "receipt") }
@@ -186,6 +206,17 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                 Text("merchant.access.noReadSurfaces").foregroundStyle(.secondary)
             }
             Button("merchant.refreshAccess") { Task { await refreshAccess() } }
+        }
+        .navigationDestination(for: MerchantWorkbenchBusinessRoute.self) { route in
+            if let businessReader, let businessJournal,
+               route.isCurrent(reader: businessReader, journal: businessJournal) {
+                MerchantBusinessPage(reader: route.reader, journal: route.journal, query: route.shortcut.query)
+                    .environment(\.merchantAftercareEvidenceDependencies, aftercareEvidenceDependencies(journal: route.journal))
+                    .environment(\.merchantCustomerQueryDestination, customerQueryDestination(source: route.reader, journal: route.journal))
+                    .id(route)
+            } else {
+                Text("merchant.business.stale")
+            }
         }
         .refreshable { await refreshAccess() }
         .task {
@@ -270,3 +301,85 @@ struct MerchantFailureView: View {
         }
     }
 }
+
+/// Entry choices carry no grant. The existing page performs its own fresh authorization read.
+enum MerchantWorkbenchBusinessShortcut: String, CaseIterable, Identifiable {
+    case customers, finance, aftercare
+    var id: String { rawValue }
+    var query: MerchantBusinessQuery {
+        switch self {
+        case .customers: return .customers(.init())
+        case .finance: return .overview
+        case .aftercare: return .aftercare(.pending, page: 1)
+        }
+    }
+    var symbol: String {
+        switch self {
+        case .customers: return "person.2"
+        case .finance: return "list.bullet.rectangle"
+        case .aftercare: return "arrow.uturn.backward.circle"
+        }
+    }
+}
+
+/// Freeze the original dependencies, including authorization generation, before navigation.
+/// Leaving Home for a child does not replace this route; a changed context invalidates it.
+struct MerchantWorkbenchBusinessRoute: Hashable {
+    let shortcut: MerchantWorkbenchBusinessShortcut
+    private let value: MerchantBusinessHomeRoute
+    var reader: any MerchantBusinessReading { value.reader }
+    var journal: any MerchantBusinessIntentStore { value.journal }
+    @MainActor init?(shortcut: MerchantWorkbenchBusinessShortcut, reader: any MerchantBusinessReading,
+                     journal: any MerchantBusinessIntentStore) {
+        guard reader.isConfigured, reader.scope != nil else { return nil }
+        self.shortcut = shortcut
+        value = .init(target: .query(shortcut.query), reader: reader, journal: journal)
+    }
+    @MainActor func isCurrent(reader: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore) -> Bool {
+        value.isCurrent(reader: reader, journal: journal)
+    }
+}
+
+@MainActor private struct MerchantCustomerQueryDestinationView<Reader: MerchantReading>: View {
+    @Environment(\.scenePhase) private var scenePhase
+    @ObservedObject var root: Reader
+    let selection: MerchantCustomerAppliedQuery
+    let journal: any MerchantBusinessIntentStore
+    let exports: any MerchantExportRecoveryStoring
+    @StateObject private var reader: MerchantCustomerQueryReader
+    init(root: Reader, source: any MerchantBusinessReading, engagement: any MerchantEngagementReading,
+         journal: any MerchantBusinessIntentStore, exports: any MerchantExportRecoveryStoring,
+         selection: MerchantCustomerAppliedQuery, revision: UInt64, merchantID: Int?) {
+        self.root = root; self.selection = selection; self.journal = journal; self.exports = exports
+        _reader = StateObject(wrappedValue: .init(selection: selection, base: engagement, source: source, originCurrent: {
+            root.isConfigured && root.isSignedIn && root.sessionRevision == revision && merchantID == selection.merchantID
+        }))
+    }
+    var body: some View {
+        Group {
+            if reader.isCurrent {
+                MerchantEngagementHomeView(reader: reader, journal: journal, exportRecovery: exports,
+                    filter: selection.filter).id(selection.id)
+            } else { Text("merchant.business.stale") }
+        }
+        .background(MerchantCustomerQueryOwnerAnchor(reader: reader).frame(width: 0, height: 0))
+        .onAppear { if scenePhase != .active { reader.retire() } }
+        .onChange(of: scenePhase) { _, phase in if phase != .active { reader.retire() } }
+    }
+}
+
+
+/// Navigation into an existing child does not end this captured query owner.
+/// Actual owner removal does, including when a modal covers the parent.
+@MainActor struct MerchantCustomerQueryOwnerAnchor: UIViewControllerRepresentable {
+    let reader: MerchantCustomerQueryReader
+    final class Coordinator {
+        weak var reader: MerchantCustomerQueryReader?
+        init(_ reader: MerchantCustomerQueryReader) { self.reader = reader }
+    }
+    func makeCoordinator() -> Coordinator { Coordinator(reader) }
+    func makeUIViewController(context: Context) -> UIViewController { UIViewController() }
+    func updateUIViewController(_ controller: UIViewController, context: Context) {}
+    static func dismantleUIViewController(_ controller: UIViewController, coordinator: Coordinator) { coordinator.reader?.retire() }
+}
+

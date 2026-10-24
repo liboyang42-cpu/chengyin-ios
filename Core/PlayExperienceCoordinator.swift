@@ -339,6 +339,8 @@ public struct PlayCompletionReview: Equatable {
     public func submit(_ review: PlayCompletionReview) async {
         guard service.enabled.contains(.classicCompletion), review.gameplayMode == gameplayMode, gameplayMode != nil, phase == .reviewing, review.session == currentSession(), review.session == loadedSession,
               review.generation == generation, !unresolved else { return }
+        do { try review.evidence.validateNewLocationMeasurement() }
+        catch { issue = .invalidAction; return }
         await dispatch(review)
     }
     private func dispatch(_ review: PlayCompletionReview, recovering: PlayCompletionRecoverySnapshot? = nil) async {

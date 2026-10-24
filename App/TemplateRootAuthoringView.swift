@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 @MainActor struct TemplateRootAuthoringView: View {
     @ObservedObject var model: TemplateAuthoringModel
@@ -17,6 +18,8 @@ import SwiftUI
                 }
             }
             Section("creatorRoot.variants") {
+                NavigationLink { TemplateLowHPPresetView(model: model) } label: { TemplateLowHPPresetEntryLabel() }
+                    .accessibilityIdentifier("templateLowHP.open")
                 Text("creatorRoot.firstMatch").font(.footnote)
                 ForEach(Array(model.draft.advanced.rootVariants.enumerated()), id: \.offset) { index, _ in
                     NavigationLink { TemplateVariantEditor(model: model, index: index) } label: { HStack { Text("creatorRoot.variant"); Text(verbatim: String(index + 1)) } }
@@ -160,5 +163,242 @@ private struct TemplateConditionEditor: View {
         TextField("creator.field.failText", text: binding("failText"), axis: .vertical)
         Text("creatorRoot.d20Bounds").font(.footnote)
         NavigationLink("creatorRoot.d20Preview") { TemplateD20RehearsalView(draft: model.draft.advanced) }.disabled(!model.draft.advanced.legacyVariantIssues.isEmpty)
+    }
+}
+
+struct TemplateLowHPPresetConfiguration {
+    struct Option: Identifiable, Equatable {
+        let field: TemplateRelaxField
+        let operation: String
+        var id: String { field.rawValue + ":" + operation }
+        var row: TemplateAuthoringJSON {
+            .object(["when": .object(TemplateAuthorCondition().value), "relax": .object([field.rawValue: .string(operation)])])
+        }
+    }
+    let original: TemplateAdvancedDraft
+    let options: [Option]
+    private(set) var selectedID = ""
+    private(set) var isSupported = true
+    private var rows: [TemplateAuthoringJSON] = []
+    private var managedIndex: Int?
+    init(_ draft: TemplateAdvancedDraft) {
+        original = draft; options = Self.makeOptions(draft)
+        if let raw = draft.value["variants"] {
+            guard let array = raw.array else { isSupported = false; return }
+            rows = array
+        }
+        for (index, raw) in rows.enumerated() {
+            guard let condition = raw.object?["when"]?.object,
+                  condition["var"]?.string == "sys.hp", condition["op"]?.string == "LTE",
+                  condition["value"]?.number == 3 else { continue }
+            // Only an exact currently available preset is managed here. Leave custom or
+            // ambiguous low-HP rules to the existing full editor rather than replacing them.
+            guard managedIndex == nil, let known = options.first(where: { $0.row == raw }) else {
+                isSupported = false; return
+            }
+            managedIndex = index; selectedID = known.id
+        }
+    }
+    private static func makeOptions(_ draft: TemplateAdvancedDraft) -> [Option] {
+        var result: [Option] = []
+        for field in draft.eligibleRelaxFields {
+            // No option can activate a disabled capability or device-only experience.
+            if [.compassTolerance, .compassHold, .shout].contains(field) { continue }
+            guard draft.value[field.section]?.object?["enabled"] == .bool(true),
+                  let base = draft.value[field.section]?.object?[field.field]?.number,
+                  base.isFinite, base > 0 else { continue }
+            var operations: [String] = []
+            switch field {
+            case .timer: operations = ["+30"]
+            case .typingTime: operations = ["+15"]
+            case .shakeTime:
+                if draft.value["ballShake"]?.object?["timed"] == .bool(true) { operations = ["+5"] }
+            case .sortAttempts, .pictureAttempts, .typingAttempts, .qaAttempts, .hiddenAttempts, .stopwatchAttempts:
+                operations = ["+2", "=0"]
+            case .quiet, .countdown, .shakeGoal:
+                let delta = max(1, (base / 3).rounded())
+                if delta < 100000 { operations = ["-" + String(Int(delta))] }
+            case .reaction: operations = ["+150"]
+            case .stopwatchTolerance, .estimateTolerance:
+                let delta = base.rounded()
+                if delta >= 1 && delta < 100000 { operations = ["+" + String(Int(delta))] }
+            case .compassTolerance, .compassHold, .shout: break
+            }
+            for operation in operations {
+                let option = Option(field: field, operation: operation)
+                var probe = draft; probe.value["variants"] = .array([option.row])
+                // Existing domain validation owns field bounds, enabled dependencies and direction.
+                if probe.rootCreatorIssues.isEmpty { result.append(option) }
+            }
+        }
+        return result
+    }
+    func applying(_ selection: String) -> TemplateAdvancedDraft? {
+        guard isSupported else { return nil }
+        var kept = rows
+        if selection.isEmpty {
+            if let managedIndex { kept.remove(at: managedIndex) }
+        } else {
+            guard let option = options.first(where: { $0.id == selection }) else { return nil }
+            if let managedIndex { kept[managedIndex] = option.row }
+            else {
+                guard kept.count < 16 else { return nil }
+                kept.append(option.row)
+            }
+        }
+        var next = original
+        if !kept.isEmpty || original.value["variants"] != nil { next.value["variants"] = .array(kept) }
+        guard next.rootCreatorIssues.isEmpty else { return nil }
+        return next
+    }
+}
+
+@MainActor final class TemplateLowHPPresetController: ObservableObject {
+    private let model: TemplateAuthoringModel
+    private var observation: AnyCancellable?
+    private var generation = UUID(), metadata = UUID(), media = UUID()
+    private var owner: TemplateAuthoringSession?
+    private var identity: TemplateAuthoringIdentity?
+    private var source: Data?
+    private(set) var isVisible = false
+    private var sceneActive = false
+    @Published private(set) var configuration: TemplateLowHPPresetConfiguration?
+    @Published private(set) var selection = ""
+    @Published private(set) var didApply = false
+    init(model: TemplateAuthoringModel) {
+        self.model = model
+        observation = model.objectWillChange.sink { [weak self] _ in self?.retire() }
+    }
+    private var canLoad: Bool { isVisible && sceneActive && model.canEdit && !model.busy && model.review == nil }
+    private var isCurrent: Bool {
+        canLoad && owner != nil && owner == model.coordinator.session && identity == model.coordinator.identity &&
+        metadata == model.metadataGeneration && media == model.mediaReviewGeneration &&
+        source != nil && source == TemplateSamplePreview.snapshot(model.draft)
+    }
+    var visibleConfiguration: TemplateLowHPPresetConfiguration? { isCurrent ? configuration : nil }
+    var preview: TemplateAdvancedDraft? { visibleConfiguration?.applying(selection) }
+    var canApply: Bool { preview.map { $0 != model.draft.advanced } ?? false }
+    func viewAppeared(sceneIsActive: Bool) {
+        isVisible = true; sceneActive = sceneIsActive
+        guard sceneActive else { retire(); return }
+        if configuration == nil { reload() }
+    }
+    func viewDisappeared() { isVisible = false; retire() }
+    func sceneChanged(isActive: Bool) {
+        let becameActive = !sceneActive && isActive; sceneActive = isActive
+        guard isVisible && sceneActive else { retire(); return }
+        if becameActive { reload() }
+    }
+    func reload() {
+        retire()
+        guard canLoad, let bytes = TemplateSamplePreview.snapshot(model.draft) else { return }
+        owner = model.coordinator.session; identity = model.coordinator.identity
+        metadata = model.metadataGeneration; media = model.mediaReviewGeneration; source = bytes
+        let value = TemplateLowHPPresetConfiguration(model.draft.advanced)
+        configuration = value; selection = value.selectedID
+    }
+    func retire() {
+        generation = UUID(); source = nil; owner = nil; identity = nil; configuration = nil; selection = ""; didApply = false
+    }
+    var selectionBinding: Binding<String> {
+        let stamp = generation
+        return .init(get: { [weak self] in
+            guard let self, self.generation == stamp, let config = self.visibleConfiguration, config.isSupported else { return "" }
+            return self.selection
+        }, set: { [weak self] value in
+            guard let self, self.generation == stamp, let config = self.visibleConfiguration, config.isSupported,
+                  value.isEmpty || config.options.contains(where: { $0.id == value }) else { return }
+            self.selection = value; self.didApply = false
+        })
+    }
+    func applyAction() -> () -> Void {
+        let stamp = generation
+        return { [weak self] in
+            guard let self, self.generation == stamp, self.canApply, let next = self.preview else { return }
+            let owner = self.owner, identity = self.identity
+            var draft = self.model.draft; draft.advanced = next
+            self.model.draft = draft; self.model.changed()
+            guard self.canLoad, self.model.coordinator.session == owner, self.model.coordinator.identity == identity else { return }
+            self.reload(); self.didApply = true
+        }
+    }
+    func cancelAction(_ dismiss: @escaping () -> Void) -> () -> Void {
+        let stamp = generation, owner = model.coordinator.session, identity = model.coordinator.identity
+        return { [weak self] in
+            guard let self, self.isVisible, self.sceneActive, self.generation == stamp,
+                  self.model.coordinator.session == owner, self.model.coordinator.identity == identity else { return }
+            self.retire(); dismiss()
+        }
+    }
+    func reloadAction() -> () -> Void {
+        let stamp = generation, owner = model.coordinator.session, identity = model.coordinator.identity
+        return { [weak self] in
+            guard let self, self.generation == stamp, self.model.coordinator.session == owner,
+                  self.model.coordinator.identity == identity else { return }
+            self.reload()
+        }
+    }
+}
+
+enum TemplateLowHPPresetText: String, CaseIterable {
+    case title, scope, choice, off, empty, retained, unsupported, preview, rule, noMatch, apply, applied, cancel, reload
+    var localizationKey: String { "templateLowHPText." + rawValue }
+    func value(_ locale: Locale) -> String {
+        appLocalized(String.LocalizationValue(stringLiteral: localizationKey), locale: locale)
+    }
+}
+
+@MainActor struct TemplateLowHPPresetEntryLabel: View {
+    @Environment(\.locale) private var locale
+    var body: some View { Text(verbatim: TemplateLowHPPresetText.title.value(locale)) }
+}
+
+@MainActor struct TemplateLowHPPresetView: View {
+    @ObservedObject var model: TemplateAuthoringModel
+    @StateObject private var controller: TemplateLowHPPresetController
+    @Environment(\.locale) private var locale
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dismiss) private var dismiss
+    init(model: TemplateAuthoringModel) {
+        self.model = model; _controller = StateObject(wrappedValue: .init(model: model))
+    }
+    private func text(_ key: TemplateLowHPPresetText) -> String { key.value(locale) }
+    var body: some View {
+        Form {
+            Section { Text(verbatim: text(.scope)); Text(verbatim: text(.retained)).font(.footnote) }
+            if let config = controller.visibleConfiguration, config.isSupported {
+                Section {
+                    Picker(text(.choice), selection: controller.selectionBinding) {
+                        Text(verbatim: text(.off)).tag("")
+                        ForEach(config.options) { option in
+                            Text("\(Text(LocalizedStringKey(option.field.labelKey))) \(option.operation)").tag(option.id)
+                        }
+                    }.accessibilityIdentifier("templateLowHP.choice")
+                    if config.options.isEmpty { Text(verbatim: text(.empty)) }
+                }
+                if let draft = controller.preview, let evaluated = try? draft.rehearsedVariant(sample: .init()) {
+                    Section(text(.preview)) {
+                        if let index = evaluated.index { LabeledContent(text(.rule), value: String(index + 1)) }
+                        else { Text(verbatim: text(.noMatch)) }
+                        ForEach(TemplateRelaxField.allCases) { field in
+                            if draft.text(field.section, field.field) != evaluated.draft.text(field.section, field.field) {
+                                LabeledContent(LocalizedStringKey(field.labelKey), value: draft.text(field.section, field.field) + " → " + evaluated.draft.text(field.section, field.field))
+                            }
+                        }
+                    }.accessibilityIdentifier("templateLowHP.preview")
+                }
+                if controller.preview == nil { Text(verbatim: text(.unsupported)) }
+                Button(text(.apply), action: controller.applyAction()).disabled(!controller.canApply)
+                    .accessibilityIdentifier("templateLowHP.apply")
+                if controller.didApply { Text(verbatim: text(.applied)).accessibilityIdentifier("templateLowHP.applied") }
+            } else {
+                Text(verbatim: text(.unsupported))
+                Button(text(.reload), action: controller.reloadAction()).accessibilityIdentifier("templateLowHP.reload")
+            }
+            Button(text(.cancel), action: controller.cancelAction { dismiss() }).accessibilityIdentifier("templateLowHP.cancel")
+        }.navigationTitle(text(.title))
+            .onAppear { controller.viewAppeared(sceneIsActive: scenePhase == .active) }
+            .onDisappear { controller.viewDisappeared() }
+            .onChange(of: scenePhase) { _, phase in controller.sceneChanged(isActive: phase == .active) }
     }
 }

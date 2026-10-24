@@ -3,16 +3,28 @@ import SwiftUI
 /// Mount inside a NavigationStack. Identity resets clear drafts, private results, navigation and tasks.
 @MainActor struct RoamExperienceHubView: View {
     let reader: any RoamExperienceReading
+    var albumMetadataReader: RoamAlbumMetadataReader? = nil
+    var tileMemoryReader: RoamTileMemoryReader? = nil
+    var sessionFactReader: RoamSessionFactReader? = nil
     var stampDestination: (() -> AnyView)? = nil
     var liveDestination: (() -> AnyView)? = nil
     var body: some View {
-        RoamExperienceMenu(reader: reader, stampDestination: stampDestination, liveDestination: liveDestination).id(reader.identity)
+        RoamExperienceMenu(reader: reader, albumMetadataReader: albumMetadataReader, tileMemoryReader: tileMemoryReader, sessionFactReader: sessionFactReader, stampDestination: stampDestination, liveDestination: liveDestination).id(reader.identity)
     }
 }
 @MainActor private struct RoamExperienceMenu: View {
     let reader: any RoamExperienceReading
+    let albumMetadataReader: RoamAlbumMetadataReader?
+    let tileMemoryReader: RoamTileMemoryReader?
+    let sessionFactReader: RoamSessionFactReader?
+    private var effectiveSessionReader: any RoamExperienceReading {
+        if let sessionFactReader { return sessionFactReader }; return reader
+    }
     let stampDestination: (() -> AnyView)?
     let liveDestination: (() -> AnyView)?
+    private var effectiveTileReader: any RoamExperienceReading {
+        if let tileMemoryReader { return tileMemoryReader }; return reader
+    }
     @State private var passport = RoamPassportOverviewState()
     @AppStorage(ReducedMotionPreference.storageKey) private var reduceMotionLocally = ReducedMotionPreference.defaultValue
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
@@ -36,15 +48,18 @@ import SwiftUI
                     .accessibilityIdentifier("roam.tasks.open")
                 NavigationLink { RoamHistoryView(reader: reader, liveDestination: liveDestination) } label: { Label("roam.experience.history", systemImage: "clock.arrow.circlepath") }
                     .accessibilityIdentifier("roam.experience.history.open")
-                NavigationLink { RoamRecoveryView(reader: reader) } label: { Label("roam.experience.recovery", systemImage: "arrow.clockwise.circle") }
+                NavigationLink { RoamRecoveryView(reader: effectiveSessionReader).id(sessionFactReader?.scope) } label: { Label("roam.experience.recovery", systemImage: "arrow.clockwise.circle") }
                     .accessibilityIdentifier("roam.experience.recovery.open")
                 NavigationLink { if let liveDestination { liveDestination() } else { AnyView(RoamLivePreparationView(reader: reader)) } } label: { Label("roam.experience.live", systemImage: "figure.walk") }
                     .accessibilityIdentifier("roam.experience.live.open")
             }
             Section("roam.experience.collect") {
-                NavigationLink { RoamTileMemoryView(reader: reader) } label: { Label("roam.experience.tileMemory", systemImage: "map") }
+                NavigationLink { RoamTileMemoryView(reader: effectiveTileReader).id(tileMemoryReader?.scope) } label: { Label("roam.experience.tileMemory", systemImage: "map") }
                     .accessibilityIdentifier("roam.experience.tiles.open")
-                NavigationLink { RoamStampAlbumView(reader: reader, stampDestination: stampDestination) } label: { Label("roam.experience.album", systemImage: "rectangle.stack") }
+                NavigationLink {
+                    if let albumMetadataReader { RoamAlbumMetadataDestination(reader: albumMetadataReader).id(albumMetadataReader.scope) }
+                    else { RoamStampAlbumView(reader: reader, stampDestination: stampDestination) }
+                } label: { Label("roam.experience.album", systemImage: "rectangle.stack") }
                     .accessibilityIdentifier("roam.experience.album.open")
                 NavigationLink { RoamBadgeWallDestination(roamReader: reader) } label: { Label("profile.badges.title", systemImage: "medal") }
                     .disabled(reader.identity == nil)

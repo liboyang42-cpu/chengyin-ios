@@ -83,15 +83,16 @@ public struct MerchantContentReceipt: Equatable {
     private let onUnauthorized: (MerchantContentSession) -> Void
     private let journal: (any MerchantContentPendingStorage)?
     private let execution: Execution
+    private let requiredMerchantID: Int?
     private var previous: MerchantContentSession?
     private var stamp = UUID()
     public var scope: UUID { let s = currentSession(); if s != previous { previous = s; stamp = UUID() }; return stamp }
     public var isConfigured: Bool { configuration != nil }
     public var isAuthenticated: Bool { currentSession() != nil }
     public var permitsWrites: Bool { execution == .injectedOfflineHarness && transport is any MerchantContentOfflineTransport && journal != nil }
-    public init(configuration: APIConfiguration?, transport: any HTTPTransport, currentSession: @escaping () -> MerchantContentSession?, journal: (any MerchantContentPendingStorage)? = nil, execution: Execution = .disabled, onUnauthorized: @escaping (MerchantContentSession) -> Void = { _ in }) {
+    public init(configuration: APIConfiguration?, transport: any HTTPTransport, currentSession: @escaping () -> MerchantContentSession?, journal: (any MerchantContentPendingStorage)? = nil, execution: Execution = .disabled, requiredMerchantID: Int? = nil, onUnauthorized: @escaping (MerchantContentSession) -> Void = { _ in }) {
         self.configuration = configuration; self.transport = transport; self.currentSession = currentSession
-        self.journal = journal; self.execution = execution; self.onUnauthorized = onUnauthorized; previous = currentSession()
+        self.journal = journal; self.execution = execution; self.requiredMerchantID = requiredMerchantID; self.onUnauthorized = onUnauthorized; previous = currentSession()
     }
     private enum Body { case none, json([String: MerchantContentValue]), form([String: String]) }
     private struct Envelope: Decodable { let code: Int; let msg: String?; let data: MerchantContentValue? }
@@ -131,6 +132,9 @@ public struct MerchantContentReceipt: Equatable {
             guard permissions.contains("merchant:marketing:read") else { throw MerchantContentFailure.denied }
         }
         guard access.active, access.merchantID != nil, !query.requiresProjects || access.allows(.projects) else { throw MerchantContentFailure.denied }
+        if let requiredMerchantID {
+            guard requiredMerchantID > 0, access.merchantID == requiredMerchantID else { throw MerchantContentFailure.denied }
+        }
         return access
     }
     public func load(_ query: MerchantContentQuery) async throws -> MerchantContentSnapshot {
@@ -140,6 +144,26 @@ public struct MerchantContentReceipt: Equatable {
         let value = try await document(query, session: session)
         try ensure(session)
         return .init(query: query, scope: capturedScope, access: access, value: value, observedAt: Date())
+    }
+    /// A separate normal-entry reader calls this with a selected merchant and a scoped transport.
+    public func loadOrdinaryMerchantParticipants(topicID: Int) async throws -> MerchantContentSnapshot {
+        guard topicID > 0, let merchantID = requiredMerchantID, merchantID > 0 else { throw MerchantContentFailure.invalid }
+        guard let session = currentSession() else { throw APIError.unauthorized }
+        let capturedScope = scope
+        let raw = try await read("api/merchant/access/me", session: session)
+        let access = try raw.decoded(MerchantAccess.self)
+        guard access.active, access.merchantID == merchantID, access.allows(.projects), let rawPermissions = raw["permissions"].array else {
+            throw MerchantContentFailure.denied
+        }
+        let permissions = try rawPermissions.map { item -> String in
+            guard case .string(let value) = item else { throw MerchantContentFailure.malformed }; return value
+        }
+        guard permissions.contains("merchant:verify:record:read") else { throw MerchantContentFailure.denied }
+        let query = MerchantContentQuery.players(topicID: topicID)
+        let value = try await document(query, session: session)
+        try ensure(session)
+        let clean = try MerchantOrdinaryParticipantsProjection.sanitized(value, mayReadContact: permissions.contains("merchant:crm:sensitive:read"))
+        return .init(query: query, scope: capturedScope, access: access, value: clean, observedAt: Date())
     }
     private func document(_ q: MerchantContentQuery, session s: MerchantContentSession) async throws -> MerchantContentValue {
         func optionalTopic(_ id: Int?) -> [String: MerchantContentValue] { id.map { ["topicId": .integer($0)] } ?? [:] }
@@ -200,7 +224,9 @@ public struct MerchantContentReceipt: Equatable {
         case .project(let id):
             var fields = optionalTopic(id); fields["scope"] = .string("MERCHANT")
             value = try await read("api/project/home", .json(fields), session: s)
-        case .players(let id): value = try await read("api/project/players", .json(optionalTopic(id)), session: s)
+        case .players(let id):
+            var fields = optionalTopic(id); fields["scope"] = .string("MERCHANT")
+            value = try await read("api/project/players", .json(fields), session: s)
         case .city: value = try await read("api/merchant/city-node/list", session: s)
         case .claimable(let keyword):
             let catalog = try await read("api/merchant/city-node/list", session: s)

@@ -1,12 +1,27 @@
 import SwiftUI
 
+/// A readback ticket grants no write authority and survives only its detail visit.
+struct OfficialDetailReturnLease {
+    let eventID: Int
+    let scope: UUID
+    let visit: UUID
+    func permits(eventID currentEventID: Int, scope currentScope: UUID, visit currentVisit: UUID,
+                 visible: Bool, active: Bool) -> Bool {
+        eventID == currentEventID && scope == currentScope && visit == currentVisit && visible && active
+    }
+}
+
 @MainActor struct OfficialEventDetailView: View {
     let id: Int
     let reader: any OfficialEventReading
     var actions: OfficialActionCoordinator? = nil
     var onLogin: (() -> Void)? = nil
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var visit = UUID()
+    @State private var readback = UUID()
+    @State private var visible = false
     var body: some View {
-        OfficialReadScreen(reader: reader, requestID: "event.\(id)", onLogin: onLogin, load: { try await reader.detail(id: id) }) { event in
+        OfficialReadScreen(reader: reader, requestID: "event.\(id).\(readback)", onLogin: onLogin, load: { try await reader.detail(id: id) }) { event in
             List {
                 OfficialEventCard(event: event).questifyCardListRow()
                 Section("official.facts") {
@@ -37,7 +52,16 @@ import SwiftUI
                     }
                     Text("official.actionsDeferred").font(.footnote).foregroundStyle(.secondary)
                 }
-                if reader.isAuthenticated, let actions { OfficialParticipationActions(coordinator: actions, event: event) }
+                if reader.isAuthenticated, let actions {
+                    let lease = OfficialDetailReturnLease(eventID: id, scope: reader.scope, visit: visit)
+                    OfficialParticipationActions(coordinator: actions, event: event, onReturn: {
+                        guard lease.permits(eventID: id, scope: reader.scope, visit: visit,
+                                            visible: visible, active: scenePhase == .active) else { return }
+                        // Reuse the existing detail GET. Never repeat the action or
+                        // infer settlement from its acknowledgement/unknown result.
+                        readback = UUID()
+                    })
+                }
                 if event.isV2 {
                     Section("official.tasks") {
                         if event.missions.isEmpty { Text("official.noTasks") }
@@ -82,5 +106,10 @@ import SwiftUI
             }.accessibilityIdentifier("official.detail.content")
         }
         .appNavigationTitle("official.detail").navigationBarTitleDisplayMode(.inline)
+        .onAppear { visible = true }
+        .onDisappear { visible = false; visit = UUID() }
+        .onChange(of: id) { _, _ in visit = UUID() }
+        .onChange(of: reader.scope) { _, _ in visit = UUID() }
+        .onChange(of: scenePhase) { _, _ in visit = UUID() }
     }
 }

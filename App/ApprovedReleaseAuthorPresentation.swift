@@ -41,9 +41,9 @@ import SwiftUI
         let flow = ApprovedTopicReleaseReadFlow(target: opening.target, session: opening.session, source: opening.source,
             stillCurrent: { [weak self] in self?.isCurrent(opening) == true })
         let publisher: ApprovedTopicReleasePublishFlow?
-        if let source = model.coordinator.releasePublicationSource, let journal = model.coordinator.releasePublicationJournal {
+        if !model.coordinator.isReadOnly, let source = model.coordinator.releasePublicationSource, let journal = model.coordinator.releasePublicationJournal {
             publisher = .init(session: opening.session, topicID: opening.target.topicID, source: source, journal: journal,
-                stillCurrent: { [weak self] in self?.isCurrent(opening) == true && self?.presentation?.id == flow.id })
+                stillCurrent: { [weak self] in self?.model.coordinator.isReadOnly == false && self?.isCurrent(opening) == true && self?.presentation?.id == flow.id })
         } else { publisher = nil }
         presentation = .init(opening: opening, coverSource: model.coordinator.ownedCoverSource, flow: flow, publisher: publisher)
     }

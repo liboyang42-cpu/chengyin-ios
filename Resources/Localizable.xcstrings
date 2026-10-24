@@ -1,6 +1,330 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "team.invite.copied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invitation code copied. No invitation was sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请码已复制，尚未发送邀请。"
+          }
+        }
+      }
+    },
+    "team.invite.copy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy invitation code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制邀请码"
+          }
+        }
+      }
+    },
+    "roam.players.readScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nearby players are a read snapshot within at most 3 km. Reading does not publish your location to other players."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "附近玩家为上次读取的快照，范围最多3公里。读取不会向其他玩家公开你的位置。"
+          }
+        }
+      }
+    },
+    "merchantVoice.reset.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start local samples over"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新录制本地样本"
+          }
+        }
+      }
+    },
+    "merchantVoice.reset.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear recordings that have not been uploaded?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清空尚未上传的录音？"
+          }
+        }
+      }
+    },
+    "merchantVoice.reset.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear local recordings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清空本地录音"
+          }
+        }
+      }
+    },
+    "merchantVoice.reset.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only unuploaded samples on this device will be cleared. No server files will be deleted and the microphone will stay off until you tap Record again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅清除当前设备上尚未上传的样本。不会删除服务器文件或开启麦克风；继续时需再次点击录制。"
+          }
+        }
+      }
+    },
+    "profile.localCover.cropFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The crop could not be prepared. Adjust it and retry, or cancel to keep your saved cover."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裁剪未能完成。可以调整后重试，或取消以保留已保存的封面。"
+          }
+        }
+      }
+    },
+    "profile.localCover.cropRetry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry crop"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试裁剪"
+          }
+        }
+      }
+    },
+    "accountCollection.coupon.startsLater": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not yet started"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未到使用日期"
+          }
+        }
+      }
+    },
+    "accountCollection.coupon.viewAvailability": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View availability"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看可用时间"
+          }
+        }
+      }
+    },
+    "club.audience.chooseEvent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open notifications from an event to choose this audience."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从具体场次进入通知后，才可选择这类受众。"
+          }
+        }
+      }
+    },
+    "profile.caseSubset.choose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose images to keep"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择保留的图片"
+          }
+        }
+      }
+    },
+    "profile.caseSubset.remaining": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Images remaining"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留图片数量"
+          }
+        }
+      }
+    },
+    "profile.caseSubset.originalImage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原始图片位置"
+          }
+        }
+      }
+    },
+    "profile.caseSubset.positionHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep the original order. Turn off an image to remove only that position."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片保持原始顺序。关闭开关仅移除对应位置的图片。"
+          }
+        }
+      }
+    },
+    "profile.weekly.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My weekly points"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的每周积分"
+          }
+        }
+      }
+    },
+    "profile.weekly.points": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Points this week"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本周积分"
+          }
+        }
+      }
+    },
+    "profile.weekly.rank": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ranking"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "排名"
+          }
+        }
+      }
+    },
+    "profile.weekly.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weekly statistics are not available in this configuration."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前配置尚未开放每周统计读取。"
+          }
+        }
+      }
+    },
     "merchant.insightCooperationCenter.open": {
       "localizations": {
         "en": {
@@ -4039,7 +4363,7 @@
         }
       }
     },
-    "merchant.coopField.apply" : {
+    "merchant.coopField.apply": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4055,7 +4379,7 @@
         }
       }
     },
-    "merchant.coopField.boundary" : {
+    "merchant.coopField.boundary": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4071,7 +4395,7 @@
         }
       }
     },
-    "merchant.coopField.discard" : {
+    "merchant.coopField.discard": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4087,7 +4411,7 @@
         }
       }
     },
-    "merchant.coopField.discardBody" : {
+    "merchant.coopField.discardBody": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4103,7 +4427,7 @@
         }
       }
     },
-    "merchant.coopField.discardTitle" : {
+    "merchant.coopField.discardTitle": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4119,7 +4443,7 @@
         }
       }
     },
-    "merchant.coopField.empty" : {
+    "merchant.coopField.empty": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4135,7 +4459,7 @@
         }
       }
     },
-    "merchant.coopField.keepEditing" : {
+    "merchant.coopField.keepEditing": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4151,7 +4475,7 @@
         }
       }
     },
-    "merchant.coopField.limit100" : {
+    "merchant.coopField.limit100": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4167,7 +4491,7 @@
         }
       }
     },
-    "merchant.coopField.limit500" : {
+    "merchant.coopField.limit500": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4183,7 +4507,7 @@
         }
       }
     },
-    "merchant.npcField.apply" : {
+    "merchant.npcField.apply": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4199,7 +4523,7 @@
         }
       }
     },
-    "merchant.npcField.boundary" : {
+    "merchant.npcField.boundary": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4215,7 +4539,7 @@
         }
       }
     },
-    "merchant.npcField.discard" : {
+    "merchant.npcField.discard": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4231,7 +4555,7 @@
         }
       }
     },
-    "merchant.npcField.discardBody" : {
+    "merchant.npcField.discardBody": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4247,7 +4571,7 @@
         }
       }
     },
-    "merchant.npcField.discardTitle" : {
+    "merchant.npcField.discardTitle": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4263,7 +4587,7 @@
         }
       }
     },
-    "merchant.npcField.empty" : {
+    "merchant.npcField.empty": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4279,7 +4603,7 @@
         }
       }
     },
-    "merchant.npcField.greeting" : {
+    "merchant.npcField.greeting": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4295,7 +4619,7 @@
         }
       }
     },
-    "merchant.npcField.keepEditing" : {
+    "merchant.npcField.keepEditing": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4311,7 +4635,7 @@
         }
       }
     },
-    "merchant.npcField.knowledge" : {
+    "merchant.npcField.knowledge": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4327,7 +4651,7 @@
         }
       }
     },
-    "merchant.npcField.limit.greeting" : {
+    "merchant.npcField.limit.greeting": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4343,7 +4667,7 @@
         }
       }
     },
-    "merchant.npcField.limit.knowledge" : {
+    "merchant.npcField.limit.knowledge": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4359,7 +4683,7 @@
         }
       }
     },
-    "merchant.npcField.limit.name" : {
+    "merchant.npcField.limit.name": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4375,7 +4699,7 @@
         }
       }
     },
-    "merchant.npcField.limit.persona" : {
+    "merchant.npcField.limit.persona": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4391,7 +4715,7 @@
         }
       }
     },
-    "merchant.npcField.name" : {
+    "merchant.npcField.name": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4407,7 +4731,7 @@
         }
       }
     },
-    "merchant.npcField.nameRequired" : {
+    "merchant.npcField.nameRequired": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4423,7 +4747,7 @@
         }
       }
     },
-    "merchant.npcField.persona" : {
+    "merchant.npcField.persona": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4439,7 +4763,7 @@
         }
       }
     },
-    "merchant.storeField.apply" : {
+    "merchant.storeField.apply": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4455,7 +4779,7 @@
         }
       }
     },
-    "merchant.storeField.boundary" : {
+    "merchant.storeField.boundary": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4471,7 +4795,7 @@
         }
       }
     },
-    "merchant.storeField.cityRole" : {
+    "merchant.storeField.cityRole": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4487,7 +4811,7 @@
         }
       }
     },
-    "merchant.storeField.derivativeBenefits" : {
+    "merchant.storeField.derivativeBenefits": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4503,7 +4827,7 @@
         }
       }
     },
-    "merchant.storeField.description" : {
+    "merchant.storeField.description": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4519,7 +4843,7 @@
         }
       }
     },
-    "merchant.storeField.discard" : {
+    "merchant.storeField.discard": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4535,7 +4859,7 @@
         }
       }
     },
-    "merchant.storeField.discardBody" : {
+    "merchant.storeField.discardBody": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4551,7 +4875,7 @@
         }
       }
     },
-    "merchant.storeField.discardTitle" : {
+    "merchant.storeField.discardTitle": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4567,7 +4891,7 @@
         }
       }
     },
-    "merchant.storeField.empty" : {
+    "merchant.storeField.empty": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4583,7 +4907,7 @@
         }
       }
     },
-    "merchant.storeField.keepEditing" : {
+    "merchant.storeField.keepEditing": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4599,7 +4923,7 @@
         }
       }
     },
-    "merchant.storeField.limit100" : {
+    "merchant.storeField.limit100": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4615,7 +4939,7 @@
         }
       }
     },
-    "merchant.storeField.limit300" : {
+    "merchant.storeField.limit300": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4631,7 +4955,7 @@
         }
       }
     },
-    "merchant.storeField.name" : {
+    "merchant.storeField.name": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4647,7 +4971,7 @@
         }
       }
     },
-    "merchant.storeField.nameRequired" : {
+    "merchant.storeField.nameRequired": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4663,7 +4987,7 @@
         }
       }
     },
-    "merchant.storeField.preference" : {
+    "merchant.storeField.preference": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4679,7 +5003,7 @@
         }
       }
     },
-    "merchant.storeField.slogan" : {
+    "merchant.storeField.slogan": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4695,7 +5019,7 @@
         }
       }
     },
-    "cooperation.topicFilter.all" : {
+    "cooperation.topicFilter.all": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4711,7 +5035,7 @@
         }
       }
     },
-    "cooperation.topicFilter.choose" : {
+    "cooperation.topicFilter.choose": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4727,7 +5051,7 @@
         }
       }
     },
-    "cooperation.topicFilter.clear" : {
+    "cooperation.topicFilter.clear": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4743,7 +5067,7 @@
         }
       }
     },
-    "cooperation.topicFilter.empty" : {
+    "cooperation.topicFilter.empty": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4759,7 +5083,7 @@
         }
       }
     },
-    "cooperation.topicFilter.loadedOnly" : {
+    "cooperation.topicFilter.loadedOnly": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4775,7 +5099,7 @@
         }
       }
     },
-    "cooperation.topicFilter.title" : {
+    "cooperation.topicFilter.title": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4791,7 +5115,7 @@
         }
       }
     },
-    "merchant.acceptedProject.boundary" : {
+    "merchant.acceptedProject.boundary": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4807,7 +5131,7 @@
         }
       }
     },
-    "merchant.acceptedProject.changed" : {
+    "merchant.acceptedProject.changed": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4823,7 +5147,7 @@
         }
       }
     },
-    "merchant.acceptedProject.open" : {
+    "merchant.acceptedProject.open": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4839,7 +5163,7 @@
         }
       }
     },
-    "merchant.noteDraft.clear" : {
+    "merchant.noteDraft.clear": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4855,7 +5179,7 @@
         }
       }
     },
-    "merchant.noteDraft.clearBody" : {
+    "merchant.noteDraft.clearBody": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4871,7 +5195,7 @@
         }
       }
     },
-    "merchant.noteDraft.clearTitle" : {
+    "merchant.noteDraft.clearTitle": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4887,7 +5211,7 @@
         }
       }
     },
-    "merchant.noteDraft.continueCorrection" : {
+    "merchant.noteDraft.continueCorrection": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4903,7 +5227,7 @@
         }
       }
     },
-    "merchant.noteDraft.continueNew" : {
+    "merchant.noteDraft.continueNew": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4919,7 +5243,7 @@
         }
       }
     },
-    "merchant.noteDraft.discard" : {
+    "merchant.noteDraft.discard": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4935,7 +5259,7 @@
         }
       }
     },
-    "merchant.noteDraft.discardBody" : {
+    "merchant.noteDraft.discardBody": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4951,7 +5275,7 @@
         }
       }
     },
-    "merchant.noteDraft.discardTitle" : {
+    "merchant.noteDraft.discardTitle": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4967,7 +5291,7 @@
         }
       }
     },
-    "merchant.noteDraft.localBoundary" : {
+    "merchant.noteDraft.localBoundary": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4983,7 +5307,7 @@
         }
       }
     },
-    "merchant.noteDraft.saved" : {
+    "merchant.noteDraft.saved": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4999,7 +5323,7 @@
         }
       }
     },
-    "merchant.perkSubmission.invalidDate" : {
+    "merchant.perkSubmission.invalidDate": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -140232,13 +140556,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This is a local preview. Sharing and sending invitations are unavailable."
+            "value": "Copying only places the existing code on this device’s clipboard. It does not send an invitation or create a link."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这里只显示本地预览，暂不支持分享或发送邀请。"
+            "value": "复制仅将现有邀请码放入本机剪贴板，不会发送邀请或创建链接。"
           }
         }
       }
@@ -170316,6 +170640,1098 @@
           "stringUnit": {
             "state": "translated",
             "value": "The trimmed override line must not exceed 120 UTF-16 code units."
+          }
+        }
+      }
+    },
+    "profile.inviteTimeline.invitationTime": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invitation time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请时间"
+          }
+        }
+      }
+    },
+    "profile.inviteTimeline.rewardTime": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reward record time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "奖励记录时间"
+          }
+        }
+      }
+    },
+    "profile.inviteTimeline.timeUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not recorded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂未记录"
+          }
+        }
+      }
+    },
+    "profile.inviteTimeline.zoneHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grouped by invitation month in China time. Times follow your device time zone; date-only records keep their original day."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按中国日历的邀请月份分组。具体时刻按设备时区显示；仅日期的记录保持原日。"
+          }
+        }
+      }
+    },
+    "club.memberCount.singular %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld member"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 名成员"
+          }
+        }
+      }
+    },
+    "walking.saved.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved destination could not be updated. Navigation has not been saved or restored by this message."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能更新已保存目的地。此提示不表示导航已保存或恢复。"
+          }
+        }
+      }
+    },
+    "walking.saved.notice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only this destination is saved on this device. Starting again checks current access and location. No route or travel history is saved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅在本机保存此目的地。再次开始时会重新检查当前访问资格和定位；不会保存路线或行走轨迹。"
+          }
+        }
+      }
+    },
+    "walking.saved.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved walking destination"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存的步行目的地"
+          }
+        }
+      }
+    },
+    "walking.saved.remove": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove saved destination"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除已保存目的地"
+          }
+        }
+      }
+    },
+    "walking.power.notice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Low Power Mode is on. Foreground navigation keeps its normal updates; inactive checks are less frequent. You can pause at any time."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "低电量模式已开启。前台导航保持正常更新，非活跃时减少检查频率。你可随时主动暂停。"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "walking.saved.retryRead": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry local read"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试本机读取"
+          }
+        }
+      }
+    },
+    "walking.saved.restoreUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This saved reference could not be reopened. Retry the local read, or go back to refresh the saved destination. Navigation has not started."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法重新打开此保存记录。可重试本机读取，或返回刷新已保存目的地。导航尚未开始。"
+          }
+        }
+      }
+    },
+    "cooperation.phone.copy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy phone number"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制联系电话"
+          }
+        }
+      }
+    },
+    "cooperation.phone.copied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copied"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已复制"
+          }
+        }
+      }
+    },
+    "cooperation.phone.copyFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not copy. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能复制，请重试。"
+          }
+        }
+      }
+    },
+    "coopflow.circle.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supply details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "供给详情"
+          }
+        }
+      }
+    },
+    "coopflow.circle.name": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supply name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "供给名称"
+          }
+        }
+      }
+    },
+    "coopflow.circle.kind": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supply type"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "供给类型"
+          }
+        }
+      }
+    },
+    "coopflow.circle.kind.SERVICE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regular service"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "常规服务"
+          }
+        }
+      }
+    },
+    "coopflow.circle.kind.PRODUCT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing product"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正常商品"
+          }
+        }
+      }
+    },
+    "coopflow.circle.kind.EVENT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing event"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已有活动"
+          }
+        }
+      }
+    },
+    "coopflow.circle.kind.ZERO_BROWSE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free browsing or trial"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "免费浏览或试用"
+          }
+        }
+      }
+    },
+    "coopflow.circle.price": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regular price (CNY)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "常规价格（人民币）"
+          }
+        }
+      }
+    },
+    "coopflow.circle.duration": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duration in minutes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时长（分钟）"
+          }
+        }
+      }
+    },
+    "coopflow.circle.hours": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available hours"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可用时段"
+          }
+        }
+      }
+    },
+    "coopflow.circle.minPeople": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimum participants"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最少人数"
+          }
+        }
+      }
+    },
+    "coopflow.circle.maxPeople": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximum participants"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多人数"
+          }
+        }
+      }
+    },
+    "coopflow.circle.split": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow separate bookings or turns"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许分开预约或轮换"
+          }
+        }
+      }
+    },
+    "coopflow.circle.action": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Customer action"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与方式"
+          }
+        }
+      }
+    },
+    "coopflow.circle.action.NAVIGATE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Navigate to store"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导航到店"
+          }
+        }
+      }
+    },
+    "coopflow.circle.action.BOOK": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Booking entry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预约入口"
+          }
+        }
+      }
+    },
+    "coopflow.circle.action.BUY": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchase entry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "购买入口"
+          }
+        }
+      }
+    },
+    "coopflow.circle.actionValue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Action address or reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与地址或引用"
+          }
+        }
+      }
+    },
+    "coopflow.circle.benefit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional benefit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "附加权益（可选）"
+          }
+        }
+      }
+    },
+    "coopflow.circle.benefitRules": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Benefit source, validity and redemption rules"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "权益来源、有效期与核销规则"
+          }
+        }
+      }
+    },
+    "coopflow.circle.merchantRules": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant participation rules"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商户参与规则"
+          }
+        }
+      }
+    },
+    "coopflow.circle.complete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete the supply details. Single-person capacity requires separate bookings; benefits require their terms."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请完整填写供给信息；单人容量需允许分开预约，附加权益需填写规则。"
+          }
+        }
+      }
+    },
+    "coopflow.circle.localOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local preview only. This description does not reserve stock, promise a reward, open links or send an application."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅本地预览。本描述不会预留库存、承诺奖励、打开链接或发送申请。"
+          }
+        }
+      }
+    },
+    "merchant.refundPreview.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This first page could not be loaded. Other previews may still be available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此状态的第一页未能读取；其他状态的预览可能仍可查看。"
+          }
+        }
+      }
+    },
+    "merchant.refundPreview.moreAvailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More records are available in the aftercare list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "售后列表中还有更多记录。"
+          }
+        }
+      }
+    },
+    "merchant.refundPreview.notIncluded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aftercare is not included under the current access."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前访问条件下未纳入售后数据。"
+          }
+        }
+      }
+    },
+    "merchant.refundPreview.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aftercare preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "售后预览"
+          }
+        }
+      }
+    },
+    "merchant.refundPreview.openBucket": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open this aftercare list"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开此状态的售后列表"
+          }
+        }
+      }
+    },
+    "merchant.refundPreview.boundary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Separate first-page previews for the selected filter. These are not the complete ledger and are not added to its totals."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按当前筛选分别读取各售后状态的第一页，不代表完整账本，也不计入账本汇总。"
+          }
+        }
+      }
+    },
+    "merchant.refundPreview.noRedemptions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No redemption records on this page."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前页没有核销记录。"
+          }
+        }
+      }
+    },
+    "merchant.refundPreview.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No records in this first-page response."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此状态本次第一页返回无记录。"
+          }
+        }
+      }
+    },
+    "profile.orderMap.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View meeting point"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看集合点"
+          }
+        }
+      }
+    },
+    "profile.orderMap.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current order has no available meeting-point coordinates. Refresh the order if your account or access changed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前订单暂无可用集合点坐标；账号或访问条件变化后请刷新订单。"
+          }
+        }
+      }
+    },
+    "profile.orderMap.opening": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opening Maps…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在打开地图…"
+          }
+        }
+      }
+    },
+    "profile.orderMap.opened": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The selected destination was handed to Apple Maps."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已将所选目的地交给 Apple 地图。"
+          }
+        }
+      }
+    },
+    "profile.orderMap.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maps could not open. Tap View meeting point to review and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地图未能打开。请点“查看集合点”重新确认后再试。"
+          }
+        }
+      }
+    },
+    "profile.orderMap.disclosure": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm to send only this order’s selected destination and coordinates to Apple Maps. Your current location is not read."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认后，仅将此订单所选目的地及坐标交给 Apple 地图，不读取你当前的位置。"
+          }
+        }
+      }
+    },
+    "profile.orderMap.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Apple Maps"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开 Apple 地图"
+          }
+        }
+      }
+    },
+    "profile.orderMap.review": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review destination"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认目的地"
+          }
+        }
+      }
+    },
+    "templateLowHPText.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Low-HP easing preset"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "低HP放宽预设"
+          }
+        }
+      }
+    },
+    "templateLowHPText.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply to the current unsaved draft only. This does not save, run gameplay or submit."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅应用到当前未保存草稿，不会保存、启动玩法或提交。"
+          }
+        }
+      }
+    },
+    "templateLowHPText.choice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adjustment when HP ≤ 3"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HP ≤ 3 时的放宽方式"
+          }
+        }
+      }
+    },
+    "templateLowHPText.off": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No preset"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不使用此预设"
+          }
+        }
+      }
+    },
+    "templateLowHPText.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No valid adjustments are available. Configure and enable an eligible game first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前没有可安全放宽的配置。请先完成并启用玩法配置。"
+          }
+        }
+      }
+    },
+    "templateLowHPText.retained": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other rules and their order are retained. Preview applies the first matching rule only."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他规则及其顺序保持不变，预演仅应用首个命中规则。"
+          }
+        }
+      }
+    },
+    "templateLowHPText.unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A custom, unknown or unavailable low-HP rule needs the full rule editor. This page will not overwrite it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "存在自定义、未知或不可用的低HP规则，请在原规则编辑器检查；本页不会覆盖。"
+          }
+        }
+      }
+    },
+    "templateLowHPText.preview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local preview at HP 3"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HP为3的本地预演"
+          }
+        }
+      }
+    },
+    "templateLowHPText.rule": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First matching rule"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首个命中规则"
+          }
+        }
+      }
+    },
+    "templateLowHPText.noMatch": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No matching rule"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未命中规则"
+          }
+        }
+      }
+    },
+    "templateLowHPText.apply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply to current draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用到当前草稿"
+          }
+        }
+      }
+    },
+    "templateLowHPText.applied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applied to the draft. Not saved or published."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已应用到草稿，尚未保存或发布。"
+          }
+        }
+      }
+    },
+    "templateLowHPText.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel unapplied selection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消未应用的选择"
+          }
+        }
+      }
+    },
+    "templateLowHPText.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload current configuration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取当前配置"
           }
         }
       }

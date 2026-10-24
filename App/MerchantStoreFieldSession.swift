@@ -57,6 +57,18 @@ import SwiftUI
     @Published private(set) var session: MerchantStoreFieldSession?
     @Published private(set) var generation: UInt64 = 0
     private(set) var active = false
+    private(set) var isVisible = false
+    func viewAppeared(sceneIsActive: Bool) {
+        isVisible = true
+        sceneChanged(isActive: sceneIsActive)
+    }
+    func viewDisappeared() {
+        isVisible = false
+        deactivate()
+    }
+    func sceneChanged(isActive: Bool) {
+        if isVisible && isActive { activate() } else { deactivate() }
+    }
     func activate() { guard !active else { return }; active = true; generation &+= 1 }
     func invalidate() { generation &+= 1; session?.cancel(); session = nil }
     func deactivate() { active = false; invalidate() }

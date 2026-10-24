@@ -483,6 +483,281 @@ WORKER_CAP = 2700
 RESERVE = 240
 
 
+# Failure screenshots are diagnostics, never test receipts. This source-bound
+# allowlist limits disclosure to individually reviewed offline fixtures; it does
+# not affect test selection, assertions, retries, or outcome aggregation.
+FAILURE_SCREENSHOT_COMMON = {'App/QuestifyApp.swift': 'bd4bc9e68d5e90d1dc8eee6ae60dcce94af89954f4ccbae4f6bf4df336d39c36',
+ 'App/ModuleFixtureSupport.swift': '0060d674726b7c310effaf29e12438255a5deab3805376074e66e3c6fa77a441',
+ 'App/ProjectEditFixtureSupport.swift': 'ec91bb9851338ac6f69ec04f96728a557ffde2718f159c1e7942cf1dc54a7e6b',
+ 'Core/ProjectEditSyntheticFixtures.swift': 'ddca0fb40fe0c11cff5fcf4de6046b03d8ca360e83f4edf53b752a72d2dc1a42',
+ 'Core/ApprovedTopicReviewSynthetic.swift': 'd7fb43ace4874ca50adbfc0279822ef86fb41d840c712ebcdc68584cb5fa5bbf',
+ 'App/OwnedTopicCoverSynthetic.swift': '773fb51b1af1a5746f3e1f2efeb80a877bb7baaf71ba48fd367077bde4b702db',
+ 'App/ProjectStoryImageSynthetic.swift': '3b9b61f3c472a30c321592106bf2e18cd1aa9d3c8fcfc13a4b3763d1b36a4142',
+ 'App/ProjectStoryAudioSynthetic.swift': 'b4de0ee9ebc748a126b5dc9205f386dfcbdbfb6b45326e8e5643ee517bb28c58',
+ 'Tests/AppUITests/FailureScreenshot.swift': 'a433a44a702cbfcd0ef86fabe6a20db71b41e98251cc5b1d895ff9c33431e0fa'}
+FAILURE_SCREENSHOT_METHODS = {'QuestifyUITests/ApprovedTopicSelectedCoverFlowTests/testCapturedAuthorCoverRemainsExactAndNeverCreatesAReviewRequest': {'Tests/AppUITests/ApprovedTopicSelectedCoverFlowTests.swift': '292d83ab1e6f818622d3249d37e73c12cd1da6aac92c68bab81cc98bf4082d68'},
+ 'QuestifyUITests/OwnedTopicCoverSelectionFlowTests/testExplicitLocalPickUploadSelectionAndCapturedReviewImageUseOneExactAsset': {'Tests/AppUITests/OwnedTopicCoverSelectionFlowTests.swift': 'eccef38b0bca7d50aa67b299b0252089c292bc6d96f539a3477e3997d237f30b'},
+ 'QuestifyUITests/ProjectPendingStoryImageFlowTests/testPendingNewStoryChapterCanChooseCancelAndApplyImageWithoutPlacingMaterial': {'Tests/AppUITests/ProjectPendingStoryImageFlowTests.swift': '55e7cced493afbbb70e9a5a632f0deb938df583b54cd70459d76e267fc19f59e'}}
+FAILURE_IMAGE_LIMIT = 5 * 1024 * 1024
+FAILURE_TOTAL_LIMIT = 20 * 1024 * 1024
+FAILURE_STAGING_LIMIT = 64 * 1024 * 1024
+
+
+def screenshot_scope_current(root, method):
+    root = screenshot_safe_directory(root)
+    sources = FAILURE_SCREENSHOT_METHODS.get(method)
+    if sources is None: return False
+    for name, expected in {**FAILURE_SCREENSHOT_COMMON, **sources}.items():
+        path = Path(root) / name
+        screenshot_safe_directory(path.parent, within=root)
+        if path.is_symlink() or not path.is_file() or digest(path) != expected: return False
+    return True
+
+
+def screenshot_safe_directory(path, within=None):
+    """Reject every symlink component before inspecting children or contents."""
+    path = Path(path)
+    require(path.is_absolute() and '..' not in path.parts, 'Unsafe diagnostic directory')
+    for component in [*reversed(path.parents), path]:
+        require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+    require(path.resolve(strict=True) == path, 'Non-canonical diagnostic directory')
+    if within is not None:
+        parent = screenshot_safe_directory(within)
+        require(path.is_relative_to(parent), 'Diagnostic directory escaped staging')
+    return path
+
+
+def screenshot_probe_command(argv, root, deadline, stage, developer, capture_help=False):
+    """One bounded read-only exporter; every post-spawn exit reaps its group."""
+    import resource
+    import tempfile
+    screenshot_safe_directory(stage)
+    if deadline - time.monotonic() <= 2: return 'NO_BUDGET', b''
+    def limits():
+        resource.setrlimit(resource.RLIMIT_FSIZE, (8 * 1024 * 1024, 8 * 1024 * 1024))
+    env = dict(os.environ, DEVELOPER_DIR=developer)
+    status = 'OK'; process = None
+    with tempfile.TemporaryFile() as output:
+        try:
+            process = subprocess.Popen(argv, cwd=root, env=env, start_new_session=True,
+                                       stdout=output if capture_help else subprocess.DEVNULL,
+                                       stderr=subprocess.DEVNULL, preexec_fn=limits)
+            while process.poll() is None:
+                screenshot_safe_directory(stage)
+                bytes_seen = count = 0; pending = [Path(stage)]
+                while pending and status == 'OK':
+                    if time.monotonic() >= deadline - 2:
+                        status = 'TIME_LIMIT'; break
+                    # scandir is consumed lazily: empty directories count too,
+                    # and each entry is checked inside the shared time window.
+                    with os.scandir(pending.pop()) as entries:
+                        for entry in entries:
+                            count += 1
+                            if time.monotonic() >= deadline - 2:
+                                status = 'TIME_LIMIT'; break
+                            if count > 256:
+                                status = 'STAGING_LIMIT'; break
+                            if entry.is_symlink():
+                                status = 'UNSAFE_STAGING'; break
+                            if entry.is_dir(follow_symlinks=False):
+                                pending.append(Path(entry.path))
+                            elif entry.is_file(follow_symlinks=False):
+                                bytes_seen += entry.stat(follow_symlinks=False).st_size
+                            else:
+                                status = 'UNSAFE_STAGING'; break
+                            if bytes_seen > FAILURE_STAGING_LIMIT:
+                                status = 'STAGING_LIMIT'; break
+                if status != 'OK' or time.monotonic() >= deadline - 2:
+                    if status == 'OK': status = 'TIME_LIMIT'
+                    break
+                time.sleep(min(0.05, max(0, deadline - time.monotonic() - 2)))
+        finally:
+            # Even traversal/stat errors and diagnostic-stage interrupts must not
+            # leave the exporter or its descendants consuming the worker budget.
+            if process is not None:
+                try: os.killpg(process.pid, signal.SIGKILL)
+                except ProcessLookupError: pass
+                try: process.wait(timeout=max(0.01, min(2, deadline-time.monotonic())))
+                except subprocess.TimeoutExpired: status = 'CLEANUP_PENDING'
+        if status == 'OK' and process.returncode != 0: status = 'EXPORT_FAILED'
+        output.seek(0); raw = output.read(131073) if capture_help else b''
+        if len(raw) > 131072: return 'HELP_LIMIT', b''
+        return status, raw
+
+
+def bounded_failure_images(stage, method, remaining_bytes, remaining_count):
+    """Read only the exact app screenshot attachment of the requested test."""
+    stage = screenshot_safe_directory(stage)
+    manifest = stage / 'manifest.json'
+    require(not manifest.is_symlink() and manifest.is_file() and manifest.stat().st_size <= 131072,
+            'Invalid bounded export manifest')
+    groups = read_json(manifest)
+    require(isinstance(groups, list) and len(groups) == 1 and isinstance(groups[0], dict),
+            'Unknown attachment schema')
+    attachments = groups[0].get('attachments')
+    require(isinstance(attachments, list) and len(attachments) <= 256, 'Unknown attachment schema')
+    target, cls, test = method.split('/')
+    for key in ('testIdentifier', 'testIdentifierURL'):
+        if key in groups[0]:
+            require(groups[0][key] in (method, cls+'/'+test, cls+'/'+test+'()',
+                    'test://com.apple.xcode/Questify/'+method), 'Foreign attachment test')
+    names = ['Failure state – -[' + cls + ' ' + test + ']',
+             'Failure state – -[' + target + '.' + cls + ' ' + test + ']']
+    result = []; used = 0; seen = set()
+    for attachment in attachments:
+        require(isinstance(attachment, dict), 'Unknown attachment schema')
+        name = attachment.get('suggestedHumanReadableName')
+        if not isinstance(name, str) or name not in names: continue
+        filename = attachment.get('exportedFileName')
+        require(isinstance(filename, str) and re.fullmatch(r'[A-Za-z0-9_.-]{1,200}', filename)
+                and filename not in ('.', '..'), 'Unsafe attachment path')
+        path = Path(stage) / filename
+        require(not path.is_symlink() and path.is_file(), 'Unsafe attachment file')
+        size = path.stat().st_size
+        require(0 < size <= FAILURE_IMAGE_LIMIT, 'Attachment image too large')
+        data = path.read_bytes(); require(len(data) == size, 'Attachment changed during read')
+        if data.startswith(b'\x89PNG\r\n\x1a\n') and data[12:16] == b'IHDR': ext = 'png'
+        elif data.startswith(b'\xff\xd8\xff') and data.endswith(b'\xff\xd9'): ext = 'jpg'
+        else: continue
+        sha = control.digest(data)
+        if sha in seen: continue
+        require(used + size <= remaining_bytes and len(result) < min(2, remaining_count),
+                'Attachment upload bound exceeded')
+        result.append((sha + '.' + ext, data)); seen.add(sha); used += size
+    return result
+
+
+def collect_failure_screenshots(root, plan, receipt, output, execution_deadline):
+    """Best-effort UI-only export after FAIL; cannot change the original result."""
+    import tempfile
+    import shutil
+    started = time.monotonic(); deadline = min(execution_deadline, started + 60)
+    if receipt.get('role') != 'ui' or receipt.get('status') != 'FAIL': return
+    screenshot_safe_directory(Path(output).parent)
+    published = Path(output).parent / 'current-ui-failure-evidence'
+    if published.exists(): return  # Never overwrite another worker's evidence.
+    target = Path(tempfile.mkdtemp(prefix='ui-failure-publish-', dir=Path(output).parent))
+    report = {'version': 1, 'kind': 'FAILED_SYNTHETIC_UI_SCREENSHOTS_NOT_TEST_RECEIPT',
+              'identity': plan['identity'], 'plan_sha256': control.digest(control.encode(plan)),
+              'index': receipt['index'], 'original_status': 'FAIL', 'status': 'NOT_EXPORTED',
+              'exporter_stdout_uploaded': False, 'files': [], 'methods': [],
+              'staging_peak_hard_quota': False}
+    try:
+        same_identity(receipt, plan)
+        identity = plan['identity']
+        require(set(identity) == {'sha', 'tree', 'run_id', 'attempt'}
+                and all(type(identity[k]) is str and re.fullmatch(r'[a-f0-9]{40}', identity[k]) for k in ('sha','tree'))
+                and all(type(identity[k]) is str and re.fullmatch(r'[1-9][0-9]{0,19}', identity[k]) for k in ('run_id','attempt')),
+                'Invalid diagnostic identity')
+        require(control.source_identity(root) == plan['identity'], 'Foreign source')
+        require(type(receipt['index']) is int, 'Invalid UI index')
+        current_group = group(plan, 'ui', receipt['index']); expected = current_group['methods']
+        result = Path(output) / 'ui.xcresult'
+        commands = read_json(Path(output) / 'commands.json')
+        require(digest(Path(output)/'commands.json') == receipt.get('commands_sha256'), 'Unbound commands')
+        native_tests = [c for c in commands if c.get('stem') == 'native-test']
+        require(len(native_tests) == 1, 'Missing unique test invocation')
+        argv = native_tests[0]['argv']; flag = argv.index('-xctestrun')
+        require(argv == xcode_test_command(current_group, argv[flag+1], receipt['simulator']['udid'], result),
+                'Foreign test invocation')
+        for kind in ('summary','tests'):
+            exports = [c for c in commands if c.get('stem') == kind]
+            require(len(exports) == 1 and exports[0]['returncode'] == 0
+                    and exports[0]['argv'] == ['xcrun','xcresulttool','get','test-results',kind,'--path',str(result),'--compact']
+                    and exports[0]['stdout_sha256'] == digest(Path(output)/(kind+'.json')), 'Unbound result document')
+        summary = read_json(Path(output) / 'summary.json')
+        rows = parse_xcresult(read_json(Path(output) / 'tests.json'), 'QuestifyUITests')
+        failed = {r['method'] for r in rows if r['status'] == 'Failed'}
+        require(failed <= set(expected), 'Foreign failed method')
+        candidates = []
+        for failure in summary.get('testFailures', []):
+            url = failure.get('testIdentifierURL', '')
+            parts = urlparse(url)
+            if parts.scheme != 'test' or parts.netloc != 'com.apple.xcode': continue
+            path = unquote(parts.path)
+            if not path.startswith('/Questify/'): continue
+            method = path[len('/Questify/'):]
+            if method not in failed or not screenshot_scope_current(root, method): continue
+            require(url == 'test://com.apple.xcode/Questify/' + method, 'Ambiguous test URL')
+            identifier = failure.get('testIdentifierString')
+            require(identifier in (method.split('/',1)[1], method.split('/',1)[1]+'()'), 'Unbound exporter test identifier')
+            if (method, identifier) not in candidates: candidates.append((method, identifier))
+        candidates = sorted(candidates)[:3]
+        if not candidates: report['status'] = 'NO_ELIGIBLE_FAILED_FIXTURE'; return
+        if deadline - time.monotonic() <= 2: report['status'] = 'NO_BUDGET'; return
+        developer = receipt['toolchain']['developer']
+        require(isinstance(developer, str) and developer.startswith('/Applications/')
+                and developer.endswith('/Contents/Developer'), 'Unbound developer')
+        require(result.is_dir() and not result.is_symlink(), 'Missing result bundle')
+        report['toolchain_sha256'] = control.digest(control.encode(receipt['toolchain']))
+        report['source_receipt_sha256'] = digest(Path(output) / 'receipt.json')
+        report['result_documents_sha256'] = {p: digest(Path(output) / p)
+                                            for p in ('summary.json', 'tests.json')}
+        with tempfile.TemporaryDirectory(prefix='ui-failure-export-', dir=Path(output).parent) as temporary:
+            stage = Path(temporary)
+            status, help_data = screenshot_probe_command(
+                ['xcrun', 'xcresulttool', 'help', 'export', 'attachments'], root,
+                min(deadline, time.monotonic() + 5), stage, developer, True)
+            required = (b'--path', b'--output-path', b'--test-id')
+            capabilities = {flag.decode(): flag in help_data for flag in required}
+            report['capabilities'] = capabilities
+            if status != 'OK' or not all(capabilities.values()):
+                report['status'] = 'UNSUPPORTED_TOOL_CAPABILITIES'; return
+            total = count = 0
+            for ordinal, (method, test_identifier) in enumerate(candidates):
+                if deadline - time.monotonic() <= 2: break
+                folder = stage / str(ordinal); folder.mkdir()
+                status, _ = screenshot_probe_command(
+                    ['xcrun', 'xcresulttool', 'export', 'attachments', '--path', str(result),
+                     '--output-path', str(folder), '--test-id', test_identifier], root,
+                    deadline, stage, developer)
+                item = {'method': method, 'status': status}; report['methods'].append(item)
+                if status != 'OK': continue
+                try:
+                    screenshot_safe_directory(folder, within=stage)
+                    images = bounded_failure_images(folder, method, FAILURE_TOTAL_LIMIT-total, 6-count)
+                except (ValueError, OSError): item['status'] = 'REJECTED_ATTACHMENT_SCHEMA_OR_BOUND'; continue
+                for filename, data in images:
+                    destination = target / filename
+                    if destination.exists(): continue
+                    destination.write_bytes(data); total += len(data); count += 1
+                    report['files'].append({'path': filename, 'bytes': len(data),
+                                            'sha256': control.digest(data), 'method': method,
+                                            'capture_phase': 'FAILED_TEST_TEARDOWN_APP_SCREENSHOT'})
+                item['status'] = 'EXPORTED' if images else 'NO_MATCHING_APP_SCREENSHOT'
+            report['status'] = 'EXPORTED' if report['files'] else 'NO_IMAGES_EXPORTED'
+    except Exception:
+        # Never serialize raw exporter errors, private fixture values, or paths.
+        report['status'] = 'DIAGNOSTIC_UNAVAILABLE'
+    finally:
+        report['seconds'] = max(0, time.monotonic() - started)
+        try:
+            # Publish only a complete, independently bounded directory. A partial
+            # exporter or write failure cannot leak staging data to the uploader.
+            files = report['files']
+            require(len(files) <= 6 and sum(f['bytes'] for f in files) <= FAILURE_TOTAL_LIMIT, 'Upload cap')
+            require({p.name for p in target.iterdir()} == {f['path'] for f in files}, 'Unexpected upload file')
+            for item in files:
+                path = target / item['path']
+                require(re.fullmatch(r'[a-f0-9]{64}\.(png|jpg)', path.name)
+                        and not path.is_symlink() and path.is_file()
+                        and 0 < path.stat().st_size == item['bytes'] <= FAILURE_IMAGE_LIMIT
+                        and digest(path) == item['sha256'], 'Invalid upload file')
+            # Invalid/foreign identities are never serialized, even on failure.
+            require(report['identity'] == control.source_identity(root), 'Invalid diagnostic source')
+            require(set(report['identity']) == {'sha','tree','run_id','attempt'}
+                    and all(type(v) is str and re.fullmatch(r'[a-f0-9]{40}' if k in ('sha','tree') else r'[1-9][0-9]{0,19}', v)
+                            for k,v in report['identity'].items()), 'Invalid diagnostic identity')
+            if files and time.monotonic() > deadline:
+                for item in files: (target/item['path']).unlink()
+                report['files'] = []; report['status'] = 'TIME_LIMIT'
+            data = encode(report).encode() + b'\n'; require(len(data) <= 131072, 'Index cap')
+            (target / 'diagnostic-index.json').write_bytes(data)
+            target.rename(published)
+        finally:
+            if target.exists(): shutil.rmtree(target)
+
+
 def verify_plan(root, path):
     plan = control.read_json(path); manifest = control.verified_manifest(root)
     require(plan['identity'] == control.source_identity(root), 'Foreign SHA/tree/run/attempt plan')
@@ -656,7 +931,15 @@ def execute_current(root, plan, role, output, start_file, index=None, build=None
         require(control.source_identity(root) == plan['identity'], 'Current source changed during execution')
         receipt.update(status='PASS', worker_seconds=time.monotonic()-start); save()
     except BaseException as error:
-        receipt.update(status='FAIL', error=str(error), worker_seconds=time.monotonic()-start); save(); raise
+        receipt.update(status='FAIL', error=str(error), worker_seconds=time.monotonic()-start); save()
+        # Separate best-effort diagnostics never replace the original exception.
+        try: collect_failure_screenshots(root, plan, receipt, output, deadline)
+        except BaseException:
+            # Preserve the outer execution exception, including its original
+            # KeyboardInterrupt/SystemExit cancellation semantics. A second
+            # interruption during diagnostics must never replace that outcome.
+            pass
+        raise
 
 
 def reparse_actual_result(directory, plan):

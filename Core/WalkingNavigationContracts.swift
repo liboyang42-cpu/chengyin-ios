@@ -86,3 +86,44 @@ public struct WalkingNavigationCheckpoint: Codable, Equatable {
         self.reference = reference; self.ownerNamespace = ownerNamespace
     }
 }
+
+/// A saved destination is a reference, never cached navigation authority or geometry.
+public struct WalkingSavedDestinationRecord: Codable, Equatable {
+    public let schema: Int
+    public let reference: WalkingTargetReference
+    public let ownerScope: Data
+    public let revision: UUID
+    public init(reference: WalkingTargetReference, ownerScope: Data, revision: UUID = UUID()) throws {
+        guard reference.isValid, !ownerScope.isEmpty, ownerScope.count <= 2_048 else {
+            throw WalkingCheckpointFailure.invalidRecord
+        }
+        schema = 1; self.reference = reference; self.ownerScope = ownerScope; self.revision = revision
+    }
+    public func encoded() throws -> Data {
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
+        let data = try encoder.encode(self)
+        _ = try Self.decode(data, ownerScope: ownerScope)
+        return data
+    }
+    public static func decode(_ data: Data, ownerScope: Data) throws -> Self {
+        guard data.count <= 4_096,
+              let object = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              Set(object.keys) == ["schema", "reference", "ownerScope", "revision"],
+              let reference = object["reference"] as? [String: Any],
+              Set(reference.keys).isSubset(of: ["kind", "id", "missionID"]) else {
+            throw WalkingCheckpointFailure.invalidRecord
+        }
+        let value = try JSONDecoder().decode(Self.self, from: data)
+        guard value.schema == 1, value.reference.isValid,
+              !ownerScope.isEmpty, ownerScope.count <= 2_048,
+              value.ownerScope == ownerScope else { throw WalkingCheckpointFailure.invalidRecord }
+        return value
+    }
+}
+public enum WalkingCheckpointFailure: Error, Equatable { case unavailable, invalidRecord, changed }
+
+/// Local, synchronous compare-and-replace. Implementations must compare complete bytes atomically.
+@MainActor public protocol WalkingCheckpointStoring {
+    func read(key: String) throws -> Data?
+    func replace(key: String, expected: Data?, replacement: Data?) throws -> Bool
+}

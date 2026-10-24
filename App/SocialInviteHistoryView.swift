@@ -6,13 +6,7 @@ import SwiftUI
     var actions: SocialActionCoordinator? = nil
     @StateObject private var model = SocialInviteHistoryModel()
     private var groups: [(String, [SocialInvitedMember])] {
-        var keys: [String] = [], rows: [String: [SocialInvitedMember]] = [:]
-        for member in model.pagination.members {
-            let raw = String((member.createdAt ?? "").prefix(7))
-            let key = raw.range(of: "^[0-9]{4}-(0[1-9]|1[0-2])$", options: .regularExpression) == nil ? "" : raw
-            if rows[key] == nil { keys.append(key) }; rows[key, default: []].append(member)
-        }
-        return keys.map { ($0, rows[$0] ?? []) }
+        (model.timeline(reader)?.months ?? []).map { ($0.id, $0.members) }
     }
     var body: some View {
         let binding = model.bind(reader)
@@ -28,6 +22,7 @@ import SwiftUI
                     SocialOptionalCount(title: "social.invites.total", count: model.pagination.total)
                     LabeledContent("social.invites.loaded", value: String(model.pagination.members.count))
                     if model.scan?.isComplete != true { Text("social.invites.partial").font(.footnote).accessibilityIdentifier("social.invites.partial") }
+                    Text("profile.inviteTimeline.zoneHint").font(.caption).foregroundStyle(.secondary)
                 }
                 ProfileInviteRewardReviewSection(review: .init(scan: model.scan), isLoading: model.loading) {
                     model.start(reader, permit: permit, reset: true)
@@ -66,8 +61,8 @@ import SwiftUI
         VStack(alignment: .leading, spacing: 5) {
             if let nickname = member.nickname { Text(verbatim: nickname).font(.headline) }
             else { Text("square.unknownAuthor").font(.headline) }
-            if let date = member.createdAt { Text(verbatim: date).font(.caption) }
-            else { Text("social.invites.timeUnknown").font(.caption) }
+            ProfileInviteTimelineDates(invitationTime: member.createdAt,
+                reward: model.scan?.rewards[String(member.id)])
             if let reward = model.scan?.rewards[String(member.id)] {
                 Text("social.invites.earned").font(.subheadline)
                 LabeledContent("social.invites.points", value: NSDecimalNumber(decimal: reward.points).stringValue)
@@ -117,6 +112,11 @@ import SwiftUI
     func matches(_ reader: any SocialAccountReading) -> Bool {
         reader.identity.accountID != nil && reader.isConfigured && loadedBinding == boundReader
             && loadedBinding?.key == Self.key(reader)
+    }
+    /// Never project the retained rows into a replacement reader's visible timeline.
+    func timeline(_ reader: any SocialAccountReading) -> ProfileInviteTimeline? {
+        guard matches(reader) else { return nil }
+        return .init(members: pagination.members)
     }
     func permit(_ reader: any SocialAccountReading) -> LoadPermit? {
         guard let presentation, presentation.owner == owner, presentation.binding == boundReader,

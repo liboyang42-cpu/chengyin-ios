@@ -179,3 +179,36 @@ public struct MerchantContentSupplyContext: Equatable {
         canReconfirmOrPause = offerActive && offerID != nil && !(circleThemeCode ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 }
+
+
+/// Ordinary type-1 host roster only. No response topic/store IDs or per-player consent are invented.
+public enum MerchantOrdinaryParticipantsProjection {
+    public static func allowsHost(_ value: MerchantContentValue) -> Bool {
+        guard case .integer(1) = value["topic"]["productType"], case .string("host") = value["role"] else { return false }
+        return value["host"].object != nil
+    }
+    public static func sanitized(_ value: MerchantContentValue, mayReadContact: Bool) throws -> MerchantContentValue {
+        guard value.object != nil, let rows = value["rows"].array, value["summary"].object != nil,
+              case .bool(let visible) = value["contactVisible"] else { throw MerchantContentFailure.malformed }
+        func optionalText(_ value: MerchantContentValue) throws -> MerchantContentValue {
+            switch value { case .null, .string: return value; default: throw MerchantContentFailure.malformed }
+        }
+        let hint = try optionalText(value["contactHint"])
+        var summary: [String: MerchantContentValue] = [:]
+        for key in ["paidCount", "arrivedCount", "pendingCount", "contactedCount", "refundedCount"] {
+            guard case .integer(let count) = value["summary"][key], count >= 0 else { throw MerchantContentFailure.malformed }
+            summary[key] = .integer(count)
+        }
+        let allowed = mayReadContact && visible
+        let clean = try rows.map { row -> MerchantContentValue in
+            guard row.object != nil, case .string(let state) = row["state"],
+                  ["refunded", "arrived", "contacted", "pending"].contains(state) else { throw MerchantContentFailure.malformed }
+            let name = try optionalText(row["name"]), ticket = try optionalText(row["ticketName"])
+            let phone = try optionalText(row["phone"])
+            // A globally visible roster does not imply an individual agreed to share a phone.
+            // Preserve null; never restore a withheld phone from another field/cache.
+            return .object(["name": name, "ticketName": ticket, "state": .string(state), "phone": allowed ? phone : .null])
+        }
+        return .object(["rows": .array(clean), "summary": .object(summary), "contactVisible": .bool(allowed), "contactHint": hint])
+    }
+}

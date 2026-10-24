@@ -8,9 +8,10 @@ import SwiftUI
     let application: CreatorApplicationCoordinator
     let creatorReader: any CreatorContentReading
     init(configuration: APIConfiguration, transport: any HTTPTransport,
-         creatorReader: any CreatorContentReading, grants: PublisherLifecycleGrants = .dormant, credentials: @escaping () -> PublishingCredentials?,
+         creatorReader: any CreatorContentReading, grants: PublisherLifecycleGrants = .dormant,
+         merchantPartnerReader: (any PublicMerchantHomeReading)? = nil, credentials: @escaping () -> PublishingCredentials?,
          freshAuthority: @escaping (PublishedResource, PublishingSession) async throws -> PublisherAuthority) {
-        let client = PublisherLifecycleHTTP(configuration: configuration, transport: transport, grants: grants, credentials: credentials)
+        let client = PublisherLifecycleHTTP(configuration: configuration, transport: transport, grants: grants, merchantPartnerReader: merchantPartnerReader, credentials: credentials)
         self.client = client; self.creatorReader = creatorReader
         coordinator = PublisherLifecycleCoordinator(client: client, authority: freshAuthority)
         application = CreatorApplicationCoordinator(client: client, reader: creatorReader)
@@ -59,3 +60,4 @@ import SwiftUI
         }
     }
 }
+

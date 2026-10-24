@@ -27,4 +27,40 @@ final class ProfileFavoriteRemovalFlowTests: XCTestCase {
     func testDisabledGrantDoesNotShowFakeAction() {
         let app=launch("disabled");XCTAssertTrue(app.staticTexts["profile.favoriteFixture.writes"].waitForExistence(timeout:3));XCTAssertFalse(app.buttons["profile.favoriteRemoval.open.101"].exists)
     }
+    func testVerifiedRemovalCloseAlsoRefreshesCollection() {
+        let app = launch(); tap("profile.favoriteRemoval.open.101", app)
+        tap("profile.favoriteRemoval.confirm", app)
+        XCTAssertTrue(app.buttons["profile.favoriteRemoval.done"].waitForExistence(timeout: 3))
+        tap("profile.favoriteRemoval.close", app)
+        XCTAssertTrue(app.staticTexts["profile.favoriteFixture.refreshed"].waitForExistence(timeout: 3))
+        XCTAssertEqual(app.staticTexts["profile.favoriteFixture.writes"].label, "Writes: 1")
+    }
+    func testVerifiedRemovalSwipeAlsoRefreshesCollection() {
+        let app = launch(); tap("profile.favoriteRemoval.open.101", app)
+        tap("profile.favoriteRemoval.confirm", app)
+        XCTAssertTrue(app.buttons["profile.favoriteRemoval.done"].waitForExistence(timeout: 3))
+        let bar = app.navigationBars["Remove saved post"]
+        XCTAssertTrue(bar.waitForExistence(timeout: 3)); bar.swipeDown()
+        XCTAssertTrue(app.staticTexts["profile.favoriteFixture.refreshed"].waitForExistence(timeout: 3))
+        XCTAssertEqual(app.staticTexts["profile.favoriteFixture.writes"].label, "Writes: 1")
+    }
+    func testAppliedUnknownMissingRowCanRecoverAndKeepResultSheetUntilDone() {
+        let app = launch("ackUnreadable"); tap("profile.favoriteRemoval.open.101", app)
+        tap("profile.favoriteRemoval.confirm", app)
+        XCTAssertTrue(app.buttons["profile.favoriteRemoval.check"].waitForExistence(timeout: 3))
+        tap("profile.favoriteRemoval.close", app)
+        tap("profile.favoriteFixture.refreshList", app)
+        XCTAssertFalse(app.buttons["profile.favoriteRemoval.open.101"].exists)
+        tap("profile.favoriteFixture.resolve", app)
+        tap("profile.favoriteRecovery.open.101", app)
+        XCTAssertFalse(app.buttons["profile.favoriteRemoval.confirm"].exists)
+        tap("profile.favoriteRemoval.check", app)
+        // The journal row disappeared, but the presentation still owns its result.
+        XCTAssertTrue(app.buttons["profile.favoriteRemoval.done"].waitForExistence(timeout: 3))
+        tap("profile.favoriteRemoval.done", app)
+        XCTAssertTrue(app.staticTexts["profile.favoriteFixture.refreshed"].waitForExistence(timeout: 3))
+        XCTAssertFalse(app.buttons["profile.favoriteRecovery.open.101"].exists)
+        XCTAssertEqual(app.staticTexts["profile.favoriteFixture.writes"].label, "Writes: 1")
+    }
+
 }

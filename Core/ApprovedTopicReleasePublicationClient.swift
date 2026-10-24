@@ -149,7 +149,8 @@ public struct ApprovedTopicReleasePublicationCredentials: Equatable {
         do { guard try journal.read(session: session, topicID: topicID) == original else { state = .unavailable; return } }
         catch { state = .unavailable; return }
         let request = UUID(); requestID = request; state = .sending
-        let task = Task { [source, session] in
+        let task = Task { [source, session, weak self] in
+            guard self?.isCurrent == true else { throw ApprovedTopicReleaseError.changedContext }
             if publication { return try await source.publish(record, session: session) }
             return try await source.status(record, session: session)
         }

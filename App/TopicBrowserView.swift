@@ -20,9 +20,9 @@ struct TopicBrowserView: View {
     @State private var issue: TopicScreenIssue?
     @State private var generation = 0
     @State private var artworkRevision = UUID()
-    private struct Key: Hashable { let scope: UUID; let query: TopicQuery; let configured: Bool }
+    private struct Key: Hashable { let readerID: ObjectIdentifier; let scope: UUID; let query: TopicQuery; let configured: Bool }
     private var key: Key {
-        Key(scope: reader.scope, query: TopicQuery(keyword: keyword.isEmpty ? nil : keyword, categoryID: categoryID, recommend: recommend, pageSize: pageSize), configured: reader.isConfigured)
+        Key(readerID: ObjectIdentifier(reader), scope: reader.scope, query: TopicQuery(keyword: keyword.isEmpty ? nil : keyword, categoryID: categoryID, recommend: recommend, pageSize: pageSize), configured: reader.isConfigured)
     }
     var body: some View {
         NavigationStack {
@@ -72,7 +72,13 @@ struct TopicBrowserView: View {
             .appNavigationTitle("topic.title")
             .toolbar { if let onClose { ToolbarItem(placement:.cancellationAction) { Button("action.close",action:onClose) } } }
             .searchable(text: $keyword, prompt: "topic.search")
-            .task(id: key) { await load(reset: true) }
+            .task(id: key) {
+                // Back resumes the accepted same-reader/query pages. A cancelled initial
+                // read has no loadedKey, and a failed read keeps its issue, so both retry.
+                // Explicit refresh still resets; a changed query or owner never reuses rows.
+                guard loadedKey != key || issue != nil else { return }
+                await load(reset: true)
+            }
             .refreshable { await load(reset: true) }
             .onDisappear { generation += 1; loading = false }
             .accessibilityIdentifier("topic.browser")

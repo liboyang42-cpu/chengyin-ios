@@ -8,11 +8,15 @@ struct MessagingHomeView: View {
     var mediaReader: (any SocialMessageMediaReading)? = nil
     var senderForConversation: ((Int)->MessageActionCoordinator?)? = nil
     var expanded: IMExpandedNavigationContext? = nil
+    var squareDestination: ((@escaping () -> Void) -> AnyView)? = nil
+    var predictionEntry: (() -> AnyView)? = nil
     private let identity: MessagingReadIdentity?
-    init(reader:any MessagingReading,mediaReader:(any SocialMessageMediaReading)?=nil,senderForConversation:((Int)->MessageActionCoordinator?)?=nil,expanded:IMExpandedNavigationContext?=nil) { self.reader=reader;self.mediaReader=mediaReader;self.senderForConversation=senderForConversation;self.expanded=expanded;identity=reader.identity }
+    init(reader:any MessagingReading,mediaReader:(any SocialMessageMediaReading)?=nil,senderForConversation:((Int)->MessageActionCoordinator?)?=nil,expanded:IMExpandedNavigationContext?=nil,squareDestination:((@escaping () -> Void) -> AnyView)?=nil,predictionEntry:(() -> AnyView)?=nil) { self.reader=reader;self.mediaReader=mediaReader;self.senderForConversation=senderForConversation;self.expanded=expanded;self.squareDestination=squareDestination;self.predictionEntry=predictionEntry;identity=reader.identity }
     var body: some View {
-        MessagingConversationListView(reader:reader,mediaReader:mediaReader,senderForConversation:senderForConversation,expanded:expanded).id(identity)
-            .appNavigationTitle("messaging.title")
+        VStack(spacing: 0) {
+            if let predictionEntry { predictionEntry().padding(.horizontal) }
+            MessagingConversationListView(reader:reader,mediaReader:mediaReader,senderForConversation:senderForConversation,expanded:expanded,squareDestination:squareDestination).id(identity)
+        }.appNavigationTitle("messaging.title")
     }
 }
 
@@ -22,6 +26,8 @@ private struct MessagingConversationListView: View {
     var mediaReader: (any SocialMessageMediaReading)? = nil
     var senderForConversation: ((Int)->MessageActionCoordinator?)? = nil
     var expanded: IMExpandedNavigationContext? = nil
+    var squareDestination: ((@escaping () -> Void) -> AnyView)? = nil
+    @State private var showsSquare = false
     @State private var newConversation: Int?
     @State private var rowAction: IMConversationRowActionPresentation?
     @State private var readAll: IMConversationReadAllPresentation?
@@ -44,15 +50,16 @@ private struct MessagingConversationListView: View {
                 .accessibilityIdentifier("messaging.list.scope")
                 let rows = filtered(conversations)
                 if conversations.isEmpty {
-                    MessagingEmptyView(title: "messaging.empty", hint: "messaging.emptyHint", identifier: "messaging.list.empty")
+                    emptyState(title: "messaging.empty", hint: "messaging.emptyHint", identifier: "messaging.list.empty")
                 } else if rows.isEmpty {
-                    MessagingEmptyView(title: "messaging.noMatches", hint: "messaging.searchHint", identifier: "messaging.list.noMatches")
+                    emptyState(title: "messaging.noMatches", hint: "messaging.searchHint", identifier: "messaging.list.noMatches")
                 } else {
                     List {
                         Section {
                             ForEach(Array(rows.prefix(displayLimit))) { conversation in
                                 NavigationLink {
-                                    MessagingHistoryView(conversationID:conversation.id,conversation:conversation,reader:reader,sender:senderForConversation?(conversation.id),mediaReader:mediaReader,expanded:expanded)
+                                    MessagingHistoryView(conversationID:conversation.id,conversation:conversation,reader:reader,sender:senderForConversation?(conversation.id),mediaReader:mediaReader,expanded:expanded,
+                                        onConversationMutationAccepted: conversationInvalidation(for: conversation.id))
                                 } label: { MessagingConversationRow(conversation: conversation) }
                                 .accessibilityIdentifier("messaging.conversation.\(conversation.id)")
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
@@ -94,7 +101,11 @@ private struct MessagingConversationListView: View {
             }
         }
         .navigationDestination(item: $newConversation) { id in
-            MessagingHistoryView(conversationID: id, reader: reader, sender: senderForConversation?(id), mediaReader: mediaReader, expanded: expanded)
+            MessagingHistoryView(conversationID: id, reader: reader, sender: senderForConversation?(id), mediaReader: mediaReader, expanded: expanded,
+                onConversationMutationAccepted: conversationInvalidation(for: id))
+        }
+        .sheet(isPresented: $showsSquare) {
+            if let squareDestination { squareDestination { showsSquare = false } }
         }
         .sheet(item: $rowAction) { presentation in
             let owner = listModel
@@ -110,12 +121,33 @@ private struct MessagingConversationListView: View {
                 owner?.invalidate(reader: reader, identity: presentation.batch.identity)
             }
         }
-        .onChange(of: reader.identity) { _, _ in rowAction = nil }
+        .onChange(of: reader.identity) { _, _ in rowAction = nil; showsSquare = false }
         .onChange(of: MessagingReadScreenInput(reader: reader, refreshRevision: 0)) { _, _ in retireReviews() }
         .onDisappear { readAll?.batch.stop() }
         .searchable(text: $query, prompt: "messaging.search")
         .onChange(of: query) { _, _ in displayLimit = 30 }
         .onChange(of: scope) { _, _ in displayLimit = 30 }
+    }
+    @ViewBuilder private func emptyState(title: LocalizedStringKey, hint: LocalizedStringKey, identifier: String) -> some View {
+        VStack {
+            MessagingEmptyView(title: title, hint: hint, identifier: identifier)
+            // P032: only a successfully loaded, genuinely empty direct-message tab
+            // offers Square. Search misses, errors and missing grants do not.
+            if scope == .direct, query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+               squareDestination != nil {
+                Button("square.title", systemImage: "person.2") {
+                    guard scope == .direct,
+                          query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                          listModel.appearance != nil, !showsSquare,
+                          reader.isConfigured, reader.identity != nil,
+                          listModel.loadedInput == MessagingReadScreenInput(reader: reader, refreshRevision: 0),
+                          let conversations = listModel.value, filtered(conversations).isEmpty else { return }
+                    showsSquare = true
+                }
+                    .accessibilityIdentifier("messaging.list.emptySquare")
+                    .padding(.bottom)
+            }
+        }
     }
     @ViewBuilder private func rowActions(for conversation: MessagingConversation) -> some View {
         if let identity = reader.identity, let coordinator = expanded?.coordinator(conversation.id) {
@@ -153,6 +185,15 @@ private struct MessagingConversationListView: View {
             reader: reader, coordinator: expanded.coordinator)
         guard !batch.items.isEmpty else { return }
         readAll = .init(batch: batch)
+    }
+    private func conversationInvalidation(for conversationID: Int) -> (IMScope) -> Void {
+        let source = reader, identity = reader.identity, owner = listModel
+        return { [weak owner] scope in
+            guard scope.conversationID == conversationID, scope.identity == identity else { return }
+            // Exact reader/account/epoch validation lives in the retained list owner.
+            // Invalidation preserves this view's search, filter and display window.
+            owner?.invalidate(reader: source, identity: scope.identity)
+        }
     }
     private func retireReviews() {
         readAll?.batch.stop(); readAll = nil; rowAction = nil

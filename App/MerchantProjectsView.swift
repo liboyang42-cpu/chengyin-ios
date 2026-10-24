@@ -6,6 +6,8 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
     @Environment(\.scenePhase) private var scenePhase
     @ObservedObject var reader: Reader
     var contentService: (any MerchantContentServing)? = nil
+    var showsRecentEvents = true
+    var workspaceReadFactory: MerchantProjectWorkspaceReadFactory? = nil
     @StateObject private var model = MerchantLoadModel<MerchantProjectWorkspaceSnapshot>()
     @StateObject private var presentation = MerchantProjectWorkspacePresentation()
     @State private var tab: MerchantProjectBrowserTab = .topic
@@ -20,7 +22,7 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
         summaryFixtureEvents.append(event)
     }
     #endif
-    private var context: MerchantProjectWorkspaceContext { .init(reader: reader, service: contentService) }
+    private var context: MerchantProjectWorkspaceContext { .init(reader: reader, service: contentService, workspaceReadID: workspaceReadFactory?.id) }
     private var sourceFresh: Bool { !model.isLoading && model.errorKey == nil && model.loadedRevision == reader.sessionRevision }
     var body: some View {
         ZStack {
@@ -117,7 +119,7 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                         presentation.openWorkspace(selected, snapshot: snapshot, context: context, sourceFresh: sourceFresh)
                     }
                     .safeAreaInset(edge: .bottom) {
-                        if snapshot.access.isOwner, let merchantID = snapshot.access.merchantID,
+                        if showsRecentEvents, snapshot.access.isOwner, let merchantID = snapshot.access.merchantID,
                            MerchantProjectEventKey(project: selected.project) != nil, sourceFresh {
                             NavigationLink {
                                 MerchantProjectRecentEventsView(reader: reader, project: selected.project, merchantID: merchantID,
@@ -132,7 +134,11 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                     }
                     .toolbar { ToolbarItem(placement: .confirmationAction) { Button("merchant.done") { presentation.closeSummary(id: selected.id) }.accessibilityIdentifier("merchant.projectSummary.close") } }
                     .navigationDestination(item: presentation.workspaceBinding()) { route in
-                        if let contentService, presentation.workspaceIsCurrent(route, snapshot: model.value, context: context, sourceFresh: sourceFresh) {
+                        if let factory = workspaceReadFactory, presentation.workspaceIsCurrent(route, snapshot: model.value, context: context, sourceFresh: sourceFresh) {
+                            MerchantProjectWorkspaceReadHost(factory: factory, topicID: route.topicID, merchantID: route.merchantID,
+                                isCurrent: { presentation.workspaceIsCurrent(route, snapshot: model.value, context: context, sourceFresh: sourceFresh) }, owner: presentation.readOwner)
+                                .id(route.id)
+                        } else if let contentService, presentation.workspaceIsCurrent(route, snapshot: model.value, context: context, sourceFresh: sourceFresh) {
                             MerchantContentDocumentView(service: contentService, query: .project(topicID: route.topicID),
                                 focusedTopicID: route.topicID, focusedMerchantID: route.merchantID,
                                 projectEntryIsCurrent: { presentation.workspaceIsCurrent(route, snapshot: model.value, context: context, sourceFresh: sourceFresh) })
@@ -208,11 +214,13 @@ struct MerchantProjectWorkspaceContext: Hashable {
     let revision: UInt64
     let configured: Bool
     let signedIn: Bool
+    let workspaceReadID: UUID?
     let serviceID: ObjectIdentifier?
     let serviceScope: UUID?
     let serviceConfigured: Bool
     let serviceAuthenticated: Bool
-    @MainActor init<Reader: MerchantReading>(reader: Reader, service: (any MerchantContentServing)?) {
+    @MainActor init<Reader: MerchantReading>(reader: Reader, service: (any MerchantContentServing)?, workspaceReadID: UUID? = nil) {
+        self.workspaceReadID = workspaceReadID
         readerID = ObjectIdentifier(reader); revision = reader.sessionRevision
         configured = reader.isConfigured; signedIn = reader.isSignedIn
         serviceID = service.map { ObjectIdentifier($0) }; serviceScope = service?.scope
@@ -226,6 +234,7 @@ struct MerchantProjectWorkspaceSnapshot {
     let context: MerchantProjectWorkspaceContext
 }
 @MainActor final class MerchantProjectWorkspacePresentation: ObservableObject {
+    let readOwner = MerchantProjectWorkspaceReadOwner()
     struct Permit { let generation: UUID; let snapshotID: UUID }
     struct Selection: Identifiable {
         let id = UUID()
@@ -250,7 +259,7 @@ struct MerchantProjectWorkspaceSnapshot {
     private(set) var active = true
     func permit(snapshot: MerchantProjectWorkspaceSnapshot) -> Permit { .init(generation: generation, snapshotID: snapshot.id) }
     func activate() { if !active { active = true; invalidate() } }
-    func invalidate() { generation = UUID(); selection = nil; route = nil }
+    func invalidate() { readOwner.retire(); generation = UUID(); selection = nil; route = nil }
     func retire() { active = false; invalidate() }
     private func current(_ snapshot: MerchantProjectWorkspaceSnapshot, _ context: MerchantProjectWorkspaceContext) -> Bool {
         active && context == snapshot.context && context.configured && context.signedIn && snapshot.access.allows(.projects) && (snapshot.access.merchantID ?? 0) > 0
@@ -270,10 +279,11 @@ struct MerchantProjectWorkspaceSnapshot {
     }
     func canOpenWorkspace(_ selected: Selection, snapshot: MerchantProjectWorkspaceSnapshot, context: MerchantProjectWorkspaceContext, sourceFresh: Bool) -> Bool {
         sourceFresh && selectionIsCurrent(selected, snapshot: snapshot, context: context) && selected.project.bizType == "topic" && selected.project.projectID > 0 &&
-            context.serviceID != nil && context.serviceConfigured && context.serviceAuthenticated
+            (context.workspaceReadID != nil || (context.serviceID != nil && context.serviceConfigured && context.serviceAuthenticated))
     }
     func openWorkspace(_ selected: Selection, snapshot: MerchantProjectWorkspaceSnapshot, context: MerchantProjectWorkspaceContext, sourceFresh: Bool) {
         guard route == nil, canOpenWorkspace(selected, snapshot: snapshot, context: context, sourceFresh: sourceFresh), let merchantID = snapshot.access.merchantID else { return }
+        readOwner.retire()
         route = .init(selectionID: selected.id, topicID: selected.project.projectID, merchantID: merchantID,
                       snapshotID: snapshot.id, context: context, generation: generation)
     }
@@ -314,7 +324,8 @@ struct MerchantProjectWorkspaceSnapshot {
             return current.id == captured ? current : nil
         }, set: { [weak self] value in
             guard let self, self.generation == epoch, value == nil, let captured, self.route?.id == captured else { return }
-            self.route = nil
+            self.readOwner.retire(); self.route = nil
         })
     }
 }
+

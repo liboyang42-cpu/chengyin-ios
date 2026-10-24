@@ -1,5 +1,7 @@
 # Native iOS migration progress
 
+> **当前统一入口 / Current entry (2026-10-15): [iOS 范围、状态与证据](docs/ios-current-status.md).** 下文保留原时间点的计划或证据，不自动代表当前状态；历史数量、合同状态与运行结果不得移用于新提交。当前口径以上述入口为准。
+
 Status: migration in progress, not release-ready. This is a chronological log; the latest batch evidence is at the end. Older counts below are retained history, not current coverage.
 
 ## Working convention
@@ -422,3 +424,16 @@ Local evidence on the combined source: 2,211 Python source-contract tests, with 
 These are static/tooling checks, not Swift compilation or App execution. Swift/Core/AppUnit/UI, simulator and physical-device verification of this batch are pending the exact published SHA. Run 131's successful builds and failed runtime tests apply only to the preceding `6eb3af76` commit. All existing required CI gates and test profiles are retained; a build-only result cannot authorize merging main.
 
 The earlier missing CI131 repair workspace was not reconstructed from summaries. Only hash-verified saved originals and newly authored/reviewed changes are in this batch. Cancelled Next50 work is excluded, and the twenty externally reserved Muse paths remain byte-identical to the base.
+
+## 2026-10-19 — CI integrator: first real Apple build/test evidence for the branch (in progress)
+
+All commits since 2026-10-13 were `[skip ci]` and had never been compiled. Full-mode `native-ios.yml` runs on `migration/native-ios` today:
+
+- Run 39242671276 (3067d7a): controls/secrets PASS; Core, AppUnit and UI builds FAIL (compile). The stale current-test ledger was refreshed against 39ce4ad with explicit reasons for the four renamed tests from 7c21af4/85e9722; macOS matrices widened to `max-parallel: 20`.
+- Runs 39246017032 / 39247795734 / 39249494475 / 39253050885: compile root causes fixed one at a time — a stale duplicate of ClubGovernanceReadView members spliced into `content()` by 000bed9; an `@Observable` multi-variable declaration in ProfileGuideReader; type-checker timeouts (club read view and activity publishing view split into ordered modifier stages); Core test `try`/main-actor default-argument errors; the shared profile multipart parser dropping the last value character (`"\r\n"` is one Swift `Character`), which broke favorites/topic/guide/public-info/removal routes; unregistered Swift files; a duplicate `MerchantPredictionRound` type from b9e118d (now `MerchantPredictionInboxRound`).
+- Run 39255634295 (8f594f8): Core, App and UI products build. Core executed with 4 failures, AppUnit with 1 compile error (both fixed by 0a3d3fe); UI shards started — 3 passed and 7 failed of the 10 finished before the run was superseded (cancelled). Failing UI methods include OwnedTopicCoverRecoveryFlowTests, ProjectPendingStoryAudioFlowTests (5a58cd1), ApprovedTopicReviewCurrentChineseFlowTests, ProjectStoryAudioFlowTests, RoamFinishedHistoryFlowTests, ApprovedTopicFrozenCoverPublicationFlowTests, OwnedTopicCoverSelectionFlowTests.
+- Run 39259912495 (fb4b8bf): pending/in progress; UI failure logs now keep 120 context lines so element hierarchies are visible without artifact access.
+
+The full plan is 8,726 Core + 5,141 AppUnit + 982 UI methods in 108 UI shards; with ~4 concurrent macOS runners a full run takes several hours. No assertion was removed or weakened; one stale contract check (customer-history read fence) was re-pointed at the real `check` closure with the same tokens plus a stronger binding check. No live endpoint, payment, SMS, OAuth or signing configuration was touched. gitleaks (8.24.3, full history) is clean. Not yet green; PRs #10–#13 are not merged pending their own green runs.
+
+Update 17:55 UTC: run 39264234966 (d06572c) — controls, secrets, Core (all selected methods) and UI build PASS; AppUnit failed to compile on `TemplateLowHPPresetText.localizationKey` (fixed in ae8c05c, catalog-backed, copy unchanged). UI after 25 of 108 shards: 11 pass, 14 fail. Failing methods are concentrated in project-editor review/release/story-media flows (ApprovedRelease*, ApprovedTopicReview*/SelectedCover*, ProjectStoryAudio*/MediaGap, ProjectOwnedModeCopy) plus ProfileAuthorPostsRefresh, RoamFinishedHistory, CouponRuntimeJourney and OwnedTopicCoverSelection. Fourteen editor UI tests waited for the off-screen name field without the suite's `revealProjectEditorNameInForm` helper (the pattern already required by test_project_editor_readiness); they now reveal it first. PR related-mode gates (e.g. #10 run 39276259927: Core/AppUnit-build OK, 7 of 8 UI shards red) inherit these base UI failures, so no PR has a green gate yet and none is merged.

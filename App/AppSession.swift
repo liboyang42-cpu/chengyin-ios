@@ -89,6 +89,7 @@ final class AppSession: ObservableObject {
     }
     private let disabledPublicMerchantHomeReader = DisabledPublicMerchantHomeReader()
     private var retainedMerchantPublicFactory: MerchantPublicProductionFactory?
+    private var retainedMerchantPublicViewerRevision: UInt64?
     private var currentMerchantPublicContext: MerchantPublicHostContext? {
         guard let regionalConfiguration, let api = regionalConfiguration.apiConfiguration,
               let namespace = storageScope?.service else { return nil }
@@ -97,16 +98,31 @@ final class AppSession: ObservableObject {
     }
     private var merchantPublicFactory: MerchantPublicProductionFactory? {
         guard let api = regionalConfiguration?.apiConfiguration, let context = currentMerchantPublicContext else { return nil }
-        if let retainedMerchantPublicFactory, retainedMerchantPublicFactory.captured == context { return retainedMerchantPublicFactory }
-        let factory = runtimeDependencies.makeMerchantPublicFactory(api: api, journal: merchantNPCJournal, transportOverride: runtimeHTTPTransport,
-            current: { [weak self] in self?.currentMerchantPublicContext })
+        if let retainedMerchantPublicFactory, retainedMerchantPublicFactory.captured == context,
+           retainedMerchantPublicViewerRevision == compositionViewerRevision { return retainedMerchantPublicFactory }
+        let dependencies = runtimeDependencies
+        let transport: any HTTPTransport
+        if let approval = dependencies.merchantPublicApproval {
+            transport = compositionTransport.scopedForPublicMerchantHome(approval: approval, context: context)
+        } else { transport = runtimeHTTPTransport }
+        let viewerRevision = compositionViewerRevision
+        let factory = dependencies.makeMerchantPublicFactory(api: api, journal: merchantNPCJournal, transportOverride: transport,
+            current: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision else { return nil }
+                return self.currentMerchantPublicContext
+            })
         retainedMerchantPublicFactory = factory
+        retainedMerchantPublicViewerRevision = viewerRevision
         return factory
     }
     private var publicMerchantHomeReader: any PublicMerchantHomeReading {
         merchantPublicFactory?.homeReader ?? disabledPublicMerchantHomeReader
     }
     private var publicMerchantReviewReader: any PublicMerchantReviewReading = DisabledPublicMerchantReviewReader()
+    /// Read-only consumers receive no reviews, NPC, owner-profile or action contexts.
+    var readOnlyPublicMerchantHomeContext: PublicMerchantHomeContext {
+        PublicMerchantHomeContext(reader: publicMerchantHomeReader)
+    }
     var publicMerchantHomeContext: PublicMerchantHomeContext {
         let retained = retainedPublicMerchantReviews
         let reviews: any PublicMerchantReviewReading = retained?.reader ?? publicMerchantReviewReader
@@ -115,6 +131,9 @@ final class AppSession: ObservableObject {
         var context = PublicMerchantHomeContext(reader: publicMerchantHomeReader,
             publicReviews: { AnyView(PublicMerchantReviewsView(target: $0, reader: reviews, imageReader: images, writes: writes)) })
         context.featured = makePublicMerchantFeaturedContext(homeReader: context.reader)
+        context.ownerProfile = .init(makeReader: { [weak self] memberID in
+            self?.makeProfilePublicInfoReader(memberID: memberID)
+        }, squareReader: squareReader)
         context.installMerchantNPC(grants: { [weak self] in self?.merchantNPCGrants ?? .init() },
             scopeForRow: { [weak self] in self?.merchantNPCScope(row: $0) },
             currentScope: { [weak self] in self?.merchantNPCScope(row: $0) }, client: merchantNPCClient(resource: false),
@@ -1105,6 +1124,21 @@ final class AppSession: ObservableObject {
         guard let self,self.currentOfficialContext == captured else { return }
         self.expireIfMatching(error:APIError.unauthorized,stamp:captured.epoch,credential:self.token)
     })
+    private let profileWeeklyPointsService: ProfileWeeklyPointsService?
+    private var currentProfileWeeklyPointsSession: ProfileWeeklyPointsSession? {
+        guard let context = currentRuntimeDependencyContext else { return nil }
+        let selected = composition.profileWeeklyPointsReadApproval(context)
+        let approvalRevision = selected?.matches(context) == true ? selected?.revision : nil
+        return try? ProfileWeeklyPointsSession(accountID: context.session.accountID,
+            epoch: gate.currentStamp, viewerRevision: compositionViewerRevision, role: context.role,
+            token: context.session.token, approvalRevision: approvalRevision)
+    }
+    lazy var profileWeeklyPointsReader = ProfileWeeklyPointsSessionReader(service: profileWeeklyPointsService,
+        currentSession: { [weak self] in self?.currentProfileWeeklyPointsSession },
+        onUnauthorized: { [weak self] captured in
+            guard let self, self.currentProfileWeeklyPointsSession == captured else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.identity.epoch, credential: self.token)
+        })
     private let growthCenterService:GrowthCenterService?
     private var currentGrowthCenterSession:GrowthCenterReadSession? {
         guard let account,let token else { return nil }
@@ -1382,10 +1416,12 @@ final class AppSession: ObservableObject {
         if let retainedPublisherLifecycle, retainedPublisherLifecycle.session == publishingSession { return retainedPublisherLifecycle.context }
         retainedPublisherLifecycle?.context.invalidate()
         guard let factory = runtimeDependencyFactory else { return nil }
+        let viewerRevision = compositionViewerRevision
         let context = PublisherLifecycleHostContext(configuration: configuration, transport: factory.transport, creatorReader: creatorContentReader,
-            grants: factory.publisherGrants,
+            grants: factory.publisherGrants, merchantPartnerReader: readOnlyPublicMerchantHomeContext.reader,
             credentials: { [weak self] in
-                guard let self, let session = self.publishingSession, let token = self.token else { return nil }
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      let session = self.publishingSession, session == publishingSession, let token = self.token else { return nil }
                 return try? PublishingCredentials(session: session, token: token)
             }, freshAuthority: { [weak self] resource, captured in
                 guard let self else { throw PublisherLifecycleError.unavailable }
@@ -1399,6 +1435,50 @@ final class AppSession: ObservableObject {
                 guard let self else { throw PublisherLifecycleError.unavailable }; return try await self.activityDetail(id: id)
             }, currentSession: { [weak self] in self?.publishingSession })
         return try await reader.freshAuthority(resource, session: captured)
+    }
+    /// Existing-content editing is independently approved. Create permission never supplies these grants.
+    private let publisherIdentityRegistrationApproval: (RuntimeDependencyContext) -> PublisherIdentityRegistrationGrants
+    func makePublisherIdentityRegistrationService() -> PublisherIdentityRegistrationService? {
+        guard let captured = publishingSession, let context = currentRuntimeDependencyContext,
+              let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        let grants = publisherIdentityRegistrationApproval(context), viewerRevision = compositionViewerRevision
+        return PublisherIdentityRegistrationService(configuration: configuration, transport: runtimeHTTPTransport,
+            grants: grants, journal: composition.storage.operationJournal(), session: captured, credentials: { [weak self] in
+                guard let self, self.publishingSession == captured, self.currentRuntimeDependencyContext == context,
+                      self.compositionViewerRevision == viewerRevision, self.publisherIdentityRegistrationApproval(context) == grants, let token = self.token else { return nil }
+                return try? PublishingCredentials(session: captured, token: token)
+            })
+    }
+    private let activityCoverApproval: (RuntimeDependencyContext) -> ActivityCoverApproval?
+    func makeActivityCoverService() -> ActivityCoverService? {
+        guard let captured = publishingSession, let context = currentRuntimeDependencyContext,
+              let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        let issued = activityCoverApproval(context), viewerRevision = compositionViewerRevision
+        return ActivityCoverService(configuration: configuration, transport: runtimeHTTPTransport, approval: issued,
+            currentApproval: { [weak self] in
+                guard let self, self.currentRuntimeDependencyContext == context, self.compositionViewerRevision == viewerRevision else { return nil }
+                return self.activityCoverApproval(context)
+            }, credentials: { [weak self] in
+                guard let self, self.publishingSession == captured, self.currentRuntimeDependencyContext == context,
+                      self.compositionViewerRevision == viewerRevision, let token = self.token else { return nil }
+                return try? PublishingCredentials(session: captured, token: token)
+            }, journal: composition.storage.operationJournal())
+    }
+    private let activityEditingApproval: (RuntimeDependencyContext) -> ActivityEditingGrants
+    func activityEditingController(id: Int) -> ActivityEditingController? {
+        guard let captured = publishingSession, let context = currentRuntimeDependencyContext,
+              let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        let grants = activityEditingApproval(context), viewerRevision = compositionViewerRevision
+        let service = ActivityEditingService(configuration: configuration, transport: runtimeHTTPTransport,
+            grants: grants,
+            drafts: ActivityEditingDraftStore(storage: ProjectEditSecureStorage(scope: storageScope),
+                journal: composition.storage.operationJournal()),
+            credentials: { [weak self] in
+                guard let self, self.publishingSession == captured, self.currentRuntimeDependencyContext == context,
+                      self.compositionViewerRevision == viewerRevision, self.activityEditingApproval(context) == grants, let token = self.token else { return nil }
+                return try? PublishingCredentials(session: captured, token: token)
+            })
+        return ActivityEditingController(activityID: id, session: captured, service: service)
     }
     private var retainedPublishingService: (context: RuntimeDependencyContext, service: PublishingService)?
     var publishingService: PublishingService? {
@@ -1847,6 +1927,171 @@ final class AppSession: ObservableObject {
         guard let self,self.currentAccountCollectionSession == captured else { return }
         self.expireIfMatching(error:APIError.unauthorized,stamp:captured.epoch,credential:self.token)
     })
+    lazy var profileOwnedCouponReader = ProfileOwnedCouponReader(service: accountCollectionService,
+        current: { [weak self] in self?.currentRuntimeDependencyContext },
+        viewerRevision: { [weak self] in self?.compositionViewerRevision ?? 0 },
+        access: { [weak self] context in
+            guard let self, let current = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, current) else { return nil }
+            return self.composition.profileOwnedCouponReadAccess(context)
+        }, onUnauthorized: { [weak self] captured in
+            guard let self, let current = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(captured, current) else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+        })
+    func makeProfilePublicInfoReader(memberID: Int) -> ProfilePublicInfoReader? {
+        guard let context = currentRuntimeDependencyContext else { return nil }
+        let viewer = compositionViewerRevision
+        guard let target = try? ProfilePublicInfoTarget(memberID: memberID, context: context, viewerRevision: viewer,
+            current: { [weak self] in
+                guard let self, let current = self.currentRuntimeDependencyContext else { return false }
+                return self.compositionViewerRevision == viewer && ContentDraftContextFence.matches(context, current)
+            }) else { return nil }
+        return ProfilePublicInfoReader(target: target, configuration: regionalConfiguration?.apiConfiguration,
+            transport: compositionTransport.scopedForProfilePublicInfo(target), access: { [weak self] captured in
+                guard let self, let current = self.currentRuntimeDependencyContext,
+                      ContentDraftContextFence.matches(captured, current) else { return nil }
+                return self.composition.profilePublicInfoReadAccess(captured)
+            }, onUnauthorized: { [weak self] captured in
+                guard let self, let current = self.currentRuntimeDependencyContext,
+                      ContentDraftContextFence.matches(captured, current) else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+            })
+    }
+    func makeProfileGuideReader() -> ProfileGuideListReader? {
+        guard let context = currentRuntimeDependencyContext else { return nil }
+        let viewer = compositionViewerRevision
+        return ProfileGuideListReader(context: context, viewerRevision: viewer,
+            service: regionalConfiguration?.apiConfiguration.map { SocialAccountService(configuration: $0, transport: compositionTransport) },
+            current: { [weak self] in
+                guard let self, let current = self.currentRuntimeDependencyContext else { return false }
+                return self.compositionViewerRevision == viewer && ContentDraftContextFence.matches(context, current)
+            }, access: { [weak self] captured in
+                guard let self, let current = self.currentRuntimeDependencyContext,
+                      ContentDraftContextFence.matches(captured, current) else { return nil }
+                return self.composition.profileGuideReadAccess(captured)
+            }, onUnauthorized: { [weak self] captured in
+                guard let self, let current = self.currentRuntimeDependencyContext,
+                      ContentDraftContextFence.matches(captured, current) else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+            })
+    }
+    func makeProfileGuideArticleReader(_ selection: ProfileGuideArticleSelection) -> ProfileGuideArticleReader {
+        ProfileGuideArticleReader(selection: selection,
+            service: regionalConfiguration?.apiConfiguration.map { SocialAccountService(configuration: $0, transport: compositionTransport.scopedForProfileGuide(selection)) },
+            access: { [weak self] captured in
+                guard let self, let current = self.currentRuntimeDependencyContext,
+                      self.compositionViewerRevision == selection.viewerRevision,
+                      ContentDraftContextFence.matches(captured, current) else { return nil }
+                return self.composition.profileGuideReadAccess(captured)
+            }, onUnauthorized: { [weak self] captured in
+                guard let self, let current = self.currentRuntimeDependencyContext,
+                      ContentDraftContextFence.matches(captured, current) else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+            })
+    }
+    lazy var profileFavoritesReader = ProfileFavoritesReader(service: accountCollectionService,
+        current: { [weak self] in self?.currentRuntimeDependencyContext },
+        viewerRevision: { [weak self] in self?.compositionViewerRevision ?? 0 },
+        access: { [weak self] context in
+            guard let self, let fresh = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, fresh) else { return nil }
+            return self.composition.profileFavoritesReadAccess(context)
+        }, onUnauthorized: { [weak self] captured in
+            guard let self, let fresh = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(captured, fresh) else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+        })
+    private let favoriteRemovalPendingState = ProfileFavoriteRemovalPendingState()
+    private var favoriteRemovalControllerCache: (context: RuntimeDependencyContext, scope: UUID,
+        revisions: [UUID], controller: ProfileFavoriteRemovalController)?
+    func makeProfileFavoriteRemovalController(scope: UUID) -> ProfileFavoriteRemovalController? {
+        var retained = false
+        defer {
+            if !retained {
+                if let old = favoriteRemovalControllerCache?.controller, let id = old.presentationID { old.retire(id) }
+                favoriteRemovalControllerCache = nil
+            }
+        }
+        guard let context = currentRuntimeDependencyContext, let api = regionalConfiguration?.apiConfiguration,
+              profileFavoritesReader.isConfigured, profileFavoritesReader.scope == scope else { return nil }
+        let accesses = composition.profileFavoriteRemovalAccesses(context, scope).filter {
+            $0.matches(context, collectionScope: scope, postID: $0.approval.postID)
+        }
+        guard !accesses.isEmpty, Set(accesses.map { $0.approval.postID }).count == accesses.count else { return nil }
+        let revisions = accesses.map(\.revision)
+        if let cached = favoriteRemovalControllerCache, cached.context == context, cached.scope == scope,
+           cached.revisions == revisions { retained = true; return cached.controller }
+        if let old = favoriteRemovalControllerCache?.controller, let id = old.presentationID { old.retire(id) }
+        favoriteRemovalControllerCache = nil
+        let currentScope: () -> UUID? = { [weak self] in
+            guard let self, self.profileFavoritesReader.isConfigured else { return nil }
+            return self.profileFavoritesReader.scope
+        }
+        let select: (RuntimeDependencyContext, UUID) -> [ProfileFavoriteRemovalAccess] = { [weak self] context, scope in
+            self?.composition.profileFavoriteRemovalAccesses(context, scope) ?? []
+        }
+        guard let transport = composition.favoriteRemovalTransport(accesses: accesses, context: context,
+            collectionScope: scope, current: { [weak self] in self?.currentRuntimeDependencyContext },
+            currentScope: currentScope, select: select) else { return nil }
+        let controller = ProfileFavoriteRemovalController(configuration: api, approvals: accesses.map(\.approval),
+            transport: transport, journal: composition.storage.operationJournal(), current: { [weak self] in
+                guard let self, let fresh = self.currentRuntimeDependencyContext,
+                      ContentDraftContextFence.matches(context, fresh), currentScope() == scope else { return nil }
+                let latest = select(fresh, scope)
+                guard accesses.allSatisfy({ captured in
+                    captured.matches(fresh, collectionScope: scope, postID: captured.approval.postID) &&
+                    latest.filter { $0.approval.postID == captured.approval.postID }.count == 1 &&
+                    latest.contains(where: { $0 === captured })
+                }) else { return nil }
+                return try? ProfileFavoriteRemovalSession(identity: .init(accountID: fresh.session.accountID,
+                    epoch: fresh.session.epoch, role: fresh.role), namespace: fresh.session.namespace,
+                    collectionScope: scope, market: fresh.market, token: fresh.session.token)
+            }, onUnauthorized: { [weak self] in
+                guard let self, let fresh = self.currentRuntimeDependencyContext,
+                      ContentDraftContextFence.matches(context, fresh) else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            }, pendingState: favoriteRemovalPendingState)
+        favoriteRemovalControllerCache = (context, scope, revisions, controller)
+        retained = true
+        return controller
+    }
+    func makeProfileFavoriteDetailReader(_ selection: ProfileFavoritePostSelection) -> ProfileFavoriteDetailReader {
+        let api = regionalConfiguration?.apiConfiguration
+        let service = api.map {
+            SquareService(configuration: $0, transport: compositionTransport.scopedForProfileFavorite(selection))
+        }
+        return ProfileFavoriteDetailReader(selection: selection, service: service,
+            current: { [weak self] in self?.currentRuntimeDependencyContext },
+            viewerRevision: { [weak self] in self?.compositionViewerRevision ?? 0 },
+            access: { [weak self] context in
+                guard let self, let fresh = self.currentRuntimeDependencyContext,
+                      ContentDraftContextFence.matches(context, fresh) else { return nil }
+                return self.composition.profileFavoriteDetailAccess(context)
+            }, onUnauthorized: { [weak self] captured in
+                guard let self, let fresh = self.currentRuntimeDependencyContext,
+                      ContentDraftContextFence.matches(captured, fresh) else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+            })
+    }
+    func makeProfileFavoriteTopicReader(_ selection: ProfileFavoriteTopicSelection) -> ProfileFavoriteTopicReader {
+        let api = regionalConfiguration?.apiConfiguration
+        let service = api.map {
+            TopicService(configuration: $0, transport: compositionTransport.scopedForProfileFavoriteTopic(selection))
+        }
+        return ProfileFavoriteTopicReader(selection: selection, service: service,
+            current: { [weak self] in self?.currentRuntimeDependencyContext },
+            viewerRevision: { [weak self] in self?.compositionViewerRevision ?? 0 },
+            access: { [weak self] context in
+                guard let self, let fresh = self.currentRuntimeDependencyContext,
+                      ContentDraftContextFence.matches(context, fresh) else { return nil }
+                return self.composition.profileFavoriteTopicReadAccess(context)
+            }, onUnauthorized: { [weak self] captured in
+                guard let self, let fresh = self.currentRuntimeDependencyContext,
+                      ContentDraftContextFence.matches(captured, fresh) else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+            })
+    }
     private let cooperationService:CooperationService?
     private var currentCooperationSession:CooperationReadSession? {
         guard let account,let token else { return nil }
@@ -1867,6 +2112,14 @@ final class AppSession: ObservableObject {
         guard let self, self.currentSocialAccountSession == captured else { return }
         self.expireIfMatching(error: APIError.unauthorized, stamp: captured.identity.epoch, credential: self.token)
     })
+    private var currentProfileInviteHistoryAccess: ProfileInviteHistoryReadAccess? {
+        guard let context = currentRuntimeDependencyContext,
+              let selected = composition.profileInviteHistoryReadAccess(context),
+              selected.matches(context) else { return nil }
+        return selected
+    }
+    lazy var profileInviteHistoryReader = ProfileInviteHistoryReader(base: socialAccountReader,
+        currentAccess: { [weak self] in self?.currentProfileInviteHistoryAccess })
     // Only exact member-action grants can authorize this path; Square writes stay separate.
     private var socialMemberActionJournal: any OperationPendingJournal { composition.storage.operationJournal() }
     private var retainedSocialMemberActions: SocialMemberActionSessionOwner?
@@ -2185,6 +2438,144 @@ final class AppSession: ObservableObject {
     lazy var participantCoordinator=ParticipantMutationCoordinator(writer:participantWriter,reader:profileReader,onParticipantsChanged:{ [weak self] in
         self?.participantRevision &+= 1
     })
+    private var retainedMerchantOverview: (context: RuntimeDependencyContext, revision: UInt64, approval: UUID, reader: MerchantOverviewReader)?
+    var merchantOverviewReader: MerchantOverviewReader? {
+        guard let context = currentRuntimeDependencyContext, let api = regionalConfiguration?.apiConfiguration,
+              let approval = runtimeDependencies.merchantOverviewReadApproval, approval.matches(context) else {
+            retainedMerchantOverview = nil; return nil
+        }
+        let revision = compositionViewerRevision
+        if let old = retainedMerchantOverview, old.context == context, old.revision == revision,
+           old.approval == approval.revision { return old.reader }
+        let isCurrent: () -> Bool = { [weak self] in
+            guard let self, self.compositionViewerRevision == revision, self.currentRuntimeDependencyContext == context,
+                  let issued = self.runtimeDependencies.merchantOverviewReadApproval else { return false }
+            return issued.revision == approval.revision && issued.matches(context)
+        }
+        let transport = compositionTransport.scopedForMerchantOverview(approval: approval, context: context, approved: isCurrent)
+        let reader = MerchantOverviewReader(configuration: api, transport: transport, token: context.session.token,
+            revision: revision, current: isCurrent, unauthorized: { [weak self] in
+                guard let self, isCurrent() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+        retainedMerchantOverview = (context, revision, approval.revision, reader); return reader
+    }
+    private var retainedMerchantPrediction: (context: RuntimeDependencyContext, revision: UInt64, approval: UUID, reader: MerchantPredictionReader)?
+    var merchantPredictionReader: MerchantPredictionReader? {
+        guard let context = currentRuntimeDependencyContext, let api = regionalConfiguration?.apiConfiguration,
+              let approval = runtimeDependencies.merchantPredictionReadApproval, approval.matches(context) else {
+            retainedMerchantPrediction = nil; return nil
+        }
+        let revision = compositionViewerRevision
+        if let old = retainedMerchantPrediction, old.context == context, old.revision == revision,
+           old.approval == approval.revision { return old.reader }
+        // Same context-immutable dependency policy as other runtime dependencies; no hot revocation provider.
+        let isCurrent: () -> Bool = { [weak self] in
+            guard let self, self.compositionViewerRevision == revision, self.currentRuntimeDependencyContext == context,
+                  let issued = self.runtimeDependencies.merchantPredictionReadApproval else { return false }
+            return issued.revision == approval.revision && issued.matches(context)
+        }
+        let transport = compositionTransport.scopedForMerchantPrediction(approval: approval, context: context, approved: isCurrent)
+        // Ephemeral read-only review identity, never a persistent settlement-lock namespace.
+        // isCurrent binds the complete deployment, viewer and lease; no writer is constructed.
+        let reader = MerchantPredictionReader(configuration: api, transport: transport, token: context.session.token,
+            current: isCurrent, unauthorized: { [weak self] in
+                guard let self, isCurrent() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            }, reviewScope: try? MerchantMarketingScope(namespace: "prediction-review-" + approval.revision.uuidString,
+                accountID: context.session.accountID, epoch: context.session.epoch, token: context.session.token))
+        retainedMerchantPrediction = (context, revision, approval.revision, reader); return reader
+    }
+    var merchantProjectWorkspaceReadFactory: MerchantProjectWorkspaceReadFactory? {
+        guard let context = currentRuntimeDependencyContext, let api = regionalConfiguration?.apiConfiguration,
+              let approval = runtimeDependencies.merchantProjectWorkspaceReadApproval, approval.matches(context),
+              let browse = runtimeDependencies.merchantProjectBrowseApproval, browse.matches(context) else { return nil }
+        let revision = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard let self, self.compositionViewerRevision == revision, self.currentRuntimeDependencyContext == context,
+                  let live = self.runtimeDependencies.merchantProjectWorkspaceReadApproval,
+                  let list = self.runtimeDependencies.merchantProjectBrowseApproval else { return false }
+            return live.revision == approval.revision && live.matches(context) && list.revision == browse.revision && list.matches(context)
+        }
+        let make: (Int, Int, @escaping () -> Bool) -> (any MerchantContentServing)? = { [weak self] topicID, merchantID, presentationCurrent in
+            guard let self, topicID > 0, merchantID > 0, current(), presentationCurrent(),
+                  let captured = try? MerchantContentSession(accountID: context.session.accountID, epoch: context.session.epoch,
+                    storageScope: context.session.namespace, token: context.session.token) else { return nil }
+            let valid = { current() && presentationCurrent() }
+            let scoped = self.compositionTransport.scopedForMerchantProjectWorkspace(approval: approval, context: context,
+                topicID: topicID, approved: valid)
+            let source = MerchantContentService(configuration: api, transport: MerchantProjectCookieFreeTransport(underlying: scoped),
+                currentSession: { valid() ? captured : nil }, execution: .disabled, requiredMerchantID: merchantID,
+                onUnauthorized: { [weak self] _ in
+                    guard let self, valid() else { return }
+                    self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+                })
+            return MerchantProjectWorkspaceReadService(source: source, topicID: topicID, merchantID: merchantID, current: valid)
+        }
+        return .init(id: approval.revision, make: make, participants: merchantProjectParticipantsReadFactory)
+    }
+    private var merchantProjectParticipantsReadFactory: MerchantProjectParticipantsReadFactory? {
+        guard let context = currentRuntimeDependencyContext, let api = regionalConfiguration?.apiConfiguration,
+              let approval = runtimeDependencies.merchantProjectParticipantsReadApproval, approval.matches(context),
+              let workspace = runtimeDependencies.merchantProjectWorkspaceReadApproval, workspace.matches(context),
+              let browse = runtimeDependencies.merchantProjectBrowseApproval, browse.matches(context) else { return nil }
+        let revision = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard let self, self.compositionViewerRevision == revision, self.currentRuntimeDependencyContext == context,
+                  let live = self.runtimeDependencies.merchantProjectParticipantsReadApproval,
+                  let home = self.runtimeDependencies.merchantProjectWorkspaceReadApproval,
+                  let list = self.runtimeDependencies.merchantProjectBrowseApproval else { return false }
+            return live.revision == approval.revision && live.matches(context) && home.revision == workspace.revision
+                && home.matches(context) && list.revision == browse.revision && list.matches(context)
+        }
+        return .init(id: approval.revision) { [weak self] topicID, merchantID, parentSnapshot, presentationCurrent in
+            guard let self, topicID > 0, merchantID > 0, current(), presentationCurrent(),
+                  MerchantProjectWorkspacePresentation.matches(snapshot: parentSnapshot, topicID: topicID, merchantID: merchantID),
+                  MerchantOrdinaryParticipantsProjection.allowsHost(parentSnapshot.value),
+                  let captured = try? MerchantContentSession(accountID: context.session.accountID, epoch: context.session.epoch,
+                    storageScope: context.session.namespace, token: context.session.token) else { return nil }
+            let valid = { current() && presentationCurrent() }
+            let scoped = self.compositionTransport.scopedForMerchantProjectParticipants(approval: approval, context: context,
+                topicID: topicID, approved: valid)
+            let source = MerchantContentService(configuration: api, transport: MerchantProjectCookieFreeTransport(underlying: scoped),
+                currentSession: { valid() ? captured : nil }, execution: .disabled, requiredMerchantID: merchantID,
+                onUnauthorized: { [weak self] _ in
+                    guard let self, valid() else { return }
+                    self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+                })
+            return MerchantProjectParticipantsReadService(source: source, topicID: topicID, merchantID: merchantID, current: valid)
+        }
+    }
+    private struct MerchantProjectCookieFreeTransport: HTTPTransport {
+        let underlying: any HTTPTransport
+        func send(_ request: URLRequest) async throws -> (Data, Int) {
+            var exact = request; exact.httpShouldHandleCookies = false
+            return try await underlying.send(exact)
+        }
+    }
+    private var retainedMerchantProjectBrowse: (context: RuntimeDependencyContext, revision: UInt64, approval: UUID, reader: MerchantProjectBrowseReader)?
+    // Uses the existing context-immutable dependency policy, not a hot-reloaded grant provider.
+    var merchantProjectBrowseReader: MerchantProjectBrowseReader? {
+        guard let context = currentRuntimeDependencyContext, let api = regionalConfiguration?.apiConfiguration,
+              let approval = runtimeDependencies.merchantProjectBrowseApproval, approval.matches(context) else {
+            retainedMerchantProjectBrowse = nil; return nil
+        }
+        let revision = compositionViewerRevision
+        if let old = retainedMerchantProjectBrowse, old.context == context, old.revision == revision,
+           old.approval == approval.revision { return old.reader }
+        let isCurrent: () -> Bool = { [weak self] in
+            guard let self, self.compositionViewerRevision == revision, self.currentRuntimeDependencyContext == context,
+                  let live = self.runtimeDependencies.merchantProjectBrowseApproval else { return false }
+            return live.revision == approval.revision && live.matches(context)
+        }
+        let transport = compositionTransport.scopedForMerchantProjectBrowse(approval: approval, context: context, approved: isCurrent)
+        let reader = MerchantProjectBrowseReader(configuration: api, transport: transport, token: context.session.token,
+            revision: revision, current: isCurrent, unauthorized: { [weak self] in
+                guard let self, isCurrent() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+        retainedMerchantProjectBrowse = (context, revision, approval.revision, reader); return reader
+    }
     private let merchantService: MerchantService?
     private let merchantEngagementService: MerchantEngagementService?
     lazy var merchantEngagementReader = MerchantEngagementSessionReader(
@@ -2259,21 +2650,31 @@ final class AppSession: ObservableObject {
             guard let self, self.currentMerchantContentSession == captured else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
         })
-    private var retainedNearbyMerchants: (context: RuntimeDependencyContext, coordinator: NearbyMerchantCoordinator)?
+    private var retainedNearbyMerchants: (context: RuntimeDependencyContext, revision: UInt64, coordinator: NearbyMerchantCoordinator)?
     var nearbyMerchantCoordinator: NearbyMerchantCoordinator? {
-        guard let captured = currentRuntimeDependencyContext, let api = regionalConfiguration?.apiConfiguration,
-              let factory = runtimeDependencyFactory else { return nil }
-        if let retainedNearbyMerchants, retainedNearbyMerchants.context == captured { return retainedNearbyMerchants.coordinator }
+        guard let captured = currentRuntimeDependencyContext, let api = regionalConfiguration?.apiConfiguration else { return nil }
+        let revision = compositionViewerRevision
+        let isCurrent: () -> Bool = { [weak self] in
+            self?.compositionViewerRevision == revision && self?.currentRuntimeDependencyContext == captured
+        }
+        let transport: any HTTPTransport
+        if let configuration = runtimeDependencies.configuration {
+            transport = compositionTransport.scopedForNearbyMerchants(configuration: configuration, context: captured)
+        } else { transport = compositionTransport }
+        let factory = RuntimeDependencyFactory(api: api, configuration: runtimeDependencies.configuration,
+            transport: transport, current: { isCurrent() ? captured : nil })
+        if let retainedNearbyMerchants, retainedNearbyMerchants.context == captured,
+           retainedNearbyMerchants.revision == revision { return retainedNearbyMerchants.coordinator }
         retainedNearbyMerchants?.coordinator.cancel()
         let reader = CoopFlowSessionReader(service: CoopFlowService(configuration: api, transport: factory.transport),
-            current: { [weak self] in self?.currentCooperationFlowSession }, unauthorized: { [weak self] old in
-                guard let self, self.currentCooperationFlowSession == old else { return }
+            current: { [weak self] in isCurrent() ? self?.currentCooperationFlowSession : nil }, unauthorized: { [weak self] old in
+                guard let self, isCurrent(), self.currentCooperationFlowSession == old else { return }
                 self.expireIfMatching(error: APIError.unauthorized, stamp: old.epoch, credential: self.token)
             })
         let model = NearbyMerchantCoordinator(reader: reader,
             location: runtimeDependencies.location ?? RuntimeNativeLocationProvider(enabled: factory.allowsNearbyLocation),
-            approved: { [weak self] in factory.allowsNearbyLocation && self?.currentRuntimeDependencyContext == captured })
-        retainedNearbyMerchants = (captured, model); return model
+            approved: { factory.allowsNearbyLocation && isCurrent() })
+        retainedNearbyMerchants = (captured, revision, model); return model
     }
     private let cooperationFlowService: CoopFlowService?
     private var currentCooperationFlowSession: CoopFlowSession? {
@@ -2454,6 +2855,70 @@ final class AppSession: ObservableObject {
         currentSession: { [weak self] in self?.currentRoamExperienceSession }, onUnauthorized: { [weak self] captured in
             guard let self, self.currentRoamExperienceSession == captured else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.identity.epoch, credential: self.token)
+        })
+    lazy var roamAlbumMetadataReader = RoamAlbumMetadataReader(service: roamExperienceService,
+        current: { [weak self] in self?.currentRuntimeDependencyContext },
+        viewerRevision: { [weak self] in self?.compositionViewerRevision ?? 0 },
+        access: { [weak self] context in
+            guard let self, let current = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, current) else { return nil }
+            return self.composition.roamAlbumMetadataReadAccess(context)
+        }, onUnauthorized: { [weak self] captured in
+            guard let self, let current = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(captured, current) else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+        })
+    lazy var roamTileMemoryReader = RoamTileMemoryReader(service: roamExperienceService,
+        current: { [weak self] in self?.currentRuntimeDependencyContext },
+        viewerRevision: { [weak self] in self?.compositionViewerRevision ?? 0 },
+        access: { [weak self] context in
+            guard let self, let current = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, current) else { return nil }
+            return self.composition.roamTileMemoryReadAccess(context)
+        }, onUnauthorized: { [weak self] captured in
+            guard let self, let current = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(captured, current) else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+        })
+    lazy var roamSessionFactReader = RoamSessionFactReader(service: roamExperienceService,
+        current: { [weak self] in self?.currentRuntimeDependencyContext },
+        viewerRevision: { [weak self] in self?.compositionViewerRevision ?? 0 },
+        access: { [weak self] context in
+            guard let self, let current = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, current) else { return nil }
+            return self.composition.roamSessionFactReadAccess(context)
+        }, onUnauthorized: { [weak self] captured in
+            guard let self, let current = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(captured, current) else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+        })
+    lazy var roamNearbyEventsReader = RoamNearbyEventsReader(configuration: regionalConfiguration?.apiConfiguration,
+        transport: compositionTransport.scopedForManualMap(roamMapSelection),
+        current: { [weak self] in self?.currentRuntimeDependencyContext },
+        viewerRevision: { [weak self] in self?.compositionViewerRevision ?? 0 },
+        area: { [weak self] in self?.roamMapSelection.snapshot },
+        access: { [weak self] context in
+            guard let self, let current = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, current) else { return nil }
+            return self.composition.roamNearbyEventsReadAccess(context)
+        }, onUnauthorized: { [weak self] captured in
+            guard let self, let current = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(captured, current) else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+        })
+    lazy var roamNearbyPlayersReader = RoamNearbyPlayersReader(configuration: regionalConfiguration?.apiConfiguration,
+        transport: compositionTransport.scopedForManualMap(roamMapSelection),
+        current: { [weak self] in self?.currentRuntimeDependencyContext },
+        viewerRevision: { [weak self] in self?.compositionViewerRevision ?? 0 },
+        area: { [weak self] in self?.roamMapSelection.snapshot },
+        access: { [weak self] context in
+            guard let self, let current = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, current) else { return nil }
+            return self.composition.roamNearbyPlayersReadAccess(context)
+        }, onUnauthorized: { [weak self] captured in
+            guard let self, let current = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(captured, current) else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
         })
     private let roamService: RoamService?
     // Exact dormant IM adapter exists, but ordinary production composition has no live grant.
@@ -2794,8 +3259,14 @@ final class AppSession: ObservableObject {
 
     init(composition: AppCompositionRoot? = nil, runtimeDependencies: NativeRuntimeDependencies? = nil, roamLiveDependencies: NativeRoamLiveDependencies? = nil,
          registrationApproval: RegistrationProductionApproval? = nil,
+         activityCoverApproval: @escaping (RuntimeDependencyContext) -> ActivityCoverApproval? = { _ in nil },
+         activityEditingApproval: @escaping (RuntimeDependencyContext) -> ActivityEditingGrants = { _ in .init() },
+         publisherIdentityRegistrationApproval: @escaping (RuntimeDependencyContext) -> PublisherIdentityRegistrationGrants = { _ in .init() },
          registrationStorefront: @escaping () -> String? = { nil }) {
         let composition = composition ?? RegionalLaunchConfiguration.composition
+        self.activityCoverApproval = activityCoverApproval
+        self.activityEditingApproval = activityEditingApproval
+        self.publisherIdentityRegistrationApproval = publisherIdentityRegistrationApproval
         self.registrationApproval = registrationApproval; self.registrationStorefront = registrationStorefront
         self.roamLiveDependencies = roamLiveDependencies ?? .dormant
         self.composition = composition
@@ -2822,6 +3293,7 @@ final class AppSession: ObservableObject {
             squareService=SquareService(configuration:configuration,transport:transport)
             socialAccountService=SocialAccountService(configuration:configuration,transport:transport)
             officialEventService=OfficialEventService(configuration:configuration,transport:transport)
+            profileWeeklyPointsService = ProfileWeeklyPointsService(configuration: configuration, transport: transport)
             growthCenterService=GrowthCenterService(configuration:configuration,transport:transport)
             creatorContentService=CreatorContentService(configuration:configuration,transport:transport)
             accountCollectionService=AccountCollectionService(configuration:configuration,transport:transport)
@@ -2846,7 +3318,7 @@ final class AppSession: ObservableObject {
             roamExperienceService=RoamExperienceService(configuration:configuration,transport:transport)
             messagingService=MessagingService(configuration:configuration,transport:transport)
             messageActionService=MessageActionService(configuration:configuration,transport:transport)
-        } else { service=nil;accountSessionService=nil;authChannelService=nil;activityService=nil;searchMapService=nil;registrationBackend=UnconfiguredRegistrationBackend();homeFeedService=nil;orderLifecycleService=nil;ticketWalletService=nil;squareService=nil;socialAccountService=nil;cooperationService=nil;accountCollectionService=nil;officialEventService=nil;growthCenterService=nil;creatorContentService=nil;topicService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;merchantOperationsService=nil;merchantBusinessService=nil;merchantEngagementService=nil;cooperationFlowService=nil;merchantOnboardingService=nil;clubService=nil;clubManagementService=nil;clubOperationsService=nil;clubGovernanceService=nil;profileEditService=nil;clubActionService=nil;roamService=nil;roamExperienceService=nil;messagingService=nil;messageActionService=nil }
+        } else { service=nil;accountSessionService=nil;authChannelService=nil;activityService=nil;searchMapService=nil;registrationBackend=UnconfiguredRegistrationBackend();homeFeedService=nil;orderLifecycleService=nil;ticketWalletService=nil;squareService=nil;socialAccountService=nil;cooperationService=nil;accountCollectionService=nil;officialEventService=nil;growthCenterService=nil;profileWeeklyPointsService=nil;creatorContentService=nil;topicService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;merchantOperationsService=nil;merchantBusinessService=nil;merchantEngagementService=nil;cooperationFlowService=nil;merchantOnboardingService=nil;clubService=nil;clubManagementService=nil;clubOperationsService=nil;clubGovernanceService=nil;profileEditService=nil;clubActionService=nil;roamService=nil;roamExperienceService=nil;messagingService=nil;messageActionService=nil }
         compositionTransport.projectEditConfigurationRevision = { [weak self] in
             guard let self, !self.projectConfigurationChanging else { return nil }; return self.projectConfigurationRevision
         }
@@ -2885,6 +3357,18 @@ final class AppSession: ObservableObject {
             // Re-read the reviewed selector at the boundary: retained providers must not
             // keep a revoked read grant alive for an otherwise unchanged viewer.
             return (self.injectedRuntimeDependencies ?? self.composition.sessionDependencies(context)).configuration
+        }
+        compositionTransport.publisherIdentityRegistrationApproval = { [weak self] context in
+            guard let self, self.currentRuntimeDependencyContext == context else { return .init() }
+            return self.publisherIdentityRegistrationApproval(context)
+        }
+        compositionTransport.activityCoverApproval = { [weak self] context in
+            guard let self, self.currentRuntimeDependencyContext == context else { return nil }
+            return self.activityCoverApproval(context)
+        }
+        compositionTransport.activityEditingApproval = { [weak self] context in
+            guard let self, self.currentRuntimeDependencyContext == context else { return .init() }
+            return self.activityEditingApproval(context)
         }
         compositionTransport.current = { [weak self] in
             guard let self, !self.committingAuthenticatedSession else { return nil }

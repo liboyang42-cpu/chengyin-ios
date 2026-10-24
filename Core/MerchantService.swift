@@ -89,3 +89,83 @@ public struct MerchantService {
         ]), token: token)
     }
 }
+
+
+/// Dedicated read-only deployment approval. Constructing a browse reader never issues this grant.
+/// NativeRuntimeDependencies retains this immutable value for its runtime context.
+/// Replacing/revoking it requires that dependency context or composition root to be replaced;
+/// changing the sessionDependencies provider alone is not a live revocation mechanism.
+public struct MerchantProjectBrowseApproval {
+    public let revision: UUID
+    public let market: RegionalMarket
+    public let baseURL: URL
+    public let namespace: String
+    public let accountID: Int
+    public init(market: RegionalMarket, baseURL: URL, namespace: String, accountID: Int, revision: UUID = UUID()) throws {
+        _ = try OperationEndpointApproval(baseURL: baseURL, namespace: namespace, accountID: accountID,
+            paths: ["api/merchant/access/me", "api/project/my"])
+        guard market == .china else { throw APIError.invalidRequest }
+        self.market = market; self.baseURL = baseURL; self.namespace = namespace; self.accountID = accountID; self.revision = revision
+    }
+    public func matches(_ context: RuntimeDependencyContext) -> Bool {
+        market == .china && context.market == market && context.baseURL == baseURL &&
+            context.session.namespace == namespace && context.session.accountID == accountID
+    }
+}
+
+/// Independent read-only overview approval, retained immutably for a runtime context.
+/// Provider changes alone do not hot-revoke an already retained dependency context.
+public struct MerchantOverviewReadApproval {
+    public let revision: UUID
+    public let market: RegionalMarket
+    public let baseURL: URL
+    public let namespace: String
+    public let accountID: Int
+    public init(market: RegionalMarket, baseURL: URL, namespace: String, accountID: Int, revision: UUID = UUID()) throws {
+        _ = try OperationEndpointApproval(baseURL: baseURL, namespace: namespace, accountID: accountID,
+            paths: ["api/merchant/access/me", "api/merchant/dashboard", "api/merchant/todo-summary", "api/merchant/events"])
+        guard market == .china else { throw APIError.invalidRequest }
+        self.market = market; self.baseURL = baseURL; self.namespace = namespace; self.accountID = accountID; self.revision = revision
+    }
+    public func matches(_ context: RuntimeDependencyContext) -> Bool {
+        market == context.market && baseURL == context.baseURL && namespace == context.session.namespace && accountID == context.session.accountID
+    }
+}
+
+/// Independent project workspace read approval; browse approval never implies this grant.
+public struct MerchantProjectWorkspaceReadApproval {
+    public let revision: UUID
+    public let market: RegionalMarket
+    public let baseURL: URL
+    public let namespace: String
+    public let accountID: Int
+    public init(market: RegionalMarket, baseURL: URL, namespace: String, accountID: Int, revision: UUID = UUID()) throws {
+        _ = try OperationEndpointApproval(baseURL: baseURL, namespace: namespace, accountID: accountID,
+            paths: ["api/merchant/access/me", "api/project/home"])
+        guard market == .china else { throw APIError.invalidRequest }
+        self.market = market; self.baseURL = baseURL; self.namespace = namespace; self.accountID = accountID; self.revision = revision
+    }
+    public func matches(_ context: RuntimeDependencyContext) -> Bool {
+        market == .china && context.market == market && context.baseURL == baseURL &&
+            context.session.namespace == namespace && context.session.accountID == accountID
+    }
+}
+
+/// Independently approved participant reads; never implied by a workspace read grant.
+public struct MerchantProjectParticipantsReadApproval {
+    public let revision: UUID
+    public let market: RegionalMarket
+    public let baseURL: URL
+    public let namespace: String
+    public let accountID: Int
+    public init(market: RegionalMarket, baseURL: URL, namespace: String, accountID: Int, revision: UUID = UUID()) throws {
+        _ = try OperationEndpointApproval(baseURL: baseURL, namespace: namespace, accountID: accountID,
+            paths: ["api/merchant/access/me", "api/project/players"])
+        guard market == .china else { throw APIError.invalidRequest }
+        self.market = market; self.baseURL = baseURL; self.namespace = namespace; self.accountID = accountID; self.revision = revision
+    }
+    public func matches(_ context: RuntimeDependencyContext) -> Bool {
+        market == .china && context.market == market && context.baseURL == baseURL &&
+            context.session.namespace == namespace && context.session.accountID == accountID
+    }
+}

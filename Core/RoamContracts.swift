@@ -57,6 +57,8 @@ public struct RoamPlace: Decodable, Equatable, Identifiable {
     public let radiusM: Int?
     public let address: String?
     public let description: String?
+    /// A String-origin field for merchant display; legacy description decoding remains unchanged.
+    public let merchantDescriptionText: String?
     public let xp: Int?
     public let couponTemplateId: Int?
     public let found: Bool?
@@ -72,6 +74,7 @@ public struct RoamPlace: Decodable, Equatable, Identifiable {
         type = try c.decodeIfPresent(Int.self, forKey: .type) ?? 1
         radiusM = try c.decodeIfPresent(Int.self, forKey: .radiusM)
         address = try c.roamText(.address); description = try c.roamText(.description)
+        merchantDescriptionText = type == 2 ? (try? c.decode(String.self, forKey: .description)) : nil
         xp = try c.decodeIfPresent(Int.self, forKey: .xp)
         couponTemplateId = try c.decodeIfPresent(Int.self, forKey: .couponTemplateId)
         // Numeric/string truthiness is not part of this Boolean response contract.

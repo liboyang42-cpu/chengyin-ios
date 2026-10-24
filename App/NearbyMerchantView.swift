@@ -24,12 +24,13 @@ extension EnvironmentValues {
     var publicMerchant = PublicMerchantHomeContext()
     @State private var purposeAccepted = false
     @State private var operation: Task<Void, Never>?
+    @State private var publicHomeSelection: NearbyMerchantCoordinator.PublicHomeSelection?
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         List {
             Section {
                 Text("nearbyMerchant.purpose")
-                Toggle("nearbyMerchant.consent", isOn: $purposeAccepted).disabled(model.isBusy)
+                Toggle("nearbyMerchant.consent", isOn: $purposeAccepted)
                 Button("nearbyMerchant.search") { operation = Task { await model.search(purposeAccepted: purposeAccepted) } }
                     .disabled(!purposeAccepted || !model.available || model.isBusy)
                     .accessibilityIdentifier("nearbyMerchant.search")
@@ -42,17 +43,44 @@ extension EnvironmentValues {
                 Section {
                     if model.rows.isEmpty { Text("coopflow.empty") }
                     ForEach(model.rows) { row in
-                        if let memberID = row.memberID, let owner = PublicMerchantOwnerID(memberID) {
-                            NavigationLink { PublicMerchantHomeView(target: .ownerMemberID(owner), context: publicMerchant) } label: { card(row) }
+                        if model.publicHomeSelection(rowID: row.id) != nil {
+                            Button {
+                                publicHomeSelection = model.publicHomeSelection(rowID: row.id)
+                            } label: { card(row) }
+                                .accessibilityIdentifier("nearbyMerchant.open.\(row.id)")
                         } else { VStack(alignment: .leading) { card(row); Text("nearbyMerchant.unlisted").font(.footnote) } }
                     }
                 }
             }
         }.navigationTitle("coopflow.nearby").accessibilityIdentifier("nearbyMerchant.list")
+            .sheet(item: $publicHomeSelection) { selection in
+                NavigationStack {
+                    Group {
+                        if model.isCurrent(selection), purposeAccepted {
+                            PublicMerchantHomeView(target: selection.target, context: publicMerchant)
+                        } else { Text("merchant.publicHome.unavailable") }
+                    }
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("action.close") {
+                                guard publicHomeSelection?.id == selection.id else { return }
+                                publicHomeSelection = nil
+                            }
+                                .accessibilityIdentifier("nearbyMerchant.closeHome")
+                        }
+                    }
+                }
+            }
+            // A sheet leaves the browser mounted; exiting the browser always retires it.
             .onDisappear { cancel() }
+            .onChange(of: purposeAccepted) { _, accepted in if !accepted { cancel() } }
             .onChange(of: scenePhase) { _, phase in if phase == .background { cancel() } }
+            .onChange(of: model.available) { _, available in if !available { cancel() } }
     }
-    private func cancel() { operation?.cancel(); operation = nil; model.cancel(); purposeAccepted = false }
+    private func cancel() {
+        operation?.cancel(); operation = nil; publicHomeSelection = nil
+        model.cancel(); purposeAccepted = false
+    }
     private func card(_ row: NearbyMerchantRow) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(verbatim: row.name).font(.headline)

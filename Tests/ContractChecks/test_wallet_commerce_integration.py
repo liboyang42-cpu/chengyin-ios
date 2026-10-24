@@ -52,6 +52,7 @@ class WalletIntegrationTests(unittest.TestCase):
   s=self.read('App/WalletCommerceViews.swift')
   self.assertNotIn('String(localized:',s)
   self.assertNotIn('}.accessibilityIdentifier("wallet.issue")',s)
-  self.assertIn('appLocalized("wallet.unknown", locale: locale)',s)
+  self.assertIn('appLocalized("wallet.unknown", locale: locale)',self.read('App/WalletNumberLocalization.swift'))
+  self.assertIn('format.signed(row, points: points, income: income)',s)
   catalog=json.loads(self.read('Resources/Localizable.xcstrings'))['strings']
   self.assertEqual(set(catalog['wallet.previewOnly']['localizations']),{'en','zh-Hans'})

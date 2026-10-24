@@ -1,8 +1,5 @@
 name: Current native checks
 on:
-  pull_request:
-  push:
-    branches: [main, migration/native-ios]
   workflow_dispatch:
     inputs:
       mode:
@@ -82,7 +79,7 @@ jobs:
     timeout-minutes: 45
     strategy:
       fail-fast: false
-      max-parallel: 3
+      max-parallel: 20
       matrix:
         partition: [core, app-unit, ui-build]
     env:
@@ -100,6 +97,10 @@ jobs:
           path: ${{ runner.temp }}/current-plan
       - name: Compile current products and execute the selected native group
         run: python3 -B tools/current_native.py run --plan "$RUNNER_TEMP/current-plan/plan.json" --role '${{ matrix.partition }}' --start-file "$RUNNER_TEMP/current-start" --output "$RUNNER_TEMP/current-native"
+      - name: Show compiler errors from failed commands
+        if: failure()
+        run: |
+          grep -h -E '(error|fatal error): ' "$RUNNER_TEMP"/current-native/*.stdout | sort | uniq | head -300 || true
       - name: Preserve exact command and result diagnostics
         if: ${{ always() && (matrix.partition != 'ui-build' || failure()) }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -130,7 +131,7 @@ jobs:
     timeout-minutes: 45
     strategy:
       fail-fast: false
-      max-parallel: 3
+      max-parallel: 20
       matrix: ${{ fromJSON(needs.controls.outputs.ui_matrix) }}
     env:
       PYTHONDONTWRITEBYTECODE: '1'
@@ -151,6 +152,10 @@ jobs:
           path: ${{ runner.temp }}/current-ui-build
       - name: Execute complete assigned UI methods without rebuilding
         run: python3 -B tools/current_native.py run --plan "$RUNNER_TEMP/current-plan/plan.json" --role ui --index '${{ matrix.index }}' --build "$RUNNER_TEMP/current-ui-build" --start-file "$RUNNER_TEMP/current-start" --output "$RUNNER_TEMP/current-native"
+      - name: Show test and compiler errors from failed commands
+        if: failure()
+        run: |
+          grep -h -A 120 -E '(error|fatal error): ' "$RUNNER_TEMP"/current-native/*.stdout | head -600 || true
       - name: Preserve real per-shard results
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -161,6 +166,14 @@ jobs:
             ${{ runner.temp }}/current-native/*.stdout
           if-no-files-found: error
           retention-days: 1
+      - name: Preserve bounded synthetic failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: current-ui-failure-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-ui-${{ matrix.index }}
+          path: ${{ runner.temp }}/current-ui-failure-evidence/
+          if-no-files-found: ignore
+          retention-days: 1
   platforms:
     needs: [controls, native, ui]
     if: ${{ inputs.mode == 'full' }}
@@ -168,7 +181,7 @@ jobs:
     timeout-minutes: ${{ matrix.minutes }}
     strategy:
       fail-fast: false
-      max-parallel: 2
+      max-parallel: 20
       matrix:
         include:
           - kind: device

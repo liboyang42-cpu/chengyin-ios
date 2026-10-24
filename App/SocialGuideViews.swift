@@ -4,6 +4,7 @@ import SwiftUI
     let reader: any SocialAccountReading
     var onOpenDestination: ((SocialGuideDestination) -> Void)? = nil
     var templateReader: (any DiscoveryReading)? = nil
+    var informationDestination: ((SocialInformation) -> AnyView)? = nil
     var body: some View {
         List {
             Section("social.guide.modes") {
@@ -20,7 +21,10 @@ import SwiftUI
                 SocialReadScreen(reader: reader, requestKey: "information-list", load: { try await reader.informationList() }) { rows in
                     if rows.isEmpty { Text("social.guide.empty") }
                     ForEach(rows) { row in
-                        NavigationLink { SocialInformationView(id: row.id, reader: reader) } label: {
+                        NavigationLink {
+                            if let informationDestination { informationDestination(row) }
+                            else { AnyView(SocialInformationView(id: row.id, reader: reader)) }
+                        } label: {
                             VStack(alignment: .leading, spacing: 5) {
                                 Text(verbatim: row.title)
                                 if let summary = row.summary { Text(verbatim: summary).font(.footnote).foregroundStyle(.secondary) }

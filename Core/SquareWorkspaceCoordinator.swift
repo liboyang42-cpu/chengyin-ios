@@ -9,6 +9,12 @@ public struct SquareWorkspaceReview: Equatable {
     public let guideline: SquareWorkspaceGuideline?
     public let original: SquareWorkspacePost?
 }
+/// Captured synchronously by the history action before its async task is enqueued.
+public struct SquareWorkspaceRevisionRead {
+    public let postID: Int
+    fileprivate let session: SquareWorkspaceSession
+    fileprivate let generation: UUID
+}
 /// Default has no service and all grants off. Opening or editing never uploads, accepts terms, or posts.
 @MainActor @Observable public final class SquareWorkspaceCoordinator {
     public private(set) var session: SquareWorkspaceSession
@@ -20,12 +26,17 @@ public struct SquareWorkspaceReview: Equatable {
     public private(set) var busy = false
     public private(set) var status = "squareWorkspace.offline"
     public private(set) var lastPost: SquareWorkspacePost?
+    public private(set) var revisionPostID: Int?
+    public private(set) var revisionData: Data?
+    public private(set) var revisionsLoading = false
     public let grants: SquareWorkspaceGrants
     private let store: SquareWorkspaceStore
     private let service: SquareWorkspaceService?
     private let currentSession: () -> SquareWorkspaceSession?
     private let token: () -> String?
     private var usedReviews: Set<UUID> = []
+    private var revisionGeneration = UUID()
+    private var revisionReadStarted = false
     public init(session: SquareWorkspaceSession, store: SquareWorkspaceStore, service: SquareWorkspaceService? = nil,
                 grants: SquareWorkspaceGrants = .init(), currentSession: @escaping () -> SquareWorkspaceSession?, token: @escaping () -> String? = { nil }) {
         self.session = session; self.store = store; self.service = service; self.grants = grants; self.currentSession = currentSession; self.token = token
@@ -33,6 +44,7 @@ public struct SquareWorkspaceReview: Equatable {
     private func check(_ expected: SquareWorkspaceSession) throws {
         guard expected == session, currentSession() == expected else {
             local = []; server = []; review = nil; lastPost = nil; status = "squareWorkspace.sessionChanged"
+            clearRevisions()
             throw SquareWorkspaceFailure.sessionChanged
         }
         try Task.checkCancellation()
@@ -55,6 +67,7 @@ public struct SquareWorkspaceReview: Equatable {
     /// Old local envelopes already persist the selected endpoint lane. Rebind an
     /// unqualified edit only through that lane's fresh owner read, never an ID crosswalk.
     public func resume(_ entry: SquareWorkspaceLocalEntry) async throws -> SquareWorkspaceDraft {
+        clearRevisions()
         guard !busy else { throw SquareWorkspaceFailure.pending }
         busy = true; defer { busy = false }
         try check(session)
@@ -83,6 +96,7 @@ public struct SquareWorkspaceReview: Equatable {
     }
     public func cancelReview() { review = nil }
     public func loadServer(more: Bool = false) async throws {
+        if !more { clearRevisions() }
         guard !busy else { throw SquareWorkspaceFailure.pending }
         let (api, token) = try connection(); busy = true; defer { busy = false }
         if more && (!hasMore || nextCursor == nil) { throw SquareWorkspaceFailure.invalid }
@@ -94,6 +108,7 @@ public struct SquareWorkspaceReview: Equatable {
     }
     /// Edit hydration is a fresh owner-scoped detail, never the lossy public feed projection.
     public func editableDraft(postID: Int, lane: SquareWorkspaceLane = .communityV1) async throws -> SquareWorkspaceDraft {
+        clearRevisions()
         let (api, token) = try connection()
         let post = try await api.detail(postID: postID, lane: lane, token: token)
         try check(session)
@@ -103,10 +118,50 @@ public struct SquareWorkspaceReview: Equatable {
     public func referenceOptions(type: String) async throws -> [SquareWorkspaceOption] {
         let (api, token) = try connection(); let value = try await api.options(type: type, token: token); try check(session); return value
     }
+    /// History is a transient, freshly authorized projection, not a saved draft.
+    /// Clear before revalidation so a rejected old link cannot leave its old body visible.
+    public func clearRevisions() {
+        revisionGeneration = UUID()
+        revisionReadStarted = false
+        revisionPostID = nil; revisionData = nil; revisionsLoading = false
+    }
+    public func prepareRevisions(postID: Int) throws -> SquareWorkspaceRevisionRead {
+        try Task.checkCancellation()
+        clearRevisions()
+        guard postID > 0 else { throw SquareWorkspaceFailure.invalid }
+        _ = try connection()
+        revisionPostID = postID; revisionsLoading = true
+        return .init(postID: postID, session: session, generation: revisionGeneration)
+    }
     public func revisions(postID: Int) async throws -> Data {
-        let (api, token) = try connection(); let post = try await api.detail(postID: postID, token: token)
-        guard post.authorID == session.accountID else { throw SquareWorkspaceFailure.ownerRequired }
-        return try await api.revisions(postID: postID, token: token)
+        try Task.checkCancellation()
+        let intent = try prepareRevisions(postID: postID)
+        return try await revisions(intent)
+    }
+    public func revisions(_ intent: SquareWorkspaceRevisionRead) async throws -> Data {
+        let operation = intent.generation, expected = intent.session, postID = intent.postID
+        // A queued task cannot start a new generation after the view has invalidated its intent.
+        guard operation == revisionGeneration, revisionPostID == postID, !revisionReadStarted else { throw CancellationError() }
+        revisionReadStarted = true
+        defer { if operation == revisionGeneration { revisionsLoading = false } }
+        try Task.checkCancellation()
+        do {
+            let (api, token) = try connection()
+            let post = try await api.detail(postID: postID, token: token)
+            try check(expected)
+            guard operation == revisionGeneration else { throw CancellationError() }
+            guard post.authorID == expected.accountID else { throw SquareWorkspaceFailure.ownerRequired }
+            // The history endpoint independently rechecks the parent post's visibility.
+            let data = try await api.revisions(postID: postID, token: token)
+            try check(expected)
+            guard operation == revisionGeneration else { throw CancellationError() }
+            revisionData = data
+            return data
+        } catch {
+            // An old failure must not surface over a newer read or a dismissed workspace.
+            guard operation == revisionGeneration else { throw CancellationError() }
+            throw error
+        }
     }
     public func upload(bytes: Data, mimeType: String, lane: SquareWorkspaceLane, workflowID: String, explicitIntent: Bool) async throws -> SquareWorkspaceMedia {
         guard explicitIntent, grants.media, !busy else { throw SquareWorkspaceFailure.disabled }
@@ -202,6 +257,7 @@ public struct SquareWorkspaceReview: Equatable {
     public func withdrawLocation(reviewed: SquareWorkspacePost, explicitIntent: Bool) async throws {
         guard explicitIntent, !busy else { throw SquareWorkspaceFailure.disabled }
         guard reviewed.lane == .communityV1 else { throw SquareWorkspaceFailure.invalid }
+        clearRevisions()
         let (api, token) = try connection(); busy = true; defer { busy = false }
         let fresh = try await api.detail(postID: reviewed.id, token: token)
         guard fresh == reviewed, fresh.authorID == session.accountID else { throw SquareWorkspaceFailure.staleReview }

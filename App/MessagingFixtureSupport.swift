@@ -81,7 +81,12 @@ struct MessagingFixtureHostView: View {
     init(scenario: MessagingFixtureScenario = .success) { reader = MessagingFixtureReader(scenario) }
     var body: some View {
         NavigationStack {
-            MessagingHomeView(reader: reader)
+            MessagingHomeView(reader: reader, squareDestination: { close in
+                AnyView(VStack {
+                    Text("Synthetic Square destination").accessibilityIdentifier("messaging.fixture.square")
+                    Button("action.close", action: close).accessibilityIdentifier("messaging.fixture.square.close")
+                })
+            })
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         Button("messaging.fixture.switch") { reader.switchAccount(); revision = reader.epoch }

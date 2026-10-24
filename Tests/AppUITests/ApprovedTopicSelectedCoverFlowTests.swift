@@ -9,7 +9,7 @@ import XCTest
         let app = XCUIApplication(); self.app = app
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", chinese ? "(zh-Hans)" : "(en)", "-AppleLocale", chinese ? "zh_CN" : "en_US", "--uitesting-module", "projectEdit", "--project-edit-bundle-ack", "--project-review-request", "--project-review-selected-cover", "--project-edit-starter-probe"] + flags
         if chinese { app.launchArguments += ["--uitesting-max-text", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
-        app.launch(); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5))
+        app.launch(); XCTAssertTrue(revealProjectEditorNameInForm(in: app), app.debugDescription); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5))
         if chinese { assertFixtureEnvironment(in: app, dynamicTypeSize: "accessibility5") }
         return app
     }
@@ -20,9 +20,9 @@ import XCTest
         XCTAssertEqual(app.buttons.matching(identifier: id).count, 1); XCTAssertTrue(target.isEnabled && target.isHittable)
         XCTAssertTrue(app.windows.firstMatch.frame.contains(target.frame)); target.tap()
     }
-    @discardableResult private func value(_ id: String, _ expected: String? = nil, in app: XCUIApplication) -> String {
+    @discardableResult private func value(_ id: String, _ expected: String? = nil, in app: XCUIApplication, towardTop: Bool = false) -> String {
         let target = app.staticTexts[id]
-        XCTAssertTrue(revealFixtureElement(target, in: app, maximumSwipes: 70, requiresHittable: false), app.debugDescription)
+        XCTAssertTrue(revealFixtureElement(target, in: app, towardTop: towardTop, maximumSwipes: 70, requiresHittable: false), app.debugDescription)
         XCTAssertTrue(target.waitForExistence(timeout: 5), app.debugDescription)
         if let expected { XCTAssertEqual(Array(target.label.utf8), Array(expected.utf8)) }
         return target.label
@@ -47,7 +47,7 @@ import XCTest
         value("topicReview.selectedCover.version","22222222-2222-4222-8222-222222222222",in:app)
         value("topicReview.selectedCover.hash",String(repeating:"a",count:64),in:app)
         value("topicReview.selectedCover.selection","9",in:app); value("topicReview.selectedCover.slot","51",in:app)
-        value("topicReview.cover","fixture://review-cover/reference-only",in:app)
+        value("topicReview.cover","fixture://review-cover/reference-only",in:app,towardTop:true)
         XCTAssertTrue(app.staticTexts["topicReview.selectedCover.blocked"].exists); XCTAssertTrue(app.staticTexts["topicReview.selectedCover.notLoaded"].exists)
         let review = app.buttons["topicReview.review"]; XCTAssertTrue(review.exists); XCTAssertFalse(review.isEnabled)
         XCTAssertFalse(app.buttons["topicReview.confirm.submit"].exists); XCTAssertFalse(app.buttons["approvedRelease.publish"].exists)

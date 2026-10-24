@@ -114,18 +114,30 @@ private struct AccountCollectionFavoriteCard: View {
     var rewards: (any NonCashRewardReading)? = nil
     var onOpenPost: ((SquareContentRoute) -> Void)? = nil
     var favoriteRemoval: ProfileFavoriteRemovalController? = nil
+    var couponReader: (any AccountCollectionReading)? = nil
+    private var ownedCouponReader: any AccountCollectionReading { couponReader ?? reader }
+    var favoritesReader: (any AccountCollectionReading)? = nil
+    private var savedReader: any AccountCollectionReading { favoritesReader ?? reader }
+    var rewardMerchant: PublicMerchantHomeContext? = nil
     var body: some View {
+        let saved = savedReader, renderedScope = saved.scope
         Section {
             NavigationLink {
-                NonCashRewardsView(reader: reader, rewards: rewards).id(reader.scope)
+                NonCashRewardsView(reader: reader, rewards: rewards, merchantHome: rewardMerchant).id(reader.scope)
             } label: { Label("rewards.title", systemImage: "gift") }
             .accessibilityIdentifier("rewards.open")
             NavigationLink {
-                AccountCollectionFavoritesView(reader: reader, onOpenTopic: onOpenTopic, onOpenPost: onOpenPost, favoriteRemoval: favoriteRemoval).id(reader.scope)
+                AccountCollectionFavoritesView(reader: saved, onOpenTopic: { id in
+                    guard saved.isAuthenticated, saved.isConfigured, saved.scope == renderedScope else { return }
+                    onOpenTopic(id)
+                }, onOpenPost: onOpenPost.map { open in { route in
+                    guard saved.isAuthenticated, saved.isConfigured, saved.scope == renderedScope else { return }
+                    open(route)
+                } }, favoriteRemoval: favoriteRemoval).id(renderedScope)
             } label: { Label("accountCollection.favorites.title", systemImage: "heart") }
             .accessibilityIdentifier("accountCollection.openFavorites")
             NavigationLink {
-                AccountCollectionCouponsView(reader: reader).id(reader.scope)
+                AccountCollectionCouponsView(reader: ownedCouponReader).id(ownedCouponReader.scope)
             } label: { Label("accountCollection.coupons.title", systemImage: "ticket") }
             .accessibilityIdentifier("accountCollection.openCoupons")
         }
@@ -140,7 +152,13 @@ private struct AccountCollectionFavoriteCard: View {
     @StateObject private var model = AccountCollectionPostsScreenModel()
     private var key: AccountCollectionLoadKey { AccountCollectionLoadKey(reader: reader) }
     var body: some View {
+        let renderedScope = key.scope
         List {
+            if let favoriteRemoval, reader.isAuthenticated, reader.isConfigured {
+                ProfileFavoriteRecoverySection(scope: renderedScope, controller: favoriteRemoval,
+                    isCurrent: { reader.isAuthenticated && reader.isConfigured && reader.scope == renderedScope },
+                    onRemoved: { await refresh() })
+            }
             if reader.isOfflineExample { Text("accountCollection.offlineExample").font(.caption) }
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
@@ -167,7 +185,7 @@ private struct AccountCollectionFavoriteCard: View {
                     .questifyCardListRow()
                     if let favoriteRemoval {
                         ProfileFavoriteRemovalEntry(post: post, scope: key.scope, controller: favoriteRemoval,
-                            isCurrent: { reader.isAuthenticated && reader.isConfigured && model.state.loadedScope == reader.scope },
+                            isCurrent: { reader.isAuthenticated && reader.isConfigured && reader.scope == renderedScope && model.state.loadedScope == renderedScope },
                             onRemoved: { await refresh() })
                     }
                     NativeMediaGalleryEntry(sources: post.images, scope: reader.scope, titleKey: "media.destination.squareImages")

@@ -557,7 +557,7 @@ def make_plan(root, manifest, base, mode, environ=None):
     return {'version': 1, 'scope': 'full-current-regression' if mode == 'full' else 'current-related-and-smoke', 'identity': identity,
             'base': base, 'exact_source_renames':exact_renames, 'pbx_pure_registration':registration_only, 'ui_selection_policy':'Related explicit groups plus smoke; global/unmapped changes require full unit coverage, full UI is manual full mode', 'manifest_sha256': digest(encode(manifest)), 'changed_paths': changed, 'groups': groups, 'ui_shards': shards,
             'complete_native_ledger_count': len(manifest['snapshot']['native_methods']), 'device_only_not_run': device_only_not_run(manifest['snapshot']), 'execution_platforms': ['macos-host', 'ios-simulator'], 'test_audit': actual_audit,
-            'limits': {'worker_seconds': 2700, 'finalization_reserve_seconds': 240, 'macos_parallel': 3, 'method_seconds': 900, 'ui_shard_seconds': 1500}}
+            'limits': {'worker_seconds': 2700, 'finalization_reserve_seconds': 240, 'macos_parallel': 20, 'method_seconds': 900, 'ui_shard_seconds': 1500}}
 
 
 def main():

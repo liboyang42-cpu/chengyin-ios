@@ -56,6 +56,7 @@ extension ProfileLocalCoverOwner {
     }
     func acceptCrop(id: UUID, rect: MerchantImageCropRect) {
         guard isPresented, controller.canEdit, let crop, crop.id == id else { return }
+        selectionError = false
         do {
             let image = try MerchantImageCropRenderer.render(crop.source, rect: rect)
             try ProfileLocalCoverController.validate(image)
@@ -64,7 +65,7 @@ extension ProfileLocalCoverOwner {
     }
     func cancelCrop(id: UUID) {
         guard isPresented, controller.canEdit, crop?.id == id else { return }
-        crop = nil
+        crop = nil; selectionError = false
     }
     func confirm(_ review: ProfileLocalCoverReview) {
         guard isPresented, !selecting else { return }
@@ -167,7 +168,7 @@ extension ProfileLocalCoverOwner {
                 Section { Text("profile.localCover.deviceOnly").font(.footnote) }
                 if let crop = model.crop {
                     Section {
-                        ProfileLocalCoverCropView(draft: crop, confirm: model.acceptCrop, cancel: { model.cancelCrop(id: crop.id) },
+                        ProfileLocalCoverCropView(draft: crop, hasError: model.selectionError, confirm: model.acceptCrop, cancel: { model.cancelCrop(id: crop.id) },
                             isCurrent: { model.isPresented && model.controller.canEdit && model.crop?.id == crop.id })
                             .id(crop.id)
                     }
@@ -232,6 +233,7 @@ extension ProfileLocalCoverOwner {
 
 @MainActor private struct ProfileLocalCoverCropView: View {
     let draft: MerchantImageCropDraft
+    let hasError: Bool
     let confirm: (UUID, MerchantImageCropRect) -> Void
     let cancel: () -> Void
     let isCurrent: () -> Bool
@@ -242,6 +244,11 @@ extension ProfileLocalCoverOwner {
     var body: some View {
         VStack(alignment: .leading) {
             Text("profile.localCover.crop")
+            if hasError {
+                Text("profile.localCover.cropFailed")
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("profile.localCover.cropFailure")
+            }
             if let rect {
                 ProfileCoverGesturePreview(draftID: draft.id, source: draft.source, position: $position, isCurrent: isCurrent)
                     .aspectRatio(16.0 / 9.0, contentMode: .fit).frame(maxHeight: 240)
@@ -249,7 +256,9 @@ extension ProfileLocalCoverOwner {
                 Slider(value: $position.horizontal, in: 0...1).accessibilityLabel("image.crop.horizontal")
                 Slider(value: $position.vertical, in: 0...1).accessibilityLabel("image.crop.vertical")
                 Slider(value: $position.zoom, in: 1...4).accessibilityLabel("image.crop.zoom")
-                Button("image.crop.confirm") { guard isCurrent() else { return }; confirm(draft.id, rect) }
+                Button(LocalizedStringKey(hasError ? "profile.localCover.cropRetry" : "image.crop.confirm")) {
+                    guard isCurrent() else { return }; confirm(draft.id, rect)
+                }
                     .accessibilityIdentifier("profile.localCover.cropConfirm")
             }
             Button("action.cancel", role: .cancel, action: cancel).accessibilityIdentifier("profile.localCover.cropCancel")

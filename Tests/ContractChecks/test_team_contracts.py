@@ -35,11 +35,18 @@ class TeamSourceChecks(unittest.TestCase):
         adapter=self.text('Core/TeamHTTPService.swift')
         for guard in ['approval.allows', 'journal.pending', 'dispatchStarted = true', 'currentSession() == session', 'fresh == context']: self.assertIn(guard,adapter)
         self.assertLess(adapter.index('try journal.write(dispatched)'),adapter.index('transport.send'))
-    def test_provisional_join_mode_has_no_mutation_or_toggle(self):
-        source = self.source('lib/data/api/team_map_api.dart')
-        self.assertIn('请求体形态按 create 的 `joinMode` 推定', source)
+    def test_verified_join_mode_contract_stays_dormant_and_strict(self):
+        contracts = self.text('Core/TeamContracts.swift')
+        adapter = self.text('Core/TeamHTTPService.swift')
+        self.assertIn('path = "/api/team/join-mode"', contracts)
+        self.assertIn('"joinMode": .integer(mode.rawValue)', contracts)
+        self.assertIn('detail.team.status == .recruiting', contracts)
+        self.assertIn('returned == requested', adapter)
+        self.assertIn('joinModeAcknowledged', adapter)
         self.assertNotIn('api/team/join-mode', self.text('Core/TeamService.swift'))
-        self.assertIn('team.mode.provisional', self.text('App/TeamHomeView.swift'))
+        self.assertIn('team.mode.change.', self.text('App/TeamHomeView.swift'))
+        self.assertNotIn('team.mode.provisional', self.text('App/TeamHomeView.swift'))
+        self.assertIn('57b22916e05e0c7eccccb75f68a46a4576ab5bf8', self.text('docs/team-module.md'))
     def test_five_statuses_use_expire_time_and_server_count(self):
         source = self.source('lib/feature/team/team_pages.dart')
         for label in ['招募中','已满员','进行中','已结束','已解散']: self.assertIn(label, source)
@@ -80,14 +87,16 @@ class TeamSourceChecks(unittest.TestCase):
         self.assertTrue(self.text('App/TeamFixtureSupport.swift').startswith('#if DEBUG'))
     def test_no_invitation_sharing_or_financial_operations(self):
         app = '\n'.join(p.read_text() for p in (ROOT/'App').glob('*Team*.swift'))
-        for forbidden in ['ShareLink(', 'UIActivityViewController', 'UIPasteboard', 'openURL(', 'redeem(', 'refund(', 'purchase(']: self.assertNotIn(forbidden, app)
+        for forbidden in ['ShareLink(', 'UIActivityViewController', 'openURL(', 'redeem(', 'refund(', 'purchase(']: self.assertNotIn(forbidden, app)
         self.assertIn('team.invite.previewOnly', app)
+        self.assertEqual(app.count('UIPasteboard.general'), 1)
+        self.assertIn('options: [.localOnly: true]', app)
     def test_all_team_localizations_exist_in_both_languages(self):
         catalog = json.loads(self.text('Resources/TeamLocalizations.fragment.json'))['strings']
         used = set()
         for p in list((ROOT/'App').glob('*Team*.swift')) + list((ROOT/'Core').glob('*.swift')):
             used |= set(re.findall(r'"(team\.[a-zA-Z][a-zA-Z.]+)"', p.read_text()))
-        excluded = {'team.postJoin.openDetail', 'team.invitation.openDetail', 'team.review.confirm', 'team.review.cancel', 'team.review.leaveInstead', 'team.detail.card', 'team.invite.code', 'team.invite.close', 'team.create.size', 'team.create.inviteOnly', 'team.message'}
+        excluded = {'team.invite.copyFeedback', 'team.mode.current', 'team.postJoin.openDetail', 'team.invitation.openDetail', 'team.review.confirm', 'team.review.cancel', 'team.review.leaveInstead', 'team.detail.card', 'team.invite.code', 'team.invite.close', 'team.create.size', 'team.create.inviteOnly', 'team.message'}
         self.assertEqual(used - set(catalog) - excluded, set())
         for key, item in catalog.items():
             self.assertEqual(set(item['localizations']), {'en','zh-Hans'}, key)

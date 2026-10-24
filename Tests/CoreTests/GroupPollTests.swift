@@ -31,10 +31,18 @@ private final class PollTransport: HTTPTransport {
     var failure: Error?
     var beforeResult: (() -> Void)?
     var beforeMutation: (() -> Void)?
+    var resultOperation: (() async throws -> GroupPoll)?
+    var mutationOperation: ((GroupPollMutation) async throws -> GroupPoll)?
     func permits(_ path: String) -> Bool { enabled }
-    func result(_ reference: GroupPollReference, expectedIdentity: MessagingReadIdentity) async throws -> GroupPoll { resultCalls += 1; beforeResult?(); return current }
+    func result(_ reference: GroupPollReference, expectedIdentity: MessagingReadIdentity) async throws -> GroupPoll {
+        resultCalls += 1; beforeResult?()
+        if let resultOperation { return try await resultOperation() }
+        return current
+    }
     func perform(_ mutation: GroupPollMutation, scope: IMScope, reference: GroupPollReference?) async throws -> GroupPoll {
-        mutations.append(mutation); beforeMutation?(); if let failure { throw failure }
+        mutations.append(mutation); beforeMutation?()
+        if let mutationOperation { return try await mutationOperation(mutation) }
+        if let failure { throw failure }
         switch mutation {
         case .create(let draft): current = try poll(["clientPollKey": draft.clientPollKey, "question": draft.question, "totalVoters": NSNull()])
         case .vote(_, let option):
@@ -50,10 +58,13 @@ private final class PollTransport: HTTPTransport {
     var member = true
     var groupKey = "club_81"
     var beforeRead: (() -> Void)?
+    var conversationsOperation: (() async throws -> [MessagingConversation])?
     var isClubConfigured: Bool { isConfigured }
     var clubIdentity: ClubReadIdentity { .init(accountID: identity?.accountID, epoch: identity?.epoch ?? 0) }
     func messagingConversations() async throws -> [MessagingConversation] {
-        beforeRead?(); guard member else { return [] }
+        beforeRead?()
+        if let conversationsOperation { return try await conversationsOperation() }
+        guard member else { return [] }
         return [try JSONDecoder().decode(MessagingConversation.self, from: JSONSerialization.data(withJSONObject: ["conversationId": 12, "type": 4, "counterparty": ["bizKey": groupKey]]))]
     }
     func messagingMessages(conversationID: Int, cursor: Int) async throws -> MessagingPage { throw APIError.notConfigured }
@@ -62,6 +73,25 @@ private final class PollTransport: HTTPTransport {
     func clubOwned() async throws -> [ClubRecord] { [] }
     func clubDirectory(name: String?) async throws -> [ClubRecord] { [] }
     func clubMembers(id: Int) async throws -> ClubMemberDirectory { throw APIError.notConfigured }
+}
+/// Deliberately completes after cancellation or navigation. No sleeps or scheduler
+/// guesses: each test waits until the exact request has reached its suspension.
+@MainActor private final class PollCompletionGate<Value> {
+    private var completion: CheckedContinuation<Value, Error>?
+    private var started: CheckedContinuation<Void, Never>?
+    func wait() async throws -> Value {
+        try await withCheckedThrowingContinuation {
+            completion = $0; started?.resume(); started = nil
+        }
+    }
+    func waitUntilStarted() async {
+        if completion != nil { return }
+        await withCheckedContinuation { started = $0 }
+    }
+    func resolve(_ result: Result<Value, Error>) {
+        let pending = completion; completion = nil
+        pending?.resume(with: result)
+    }
 }
 @MainActor private final class PollJournal: OperationPendingJournal {
     var values: [String: OperationPendingRecord] = [:]
@@ -296,6 +326,238 @@ final class GroupPollTests: XCTestCase {
         reader.beforeRead = nil; await owner.refresh(); owner.reviewVote(optionID: 51)
         client.beforeMutation = { owner.suspend() }; await owner.confirm(); XCTAssertEqual(client.mutations.count, 1); XCTAssertFalse(journal.values.isEmpty)
     }
+
+    @MainActor func testLateVoteReceiptPreservesReopenedReadbackAndCloseReview() async throws {
+        let client = PollClient(), reader = PollReader(), journal = PollJournal(), owner = try owner(client, reader, journal)
+        let gate = PollCompletionGate<GroupPoll>()
+        let voted = try poll(["myOptionId": 51, "totalVoters": 1, "options": [
+            ["id": 51, "pollId": 31, "position": 1, "content": "River", "voteCount": 1],
+            ["id": 52, "pollId": 31, "position": 2, "content": "Park", "voteCount": 0]]])
+        await owner.refresh(); owner.reviewVote(optionID: 51)
+        client.mutationOperation = { _ in try await gate.wait() }
+        let oldWrite = Task { await owner.confirm() }; await gate.waitUntilStarted()
+        XCTAssertEqual(journal.values.count, 1)
+        owner.suspend(); owner.resume(); client.current = voted
+        await owner.refresh(); XCTAssertTrue(journal.values.isEmpty)
+        owner.reviewClose()
+        let review = owner.visiblePhase
+        XCTAssertEqual(review, .reviewing(.close(pollID: 31, expectedVersion: 1)))
+        gate.resolve(.success(voted)); await oldWrite.value
+        XCTAssertEqual(owner.visiblePhase, review)
+        XCTAssertEqual(owner.visiblePoll, voted); XCTAssertTrue(journal.values.isEmpty)
+        let closed = try poll(["status": "CLOSED", "version": 2, "myOptionId": 51, "totalVoters": 1, "options": [
+            ["id": 51, "pollId": 31, "position": 1, "content": "River", "voteCount": 1],
+            ["id": 52, "pollId": 31, "position": 2, "content": "Park", "voteCount": 0]]])
+        client.mutationOperation = { _ in closed }
+        await owner.confirm()
+        XCTAssertEqual(owner.visiblePhase, .acknowledged); XCTAssertEqual(owner.visiblePoll, closed)
+        XCTAssertEqual(client.mutations, [.vote(pollID: 31, optionID: 51), .close(pollID: 31, expectedVersion: 1)])
+    }
+
+    @MainActor func testLateVoteFailureCannotOverwriteNewCloseSubmissionOrClearItsLock() async throws {
+        let client = PollClient(), reader = PollReader(), journal = PollJournal(), owner = try owner(client, reader, journal)
+        let voteGate = PollCompletionGate<GroupPoll>(), closeGate = PollCompletionGate<GroupPoll>()
+        let voted = try poll(["myOptionId": 51, "totalVoters": 1, "options": [
+            ["id": 51, "pollId": 31, "position": 1, "content": "River", "voteCount": 1],
+            ["id": 52, "pollId": 31, "position": 2, "content": "Park", "voteCount": 0]]])
+        let closed = try poll(["status": "CLOSED", "version": 2, "myOptionId": 51, "totalVoters": 1, "options": [
+            ["id": 51, "pollId": 31, "position": 1, "content": "River", "voteCount": 1],
+            ["id": 52, "pollId": 31, "position": 2, "content": "Park", "voteCount": 0]]])
+        await owner.refresh(); owner.reviewVote(optionID: 51)
+        client.mutationOperation = { _ in try await voteGate.wait() }
+        let oldWrite = Task { await owner.confirm() }; await voteGate.waitUntilStarted()
+        owner.suspend(); owner.resume(); client.current = voted; await owner.refresh()
+        client.mutationOperation = { _ in try await closeGate.wait() }
+        owner.reviewClose()
+        let newWrite = Task { await owner.confirm() }; await closeGate.waitUntilStarted()
+        let closeLock = journal.values
+        XCTAssertEqual(closeLock.count, 1)
+        XCTAssertTrue(closeLock.values.allSatisfy { $0.targetKey == "im.poll.31.close" })
+        voteGate.resolve(.failure(MessagingReadFailure(code: 403))); await oldWrite.value
+        XCTAssertEqual(owner.visiblePhase, .submitting); XCTAssertEqual(journal.values, closeLock)
+        closeGate.resolve(.success(closed)); await newWrite.value
+        XCTAssertEqual(owner.visiblePhase, .acknowledged); XCTAssertEqual(owner.visiblePoll, closed)
+        XCTAssertTrue(journal.values.isEmpty); XCTAssertEqual(client.mutations.count, 2)
+    }
+
+    @MainActor func testLateCloseSuccessOrFailureCannotReviveUnknownAfterClosedReadback() async throws {
+        for fail in [false, true] {
+            let client = PollClient(), reader = PollReader(), journal = PollJournal(), owner = try owner(client, reader, journal)
+            let gate = PollCompletionGate<GroupPoll>(), closed = try poll(["status": "CLOSED", "version": 2])
+            await owner.refresh(); owner.reviewClose()
+            client.mutationOperation = { _ in try await gate.wait() }
+            let oldWrite = Task { await owner.confirm() }; await gate.waitUntilStarted()
+            owner.suspend(); owner.resume(); client.current = closed; await owner.refresh()
+            XCTAssertEqual(owner.visiblePhase, .idle); XCTAssertTrue(journal.values.isEmpty)
+            gate.resolve(fail ? .failure(URLError(.timedOut)) : .success(closed)); await oldWrite.value
+            XCTAssertEqual(owner.visiblePhase, .idle); XCTAssertEqual(owner.visiblePoll, closed)
+            XCTAssertFalse(owner.canVote); XCTAssertFalse(owner.canClose); XCTAssertTrue(journal.values.isEmpty)
+            XCTAssertEqual(client.mutations.count, 1)
+        }
+    }
+
+    @MainActor func testOpenReadbackDoesNotUnlockRetiredVoteEvenWhenLateReceiptArrives() async throws {
+        let client = PollClient(), reader = PollReader(), journal = PollJournal(), owner = try owner(client, reader, journal)
+        let gate = PollCompletionGate<GroupPoll>()
+        let voted = try poll(["myOptionId": 51, "totalVoters": 1, "options": [
+            ["id": 51, "pollId": 31, "position": 1, "content": "River", "voteCount": 1],
+            ["id": 52, "pollId": 31, "position": 2, "content": "Park", "voteCount": 0]]])
+        await owner.refresh(); owner.reviewVote(optionID: 51)
+        client.mutationOperation = { _ in try await gate.wait() }
+        let oldWrite = Task { await owner.confirm() }; await gate.waitUntilStarted()
+        let lock = journal.values
+        owner.suspend(); owner.resume(); await owner.refresh()
+        gate.resolve(.success(voted)); await oldWrite.value
+        XCTAssertEqual(owner.visiblePhase, .unknown); XCTAssertEqual(journal.values, lock)
+        XCTAssertNil(owner.visiblePoll?.myOptionId); XCTAssertFalse(owner.canVote)
+        owner.reviewVote(optionID: 52); await owner.confirm(); XCTAssertEqual(client.mutations.count, 1)
+        client.current = voted; await owner.refresh()
+        XCTAssertEqual(owner.visiblePhase, .idle); XCTAssertTrue(journal.values.isEmpty)
+    }
+
+    @MainActor func testRetiredCreateReceiptCannotReplaceNewDraftAfterMatchingMessageReadback() async throws {
+        let client = PollClient(), reader = PollReader(), journal = PollJournal(), create = try owner(client, reader, journal, creation: true)
+        let gate = PollCompletionGate<GroupPoll>()
+        await create.reviewCreate(question: "First", options: ["River", "Park"], deadline: nil)
+        guard case .reviewing(.create(let oldDraft)) = create.visiblePhase else { return XCTFail() }
+        client.mutationOperation = { _ in try await gate.wait() }
+        let oldWrite = Task { await create.confirm() }; await gate.waitUntilStarted()
+        create.suspend()
+        client.current = try poll(["question": oldDraft.question, "clientPollKey": oldDraft.clientPollKey])
+        let detail = try owner(client, reader, journal); await detail.refresh()
+        XCTAssertTrue(journal.values.isEmpty)
+        create.resume(); await create.reviewCreate(question: "Second", options: ["River", "Park"], deadline: nil)
+        let nextReview = create.visiblePhase
+        gate.resolve(.success(try poll(["question": oldDraft.question, "clientPollKey": oldDraft.clientPollKey, "totalVoters": NSNull()])))
+        await oldWrite.value
+        guard case .reviewing(.create(let newDraft)) = nextReview else { return XCTFail() }
+        XCTAssertNotEqual(oldDraft.clientPollKey, newDraft.clientPollKey)
+        XCTAssertEqual(create.visiblePhase, nextReview); XCTAssertNil(create.visiblePoll); XCTAssertNil(create.reference)
+        let second = try poll(["id": 32, "messageId": 45, "question": newDraft.question, "clientPollKey": newDraft.clientPollKey,
+            "totalVoters": NSNull(), "options": [
+                ["id": 53, "pollId": 32, "position": 1, "content": "River", "voteCount": 0],
+                ["id": 54, "pollId": 32, "position": 2, "content": "Park", "voteCount": 0]]])
+        client.mutationOperation = { _ in second }; await create.confirm()
+        XCTAssertEqual(create.visiblePhase, .acknowledged); XCTAssertEqual(create.visiblePoll, second)
+        XCTAssertEqual(create.reference?.pollID, 32)
+        XCTAssertEqual(client.mutations.count, 2); XCTAssertTrue(journal.values.isEmpty)
+    }
+
+    @MainActor func testRetiredCreateFailureCannotReplaceSuccessfulExactRetry() async throws {
+        let client = PollClient(), reader = PollReader(), journal = PollJournal(), create = try owner(client, reader, journal, creation: true)
+        let gate = PollCompletionGate<GroupPoll>()
+        await create.reviewCreate(question: "Which route?", options: ["River", "Park"], deadline: nil)
+        client.mutationOperation = { _ in try await gate.wait() }
+        let oldWrite = Task { await create.confirm() }; await gate.waitUntilStarted()
+        create.suspend(); create.resume(); XCTAssertTrue(create.canRetryCreation)
+        client.mutationOperation = nil; await create.retryCreationUnchanged()
+        XCTAssertEqual(create.visiblePhase, .acknowledged); XCTAssertTrue(journal.values.isEmpty)
+        XCTAssertEqual(client.mutations.count, 2)
+        XCTAssertEqual(try client.mutations[0].body(), try client.mutations[1].body())
+        let receipt = create.visiblePoll
+        gate.resolve(.failure(URLError(.timedOut))); await oldWrite.value
+        XCTAssertEqual(create.visiblePhase, .acknowledged); XCTAssertEqual(create.visiblePoll, receipt)
+        XCTAssertFalse(create.canRetryCreation); XCTAssertTrue(create.canStartAnother); XCTAssertTrue(journal.values.isEmpty)
+    }
+
+    @MainActor func testOldPreflightFailureCannotCancelNewVoteReview() async throws {
+        let client = PollClient(), reader = PollReader(), journal = PollJournal(), owner = try owner(client, reader, journal)
+        let gate = PollCompletionGate<GroupPoll>()
+        await owner.refresh(); owner.reviewVote(optionID: 51)
+        client.resultOperation = { try await gate.wait() }
+        let oldPreflight = Task { await owner.confirm() }; await gate.waitUntilStarted()
+        owner.suspend(); owner.resume(); client.resultOperation = nil; await owner.refresh()
+        owner.reviewVote(optionID: 52)
+        let nextReview = owner.visiblePhase
+        gate.resolve(.failure(URLError(.timedOut))); await oldPreflight.value
+        XCTAssertEqual(owner.visiblePhase, nextReview)
+        XCTAssertEqual(nextReview, .reviewing(.vote(pollID: 31, optionID: 52)))
+        XCTAssertTrue(client.mutations.isEmpty); XCTAssertTrue(journal.values.isEmpty)
+        await owner.confirm(); XCTAssertEqual(client.mutations, [.vote(pollID: 31, optionID: 52)])
+    }
+
+    @MainActor func testOldMembershipSuccessCannotGrantActionsAfterNewNonMemberRead() async throws {
+        let client = PollClient(), reader = PollReader(), journal = PollJournal(), owner = try owner(client, reader, journal)
+        let membership = try await reader.messagingConversations(), gate = PollCompletionGate<[MessagingConversation]>()
+        reader.conversationsOperation = { try await gate.wait() }
+        let oldRead = Task { await owner.refresh() }; await gate.waitUntilStarted()
+        owner.suspend(); owner.resume(); reader.conversationsOperation = nil; reader.member = false
+        await owner.refresh(); XCTAssertFalse(owner.isMember)
+        gate.resolve(.success(membership)); await oldRead.value
+        XCTAssertEqual(owner.visiblePhase, .idle); XCTAssertNotNil(owner.visiblePoll)
+        XCTAssertFalse(owner.isMember); XCTAssertFalse(owner.canVote); XCTAssertFalse(owner.canClose)
+        owner.reviewVote(optionID: 51); await owner.confirm(); XCTAssertTrue(client.mutations.isEmpty)
+    }
+
+    @MainActor func testOldMembershipFailureCannotRemoveActionsFromNewMemberRead() async throws {
+        let client = PollClient(), reader = PollReader(), journal = PollJournal(), owner = try owner(client, reader, journal)
+        let gate = PollCompletionGate<[MessagingConversation]>()
+        reader.conversationsOperation = { try await gate.wait() }
+        let oldRead = Task { await owner.refresh() }; await gate.waitUntilStarted()
+        owner.suspend(); owner.resume(); reader.conversationsOperation = nil
+        await owner.refresh(); XCTAssertTrue(owner.canVote)
+        gate.resolve(.failure(URLError(.timedOut))); await oldRead.value
+        XCTAssertEqual(owner.visiblePhase, .idle); XCTAssertTrue(owner.isMember); XCTAssertTrue(owner.canVote)
+        owner.reviewVote(optionID: 52); await owner.confirm()
+        XCTAssertEqual(client.mutations, [.vote(pollID: 31, optionID: 52)])
+    }
+
+    @MainActor func testCurrentPreflightCancellationEndsSubmissionWithoutDispatch() async throws {
+        let client = PollClient(), reader = PollReader(), journal = PollJournal(), owner = try owner(client, reader, journal)
+        let gate = PollCompletionGate<GroupPoll>(), value = try poll()
+        await owner.refresh(); owner.reviewVote(optionID: 51)
+        client.resultOperation = { try await gate.wait() }
+        let preflight = Task { await owner.confirm() }; await gate.waitUntilStarted()
+        preflight.cancel(); gate.resolve(.success(value)); await preflight.value
+        XCTAssertEqual(owner.visiblePhase, .idle); XCTAssertTrue(journal.values.isEmpty); XCTAssertTrue(client.mutations.isEmpty)
+        client.resultOperation = nil; owner.reviewVote(optionID: 52); await owner.confirm()
+        XCTAssertEqual(client.mutations, [.vote(pollID: 31, optionID: 52)])
+    }
+
+    @MainActor func testExactCreateRetryCancellationPreservesOriginalUnknownIntent() async throws {
+        let client = PollClient(), reader = PollReader(), journal = PollJournal(), create = try owner(client, reader, journal, creation: true)
+        client.failure = URLError(.timedOut)
+        await create.reviewCreate(question: "Which route?", options: ["River", "Park"], deadline: nil)
+        await create.confirm()
+        let lock = journal.values, first = try XCTUnwrap(client.mutations.first)
+        XCTAssertTrue(create.canRetryCreation)
+        let membership = try await reader.messagingConversations(), gate = PollCompletionGate<[MessagingConversation]>()
+        reader.conversationsOperation = { try await gate.wait() }
+        let retry = Task { await create.retryCreationUnchanged() }; await gate.waitUntilStarted()
+        retry.cancel(); gate.resolve(.success(membership)); await retry.value
+        XCTAssertEqual(create.visiblePhase, .unknown); XCTAssertTrue(create.canRetryCreation)
+        XCTAssertEqual(journal.values, lock); XCTAssertEqual(client.mutations, [first])
+        reader.conversationsOperation = nil; client.failure = nil
+        await create.retryCreationUnchanged()
+        XCTAssertEqual(create.visiblePhase, .acknowledged); XCTAssertTrue(journal.values.isEmpty)
+        XCTAssertEqual(client.mutations, [first, first])
+    }
+
+    @MainActor func testCurrentPostDispatchCancellationKeepsUnknownAndOriginalLock() async throws {
+        let client = PollClient(), reader = PollReader(), journal = PollJournal(), owner = try owner(client, reader, journal)
+        let gate = PollCompletionGate<GroupPoll>()
+        await owner.refresh(); owner.reviewVote(optionID: 51)
+        client.mutationOperation = { _ in try await gate.wait() }
+        let write = Task { await owner.confirm() }; await gate.waitUntilStarted()
+        let lock = journal.values
+        write.cancel(); gate.resolve(.failure(CancellationError())); await write.value
+        XCTAssertEqual(owner.visiblePhase, .unknown); XCTAssertEqual(journal.values, lock); XCTAssertEqual(lock.count, 1)
+        XCTAssertFalse(owner.canVote); XCTAssertEqual(client.mutations.count, 1)
+    }
+
+    @MainActor func testLateWriteAfterAccountEpochChangeCannotExposeOrClearOldIntent() async throws {
+        let client = PollClient(), reader = PollReader(), journal = PollJournal(), owner = try owner(client, reader, journal)
+        let gate = PollCompletionGate<GroupPoll>(), closed = try poll(["status": "CLOSED", "version": 2])
+        await owner.refresh(); owner.reviewClose()
+        client.mutationOperation = { _ in try await gate.wait() }
+        let write = Task { await owner.confirm() }; await gate.waitUntilStarted()
+        let lock = journal.values
+        owner.suspend(); client.identity = .init(accountID: 7, epoch: 2); reader.identity = client.identity
+        gate.resolve(.success(closed)); await write.value
+        XCTAssertEqual(owner.visiblePhase, .blocked); XCTAssertNil(owner.visiblePoll)
+        XCTAssertEqual(journal.values, lock); XCTAssertEqual(lock.count, 1); XCTAssertFalse(owner.canRead)
+    }
+
 }
 
 @MainActor private final class TestClubChatClient: ClubChatServing {
