@@ -2,7 +2,7 @@
 
 Not installed. `NativeChannelNotificationJournal.swift` is not in this exclusive tree. `persist`, `restore`, and `settle` stay the original methods. ACK is not `PREFERENCE` or `MUTE`.
 
-The installable diff is `C08-ack-command.patch`, read from the e47 copies of:
+The installable diff is `C08-ack-command.patch`. `git apply --check` passed on a copy of the e47 files. It is not installed on this exclusive tree and was not written into the e47 tree.
 
 - `Core/NativeChannelNotificationAuthority.swift`
 - `Core/NativeChannelNotificationContracts.swift`
