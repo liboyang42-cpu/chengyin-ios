@@ -61,3 +61,11 @@ HEAD `467f25ea` tests. Did not invent recoverOriginal.
 `MerchantNPCDraftApprovalGateTests.testUnusedSubmitBeforeAuthorizerDoesNotOccupyThenUniqueSubmitApplies`：未见授权的 `submitOriginalReview` 抛 authorizerRequired 且 reviewTicket 仍空、phase 仍 idle；后续唯一 ingest+verify+submit 才是 originalReviewPending。Python `func test` count on gate tests 11→12.
 
 Parent python `Tests.ContractChecks.test_merchant_npc_draft_cannot_price` **9/0**. XCTest NOT_RUN on Linux. Not 100%.
+
+## Parent addendum 2026-10-23 19:32 America/Los_Angeles
+
+HEAD `0a40d977` tests. Did not invent recoverOriginal.
+
+`MerchantNPCDraftApprovalGateTests.testUnusedInvalidIngestDoesNotOccupyThenUniqueValidIngestApplies`：无效草稿 ingest 抛 invalidDraft 且 phase 仍 idle、draft 仍空；后续唯一合法 ingest 才是 aiDraft。Python `func test` count on gate tests 12→13.
+
+Parent python `Tests.ContractChecks.test_merchant_npc_draft_cannot_price` **9/0**. XCTest NOT_RUN on Linux. Not 100%.
