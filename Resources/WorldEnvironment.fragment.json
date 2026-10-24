@@ -1,0 +1,91 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "world.environment.waitingSource": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Environment facts are waiting on a signed server source. Local weather is not used."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "环境事实仍在等待已签名的服务端来源。不使用本地天气。"
+          }
+        }
+      }
+    },
+    "world.environment.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Environment is UNKNOWN. This is not a successful clear-sky fallback."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "环境为 UNKNOWN。这不是晴天成功兜底。"
+          }
+        }
+      }
+    },
+    "world.expiry.waitingSource": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expiry is WAITING_SOURCE until the server supplies asOf and expiresAt. The device clock cannot prove the window is still valid."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在服务端给出 asOf 与 expiresAt 之前，期限为 WAITING_SOURCE。设备时钟不能证明窗口仍有效。"
+          }
+        }
+      }
+    },
+    "world.party.waitingSource": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Party roster is WAITING_SOURCE. An empty list is not a successful party."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍名册为 WAITING_SOURCE。空列表不是成功的队伍。"
+          }
+        }
+      }
+    },
+    "world.equipment.waitingSource": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipment is WAITING_SOURCE. Inventory is not invented on the client."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "装备为 WAITING_SOURCE。客户端不编造背包。"
+          }
+        }
+      }
+    }
+  }
+}

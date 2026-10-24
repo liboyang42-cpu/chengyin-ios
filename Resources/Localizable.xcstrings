@@ -93656,6 +93656,23 @@
         }
       }
     },
+    "play.character.card": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Character card"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "角色卡"
+          }
+        }
+      }
+    },
     "play.nodes": {
       "extractionState": "manual",
       "localizations": {

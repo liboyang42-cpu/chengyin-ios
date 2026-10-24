@@ -1008,6 +1008,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         let manualRead = selectedArea.flatMap { ManualMapReadRoute(request: request, baseURL: api.baseURL, area: $0.area) }
         let cityRead = CityReadRoute(request: request, baseURL: api.baseURL)
         let playRead = PlayReadRoute(request: request, baseURL: api.baseURL)
+        let characterRead = CharacterCardReadRoute(request: request, baseURL: api.baseURL)
         let ownedCover = OwnedTopicCoverCompositionRoute(request: request, baseURL: api.baseURL)
         let sessionFactRoute = RoamSessionFactReadRoute(request: request, baseURL: api.baseURL)
         let nearbyEventsArea = manualMapSelection?.snapshot
@@ -1028,7 +1029,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         let favoriteList = ProfileFavoritesReadRoute(request: request, baseURL: api.baseURL)
         let favoriteDetail = ProfileFavoriteDetailRoute(request: request, baseURL: api.baseURL)
         let ticketWalletList = TicketWalletListReadRoute(request: request, baseURL: api.baseURL)
-        guard nearbyEvents != nil || url.query == nil || manualRead != nil || playRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
+        guard nearbyEvents != nil || url.query == nil || manualRead != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
         guard let captured = current() else { throw CancellationError() }
         let authPaths = [AuthEndpoint.smsSend, .phone, .userInfo, .logout].map { api.url(for: $0) }
         let auth = authPaths.contains(url)
@@ -1466,6 +1467,22 @@ extension KeychainTokenStore: AppTokenStorage {}
                 return playRead.isApproved(configuration: current, context: context)
             }
             guard readApprovalStillValid?() == true else { throw APIError.notConfigured }
+        } else if let characterRead {
+            guard let account = captured.accountID, account > 0,
+                  let role = captured.role, !role.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL,
+                role: role, session: session)
+            guard let issued = playReadConfiguration(context),
+                  characterRead.isApproved(configuration: issued, context: context) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [weak self] in
+                guard let current = self?.playReadConfiguration(context),
+                      current.playReadApprovalID == issued.playReadApprovalID else { return false }
+                return characterRead.isApproved(configuration: current, context: context)
+            }
+            guard readApprovalStillValid?() == true else { throw APIError.notConfigured }
         } else if url == api.baseURL.appendingPathComponent(PrivateHomeService.path) {
             guard let grant = deployment.privateHome,
                   grant.matches(storageScope: deployment.storageScope, accountID: captured.accountID, role: captured.role),
@@ -1590,6 +1607,8 @@ extension KeychainTokenStore: AppTokenStorage {}
         guard current() == captured, readApprovalStillValid?() != false else { throw CancellationError() }
         do {
             let result = try await underlying.send(request)
+            if (playRead != nil || characterRead != nil), current() == captured,
+               PlayExperienceService.isAuthenticationFailure(result) { return result }
             try Task.checkCancellation()
             guard current() == captured, readApprovalStillValid?() != false else { throw CancellationError() }
             if let ticketWalletList {
