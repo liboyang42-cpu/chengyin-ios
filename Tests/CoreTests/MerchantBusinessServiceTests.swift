@@ -427,6 +427,14 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
         ]))
         let desk = MerchantDeskSkuDesk(service: service, journal: journal, scope: scope)
         let edit = MerchantDeskSkuDesk.Edit(skuName: "door", price: "88.00", stock: 2)
+        await desk.present(productID: 3, skuID: 44, access: access, accountID: 7, token: "synthetic-token")
+        guard case .editing(let shown) = desk.phase else {
+            XCTFail("editing")
+            return
+        }
+        XCTAssertEqual(shown.skuName, "door")
+        XCTAssertEqual(shown.price, "88")
+        XCTAssertEqual(await transport.paths.filter { $0.hasSuffix("/sku/save") }.count, 0)
         await desk.load(productID: 3, skuID: 44, edit: edit, access: access, accountID: 7, token: "synthetic-token")
         guard case .frozen(let intent) = desk.phase else {
             XCTFail("frozen")
@@ -450,6 +458,11 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
         XCTAssertTrue(body.contains("\"requestId\":\"\(intent.requestID)\""))
         let remaining = try journal.intents()
         XCTAssertTrue(remaining.isEmpty)
+        await transport.setDetailRuleVersion(5)
+        await desk.noteLater(productID: 3, skuID: 44, access: access, token: "synthetic-token")
+        XCTAssertEqual(desk.laterRuleVersion, 5)
+        XCTAssertEqual(desk.phase, .applied(requestID: requestID, skuID: 44))
+        XCTAssertEqual(await transport.paths.filter { $0.hasSuffix("/sku/save") }.count, 1)
 
         await transport.setReceiptApplied(false)
         let lost = MerchantDeskSkuDesk(service: service, journal: journal, scope: scope)
@@ -487,15 +500,17 @@ private actor DeskSkuEntryTransport: MerchantBusinessTestTransport {
     var receiptApplied = true
     var receiptRequestID = ""
     var saveBody = ""
+    var detailRuleVersion = 3
     var paths: [String] { requests.compactMap { $0.url?.path } }
     func setFailSave(_ value: Bool) { failSave = value }
     func setReceiptApplied(_ value: Bool) { receiptApplied = value }
     func setReceiptRequestID(_ value: String) { receiptRequestID = value }
+    func setDetailRuleVersion(_ value: Int) { detailRuleVersion = value }
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         requests.append(request)
         let path = request.url?.path ?? ""
         if path.hasSuffix("/products/detail") {
-            let json = #"{"code":200,"data":{"productId":3,"skus":[{"skuId":44,"skuName":"door","price":88,"stock":2,"bookable":false,"slotMinutes":60,"capacityPerSlot":0,"ruleVersion":3}]}}"#
+            let json = #"{"code":200,"data":{"productId":3,"skus":[{"skuId":44,"skuName":"door","price":88,"stock":2,"bookable":false,"slotMinutes":60,"capacityPerSlot":0,"ruleVersion":\#(detailRuleVersion)}]}}"#
             return (Data(json.utf8), 200)
         }
         if path.hasSuffix("/sku/save") {

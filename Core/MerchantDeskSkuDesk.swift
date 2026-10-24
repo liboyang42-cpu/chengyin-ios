@@ -28,6 +28,7 @@ import Foundation
 
     public enum Phase: Equatable {
         case idle
+        case editing(Edit)
         case frozen(MerchantSkuSaveJourney.Intent)
         case applied(requestID: String, skuID: Int64)
         case unknown(requestID: String)
@@ -39,11 +40,43 @@ import Foundation
     private let journey = MerchantSkuSaveJourney()
     private let scope: MerchantBusinessScope
     @Published public private(set) var phase: Phase = .idle
+    /// Detail rule version after a successful receipt. It does not replace the receipt.
+    @Published public private(set) var laterRuleVersion: Int?
 
     public init(service: MerchantBusinessService, journal: any MerchantBusinessIntentStore, scope: MerchantBusinessScope) {
         self.service = service
         self.journal = journal
         self.scope = scope
+    }
+
+    public func present(productID: Int, skuID: Int, access: MerchantBusinessAccess, accountID: Int64, token: String) async {
+        guard access.role == "MERCHANT_OWNER", accountID > 0, accountID != Int64(access.merchantID),
+              Int64(scope.accountID) == accountID else {
+            phase = .failed(.denied)
+            return
+        }
+        do {
+            if let pending = try matching(skuID: skuID, merchantID: access.merchantID) {
+                phase = .unknown(requestID: pending.requestID)
+                return
+            }
+            let detail = try await service.read(.productDetail(productID: productID), access: access, token: token)
+            guard let row = skuRow(detail, productID: productID, skuID: skuID),
+                  let name = row["skuName"]?.string, !name.isEmpty,
+                  let price = row["price"]?.numberText, !price.isEmpty,
+                  let stock = row["stock"]?.integer else {
+                phase = .failed(.invalid)
+                return
+            }
+            phase = .editing(Edit(skuName: name, price: price, stock: stock,
+                                  bookable: row["bookable"]?.bool == true || row["bookable"]?.integer == 1,
+                                  slotMinutes: row["slotMinutes"]?.integer ?? 60,
+                                  capacityPerSlot: row["capacityPerSlot"]?.integer ?? 0))
+        } catch let error as MerchantBusinessFailure {
+            phase = .failed(error)
+        } catch {
+            phase = .failed(.unknown)
+        }
     }
 
     public func load(productID: Int, skuID: Int, edit: Edit, access: MerchantBusinessAccess, accountID: Int64, token: String) async {
@@ -146,6 +179,17 @@ import Foundation
             phase = .failed(error)
         } catch {
             phase = .unknown(requestID: pending.requestID)
+        }
+    }
+
+    /// Reads the current detail after the original receipt. A later version stays a detail fact.
+    public func noteLater(productID: Int, skuID: Int, access: MerchantBusinessAccess, token: String) async {
+        guard case .applied = phase else { return }
+        do {
+            let detail = try await service.read(.productDetail(productID: productID), access: access, token: token)
+            laterRuleVersion = skuRow(detail, productID: productID, skuID: skuID)?["ruleVersion"]?.integer
+        } catch {
+            return
         }
     }
 

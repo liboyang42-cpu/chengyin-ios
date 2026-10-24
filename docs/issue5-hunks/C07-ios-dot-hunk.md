@@ -63,7 +63,7 @@ WAITING_SOURCE: transfer-sold policy + designated recipient authorization + irre
 
 `MerchantDeskSkuDesk` reads product detail, freezes the intent, and confirm calls original `saveSku` once. A lost response leaves the journal request id. Reopen reads `api/merchant/desk/receipt` and does not save again. `APPLIED` + `SKU_SAVE` + `pms_sku` completes that journal row. `NOT_FOUND` stays unknown. Another account does not read or clear the row.
 
-`App/MerchantDeskSkuPage.swift` is the page. `App/MerchantHomeView.swift` is not edited. Do not apply a navigation link from this candidate. Swift was not compiled. XCTest NOT_RUN. Not 100%.
+`App/MerchantDeskSkuPage.swift` is the page. The detail fields can be edited, then freeze. Confirm still sends the frozen intent. A later detail rule version is stored beside the receipt and does not clear `APPLIED`. `App/MerchantHomeView.swift` is not edited. Do not apply a navigation link from this candidate. Swift was not compiled. XCTest NOT_RUN. Not 100%.
 
 ## Parent addendum 2026-10-23 20:40 America/Los_Angeles
 
