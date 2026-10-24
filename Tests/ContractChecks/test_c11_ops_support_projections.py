@@ -27,7 +27,11 @@ TEST_FILES = [
 ]
 CONTRACT = "Tests/ContractChecks/test_c11_ops_support_projections.py"
 HUNK = "docs/issue5-hunks/C11-ios-dot-hunk.md"
-WHITELIST = CORE_FILES + TEST_FILES + [CONTRACT, HUNK]
+WHITELIST = CORE_FILES + TEST_FILES + [
+    CONTRACT,
+    HUNK,
+    "App/WithdrawalSupportLandingView.swift",
+]
 FORBIDDEN_TOUCH = [
     "App/AppSession.swift",
     "App/AppCompositionRoot.swift",
@@ -282,7 +286,21 @@ class C11OpsSupportProjectionContracts(unittest.TestCase):
         self.assertIn("does not send", entry)
         self.assertNotIn("struct WithdrawalSupportLandingView", entry)
         self.assertIn("struct WithdrawalSupportLandingView", landing)
-        self.assertNotIn("SupportLookupEntry", landing)
+        self.assertIn('Section("withdrawal.support.balance")', landing)
+        self.assertIn('Section("withdrawal.support.notReceived")', landing)
+        self.assertIn("SupportLookupEntry", landing)
+        self.assertIn("entry.appear()", landing)
+        self.assertIn("entry.lookupByOrderId(", landing)
+        self.assertIn("func firstOrderID(", landing)
+        self.assertIn("composition.located.orderId == requested", landing)
+        self.assertIn("Self.firstOrderID(composition.located.originalEvents) == requested", landing)
+        self.assertIn("lookedUpOrderID = requested", landing)
+        self.assertIn("lookedUpOrderID = nil", landing)
+        self.assertNotIn("lookedUpOrderID = composition", landing)
+        self.assertNotIn("lookedUpOrderID = Self.firstOrderID", landing)
+        self.assertNotIn("InMemoryOriginalEventSource", landing)
+        self.assertNotIn("SupportEventLocator(", landing)
+        self.assertNotIn("gradient", landing.lower())
         self.assertNotIn("append(", entry)
         self.assertIn("testFirstJourneySupportLookupBesideWithdrawalAndOrderRecoverOriginal", tests)
         self.assertIn("originalMissing(requestId: \"ORDER:9\")", tests)
