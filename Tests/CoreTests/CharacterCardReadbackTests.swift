@@ -211,6 +211,10 @@ import FoundationNetworking
             selectAction: { _, _, id in id == "ask:40:why" ? id : nil })
         XCTAssertEqual(recovered?.actionID, "ask:40:why")
         XCTAssertEqual(recovered?.replay, true)
+        let swapped = try RouteActionOriginalRecovery.recoverFromRouteAction(
+            sessionID: 30, memberID: 7, actionID: "ask:40:why",
+            selectAction: { _, _, _ in "other-action" })
+        XCTAssertNil(swapped)
     }
     func testRecoverFromGameReceiptReadsPendingWithoutApplying() throws {
         XCTAssertNil(try GameReceiptOriginalRecovery.recoverFromGameReceipt(

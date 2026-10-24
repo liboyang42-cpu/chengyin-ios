@@ -81,6 +81,7 @@ public struct CharacterCard: Equatable {
 
 /// Read-only original route action. Caller supplies an already-resolved actionId;
 /// this does not invent a hashed action-id prefix. Missing mapper is WAITING_SOURCE.
+/// A returned action id that is not the requested id is not a replay.
 public enum RouteActionOriginalRecovery {
     public static let rpgRequestReceipts = "rpgv2.RpgRequestReceipts"
     public struct Receipt: Equatable {
@@ -101,8 +102,8 @@ public enum RouteActionOriginalRecovery {
         guard let selectAction else {
             throw WaitingSource(capability: rpgRequestReceipts)
         }
-        guard let found = selectAction(sessionID, memberID, trimmed) else { return nil }
-        return Receipt(actionID: found, replay: true)
+        guard let found = selectAction(sessionID, memberID, trimmed), found == trimmed else { return nil }
+        return Receipt(actionID: trimmed, replay: true)
     }
 }
 
