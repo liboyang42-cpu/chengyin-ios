@@ -104,6 +104,7 @@ class C09NotifyWebhookProjectionContracts(unittest.TestCase):
         devices = self.sources["Tests/CoreTests/DevicePushRegistrationLifecycleTests.swift"]
         self.assertIn("testOtherRequestDoesNotRewriteOriginalPin", receipt)
         self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyLedgerThenAcceptApplies", receipt)
+        self.assertIn("testUnusedOfflineReopenOfNeverSeenDoesNotOccupyThenUniqueAcceptApplies", receipt)
         self.assertIn("evt-recover-never-c09", receipt)
         self.assertIn("testOtherDeviceDoesNotRewriteOriginalRegistration", devices)
         self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueRegisterApplies", devices)

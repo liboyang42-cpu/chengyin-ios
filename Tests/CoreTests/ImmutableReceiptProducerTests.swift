@@ -115,6 +115,30 @@ final class ImmutableReceiptProducerTests: XCTestCase {
         XCTAssertEqual(producer.originalByRequestID.count, 1)
     }
 
+    func testUnusedOfflineReopenOfNeverSeenDoesNotOccupyThenUniqueAcceptApplies() throws {
+        var producer = ImmutableReceiptProducer()
+        XCTAssertThrowsError(try producer.offlineReopen(
+            originalRequestID: "c09-reopen-never", projection: nil)) { error in
+            XCTAssertEqual(error as? NotifyFailure, .originalMissing("c09-reopen-never"))
+        }
+        XCTAssertTrue(producer.originalByRequestID.isEmpty, "未见回执 offlineReopen 观察不得占账")
+        XCTAssertNil(producer.originalByRequestID["c09-reopen-never"])
+        let unused = producer.recoverOriginal(originalRequestID: "c09-reopen-never", projection: nil)
+        XCTAssertEqual(unused.requestId, "c09-reopen-never")
+        XCTAssertEqual(unused.outcome, ImmutableReceiptProducer.outcomeUnknown)
+        XCTAssertTrue(producer.originalByRequestID.isEmpty)
+        let first = try producer.accept(ImmutableReceiptProducer.OriginalRequest(
+            requestId: "c09-reopen-never", kind: .pin, body: "{\"op\":\"pin\"}",
+            outcome: ImmutableReceiptProducer.outcomeAccepted))
+        XCTAssertEqual(first.outcome, ImmutableReceiptProducer.outcomeAccepted)
+        XCTAssertEqual(first.requestId, "c09-reopen-never")
+        XCTAssertEqual(producer.originalByRequestID.count, 1)
+        XCTAssertEqual(producer.recoverOriginal(
+            originalRequestID: "c09-reopen-never", projection: nil).outcome,
+                       ImmutableReceiptProducer.outcomeAccepted)
+        XCTAssertEqual(producer.originalByRequestID.count, 1)
+    }
+
     func testWaitingSourceUnsignedOriginalsAreNotRewritten() {
         var producer = ImmutableReceiptProducer()
         XCTAssertFalse(NotifySourceInventory.v12DocxPresent)
