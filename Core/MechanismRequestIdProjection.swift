@@ -579,7 +579,8 @@ public struct MechanismRequestIdProjection: Equatable {
         guard let selectAction else {
             throw MechanismFailure.waitingSource(capability: Self.selectActionByAction)
         }
-        return selectAction(sessionID, memberID, trimmed)
+        guard let row = selectAction(sessionID, memberID, trimmed), row.actionID == trimmed else { return nil }
+        return row
     }
     public mutating func recoverOriginal(_ play: inout MechanismPlay, originalRequestID: String) throws -> MechanismResult {
         try recoverUnknown(&play, originalRequestID: originalRequestID)

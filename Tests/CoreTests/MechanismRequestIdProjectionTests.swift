@@ -202,6 +202,9 @@ final class MechanismRequestIdProjectionTests: XCTestCase {
                 ? RouteActionOriginalRow(actionID: id, responseJSON: "{\"ok\":true}") : nil
         })
         XCTAssertEqual(row?.responseJSON, "{\"ok\":true}")
+        XCTAssertNil(try binder.recoverFromRouteAction(sessionID: 30, memberID: 7, actionID: "c03-other-action", selectAction: { _, _, _ in
+            RouteActionOriginalRow(actionID: "game:done", responseJSON: "{\"ok\":true}")
+        }))
         XCTAssertNil(binder.existing("check:1:alarm:tick"))
     }
     private func waiting(_ body: () throws -> Never) -> MechanismFailure? {
