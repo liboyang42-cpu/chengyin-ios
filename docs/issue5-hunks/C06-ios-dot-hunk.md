@@ -14,7 +14,8 @@ New Core types are SwiftPM-visible (`Package.swift` `path: "Core"`). Xcode `chec
    - `Core/MerchantNPCDraftApprovalGate.swift`
    - `Core/MerchantNPCPublicPrivateIsolation.swift`
    - `Core/MerchantNPCQualificationRevoke.swift`
-   CoreTests are SwiftPM-only (`Tests/CoreTests`); they are not Xcode app-unit sources.
+   - `Core/MerchantNPCKnowledgeAuthorFlow.swift`
+   CoreTests are SwiftPM-only (`Tests/CoreTests`); they are not Xcode app-unit sources. The author flow calls the gate and does not replace it.
 
 2. **Original review/publish writer** — `MerchantNPCOriginalReviewPublishing` is the exclusive C06 consumer seam. Default `MerchantNPCWaitingSourcePublisher` throws `WAITING_SOURCE` for:
    - `MerchantNpcKnowledgeDraftService.http`
