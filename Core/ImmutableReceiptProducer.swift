@@ -106,6 +106,20 @@ public struct ImmutableReceiptProducer: Equatable {
         }
     }
 
+    public static let imReadSent = "im.readSentMessage"
+    public static let imSend = "im.send"
+
+    public struct SentMessage: Equatable, Sendable {
+        public var clientMessageId: String?
+        public var requestHash: String?
+        public var content: String?
+        public init(clientMessageId: String?, requestHash: String?, content: String?) {
+            self.clientMessageId = ImmutableReceiptProducer.parse(clientMessageId)
+            self.requestHash = ImmutableReceiptProducer.parse(requestHash, limit: 128)
+            self.content = ImmutableReceiptProducer.parse(content, limit: 4096)
+        }
+    }
+
     public private(set) var originalByRequestID: [String: OriginalReceipt] = [:]
     public init() {}
 
@@ -185,6 +199,34 @@ public struct ImmutableReceiptProducer: Equatable {
 
     public func treatsAppliedProjectionAsOriginalProof(_ projection: AppliedProjection?) -> Bool {
         false
+    }
+
+    public func persistOriginal(_ request: OriginalRequest) throws -> OriginalReceipt {
+        _ = try Self.requireRequestID(request.requestId)
+        throw NotifyFailure.waitingSource(capability: Self.imSend)
+    }
+
+    public func recoverFromJournal(memberId: Int64?, conversationId: Int64?,
+                                   clientMessageId: String?,
+                                   journal: ((Int64, Int64, String) -> SentMessage?)?) throws -> OriginalReceipt {
+        guard let id = Self.parse(clientMessageId) else {
+            return Self.unknownReceipt(requestId: nil, projection: nil)
+        }
+        guard let journal else {
+            throw NotifyFailure.waitingSource(capability: Self.imReadSent)
+        }
+        guard let original = journal(memberId ?? 0, conversationId ?? 0, id) else {
+            return Self.unknownReceipt(requestId: id, projection: nil)
+        }
+        return OriginalReceipt(
+            requestId: Self.parse(original.clientMessageId) ?? id,
+            kind: nil,
+            payloadHash: original.requestHash,
+            outcome: Self.outcomeUnknown,
+            originalBody: original.content,
+            currentProjectionClaimsApplied: false,
+            recoveryNote: nil,
+            mintedNewRequest: false)
     }
 
     public mutating func commitUnsignedOriginal(capability: String) throws -> Never {

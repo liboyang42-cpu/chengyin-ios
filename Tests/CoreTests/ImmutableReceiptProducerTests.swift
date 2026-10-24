@@ -139,6 +139,38 @@ final class ImmutableReceiptProducerTests: XCTestCase {
         XCTAssertEqual(producer.originalByRequestID.count, 1)
     }
 
+    func testPersistOriginalRequiresImSendAndRecoverFromJournalReadsExistingClientMessageId() throws {
+        var producer = ImmutableReceiptProducer()
+        XCTAssertEqual(waitingReceipt {
+            try producer.persistOriginal(ImmutableReceiptProducer.OriginalRequest(
+                requestId: "c09-im-1", kind: .pin, body: "{\"op\":\"pin\"}",
+                outcome: ImmutableReceiptProducer.outcomeAccepted))
+        }, .waitingSource(capability: ImmutableReceiptProducer.imSend))
+        XCTAssertEqual(waitingReceipt {
+            try producer.recoverFromJournal(memberId: 7, conversationId: 12, clientMessageId: "c09-im-1", journal: nil)
+        }, .waitingSource(capability: ImmutableReceiptProducer.imReadSent))
+        XCTAssertTrue(producer.originalByRequestID.isEmpty)
+        let blank = try producer.recoverFromJournal(memberId: 7, conversationId: 12, clientMessageId: nil, journal: { _, _, _ in nil })
+        XCTAssertNil(blank.requestId)
+        let original = ImmutableReceiptProducer.SentMessage(
+            clientMessageId: "c09-im-1", requestHash: "hash-im-1", content: "{\"op\":\"pin\"}")
+        let journal: (Int64, Int64, String) -> ImmutableReceiptProducer.SentMessage? = { _, _, id in
+            id == "c09-im-1" ? original : nil
+        }
+        let neverSeen = try producer.recoverFromJournal(memberId: 7, conversationId: 12,
+                                                        clientMessageId: "c09-im-missing", journal: journal)
+        XCTAssertEqual(neverSeen.requestId, "c09-im-missing")
+        XCTAssertEqual(neverSeen.outcome, ImmutableReceiptProducer.outcomeUnknown)
+        XCTAssertTrue(producer.originalByRequestID.isEmpty)
+        let recovered = try producer.recoverFromJournal(memberId: 7, conversationId: 12,
+                                                        clientMessageId: "c09-im-1", journal: journal)
+        XCTAssertEqual(recovered.requestId, "c09-im-1")
+        XCTAssertEqual(recovered.payloadHash, "hash-im-1")
+        XCTAssertEqual(recovered.originalBody, "{\"op\":\"pin\"}")
+        XCTAssertNil(recovered.kind)
+        XCTAssertTrue(producer.originalByRequestID.isEmpty)
+    }
+
     func testWaitingSourceUnsignedOriginalsAreNotRewritten() {
         var producer = ImmutableReceiptProducer()
         XCTAssertFalse(NotifySourceInventory.v12DocxPresent)
@@ -155,6 +187,10 @@ final class ImmutableReceiptProducerTests: XCTestCase {
 
     private func waiting(_ body: () throws -> Never) -> NotifyFailure? {
         do { try body(); return nil } catch let error as NotifyFailure { return error } catch { return nil }
+    }
+
+    private func waitingReceipt<T>(_ body: () throws -> T) -> NotifyFailure? {
+        do { _ = try body(); return nil } catch let error as NotifyFailure { return error } catch { return nil }
     }
 }
 

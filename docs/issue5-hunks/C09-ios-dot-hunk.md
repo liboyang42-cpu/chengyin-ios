@@ -166,3 +166,7 @@ HEAD `a36c6b9d` tests. Did not invent recoverOriginal.
 `WebhookSameEventRetryTests.testUnusedRetrySameEventOfNeverSeenDoesNotOccupyThenUniqueDeliverApplies`：未见 `evt-retry-unused-c09` 的 `retrySameEvent` 抛 `originalMissing` 且 `originalByEventID` 仍空；后续唯一 `deliver` 才是 DELIVERED。
 
 Parent python `Tests.ContractChecks.test_c09_notify_webhook_projections` **9/0**. XCTest NOT_RUN on Linux. Not 100%.
+
+## 11. Parent addendum 2026-10-23 20:40 America/Los_Angeles
+
+`recoverFromJournal` 只读既有 `im.readSentMessage` 合同。缺 journal WAITING_SOURCE。`persistOriginal` 缺 `im.send` WAITING_SOURCE，本组不发 IM。未见 clientMessageId 保持 UNKNOWN，不占 `originalByRequestID`。XCTest NOT_RUN on Linux. Not 100%.
