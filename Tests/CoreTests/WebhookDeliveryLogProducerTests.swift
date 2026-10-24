@@ -91,4 +91,34 @@ final class WebhookDeliveryLogProducerTests: XCTestCase {
         XCTAssertEqual(replay.eventId, "evt-dlv-never-c09")
         XCTAssertEqual(producer.originalByEventID.count, 1)
     }
+
+    func testUnusedRequireOriginalOfNeverSeenDoesNotOccupyThenUniqueDeliverApplies() throws {
+        let transport = WebhookDeliveryLogProducer.RecordingTransport(statusCode: 204, body: "ok")
+        var producer = WebhookDeliveryLogProducer(
+            transport: transport, nonceSource: { _ in "nonce-req" })
+        XCTAssertThrowsError(try producer.requireOriginal("evt-req-never-c09")) { error in
+            XCTAssertEqual(error as? NotifyFailure, .originalMissing("evt-req-never-c09"))
+        }
+        XCTAssertTrue(producer.originalByEventID.isEmpty, "未见投递 requireOriginal 观察不得占账")
+        XCTAssertNil(producer.originalByEventID["evt-req-never-c09"])
+        let unused = producer.recoverOriginal(
+            originalRequestID: "evt-req-never-c09",
+            projection: ImmutableReceiptProducer.projectionApplied)
+        XCTAssertEqual(unused.eventId, "evt-req-never-c09")
+        XCTAssertEqual(unused.status, WebhookDeliveryLogProducer.statusUnknown)
+        XCTAssertTrue(producer.originalByEventID.isEmpty)
+        let first = try producer.deliver(
+            WebhookDeliveryLogProducer.fixtureConfig(),
+            event: WebhookDeliveryLogProducer.OriginalEvent(
+                eventId: "evt-req-never-c09", kind: "PIN", originalBody: "original-body"),
+            hops: [WebhookSsrfHopGuard.publicHop()])
+        XCTAssertEqual(first.eventId, "evt-req-never-c09")
+        XCTAssertEqual(first.deliveryId, "dlv-evt-req-never-c09")
+        XCTAssertEqual(first.status, WebhookDeliveryLogProducer.statusDelivered)
+        XCTAssertEqual(producer.originalByEventID.count, 1)
+        XCTAssertEqual(producer.recoverOriginal(
+            originalRequestID: "evt-req-never-c09", projection: nil).deliveryId,
+                       first.deliveryId)
+        XCTAssertEqual(producer.originalByEventID.count, 1)
+    }
 }

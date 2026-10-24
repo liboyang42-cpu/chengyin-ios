@@ -121,6 +121,7 @@ class C09NotifyWebhookProjectionContracts(unittest.TestCase):
         self.assertIn("att-recover-never-c09", attachments)
         delivery = self.sources["Tests/CoreTests/WebhookDeliveryLogProducerTests.swift"]
         self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueDeliverApplies", delivery)
+        self.assertIn("testUnusedRequireOriginalOfNeverSeenDoesNotOccupyThenUniqueDeliverApplies", delivery)
         self.assertIn("evt-dlv-never-c09", delivery)
         retry = self.sources["Tests/CoreTests/WebhookSameEventRetryTests.swift"]
         self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueDeliverApplies", retry)
