@@ -3,7 +3,6 @@ import Foundation
 /// History, then an explicit ack, then the same request receipt.
 /// A rejected precheck does not keep a request id. UNKNOWN does not send again.
 /// There is no ACK durable journal on this tree. PREFERENCE and MUTE are not ACK.
-/// The shared journal hunk is `docs/issue5-hunks/C08-ack-journal-hunk.md` and is not applied here.
 public struct MessageHistoryAckEntry {
     public struct Intent: Equatable {
         public let actor: Int64
