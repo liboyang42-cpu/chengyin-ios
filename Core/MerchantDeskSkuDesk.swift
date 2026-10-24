@@ -44,6 +44,10 @@ import Foundation
     @Published public private(set) var phase: Phase = .idle
     /// Detail rule version after a successful receipt. It does not replace the receipt.
     @Published public private(set) var laterRuleVersion: Int?
+    private var sourceDetail: MerchantBusinessValue?
+    private var baselineName: String?
+    private var baselineStock: Int?
+    private var baselineRuleVersion: Int?
 
     public init(service: MerchantBusinessService, journal: any MerchantBusinessIntentStore, scope: MerchantBusinessScope,
                 production: @escaping @MainActor (MerchantBusinessMutation, Int) -> MerchantBusinessService? = { _, _ in nil }) {
@@ -83,6 +87,10 @@ import Foundation
             phase = .editing(Edit(skuName: name, price: price, stock: stock, originalPrice: kept.originalPrice,
                                   pic: kept.pic, bookable: kept.bookable, slotMinutes: kept.slotMinutes,
                                   capacityPerSlot: kept.capacityPerSlot))
+            sourceDetail = detail
+            baselineName = name
+            baselineStock = stock
+            baselineRuleVersion = row["ruleVersion"]?.integer
         } catch let error as APIError where error == .unauthorized {
             if same(started) { retire() }
         } catch let error as MerchantBusinessFailure {
@@ -108,14 +116,24 @@ import Foundation
             return
         }
         do {
-            let detail = try await service.read(.productDetail(productID: productID), access: access, token: token)
-            guard same(started) else { return }
-            guard let product = detail.object, product["editable"]?.bool == true,
+            let detail: MerchantBusinessValue
+            if let sourceDetail {
+                detail = sourceDetail
+            } else {
+                detail = try await service.read(.productDetail(productID: productID), access: access, token: token)
+                guard same(started) else { return }
+                sourceDetail = detail
+            }
+            guard detail.object?["editable"]?.bool == true,
                   let row = skuRow(detail, productID: productID, skuID: skuID),
-                  let kept = kept(row) else {
+                  let kept = kept(row),
+                  let name = row["skuName"]?.string else {
                 phase = .failed(.invalid)
                 return
             }
+            baselineName = name
+            baselineStock = row["stock"]?.integer
+            baselineRuleVersion = row["ruleVersion"]?.integer
             let requestID = "desk-" + UUID().uuidString.lowercased()
             guard let intent = journey.freeze(access: access, accountID: accountID, productID: Int64(productID),
                                                skuID: Int64(skuID), requestID: requestID, skuName: edit.skuName,
@@ -151,8 +169,26 @@ import Foundation
         }
         let writer = reviewed ?? service
         let stored = storedIntent(intent, merchantID: access.merchantID)
-        guard let sku = Int(exactly: intent.skuID), let product = Int(exactly: intent.productID) else {
+        guard let sku = Int(exactly: intent.skuID), let product = Int(exactly: intent.productID),
+              let detail = sourceDetail else {
             phase = .failed(.invalid)
+            return
+        }
+        do {
+            let fresh = try await service.read(.productDetail(productID: product), access: access, token: token)
+            guard same(started) else { return }
+            guard let row = skuRow(fresh, productID: product, skuID: sku),
+                  row["skuName"]?.string == baselineName,
+                  row["stock"]?.integer == baselineStock,
+                  row["ruleVersion"]?.integer == baselineRuleVersion else {
+                phase = .failed(.conflict)
+                return
+            }
+        } catch let error as APIError where error == .unauthorized {
+            if same(started) { retire() }
+            return
+        } catch {
+            if same(started) { phase = .failed(.unknown) }
             return
         }
         do {
@@ -173,7 +209,7 @@ import Foundation
         }
         do {
             let receipt = try await writer.executeDeskSku(change, requestID: intent.requestID, token: token,
-                                                           access: access, scope: scope, check: { [started] in
+                                                           access: access, scope: scope, detail: detail, check: { [started] in
                 guard started == self.generation else { throw MerchantBusinessFailure.stale }
             })
             guard same(started) else { return }
@@ -247,13 +283,14 @@ import Foundation
     private func matching(skuID: Int, productID: Int, merchantID: Int) throws -> MerchantBusinessIntent? {
         guard skuID > 0, productID > 0 else { return nil }
         let target = Self.target(skuID: skuID, productID: productID)
+        let legacy = "sku:\(skuID)"
         return try journal.intents().first { row in
             row.realm == scope.realm && row.accountID == scope.accountID && row.merchantID == merchantID
-                && row.target == target
+                && (row.target == target || row.target == legacy)
         }
     }
 
-    private static func target(skuID: Int, productID: Int) -> String { "sku:\(skuID)|product:\(productID)" }
+    private static func target(skuID: Int, productID: Int) -> String { "sku:\(skuID)" }
 
     private func storedIntent(_ intent: MerchantSkuSaveJourney.Intent, merchantID: Int) -> MerchantBusinessIntent {
         MerchantBusinessIntent(scope: scope, merchantID: merchantID,
@@ -293,9 +330,15 @@ import Foundation
     }
 
     private func kept(_ row: MerchantBusinessObject) -> Kept? {
-        guard let bookable = flag(row["bookable"]),
-              let slot = row["slotMinutes"]?.integer,
-              let capacity = row["capacityPerSlot"]?.integer else { return nil }
+        let bookable = flag(row["bookable"])
+        let slot = row["slotMinutes"]?.integer
+        let capacity = row["capacityPerSlot"]?.integer
+        let rule = row["ruleVersion"]?.integer
+        if bookable == nil, slot == nil, capacity == nil, rule == nil {
+            return Kept(originalPrice: moneyText(row["originalPrice"]), pic: row["pic"]?.string,
+                        bookable: false, slotMinutes: 60, capacityPerSlot: 0)
+        }
+        guard let bookable, let slot, let capacity else { return nil }
         return Kept(originalPrice: moneyText(row["originalPrice"]), pic: row["pic"]?.string,
                     bookable: bookable, slotMinutes: slot, capacityPerSlot: capacity)
     }

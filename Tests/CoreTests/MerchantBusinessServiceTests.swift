@@ -535,9 +535,24 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
                                             scope: MerchantBusinessScope(realm: "desk", accountID: 7, epoch: 9))
         await restarted.reopen(productID: 3, skuID: 44, access: access, token: "synthetic-token")
         let afterRestart = try journal.intents()
-        XCTAssertEqual(afterRestart.count, 1)
-        guard case .unknown = restarted.phase else {
-            XCTFail("restart stays unknown")
+        XCTAssertTrue(afterRestart.isEmpty)
+        guard case .applied = restarted.phase else {
+            XCTFail("original receipt clears the row")
+            return
+        }
+        await transport.setReceiptTarget(45)
+        let held = MerchantBusinessMemoryIntentStore()
+        let blocked = MerchantDeskSkuDesk(service: service, journal: held, scope: scope)
+        await blocked.load(productID: 3, skuID: 44, edit: MerchantDeskSkuDesk.Edit(skuName: "door", price: "88.00", stock: 2),
+                           access: access, accountID: 7, token: "synthetic-token")
+        await blocked.confirm(access: access, token: "synthetic-token")
+        XCTAssertEqual(try held.intents().count, 1)
+        let blockedDesk = MerchantDeskSkuDesk(service: service, journal: held,
+                                              scope: MerchantBusinessScope(realm: "desk", accountID: 7, epoch: 3))
+        await blockedDesk.reopen(productID: 3, skuID: 44, access: access, token: "synthetic-token")
+        XCTAssertEqual(try held.intents().count, 1)
+        guard case .unknown = blockedDesk.phase else {
+            XCTFail("other receipt target stays")
             return
         }
         let deniedJournal = MerchantBusinessMemoryIntentStore()
@@ -588,11 +603,13 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
         }
         let idle = await wire.requests
         XCTAssertTrue(idle.isEmpty)
+        let detail = MerchantBusinessValue.object(["productId": .int(3), "editable": .bool(true), "skus": .array([])])
         let other = MerchantBusinessMutation.saveSku(productID: 3, skuID: 44, name: "door", price: "99.00", stock: 2,
                                                      originalPrice: "100.00", pic: "media-asset:1", bookable: false,
                                                      slotMinutes: 30, capacityPerSlot: 2, ruleVersion: 3)
         do {
-            _ = try await produced.executeDeskSku(other, requestID: "desk-req-0007", token: token, access: access, scope: scope, check: {})
+            _ = try await produced.executeDeskSku(other, requestID: "desk-req-0007", token: token, access: access, scope: scope,
+                                                 detail: detail, check: {})
             XCTFail("other price")
         } catch {
             XCTAssertEqual(error as? MerchantBusinessFailure, .disabled)
@@ -600,7 +617,7 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
         let stillIdle = await wire.requests
         XCTAssertTrue(stillIdle.isEmpty)
         let receipt = try await produced.executeDeskSku(mutation, requestID: "desk-req-0007", token: token,
-                                                       access: access, scope: scope, check: {})
+                                                       access: access, scope: scope, detail: detail, check: {})
         let data = try XCTUnwrap(receipt.data.object)
         XCTAssertEqual(data["action"], .string("SKU_SAVE"))
         XCTAssertEqual(data["targetId"]?.integer, 44 as Int?)
@@ -671,6 +688,7 @@ private actor DeskSkuEntryTransport: MerchantBusinessTestTransport {
     var saveBody = ""
     var detailRuleVersion = 3
     var saveTarget = 44
+    var receiptTarget = 44
     var saveStatus = 200
     var paths: [String] { requests.compactMap { $0.url?.path } }
     func setFailSave(_ value: Bool) { failSave = value }
@@ -678,6 +696,7 @@ private actor DeskSkuEntryTransport: MerchantBusinessTestTransport {
     func setReceiptRequestID(_ value: String) { receiptRequestID = value }
     func setDetailRuleVersion(_ value: Int) { detailRuleVersion = value }
     func setSaveTarget(_ value: Int) { saveTarget = value }
+    func setReceiptTarget(_ value: Int) { receiptTarget = value }
     func setSaveStatus(_ value: Int) { saveStatus = value }
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         requests.append(request)
@@ -698,7 +717,7 @@ private actor DeskSkuEntryTransport: MerchantBusinessTestTransport {
             let fields = try JSONDecoder().decode(MerchantBusinessObject.self, from: request.httpBody ?? Data())
             let requestID = fields["requestId"]?.string ?? receiptRequestID
             let state = receiptApplied ? "APPLIED" : "NOT_FOUND"
-            let extra = receiptApplied ? #","action":"SKU_SAVE","targetType":"pms_sku","targetId":44"# : ""
+            let extra = receiptApplied ? #","action":"SKU_SAVE","targetType":"pms_sku","targetId":\#(receiptTarget)"# : ""
             let json = #"{"code":200,"data":{"requestId":"\#(requestID)","state":"\#(state)"\#(extra)}}"#
             return (Data(json.utf8), 200)
         }

@@ -84,14 +84,16 @@ public struct MerchantBusinessService {
     /// The synthetic transport stays on the test service and is not a production grant.
     @MainActor func executeDeskSku(_ mutation: MerchantBusinessMutation, requestID: String, token: String,
                                    access: MerchantBusinessAccess, scope: MerchantBusinessScope,
-                                   check: () throws -> Void) async throws -> MerchantBusinessReceipt {
+                                   detail: MerchantBusinessValue,
+                                   check: @escaping () throws -> Void) async throws -> MerchantBusinessReceipt {
         guard case .saveSku = mutation else { throw MerchantBusinessFailure.invalid }
         guard access.role == "MERCHANT_OWNER" else { throw MerchantBusinessFailure.denied }
         try access.require(mutation.permissions)
+        guard detail.object?["productId"]?.integer != nil else { throw MerchantBusinessFailure.invalid }
         try check()
         if let productionTransport {
             guard productionTransport.permits(mutation, merchantID: access.merchantID) else { throw MerchantBusinessFailure.disabled }
-            let snapshot = MerchantBusinessSnapshot(access: access, document: try MerchantBusinessDocument(query: .overview, payload: .object([:])))
+            let snapshot = MerchantBusinessSnapshot(access: access, document: try MerchantBusinessDocument(query: .overview, payload: detail))
             let review = MerchantBusinessConfirmation(id: UUID(), authorizationGeneration: nil, journalRealm: scope.realm,
                                                       mutation: mutation, requestID: requestID,
                                                       request: try mutation.request(requestID: requestID), scope: scope, baseline: snapshot)
