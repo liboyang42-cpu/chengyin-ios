@@ -390,4 +390,30 @@ final class OrdinaryCityCourseSelectorTests: XCTestCase {
         XCTAssertEqual(ledger.readback("c04-sta-class").start?.courseID, 1001)
         XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "c04-sta-never").outcome, .notFound)
     }
+    func testUnusedFinishOfUnfrozenStartDoesNotOccupyThenUniqueFreezeThenFinishApplies() throws {
+        let catalog = try catalog()
+        let selection = try XCTUnwrap(OrdinaryCityCourseSelector.select(courseID: 1001, from: catalog))
+        let safety = try XCTUnwrap(OrienteeringSafetyVersion.display(selection: selection, now: now))
+        var ledger = EventScoreOriginalLedger()
+        let unusedPayload = try XCTUnwrap(EventScoreVersionProjection.freeze(
+            selection: selection, safety: safety, originalRequestID: "c04-sta-unfrz"))
+        let unused = ledger.finish(
+            start: unusedPayload, resultVersionID: "rule-v3", originalRequestID: "c04-fin-unfrz")
+        XCTAssertEqual(unused.originalRequestID, "c04-fin-unfrz")
+        XCTAssertEqual(unused.outcome, .notFound)
+        XCTAssertEqual(unused.mintedNewRequest, false)
+        XCTAssertNil(unused.terminal)
+        XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "c04-fin-unfrz").outcome, .notFound)
+        XCTAssertEqual(ledger.readback("c04-fin-unfrz").outcome, .notFound)
+        let frozen = ledger.freeze(
+            selection: selection, safety: safety, originalRequestID: "c04-sta-unfrz")
+        XCTAssertEqual(frozen.outcome, .running)
+        let start = try XCTUnwrap(frozen.start)
+        let first = ledger.finish(
+            start: start, resultVersionID: "rule-v3", originalRequestID: "c04-fin-unfrz")
+        XCTAssertEqual(first.originalRequestID, "c04-fin-unfrz")
+        XCTAssertEqual(first.outcome, .finished)
+        XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "c04-fin-unfrz").outcome, .finished)
+        XCTAssertEqual(ledger.readback("c04-fin-unfrz").outcome, .finished)
+    }
 }

@@ -122,4 +122,25 @@ final class TeamClubEligibilityProjectionTests: XCTestCase {
         XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "reg-orig-unk").outcome, "TEAM_ELIGIBLE")
         XCTAssertEqual(ledger.readback("reg-orig-unk").registration?.memberIDs, [701, 702])
     }
+    func testUnusedIneligibleRegisterDoesNotOccupyThenUniqueRegisterApplies() {
+        let selection = selection()
+        var ledger = TeamClubEligibilityLedger()
+        let unused = ledger.register(
+            selection: selection, actorMemberID: 701, actorClubs: memberships([11, 22]),
+            team: nil, originalRequestID: "c04-reg-inelig")
+        XCTAssertEqual(unused.originalRequestID, "c04-reg-inelig")
+        XCTAssertEqual(unused.outcome, "TEAM_REQUIRED")
+        XCTAssertEqual(unused.mintedNewRequest, false)
+        XCTAssertNil(unused.registration, "不合格报名观察不得占账")
+        XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "c04-reg-inelig").outcome,
+                       EventScoreOriginalOutcome.notFound.rawValue)
+        XCTAssertNil(ledger.readback("c04-reg-inelig").registration)
+        let first = ledger.register(
+            selection: selection, actorMemberID: 701, actorClubs: memberships([11, 22]),
+            team: team(), originalRequestID: "c04-reg-inelig")
+        XCTAssertEqual(first.originalRequestID, "c04-reg-inelig")
+        XCTAssertEqual(first.outcome, "TEAM_ELIGIBLE")
+        XCTAssertEqual(ledger.recoverOriginal(originalRequestID: "c04-reg-inelig").outcome, "TEAM_ELIGIBLE")
+        XCTAssertEqual(ledger.readback("c04-reg-inelig").registration?.memberIDs, [701, 702])
+    }
 }
