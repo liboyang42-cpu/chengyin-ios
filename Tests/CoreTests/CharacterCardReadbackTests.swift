@@ -216,31 +216,31 @@ import FoundationNetworking
             selectAction: { _, _, _ in "other-action" })
         XCTAssertNil(swapped)
     }
-    func testRecoverFromGameReceiptReadsPendingWithoutApplying() throws {
-        XCTAssertNil(try GameReceiptOriginalRecovery.recoverFromGameReceipt(
+    func testRecoverFromGameReceiptReadsPendingWithoutApplying() async throws {
+        XCTAssertNil(try await GameReceiptOriginalRecovery.recoverFromGameReceipt(
             memberID: 0, activityID: 11, requestID: "game-req-01",
             receipt: { _, _, _ in ("game-req-01", 11, "APPLIED", true) }))
         do {
-            _ = try GameReceiptOriginalRecovery.recoverFromGameReceipt(
+            _ = try await GameReceiptOriginalRecovery.recoverFromGameReceipt(
                 memberID: 7, activityID: 11, requestID: "game-req-01", receipt: nil)
             XCTFail("missing game receipt must WAITING_SOURCE")
         } catch let waiting as GameReceiptOriginalRecovery.WaitingSource {
             XCTAssertEqual(waiting.capability, GameReceiptOriginalRecovery.gameReceipt)
         }
-        let pending = try GameReceiptOriginalRecovery.recoverFromGameReceipt(
+        let pending = try await GameReceiptOriginalRecovery.recoverFromGameReceipt(
             memberID: 7, activityID: 11, requestID: "c02-game-missing",
             receipt: { _, _, id in (id, 11, "PENDING", false) })
         XCTAssertEqual(pending?.outcome, "PENDING")
         XCTAssertEqual(pending?.applied, false)
-        let applied = try GameReceiptOriginalRecovery.recoverFromGameReceipt(
+        let applied = try await GameReceiptOriginalRecovery.recoverFromGameReceipt(
             memberID: 7, activityID: 11, requestID: "game-req-01",
             receipt: { _, _, id in id == "game-req-01" ? (id, 11, "APPLIED", true) : ("other-request", 11, "APPLIED", true) })
         XCTAssertEqual(applied?.applied, true)
         XCTAssertEqual(applied?.replayed, true)
-        XCTAssertNil(try GameReceiptOriginalRecovery.recoverFromGameReceipt(
+        XCTAssertNil(try await GameReceiptOriginalRecovery.recoverFromGameReceipt(
             memberID: 7, activityID: 11, requestID: "c02-game-other",
             receipt: { _, _, _ in ("other-request", 11, "APPLIED", true) }))
-        XCTAssertNil(try GameReceiptOriginalRecovery.recoverFromGameReceipt(
+        XCTAssertNil(try await GameReceiptOriginalRecovery.recoverFromGameReceipt(
             memberID: 7, activityID: 11, requestID: "game-req-01",
             receipt: { _, _, id in (id, 99, "APPLIED", true) }))
     }
