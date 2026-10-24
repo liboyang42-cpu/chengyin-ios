@@ -128,6 +128,10 @@ class C07FulfillmentProjectionContracts(unittest.TestCase):
         self.assertIn("case int(Int64)", supply)
         self.assertIn("case transport(String)", supply)
         self.assertIn("testRecoverFromDeskReceiptReadsAppliedWithoutHolding", tests)
+        self.assertIn('action == "SKU_SAVE"', supply)
+        self.assertIn('targetType == "pms_sku"', supply)
+        self.assertIn("skuSaveRestartPayload", supply)
+        self.assertIn("SAVE_SKU is not the original writer", tests)
 
     def test_holding_is_not_issuance_and_duplicate_does_not_double_hold(self):
         hold = self.sources["Core/EntitlementHoldProjection.swift"]

@@ -125,9 +125,14 @@ public struct MerchantSupplyDryRunProjection: Equatable {
     public func recoverFromDeskReceipt(
         ownerMemberID: Int64?,
         requestID: String?,
+        storeID: Int64? = nil,
+        expectedSkuID: Int64? = nil,
         receipt: ((Int64, String) async throws -> Wire)?
     ) async throws -> Wire? {
         guard let ownerMemberID, ownerMemberID > 0, let id = Self.parse(requestID) else { return nil }
+        if let storeID, storeID <= 0 || storeID == ownerMemberID {
+            return nil
+        }
         guard let receipt else {
             throw WireFailure.waitingSource(Self.deskReceipt)
         }
@@ -142,11 +147,24 @@ public struct MerchantSupplyDryRunProjection: Equatable {
         if case .int(let owner) = fields["ownerMemberId"], owner != ownerMemberID {
             throw WireFailure.notThisRequest
         }
-        guard case .string(let action) = fields["action"], !action.isEmpty,
-              case .int = fields["targetId"] else {
+        if case .int(let store) = fields["storeId"], let storeID, store != storeID {
+            throw WireFailure.notThisRequest
+        }
+        guard case .string(let state) = fields["state"], state == "APPLIED",
+              case .string(let action) = fields["action"], action == "SKU_SAVE",
+              case .string(let targetType) = fields["targetType"], targetType == "pms_sku",
+              case .int(let target) = fields["targetId"], target > 0 else {
+            throw WireFailure.notThisRequest
+        }
+        if let expectedSkuID, target != expectedSkuID {
             throw WireFailure.notThisRequest
         }
         return found
+    }
+    /// The original journal does not keep the form. Restart cannot rebuild the save body.
+    public func skuSaveRestartPayload(originalRequestID: String) -> String? {
+        _ = Self.parse(originalRequestID)
+        return nil
     }
     private func compute(_ fact: MerchantSupplyDryRunFact?, serverNow: Date?,
                          requestedQty: Int) -> MerchantSupplyDryRunDecision {

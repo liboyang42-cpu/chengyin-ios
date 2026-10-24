@@ -210,21 +210,40 @@ final class MerchantSupplyDryRunProjectionTests: XCTestCase {
             XCTAssertEqual(transport, .transport("timeout"))
         }
         let recovered = try await supply.recoverFromDeskReceipt(ownerMemberID: 7, requestID: "desk-req-01",
+                                                                storeID: 3, expectedSkuID: 44,
                                                                 receipt: { owner, id in
             owner == 7 && id == "desk-req-01"
                 ? .object(["requestId": .string(id), "state": .string("APPLIED"),
-                           "action": .string("SAVE_SKU"), "targetId": .int(44)])
+                           "action": .string("SKU_SAVE"), "targetType": .string("pms_sku"),
+                           "targetId": .int(44), "storeId": .int(3)])
                 : .object(["requestId": .string("other"), "state": .string("APPLIED"),
-                           "action": .string("SAVE_SKU"), "targetId": .int(1)])
+                           "action": .string("SKU_SAVE"), "targetType": .string("pms_sku"),
+                           "targetId": .int(1)])
         })
         XCTAssertEqual(recovered, .object(["requestId": .string("desk-req-01"), "state": .string("APPLIED"),
-                                           "action": .string("SAVE_SKU"), "targetId": .int(44)]))
+                                           "action": .string("SKU_SAVE"), "targetType": .string("pms_sku"),
+                                           "targetId": .int(44), "storeId": .int(3)]))
+        XCTAssertNil(supply.skuSaveRestartPayload(originalRequestID: "desk-req-01"))
+        let storeUsedAsAccount = try await supply.recoverFromDeskReceipt(
+            ownerMemberID: 7, requestID: "desk-req-01", storeID: 7, receipt: { _, _ in .string("APPLIED") })
+        XCTAssertNil(storeUsedAsAccount)
+        do {
+            _ = try await supply.recoverFromDeskReceipt(ownerMemberID: 7, requestID: "desk-req-01",
+                                                        expectedSkuID: 44, receipt: { _, id in
+                .object(["requestId": .string(id), "state": .string("APPLIED"),
+                         "action": .string("SAVE_SKU"), "targetType": .string("pms_sku"),
+                         "targetId": .int(44)])
+            })
+            XCTFail("SAVE_SKU is not the original writer")
+        } catch let wrongAction as MerchantSupplyDryRunProjection.WireFailure {
+            XCTAssertEqual(wrongAction, .notThisRequest)
+        }
         do {
             _ = try await supply.recoverFromDeskReceipt(ownerMemberID: 7, requestID: "desk-req-01",
                                                         receipt: { _, id in
                 .object(["requestId": .string(id), "state": .string("APPLIED"),
-                         "action": .string("SAVE_SKU"), "targetId": .int(44),
-                         "ownerMemberId": .int(8)])
+                         "action": .string("SKU_SAVE"), "targetType": .string("pms_sku"),
+                         "targetId": .int(44), "ownerMemberId": .int(8)])
             })
             XCTFail("another owner is not this desk receipt")
         } catch let wrongOwner as MerchantSupplyDryRunProjection.WireFailure {
