@@ -78,7 +78,8 @@ final class MerchantBusinessServiceTests: XCTestCase {
                     capacityPerSlot: 0, ruleVersion: 4),
             requestID: "desk-req-01", token: "synthetic-token")
         XCTAssertEqual(sent.data.object?["skuId"], .int(44))
-        let request = try XCTUnwrap(await fake.requests.first)
+        let recorded = await fake.requests
+        let request = try XCTUnwrap(recorded.first)
         XCTAssertEqual(request.httpMethod, "POST")
         XCTAssertEqual(request.url?.path, "/test/api/merchant/desk/products/sku/save")
         let body = String(decoding: try XCTUnwrap(request.httpBody), as: UTF8.self)

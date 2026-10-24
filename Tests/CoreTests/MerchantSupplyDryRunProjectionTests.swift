@@ -263,7 +263,8 @@ final class MerchantSupplyDryRunProjectionTests: XCTestCase {
         let detailValue = MerchantBusinessValue.object([
             "productId": .int(3),
             "skus": .array([.object([
-                "skuId": .int(44), "skuName": .string("door"), "price": .string("1"), "stock": .int(2)
+                "skuId": .int(44), "skuName": .string("door"), "price": .string("1"), "stock": .int(2),
+                "bookable": .bool(false), "slotMinutes": .int(60), "capacityPerSlot": .int(0)
             ])])
         ])
         let row = try XCTUnwrap(journey.readBack(detail: detailValue, intent: frozen, laterFormPrice: "99"))
@@ -281,7 +282,8 @@ final class MerchantSupplyDryRunProjectionTests: XCTestCase {
         let numericEightyEight = MerchantBusinessValue.object([
             "productId": .int(3),
             "skus": .array([.object([
-                "skuId": .int(44), "skuName": .string("door"), "price": .int(88), "stock": .int(2)
+                "skuId": .int(44), "skuName": .string("door"), "price": .int(88), "stock": .int(2),
+                "bookable": .int(0), "slotMinutes": .int(60), "capacityPerSlot": .int(0)
             ])])
         ])
         let sameAmount = try XCTUnwrap(journey.readBack(detail: numericEightyEight, intent: priced, laterFormPrice: "99.00"))
@@ -323,6 +325,33 @@ final class MerchantSupplyDryRunProjectionTests: XCTestCase {
             ])])
         ])
         XCTAssertEqual(journey.readBack(detail: ruledDetail, intent: ruled, laterFormPrice: "99.00")?.price, "88.00")
+        XCTAssertEqual(ruled.ruleVersion, 3)
+        let afterSave = MerchantBusinessValue.object([
+            "productId": .int(3),
+            "skus": .array([.object([
+                "skuId": .int(44), "skuName": .string("door"), "price": .int(88), "stock": .int(2),
+                "originalPrice": .string("100.00"), "bookable": .int(1),
+                "slotMinutes": .int(30), "capacityPerSlot": .int(2), "ruleVersion": .int(4), "pic": .null
+            ])])
+        ])
+        XCTAssertEqual(journey.readBack(detail: afterSave, intent: ruled, laterFormPrice: "99.00")?.price, "88.00")
+        let bumpedTwice = MerchantBusinessValue.object([
+            "productId": .int(3),
+            "skus": .array([.object([
+                "skuId": .int(44), "skuName": .string("door"), "price": .int(88), "stock": .int(2),
+                "originalPrice": .string("100.00"), "bookable": .bool(true),
+                "slotMinutes": .int(30), "capacityPerSlot": .int(2), "ruleVersion": .int(5)
+            ])])
+        ])
+        XCTAssertNil(journey.readBack(detail: bumpedTwice, intent: ruled, laterFormPrice: "88.00"))
+        let missingSlot = MerchantBusinessValue.object([
+            "productId": .int(3),
+            "skus": .array([.object([
+                "skuId": .int(44), "skuName": .string("door"), "price": .string("1"), "stock": .int(2),
+                "bookable": .bool(false), "capacityPerSlot": .int(0)
+            ])])
+        ])
+        XCTAssertNil(journey.readBack(detail: missingSlot, intent: frozen, laterFormPrice: "99"))
         let otherVersion = MerchantBusinessValue.object([
             "productId": .int(3),
             "skus": .array([.object([

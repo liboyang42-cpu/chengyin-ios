@@ -166,6 +166,95 @@ public struct MerchantSupplyDryRunProjection: Equatable {
         _ = Self.parse(originalRequestID)
         return nil
     }
+
+    private func compute(_ fact: MerchantSupplyDryRunFact?, serverNow: Date?,
+                         requestedQty: Int) -> MerchantSupplyDryRunDecision {
+        guard let serverNow else {
+            return Self.unknown(Self.parse(fact?.originalRequestID), "serverNow missing")
+        }
+        guard let fact else { return Self.unknown(nil, "supply fact missing") }
+        let requestID = fact.originalRequestID
+        if requestID == nil || fact.skuID == nil || fact.skuID! <= 0
+            || fact.merchantID == nil || fact.merchantID! <= 0 {
+            return Self.unknown(requestID, "sku or originalRequestID missing")
+        }
+        if requestedQty < 1 {
+            return Self.reject(requestID, 0, "requested qty must be at least 1")
+        }
+        guard let stock = fact.stock else { return Self.unknown(requestID, "stock missing") }
+        if stock < Int64(requestedQty) {
+            return Self.reject(requestID, remaining(fact), "stock insufficient")
+        }
+        guard let start = fact.validStartInclusive, let end = fact.validEndExclusive else {
+            return Self.unknown(requestID, "validity window missing")
+        }
+        if !(start < end) { return Self.unknown(requestID, "validity window not half-open") }
+        if serverNow < start || !(serverNow < end) {
+            return Self.reject(requestID, remaining(fact), "outside validity window")
+        }
+        if fact.bookable {
+            let booking = evaluateBooking(fact, serverNow: serverNow, requestedQty: requestedQty,
+                                          requestID: requestID)
+            if booking.outcome != .accept { return booking }
+        }
+        return Self.accept(requestID, remaining(fact))
+    }
+    private func evaluateBooking(_ fact: MerchantSupplyDryRunFact, serverNow: Date,
+                                 requestedQty: Int, requestID: String?) -> MerchantSupplyDryRunDecision {
+        guard let slot = fact.slotMinutes, let perSlot = fact.capacityPerSlot else {
+            return Self.unknown(requestID, "booking rule missing")
+        }
+        if slot < 15 || slot > 480 || slot % 15 != 0 {
+            return Self.reject(requestID, remaining(fact), "slot minutes invalid")
+        }
+        if perSlot < 1 || perSlot > 1000 {
+            return Self.reject(requestID, remaining(fact), "bookable capacity per slot must be 1-1000")
+        }
+        guard let total = fact.capacityTotal, let reserved = fact.capacityReserved else {
+            return Self.unknown(requestID, "hours-capacity slot missing")
+        }
+        if reserved < 0 || total < 0 || reserved > total {
+            return Self.unknown(requestID, "capacity slot inconsistent")
+        }
+        let remainingHours = total - reserved
+        if remainingHours < requestedQty {
+            return Self.reject(requestID, remainingHours, "hours-capacity exhausted")
+        }
+        guard let open = fact.hoursOpenMinute, let close = fact.hoursCloseMinute else {
+            return Self.unknown(requestID, "business hours missing")
+        }
+        if open < 0 || close < 0 || open >= close || close > 24 * 60 {
+            return Self.unknown(requestID, "business hours not a documented daytime window")
+        }
+        let minuteOfDay = Self.minuteOfDay(serverNow: serverNow)
+        if minuteOfDay < open || minuteOfDay >= close {
+            return Self.reject(requestID, remainingHours, "outside business hours")
+        }
+        return Self.accept(requestID, remainingHours)
+    }
+    private func remaining(_ fact: MerchantSupplyDryRunFact) -> Int {
+        if fact.bookable, let total = fact.capacityTotal, let reserved = fact.capacityReserved {
+            return max(0, total - reserved)
+        }
+        guard let stock = fact.stock, stock <= Int64(Int.max) else { return 0 }
+        return Int(stock)
+    }
+    private static func accept(_ requestID: String?, _ remaining: Int) -> MerchantSupplyDryRunDecision {
+        MerchantSupplyDryRunDecision(outcome: .accept, originalRequestID: requestID,
+                                     remainingCapacity: remaining, writesStock: false,
+                                     writesReservation: false, reason: "dry-run accept")
+    }
+    private static func reject(_ requestID: String?, _ remaining: Int, _ reason: String)
+        -> MerchantSupplyDryRunDecision {
+        MerchantSupplyDryRunDecision(outcome: .reject, originalRequestID: requestID,
+                                     remainingCapacity: remaining, writesStock: false,
+                                     writesReservation: false, reason: reason)
+    }
+    private static func unknown(_ requestID: String?, _ reason: String) -> MerchantSupplyDryRunDecision {
+        MerchantSupplyDryRunDecision(outcome: .unknown, originalRequestID: requestID,
+                                     remainingCapacity: 0, writesStock: false,
+                                     writesReservation: false, reason: reason)
+    }
 }
 
 /// Desk product SKU save. `access/me` staff is not the merchant owner.
@@ -322,14 +411,34 @@ public struct MerchantSkuSaveJourney: Equatable, Sendable {
     }
 
     private func ruleMatches(_ row: [String: MerchantBusinessValue], _ intent: Intent) -> Bool {
-        if let version = intent.ruleVersion, row["ruleVersion"]?.integer != version { return false }
-        if row["slotMinutes"] != nil, row["slotMinutes"]?.integer != intent.slotMinutes { return false }
-        if row["capacityPerSlot"] != nil, row["capacityPerSlot"]?.integer != intent.capacityPerSlot { return false }
-        if row["bookable"] != nil, row["bookable"]?.bool != intent.bookable { return false }
+        guard row["slotMinutes"]?.integer == intent.slotMinutes,
+              row["capacityPerSlot"]?.integer == intent.capacityPerSlot,
+              sameFlag(row["bookable"], intent.bookable),
+              sameOptionalText(row["pic"], intent.pic) else { return false }
         if let original = intent.originalPrice {
-            guard let wire = row["originalPrice"], sameMoney(wire, original) else { return false }
+            guard let wire = row["originalPrice"], wire != .null, sameMoney(wire, original) else { return false }
+        } else if let wire = row["originalPrice"], wire != .null {
+            return false
         }
-        return true
+        return versionMatches(row["ruleVersion"], intent.ruleVersion)
+    }
+
+    /// Frozen version stays v. A successful CAS read is v or v+1. The same key does not become v+2.
+    /// A new rule is inserted at version 1.
+    private func versionMatches(_ wire: MerchantBusinessValue?, _ frozen: Int?) -> Bool {
+        let shown = wire == nil || wire == .null ? nil : wire?.integer
+        if let frozen { return shown == frozen || shown == frozen + 1 }
+        return shown == nil || shown == 1
+    }
+
+    private func sameFlag(_ wire: MerchantBusinessValue?, _ expected: Bool) -> Bool {
+        if wire?.bool == expected { return true }
+        return wire?.integer == (expected ? 1 : 0)
+    }
+
+    private func sameOptionalText(_ wire: MerchantBusinessValue?, _ expected: String?) -> Bool {
+        if let expected { return wire?.string == expected }
+        return wire == nil || wire == .null || wire?.string == nil
     }
 
     public func detailMatches(_ detailSkuID: Int64, intent: Intent) -> Bool {
@@ -353,94 +462,5 @@ public struct MerchantSkuSaveJourney: Equatable, Sendable {
               fields["targetType"]?.string == "pms_sku",
               let target = fields["targetId"]?.integer, target > 0 else { return unknown }
         return Recovery(requestID: parsed, skuID: Int64(target), payload: nil, outcome: "APPLIED")
-    }
-}
-    private func compute(_ fact: MerchantSupplyDryRunFact?, serverNow: Date?,
-                         requestedQty: Int) -> MerchantSupplyDryRunDecision {
-        guard let serverNow else {
-            return Self.unknown(Self.parse(fact?.originalRequestID), "serverNow missing")
-        }
-        guard let fact else { return Self.unknown(nil, "supply fact missing") }
-        let requestID = fact.originalRequestID
-        if requestID == nil || fact.skuID == nil || fact.skuID! <= 0
-            || fact.merchantID == nil || fact.merchantID! <= 0 {
-            return Self.unknown(requestID, "sku or originalRequestID missing")
-        }
-        if requestedQty < 1 {
-            return Self.reject(requestID, 0, "requested qty must be at least 1")
-        }
-        guard let stock = fact.stock else { return Self.unknown(requestID, "stock missing") }
-        if stock < Int64(requestedQty) {
-            return Self.reject(requestID, remaining(fact), "stock insufficient")
-        }
-        guard let start = fact.validStartInclusive, let end = fact.validEndExclusive else {
-            return Self.unknown(requestID, "validity window missing")
-        }
-        if !(start < end) { return Self.unknown(requestID, "validity window not half-open") }
-        if serverNow < start || !(serverNow < end) {
-            return Self.reject(requestID, remaining(fact), "outside validity window")
-        }
-        if fact.bookable {
-            let booking = evaluateBooking(fact, serverNow: serverNow, requestedQty: requestedQty,
-                                          requestID: requestID)
-            if booking.outcome != .accept { return booking }
-        }
-        return Self.accept(requestID, remaining(fact))
-    }
-    private func evaluateBooking(_ fact: MerchantSupplyDryRunFact, serverNow: Date,
-                                 requestedQty: Int, requestID: String?) -> MerchantSupplyDryRunDecision {
-        guard let slot = fact.slotMinutes, let perSlot = fact.capacityPerSlot else {
-            return Self.unknown(requestID, "booking rule missing")
-        }
-        if slot < 15 || slot > 480 || slot % 15 != 0 {
-            return Self.reject(requestID, remaining(fact), "slot minutes invalid")
-        }
-        if perSlot < 1 || perSlot > 1000 {
-            return Self.reject(requestID, remaining(fact), "bookable capacity per slot must be 1-1000")
-        }
-        guard let total = fact.capacityTotal, let reserved = fact.capacityReserved else {
-            return Self.unknown(requestID, "hours-capacity slot missing")
-        }
-        if reserved < 0 || total < 0 || reserved > total {
-            return Self.unknown(requestID, "capacity slot inconsistent")
-        }
-        let remainingHours = total - reserved
-        if remainingHours < requestedQty {
-            return Self.reject(requestID, remainingHours, "hours-capacity exhausted")
-        }
-        guard let open = fact.hoursOpenMinute, let close = fact.hoursCloseMinute else {
-            return Self.unknown(requestID, "business hours missing")
-        }
-        if open < 0 || close < 0 || open >= close || close > 24 * 60 {
-            return Self.unknown(requestID, "business hours not a documented daytime window")
-        }
-        let minuteOfDay = Self.minuteOfDay(serverNow: serverNow)
-        if minuteOfDay < open || minuteOfDay >= close {
-            return Self.reject(requestID, remainingHours, "outside business hours")
-        }
-        return Self.accept(requestID, remainingHours)
-    }
-    private func remaining(_ fact: MerchantSupplyDryRunFact) -> Int {
-        if fact.bookable, let total = fact.capacityTotal, let reserved = fact.capacityReserved {
-            return max(0, total - reserved)
-        }
-        guard let stock = fact.stock, stock <= Int64(Int.max) else { return 0 }
-        return Int(stock)
-    }
-    private static func accept(_ requestID: String?, _ remaining: Int) -> MerchantSupplyDryRunDecision {
-        MerchantSupplyDryRunDecision(outcome: .accept, originalRequestID: requestID,
-                                     remainingCapacity: remaining, writesStock: false,
-                                     writesReservation: false, reason: "dry-run accept")
-    }
-    private static func reject(_ requestID: String?, _ remaining: Int, _ reason: String)
-        -> MerchantSupplyDryRunDecision {
-        MerchantSupplyDryRunDecision(outcome: .reject, originalRequestID: requestID,
-                                     remainingCapacity: remaining, writesStock: false,
-                                     writesReservation: false, reason: reason)
-    }
-    private static func unknown(_ requestID: String?, _ reason: String) -> MerchantSupplyDryRunDecision {
-        MerchantSupplyDryRunDecision(outcome: .unknown, originalRequestID: requestID,
-                                     remainingCapacity: 0, writesStock: false,
-                                     writesReservation: false, reason: reason)
     }
 }

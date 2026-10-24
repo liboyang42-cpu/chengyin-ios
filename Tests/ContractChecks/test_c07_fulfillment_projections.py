@@ -144,6 +144,7 @@ class C07FulfillmentProjectionContracts(unittest.TestCase):
         self.assertIn("sameMoney", supply)
         self.assertIn("en_US_POSIX", supply)
         self.assertIn("normalizedMoney", supply)
+        self.assertIn("v+1", supply)
         self.assertIn("ruleVersion", supply)
         self.assertIn("\\z", supply)
         self.assertNotIn("numberText", supply.split("func readBack(", 1)[1].split("func detailMatches", 1)[0])
