@@ -434,14 +434,14 @@ public struct MessageContainerOriginalAck: Equatable, Sendable {
                                     channelKind: Int, lease: ChannelPageLease, currentLease: () -> ChannelPageLease,
                                     isolation: ChannelRevokeIsolation, sameScope: (Int64, Int64) -> Bool,
                                     writer: (Int64, Int64, Int64, String) throws -> [String: Any]) throws -> Receipt {
-        guard samePage(lease, currentLease()) else { throw ChannelAuthorizationError.isolatedLateRequest }
+        guard Self.samePage(lease, currentLease()) else { throw ChannelAuthorizationError.isolatedLateRequest }
         guard Int64(lease.identity.accountID) == actor, Int64(lease.conversationID) == channelID else {
             throw ChannelAuthorizationError.account4Mismatch
         }
         _ = try isolation.admit(ChannelIsolatedRequest(lease: lease, action: .channelWrite))
         let receipt = try acknowledge(actor: actor, channelID: channelID, lastMessageID: lastMessageID,
                                       requestID: requestID, channelKind: channelKind, sameScope: sameScope, writer: writer)
-        guard samePage(lease, currentLease()) else { throw ChannelAuthorizationError.isolatedLateRequest }
+        guard Self.samePage(lease, currentLease()) else { throw ChannelAuthorizationError.isolatedLateRequest }
         guard sameScope(actor, channelID) else { throw ChannelAuthorizationError.notMember }
         guard Int64(lease.identity.accountID) == actor, Int64(lease.conversationID) == channelID else {
             throw ChannelAuthorizationError.account4Mismatch
