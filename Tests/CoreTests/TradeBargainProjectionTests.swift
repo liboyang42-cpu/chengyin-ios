@@ -55,6 +55,31 @@ final class TradeBargainProjectionTests: XCTestCase {
         XCTAssertEqual(dealt.success, true)
         XCTAssertEqual(dealt.bonus, 2)
     }
+    func testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueAcceptApplies() throws {
+        var trade = TradeBargainProjection()
+        var unseen = MechanismFirstJourney.seededPlay()
+        unseen.originalAction = nil
+        unseen.playerChoice = nil
+        let recovered = try trade.recoverOriginal(&unseen, originalRequestID: "c03-bargain-never")
+        XCTAssertEqual(recovered.requestId, "c03-bargain-never")
+        XCTAssertEqual(recovered.status, MechanismStatus.unknown.rawValue)
+        XCTAssertEqual(recovered.mintedNewRequest, false)
+        XCTAssertEqual(recovered.replay, false)
+        XCTAssertNil(trade.binder.existing("c03-bargain-never"))
+        unseen.playerChoice = MechanismChoice(mechanism: "tradeBargain", action: "ACCEPT")
+        let applied = try trade.apply(&unseen, originalRequestID: "c03-bargain-never")
+        XCTAssertEqual(applied.requestId, "c03-bargain-never")
+        XCTAssertEqual(applied.status, MechanismStatus.applied.rawValue)
+        XCTAssertEqual(applied.accepted, true)
+        XCTAssertEqual(applied.replay, false)
+        XCTAssertEqual(applied.mintedNewRequest, false)
+        XCTAssertEqual(trade.binder.existing("c03-bargain-never")?.status, MechanismStatus.applied.rawValue)
+        XCTAssertEqual(trade.binder.existing("c03-bargain-never")?.requestId, "c03-bargain-never")
+        let replay = try trade.apply(&unseen, originalRequestID: "c03-bargain-never")
+        XCTAssertEqual(replay.replay, true)
+        XCTAssertEqual(replay.requestId, "c03-bargain-never")
+        XCTAssertEqual(trade.binder.existing("c03-bargain-never")?.status, MechanismStatus.applied.rawValue)
+    }
     private func waiting(_ body: () throws -> Never) -> MechanismFailure? {
         do { try body(); return nil } catch let error as MechanismFailure { return error } catch { return nil }
     }

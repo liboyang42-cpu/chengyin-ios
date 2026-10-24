@@ -79,6 +79,9 @@ class C03SixMechanismProjectionContracts(unittest.TestCase):
         self.assertIn("testMissingRequestIDIsRefusedNeverStoredAsEmptyString", text)
         self.assertIn("testRecoverOfNeverSeenIdDoesNotOccupyLedgerThenOneShotApplies", text)
         self.assertIn("c03-never-seen", text)
+        trade_tests = self.sources["Tests/CoreTests/TradeBargainProjectionTests.swift"]
+        self.assertIn("testRecoverOriginalOfNeverSeenIdDoesNotOccupyThenUniqueAcceptApplies", trade_tests)
+        self.assertIn("c03-bargain-never", trade_tests)
         self.assertIn("missingOriginalRequestID", text)
         self.assertNotIn('requestId = ""', text)
         kernel = self.sources["Core/MechanismRequestIdProjection.swift"]
