@@ -55,3 +55,12 @@ Inventoried, not rewritten:
 
 Linux: Python contract `Tests/ContractChecks/test_offline_pack_and_nav_consent.py`.
 Swift XCTest: authored, **NOT_RUN** on Linux.
+
+## Addendum 2026-10-23 18:07 America/Los_Angeles
+
+HEAD `c13aa74c`. Class-level occupancy without inventing `recoverOriginal` on Navigation or OfflinePack:
+
+- `testUnusedConsentDoesNotOccupyShareThenUniqueShareGrantApplies` — unused start does not occupy nav grant; unique nav grant does not occupy share; unique location-share grant is the first share write
+- `testUnusedResumeDoesNotOccupyThenUniqueStartDownloadApplies` — unused resume of `op-class-never` throws `.notPaused` without occupying `operationID`; unique `startDownload("op-class")` is the first write
+
+Parent python `Tests.ContractChecks.test_offline_pack_and_nav_consent` **13/0**. XCTest NOT_RUN. SHA256 digest-length-only; git whitelist unchanged.
