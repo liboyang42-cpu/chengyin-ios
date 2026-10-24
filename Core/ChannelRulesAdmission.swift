@@ -1,4 +1,5 @@
 import Foundation
+import CoreFoundation
 
 /// Rules-consent gate over existing P04 dual-version CAS. Join is admitted only
 /// against the published rules version captured by the catalog snapshot.
@@ -47,6 +48,50 @@ public struct ChannelRulesAdmission: Equatable, Sendable {
         return sent
     }
 
+    /// Original `ChannelAdmissionService.cancel`. Current rules are not rechecked. One call, no local store.
+    public typealias OriginalAdmissionCancel = (
+        _ actorID: Int64, _ applicationID: Int64, _ requestID: String
+    ) throws -> [String: Any]
+
+    public func cancelOriginal(applicationID: Int64, requestID: String,
+                               channel: OriginalAdmissionCancel? = nil) throws -> [String: Any] {
+        guard applicationID > 0, Self.validRequestID(requestID) else { throw ChannelAuthorizationError.invalidCatalog }
+        guard let channel else { throw ChannelAuthorizationError.waitingSource }
+        let sent = try channel(Int64(identity.accountID), applicationID, requestID)
+        if let echoed = sent["request_id"] as? String, echoed != requestID {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+        guard Self.positiveID(sent["id"]) == applicationID, Self.exactInt(sent["status"]) == 3 else {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+        return sent
+    }
+
+    /// Original `ChannelAdmissionService.leave`. Current rules are not rechecked. One call, no local store.
+    public typealias OriginalAdmissionLeave = (
+        _ actorID: Int64, _ kind: Int, _ spaceID: Int64, _ requestID: String
+    ) throws -> [String: Any]
+
+    public func leaveOriginal(kind: Int, spaceID: Int64, requestID: String,
+                              channel: OriginalAdmissionLeave? = nil) throws -> [String: Any] {
+        guard (kind == 1 || kind == 3), spaceID > 0, Self.validRequestID(requestID) else {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+        guard let channel else { throw ChannelAuthorizationError.waitingSource }
+        let sent = try channel(Int64(identity.accountID), kind, spaceID, requestID)
+        if let echoed = sent["request_id"] as? String, echoed != requestID {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+        guard (sent["left"] as? Bool) == true else { throw ChannelAuthorizationError.invalidCatalog }
+        if let echoedKind = Self.exactInt(sent["guild_kind"]), echoedKind != kind {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+        if let echoedSpace = Self.positiveID(sent["guild_id"]), echoedSpace != spaceID {
+            throw ChannelAuthorizationError.invalidCatalog
+        }
+        return sent
+    }
+
     /// Original `receipt`. It does not submit again. A missing row stays UNKNOWN on the same request id.
     public func recoverOriginal(requestID: String, receipt: (Int64, String) throws -> [String: Any]) throws -> [String: Any] {
         guard Self.validRequestID(requestID) else { throw ChannelAuthorizationError.invalidCatalog }
@@ -56,6 +101,23 @@ public struct ChannelRulesAdmission: Equatable, Sendable {
             guard row["operation"] == nil, row["result"] == nil else { throw ChannelAuthorizationError.invalidCatalog }
         }
         return row
+    }
+
+    private static func positiveID(_ value: Any?) -> Int64? {
+        if value == nil || value is NSNull { return nil }
+        if let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() {
+            let int = number.int64Value
+            if int > 0, number.doubleValue == Double(int) { return int }
+        }
+        if let text = value as? String, let int = Int64(text), int > 0, String(int) == text { return int }
+        return nil
+    }
+
+    private static func exactInt(_ value: Any?) -> Int? {
+        guard let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() else { return nil }
+        let int = number.intValue
+        guard number.doubleValue == Double(int) else { return nil }
+        return int
     }
 
     private static func validRequestID(_ value: String) -> Bool {

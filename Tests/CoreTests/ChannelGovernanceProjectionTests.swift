@@ -801,6 +801,42 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         XCTAssertEqual(recovered["state"] as? String, "UNKNOWN")
     }
 
+    func testAdmissionCancelAndLeaveDoNotRecheckRules() throws {
+        let gate = try admission(try identity(), version: 9)
+        XCTAssertThrowsError(try gate.cancelOriginal(applicationID: 15, requestID: "c08-cancel-01")) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .waitingSource)
+        }
+        XCTAssertThrowsError(try gate.leaveOriginal(kind: 3, spaceID: 12, requestID: "c08-leave-01")) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .waitingSource)
+        }
+        var cancels = 0
+        var leaves = 0
+        let cancelled = try gate.cancelOriginal(applicationID: 15, requestID: "c08-cancel-01") { actor, application, request in
+            cancels += 1
+            XCTAssertEqual(actor, 7)
+            XCTAssertEqual(application, 15)
+            XCTAssertEqual(request, "c08-cancel-01")
+            return ["id": "15", "status": 3]
+        }
+        XCTAssertEqual(cancels, 1)
+        XCTAssertEqual(cancelled["status"] as? Int, 3)
+        let left = try gate.leaveOriginal(kind: 3, spaceID: 12, requestID: "c08-leave-01") { actor, kind, space, request in
+            leaves += 1
+            XCTAssertEqual(actor, 7)
+            XCTAssertEqual(kind, 3)
+            XCTAssertEqual(space, 12)
+            XCTAssertEqual(request, "c08-leave-01")
+            return ["guild_kind": 3, "guild_id": "12", "left": true]
+        }
+        XCTAssertEqual(leaves, 1)
+        XCTAssertEqual(left["left"] as? Bool, true)
+        XCTAssertThrowsError(try gate.leaveOriginal(kind: 3, spaceID: 12, requestID: "c08-leave-01") { _, _, _, _ in
+            leaves += 1
+            return ["left": false]
+        })
+        XCTAssertEqual(leaves, 2)
+    }
+
     private static func historyPage(after: String?) -> [String: Any] {
         var page: [String: Any] = [
             "list": [] as [Any], "next_cursor": "9", "has_more": NSNumber(value: false), "nextCursor": "9",
