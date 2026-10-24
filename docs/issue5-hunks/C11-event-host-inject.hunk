@@ -13,7 +13,7 @@ The host posts `api/registration/info` and, only when that info id equals the op
 
 ## Why the session must pass the host
 
-`profileService` is private on AppSession (around line 2428). `SessionOwnedOrdersView` only has the session. The form POST that already serves `api/registration/info` can return response bytes to `ProfileOrderEventHost.open` only from inside AppSession. This branch does not add that method.
+`profileService` is private on AppSession (around line 2428). `SessionOwnedOrdersView` only has the session. `ProfileService.postOwnedOrderForm(path:id:token:)` now returns the raw form body, and `ProfileOrderEventHost.open` calls it for `api/registration/info` and, only when that info id matches, for `api/registration/original-event`. Passing that host still requires AppSession. This hunk does not add that call.
 
 ## Withheld call site
 
@@ -24,13 +24,11 @@ Do not apply.
 ```swift
 func openOwnedOrderOriginalEvent(_ openedOrderID: Int) async -> Int64? {
     guard openedOrderID > 0, let token, AuthRequestBuilder.isValidToken(token) else { return nil }
+    guard let profileService else { return nil }
     var host = ProfileOrderEventHost()
-    return await host.open(openedOrderID) { path, id in
-        // Existing multipart form, field name "id", same signed-in token as registration info.
-        // Return the response body bytes. Do not decode ProfileOrder.
-        // Do not copy title, amount, or member id into OriginalAuditEvent.
-        try await self.postOwnedOrderForm(path: path, id: id, token: token)
-    }
+    // ProfileService.postOwnedOrderForm returns the response body bytes.
+    // Do not decode ProfileOrder. Do not copy title, amount, or member id into OriginalAuditEvent.
+    return await host.open(openedOrderID, service: profileService, token: token)
 }
 ```
 
@@ -41,7 +39,7 @@ func openOwnedOrderOriginalEvent(_ openedOrderID: Int) async -> Int64? {
              .id(session.ownedOrderReader.identity)
 ```
 
-`postOwnedOrderForm` is not a member of AppSession or ProfileService. Until that session method exists, the orders page keeps its current quiet lookup and this hunk stays unapplied.
+`postOwnedOrderForm(path:id:token:) async throws -> Data?` is a member of ProfileService. It is not a member of AppSession. Until AppSession passes `profileService` into `ProfileOrderEventHost.open`, the orders page keeps its current quiet lookup and this hunk stays unapplied.
 
 ## Xcode ref (generator id only — do not edit pbxproj here)
 
