@@ -21,10 +21,11 @@ public enum MerchantDeskRead: Equatable {
             guard productID > 0 else { throw MerchantBusinessFailure.invalid }
             return .json("api/merchant/desk/products/detail", ["productId": .int(productID)])
         case .receipt(let requestID):
-            guard requestID.range(of: #"^[A-Za-z0-9_-]{8,64}$"#, options: .regularExpression) != nil else {
+            let key = MerchantSkuSaveJourney.javaTrim(requestID)
+            guard MerchantSkuSaveJourney.whole(key, #"^[A-Za-z0-9_-]{8,64}\z"#) else {
                 throw MerchantBusinessFailure.invalid
             }
-            return .json("api/merchant/desk/receipt", ["requestId": .string(requestID)])
+            return .json("api/merchant/desk/receipt", ["requestId": .string(key)])
         }
     }
 }

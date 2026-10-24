@@ -352,7 +352,7 @@ public struct MerchantSkuSaveJourney: Equatable, Sendable {
         return String(String.UnicodeScalarView(scalars[start..<end]))
     }
 
-    private static func whole(_ text: String, _ pattern: String) -> Bool {
+    static func whole(_ text: String, _ pattern: String) -> Bool {
         guard let range = text.range(of: pattern, options: .regularExpression) else { return false }
         return range.lowerBound == text.startIndex && range.upperBound == text.endIndex
     }

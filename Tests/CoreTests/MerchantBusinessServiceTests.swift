@@ -184,7 +184,20 @@ final class MerchantBusinessServiceTests: XCTestCase {
         } catch {
             XCTAssertEqual(error as? MerchantBusinessFailure, .invalid)
         }
-        XCTAssertTrue(await fake.requests.isEmpty)
+        do {
+            _ = try await idle.read(.receipt(requestID: "desk-req-01\u{2028}"), access: allowed, token: "synthetic-token")
+            XCTFail("line separator")
+        } catch {
+            XCTAssertEqual(error as? MerchantBusinessFailure, .invalid)
+        }
+        let trimmed = try MerchantDeskRead.receipt(requestID: "desk-req-01\n").request()
+        guard case .json(let fields) = trimmed.body else {
+            XCTFail("json")
+            return
+        }
+        XCTAssertEqual(fields["requestId"], .string("desk-req-01"))
+        let recorded = await fake.requests
+        XCTAssertTrue(recorded.isEmpty)
     }
     func testDeskDetailAndReceiptUseOriginalPaths() async throws {
         let fake = BusinessRecordingTransport("{}")
