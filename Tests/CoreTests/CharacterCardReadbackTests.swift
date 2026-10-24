@@ -212,6 +212,28 @@ import FoundationNetworking
         XCTAssertEqual(recovered?.actionID, "ask:40:why")
         XCTAssertEqual(recovered?.replay, true)
     }
+    func testRecoverFromGameReceiptReadsPendingWithoutApplying() throws {
+        XCTAssertNil(try GameReceiptOriginalRecovery.recoverFromGameReceipt(
+            memberID: 0, activityID: 11, requestID: "game-req-01",
+            receipt: { _, _, _ in ("APPLIED", true) }))
+        do {
+            _ = try GameReceiptOriginalRecovery.recoverFromGameReceipt(
+                memberID: 7, activityID: 11, requestID: "game-req-01", receipt: nil)
+            XCTFail("missing game receipt must WAITING_SOURCE")
+        } catch let waiting as GameReceiptOriginalRecovery.WaitingSource {
+            XCTAssertEqual(waiting.capability, GameReceiptOriginalRecovery.gameReceipt)
+        }
+        let pending = try GameReceiptOriginalRecovery.recoverFromGameReceipt(
+            memberID: 7, activityID: 11, requestID: "c02-game-missing",
+            receipt: { _, _, _ in ("PENDING", false) })
+        XCTAssertEqual(pending?.outcome, "PENDING")
+        XCTAssertEqual(pending?.applied, false)
+        let applied = try GameReceiptOriginalRecovery.recoverFromGameReceipt(
+            memberID: 7, activityID: 11, requestID: "game-req-01",
+            receipt: { _, _, id in id == "game-req-01" ? ("APPLIED", true) : nil })
+        XCTAssertEqual(applied?.applied, true)
+        XCTAssertEqual(applied?.replayed, true)
+    }
 }
 
 @MainActor private final class Owner {

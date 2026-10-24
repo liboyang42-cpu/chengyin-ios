@@ -46,6 +46,8 @@ class C02WorldPartyCharacterContracts(unittest.TestCase):
         self.assertIn('PlayPlayerTeamState', CORE['party'].read_text())
         self.assertIn('PlayAdvancedTeamProjection', CORE['party'].read_text())
         self.assertIn('recoverFromRouteAction', card)
+        self.assertIn('recoverFromGameReceipt', card)
+        self.assertIn('gameSession.receipt', card)
         self.assertIn('rpgv2.RpgRequestReceipts', card)
         self.assertNotIn('rpg2:', card)
 

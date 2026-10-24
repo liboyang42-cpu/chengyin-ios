@@ -106,6 +106,35 @@ public enum RouteActionOriginalRecovery {
     }
 }
 
+/// Read IGameSessionRuntimeService.receipt. PENDING is not applied. Does not command.
+public enum GameReceiptOriginalRecovery {
+    public static let gameReceipt = "gameSession.receipt"
+    public struct Read: Equatable {
+        public let requestID: String
+        public let outcome: String
+        public let replayed: Bool
+        public let applied: Bool
+    }
+    public struct WaitingSource: Error, Equatable {
+        public let capability: String
+    }
+    public static func recoverFromGameReceipt(
+        memberID: Int64?,
+        activityID: Int64?,
+        requestID: String?,
+        receipt: ((Int64, Int64, String) -> (outcome: String, replayed: Bool)?)?
+    ) throws -> Read? {
+        let trimmed = requestID?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard let memberID, memberID > 0, let activityID, activityID > 0, !trimmed.isEmpty else { return nil }
+        guard let receipt else {
+            throw WaitingSource(capability: gameReceipt)
+        }
+        guard let found = receipt(memberID, activityID, trimmed) else { return nil }
+        return Read(requestID: trimmed, outcome: found.outcome, replayed: found.replayed,
+                    applied: found.outcome == "APPLIED")
+    }
+}
+
 /// Existing Play/RPG surfaces (`PlayExperienceView`, `PlayAdvancedView`,
 /// `PlayPlayerTeamStatusView`, `JourneyCheckCoordinator`, `PlayObjectCardRevealView`)
 /// stay the host. This lease only projects character / world facts through
