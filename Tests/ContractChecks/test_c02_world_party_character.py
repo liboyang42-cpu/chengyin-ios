@@ -72,6 +72,20 @@ class C02WorldPartyCharacterContracts(unittest.TestCase):
         tests = TESTS['world'].read_text()
         self.assertIn('testClientClockCannotMintSuccessFromExpiresAt', tests)
         self.assertIn('WAITING_SOURCE', tests)
+        self.assertIn('func present', clock)
+        self.assertNotIn('raw["serverNow"] ??', clock)
+
+    def test_character_and_play_401_return_before_cancel_for_same_owner(self):
+        root = (ROOT / 'App/AppCompositionRoot.swift').read_text()
+        runtime = (ROOT / 'Core/RuntimeDependencyConfiguration.swift').read_text()
+        for source in (root, runtime):
+            auth = source.index('PlayExperienceService.isAuthenticationFailure')
+            cancel = source.index('try Task.checkCancellation()', auth)
+            window = source[max(0, auth - 500):cancel]
+            self.assertIn('CharacterCardReadRoute', source)
+            self.assertIn('characterRead' if source is root else 'CharacterCardReadRoute', window)
+            self.assertIn('current() == captured', window)
+            self.assertLess(auth, cancel)
 
     def test_account_switch_isolation_markers_present(self):
         tests = TESTS['card'].read_text()
