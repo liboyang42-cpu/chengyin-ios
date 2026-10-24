@@ -2,6 +2,7 @@ import Foundation
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
+import CoreFoundation
 
 /// Reads the original channel directory detail and builds the current catalog.
 /// `version` is the published snapshot. A missing or non-positive version closes
