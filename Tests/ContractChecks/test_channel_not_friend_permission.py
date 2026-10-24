@@ -88,6 +88,7 @@ class ChannelNotFriendPermissionContracts(unittest.TestCase):
         revoke = self.read('Tests/CoreTests/ChannelRevokeIsolationTests.swift')
         self.assertIn('testLeftGroupHistoricalVotesStayReadOnly', revoke)
         self.assertIn('testOldPageAndLateWriteIsolateAfterLeave', revoke)
+        self.assertIn('testUnusedHistoricalVoteReadDoesNotOccupyLeaveThenUniqueLeaveApplies', revoke)
         distinct = self.read('Tests/CoreTests/FriendPermissionDistinctFromChannelTests.swift')
         self.assertIn('testChannelGrantCannotSatisfyFriendRemarksOrDM', distinct)
         self.assertIn('testP44ProgressPrivacyIsNotRemarksOrDM', distinct)

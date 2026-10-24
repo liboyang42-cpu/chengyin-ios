@@ -85,4 +85,19 @@ final class ChannelRevokeIsolationTests: XCTestCase {
         }
         XCTAssertEqual(try value.admit(ChannelIsolatedRequest(lease: lease, action: .appeal)), .allowed)
     }
+
+    func testUnusedHistoricalVoteReadDoesNotOccupyLeaveThenUniqueLeaveApplies() throws {
+        var value = try journey()
+        let lease = try value.pageLease()
+        XCTAssertEqual(try value.admit(ChannelIsolatedRequest(lease: lease, action: .historicalVoteRead)), .allowed)
+        XCTAssertEqual(value.phase, .authorizedReadWrite)
+        XCTAssertNotNil(value.grant, "在籍历史投票只读不得占 leave")
+        try value.leave()
+        XCTAssertEqual(value.phase, .left)
+        XCTAssertNil(value.grant)
+        XCTAssertThrowsError(try value.authorizeReadWrite()) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .revoked)
+        }
+        XCTAssertEqual(try value.admit(ChannelIsolatedRequest(lease: lease, action: .historicalVoteRead)), .allowed)
+    }
 }
