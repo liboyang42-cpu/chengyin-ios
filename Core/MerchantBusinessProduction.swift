@@ -6,7 +6,7 @@ import FoundationNetworking
 /// Separate opinion decisions and team/CRM actions; no refund-execution action exists.
 public enum MerchantBusinessAction: String, Hashable {
     case addNote, hideNote, assignTag, removeTag, batchTag, aftercareAgree, aftercareReject, aftercareEvidence
-    case reviewReply, reviewUpdate, reviewDelete, reviewReport, inviteOperator, operatorRole, removeOperator, revokeInvite
+    case reviewReply, reviewUpdate, reviewDelete, reviewReport, inviteOperator, operatorRole, removeOperator, revokeInvite, saveSku
 }
 public extension MerchantBusinessMutation {
     var action: MerchantBusinessAction {
@@ -19,6 +19,7 @@ public extension MerchantBusinessMutation {
             switch action { case .reply: return .reviewReply; case .update: return .reviewUpdate; case .delete: return .reviewDelete; case .report: return .reviewReport }
         case .inviteOperator: return .inviteOperator; case .operatorRole: return .operatorRole
         case .removeOperator: return .removeOperator; case .revokeInvite: return .revokeInvite
+        case .saveSku: return .saveSku
         }
     }
     /// Batch grants preserve the exact customer set instead of the broad UI lock category.

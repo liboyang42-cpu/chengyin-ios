@@ -4,6 +4,28 @@ import FoundationNetworking
 #endif
 @testable import QuestifyCore
 
+private actor DeskPathTransport: MerchantBusinessTestTransport {
+    var requests: [URLRequest] = []
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        requests.append(request)
+        let path = request.url?.path ?? ""
+        let json: String
+        if path.hasSuffix("/access/me") {
+            let access = MerchantBusinessSyntheticFixtures.access.replacingOccurrences(
+                of: "\"merchant:operator:manage\"", with: "\"merchant:operator:manage\",\"merchant:project:manage\"")
+            json = "{\"code\":200,\"data\":\(access)}"
+        } else if path.hasSuffix("/products/detail") {
+            json = #"{"code":200,"data":{"productId":3,"skus":[{"skuId":44,"skuName":"door","price":88,"stock":2,"bookable":false,"slotMinutes":60,"capacityPerSlot":0}]}}"#
+        } else if path.hasSuffix("/sku/save") {
+            json = #"{"code":200,"msg":"Synthetic saved","data":{"skuId":44}}"#
+        } else if path.hasSuffix("/receipt") {
+            json = #"{"code":200,"data":{"requestId":"desk-req-01","state":"APPLIED","action":"SKU_SAVE","targetType":"pms_sku","targetId":44}}"#
+        } else {
+            json = #"{"code":404,"msg":"missing","data":null}"#
+        }
+        return (Data(json.utf8), 200)
+    }
+}
 private actor BusinessRecordingTransport: MerchantBusinessTestTransport {
     var requests: [URLRequest] = []
     let response: String
@@ -69,6 +91,115 @@ final class MerchantBusinessServiceTests: XCTestCase {
         XCTAssertTrue(verification.value(forHTTPHeaderField: "Content-Type")!.hasPrefix("multipart/form-data"))
         XCTAssertEqual(financial.value(forHTTPHeaderField: "Content-Type"), "application/json")
         XCTAssertNotEqual(verification.url, financial.url)
+    }
+    func testDeskSkuSaveDispatchesOriginalPath() async throws {
+        let fake = BusinessRecordingTransport(#"{"code":200,"msg":"Synthetic saved","data":{"skuId":44}}"#)
+        let sent = try await service(fake, writes: true).execute(
+            .saveSku(productID: 3, skuID: 44, name: "door", price: "1", stock: 2,
+                    originalPrice: nil, pic: nil, bookable: false, slotMinutes: 60,
+                    capacityPerSlot: 0, ruleVersion: 4),
+            requestID: "desk-req-01", token: "synthetic-token")
+        XCTAssertEqual(sent.data.object?["skuId"], .int(44))
+        let recorded = await fake.requests
+        let request = try XCTUnwrap(recorded.first)
+        XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertEqual(request.url?.path, "/test/api/merchant/desk/products/sku/save")
+        let body = String(decoding: try XCTUnwrap(request.httpBody), as: UTF8.self)
+        XCTAssertTrue(body.contains("\"skuName\":\"door\""))
+        XCTAssertTrue(body.contains("\"price\":\"1\""))
+        XCTAssertFalse(body.contains("ownerMemberId"))
+        XCTAssertFalse(body.contains("\"action\""))
+        XCTAssertTrue(body.contains("\"ruleVersion\":4"))
+        XCTAssertTrue(body.contains("\"slotMinutes\":60"))
+    }
+    func testDeskDetailSaveAndReceiptUseTheOriginalPaths() async throws {
+        let transport = DeskPathTransport()
+        let service = try MerchantBusinessService(configuration: .init(baseURL: URL(string: "https://example.com/test")!),
+                                                  readTransport: transport, testingMutationTransport: transport)
+        let access = try await service.access(token: "synthetic-token")
+        let journey = MerchantSkuSaveJourney()
+        let detail = try await service.read(.productDetail(productID: 3), access: access, token: "synthetic-token")
+        let frozen = try XCTUnwrap(journey.freeze(access: access, accountID: 7, productID: 3, skuID: 44,
+                                                  requestID: "desk-req-01", skuName: "door", price: "88.00", stock: 2))
+        XCTAssertEqual(journey.readBack(detail: detail, intent: frozen, laterFormPrice: "99.00")?.price, "88.00")
+        _ = try await service.execute(.saveSku(productID: 3, skuID: 44, name: frozen.skuName, price: frozen.price,
+                                               stock: frozen.stock, originalPrice: frozen.originalPrice, pic: frozen.pic,
+                                               bookable: frozen.bookable, slotMinutes: frozen.slotMinutes,
+                                               capacityPerSlot: frozen.capacityPerSlot, ruleVersion: frozen.ruleVersion),
+                                     requestID: frozen.requestID, token: "synthetic-token")
+        let receipt = try await service.read(.receipt(requestID: frozen.requestID), access: access, token: "synthetic-token")
+        let recovered = journey.recover(requestID: frozen.requestID, receipt: receipt, currentForm: "price=99.00")
+        XCTAssertEqual(recovered.outcome, "APPLIED")
+        XCTAssertEqual(recovered.skuID, 44)
+        XCTAssertNil(recovered.payload)
+        let paths = await transport.requests.compactMap { $0.url?.path }
+        XCTAssertEqual(paths, [
+            "/test/api/merchant/access/me",
+            "/test/api/merchant/desk/products/detail",
+            "/test/api/merchant/desk/products/sku/save",
+            "/test/api/merchant/desk/receipt"
+        ])
+    }
+    func testDeskReadRejectsAWriteBeforeTransport() async throws {
+        let fake = BusinessRecordingTransport(#"{"code":200,"data":{"skuId":44}}"#)
+        let idle = try service(fake)
+        do {
+            _ = try await idle.execute(.saveSku(productID: 3, skuID: 44, name: "door", price: "1", stock: 2,
+                                                originalPrice: nil, pic: nil, bookable: false, slotMinutes: 60,
+                                                capacityPerSlot: 0, ruleVersion: nil),
+                                      requestID: "desk-req-01", token: "synthetic-token")
+            XCTFail("save stays disabled")
+        } catch {
+            XCTAssertEqual(error as? MerchantBusinessFailure, .disabled)
+        }
+        let denied = try MerchantBusinessAccess(MerchantBusinessObject([
+            "active": .bool(true),
+            "merchant": .object(["id": .int(9), "name": .string("synthetic-shop")]),
+            "roleCode": .string("MERCHANT_OWNER"),
+            "permissions": .array([.string("merchant:basic:read")]),
+            "canManageOperators": .bool(false)
+        ]))
+        do {
+            _ = try await idle.read(.productDetail(productID: 3), access: denied, token: "synthetic-token")
+            XCTFail("detail needs project manage")
+        } catch {
+            XCTAssertEqual(error as? MerchantBusinessFailure, .denied)
+        }
+        let allowed = try MerchantBusinessAccess(MerchantBusinessObject([
+            "active": .bool(true),
+            "merchant": .object(["id": .int(9)]),
+            "roleCode": .string("MERCHANT_OWNER"),
+            "permissions": .array([.string("merchant:project:manage"), .string("merchant:basic:read")]),
+            "canManageOperators": .bool(false)
+        ]))
+        do {
+            _ = try await idle.read(.productDetail(productID: 0), access: allowed, token: "synthetic-token")
+            XCTFail("product id")
+        } catch {
+            XCTAssertEqual(error as? MerchantBusinessFailure, .invalid)
+        }
+        do {
+            _ = try await idle.read(.receipt(requestID: "short"), access: allowed, token: "synthetic-token")
+            XCTFail("request id")
+        } catch {
+            XCTAssertEqual(error as? MerchantBusinessFailure, .invalid)
+        }
+        XCTAssertTrue(await fake.requests.isEmpty)
+    }
+    func testDeskDetailAndReceiptUseOriginalPaths() async throws {
+        let fake = BusinessRecordingTransport("{}")
+        let service = try service(fake)
+        let journey = MerchantSkuSaveJourney()
+        let detail = try service.makeRequest(XCTUnwrap(journey.detailRequest(productID: 3)), token: "synthetic-token")
+        XCTAssertEqual(detail.url?.path, "/test/api/merchant/desk/products/detail")
+        let receipt = try service.makeRequest(XCTUnwrap(journey.receiptRequest(requestID: "desk-req-01")), token: "synthetic-token")
+        XCTAssertEqual(receipt.httpMethod, "POST")
+        XCTAssertEqual(receipt.url?.path, "/test/api/merchant/desk/receipt")
+        let access = try service.makeRequest(journey.accessRequest(), token: "synthetic-token")
+        XCTAssertEqual(access.url?.path, "/test/api/merchant/access/me")
+        XCTAssertNil(access.httpBody)
+        let requests = await fake.requests
+        XCTAssertTrue(requests.isEmpty)
     }
     func testRequestBuilderNeverIncludesMerchantOwnerOrMemberScope() throws {
         let fake = BusinessRecordingTransport("{}"), service = try service(fake)

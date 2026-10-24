@@ -1,0 +1,189 @@
+import XCTest
+@testable import QuestifyCore
+
+final class EntitlementHoldProjectionTests: XCTestCase {
+    private let now = Date(timeIntervalSince1970: 1_766_793_600)
+    private let end = Date(timeIntervalSince1970: 1_793_491_200)
+    func testSoldUnredeemedOccupiesCapacityWithoutCallingReserveOrRedeem() {
+        var projection = EntitlementHoldProjection()
+        let fact = EntitlementHoldFact(originalRequestID: "c07-hold-1", registrationID: 78,
+                                       chapterID: 124, merchantID: 9, status: EntitlementHoldStatus.held,
+                                       validEndExclusive: end, invalidReason: nil)
+        let view = projection.project(fact, serverNow: now)
+        XCTAssertEqual(view.outcome, .held)
+        XCTAssertTrue(view.occupiesCapacity)
+        XCTAssertFalse(view.executedReserve)
+        XCTAssertFalse(view.executedRedeem)
+        XCTAssertFalse(view.executedAward)
+        XCTAssertFalse(view.holdingIsIssuance)
+        XCTAssertEqual(view.originalRequestID, "c07-hold-1")
+        XCTAssertEqual(projection.requery(fact, serverNow: now).outcome, view.outcome)
+        XCTAssertEqual(projection.occupyCount(originalRequestID: "c07-hold-1"), 1)
+        _ = projection.project(fact, serverNow: now)
+        XCTAssertEqual(projection.occupyCount(originalRequestID: "c07-hold-1"), 1)
+        XCTAssertEqual(projection.recoverOriginal(originalRequestID: "c07-hold-1").outcome, .held)
+    }
+    func testMissingStatusIsUnknownNotANewRequest() throws {
+        var projection = EntitlementHoldProjection()
+        let fact = EntitlementHoldFact(originalRequestID: "c07-hold-2", registrationID: 78,
+                                       chapterID: 124, merchantID: 9, status: nil,
+                                       validEndExclusive: end, invalidReason: "")
+        let view = projection.project(fact, serverNow: now)
+        XCTAssertEqual(view.outcome, .unknown)
+        XCTAssertEqual(view.originalRequestID, "c07-hold-2")
+        XCTAssertFalse(view.occupiesCapacity)
+        XCTAssertFalse(view.holdingIsIssuance)
+        let data = try JSONSerialization.data(withJSONObject: view.jsonObject(), options: [])
+        let object = try JSONSerialization.jsonObject(with: data) as! [String: Any]
+        XCTAssertEqual(object["originalRequestID"] as? String, "c07-hold-2")
+        XCTAssertEqual(object["outcome"] as? String, "UNKNOWN")
+    }
+    func testRefundInvalidReasonDoesNotOccupyCapacity() {
+        var projection = EntitlementHoldProjection()
+        let fact = EntitlementHoldFact(originalRequestID: "c07-hold-3", registrationID: 78,
+                                       chapterID: 124, merchantID: 9, status: EntitlementHoldStatus.held,
+                                       validEndExclusive: end,
+                                       invalidReason: EntitlementHoldInvalidReason.refund)
+        let view = projection.project(fact, serverNow: now)
+        XCTAssertEqual(view.outcome, .invalid)
+        XCTAssertFalse(view.occupiesCapacity)
+        XCTAssertFalse(view.executedRedeem)
+    }
+    func testBlankOriginalRequestIDIsJSONNull() throws {
+        var projection = EntitlementHoldProjection()
+        let view = projection.project(
+            EntitlementHoldFact(originalRequestID: nil, registrationID: 78, chapterID: 124,
+                                merchantID: 9, status: EntitlementHoldStatus.held,
+                                validEndExclusive: end, invalidReason: nil),
+            serverNow: now)
+        XCTAssertNil(view.originalRequestID)
+        XCTAssertEqual(view.outcome, .unknown)
+        let object = try JSONSerialization.jsonObject(
+            with: try JSONSerialization.data(withJSONObject: view.jsonObject())) as! [String: Any]
+        XCTAssertTrue(object["originalRequestID"] is NSNull)
+    }
+    func testOtherRequestDoesNotRewriteOriginalHold() {
+        var projection = EntitlementHoldProjection()
+        let original = EntitlementHoldFact(originalRequestID: "c07-hold-1", registrationID: 78,
+                                           chapterID: 124, merchantID: 9, status: EntitlementHoldStatus.held,
+                                           validEndExclusive: end, invalidReason: nil)
+        XCTAssertEqual(projection.project(original, serverNow: now).outcome, .held)
+        let steal = EntitlementHoldFact(originalRequestID: "c07-hold-1", registrationID: 99,
+                                        chapterID: 1, merchantID: 2, status: EntitlementHoldStatus.redeemed,
+                                        validEndExclusive: end, invalidReason: nil)
+        XCTAssertEqual(projection.project(steal, serverNow: now).outcome, .held)
+        XCTAssertEqual(projection.occupyCount(originalRequestID: "c07-hold-1"), 1)
+        let other = EntitlementHoldFact(originalRequestID: "c07-hold-other", registrationID: 80,
+                                        chapterID: 125, merchantID: 10, status: EntitlementHoldStatus.held,
+                                        validEndExclusive: end, invalidReason: nil)
+        XCTAssertEqual(projection.project(other, serverNow: now).originalRequestID, "c07-hold-other")
+        XCTAssertEqual(projection.recoverOriginal(originalRequestID: "c07-hold-1").outcome, .held)
+        XCTAssertEqual(projection.recoverOriginal(originalRequestID: "c07-hold-1").originalRequestID, "c07-hold-1")
+        XCTAssertNotEqual(projection.recoverOriginal(originalRequestID: "c07-hold-other").originalRequestID,
+                          "c07-hold-1")
+    }
+    func testRecoverOfNeverSeenIdDoesNotOccupyLedgerThenHoldApplies() {
+        var projection = EntitlementHoldProjection()
+        let recovered = projection.recoverOriginal(originalRequestID: "c07-hold-never-seen")
+        XCTAssertEqual(recovered.outcome, .unknown)
+        XCTAssertEqual(recovered.originalRequestID, "c07-hold-never-seen")
+        XCTAssertEqual(projection.occupyCount(originalRequestID: "c07-hold-never-seen"), 0)
+        let missing = EntitlementHoldFact(originalRequestID: "c07-hold-never-seen", registrationID: 78,
+                                          chapterID: 124, merchantID: 9, status: nil,
+                                          validEndExclusive: end, invalidReason: nil)
+        XCTAssertEqual(projection.project(missing, serverNow: now).outcome, .unknown)
+        XCTAssertEqual(projection.occupyCount(originalRequestID: "c07-hold-never-seen"), 0)
+        XCTAssertEqual(projection.recoverOriginal(originalRequestID: "c07-hold-never-seen").outcome, .unknown)
+        let held = EntitlementHoldFact(originalRequestID: "c07-hold-never-seen", registrationID: 78,
+                                       chapterID: 124, merchantID: 9, status: EntitlementHoldStatus.held,
+                                       validEndExclusive: end, invalidReason: nil)
+        XCTAssertEqual(projection.project(held, serverNow: now).outcome, .held)
+        XCTAssertEqual(projection.occupyCount(originalRequestID: "c07-hold-never-seen"), 1)
+        XCTAssertEqual(projection.recoverOriginal(originalRequestID: "c07-hold-never-seen").outcome, .held)
+    }
+    func testProjectFromLedgerRequiresPerkListAndNewInstanceReadsExistingEntitlement() throws {
+        var missing = EntitlementHoldProjection()
+        XCTAssertThrowsError(try missing.projectFromLedger(originalRequestID: "c07-hold-led1", registrationID: 78,
+                                                           chapterID: 124, merchantID: 9, validEndExclusive: end,
+                                                           serverNow: now, listEntitlements: nil)) {
+            XCTAssertEqual($0 as? EntitlementHoldFailure,
+                           .waitingSource(capability: EntitlementHoldProjection.perkList))
+        }
+        XCTAssertEqual(missing.occupyCount(originalRequestID: "c07-hold-led1"), 0)
+        let row = LedgerEntitlementRow(chapterID: 124, status: EntitlementHoldStatus.held, invalidReason: nil)
+        let list: (Int64) -> [LedgerEntitlementRow] = { registrationID in
+            registrationID == 78 ? [row] : []
+        }
+        var wired = EntitlementHoldProjection()
+        let neverSeen = try wired.projectFromLedger(originalRequestID: "c07-hold-led1", registrationID: 78,
+                                                    chapterID: 999, merchantID: 9, validEndExclusive: end,
+                                                    serverNow: now, listEntitlements: list)
+        XCTAssertEqual(neverSeen.outcome, .unknown)
+        XCTAssertEqual(wired.occupyCount(originalRequestID: "c07-hold-led1"), 0)
+        let held = try wired.projectFromLedger(originalRequestID: "c07-hold-led1", registrationID: 78,
+                                               chapterID: 124, merchantID: 9, validEndExclusive: end,
+                                               serverNow: now, listEntitlements: list)
+        XCTAssertEqual(held.outcome, .held)
+        XCTAssertNil(held.originalRequestID)
+        XCTAssertTrue(held.occupiesCapacity)
+        XCTAssertFalse(held.executedReserve)
+        XCTAssertEqual(wired.occupyCount(originalRequestID: "c07-hold-led1"), 0)
+        XCTAssertEqual(wired.recoverOriginal(originalRequestID: "c07-hold-led1").outcome, .unknown)
+        var restarted = EntitlementHoldProjection()
+        XCTAssertEqual(try restarted.projectFromLedger(originalRequestID: "c07-hold-led1", registrationID: 78,
+                                                       chapterID: 124, merchantID: 9, validEndExclusive: end,
+                                                       serverNow: now, listEntitlements: list).outcome, .held)
+        XCTAssertEqual(restarted.recoverOriginal(originalRequestID: "c07-hold-missing").outcome, .unknown)
+        XCTAssertEqual(restarted.occupyCount(originalRequestID: "c07-hold-missing"), 0)
+    }
+    func testRecoverFromRedemptionsReadsActiveOriginalWithoutRedeeming() throws {
+        var missing = EntitlementHoldProjection()
+        XCTAssertThrowsError(try missing.recoverFromRedemptions(
+            originalRequestID: "c07-rdm-1", registrationID: 78, chapterID: 124,
+            serverNow: now, listRedemptions: nil)) {
+            XCTAssertEqual($0 as? EntitlementHoldFailure,
+                           .waitingSource(capability: EntitlementHoldProjection.perkRedemptions))
+        }
+        XCTAssertEqual(missing.occupyCount(originalRequestID: "c07-rdm-1"), 0)
+        let rows = [
+            LedgerRedemptionRow(chapterID: 124, merchantID: 9, active: false),
+            LedgerRedemptionRow(chapterID: 124, merchantID: 9, active: true)
+        ]
+        let list: (Int64) -> [LedgerRedemptionRow] = { registrationID in
+            registrationID == 78 ? rows : []
+        }
+        var wired = EntitlementHoldProjection()
+        let neverSeen = try wired.recoverFromRedemptions(
+            originalRequestID: "c07-rdm-1", registrationID: 78, chapterID: 999,
+            serverNow: now, listRedemptions: list)
+        XCTAssertEqual(neverSeen.outcome, .unknown)
+        XCTAssertEqual(wired.occupyCount(originalRequestID: "c07-rdm-1"), 0)
+        let redeemed = try wired.recoverFromRedemptions(
+            originalRequestID: "c07-rdm-1", registrationID: 78, chapterID: 124,
+            serverNow: now, listRedemptions: list)
+        XCTAssertEqual(redeemed.outcome, .redeemed)
+        XCTAssertNil(redeemed.originalRequestID)
+        XCTAssertFalse(redeemed.executedRedeem)
+        XCTAssertFalse(redeemed.occupiesCapacity)
+        XCTAssertEqual(wired.occupyCount(originalRequestID: "c07-rdm-1"), 0)
+        XCTAssertEqual(wired.recoverOriginal(originalRequestID: "c07-rdm-1").outcome, .unknown)
+    }
+    func testCurrentFulfillmentFactDoesNotReplaceImmutableOriginalOrCrossScope() {
+        var holds = EntitlementHoldProjection()
+        let held = EntitlementHoldFact(originalRequestID: "c07-hold-live", registrationID: 78, chapterID: 124,
+                                       merchantID: 9, status: EntitlementHoldStatus.held,
+                                       validEndExclusive: end, invalidReason: nil)
+        XCTAssertEqual(holds.project(held, serverNow: now).outcome, .held)
+        let redeemed = EntitlementHoldFact(originalRequestID: "c07-hold-live", registrationID: 78, chapterID: 124,
+                                           merchantID: 9, status: EntitlementHoldStatus.redeemed,
+                                           validEndExclusive: end, invalidReason: nil)
+        XCTAssertEqual(holds.project(redeemed, serverNow: now).outcome, .redeemed)
+        XCTAssertEqual(holds.recoverOriginal(originalRequestID: "c07-hold-live").outcome, .held)
+        XCTAssertEqual(holds.occupyCount(originalRequestID: "c07-hold-live"), 1)
+        let other = EntitlementHoldFact(originalRequestID: "c07-hold-live", registrationID: 99, chapterID: 124,
+                                        merchantID: 9, status: EntitlementHoldStatus.held,
+                                        validEndExclusive: end, invalidReason: nil)
+        XCTAssertEqual(holds.project(other, serverNow: now).outcome, .unknown)
+        XCTAssertEqual(holds.recoverOriginal(originalRequestID: "c07-hold-live").outcome, .held)
+    }
+}
