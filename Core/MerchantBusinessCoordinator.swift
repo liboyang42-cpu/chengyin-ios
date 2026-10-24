@@ -199,16 +199,19 @@ public struct MerchantBusinessConfirmation: Equatable, Identifiable {
                                                       access: MerchantBusinessAccess,
                                                       scope: MerchantBusinessScope,
                                                       authorizationGeneration: UUID?,
+                                                      reader: MerchantBusinessService,
                                                       service: MerchantBusinessService,
                                                       token: String,
                                                       check: @escaping () throws -> Void) async throws -> MerchantBusinessReceipt {
         guard journal.isDurable, authorizationGeneration != nil else { throw MerchantBusinessFailure.disabled }
         guard case .saveSku = mutation else { throw MerchantBusinessFailure.invalid }
+        let issued = try await reader.access(token: token)
+        guard issued.merchantID == access.merchantID, issued.role == access.role else { throw MerchantBusinessFailure.conflict }
         let document = try MerchantBusinessDocument(query: .overview, payload: detail)
         let review = MerchantBusinessConfirmation(id: UUID(), authorizationGeneration: authorizationGeneration, journalRealm: scope.realm,
                                                   mutation: mutation, requestID: intent.requestID,
                                                   request: try mutation.request(requestID: intent.requestID), scope: scope,
-                                                  baseline: MerchantBusinessSnapshot(access: access, document: document))
+                                                  baseline: MerchantBusinessSnapshot(access: issued, document: document))
         guard intent.requestID == review.requestID, intent.realm == review.journalRealm, intent.accountID == review.scope.accountID,
               intent.merchantID == review.baseline.access.merchantID, intent.target == review.mutation.targetKey else {
             throw MerchantBusinessFailure.invalid
@@ -216,10 +219,12 @@ public struct MerchantBusinessConfirmation: Equatable, Identifiable {
         try check()
         try journal.reserve(intent)
         try check()
+        let again = try await reader.access(token: token)
+        let latest = MerchantBusinessSnapshot(access: again, document: try MerchantBusinessDocument(query: .overview, payload: detail))
         let authorization = MerchantBusinessDispatchAuthorization(review, check: check)
         do {
             try authorization.consume(review)
-            return try await service.executeReviewed(review, latest: review.baseline, token: token, authorization: authorization, check: check)
+            return try await service.executeReviewed(review, latest: latest, token: token, authorization: authorization, check: check)
         } catch {
             if MerchantMutationFailureDisposition.provesNoDispatch(error) { try journal.complete(intent) }
             throw error
