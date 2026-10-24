@@ -175,7 +175,11 @@ class C11OpsSupportProjectionContracts(unittest.TestCase):
     def test_versioned_locale_cn_us_and_legal_not_run(self):
         locale = self.sources["Core/VersionedLocaleDisplay.swift"]
         self.assertTrue(locale.startswith("import Foundation"))
-        self.assertIn("profileVersion = 1", locale)
+        self.assertIn("profileVersion = 2", locale)
+        self.assertIn("eventTimezoneSource", locale)
+        self.assertIn("locale.eventTimezone", locale)
+        self.assertIn("waitingSource", locale)
+        self.assertIn("timeZone: TimeZone", locale)
         self.assertIn("zh-CN", locale)
         self.assertIn("Asia/Shanghai", locale)
         self.assertIn("yyyy-MM-dd HH:mm:ss", locale)

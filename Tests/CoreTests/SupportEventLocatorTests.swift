@@ -95,7 +95,10 @@ final class SupportEventLocatorTests: XCTestCase {
         XCTAssertTrue(
             ReviewResultVisibilityAdapter.visibility(review[3], audience: .PUBLIC).approvedResultVisible)
         let instant = ISO8601DateFormatter().date(from: "2026-10-23T12:00:00Z")
-        XCTAssertEqual(VersionedLocaleDisplay.format(.cn, instant: instant), "2026-10-23 20:00:00")
+        XCTAssertEqual(
+            try VersionedLocaleDisplay.format(
+                .cn, instant: instant, timeZone: TimeZone(identifier: "Asia/Shanghai")!),
+            "2026-10-23 20:00:00")
         XCTAssertEqual(
             VersionedLocaleDisplay.legalGateStatus(.appStoreReview), VersionedLocaleDisplay.notRun)
         XCTAssertEqual(

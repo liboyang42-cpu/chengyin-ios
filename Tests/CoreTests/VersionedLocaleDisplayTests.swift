@@ -9,17 +9,33 @@ final class VersionedLocaleDisplayTests: XCTestCase {
     func testFirstJourneyCnShanghaiAndUsIapLegalNotRunRecoverOriginal() {
         let cn = VersionedLocaleDisplay.profile(.cn)
         let us = VersionedLocaleDisplay.profile(.us)
-        XCTAssertEqual(cn.version, 1)
-        XCTAssertEqual(us.version, 1)
-        XCTAssertEqual(VersionedLocaleDisplay.profileVersion, 1)
+        XCTAssertEqual(cn.version, 2)
+        XCTAssertEqual(us.version, 2)
+        XCTAssertEqual(VersionedLocaleDisplay.profileVersion, 2)
         XCTAssertEqual(cn.languageTag, "zh-CN")
         XCTAssertEqual(us.languageTag, "en-US")
         XCTAssertEqual(cn.timeZoneIdentifier, "Asia/Shanghai")
         XCTAssertEqual(us.timeZoneIdentifier, "America/New_York")
         XCTAssertEqual(cn.datePattern, "yyyy-MM-dd HH:mm:ss")
         XCTAssertEqual(us.datePattern, "MMM d, yyyy h:mm a")
-        XCTAssertEqual(VersionedLocaleDisplay.format(.cn, instant: fixed), "2026-10-23 20:00:00")
-        XCTAssertEqual(asciiSpaces(VersionedLocaleDisplay.format(.us, instant: fixed)), "Oct 23, 2026 8:00 AM")
+        XCTAssertEqual(cn.asView()["eventTimezone"], "WAITING_SOURCE")
+        XCTAssertThrowsError(try VersionedLocaleDisplay.format(.cn, instant: fixed)) { error in
+            XCTAssertEqual(
+                error as? VersionedLocaleDisplay.Failure,
+                .waitingSource(VersionedLocaleDisplay.eventTimezoneSource))
+        }
+        XCTAssertEqual(
+            try VersionedLocaleDisplay.format(
+                .cn, instant: fixed, timeZone: TimeZone(identifier: "Asia/Shanghai")!),
+            "2026-10-23 20:00:00")
+        XCTAssertEqual(
+            asciiSpaces(try VersionedLocaleDisplay.format(
+                .us, instant: fixed, timeZone: TimeZone(identifier: "America/New_York")!)),
+            "Oct 23, 2026 8:00 AM")
+        XCTAssertNotEqual(
+            asciiSpaces(try VersionedLocaleDisplay.format(
+                .us, instant: fixed, timeZone: TimeZone(identifier: "America/Los_Angeles")!)),
+            "Oct 23, 2026 8:00 AM")
         XCTAssertNotEqual(cn.paymentChannel, us.paymentChannel)
         XCTAssertTrue(cn.paymentChannel.contains("微信"))
         XCTAssertTrue(us.paymentChannel.contains("IAP"))
@@ -29,8 +45,8 @@ final class VersionedLocaleDisplayTests: XCTestCase {
     }
 
     func testUnknownInstantStaysUnknownNotEmptySuccess() {
-        XCTAssertEqual(VersionedLocaleDisplay.format(.cn, instant: nil), "UNKNOWN")
-        XCTAssertNotEqual(VersionedLocaleDisplay.format(.cn, instant: nil), "")
+        XCTAssertEqual(try VersionedLocaleDisplay.format(.cn, instant: nil), "UNKNOWN")
+        XCTAssertNotEqual(try VersionedLocaleDisplay.format(.cn, instant: nil), "")
     }
 
     func testLegalAndStoreGatesStayNotRunAndNeverPass() {

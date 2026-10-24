@@ -1,10 +1,16 @@
 import Foundation
 
-/// C11 versioned CN/US locale / timezone / payment display. PROFILE_VERSION=1.
+/// C11 versioned CN/US locale / timezone / payment display. PROFILE_VERSION=2:
+/// market catalog timezone is not the event timezone.
 /// Legal gates stay NOT_RUN. Changing display requires bumping PROFILE_VERSION.
 public enum VersionedLocaleDisplay {
-    public static let profileVersion = 1
+    public static let profileVersion = 2
     public static let notRun = "NOT_RUN"
+    public static let eventTimezoneSource = "locale.eventTimezone"
+
+    public enum Failure: Error, Equatable {
+        case waitingSource(String)
+    }
 
     public enum Market: String, Equatable, Sendable {
         case cn = "CN"
@@ -38,6 +44,7 @@ public enum VersionedLocaleDisplay {
                 "market": market.rawValue,
                 "languageTag": languageTag,
                 "timezone": timeZoneIdentifier,
+                "eventTimezone": "WAITING_SOURCE",
                 "paymentChannel": paymentChannel,
                 "readability": readability,
                 "legalGates": VersionedLocaleDisplay.notRun,
@@ -72,12 +79,18 @@ public enum VersionedLocaleDisplay {
         }
     }
 
-    public static func format(_ market: Market, instant: Date?) -> String {
-        guard let instant else { return "UNKNOWN" }
+    public static func format(_ market: Market, instant: Date?) throws -> String {
+        _ = profile(market)
+        guard instant != nil else { return "UNKNOWN" }
+        throw Failure.waitingSource(eventTimezoneSource)
+    }
+
+    public static func format(_ market: Market, instant: Date?, timeZone: TimeZone) throws -> String {
         let profile = profile(market)
+        guard let instant else { return "UNKNOWN" }
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: profile.localeIdentifier)
-        formatter.timeZone = TimeZone(identifier: profile.timeZoneIdentifier)
+        formatter.timeZone = timeZone
         formatter.dateFormat = profile.datePattern
         return formatter.string(from: instant)
     }
