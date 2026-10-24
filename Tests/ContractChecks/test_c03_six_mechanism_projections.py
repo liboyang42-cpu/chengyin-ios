@@ -35,14 +35,20 @@ WHITELIST = [
     "docs/issue5-hunks/C03-route-page-readback.hunk",
     "docs/issue5-hunks/C03-original-action-reader.hunk",
     "docs/issue5-hunks/C03-route-action-transport.hunk",
+    "docs/issue5-hunks/C03-route-session-wire.hunk",
     "App/PlayRouteMapView.swift",
+    "App/PlayExperienceView.swift",
+    "Core/PlayExperienceCoordinator.swift",
 ]
-CORE_FILES = [path for path in WHITELIST if path.startswith("Core/")]
+# The coordinator is the journal the map already holds. It stays out of the mechanism scan.
+CORE_FILES = [
+    path for path in WHITELIST
+    if path.startswith("Core/") and not path.endswith("PlayExperienceCoordinator.swift")
+]
 TEST_FILES = [path for path in WHITELIST if path.startswith("Tests/CoreTests/")]
 FORBIDDEN_TOUCH = [
     "App/AppSession.swift",
     "Questify.xcodeproj/project.pbxproj",
-    "Core/PlayExperienceCoordinator.swift",
     "Core/PlayExperienceService.swift",
     "App/AppCompositionRoot.swift",
 ]
@@ -89,6 +95,7 @@ class C03SixMechanismProjectionContracts(unittest.TestCase):
             path: (ROOT / path).read_text()
             for path in WHITELIST
             if path.endswith(".swift") and not path.startswith("App/")
+            and not path.endswith("PlayExperienceCoordinator.swift")
         }
         cls.joined = "\n".join(cls.sources.values())
         cls.hunk = (ROOT / "docs/issue5-hunks/C03-ios-dot-hunk.md").read_text()
@@ -423,6 +430,73 @@ class C03SixMechanismProjectionContracts(unittest.TestCase):
             "App/ProfileOrdersView.swift",
             "Core/MessagingContracts.swift",
             "MerchantDeskSkuPage.swift",
+        ):
+            self.assertNotIn(path, names)
+        self.assertIn("XCTest on Linux is NOT_RUN", Path(__file__).read_text())
+
+    def test_route_session_wire_reads_held_ids_and_refuses_unknown_approval(self):
+        page = (ROOT / "App/PlayRouteMapView.swift").read_text()
+        caller = (ROOT / "App/PlayExperienceView.swift").read_text()
+        coordinator = (ROOT / "Core/PlayExperienceCoordinator.swift").read_text()
+        wire = (ROOT / "docs/issue5-hunks/C03-route-session-wire.hunk").read_text()
+        read = _brace_body(page, "private func readThisAction()")
+        journal = _brace_body(coordinator, "private var journalRouteActionIdentity")
+        receipt = _brace_body(coordinator, "private var receiptRouteActionIdentity")
+        held = _brace_body(caller, "private var heldRouteActionRead")
+        self.assertEqual(page.count("transport.send"), 1)
+        self.assertLess(read.index("approval.allows"), read.index("transport.send"))
+        self.assertIn('path: "api/play/route-action"', read)
+        self.assertIn("An unknown approval refuses the send", page)
+        self.assertNotIn("serviceResult", page)
+        self.assertNotIn("playNodesAndRouteState", page)
+        self.assertNotIn("playReadConfiguration", page)
+        self.assertNotIn("api/play/route-state", page)
+        self.assertNotIn("UUID(", journal)
+        self.assertNotIn("UUID(", receipt)
+        self.assertNotIn("snapshot", journal)
+        self.assertNotIn("snapshot", receipt)
+        self.assertIn("cachedCompletion", journal)
+        self.assertIn("routeSessionID", journal)
+        self.assertIn("actionID", journal)
+        self.assertIn('reward["routeActionId"]', receipt)
+        self.assertIn('reward["actionId"]', receipt)
+        self.assertIn('reward["routeState"]["sessionId"]', receipt)
+        self.assertIn("heldRouteActionIdentity", caller)
+        self.assertIn("RouteActionPageReadRequest(sessionID: held.routeSessionID, actionID: held.actionID)", held)
+        self.assertNotIn("UUID(", held)
+        self.assertNotIn("approval:", held)
+        self.assertNotIn("memberID:", held)
+        self.assertNotIn("staff", held)
+        self.assertNotIn("transport.send", caller)
+        self.assertIn("DO NOT APPLY", wire)
+        self.assertIn("Not applied", wire)
+        self.assertIn("Do not apply", wire)
+        self.assertIn("App/AppSession.swift", wire)
+        self.assertIn("App/AppCompositionRoot.swift", wire)
+        self.assertIn("project.pbxproj", wire)
+        self.assertIn("heldRouteActionIdentity", wire)
+        self.assertIn("account.id", wire)
+        self.assertIn("currentMemberId", wire)
+        self.assertIn("Do not use a staff id", wire)
+        self.assertIn("api/play/route-action", wire)
+        self.assertIn("playNodesAndRouteState", wire)
+        self.assertIn("playReadConfiguration", wire)
+        self.assertIn("does not mint", wire)
+        self.assertIn("serviceResult", wire)
+        self.assertIn("not a network read", wire)
+        self.assertIn("unknown approval", wire.lower())
+        self.assertIn("NOT_RUN", wire)
+        self.assertIn("not 100%", wire.lower())
+        self.assertNotIn("second request", page.lower())
+        names = _changed_names()
+        for path in (
+            "App/AppSession.swift",
+            "App/AppCompositionRoot.swift",
+            "Questify.xcodeproj/project.pbxproj",
+            "App/MessagingHomeView.swift",
+            "App/ProfileOrdersView.swift",
+            "MerchantDeskSkuPage.swift",
+            "Core/OwnedOrderRead.swift",
         ):
             self.assertNotIn(path, names)
         self.assertIn("XCTest on Linux is NOT_RUN", Path(__file__).read_text())

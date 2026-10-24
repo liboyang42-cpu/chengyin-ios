@@ -15,6 +15,10 @@ struct RouteActionPageReadRequest {
     var token: String?
     /// Signed-in account. Zero closes only this read.
     var accountID: Int?
+    /// Exact grant for api/play/route-action. Nil, or any other path, refuses the send.
+    var approval: OperationEndpointApproval?
+    /// Namespace the approval was issued for. Missing refuses the send.
+    var approvalNamespace: String?
 }
 
 /// Supplementary map for the personal orientation runtime. It never requests
@@ -150,7 +154,8 @@ struct RouteActionPageReadRequest {
         let account = actionRead?.accountID ?? 0
         let tokenMark = actionRead?.token?.utf8.reduce(UInt64(0)) { ($0 &* 131) &+ UInt64($1) } ?? 0
         let transport = actionRead?.transport == nil ? "0" : "1"
-        return "\(actionRead?.sessionID ?? -1)|\(actionRead?.memberID ?? -1)|\(actionRead?.actionID ?? "")|\(base)|\(account)|\(tokenMark)|\(transport)"
+        let approved = actionRead?.approval?.paths.contains("api/play/route-action") == true ? "1" : "0"
+        return "\(actionRead?.sessionID ?? -1)|\(actionRead?.memberID ?? -1)|\(actionRead?.actionID ?? "")|\(base)|\(account)|\(tokenMark)|\(transport)|\(approved)"
     }
     /// Appearance records the route page only. It does not read and does not write.
     private func appearActionRead() {
@@ -159,7 +164,8 @@ struct RouteActionPageReadRequest {
     /// Sends GET /api/play/route-action on the held https host.
     /// A missing configuration, a non-https URL, a blank token, or account id 0
     /// closes only this read and does not invent a domain.
-    /// A response whose session id, member id, or action id differs shows nothing.
+    /// An unknown approval refuses the send. A response whose session id, member id,
+    /// or action id differs shows nothing.
     private func readThisAction() async {
         guard actionReadAppeared, let request = actionRead else {
             shownActionRow = nil
@@ -186,6 +192,12 @@ struct RouteActionPageReadRequest {
             return
         }
         guard let url = routeActionURL(configuration, sessionID: sessionID, memberID: memberID, actionID: trimmed) else {
+            shownActionRow = nil
+            return
+        }
+        let namespace = request.approvalNamespace?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard let approval = request.approval, !namespace.isEmpty,
+              approval.allows(configuration: configuration, namespace: namespace, accountID: accountID, path: "api/play/route-action") else {
             shownActionRow = nil
             return
         }
