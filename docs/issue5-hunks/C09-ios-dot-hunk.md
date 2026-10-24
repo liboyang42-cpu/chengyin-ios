@@ -150,3 +150,11 @@ HEAD `898390ed` tests. Did not invent recoverOriginal.
 `ImmutableReceiptProducerTests.testUnusedOfflineReopenOfNeverSeenDoesNotOccupyThenUniqueAcceptApplies`：未见 `c09-reopen-never` 的 `offlineReopen` 抛 `originalMissing` 且 `originalByRequestID` 仍空；后续唯一 `accept` 才是 ACCEPTED。
 
 Parent python `Tests.ContractChecks.test_c09_notify_webhook_projections` **9/0**. XCTest NOT_RUN on Linux. Not 100%.
+
+## 9. Parent addendum 2026-10-23 19:18 America/Los_Angeles
+
+HEAD `159c09f5` tests. Did not invent recoverOriginal.
+
+`WebhookDeliveryLogProducerTests.testUnusedRequireOriginalOfNeverSeenDoesNotOccupyThenUniqueDeliverApplies`：未见 `evt-req-never-c09` 的 `requireOriginal` 抛 `originalMissing` 且 `originalByEventID` 仍空；后续唯一 `deliver` 才是 DELIVERED。
+
+Parent python `Tests.ContractChecks.test_c09_notify_webhook_projections` **9/0**. XCTest NOT_RUN on Linux. Not 100%.
