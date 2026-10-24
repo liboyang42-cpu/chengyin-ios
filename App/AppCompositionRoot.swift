@@ -1008,6 +1008,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         let manualRead = selectedArea.flatMap { ManualMapReadRoute(request: request, baseURL: api.baseURL, area: $0.area) }
         let cityRead = CityReadRoute(request: request, baseURL: api.baseURL)
         let playRead = PlayReadRoute(request: request, baseURL: api.baseURL)
+        let characterRead = CharacterCardReadRoute(request: request, baseURL: api.baseURL)
         let ownedCover = OwnedTopicCoverCompositionRoute(request: request, baseURL: api.baseURL)
         let sessionFactRoute = RoamSessionFactReadRoute(request: request, baseURL: api.baseURL)
         let nearbyEventsArea = manualMapSelection?.snapshot
@@ -1028,7 +1029,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         let favoriteList = ProfileFavoritesReadRoute(request: request, baseURL: api.baseURL)
         let favoriteDetail = ProfileFavoriteDetailRoute(request: request, baseURL: api.baseURL)
         let ticketWalletList = TicketWalletListReadRoute(request: request, baseURL: api.baseURL)
-        guard nearbyEvents != nil || url.query == nil || manualRead != nil || playRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
+        guard nearbyEvents != nil || url.query == nil || manualRead != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
         guard let captured = current() else { throw CancellationError() }
         let authPaths = [AuthEndpoint.smsSend, .phone, .userInfo, .logout].map { api.url(for: $0) }
         let auth = authPaths.contains(url)
@@ -1466,7 +1467,7 @@ extension KeychainTokenStore: AppTokenStorage {}
                 return playRead.isApproved(configuration: current, context: context)
             }
             guard readApprovalStillValid?() == true else { throw APIError.notConfigured }
-        } else if let characterRead = CharacterCardReadRoute(request: request, baseURL: api.baseURL) {
+        } else if let characterRead {
             guard let account = captured.accountID, account > 0,
                   let role = captured.role, !role.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                   let token = captured.token,
@@ -1606,6 +1607,8 @@ extension KeychainTokenStore: AppTokenStorage {}
         guard current() == captured, readApprovalStillValid?() != false else { throw CancellationError() }
         do {
             let result = try await underlying.send(request)
+            if (playRead != nil || characterRead != nil), current() == captured,
+               PlayExperienceService.isAuthenticationFailure(result) { return result }
             try Task.checkCancellation()
             guard current() == captured, readApprovalStillValid?() != false else { throw CancellationError() }
             if let ticketWalletList {

@@ -22,9 +22,9 @@ public struct EnvironmentExpiryClock: Equatable {
         _ = clientNow
         if raw == .null { return .waitingSource }
         guard raw.object != nil else { return .unknown }
-        let serverNow = instant(raw["serverNow"] ?? raw["asOf"] ?? raw["asOfMs"])
-        let capturedAt = instant(raw["capturedAt"] ?? raw["capturedAtMs"])
-        let expiresAt = instant(raw["expiresAt"] ?? raw["expiresAtMs"] ?? raw["validUntil"])
+        let serverNow = instant(present(raw, "serverNow", "asOf", "asOfMs"))
+        let capturedAt = instant(present(raw, "capturedAt", "capturedAtMs"))
+        let expiresAt = instant(present(raw, "expiresAt", "expiresAtMs", "validUntil"))
         if let text = (raw["status"].text ?? raw["validity"].text)?.trimmingCharacters(in: .whitespacesAndNewlines) {
             switch text {
             case "VALID", "ACTIVE":
@@ -55,6 +55,14 @@ public struct EnvironmentExpiryClock: Equatable {
         return .waitingSource
     }
     public var isValid: Bool { availability == .ready && !expired }
+    /// Missing keys are `.null`, not Optional, so `??` cannot select an alias.
+    private static func present(_ raw: PlayWireValue, _ keys: String...) -> PlayWireValue {
+        for key in keys {
+            let value = raw[key]
+            if value != .null { return value }
+        }
+        return .null
+    }
     private static func instant(_ value: PlayWireValue) -> Int64? {
         if let number = value.integer, number > 0 { return Int64(number) }
         if case .integer(let raw) = value, raw > 0 { return raw }

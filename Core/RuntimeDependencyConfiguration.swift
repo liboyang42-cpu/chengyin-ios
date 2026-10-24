@@ -77,6 +77,10 @@ public struct RuntimeDependencyContext: Equatable {
             captured.baseURL.appendingPathComponent($0) == components.url
         }) else { throw PlayExperienceError.disabled }
         let result = try await transport.send(request)
+        if (PlayReadRoute(request: request, baseURL: captured.baseURL) != nil
+            || CharacterCardReadRoute(request: request, baseURL: captured.baseURL) != nil),
+           current() == captured,
+           PlayExperienceService.isAuthenticationFailure(result) { return result }
         try Task.checkCancellation()
         guard current() == captured else { throw PlayExperienceError.staleSession }
         return result
