@@ -359,7 +359,7 @@ public struct DirectoryMyState: Equatable, Sendable {
               number.doubleValue == Double(number.intValue), number.stringValue == String(number.intValue) else { return nil }
         return number.intValue
     }
-    private static func decimal(_ value: Any?) -> String? {
+    fileprivate static func decimal(_ value: Any?) -> String? {
         if let text = value as? String {
             guard !text.isEmpty, text.count <= 19, text.unicodeScalars.allSatisfy({ (48...57).contains($0.value) }),
                   let number = Int64(text), String(number) == text, number >= 0 else { return nil }
@@ -537,34 +537,15 @@ public struct MessageContainerHistory: Equatable, Sendable {
         guard page["sync_contract"] as? String == "VISIBLE_ORDER_PLUS_MUTATIONS_V1",
               page["legacy_cache_action"] as? String == "RELOAD_ON_RESUME",
               page["list"] is [Any],
-              exactCursor(page["mutation_cursor"]) != nil,
-              exactBool(page["has_more"]) != nil || exactBool(page["hasMore"]) != nil,
-              aliasesAgree(page["has_more"], page["hasMore"], exactBool),
-              aliasesAgree(page["next_cursor"], page["nextCursor"], exactCursor),
-              aliasesAgree(page["next_after"], page["nextAfter"], exactCursor),
+              DirectoryMyState.decimal(page["mutation_cursor"]) != nil,
+              DirectoryMyState.jsonBool(page["has_more"]) != nil || DirectoryMyState.jsonBool(page["hasMore"]) != nil,
+              aliasesAgree(page["has_more"], page["hasMore"], DirectoryMyState.jsonBool),
+              aliasesAgree(page["next_cursor"], page["nextCursor"], DirectoryMyState.decimal),
+              aliasesAgree(page["next_after"], page["nextAfter"], DirectoryMyState.decimal),
               page["operation"] as? String != "ACK" else {
             throw ChannelAuthorizationError.invalidCatalog
         }
         return page
-    }
-
-    private func exactBool(_ value: Any?) -> Bool? {
-        guard let number = value as? NSNumber, CFGetTypeID(number) == CFBooleanGetTypeID() else { return nil }
-        return number.boolValue
-    }
-
-    private func exactCursor(_ value: Any?) -> String? {
-        if value is NSNull { return nil }
-        if let text = value as? String {
-            guard !text.isEmpty, text.unicodeScalars.allSatisfy({ (48...57).contains($0.value) }) else { return nil }
-            return text
-        }
-        if let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID(),
-           number.doubleValue == Double(number.int64Value), number.int64Value >= 0,
-           number.stringValue == String(number.int64Value) {
-            return String(number.int64Value)
-        }
-        return nil
     }
 
     private func aliasesAgree(_ left: Any?, _ right: Any?, _ parse: (Any?) -> String?) -> Bool {
@@ -616,8 +597,8 @@ public struct MessageContainerHistory: Equatable, Sendable {
         var projected: [[String: Any]] = []
         for row in rows {
             guard let row = row as? [String: Any] else { throw ChannelAuthorizationError.invalidCatalog }
-            guard let conversation = text(row["conversationId"]), conversation == channel,
-                  text(row["id"]) != nil, text(row["senderId"]) != nil else { continue }
+            guard let conversation = DirectoryMyState.decimal(row["conversationId"]), conversation == channel,
+                  rowID(row["id"]) != nil, DirectoryMyState.decimal(row["senderId"]) != nil else { continue }
             var copy = row
             if DirectoryMyState.exactInt(row["status"]) != 0 {
                 copy["content"] = ""
@@ -628,9 +609,9 @@ public struct MessageContainerHistory: Equatable, Sendable {
         return projected
     }
 
-    private func text(_ value: Any?) -> String? {
-        if let text = value as? String, !text.isEmpty { return text }
-        if let number = DirectoryMyState.exactInt(value), number >= 0 { return String(number) }
-        return nil
+    /// A message row id is positive. A cursor or sender may be 0.
+    private func rowID(_ value: Any?) -> String? {
+        guard let text = DirectoryMyState.decimal(value), let number = Int64(text), number > 0 else { return nil }
+        return text
     }
 }
