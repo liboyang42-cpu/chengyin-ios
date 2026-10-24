@@ -128,3 +128,9 @@ HEAD `a7050d73` tests. Did not invent recoverOriginal.
 `OfflinePackOperationTests.testUnusedFinishUpdateOfIdleDoesNotOccupyThenUniqueUpdateThenFinishApplies`：idle `finishUpdate` 抛 notDownloading 且 phase 仍 idle、operationID 仍空；后续唯一 startDownload+finishDownload+applyUpdate+finishUpdate 才是 v2 ready。与 unused resume 的 v1 ready、unused applyUpdate 的 updating 占账不同。
 
 Parent python `Tests.ContractChecks.test_offline_pack_and_nav_consent` **13/0**. XCTest NOT_RUN on Linux. SHA256 digest-length-only. Not 100%.
+
+## Addendum 2026-10-23 20:13 America/Los_Angeles
+
+HEAD `8388b9a9`. Aligns with hengyin #580 `03df83ec9` for Dot C05 03:05Z: expire bound by expiresAt; payload SHA-256 finish; approvedAlternative requires attested+authority; PlaceCapacitySourcing missing is WAITING_SOURCE.
+
+Parent python `Tests.ContractChecks.test_offline_pack_and_nav_consent` **13/0**. XCTest NOT_RUN on Linux. SHA256 digest-length-only. Not 100%.
