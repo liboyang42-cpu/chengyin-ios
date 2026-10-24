@@ -66,4 +66,32 @@ final class ChannelAdmissionGovernanceClientTests: XCTestCase {
         XCTAssertEqual(transport.requests[1].httpMethod, "GET")
         XCTAssertEqual(recovered["state"] as? String, "UNKNOWN")
     }
+
+    func testCancelPostsTheOriginalRouteAndSkipsABadIdentifier() async throws {
+        let transport = AdmissionFakeTransport()
+        do {
+            _ = try await client(transport).cancel(applicationID: 0, requestID: "c08-cancel-01")
+            XCTFail()
+        } catch ChannelAuthorizationError.invalidCatalog {}
+        XCTAssertTrue(transport.requests.isEmpty)
+        transport.body = try JSONSerialization.data(withJSONObject: [
+            "code": 200, "data": ["id": "15", "status": 3]
+        ])
+        _ = try await client(transport).cancel(applicationID: 15, requestID: "c08-cancel-01")
+        XCTAssertEqual(transport.requests.count, 1)
+        XCTAssertEqual(transport.requests[0].url?.path, "/prod-api/api/join-request/cancel")
+        let raw = try JSONSerialization.jsonObject(with: transport.requests[0].httpBody!) as! [String: Any]
+        XCTAssertEqual(raw["id"] as? Int, 15)
+        XCTAssertEqual(raw["request_id"] as? String, "c08-cancel-01")
+    }
+
+    func testLeavePostsTheOriginalRoute() async throws {
+        let transport = AdmissionFakeTransport()
+        transport.body = try JSONSerialization.data(withJSONObject: [
+            "code": 200, "data": ["guild_kind": 3, "guild_id": "12", "left": true]
+        ])
+        _ = try await client(transport).leave(kind: 3, spaceID: 12, requestID: "c08-leave-01")
+        XCTAssertEqual(transport.requests[0].url?.path, "/prod-api/api/space/leave")
+        XCTAssertEqual(transport.requests.count, 1)
+    }
 }

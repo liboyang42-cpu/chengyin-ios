@@ -6,7 +6,12 @@ import FoundationNetworking
 /// Calls the original admission routes. It does not use `api/native/spaces/admission`.
 /// One request per action. A failed response does not mint another request id.
 public struct ChannelAdmissionGovernanceClient {
+    public static let submitPath = "api/join-request/submit"
+    public static let cancelPath = "api/join-request/cancel"
+    public static let approvePath = "api/join-request/approve"
+    public static let rejectPath = "api/join-request/reject"
     public static let pausePath = "api/space/join-pause"
+    public static let leavePath = "api/space/leave"
     public static let revokePath = "api/invite/revoke"
     public static let receiptPrefix = "api/channel-platform/admission/requests/"
 
@@ -22,6 +27,62 @@ public struct ChannelAdmissionGovernanceClient {
         self.transport = transport
         self.token = token
         self.admission = admission
+    }
+
+    public func submit(catalog: ChannelCatalogEntry, kind: Int, spaceID: Int64, inviteID: Int64?, message: String?, requestID: String) async throws -> [String: Any] {
+        try ready {
+            try admission.submitOriginal(catalog: catalog, kind: kind, spaceID: spaceID, inviteID: inviteID, message: message, requestID: requestID)
+        }
+        var body: [String: Any] = ["guild_kind": kind, "guild_id": spaceID, "request_id": requestID]
+        if let inviteID { body["invite_id"] = inviteID }
+        if let message {
+            let trimmed = message.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty { body["message"] = trimmed }
+        }
+        let data = try await post(Self.submitPath, body)
+        return try admission.submitOriginal(catalog: catalog, kind: kind, spaceID: spaceID, inviteID: inviteID, message: message, requestID: requestID) {
+            _, _, _, _, _, _ in data
+        }
+    }
+
+    public func cancel(applicationID: Int64, requestID: String) async throws -> [String: Any] {
+        try ready { try admission.cancelOriginal(applicationID: applicationID, requestID: requestID) }
+        let data = try await post(Self.cancelPath, ["id": applicationID, "request_id": requestID])
+        return try admission.cancelOriginal(applicationID: applicationID, requestID: requestID) { _, _, _ in data }
+    }
+
+    public func approve(applicationID: Int64, note: String?, requestID: String) async throws -> [String: Any] {
+        try ready { try admission.reviewOriginal(applicationID: applicationID, approve: true, reasonCode: nil, note: note, requestID: requestID) }
+        var body: [String: Any] = ["id": applicationID, "request_id": requestID]
+        if let note {
+            let trimmed = note.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty { body["remark"] = trimmed }
+        }
+        let data = try await post(Self.approvePath, body)
+        return try admission.reviewOriginal(applicationID: applicationID, approve: true, reasonCode: nil, note: note, requestID: requestID) {
+            _, _, _, _, _, _ in data
+        }
+    }
+
+    public func reject(applicationID: Int64, reasonCode: Int, note: String?, requestID: String) async throws -> [String: Any] {
+        try ready {
+            try admission.reviewOriginal(applicationID: applicationID, approve: false, reasonCode: reasonCode, note: note, requestID: requestID)
+        }
+        var body: [String: Any] = ["id": applicationID, "reject_reason_code": reasonCode, "request_id": requestID]
+        if let note {
+            let trimmed = note.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty { body["reject_note"] = trimmed }
+        }
+        let data = try await post(Self.rejectPath, body)
+        return try admission.reviewOriginal(applicationID: applicationID, approve: false, reasonCode: reasonCode, note: note, requestID: requestID) {
+            _, _, _, _, _, _ in data
+        }
+    }
+
+    public func leave(kind: Int, spaceID: Int64, requestID: String) async throws -> [String: Any] {
+        try ready { try admission.leaveOriginal(kind: kind, spaceID: spaceID, requestID: requestID) }
+        let data = try await post(Self.leavePath, ["guild_kind": kind, "guild_id": spaceID, "request_id": requestID])
+        return try admission.leaveOriginal(kind: kind, spaceID: spaceID, requestID: requestID) { _, _, _, _ in data }
     }
 
     public func pause(kind: Int, spaceID: Int64, paused: Bool, until: String?, reason: String, requestID: String) async throws -> [String: Any] {
