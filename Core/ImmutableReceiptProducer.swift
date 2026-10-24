@@ -236,6 +236,13 @@ public struct ImmutableReceiptProducer: Equatable {
         }
     }
 
+    /// The installed channel writer. Nil keeps the send closed. One call, no second receipt store.
+    public typealias ChannelOriginalSend = (
+        _ actorID: Int64, _ conversationID: Int64, _ requestID: String, _ msgType: Int,
+        _ content: String, _ extraJSON: String?, _ replyToID: Int64?,
+        _ mentionMemberIDs: [Int64], _ mentionRoleIDs: [Int64], _ mentionEveryone: Bool
+    ) throws -> [String: Any]
+
     /// Channel REPLY/MENTION uses ChannelMessageService.send fields, not the legacy direct send.
     /// SEARCH/EDIT/WITHDRAW/PIN do not send. OriginalRequest.body is fingerprint material, not content.
     public func sendOriginal(
@@ -248,10 +255,10 @@ public struct ImmutableReceiptProducer: Equatable {
         replyToID: Int64?,
         mentionMemberIDs: [Int64],
         mentionRoleIDs: [Int64],
-        mentionEveryone: Bool
+        mentionEveryone: Bool,
+        channel: ChannelOriginalSend? = nil
     ) throws -> OriginalReceipt? {
-        _ = try Self.requireRequestID(request.requestId)
-        _ = extraJSON
+        let id = try Self.requireRequestID(request.requestId)
         guard let kind = request.kind else { throw NotASend.missingKind }
         guard kind == .reply || kind == .mention else { throw NotASend.kind(kind) }
         let trimmedContent = content?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -266,7 +273,65 @@ public struct ImmutableReceiptProducer: Equatable {
         } else if mentionMemberIDs.isEmpty && mentionRoleIDs.isEmpty && !mentionEveryone {
             throw NotifyFailure.waitingSource(capability: Self.imSendWire)
         }
-        throw NotifyFailure.waitingSource(capability: Self.channelMessageSend)
+        guard let channel else {
+            throw NotifyFailure.waitingSource(capability: Self.channelMessageSend)
+        }
+        let sent = try channel(actorID, conversationID, id, msgType, trimmedContent, extraJSON,
+                               replyToID, mentionMemberIDs, mentionRoleIDs, mentionEveryone)
+        guard Self.sameChannelReceipt(sent, requestID: id) else {
+            throw NotifyFailure.fingerprintConflict(requestId: id)
+        }
+        return OriginalReceipt(requestId: id, kind: kind, payloadHash: nil, outcome: Self.outcomeUnknown,
+                               originalBody: nil, currentProjectionClaimsApplied: false, recoveryNote: nil,
+                               mintedNewRequest: false)
+    }
+
+    /// Same request id, and either one agreed message id or message_unavailable. Does not invent an id.
+    private static func sameChannelReceipt(_ sent: [String: Any], requestID: String) -> Bool {
+        let client = sent["client_message_id"] as? String
+        let request = sent["request_id"] as? String
+        if let client, let request, client != request { return false }
+        guard (client ?? request) == requestID else { return false }
+        let message = channelID(sent, "message_id")
+        let top = channelID(sent, "id")
+        let nested = nestedMessageID(sent)
+        if message.invalid || top.invalid || nested.invalid { return false }
+        if !agree(message, top) || !agree(message, nested) || !agree(top, nested) { return false }
+        if message.present || top.present || nested.present { return true }
+        return (sent["message_unavailable"] as? Bool) == true
+    }
+
+    private struct ParsedID {
+        var invalid = false
+        var present = false
+        var value: Int64?
+    }
+
+    private static func agree(_ left: ParsedID, _ right: ParsedID) -> Bool {
+        guard let left = left.value, let right = right.value else { return true }
+        return left == right
+    }
+
+    private static func channelID(_ source: [String: Any], _ key: String) -> ParsedID {
+        guard let value = source[key] else { return ParsedID() }
+        if value is NSNull { return ParsedID(invalid: true) }
+        if let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() {
+            let int = number.int64Value
+            if int > 0, number.doubleValue == Double(int), number.stringValue == String(int) {
+                return ParsedID(present: true, value: int)
+            }
+        }
+        if let text = value as? String, let int = Int64(text), int > 0, String(int) == text {
+            return ParsedID(present: true, value: int)
+        }
+        return ParsedID(invalid: true)
+    }
+
+    private static func nestedMessageID(_ sent: [String: Any]) -> ParsedID {
+        guard let value = sent["message"] else { return ParsedID() }
+        if value is NSNull { return ParsedID(invalid: true) }
+        guard let map = value as? [String: Any] else { return ParsedID(invalid: true) }
+        return channelID(map, "id")
     }
 
     /// Read-only original SEND proof. Digest, actor, channel, request, operation, and the

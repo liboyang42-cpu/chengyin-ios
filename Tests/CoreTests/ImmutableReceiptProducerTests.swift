@@ -255,6 +255,54 @@ final class ImmutableReceiptProducerTests: XCTestCase {
         XCTAssertTrue(producer.originalByRequestID.isEmpty)
     }
 
+    func testSendOriginalCallsTheChannelOnceAndDoesNotStore() throws {
+        let producer = ImmutableReceiptProducer()
+        let reply = ImmutableReceiptProducer.OriginalRequest(
+            requestId: "c09-send-key-0001", kind: .reply, body: "{\"fp\":1}",
+            outcome: ImmutableReceiptProducer.outcomeAccepted)
+        var calls = 0
+        let sent = try producer.sendOriginal(
+            reply, actorID: 7, conversationID: 12, msgType: 1, content: "hello", extraJSON: nil,
+            replyToID: 88120, mentionMemberIDs: [], mentionRoleIDs: [], mentionEveryone: false,
+            channel: { actor, conversation, request, type, content, extra, replyTo, members, roles, everyone in
+                calls += 1
+                XCTAssertEqual(actor, 7)
+                XCTAssertEqual(conversation, 12)
+                XCTAssertEqual(request, "c09-send-key-0001")
+                XCTAssertEqual(type, 1)
+                XCTAssertEqual(content, "hello")
+                XCTAssertNil(extra)
+                XCTAssertEqual(replyTo, 88120)
+                XCTAssertTrue(members.isEmpty)
+                XCTAssertTrue(roles.isEmpty)
+                XCTAssertFalse(everyone)
+                return ["request_id": request, "message_id": 44]
+            })
+        XCTAssertEqual(calls, 1)
+        XCTAssertEqual(sent?.outcome, ImmutableReceiptProducer.outcomeUnknown)
+        XCTAssertEqual(sent?.requestId, "c09-send-key-0001")
+        XCTAssertFalse(sent?.currentProjectionClaimsApplied ?? true)
+        XCTAssertTrue(producer.originalByRequestID.isEmpty)
+        XCTAssertThrowsError(try producer.sendOriginal(
+            reply, actorID: 7, conversationID: 12, msgType: 1, content: "hello", extraJSON: nil,
+            replyToID: 88120, mentionMemberIDs: [], mentionRoleIDs: [], mentionEveryone: false,
+            channel: { _, _, _, _, _, _, _, _, _, _ in
+                calls += 1
+                return ["request_id": "c09-other-key-0002", "message_id": 44]
+            })) { error in
+            XCTAssertEqual(error as? NotifyFailure, .fingerprintConflict(requestId: "c09-send-key-0001"))
+        }
+        XCTAssertEqual(calls, 2)
+        let unavailable = try producer.sendOriginal(
+            reply, actorID: 7, conversationID: 12, msgType: 1, content: "hello", extraJSON: nil,
+            replyToID: 88120, mentionMemberIDs: [], mentionRoleIDs: [], mentionEveryone: false,
+            channel: { _, _, request, _, _, _, _, _, _, _ in
+                ["request_id": request, "message_unavailable": true]
+            })
+        XCTAssertEqual(unavailable?.requestId, "c09-send-key-0001")
+        XCTAssertEqual(unavailable?.outcome, ImmutableReceiptProducer.outcomeUnknown)
+    }
+
     private func waiting(_ body: () throws -> Never) -> NotifyFailure? {
         do { try body(); return nil } catch let error as NotifyFailure { return error } catch { return nil }
     }
