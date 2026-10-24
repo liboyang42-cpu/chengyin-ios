@@ -74,7 +74,7 @@ public enum FriendPermissionDistinctFromChannel {
     public static func domain(for mutation: IMMutation) -> SocialPermissionDomain {
         switch mutation {
         case .start: return .friend
-        case .read, .mute, .send: return .channel
+        case .read, .readCursor, .mute, .send: return .channel
         }
     }
 }

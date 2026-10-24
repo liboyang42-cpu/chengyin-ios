@@ -40,7 +40,7 @@ public enum ChannelMemberAuthorizationProjection {
         switch mutation {
         case .start:
             throw ChannelAuthorizationError.friendPermissionRequired
-        case .read, .mute:
+        case .read, .readCursor, .mute:
             guard grant.permits(.read) else { throw ChannelAuthorizationError.channelPermissionRequired }
         case .send:
             guard grant.permits(.write) else { throw ChannelAuthorizationError.channelPermissionRequired }

@@ -69,7 +69,7 @@ struct IMExpandedSubmission: Equatable {
            token.mutation.conversationID == owner.scope.conversationID,
            case .acknowledged(let receipt) = owner.visibleState {
             switch (token.mutation, receipt) {
-            case (.read, .read): onConversationMutationAccepted(owner.scope)
+            case (.read, .read), (.readCursor, .read): onConversationMutationAccepted(owner.scope)
             case (.mute(_, let requested), .muted(let received)) where requested == received:
                 onConversationMutationAccepted(owner.scope)
             default: break
@@ -80,9 +80,9 @@ struct IMExpandedSubmission: Equatable {
         state = owner.visibleState
         if case .acknowledged(let receipt) = state {
             switch (token.mutation, receipt) {
-            case (.read, .read): return true
+            case (.read, .read), (.readCursor, .read): return true
             case (.mute(_, let requested), .muted(let received)): return requested == received
-            case (.read, _), (.mute, _): return false
+            case (.read, _), (.readCursor, _), (.mute, _): return false
             default: return true
             }
         }
@@ -100,6 +100,8 @@ struct IMExpandedSubmission: Equatable {
     let topicReader: (any TopicReading)?
     let replyPolicy: IMConversationReplyPolicy
     let isConversationCurrent: () -> Bool
+    /// Set only for an already loaded type-5 history. Nil keeps the original conversation-only read.
+    let readCursor: Int?
     @State private var selectedTopic: TopicSummary?
     @State private var showingTopics = false
     @State private var name = ""
@@ -107,11 +109,12 @@ struct IMExpandedSubmission: Equatable {
     @State private var latitude = ""
     @State private var longitude = ""
     init(coordinator: IMExpandedCoordinator, identity: MessagingReadIdentity?, uploadOwner: IMImageUploadCoordinator? = nil, topicReader: (any TopicReading)? = nil, replyPolicy: IMConversationReplyPolicy? = nil,
-         isConversationCurrent: @escaping () -> Bool = { true },
+         isConversationCurrent: @escaping () -> Bool = { true }, readCursor: Int? = nil,
          onConversationMutationAccepted: @escaping (IMScope) -> Void = { _ in }, onReceipt: @escaping (IMMutationReceipt) -> Void) {
         _model = StateObject(wrappedValue: IMExpandedViewModel(coordinator)); self.identity = identity; self.uploadOwner = uploadOwner; self.topicReader = topicReader; self.onReceipt = onReceipt
         self.replyPolicy = replyPolicy ?? .init(conversationID: coordinator.scope.conversationID, conversation: nil)
         self.isConversationCurrent = isConversationCurrent
+        self.readCursor = readCursor
         self.onConversationMutationAccepted = onConversationMutationAccepted
     }
     private var permitsReply: Bool { replyPolicy.permitsReply && isConversationCurrent() && identity == model.owner.scope.identity && model.owner.isCurrent }
@@ -122,7 +125,7 @@ struct IMExpandedSubmission: Equatable {
         Form {
             if !model.owner.writer.isConfigured { Text("im.full.disabled") }
             Section("im.full.conversation") {
-                Button("im.full.read") { review(.read(conversationID: model.owner.scope.conversationID)) }
+                Button("im.full.read") { review(readMutation()) }
                 Button("im.full.mute") { review(.mute(conversationID: model.owner.scope.conversationID, muted: true)) }
                 Button("im.full.unmute") { review(.mute(conversationID: model.owner.scope.conversationID, muted: false)) }
             }
@@ -199,6 +202,12 @@ struct IMExpandedSubmission: Equatable {
         .onChange(of: isConversationCurrent()) { _, current in if !current { clearDrafts(); model.invalidateQueued() } }
         .onDisappear { clearDrafts(); model.retire() }
     }
+    /// The loaded history supplies the cursor. Opening this page does not mark it read.
+    private func readMutation() -> IMMutation {
+        guard let readCursor, readCursor >= 0 else { return .read(conversationID: model.owner.scope.conversationID) }
+        return .readCursor(conversationID: model.owner.scope.conversationID, lastMessageID: readCursor,
+                           requestID: "ack-" + UUID().uuidString.lowercased())
+    }
     private func review(_ mutation: IMMutation) { _ = model.review(mutation, permits: permits) }
     private func submit(_ operation: IMExpandedSubmission.Operation) {
         guard let token = model.prepare(operation, permits: permits) else { return }
@@ -220,6 +229,8 @@ private struct IMMutationSummary: View {
         switch mutation {
         case .start(let id): Text("im.full.start"); Text(verbatim: String(id))
         case .read(let id): Text("im.full.read"); Text(verbatim: String(id))
+        case .readCursor(let id, let last, let requestID):
+            Text("im.full.read"); Text(verbatim: String(id)); Text(verbatim: String(last)); Text(verbatim: requestID)
         case .mute(let id, let muted): Text(LocalizedStringKey(muted ? "im.full.mute" : "im.full.unmute")); Text(verbatim: String(id))
         case .send(let intent):
             Text("im.full.sendTo"); Text(verbatim: String(intent.scope.conversationID))

@@ -420,6 +420,19 @@ public struct MessageContainerOriginalAck: Equatable, Sendable {
 
     public init() {}
 
+    /// The original receipt body after `POST api/im/read`. This does not send and does not grant membership.
+    public func receiptFromOriginalBody(_ body: [String: Any], channelID: Int64, requestID: String) throws -> Receipt {
+        try applied(body, channelID: channelID, requestID: requestID)
+    }
+
+    public static func isRequestID(_ value: String) -> Bool {
+        guard (16...96).contains(value.count) else { return false }
+        return value.unicodeScalars.allSatisfy { scalar in
+            (48...57).contains(scalar.value) || (65...90).contains(scalar.value)
+                || (97...122).contains(scalar.value) || scalar.value == 95 || scalar.value == 45
+        }
+    }
+
     public func acknowledge(actor: Int64, channelID: Int64, lastMessageID: Int64, requestID: String,
                             channelKind: Int, sameScope: (Int64, Int64) -> Bool,
                             writer: (Int64, Int64, Int64, String) throws -> [String: Any]) throws -> Receipt {
@@ -513,11 +526,7 @@ public struct MessageContainerOriginalAck: Equatable, Sendable {
     }
 
     private func requestOK(_ value: String) -> Bool {
-        guard (16...96).contains(value.count) else { return false }
-        return value.unicodeScalars.allSatisfy { scalar in
-            (48...57).contains(scalar.value) || (65...90).contains(scalar.value)
-                || (97...122).contains(scalar.value) || scalar.value == 95 || scalar.value == 45
-        }
+        Self.isRequestID(value)
     }
 }
 

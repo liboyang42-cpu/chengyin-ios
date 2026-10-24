@@ -68,6 +68,12 @@ struct MessagingHistoryView: View {
         self.onConversationMutationAccepted = onConversationMutationAccepted
         _history = State(initialValue: MessagingHistory(conversationID: conversationID))
     }
+    /// Type 5 only, and only after this page has loaded. Appearance does not send it.
+    private var channelReadCursor: Int? {
+        guard conversation?.type == 5, currentHistoryReady else { return nil }
+        if let id = history.messages.last?.id, id > 0 { return id }
+        return history.messages.isEmpty ? 0 : nil
+    }
     private var replyPolicy: IMConversationReplyPolicy {
         .init(conversationID: conversationID, conversation: conversation)
     }
@@ -129,6 +135,7 @@ struct MessagingHistoryView: View {
                             uploadOwner: replyPolicy.permitsReply ? expanded?.uploadCoordinator(conversationID) : nil,
                             topicReader: expanded?.topicReader, replyPolicy: replyPolicy,
                             isConversationCurrent: { authority.isCurrent(lease) },
+                            readCursor: channelReadCursor,
                             onConversationMutationAccepted: onConversationMutationAccepted) { _ in Task { await reload() } }
                     } label: { Label("im.full.title", systemImage: "ellipsis.circle") }
                     .accessibilityIdentifier("im.full.controlsEntry")
