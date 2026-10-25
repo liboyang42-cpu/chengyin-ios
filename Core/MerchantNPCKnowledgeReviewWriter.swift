@@ -29,6 +29,24 @@ import FoundationNetworking
 /// This type does not call `POST api/ai/theme/draft`, `POST api/merchant/npc/save`,
 /// `api/merchant/npc/save/result`, or merchant authoring generate/createDraft.
 /// It does not wrap `MerchantNPCOriginalDraftWriter` or `MerchantNPCThemeDraftRequestRead`.
+/// Re-entry does not POST again and does not publish.
+public struct MerchantNPCKnowledgeReviewReentry: Equatable {
+    public let requestID: UUID
+    public let memberID: Int64
+    public let name: String
+    public let greeting: String
+    public let persona: String
+    public let knowledge: String
+    public init(requestID: UUID, memberID: Int64, name: String, greeting: String, persona: String, knowledge: String) {
+        self.requestID = requestID
+        self.memberID = memberID
+        self.name = name
+        self.greeting = greeting
+        self.persona = persona
+        self.knowledge = knowledge
+    }
+}
+
 @MainActor public final class MerchantNPCKnowledgeReviewWriter: MerchantNPCOriginalReviewPublishing {
     /// Contract being written. Not a discovered route.
     public static let path = "api/merchant/npc/knowledge-review"
@@ -50,13 +68,17 @@ import FoundationNetworking
     private let transport: any HTTPTransport
     private let memberID: () -> Int64?
     private let token: () -> String?
+    /// Request id, member, and four fields this instance already holds. Re-entry does not mint another id.
+    private let heldReentry: MerchantNPCKnowledgeReviewReentry?
 
     public init(configuration: APIConfiguration, transport: any HTTPTransport,
-                memberID: @escaping () -> Int64?, token: @escaping () -> String?) {
+                memberID: @escaping () -> Int64?, token: @escaping () -> String?,
+                held: MerchantNPCKnowledgeReviewReentry? = nil) {
         self.configuration = configuration
         self.transport = transport
         self.memberID = memberID
         self.token = token
+        self.heldReentry = held
     }
 
     /// POST the four draft fields and the given request id. After acceptance, GET that request.
@@ -96,6 +118,30 @@ import FoundationNetworking
         _ = ticket.requestID
         _ = scope.accountID
         throw MerchantNPCDraftGateFailure.waitingSource(capability: MerchantNPCWaitingSourcePublisher.knowledgeDraftHTTP)
+    }
+
+    /// One GET of the request this instance already holds. Does not POST again and does not publish.
+    /// The four fields are kept only when requestId, member, and the four strings match.
+    /// A missing row or a different member stays closed.
+    public func recoverHeldRequest() async throws -> MerchantNPCKnowledgeReviewReentry {
+        guard let held = heldReentry, held.memberID > 0,
+              let loggedIn = memberID(), loggedIn == held.memberID,
+              let credential = token(), AuthRequestBuilder.isValidToken(credential),
+              let readRequest = makeReadRequest(token: credential, requestID: held.requestID) else {
+            throw MerchantNPCDraftGateFailure.waitingSource(capability: MerchantNPCWaitingSourcePublisher.knowledgeReviewAuthority)
+        }
+        let read: (Data, Int)
+        do {
+            read = try await transport.send(readRequest)
+        } catch {
+            throw MerchantNPCDraftGateFailure.waitingSource(capability: MerchantNPCWaitingSourcePublisher.knowledgeReviewAuthority)
+        }
+        guard memberID() == held.memberID, token() == credential,
+              Self.recovered(body: read.0, status: read.1, requestID: held.requestID.uuidString, memberID: held.memberID,
+                             name: held.name, greeting: held.greeting, persona: held.persona, knowledge: held.knowledge) else {
+            throw MerchantNPCDraftGateFailure.waitingSource(capability: MerchantNPCWaitingSourcePublisher.knowledgeReviewAuthority)
+        }
+        return held
     }
 
     /// JSON keys are the given request id and the four draft fields. Does not POST when one is missing.
