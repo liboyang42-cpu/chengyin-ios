@@ -75,16 +75,28 @@ import Foundation
     }
 
     /// Submit for original review. A missing publisher stays on the review/draft capabilities and does not publish.
+    /// The one request id passed in is stored on this flow. A ticket that carries a different id is not stored.
+    /// The member id is the one already on that author request. This does not mint another id.
     public func submitForOriginalReview(requestID: UUID) async throws -> MerchantNPCOriginalReviewTicket {
         do {
-            return try await gate.submitOriginalReview(requestID: requestID)
+            let ticket = try await gate.submitOriginalReview(requestID: requestID)
+            retainSubmittedAuthorRequest(requestID, memberID: Int64(ticket.scope.accountID), returned: ticket.requestID)
+            return ticket
         } catch let error as MerchantNPCDraftGateFailure {
             if case .waitingSource(let capability) = error,
                capability == Self.missingReviewCapability || capability == Self.missingPublishCapability {
                 stayedOnMissingPublisher = true
+                retainSubmittedAuthorRequest(requestID, memberID: Int64(gate.scope.accountID), returned: requestID)
             }
             throw error
         }
+    }
+
+    /// Keep the request id this submit already received. A different returned id is refused and does not replace a held id.
+    /// Does not mint an id, does not read the network, and does not publish.
+    private func retainSubmittedAuthorRequest(_ submitted: UUID, memberID: Int64, returned: UUID) {
+        guard returned == submitted else { return }
+        _ = holdThemeDraftRequest(memberID: memberID, requestID: submitted.uuidString)
     }
 
     /// Remember a request id the author already has. An invalid id is refused and does not replace a held id.
@@ -109,10 +121,18 @@ import Foundation
         return true
     }
 
-    /// Read an existing draft fact. Does not publish and does not change phase.
+    /// Read an existing draft fact. Does not publish.
+    /// A fact whose request id differs from the one asked for is not a hit and does not change phase.
     public func recoverFromDraftRead(memberID: Int64?, requestID: String?,
                                      read: ((Int64, String) -> MerchantNPCDraftReadFact?)?) throws -> MerchantNPCDraftReadFact? {
-        try gate.recoverFromDraftRead(memberID: memberID, requestID: requestID, read: read)
+        let phaseBeforeRead = gate.phase
+        let fact = try gate.recoverFromDraftRead(memberID: memberID, requestID: requestID, read: read)
+        let expected = requestID?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if let fact, fact.requestID != expected {
+            guard gate.phase == phaseBeforeRead else { return nil }
+            return nil
+        }
+        return fact
     }
 
     /// Closed until a real publish has moved the gate to `.published`.

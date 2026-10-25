@@ -322,7 +322,8 @@ struct MerchantOperationsEditor: View {
 
     /// The merchant submits name, greeting, persona, and knowledge on this character page.
     /// The existing author flow ingests an AI draft and stops at original review.
-    /// A missing publisher stays unpublished. A missing held theme-draft id does not call GET.
+    /// The read uses the one request id that submit stored on the flow.
+    /// A missing stored id does not call GET. A missing publisher stays unpublished.
     private func submitAuthoredFields() async {
         guard let flow = authorFlow else { return }
         guard let source = coordinator.draft, case .character = source,
@@ -350,10 +351,10 @@ struct MerchantOperationsEditor: View {
         }
     }
 
-    /// Read with the member and request id the original author request already produced.
-    /// A missing held id does not call GET and does not publish.
+    /// Read with the request id submit stored on this flow and the member id already on that author request.
+    /// Does not mint another id. A missing stored id does not GET and does not publish.
     private func readHeldThemeDraft(_ flow: MerchantNPCKnowledgeAuthorFlow) async {
-        guard let memberID = draftReadMemberID, let requestID = draftReadRequestID,
+        guard let memberID = flow.heldThemeDraftMemberID, let requestID = flow.heldThemeDraftRequestID,
               flow.holdThemeDraftRequest(memberID: memberID, requestID: requestID),
               let reader = themeDraftRequestRead else { return }
         do {
