@@ -7,15 +7,21 @@ Base: cursor/c06-same-request-recover-e504 @ 678275ac8898120043170aec67b05472e40
 
 `MerchantNPCOriginalDraftWriter` calls the existing theme-draft submit, then the
 existing read. The submit path is `ApiAiController.themeDraft`:
-`POST api/ai/theme/draft`. It is not a second path. The body is the request id
-the author flow already holds and the four fields already on the draft
-(name, greeting, persona, knowledge).
+`POST api/ai/theme/draft`. It is not a second path. The body is requestId plus idea.
+idea is exactly four lines, the values already on the draft, and nothing else:
+name: <name value>
+greeting: <greeting value>
+persona: <persona value>
+knowledge: <knowledge value>
+It does not send productType or existingNodeNames. The session paste is not inserted.
 
 The read is `MerchantNPCThemeDraftRequestRead`. It uses the request id the
-submit response returned. A local held id is not server acceptance. A response
-with no returned id does not fall back to that held id, a newly minted UUID, or
-a hand-filled id. A response that is not acceptance returns no receipt and does
-not publish. A missing publisher does not publish the NPC.
+submit response returned, and only after that response is acceptance and
+`holdThemeDraftRequest` has stored it. A local held id is not server acceptance.
+A response with no returned id does not fall back to that held id, a newly minted UUID, or
+a hand-filled id. A response that is not acceptance does not GET, does not
+replace the held id, returns no receipt, and does not publish. If the returned
+id is rejected, it does not GET and does not publish. A missing publisher does not publish the NPC.
 
 The character page stays the existing character fields. The nested manage page
 stays `MerchantStoreCharacterView` plus the manage `NavigationLink` into

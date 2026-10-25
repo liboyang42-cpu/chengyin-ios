@@ -114,12 +114,17 @@ import XCTest
         XCTAssertNil(parts?.queryItems)
         XCTAssertNotEqual(parts?.path, "/api/ai/theme/draft/request")
         let body = try XCTUnwrap(JSONSerialization.jsonObject(with: try XCTUnwrap(request.httpBody)) as? [String: String])
-        XCTAssertEqual(Set(body.keys), ["requestId", "name", "greeting", "persona", "knowledge"])
+        XCTAssertEqual(Set(body.keys), ["requestId", "idea"])
+        XCTAssertNil(body["name"])
+        XCTAssertNil(body["greeting"])
+        XCTAssertNil(body["persona"])
+        XCTAssertNil(body["knowledge"])
+        XCTAssertNil(body["productType"])
+        XCTAssertNil(body["existingNodeNames"])
         XCTAssertEqual(body["requestId"], held)
-        XCTAssertEqual(body["name"], "Guide")
-        XCTAssertEqual(body["greeting"], "Welcome")
-        XCTAssertEqual(body["persona"], "Kind")
-        XCTAssertEqual(body["knowledge"], knowledge)
+        let idea = "name: Guide\ngreeting: Welcome\npersona: Kind\nknowledge: \(knowledge)"
+        XCTAssertEqual(body["idea"], idea)
+        XCTAssertEqual(idea.split(separator: "\n", omittingEmptySubsequences: false).count, 4)
     }
 
     private func assertGet(_ request: URLRequest, requestID: String) {
@@ -155,20 +160,20 @@ import XCTest
         XCTAssertEqual(publisher.published, 0)
     }
 
-    func testNonAcceptanceReadsReturnedIDAndDoesNotPublishOrKeepReceipt() async throws {
+    func testNonAcceptanceDoesNotReadOrReplaceHeldID() async throws {
         let transport = ScriptedTransport()
         let publisher = RecordingPublisher()
         let flow = try drafted(publisher: publisher)
         XCTAssertTrue(flow.holdThemeDraftRequest(memberID: 7, requestID: heldRequest))
+        transport.failureAt = 1
         transport.results = [
             (try submitBody(requestID: returnedRequest, requestState: "PROCESSING", code: 409, errorCode: "AI_DRAFT_IN_PROGRESS"), 200),
             (try readBody(requestID: returnedRequest, state: "SUCCEEDED"), 200)
         ]
         let fact = try await writer(transport: transport).submitHeldDraftThenRead(flow)
         XCTAssertNil(fact)
-        XCTAssertEqual(transport.sent.count, 2)
+        XCTAssertEqual(transport.sent.count, 1)
         try assertPost(transport.sent[0], held: heldRequest, knowledge: "Local facts")
-        assertGet(transport.sent[1], requestID: returnedRequest)
         XCTAssertEqual(flow.heldThemeDraftRequestID, heldRequest)
         XCTAssertEqual(flow.gate.phase, .aiDraft)
         XCTAssertNil(flow.gate.published)
@@ -280,13 +285,56 @@ import XCTest
         XCTAssertNotEqual(flow.gate.phase, .published)
     }
 
-    func testReadFailureAfterNonAcceptanceDoesNotPublish() async throws {
+    func testNonAcceptanceDoesNotReachReadFailure() async throws {
         let transport = ScriptedTransport()
         let publisher = RecordingPublisher()
         let flow = try drafted(publisher: publisher)
         XCTAssertTrue(flow.holdThemeDraftRequest(memberID: 7, requestID: heldRequest))
         transport.results = [
             (try submitBody(requestID: returnedRequest, requestState: "FAILED", code: 500, errorCode: "AI_DRAFT_FAILED"), 200)
+        ]
+        transport.failureAt = 1
+        let fact = try await writer(transport: transport).submitHeldDraftThenRead(flow)
+        XCTAssertNil(fact)
+        XCTAssertEqual(transport.sent.count, 1)
+        XCTAssertEqual(flow.heldThemeDraftRequestID, heldRequest)
+        XCTAssertNil(flow.gate.published)
+        XCTAssertEqual(publisher.published, 0)
+        XCTAssertEqual(flow.gate.phase, .aiDraft)
+    }
+
+    func testUnknownAndNonSuccessStatusDoNotRead() async throws {
+        let cases: [(String, Int, Int, String?)] = [
+            ("UNKNOWN", 200, 200, nil),
+            ("SUCCEEDED", 500, 200, nil),
+            ("SUCCEEDED", 200, 200, "AI_DRAFT_OUTCOME_UNKNOWN"),
+            ("FAILED", 200, 500, "AI_DRAFT_FAILED")
+        ]
+        for (state, status, code, errorCode) in cases {
+            let transport = ScriptedTransport()
+            let publisher = RecordingPublisher()
+            let flow = try drafted(publisher: publisher)
+            XCTAssertTrue(flow.holdThemeDraftRequest(memberID: 7, requestID: heldRequest))
+            transport.failureAt = 1
+            transport.results = [(try submitBody(requestID: returnedRequest, requestState: state, code: code, errorCode: errorCode), status)]
+            let fact = try await writer(transport: transport).submitHeldDraftThenRead(flow)
+            XCTAssertNil(fact)
+            XCTAssertEqual(transport.sent.count, 1)
+            try assertPost(transport.sent[0], held: heldRequest, knowledge: "Local facts")
+            XCTAssertEqual(flow.heldThemeDraftRequestID, heldRequest)
+            XCTAssertNil(flow.gate.published)
+            XCTAssertEqual(publisher.published, 0)
+            XCTAssertEqual(flow.gate.phase, .aiDraft)
+        }
+    }
+
+    func testReadFailureAfterAcceptanceKeepsReturnedIDAndDoesNotPublish() async throws {
+        let transport = ScriptedTransport()
+        let publisher = RecordingPublisher()
+        let flow = try drafted(publisher: publisher)
+        XCTAssertTrue(flow.holdThemeDraftRequest(memberID: 7, requestID: heldRequest))
+        transport.results = [
+            (try submitBody(requestID: returnedRequest, requestState: "SUCCEEDED"), 200)
         ]
         transport.failureAt = 1
         do {
@@ -296,8 +344,9 @@ import XCTest
             XCTAssertEqual(error as? APIError, .malformedResponse)
         }
         XCTAssertEqual(transport.sent.count, 2)
+        try assertPost(transport.sent[0], held: heldRequest, knowledge: "Local facts")
         assertGet(transport.sent[1], requestID: returnedRequest)
-        XCTAssertEqual(flow.heldThemeDraftRequestID, heldRequest)
+        XCTAssertEqual(flow.heldThemeDraftRequestID, returnedRequest)
         XCTAssertNil(flow.gate.published)
         XCTAssertEqual(publisher.published, 0)
         XCTAssertEqual(flow.gate.phase, .aiDraft)

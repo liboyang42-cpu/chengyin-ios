@@ -305,44 +305,81 @@ class MerchantNPCKnowledgeAuthorFlowContracts(unittest.TestCase):
         project = read('Questify.xcodeproj/project.pbxproj')
         submit = writer[writer.index('func submitHeldDraftThenRead'):writer.index('func makeSubmission')]
         body = writer[writer.index('func makeSubmission'):writer.index('func makeRequest')]
+        idea = r'name: \(name)\ngreeting: \(greeting)\npersona: \(persona)\nknowledge: \(knowledge)'
         self.assertIn('public static let path = "api/ai/theme/draft"', writer)
         self.assertIn('ApiAiController.themeDraft', writer)
+        self.assertIn('ApiAiController.themeDraftWithRequestId', writer)
         self.assertIn('@PostMapping("/theme/draft")', writer)
         self.assertIn('MerchantNPCThemeDraftRequestRead', writer)
         self.assertIn('httpMethod = "POST"', writer)
+        self.assertIn('The body is requestId plus idea.', writer)
+        self.assertIn('(200..<300).contains(status)', writer)
+        self.assertIn('object["code"] as? Int == 200', writer)
+        self.assertIn('object["errorCode"] == nil', writer)
+        self.assertIn('object["requestState"] as? String == "SUCCEEDED"', writer)
+        self.assertIn('PROCESSING, FAILED, UNKNOWN', writer)
         self.assertLess(submit.index('transport.send'), submit.index('returnedRequestID'))
-        self.assertLess(submit.index('returnedRequestID'), submit.index('holdThemeDraftRequest'))
+        self.assertLess(submit.index('returnedRequestID'), submit.index('isAcceptance'))
+        self.assertLess(submit.index('isAcceptance'), submit.index('holdThemeDraftRequest'))
         self.assertLess(submit.index('holdThemeDraftRequest'), submit.index('readAndRecover'))
-        self.assertLess(submit.index('readAndRecover'), submit.index('isAcceptance'))
-        tail = submit[submit.index('readAndRecover'):]
-        self.assertLess(tail.index('isAcceptance'), tail.index('return nil'))
-        self.assertLess(tail.index('return nil'), tail.index('return fact'))
-        for token in ['"requestId": held', '"name": name', '"greeting": greeting',
-                      '"persona": persona', '"knowledge": knowledge',
+        gap = submit[submit.index('isAcceptance'):submit.index('readAndRecover')]
+        self.assertLess(gap.index('holdThemeDraftRequest'), gap.index('return nil'))
+        self.assertIn('does not GET', gap)
+        self.assertNotIn('readAndRecover', gap)
+        self.assertEqual(writer.count('readAndRecover'), 1)
+        self.assertIn(idea, body)
+        self.assertIn('"requestId": held', body)
+        self.assertIn('"idea": idea', body)
+        for token in ['"requestId": held', '"idea": idea', idea,
                       'authored.name.value', 'authored.greeting.value',
                       'authored.persona.value', 'authored.knowledge.value',
                       'flow.heldThemeDraftRequestID', 'requestID: returned']:
             self.assertIn(token, writer)
-        for token in ['"requestId": held', 'authored.name.value', 'authored.knowledge.value']:
-            self.assertIn(token, body)
+        for key in ['"name"', '"greeting"', '"persona"', '"knowledge"']:
+            self.assertNotIn(key, writer)
         for token in ['UUID()', 'publishApproved', 'api/ai/theme/draft/request',
                       'api/ai/theme/draft/submit', 'httpMethod = "GET"',
                       'MerchantNPCDraftReadFact(', 'MerchantNPCOriginalReviewTicket(',
-                      'Bearer ', 'idea', 'productType', 'priceMinor']:
+                      'Bearer ', 'productType', 'existingNodeNames', 'priceMinor']:
             self.assertNotIn(token, writer)
         for name in ['testAcceptedResponseSubmitsHeldRequestAndFourFieldsThenReadsReturnedID',
-                     'testNonAcceptanceReadsReturnedIDAndDoesNotPublishOrKeepReceipt',
+                     'testNonAcceptanceDoesNotReadOrReplaceHeldID',
                      'testMissingReturnedRequestIDDoesNotReadHeldOrMintedID',
                      'testInvalidReturnedRequestIDDoesNotFallBackToHeldID',
                      'testNestedRequestIDIsNotTheSubmitResponseID',
                      'testMissingHeldRequestDoesNotSubmit',
                      'testSucceededSubmitWithoutReadHitDoesNotInventReceipt',
                      'testMissingPublisherDoesNotPublish',
-                     'testReadFailureAfterNonAcceptanceDoesNotPublish',
+                     'testNonAcceptanceDoesNotReachReadFailure',
+                     'testUnknownAndNonSuccessStatusDoNotRead',
+                     'testReadFailureAfterAcceptanceKeepsReturnedIDAndDoesNotPublish',
                      'publisher.published, 0', '"/api/ai/theme/draft"',
-                     '"/api/ai/theme/draft/request"', 'AI_DRAFT_IN_PROGRESS', 'NOT_FOUND']:
+                     '"/api/ai/theme/draft/request"', 'AI_DRAFT_IN_PROGRESS', 'NOT_FOUND',
+                     '["requestId", "idea"]',
+                     r'name: Guide\ngreeting: Welcome\npersona: Kind\nknowledge: \(knowledge)',
+                     'omittingEmptySubsequences: false).count, 4']:
             self.assertIn(name, tests)
-        self.assertEqual(tests.count('func test'), 9)
+        self.assertNotIn('["requestId", "name", "greeting", "persona", "knowledge"]', tests)
+        self.assertNotIn('testNonAcceptanceReadsReturnedIDAndDoesNotPublishOrKeepReceipt', tests)
+        self.assertNotIn('testReadFailureAfterNonAcceptanceDoesNotPublish', tests)
+        for key in ['name', 'greeting', 'persona', 'knowledge', 'productType', 'existingNodeNames']:
+            self.assertIn('XCTAssertNil(body["%s"])' % key, tests)
+        def chunk(source, name):
+            marker = 'func ' + name
+            start = source.index(marker)
+            rest = source[start:]
+            nxt = rest.find('\n    func test', 1)
+            return rest if nxt < 0 else rest[:nxt]
+        for name in ['testNonAcceptanceDoesNotReadOrReplaceHeldID',
+                     'testNonAcceptanceDoesNotReachReadFailure',
+                     'testUnknownAndNonSuccessStatusDoNotRead']:
+            part = chunk(tests, name)
+            self.assertIn('failureAt = 1', part)
+            self.assertIn('XCTAssertEqual(transport.sent.count, 1)', part)
+            self.assertNotIn('assertGet', part)
+            self.assertNotIn('readAndRecover', part)
+            self.assertNotIn('sent.count, 2', part)
+        self.assertEqual(tests.count('func test'), 11)
         self.assertNotIn('publishApproved(', writer)
         self.assertIn('case .character(let value):', page)
         self.assertIn('Button("merchantNPC.author.submit")', page)
@@ -364,8 +401,13 @@ class MerchantNPCKnowledgeAuthorFlowContracts(unittest.TestCase):
                       'MerchantOperationsDocumentView', 'NavigationLink',
                       'heldThemeDraftRequestID', 'does not mint', 'nil snapshot',
                       'Do not redo', 'api/ai/theme/draft', 'not added to the Xcode project',
-                      'HTTP is NOT_RUN', 'NOT_RUN']:
+                      'HTTP is NOT_RUN', 'NOT_RUN',
+                      'The body is requestId plus idea.',
+                      'The session paste is not inserted.',
+                      'name: <name value>', 'greeting: <greeting value>',
+                      'persona: <persona value>', 'knowledge: <knowledge value>']:
             self.assertIn(token, hunk)
+        self.assertNotIn('["requestId", "name", "greeting", "persona", "knowledge"]', hunk)
         for token in ['UUID()', 'publishApproved', 'readAndRecover(flow)', '_ = writer',
                       'submitHeldDraftThenRead(flow)']:
             self.assertNotIn(token, hunk)
