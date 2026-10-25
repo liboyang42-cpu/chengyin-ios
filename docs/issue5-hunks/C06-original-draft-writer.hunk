@@ -36,12 +36,10 @@ Questify.xcodeproj/project.pbxproj
 ```
 
 Not inserted into `merchantOperationsDestination` or
-`merchantStoreCharacterDestination`. `publisher` stays nil. The factory does
-not mint a second request id. It does not call `submitHeldDraftThenRead`.
+`merchantStoreCharacterDestination`. `publisher` stays nil. The factory does not mint a second request id. It does not call `submitHeldDraftThenRead`.
 Submit happens later, on the flow that already holds the request id. The paste
 passes `writer` into the existing destination. It does not drop that value.
-Not inserted. `Core/MerchantNPCOriginalDraftWriter.swift` is not added to the
-Xcode project from this branch.
+Not inserted. `Core/MerchantNPCOriginalDraftWriter.swift` is not added to the Xcode project from this branch.
 
 ```swift
 if destination == .character,
