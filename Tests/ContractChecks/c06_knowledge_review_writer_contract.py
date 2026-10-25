@@ -40,6 +40,8 @@ def check_layout() -> None:
     check(changed == [
         "App/MerchantOperationsEditor.swift",
         "App/MerchantOperationsViews.swift",
+        "Core/MerchantNPCDraftApprovalGate.swift",
+        "Core/MerchantNPCKnowledgeAuthorFlow.swift",
         "Core/MerchantNPCKnowledgeReviewWriter.swift",
         "Tests/ContractChecks/c06_knowledge_review_writer_contract.py",
         "Tests/ContractChecks/test_merchant_npc_knowledge_author_flow.py",
@@ -63,7 +65,8 @@ def check_writer() -> None:
     writer = read("Core/MerchantNPCKnowledgeReviewWriter.swift")
     submit = between(writer, "func submitForOriginalReview", "func publishApproved")
     publish = between(writer, "func publishApproved", "func recoverHeldRequest")
-    reentry = between(writer, "func recoverHeldRequest", "func makeSubmission")
+    reentry = between(writer, "func recoverHeldRequest", "func recoverReentry")
+    supplied = between(writer, "func recoverReentry", "func makeSubmission")
     body = between(writer, "func makeSubmission", "func makeRequest")
     request = between(writer, "func makeRequest", "func makeReadRequest")
     read_request = between(writer, "func makeReadRequest", "func matches")
@@ -73,8 +76,14 @@ def check_writer() -> None:
           "writer does not implement the review protocol")
     check('public static let path = "api/merchant/npc/knowledge-review"' in writer, "POST path is not the written contract")
     check("contract being written, not a route discovered" in writer, "path is described as a discovered route")
-    check(writer.count("transport.send") == 3, "writer does not send the POST, the follow-up GET, and the re-entry GET")
-    check(reentry.count("transport.send") == 1, "re-entry does not GET once")
+    check(writer.count("transport.send") == 4, "writer does not send the POST, the follow-up GET, and both re-entry GETs")
+    check(reentry.count("transport.send") == 1, "init-held re-entry does not GET once")
+    check(supplied.count("transport.send") == 1, "argument re-entry does not GET once")
+    check("heldReentry" not in supplied, "argument re-entry reads the nil init held value")
+    check("held.requestID" in supplied and "held.memberID" in supplied, "argument re-entry does not use the stored request")
+    check("held.name" in supplied and "held.knowledge" in supplied, "argument re-entry drops a field")
+    check("makeRequest(" not in supplied and "publishApproved(" not in supplied, "argument re-entry posts or publishes")
+    check(supplied.index("loggedIn == held.memberID") < supplied.index("transport.send"), "argument re-entry GETs for a different member")
     check(reentry.index("loggedIn == held.memberID") < reentry.index("transport.send"), "re-entry GETs for a different member")
     check(reentry.index("transport.send") < reentry.index("recovered("), "re-entry keeps fields before the GET")
     check("return held" in reentry, "re-entry does not keep the held fields")
@@ -118,7 +127,7 @@ def check_writer() -> None:
     check("does not mint" in writer and "A nil approval is not published." in writer, "nil approval can publish")
     check("does not call `POST api/ai/theme/draft`" in writer, "writer does not name the theme-draft contract it refuses")
     check("does not wrap `MerchantNPCOriginalDraftWriter`" in writer, "writer does not name the theme-draft writer it refuses")
-    code = "\n".join((submit, publish, body, request, read_request, match, recovered, reentry))
+    code = "\n".join((submit, publish, body, request, read_request, match, recovered, reentry, supplied))
     for banned in (
         "UUID()", "Bearer ", "productType", "existingNodeNames",
         "api/ai/theme/draft", "api/merchant/npc/save", "createDraft", "generate(",
@@ -160,12 +169,27 @@ def check_hunk_and_session() -> None:
     check("publisher: writer" not in session, "AppSession no longer keeps publisher nil")
     check("MerchantNPCKnowledgeReviewWriter" not in root, "composition root constructs the writer")
     check("MerchantNPCKnowledgeReviewWriter.swift" not in project, "project file gained the writer")
-    reentry = page[page.index("func recoverHeldKnowledgeReview"):page.index("struct MerchantOperationsConfirmationView")]
-    check("recoverHeldRequest()" in reentry, "character page does not re-enter the held request")
-    check("heldThemeDraftRequestID" not in reentry, "re-entry reads the theme-draft id")
-    check("themeDraftRequestRead" not in reentry, "re-entry reads the theme-draft reader")
+    reentry_page = page[page.index("func recoverHeldKnowledgeReview"):page.index("struct MerchantOperationsConfirmationView")]
+    document = read("App/MerchantOperationsViews.swift")
+    flow = read("Core/MerchantNPCKnowledgeAuthorFlow.swift")
+    gate = read("Core/MerchantNPCDraftApprovalGate.swift")
+    check("try await recover(held)" in reentry_page, "editor does not call the re-entry closure")
+    check("heldThemeDraftRequestID" not in reentry_page, "re-entry reads the theme-draft id")
+    check("themeDraftRequestRead" not in reentry_page, "re-entry reads the theme-draft reader")
     check("publishApproved" not in page, "character page publishes")
-    check("UUID()" not in reentry, "re-entry mints a second id")
+    check("UUID()" not in reentry_page, "re-entry mints a second id")
+    check("authorFlow.map { flow in" in document, "document view does not build the closure from authorFlow")
+    check("flow.recoverKnowledgeReview(held)" in document, "closure does not call the author flow")
+    check("authorFlow.map { flow in" in document and "nil" not in document[document.index("authorFlow.map"):document.index("flow.recoverKnowledgeReview(held)")], "nil authorFlow still builds a sender")
+    forward = flow[flow.index("func recoverKnowledgeReview"):flow.index("func retainSubmittedAuthorRequest")]
+    check("gate.recoverKnowledgeReview(held)" in forward, "author flow does not forward the held re-entry")
+    check("heldThemeDraftRequestID" not in forward and "heldThemeDraftMemberID" not in forward, "author flow uses a theme-draft id")
+    check("publishApproved" not in forward, "author flow publishes")
+    routed = gate[gate.index("func recoverKnowledgeReview"):gate.index("func publishApproved()")]
+    check("publisher as? MerchantNPCKnowledgeReviewWriter" in routed, "gate does not keep the forward on the knowledge-review writer")
+    check("writer.recoverReentry(held)" in routed, "gate does not call the argument GET")
+    check("MerchantNPCWaitingSourcePublisher" in routed, "waiting publisher is not closed")
+    check("transport.send" not in routed and "publishApproved(" not in routed, "gate sends or publishes from the forward")
     check("NOT_RUN" in Path(__file__).read_text(encoding="utf-8"), "contract claims swift or HTTP ran")
 
 
