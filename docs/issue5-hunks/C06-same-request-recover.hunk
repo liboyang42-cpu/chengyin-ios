@@ -22,8 +22,7 @@ stays `MerchantStoreCharacterView` plus the manage `NavigationLink` into
 
 The factory still builds the flow before submit, so `heldThemeDraftMemberID` and
 `heldThemeDraftRequestID` are nil at construction. Copying those nils into the
-manage link is not a page close. That attach is only the paste below. Do not
-apply it. Do not edit:
+manage link is not a page close. That attach is only the paste below. Do not apply it. Do not edit:
 
 ```
 App/AppSession.swift
