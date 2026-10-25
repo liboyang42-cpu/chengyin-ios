@@ -1,0 +1,57 @@
+not applied
+ModInstallationService is not a type on 8cfafcf793643fa6222df6aa15a39e7a30b983a0.
+This hunk is not applied. It does not vendor ModInstallationService, and it does not overwrite AppSession.swift.
+
+exact AppSession call, not applied:
+func makeModInstallationController(reference: ModInstallationIdentity) -> ModInstallationController? {
+    guard let captured = currentWorkshopOwnedContext else { return nil }
+    let viewer = compositionViewerRevision, configurationRevision = workshopReadConfigurationRevision
+    let current: () -> RuntimeDependencyContext? = { [weak self] in
+        guard let self, self.compositionViewerRevision == viewer,
+              self.workshopReadConfigurationRevision == configurationRevision else { return nil }
+        return self.currentWorkshopOwnedContext
+    }
+    return ModInstallationComposition.make(reference: reference, context: captured, approval: modInstallationApproval,
+        currentApproval: { [weak self] in self?.modInstallationApproval }, current: current,
+        storage: templateAuthoringSecureStorage,
+        onUnauthorized: { [weak self] context in
+            guard let self, ContentDraftContextFence.matches(current(), context) else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+        })
+}
+
+adapter, not applied:
+import Foundation
+
+/// One read of the original install receipt. requestID is the caller's receipt or recover id.
+/// purchasedVersionId is WorkshopInstallIdentity.releaseId. Missing deploy approval blocks only ModInstallationComposition.make.
+public struct H5OriginalInstallReader: WorkshopOriginalInstallReading, @unchecked Sendable {
+    private let service: ModInstallationService
+
+    public init(service: ModInstallationService) {
+        self.service = service
+    }
+
+    public func request(_ requestID: String, identity: WorkshopInstallIdentity) async throws -> WorkshopOriginalInstallFact {
+        guard WorkshopOriginalInstallConsumer.canonicalRequestID(requestID) != nil else {
+            throw WorkshopOriginalInstallError.invalidRequest
+        }
+        let reference = ModInstallationIdentity(
+            licenseId: identity.licenseId,
+            moduleId: identity.moduleId,
+            releaseId: identity.releaseId,
+            contentHash: identity.contentHash,
+            termsHash: identity.termsHash)
+        let receipt = try await service.request(requestID, identity: reference)
+        guard receipt.requestId == requestID,
+              receipt.licenseId == identity.licenseId,
+              receipt.moduleId == identity.moduleId,
+              receipt.releaseId == identity.releaseId,
+              receipt.contentHash == identity.contentHash,
+              receipt.termsHash == identity.termsHash,
+              let fact = WorkshopOriginalInstallFact(requestID: receipt.requestId, state: receipt.state.rawValue) else {
+            throw WorkshopOriginalInstallError.unknown
+        }
+        return fact
+    }
+}
