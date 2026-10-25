@@ -38,7 +38,12 @@ import SwiftUI
                let parent = H5ShellParentFlow.loadRequest(shellURL: shellURL, launch: launch),
                let shell = H5ShellLoad.request(shellURL: shellURL, launch: launch),
                parent.httpMethod == shell.httpMethod, parent.httpBody == shell.httpBody {
-                H5PlatformShellView(shellURL: shellURL, launch: launch, onClose: onClose)
+                H5PlatformShellView(shellURL: shellURL,
+                                   launch: launch,
+                                   requestID: requestID,
+                                   identity: identity,
+                                   source: source,
+                                   onClose: onClose)
             } else {
                 Text("h5.launchTicket")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
