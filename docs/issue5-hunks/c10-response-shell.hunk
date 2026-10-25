@@ -1,0 +1,24 @@
+not applied
+Public 8cfafcf793643fa6222df6aa15a39e7a30b983a0 has no CreateSession response holder.
+AppSession.swift does not read parentOrigin, shellURL, or launchTicket, and it does not open a shell.
+This hunk is not applied. It does not edit AppSession.swift.
+It does not edit AccountView, ModUpgradeView, WorkshopCommerceView, ModInstallationView, H5PlatformShellView, or H5ShellParentFlowView.
+It does not rewrite H5CreateSessionFromPrimitives.java.
+Swift and HTTP are NOT_RUN. The shell is not connected.
+
+response consumption, not applied, one existing open:
+The response already in hand is the only source. A missing parentOrigin, shellURL, or launchTicket does not open and does not fill the missing field.
+openFromSuppliedHost would keep parentOrigin only when that string is an https origin with a host, no userinfo, no query, no fragment, and no path, and the launchTicket is not in that string.
+shellURL must be that same kept origin. Otherwise do not open.
+
+    guard let parentOrigin = response.parentOrigin, !parentOrigin.isEmpty,
+          let shellURL = response.shellURL,
+          let launchTicket = response.launchTicket, !launchTicket.isEmpty,
+          let kept = keptSuppliedOrigin(parentOrigin, ticket: launchTicket),
+          shellURL.absoluteString == kept,
+          let launch = H5LaunchDescription(parentOrigin: kept, nonce: launchTicket, mainToken: nil) else {
+        return
+    }
+    _ = parent.open(shellURL: shellURL, launch: launch)
+
+parent is the existing H5ShellParentFlow. open is called once. No second open, and no invented host, path, nonce, or ticket.
