@@ -82,11 +82,14 @@ import XCTest
         let facts = String(decoding: try entry.gate.draft.validatedPublicFactsJSON(), as: UTF8.self)
         XCTAssertFalse(facts.contains("priceMinor"))
 
-        do { _ = try await entry.submitForOriginalReview(requestID: UUID()); XCTFail() }
+        let refused = UUID()
+        do { _ = try await entry.submitForOriginalReview(requestID: refused); XCTFail() }
         catch { XCTAssertEqual(error as? MerchantNPCDraftGateFailure, .authorizerRequired) }
         XCTAssertFalse(entry.stayedOnMissingPublisher)
         XCTAssertEqual(entry.gate.phase, .aiDraft)
         XCTAssertNil(entry.gate.reviewTicket)
+        XCTAssertNil(entry.heldThemeDraftRequestID)
+        XCTAssertNil(entry.heldThemeDraftMemberID)
 
         let other = try XCTUnwrap(MerchantNPCAuthorizer(accountID: 8, merchantRowID: scope.merchantRowID))
         XCTAssertThrowsError(try entry.verify(other)) { XCTAssertEqual($0 as? MerchantNPCDraftGateFailure, .authorizerRequired) }
@@ -97,12 +100,15 @@ import XCTest
         XCTAssertEqual(entry.gate.phase, .authorizerVerified)
         XCTAssertEqual(entry.gate.authorizer?.accountID, scope.accountID)
 
-        do { _ = try await entry.submitForOriginalReview(requestID: UUID()); XCTFail() }
+        let submitted = UUID()
+        do { _ = try await entry.submitForOriginalReview(requestID: submitted); XCTFail() }
         catch {
             guard case .waitingSource(let capability) = error as? MerchantNPCDraftGateFailure else { return XCTFail() }
             XCTAssertEqual(capability, MerchantNPCKnowledgeAuthorFlow.missingReviewCapability)
             XCTAssertEqual(capability, MerchantNPCWaitingSourcePublisher.knowledgeReviewAuthority)
         }
+        XCTAssertEqual(entry.heldThemeDraftRequestID, submitted.uuidString)
+        XCTAssertEqual(entry.heldThemeDraftMemberID, Int64(scope.accountID))
         XCTAssertTrue(entry.stayedOnMissingPublisher)
         XCTAssertEqual(MerchantNPCKnowledgeAuthorFlow.missingPublishCapability, MerchantNPCWaitingSourcePublisher.knowledgeDraftHTTP)
         XCTAssertEqual(entry.gate.phase, .waitingSource)
@@ -137,6 +143,8 @@ import XCTest
         let requestID = UUID()
         let ticket = try await entry.submitForOriginalReview(requestID: requestID)
         XCTAssertEqual(ticket.requestID, requestID)
+        XCTAssertEqual(entry.heldThemeDraftRequestID, requestID.uuidString)
+        XCTAssertEqual(entry.heldThemeDraftMemberID, Int64(ticket.scope.accountID))
         XCTAssertEqual(publisher.submitted, 1)
         XCTAssertEqual(publisher.published, 0)
         XCTAssertFalse(entry.stayedOnMissingPublisher)
@@ -146,6 +154,13 @@ import XCTest
         XCTAssertEqual(fact?.state, "READY")
         XCTAssertEqual(entry.gate.phase, .originalReviewPending)
         XCTAssertNil(entry.gate.published)
+        let mismatched = try entry.recoverFromDraftRead(memberID: 7, requestID: "c06-author-1", read: { _, _ in
+            MerchantNPCDraftReadFact(requestID: "c06-other", state: "READY")
+        })
+        XCTAssertNil(mismatched)
+        XCTAssertEqual(entry.gate.phase, .originalReviewPending)
+        XCTAssertNil(entry.gate.published)
+        XCTAssertEqual(publisher.published, 0)
         XCTAssertThrowsError(try entry.playerConsume()) { XCTAssertEqual($0 as? MerchantNPCDraftGateFailure, .unpublished) }
         XCTAssertEqual(publisher.published, 0)
         XCTAssertEqual(entry.gate.phase, .originalReviewPending)
@@ -195,6 +210,41 @@ import XCTest
         XCTAssertNil(entry.gate.published)
     }
 
+    func testDifferentReturnedRequestIDIsNotStoredAndDoesNotPublish() async throws {
+        let publisher = DifferentRequestPublisher()
+        let entry = flow(publisher: publisher)
+        let sourceCharacter = character()
+        _ = try entry.supply(
+            name: field(.name, from: sourceCharacter, value: "Guide"),
+            greeting: field(.greeting, from: sourceCharacter, value: "Welcome"),
+            persona: field(.persona, from: sourceCharacter, value: "Kind"),
+            knowledge: field(.knowledge, from: sourceCharacter, value: "Local facts"),
+            source: .character(sourceCharacter)
+        )
+        try entry.ingestAsAIDraft()
+        try entry.verify(authorizer())
+        let submitted = UUID()
+        let ticket = try await entry.submitForOriginalReview(requestID: submitted)
+        XCTAssertNotEqual(ticket.requestID, submitted)
+        XCTAssertNil(entry.heldThemeDraftRequestID)
+        XCTAssertNil(entry.heldThemeDraftMemberID)
+        XCTAssertEqual(publisher.published, 0)
+        XCTAssertNil(entry.gate.published)
+        XCTAssertEqual(entry.gate.phase, .originalReviewPending)
+    }
+
+    func testRecoverFromDraftReadDoesNotChangePhaseWhenReturnedIDDiffers() throws {
+        let entry = flow()
+        let phase = entry.gate.phase
+        let fact = try entry.recoverFromDraftRead(memberID: 7, requestID: "c06-author-1", read: { _, _ in
+            MerchantNPCDraftReadFact(requestID: "c06-other", state: "READY")
+        })
+        XCTAssertNil(fact)
+        XCTAssertEqual(entry.gate.phase, phase)
+        XCTAssertNil(entry.gate.published)
+        XCTAssertNil(entry.gate.origin)
+    }
+
     @MainActor private final class ReviewOnlyPublisher: MerchantNPCOriginalReviewPublishing {
         var submitted = 0
         var published = 0
@@ -202,6 +252,18 @@ import XCTest
             submitted += 1
             let data = try draft.validatedPublicFactsJSON()
             return .init(requestID: requestID, scope: scope, factsHash: MerchantNPCDraftDigest.hex(data))
+        }
+        func publishApproved(_ ticket: MerchantNPCOriginalReviewTicket, scope: MerchantNPCScope) async throws -> MerchantNPCPublishedRevision {
+            published += 1
+            throw MerchantNPCDraftGateFailure.waitingSource(capability: MerchantNPCWaitingSourcePublisher.knowledgeDraftHTTP)
+        }
+    }
+
+    @MainActor private final class DifferentRequestPublisher: MerchantNPCOriginalReviewPublishing {
+        var published = 0
+        func submitForOriginalReview(_ draft: MerchantNPCKnowledgeDraft, requestID: UUID, scope: MerchantNPCScope) async throws -> MerchantNPCOriginalReviewTicket {
+            let data = try draft.validatedPublicFactsJSON()
+            return .init(requestID: UUID(), scope: scope, factsHash: MerchantNPCDraftDigest.hex(data))
         }
         func publishApproved(_ ticket: MerchantNPCOriginalReviewTicket, scope: MerchantNPCScope) async throws -> MerchantNPCPublishedRevision {
             published += 1

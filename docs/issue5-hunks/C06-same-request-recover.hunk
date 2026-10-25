@@ -1,0 +1,75 @@
+# C06 same request recover — factory stays closed
+
+Issue: https://github.com/liboyang42-cpu/chengyin-remote-ops/issues/5
+Repo: github.com/liboyang42-cpu/chengyin-ios
+Branch: cursor/c06-same-request-recover-e504
+Base: cursor/c06-manage-draft-read-e504 @ 27970a72891847d40d55b4dca461e3b34008a6ed
+
+`MerchantNPCKnowledgeAuthorFlow.submitForOriginalReview` stores the one request
+id it already received on that same flow, together with the member id already on
+that author request. A ticket whose request id differs is not stored.
+`readHeldThemeDraft` uses `heldThemeDraftMemberID` and `heldThemeDraftRequestID`
+from that flow. It does not require the caller to pass an id submit did not
+produce. A missing stored id returns before the reader, so it does not GET and
+does not publish. `recoverFromDraftRead` returns nil and does not change phase
+when the returned id differs.
+
+The character page stays the existing character fields. The nested manage page
+stays `MerchantStoreCharacterView` plus the manage `NavigationLink` into
+`MerchantOperationsDocumentView`. This hunk does not replace either page.
+
+## Not applied
+
+The factory still builds the flow before submit, so `heldThemeDraftMemberID` and
+`heldThemeDraftRequestID` are nil at construction. Copying those nils into the
+manage link is not a page close. That attach is only the paste below. Do not apply it. Do not edit:
+
+```
+App/AppSession.swift
+App/AppCompositionRoot.swift
+Questify.xcodeproj/project.pbxproj
+```
+
+Not inserted into `merchantOperationsDestination`. `publisher` stays nil. The
+factory does not mint a second request id. It passes the same flow. Submit on
+that flow is what stores the one request id. Do not read the construction-time
+heldThemeDraftRequestID or heldThemeDraftMemberID as the read key.
+
+```swift
+if destination == .character,
+   let merchantID = access.identity.merchantID,
+   let row = PublicMerchantRowID(merchantID),
+   let scope = merchantNPCScope(row: row) {
+    let flow = MerchantNPCKnowledgeAuthorFlow(
+        scope: scope,
+        publisher: nil,
+        currentScope: { [weak self] in self?.merchantNPCScope(row: row) })
+    var caller: MerchantNPCThemeDraftRequestRead? = nil
+    if let api = regionalConfiguration?.apiConfiguration {
+        caller = MerchantNPCThemeDraftRequestRead(
+            configuration: api,
+            transport: runtimeHTTPTransport,
+            memberID: { [weak self] in self?.account.map { Int64($0.id) } },
+            token: { [weak self] in self?.token })
+    }
+    return merchantStoreCharacterDestination(
+        authorFlow: flow,
+        themeDraftRequestRead: caller)
+}
+
+NavigationLink {
+    MerchantOperationsDocumentView(
+        reader: npcSaveReader,
+        destination: .character,
+        authorFlow: authorFlow,
+        themeDraftRequestRead: themeDraftRequestRead)
+} label: { Text("manage", tableName: "MerchantNPCSaveReceipt") }
+MerchantStoreCharacterView(coordinator: StoreCharacterCoordinator(reader: StoreCharacterOperationsReader(reader: reader)))
+```
+
+The paste passes `caller` into the existing nested manage destination. It does
+not drop that value. It does not snapshot nil held ids. It does not mint. The
+manage editor calls the read after submitForOriginalReview stores the id on the
+same flow. Not inserted.
+
+XCTest / App / CI = NOT_RUN where swiftc is absent. Not 100%.
