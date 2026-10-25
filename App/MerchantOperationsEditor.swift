@@ -18,8 +18,8 @@ struct MerchantOperationsEditor: View {
     var draftRead: ((Int64, String) -> MerchantNPCDraftReadFact?)? = nil
     /// Existing theme-draft GET reader. Nil does not invent a request and does not publish.
     var themeDraftRequestRead: MerchantNPCThemeDraftRequestRead? = nil
-    /// Builds a writer that already holds the accepted re-entry. Nil does not POST and does not publish.
-    var knowledgeReviewReentry: ((MerchantNPCKnowledgeReviewReentry) -> MerchantNPCKnowledgeReviewWriter?)? = nil
+    /// Re-reads the accepted request through the author flow. Nil does not send and does not publish.
+    var knowledgeReviewReentry: ((MerchantNPCKnowledgeReviewReentry) async throws -> MerchantNPCKnowledgeReviewReentry)? = nil
     @State private var showsUnpublishedDraft = false
     @State private var heldKnowledgeReview: MerchantNPCKnowledgeReviewReentry?
     @State private var didRecoverHeldKnowledgeReview = false
@@ -384,10 +384,10 @@ struct MerchantOperationsEditor: View {
     /// Does not POST again and does not publish. A missing row or a different member stays closed.
     private func recoverHeldKnowledgeReview() async {
         guard let held = heldKnowledgeReview, !didRecoverHeldKnowledgeReview else { return }
-        guard let writer = knowledgeReviewReentry?(held) else { return }
+        guard let recover = knowledgeReviewReentry else { return }
         didRecoverHeldKnowledgeReview = true
         do {
-            let kept = try await writer.recoverHeldRequest()
+            let kept = try await recover(held)
             guard kept.requestID == held.requestID, kept.memberID == held.memberID,
                   kept.name == held.name, kept.greeting == held.greeting,
                   kept.persona == held.persona, kept.knowledge == held.knowledge else { return }

@@ -176,6 +176,14 @@ enum MerchantNPCDraftDigest {
             throw fail(.waitingSource(capability: MerchantNPCWaitingSourcePublisher.knowledgeReviewAuthority))
         }
     }
+    /// Forward one knowledge-review GET only when the publisher is already that writer.
+    /// `MerchantNPCWaitingSourcePublisher` does not send. Does not publish.
+    public func recoverKnowledgeReview(_ held: MerchantNPCKnowledgeReviewReentry) async throws -> MerchantNPCKnowledgeReviewReentry {
+        guard let writer = publisher as? MerchantNPCKnowledgeReviewWriter else {
+            throw MerchantNPCDraftGateFailure.waitingSource(capability: MerchantNPCWaitingSourcePublisher.knowledgeReviewAuthority)
+        }
+        return try await writer.recoverReentry(held)
+    }
     public func publishApproved() async throws -> MerchantNPCPublishedRevision {
         guard isCurrent else { throw fail(.staleScope) }
         guard authorizer?.matches(scope) == true else { throw fail(.authorizerRequired) }

@@ -144,6 +144,29 @@ public struct MerchantNPCKnowledgeReviewReentry: Equatable {
         return held
     }
 
+    /// One GET of the re-entry argument. The init held value may stay nil.
+    /// Does not POST and does not publish. A missing row or a different member stays closed.
+    public func recoverReentry(_ held: MerchantNPCKnowledgeReviewReentry) async throws -> MerchantNPCKnowledgeReviewReentry {
+        guard held.memberID > 0,
+              let loggedIn = memberID(), loggedIn == held.memberID,
+              let credential = token(), AuthRequestBuilder.isValidToken(credential),
+              let readRequest = makeReadRequest(token: credential, requestID: held.requestID) else {
+            throw MerchantNPCDraftGateFailure.waitingSource(capability: MerchantNPCWaitingSourcePublisher.knowledgeReviewAuthority)
+        }
+        let read: (Data, Int)
+        do {
+            read = try await transport.send(readRequest)
+        } catch {
+            throw MerchantNPCDraftGateFailure.waitingSource(capability: MerchantNPCWaitingSourcePublisher.knowledgeReviewAuthority)
+        }
+        guard memberID() == held.memberID, token() == credential,
+              Self.recovered(body: read.0, status: read.1, requestID: held.requestID.uuidString, memberID: held.memberID,
+                             name: held.name, greeting: held.greeting, persona: held.persona, knowledge: held.knowledge) else {
+            throw MerchantNPCDraftGateFailure.waitingSource(capability: MerchantNPCWaitingSourcePublisher.knowledgeReviewAuthority)
+        }
+        return held
+    }
+
     /// JSON keys are the given request id and the four draft fields. Does not POST when one is missing.
     private func makeSubmission(_ draft: MerchantNPCKnowledgeDraft, requestID: UUID, scope: MerchantNPCScope) throws -> Submission? {
         guard scope.accountID > 0,

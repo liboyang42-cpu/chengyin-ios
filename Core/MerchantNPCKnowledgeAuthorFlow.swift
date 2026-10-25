@@ -92,6 +92,11 @@ import Foundation
         }
     }
 
+    /// Re-enter the editor's stored knowledge-review request. Does not read a theme-draft id and does not publish.
+    public func recoverKnowledgeReview(_ held: MerchantNPCKnowledgeReviewReentry) async throws -> MerchantNPCKnowledgeReviewReentry {
+        try await gate.recoverKnowledgeReview(held)
+    }
+
     /// Keep the request id this submit already received. A different returned id is refused and does not replace a held id.
     /// Does not mint an id, does not read the network, and does not publish.
     private func retainSubmittedAuthorRequest(_ submitted: UUID, memberID: Int64, returned: UUID) {
