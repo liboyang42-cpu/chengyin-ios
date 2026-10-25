@@ -28,6 +28,8 @@ import Foundation
     /// Theme-draft request id this author flow already has. Never minted here.
     public private(set) var heldThemeDraftMemberID: Int64?
     public private(set) var heldThemeDraftRequestID: String?
+    /// Accepted knowledge-review request. Outlives one editor state. Not a theme-draft id.
+    public private(set) var heldKnowledgeReview: MerchantNPCKnowledgeReviewReentry?
 
     public init(scope: MerchantNPCScope, publisher: (any MerchantNPCOriginalReviewPublishing)? = nil,
                 isolation: MerchantNPCPublicPrivateIsolation = .init(),
@@ -80,6 +82,7 @@ import Foundation
     public func submitForOriginalReview(requestID: UUID) async throws -> MerchantNPCOriginalReviewTicket {
         do {
             let ticket = try await gate.submitOriginalReview(requestID: requestID)
+            retainAcceptedKnowledgeReview(requestID: requestID, ticket: ticket)
             retainSubmittedAuthorRequest(requestID, memberID: Int64(ticket.scope.accountID), returned: ticket.requestID)
             return ticket
         } catch let error as MerchantNPCDraftGateFailure {
@@ -95,6 +98,19 @@ import Foundation
     /// Re-enter the editor's stored knowledge-review request. Does not read a theme-draft id and does not publish.
     public func recoverKnowledgeReview(_ held: MerchantNPCKnowledgeReviewReentry) async throws -> MerchantNPCKnowledgeReviewReentry {
         try await gate.recoverKnowledgeReview(held)
+    }
+
+    /// Store the accepted re-entry from the ticket member and the four strings supply already kept.
+    /// A different request id is not stored. Missing authored strings are not invented.
+    private func retainAcceptedKnowledgeReview(requestID: UUID, ticket: MerchantNPCOriginalReviewTicket) {
+        guard ticket.requestID == requestID, let authored else { return }
+        heldKnowledgeReview = MerchantNPCKnowledgeReviewReentry(
+            requestID: requestID,
+            memberID: Int64(ticket.scope.accountID),
+            name: authored.name.value,
+            greeting: authored.greeting.value,
+            persona: authored.persona.value,
+            knowledge: authored.knowledge.value)
     }
 
     /// Keep the request id this submit already received. A different returned id is refused and does not replace a held id.

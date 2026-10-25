@@ -383,6 +383,9 @@ struct MerchantOperationsEditor: View {
     /// Later entry of this editor state. One GET of the request submit already accepted.
     /// Does not POST again and does not publish. A missing row or a different member stays closed.
     private func recoverHeldKnowledgeReview() async {
+        if heldKnowledgeReview == nil, let retained = authorFlow?.heldKnowledgeReview {
+            heldKnowledgeReview = retained
+        }
         guard let held = heldKnowledgeReview, !didRecoverHeldKnowledgeReview else { return }
         guard let recover = knowledgeReviewReentry else { return }
         didRecoverHeldKnowledgeReview = true
