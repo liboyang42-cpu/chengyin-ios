@@ -18,7 +18,11 @@ struct MerchantOperationsEditor: View {
     var draftRead: ((Int64, String) -> MerchantNPCDraftReadFact?)? = nil
     /// Existing theme-draft GET reader. Nil does not invent a request and does not publish.
     var themeDraftRequestRead: MerchantNPCThemeDraftRequestRead? = nil
+    /// Builds a writer that already holds the accepted re-entry. Nil does not POST and does not publish.
+    var knowledgeReviewReentry: ((MerchantNPCKnowledgeReviewReentry) -> MerchantNPCKnowledgeReviewWriter?)? = nil
     @State private var showsUnpublishedDraft = false
+    @State private var heldKnowledgeReview: MerchantNPCKnowledgeReviewReentry?
+    @State private var didRecoverHeldKnowledgeReview = false
     private var coordinator: MerchantOperationsCoordinator { model.coordinator }
     private var isExample: Bool { coordinator.reader.isOfflineExample }
     var body: some View {
@@ -47,6 +51,8 @@ struct MerchantOperationsEditor: View {
         .modifier(MerchantNPCFieldStablePresentation(document: model, presentation: npcFieldPresentation))
         .modifier(MerchantNPCPresetStablePresentation(document: model, presentation: presetPresentation))
         .modifier(MerchantCoopFieldStablePresentation(document: model, route: $coopFieldRoute))
+        .onAppear { Task { await recoverHeldKnowledgeReview() } }
+        .onDisappear { didRecoverHeldKnowledgeReview = false }
     }
     @ViewBuilder private func fields(_ draft: MerchantOperationsDraft) -> some View {
         switch draft {
@@ -336,7 +342,17 @@ struct MerchantOperationsEditor: View {
             try flow.ingestAsAIDraft()
             if let authorizer = MerchantNPCAuthorizer(accountID: flow.gate.scope.accountID, merchantRowID: flow.gate.scope.merchantRowID) {
                 try flow.verify(authorizer)
-                _ = try await flow.submitForOriginalReview(requestID: UUID())
+                let requestID = UUID()
+                let ticket = try await flow.submitForOriginalReview(requestID: requestID)
+                if ticket.requestID == requestID {
+                    heldKnowledgeReview = MerchantNPCKnowledgeReviewReentry(
+                        requestID: requestID,
+                        memberID: Int64(ticket.scope.accountID),
+                        name: name.value,
+                        greeting: greeting.value,
+                        persona: persona.value,
+                        knowledge: knowledge.value)
+                }
             }
         } catch {
             // Missing review or draft capability stays on the authored character.
@@ -361,6 +377,23 @@ struct MerchantOperationsEditor: View {
             _ = try await reader.readAndRecover(flow)
         } catch {
             // A failed read stays unpublished.
+        }
+    }
+
+    /// Later entry of this editor state. One GET of the request submit already accepted.
+    /// Does not POST again and does not publish. A missing row or a different member stays closed.
+    private func recoverHeldKnowledgeReview() async {
+        guard let held = heldKnowledgeReview, !didRecoverHeldKnowledgeReview else { return }
+        guard let writer = knowledgeReviewReentry?(held) else { return }
+        didRecoverHeldKnowledgeReview = true
+        do {
+            let kept = try await writer.recoverHeldRequest()
+            guard kept.requestID == held.requestID, kept.memberID == held.memberID,
+                  kept.name == held.name, kept.greeting == held.greeting,
+                  kept.persona == held.persona, kept.knowledge == held.knowledge else { return }
+            heldKnowledgeReview = kept
+        } catch {
+            // A missing row or a different member stays closed.
         }
     }
 }

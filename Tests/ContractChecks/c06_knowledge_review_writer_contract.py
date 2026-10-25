@@ -38,8 +38,11 @@ def check_layout() -> None:
     check(diff.returncode == 0, diff.stderr)
     changed = sorted(line for line in diff.stdout.splitlines() if line)
     check(changed == [
+        "App/MerchantOperationsEditor.swift",
+        "App/MerchantOperationsViews.swift",
         "Core/MerchantNPCKnowledgeReviewWriter.swift",
         "Tests/ContractChecks/c06_knowledge_review_writer_contract.py",
+        "Tests/ContractChecks/test_merchant_npc_knowledge_author_flow.py",
         "docs/issue5-hunks/C06-knowledge-review-writer.hunk",
     ], "writer branch changed an unexpected file: " + ",".join(changed))
     untouched = subprocess.run(
@@ -157,7 +160,12 @@ def check_hunk_and_session() -> None:
     check("publisher: writer" not in session, "AppSession no longer keeps publisher nil")
     check("MerchantNPCKnowledgeReviewWriter" not in root, "composition root constructs the writer")
     check("MerchantNPCKnowledgeReviewWriter.swift" not in project, "project file gained the writer")
-    check("MerchantNPCKnowledgeReviewWriter" not in page, "character page calls the writer directly")
+    reentry = page[page.index("func recoverHeldKnowledgeReview"):page.index("struct MerchantOperationsConfirmationView")]
+    check("recoverHeldRequest()" in reentry, "character page does not re-enter the held request")
+    check("heldThemeDraftRequestID" not in reentry, "re-entry reads the theme-draft id")
+    check("themeDraftRequestRead" not in reentry, "re-entry reads the theme-draft reader")
+    check("publishApproved" not in page, "character page publishes")
+    check("UUID()" not in reentry, "re-entry mints a second id")
     check("NOT_RUN" in Path(__file__).read_text(encoding="utf-8"), "contract claims swift or HTTP ran")
 
 
