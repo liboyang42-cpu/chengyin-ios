@@ -1,4 +1,4 @@
-"""Offline source assertions for the NPC knowledge author flow. Swift XCTest is NOT_RUN on Linux."""
+"""Offline source assertions for the NPC knowledge author flow. Swift XCTest is NOT_RUN on Linux. HTTP is NOT_RUN."""
 from pathlib import Path
 import unittest
 
@@ -293,6 +293,84 @@ class MerchantNPCKnowledgeAuthorFlowContracts(unittest.TestCase):
         self.assertNotIn('api/ai/theme/draft"', hunk)
         self.assertIn('NOT_RUN', hunk)
         self.assertIn('NOT_RUN', Path(__file__).read_text())
+
+    def test_original_draft_writer_submits_then_reads_returned_id_and_does_not_publish(self):
+        writer = read('Core/MerchantNPCOriginalDraftWriter.swift')
+        tests = read('Tests/CoreTests/MerchantNPCOriginalDraftWriterTests.swift')
+        hunk = read('docs/issue5-hunks/C06-original-draft-writer.hunk')
+        page = read('App/MerchantOperationsEditor.swift')
+        host = read('App/MerchantOperationsViews.swift')
+        session = read('App/AppSession.swift')
+        root = read('App/AppCompositionRoot.swift')
+        project = read('Questify.xcodeproj/project.pbxproj')
+        submit = writer[writer.index('func submitHeldDraftThenRead'):writer.index('func makeSubmission')]
+        body = writer[writer.index('func makeSubmission'):writer.index('func makeRequest')]
+        self.assertIn('public static let path = "api/ai/theme/draft"', writer)
+        self.assertIn('ApiAiController.themeDraft', writer)
+        self.assertIn('@PostMapping("/theme/draft")', writer)
+        self.assertIn('MerchantNPCThemeDraftRequestRead', writer)
+        self.assertIn('httpMethod = "POST"', writer)
+        self.assertLess(submit.index('transport.send'), submit.index('returnedRequestID'))
+        self.assertLess(submit.index('returnedRequestID'), submit.index('holdThemeDraftRequest'))
+        self.assertLess(submit.index('holdThemeDraftRequest'), submit.index('readAndRecover'))
+        self.assertLess(submit.index('readAndRecover'), submit.index('isAcceptance'))
+        tail = submit[submit.index('readAndRecover'):]
+        self.assertLess(tail.index('isAcceptance'), tail.index('return nil'))
+        self.assertLess(tail.index('return nil'), tail.index('return fact'))
+        for token in ['"requestId": held', '"name": name', '"greeting": greeting',
+                      '"persona": persona', '"knowledge": knowledge',
+                      'authored.name.value', 'authored.greeting.value',
+                      'authored.persona.value', 'authored.knowledge.value',
+                      'flow.heldThemeDraftRequestID', 'requestID: returned']:
+            self.assertIn(token, writer)
+        for token in ['"requestId": held', 'authored.name.value', 'authored.knowledge.value']:
+            self.assertIn(token, body)
+        for token in ['UUID()', 'publishApproved', 'api/ai/theme/draft/request',
+                      'api/ai/theme/draft/submit', 'httpMethod = "GET"',
+                      'MerchantNPCDraftReadFact(', 'MerchantNPCOriginalReviewTicket(',
+                      'Bearer ', 'idea', 'productType', 'priceMinor']:
+            self.assertNotIn(token, writer)
+        for name in ['testAcceptedResponseSubmitsHeldRequestAndFourFieldsThenReadsReturnedID',
+                     'testNonAcceptanceReadsReturnedIDAndDoesNotPublishOrKeepReceipt',
+                     'testMissingReturnedRequestIDDoesNotReadHeldOrMintedID',
+                     'testInvalidReturnedRequestIDDoesNotFallBackToHeldID',
+                     'testNestedRequestIDIsNotTheSubmitResponseID',
+                     'testMissingHeldRequestDoesNotSubmit',
+                     'testSucceededSubmitWithoutReadHitDoesNotInventReceipt',
+                     'testMissingPublisherDoesNotPublish',
+                     'testReadFailureAfterNonAcceptanceDoesNotPublish',
+                     'publisher.published, 0', '"/api/ai/theme/draft"',
+                     '"/api/ai/theme/draft/request"', 'AI_DRAFT_IN_PROGRESS', 'NOT_FOUND']:
+            self.assertIn(name, tests)
+        self.assertEqual(tests.count('func test'), 9)
+        self.assertNotIn('publishApproved(', writer)
+        self.assertIn('case .character(let value):', page)
+        self.assertIn('Button("merchantNPC.author.submit")', page)
+        self.assertNotIn('MerchantNPCOriginalDraftWriter', page)
+        self.assertNotIn('MerchantNPCOriginalDraftWriter', host)
+        self.assertNotIn('MerchantStoreCharacterView', page)
+        self.assertNotIn('MerchantStoreCharacterView', host)
+        self.assertNotIn('originalDraftWriter', page)
+        self.assertNotIn('originalDraftWriter', host)
+        for source in (session, root, project, self.flow):
+            self.assertNotIn('MerchantNPCOriginalDraftWriter', source)
+            self.assertNotIn('submitHeldDraftThenRead', source)
+            self.assertNotIn('originalDraftWriter', source)
+        for token in ['Do not apply', 'App/AppSession.swift', 'App/AppCompositionRoot.swift',
+                      'Questify.xcodeproj/project.pbxproj', 'runtimeHTTPTransport',
+                      'MerchantNPCOriginalDraftWriter(', 'MerchantNPCThemeDraftRequestRead(',
+                      'publisher: nil', 'originalDraftWriter: writer', 'Not inserted',
+                      'does not replace', 'MerchantStoreCharacterView', 'Text("manage"',
+                      'MerchantOperationsDocumentView', 'NavigationLink',
+                      'heldThemeDraftRequestID', 'does not mint', 'nil snapshot',
+                      'Do not redo', 'api/ai/theme/draft', 'not added to the Xcode project',
+                      'HTTP is NOT_RUN', 'NOT_RUN']:
+            self.assertIn(token, hunk)
+        for token in ['UUID()', 'publishApproved', 'readAndRecover(flow)', '_ = writer',
+                      'submitHeldDraftThenRead(flow)']:
+            self.assertNotIn(token, hunk)
+        self.assertIn('NOT_RUN', Path(__file__).read_text())
+        self.assertIn('HTTP is NOT_RUN', Path(__file__).read_text())
 
 
 if __name__ == '__main__':

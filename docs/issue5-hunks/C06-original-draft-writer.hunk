@@ -1,0 +1,92 @@
+# C06 original draft writer — session transport stays closed
+
+Issue: https://github.com/liboyang42-cpu/chengyin-remote-ops/issues/5
+Repo: github.com/liboyang42-cpu/chengyin-ios
+Branch: cursor/c06-original-draft-writer-e504
+Base: cursor/c06-same-request-recover-e504 @ 678275ac8898120043170aec67b05472e40e00ea
+
+`MerchantNPCOriginalDraftWriter` calls the existing theme-draft submit, then the
+existing read. The submit path is `ApiAiController.themeDraft`:
+`POST api/ai/theme/draft`. It is not a second path. The body is the request id
+the author flow already holds and the four fields already on the draft
+(name, greeting, persona, knowledge).
+
+The read is `MerchantNPCThemeDraftRequestRead`. It uses the request id the
+submit response returned. A local held id is not server acceptance. A response
+with no returned id does not fall back to that held id, a newly minted UUID, or
+a hand-filled id. A response that is not acceptance returns no receipt and does
+not publish. A missing publisher does not publish the NPC.
+
+The character page stays the existing character fields. The nested manage page
+stays `MerchantStoreCharacterView` plus the manage `NavigationLink` into
+`MerchantOperationsDocumentView`. This hunk does not replace either page.
+
+Dot removed the nil snapshot at factory construction. Do not redo that. Do not
+read `heldThemeDraftRequestID` or `heldThemeDraftMemberID` at construction.
+
+## Not applied
+
+Giving this writer the running transport needs the session. That attach is only
+the paste below. Do not apply it. Do not edit:
+
+```
+App/AppSession.swift
+App/AppCompositionRoot.swift
+Questify.xcodeproj/project.pbxproj
+```
+
+Not inserted into `merchantOperationsDestination` or
+`merchantStoreCharacterDestination`. `publisher` stays nil. The factory does
+not mint a second request id. It does not call `submitHeldDraftThenRead`.
+Submit happens later, on the flow that already holds the request id. The paste
+passes `writer` into the existing destination. It does not drop that value.
+Not inserted. `Core/MerchantNPCOriginalDraftWriter.swift` is not added to the
+Xcode project from this branch.
+
+```swift
+if destination == .character,
+   let merchantID = access.identity.merchantID,
+   let row = PublicMerchantRowID(merchantID),
+   let scope = merchantNPCScope(row: row) {
+    let flow = MerchantNPCKnowledgeAuthorFlow(
+        scope: scope,
+        publisher: nil,
+        currentScope: { [weak self] in self?.merchantNPCScope(row: row) })
+    var reader: MerchantNPCThemeDraftRequestRead? = nil
+    var writer: MerchantNPCOriginalDraftWriter? = nil
+    if let api = regionalConfiguration?.apiConfiguration {
+        reader = MerchantNPCThemeDraftRequestRead(
+            configuration: api,
+            transport: runtimeHTTPTransport,
+            memberID: { [weak self] in self?.account.map { Int64($0.id) } },
+            token: { [weak self] in self?.token })
+        if let reader {
+            writer = MerchantNPCOriginalDraftWriter(
+                configuration: api,
+                transport: runtimeHTTPTransport,
+                reader: reader,
+                memberID: { [weak self] in self?.account.map { Int64($0.id) } },
+                token: { [weak self] in self?.token })
+        }
+    }
+    return merchantStoreCharacterDestination(
+        authorFlow: flow,
+        themeDraftRequestRead: reader,
+        originalDraftWriter: writer)
+}
+
+NavigationLink {
+    MerchantOperationsDocumentView(
+        reader: npcSaveReader,
+        destination: .character,
+        authorFlow: authorFlow,
+        themeDraftRequestRead: themeDraftRequestRead,
+        originalDraftWriter: writer)
+} label: { Text("manage", tableName: "MerchantNPCSaveReceipt") }
+MerchantStoreCharacterView(coordinator: StoreCharacterCoordinator(reader: StoreCharacterOperationsReader(reader: reader)))
+```
+
+The paste does not replace the character page or the nested manage page. It
+does not snapshot nil held ids. Not inserted.
+
+XCTest / App / CI = NOT_RUN where swiftc is absent. HTTP is NOT_RUN. Not 100%.
