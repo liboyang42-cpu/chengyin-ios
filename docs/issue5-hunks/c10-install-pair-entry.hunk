@@ -1,0 +1,96 @@
+not applied
+Public b656d7c8a697752830dc0540852d29ff10e428c7 has no ModInstallationEntry, ModInstallationLicenseLink, WorkshopCommerceView, ModUpgradeView, or AppSession.makeModInstallationWithOriginalReader.
+This hunk is not applied. It does not edit AppSession.swift. It does not edit AccountView.swift or ModUpgradeView.swift in the product tree.
+It does not create a second controller, does not rewrite H5OriginalInstallReader, and does not invent a shell URL.
+Swift and HTTP are NOT_RUN. The shell and the factory page are not connected.
+
+exclusive installation entry, not applied:
+ModInstallationLicenseLink, ModInstallationEntry, and WorkshopCommerceView keep the existing
+(ModInstallationIdentity) -> ModInstallationController? factory and may accept one additional
+reader factory that defaults to nil:
+
+    var makeOriginalReader: (ModInstallationIdentity) -> H5OriginalInstallReader? = { _ in nil }
+
+WorkshopCommerceAccountLink and WorkshopCommerceEntry forward that same defaulted factory.
+A nil reader does not read and does not invent a request id.
+ModUpgradeView's ModInstallationEntry(reference: target, makeController: { _ in controller.makeInstallationController() })
+is not this session factory. Its reader stays nil.
+
+The two session call sites below pass one pair closure. ModInstallationEntry.reopen invokes that closure once
+and retains both values. It must not call makeModInstallationWithOriginalReader again to obtain the reader.
+
+    var makeInstallationPair: ((ModInstallationIdentity) -> (controller: ModInstallationController?, originalReader: H5OriginalInstallReader?)?)? = nil
+
+    private func reopen() {
+        controller?.invalidate()
+        if let makeInstallationPair {
+            let pair = makeInstallationPair(reference)
+            controller = pair?.controller
+            originalReader = pair?.originalReader
+            return
+        }
+        controller = makeController(reference)
+        originalReader = makeOriginalReader(reference)
+    }
+
+ModInstallationView receives that retained originalReader. When controller.attempt?.request.requestId
+is already present and the reader is non-nil, it calls reader.request once. The identity argument is the
+view's existing ModInstallationIdentity mapped into WorkshopInstallIdentity. releaseId is that identity's
+releaseId, which commerce already set from purchasedVersionId. A failed map does not invent an identity.
+The returned fact is kept only when fact.requestID equals that same request id.
+
+    @State private var originalReader: H5OriginalInstallReader?
+    @State private var originalFact: WorkshopOriginalInstallFact?
+    @State private var readRequestID: String?
+
+    .task(id: controller.attempt?.request.requestId) { await readOriginalInstallFact() }
+
+    private func readOriginalInstallFact() async {
+        guard let requestID = controller.attempt?.request.requestId else { return }
+        guard originalFact?.requestID != requestID else { return }
+        guard readRequestID != requestID else { return }
+        guard let reader = originalReader else { return }
+        guard let installIdentity = WorkshopInstallIdentity(
+            licenseId: controller.identity.licenseId,
+            moduleId: controller.identity.moduleId,
+            releaseId: controller.identity.releaseId,
+            contentHash: controller.identity.contentHash,
+            termsHash: controller.identity.termsHash) else { return }
+        readRequestID = requestID
+        guard let fact = try? await reader.request(requestID, identity: installIdentity),
+              fact.requestID == requestID else {
+            originalFact = nil
+            return
+        }
+        originalFact = fact
+    }
+
+The kept fact is the entry's original receipt for that request id. The existing request row stays.
+When the kept fact is present, the existing state line is the only extra text:
+
+    if let fact = originalFact, fact.requestID == attempt.request.requestId {
+        installationText("state." + fact.state)
+    }
+
+call sites, not applied, one call only:
+Replace makeModInstallationController(reference:) with one makeModInstallationWithOriginalReader(reference:) call
+and pass context.controller plus context.originalReader. Do not call the session method twice.
+
+AccountView.swift, the WorkshopCommerceAccountLink row:
+before:
+    WorkshopCommerceAccountLink(makeController: { session.makeWorkshopCommerceController() }, makeInstallationController: { session.makeModInstallationController(reference: $0) })
+after:
+    WorkshopCommerceAccountLink(makeController: { session.makeWorkshopCommerceController() }, makeInstallationPair: { reference in
+        guard let context = session.makeModInstallationWithOriginalReader(reference: reference) else { return nil }
+        return (context.controller, context.originalReader)
+    })
+
+ModUpgradeView.swift, the comparison WorkshopCommerceAccountLink:
+before:
+    WorkshopCommerceAccountLink(makeController: { session.makeWorkshopCommerceController() },
+        makeInstallationController: { session.makeModInstallationController(reference: $0) }, initialOfferId: candidate.offerId)
+after:
+    WorkshopCommerceAccountLink(makeController: { session.makeWorkshopCommerceController() }, makeInstallationPair: { reference in
+        guard let context = session.makeModInstallationWithOriginalReader(reference: reference) else { return nil }
+        return (context.controller, context.originalReader)
+    }, initialOfferId: candidate.offerId)
