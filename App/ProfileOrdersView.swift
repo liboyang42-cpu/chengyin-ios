@@ -70,9 +70,13 @@ struct ProfileOrderDetailView: View {
     var mediaScope: UUID = UUID()
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
     var ticketReader: (any TicketWalletReading)? = nil
+    /// Existing locator only. Nil stays quiet and does not invent an order id.
+    var orderLocator: SupportEventLocator? = nil
     @State private var ticketTarget: ProfileOrderTicketTarget?
     @State private var ticketEntryVisible = false
     @State private var ticketPresentationID = UUID()
+    @State private var readBackForID: Int?
+    @State private var openedOrderID: Int64?
     var body: some View {
         ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.order.detail", load: { try await reader.profileOrder(id: id) }) { order in
             ProfileOrderMeetingPointHost(order: order, requestedID: id, reader: reader) { meetingPointEntry in
@@ -159,6 +163,13 @@ struct ProfileOrderDetailView: View {
         }
         .appNavigationTitle("profile.orders.detail")
         .navigationBarTitleDisplayMode(.inline)
+        .background {
+            if orderLocator != nil {
+                Color.clear.frame(width: 0, height: 0)
+                    .accessibilityIdentifier(openedOrderID == Int64(id) ? "profile.order.readback.opened.\(id)" : "profile.order.readback.closed")
+            }
+        }
+        .task(id: id) { readBackHeldOrder() }
         .navigationDestination(item: $ticketTarget) { target in
             if let ticketReader, target.registrationID == id, target.matches(origin: reader, tickets: ticketReader) {
                 ProfileOrderTicketDestination(target: target, origin: reader, tickets: ticketReader)
@@ -176,6 +187,22 @@ struct ProfileOrderDetailView: View {
         .onChange(of: ticketReader?.isAuthenticated) { _, _ in retireTicketEntry() }
         .onChange(of: ticketReader?.isConfigured) { _, _ in retireTicketEntry() }
         .onChange(of: id) { _, _ in retireTicketEntry() }
+    }
+    /// One locateByOrderId for the id this page already holds. The returned first
+    /// ORDER id must equal that id. A different id is not opened.
+    private func readBackHeldOrder() {
+        guard readBackForID != id else { return }
+        readBackForID = id
+        openedOrderID = nil
+        guard let locator = orderLocator else { return }
+        let requested: Int64? = id > 0 ? Int64(id) : nil
+        do {
+            let located = try locator.locateByOrderId(requested, currentProjection: nil)
+            guard let requested, let located, located.orderId == requested else { return }
+            openedOrderID = OrderPageReadback.openedID(requested: requested, events: located.originalEvents)
+        } catch {
+            openedOrderID = nil
+        }
     }
     @ViewBuilder private func ticketEntry(order: ProfileOrder, tickets: any TicketWalletReading) -> some View {
         let renderedPresentation = ticketPresentationID

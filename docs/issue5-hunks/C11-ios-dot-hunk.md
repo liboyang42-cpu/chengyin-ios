@@ -25,6 +25,8 @@ IDs below match `tools/generate_project.py` `ident(name) = sha256(name)[:24].upp
 Core:
 
 - `Core/SupportEventLocator.swift` — 按 requestId 定位原 audit 事件；APPLIED+SUCCESS 只对照
+- `Core/OrderPageReadback.swift` — 订单页已有 id 回读；第一条 ORDER 必须等于该 id，别的 id 不打开
+- `App/ProfileOrdersView.swift` — `ProfileOrderDetailView.id` 调用一次 `locateByOrderId`；不启用 original-event，不借 list/detail 批准，不调用 `/business/audit-log`
 - `Core/CompensationEntryProjection.swift` — 既有 extra-approver 权限码 pass-in；冻结条款不被 FINAL 999 覆盖
 - `Core/DataDeletionEvidenceTable.swift` — 既有 writer 处置表，不是 cleaner / DDL
 - `Core/ReviewResultVisibilityAdapter.swift` — submit → reject → revise → approve 可见性
@@ -40,6 +42,10 @@ Questify target — each Core file needs a `PBXFileReference` plus `PBXBuildFile
 Core/SupportEventLocator.swift
   PBXFileReference D579A9832347C0C626BE58BE
   PBXBuildFile     0FD49EE8EC846933EEC26AC1  fileRef = D579A9832347C0C626BE58BE
+
+Core/OrderPageReadback.swift
+  PBXFileReference B7D9DA25F1136FC4B855DC42
+  PBXBuildFile     E8EF22EFB954E8909A13DE5D  fileRef = B7D9DA25F1136FC4B855DC42
 
 Core/CompensationEntryProjection.swift
   PBXFileReference C4B3D4FB8D69753BEEB953E3
@@ -64,6 +70,10 @@ Tests/CoreTests are SwiftPM-only today (`Package.swift` `path: "Tests/CoreTests"
 Tests/CoreTests/SupportEventLocatorTests.swift
   PBXFileReference 38E6E058981D542F62494B75
   PBXBuildFile     E6106DA65612D9D545A4E705  fileRef = 38E6E058981D542F62494B75
+
+Tests/CoreTests/OrderPageReadbackTests.swift
+  PBXFileReference 5084C3832B1C388DF2D59CB3
+  PBXBuildFile     745E19668CFE9543ABF7E56B  fileRef = 5084C3832B1C388DF2D59CB3
 
 Tests/CoreTests/CompensationEntryProjectionTests.swift
   PBXFileReference 2B7EB927177EADE623731274
