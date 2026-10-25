@@ -59,7 +59,8 @@ def check_layout() -> None:
 def check_writer() -> None:
     writer = read("Core/MerchantNPCKnowledgeReviewWriter.swift")
     submit = between(writer, "func submitForOriginalReview", "func publishApproved")
-    publish = between(writer, "func publishApproved", "func makeSubmission")
+    publish = between(writer, "func publishApproved", "func recoverHeldRequest")
+    reentry = between(writer, "func recoverHeldRequest", "func makeSubmission")
     body = between(writer, "func makeSubmission", "func makeRequest")
     request = between(writer, "func makeRequest", "func makeReadRequest")
     read_request = between(writer, "func makeReadRequest", "func matches")
@@ -69,7 +70,15 @@ def check_writer() -> None:
           "writer does not implement the review protocol")
     check('public static let path = "api/merchant/npc/knowledge-review"' in writer, "POST path is not the written contract")
     check("contract being written, not a route discovered" in writer, "path is described as a discovered route")
-    check(writer.count("transport.send") == 2, "writer does not send the POST and then the GET")
+    check(writer.count("transport.send") == 3, "writer does not send the POST, the follow-up GET, and the re-entry GET")
+    check(reentry.count("transport.send") == 1, "re-entry does not GET once")
+    check(reentry.index("loggedIn == held.memberID") < reentry.index("transport.send"), "re-entry GETs for a different member")
+    check(reentry.index("transport.send") < reentry.index("recovered("), "re-entry keeps fields before the GET")
+    check("return held" in reentry, "re-entry does not keep the held fields")
+    check("makeRequest(" not in reentry and "httpMethod = \"POST\"" not in reentry, "re-entry POSTs again")
+    check("publishApproved(" not in reentry, "re-entry publishes")
+    check("makeReadRequest(" in reentry, "re-entry does not use the knowledge-review read")
+    check("api/ai/theme/draft" not in reentry and "MerchantAuthoring" not in reentry, "re-entry uses another contract")
     check(submit.count("transport.send") == 2 and "transport" not in publish, "publish sends a request")
     check(submit.index("transport.send") < submit.index("matches("), "GET is sent before the POST is accepted")
     rest = submit[submit.index("matches("):]
@@ -106,7 +115,7 @@ def check_writer() -> None:
     check("does not mint" in writer and "A nil approval is not published." in writer, "nil approval can publish")
     check("does not call `POST api/ai/theme/draft`" in writer, "writer does not name the theme-draft contract it refuses")
     check("does not wrap `MerchantNPCOriginalDraftWriter`" in writer, "writer does not name the theme-draft writer it refuses")
-    code = "\n".join((submit, publish, body, request, read_request, match, recovered))
+    code = "\n".join((submit, publish, body, request, read_request, match, recovered, reentry))
     for banned in (
         "UUID()", "Bearer ", "productType", "existingNodeNames",
         "api/ai/theme/draft", "api/merchant/npc/save", "createDraft", "generate(",
@@ -119,6 +128,8 @@ def check_writer() -> None:
     check("transport.send" not in publish, "publish sends a request")
     check(writer.count("func publishApproved") == 1, "publishApproved is missing")
     check("publishApproved(" not in submit, "submit calls publish")
+    check("recoverHeldRequest(" not in submit, "submit uses re-entry")
+    check("func recoverHeldRequest" in writer, "re-entry recovery is missing")
 
 
 def check_hunk_and_session() -> None:
