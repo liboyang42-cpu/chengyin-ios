@@ -190,6 +190,17 @@ def check_hunk_and_session() -> None:
     check("writer.recoverReentry(held)" in routed, "gate does not call the argument GET")
     check("MerchantNPCWaitingSourcePublisher" in routed, "waiting publisher is not closed")
     check("transport.send" not in routed and "publishApproved(" not in routed, "gate sends or publishes from the forward")
+    stored = flow[flow.index("func retainAcceptedKnowledgeReview"):flow.index("func retainSubmittedAuthorRequest")]
+    check("public private(set) var heldKnowledgeReview" in flow, "author flow does not retain the knowledge reentry")
+    check("ticket.requestID == requestID" in stored, "author flow stores a different request id")
+    check("let authored else { return }" in stored, "author flow invents the four strings")
+    check("Int64(ticket.scope.accountID)" in stored, "author flow does not use the ticket member")
+    check("authored.name.value" in stored and "authored.knowledge.value" in stored, "author flow drops an authored string")
+    check("holdThemeDraftRequest" not in stored, "accepted reentry calls the theme-draft hold")
+    check("heldThemeDraftRequestID" not in stored and "heldThemeDraftMemberID" not in stored, "accepted reentry uses a theme-draft id")
+    check("publishApproved" not in stored, "accepted reentry publishes")
+    check("if heldKnowledgeReview == nil, let retained = authorFlow?.heldKnowledgeReview" in reentry_page, "editor does not copy the flow reentry when its state is nil")
+    check("heldKnowledgeReview = retained" in reentry_page, "editor does not keep the copied reentry")
     check("NOT_RUN" in Path(__file__).read_text(encoding="utf-8"), "contract claims swift or HTTP ran")
 
 
