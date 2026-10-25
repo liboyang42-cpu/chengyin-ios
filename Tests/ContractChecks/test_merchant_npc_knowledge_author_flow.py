@@ -72,7 +72,9 @@ class MerchantNPCKnowledgeAuthorFlowContracts(unittest.TestCase):
                       'MerchantNPCAuthorizer(accountID: flow.gate.scope.accountID, merchantRowID: flow.gate.scope.merchantRowID)',
                       'flow.verify(authorizer)',
                       'flow.submitForOriginalReview(requestID: UUID())',
-                      'flow.recoverFromDraftRead(memberID: draftReadMemberID, requestID: draftReadRequestID, read: draftRead)',
+                      'await readHeldThemeDraft(flow)',
+                      'holdThemeDraftRequest(memberID: memberID, requestID: requestID)',
+                      'reader.readAndRecover(flow)',
                       'guard flow.gate.phase == phase else { return }',
                       'flow.stayedOnMissingPublisher',
                       'flow.gate.published == nil',
@@ -83,8 +85,8 @@ class MerchantNPCKnowledgeAuthorFlowContracts(unittest.TestCase):
         self.assertLess(fn.index('flow.supply('), fn.index('ingestAsAIDraft()'))
         self.assertLess(fn.index('ingestAsAIDraft()'), fn.index('flow.verify('))
         self.assertLess(fn.index('flow.verify('), fn.index('submitForOriginalReview('))
-        self.assertLess(fn.index('submitForOriginalReview('), fn.index('recoverFromDraftRead('))
-        self.assertLess(fn.index('recoverFromDraftRead('), fn.index('flow.gate.phase == phase'))
+        self.assertLess(fn.index('submitForOriginalReview('), fn.index('readHeldThemeDraft('))
+        self.assertLess(fn.index('readHeldThemeDraft('), fn.index('flow.gate.phase == phase'))
         for token in ['publishApproved', 'theme/draft', 'MerchantNPCGrants', 'MerchantNPCKnowledgeAuthorFlow(',
                       'MerchantNPCWaitingSourcePublisher(', 'LinearGradient', '.shadow', '.font(.custom',
                       'playerConsume', '🔥', '✨']:
@@ -153,7 +155,6 @@ class MerchantNPCKnowledgeAuthorFlowContracts(unittest.TestCase):
         self.assertIn('"/api/ai/theme/draft/request"', tests)
         self.assertIn('NOT_FOUND', tests)
         self.assertIn('publisher.published, 0', tests)
-        self.assertNotIn('MerchantNPCThemeDraftRequestRead', page)
         self.assertNotIn('func submitAuthoredFields()', page.replace('func submitAuthoredFields()', '', 1))
         for source in (session, root, project):
             self.assertNotIn('MerchantNPCThemeDraftRequestRead', source)
@@ -167,6 +168,64 @@ class MerchantNPCKnowledgeAuthorFlowContracts(unittest.TestCase):
         self.assertNotIn('readAndRecover(flow)', hunk)
         self.assertIn('NOT_RUN', Path(__file__).read_text())
         self.assertIn('NOT_RUN', hunk)
+
+    def test_manage_editor_reads_held_request_and_does_not_publish(self):
+        page = read('App/MerchantOperationsEditor.swift')
+        host = read('App/MerchantOperationsViews.swift')
+        session = read('App/AppSession.swift')
+        root = read('App/AppCompositionRoot.swift')
+        project = read('Questify.xcodeproj/project.pbxproj')
+        hunk = read('docs/issue5-hunks/C06-manage-draft-read.hunk')
+        submit = page[page.index('func submitAuthoredFields()'):page.index('func readHeldThemeDraft')]
+        read_fn = page[page.index('func readHeldThemeDraft'):page.index('struct MerchantOperationsConfirmationView')]
+        self.assertIn('await readHeldThemeDraft(flow)', submit)
+        self.assertLess(submit.index('submitForOriginalReview('), submit.index('readHeldThemeDraft('))
+        self.assertLess(submit.index('readHeldThemeDraft('), submit.index('flow.gate.phase == phase'))
+        self.assertIn('guard let memberID = draftReadMemberID, let requestID = draftReadRequestID', read_fn)
+        self.assertIn('flow.holdThemeDraftRequest(memberID: memberID, requestID: requestID)', read_fn)
+        self.assertIn('let reader = themeDraftRequestRead else { return }', read_fn)
+        self.assertIn('reader.readAndRecover(flow)', read_fn)
+        self.assertLess(read_fn.index('draftReadMemberID'), read_fn.index('holdThemeDraftRequest'))
+        self.assertLess(read_fn.index('holdThemeDraftRequest'), read_fn.index('readAndRecover(flow)'))
+        self.assertLess(read_fn.index('else { return }'), read_fn.index('readAndRecover(flow)'))
+        self.assertNotIn('UUID()', read_fn)
+        self.assertNotIn('_ = caller', page)
+        self.assertNotIn('publishApproved', page)
+        self.assertNotIn('httpMethod = "POST"', page)
+        self.assertNotIn('api/ai/theme/draft"', page)
+        self.assertNotIn("api/ai/theme/draft'", page)
+        self.assertNotIn('recoverFromDraftRead(memberID: draftReadMemberID, requestID: draftReadRequestID, read: draftRead)', page)
+        self.assertIn('case .character(let value):', page)
+        self.assertIn('case .template(let value):', page)
+        self.assertIn('Button("merchantNPC.author.submit")', page)
+        self.assertIn('themeDraftRequestRead: themeDraftRequestRead', host)
+        self.assertIn('var themeDraftRequestRead: MerchantNPCThemeDraftRequestRead? = nil', host)
+        self.assertNotIn('MerchantNPCThemeDraftRequestRead(', host)
+        self.assertNotIn('holdThemeDraftRequest', host)
+        self.assertNotIn('readAndRecover', host)
+        self.assertNotIn('_ = caller', host)
+        for source in (session, root, project):
+            self.assertNotIn('MerchantNPCThemeDraftRequestRead', source)
+            self.assertNotIn('readHeldThemeDraft', source)
+            self.assertNotIn('holdThemeDraftRequest', source)
+            self.assertNotIn('themeDraftRequestRead', source)
+        for token in ['Do not apply', 'App/AppSession.swift', 'App/AppCompositionRoot.swift',
+                      'Questify.xcodeproj/project.pbxproj', 'merchantOperationsDestination',
+                      'merchantStoreCharacterDestination', 'publisher: nil',
+                      'let caller = MerchantNPCThemeDraftRequestRead',
+                      'themeDraftRequestRead: caller', 'heldThemeDraftMemberID',
+                      'heldThemeDraftRequestID', 'draftReadMemberID: heldMember',
+                      'draftReadRequestID: heldRequest', 'Text("manage"',
+                      'MerchantStoreCharacterView', 'MerchantOperationsDocumentView',
+                      'Not inserted', 'does not mint', 'readHeldThemeDraft']:
+            self.assertIn(token, hunk)
+        self.assertNotIn('_ = caller', hunk)
+        self.assertNotIn('UUID()', hunk)
+        self.assertNotIn('publishApproved', hunk)
+        self.assertNotIn('readAndRecover(flow)', hunk)
+        self.assertNotIn('httpMethod = "POST"', hunk)
+        self.assertIn('NOT_RUN', hunk)
+        self.assertIn('NOT_RUN', Path(__file__).read_text())
 
 
 if __name__ == '__main__':

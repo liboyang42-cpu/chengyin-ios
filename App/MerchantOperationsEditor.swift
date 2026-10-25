@@ -16,6 +16,8 @@ struct MerchantOperationsEditor: View {
     var draftReadMemberID: Int64? = nil
     var draftReadRequestID: String? = nil
     var draftRead: ((Int64, String) -> MerchantNPCDraftReadFact?)? = nil
+    /// Existing theme-draft GET reader. Nil does not invent a request and does not publish.
+    var themeDraftRequestRead: MerchantNPCThemeDraftRequestRead? = nil
     @State private var showsUnpublishedDraft = false
     private var coordinator: MerchantOperationsCoordinator { model.coordinator }
     private var isExample: Bool { coordinator.reader.isOfflineExample }
@@ -320,7 +322,7 @@ struct MerchantOperationsEditor: View {
 
     /// The merchant submits name, greeting, persona, and knowledge on this character page.
     /// The existing author flow ingests an AI draft and stops at original review.
-    /// A missing publisher stays unpublished. Draft readback does not change the phase.
+    /// A missing publisher stays unpublished. A missing held theme-draft id does not call GET.
     private func submitAuthoredFields() async {
         guard let flow = authorFlow else { return }
         guard let source = coordinator.draft, case .character = source,
@@ -339,16 +341,25 @@ struct MerchantOperationsEditor: View {
             // Missing review or draft capability stays on the authored character.
         }
         let phase = flow.gate.phase
-        do {
-            _ = try flow.recoverFromDraftRead(memberID: draftReadMemberID, requestID: draftReadRequestID, read: draftRead)
-        } catch {
-            // A missing read closure stays on the same phase.
-        }
+        await readHeldThemeDraft(flow)
         guard flow.gate.phase == phase else { return }
         if flow.stayedOnMissingPublisher {
             showsUnpublishedDraft = flow.gate.published == nil
         } else {
             showsUnpublishedDraft = flow.gate.published == nil && flow.gate.phase != .published
+        }
+    }
+
+    /// Read with the member and request id the original author request already produced.
+    /// A missing held id does not call GET and does not publish.
+    private func readHeldThemeDraft(_ flow: MerchantNPCKnowledgeAuthorFlow) async {
+        guard let memberID = draftReadMemberID, let requestID = draftReadRequestID,
+              flow.holdThemeDraftRequest(memberID: memberID, requestID: requestID),
+              let reader = themeDraftRequestRead else { return }
+        do {
+            _ = try await reader.readAndRecover(flow)
+        } catch {
+            // A failed read stays unpublished.
         }
     }
 }

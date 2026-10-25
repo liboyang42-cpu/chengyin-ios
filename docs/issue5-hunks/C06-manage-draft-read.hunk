@@ -1,0 +1,91 @@
+# C06 manage draft read — session binding closed
+
+Issue: https://github.com/liboyang42-cpu/chengyin-remote-ops/issues/5
+Repo: github.com/liboyang42-cpu/chengyin-ios
+Branch: cursor/c06-manage-draft-read-e504
+Base: cursor/c06-theme-draft-request-read-e504 @ eeac4a3d34bddec04f3132c10e981cc0db0e0c18
+
+`MerchantOperationsEditor.readHeldThemeDraft` calls the existing
+`MerchantNPCThemeDraftRequestRead`. It first calls `holdThemeDraftRequest`
+with the member id and request id the original author request already produced.
+It then calls `readAndRecover`. A missing held id returns before that call, so
+it does not GET and does not publish. A missing publisher stays unpublished.
+The editor does not POST `api/ai/theme/draft` and does not publish an approved
+revision. It does not mint either id. The editor calls the reader. It does not discard the caller.
+
+The nested manage page stays `MerchantStoreCharacterView` plus the manage
+`NavigationLink` into `MerchantOperationsDocumentView`. This hunk does not
+replace that page with an older character page and does not revert
+`MerchantOperationsEditor` to a document-only page.
+
+## Not applied
+
+Passing the held request into the nested manage link needs the session binding.
+That attach is only the paste below. Do not apply it. Do not edit:
+
+```
+App/AppSession.swift
+App/AppCompositionRoot.swift
+Questify.xcodeproj/project.pbxproj
+```
+
+Not inserted into `merchantOperationsDestination` or
+`merchantStoreCharacterDestination`. `publisher` stays nil. Do not mint a
+member id or a request id. If the original author request did not already
+produce both, pass nil and the editor sends nothing.
+
+```swift
+if destination == .character,
+   let merchantID = access.identity.merchantID,
+   let row = PublicMerchantRowID(merchantID),
+   let scope = merchantNPCScope(row: row),
+   let api = regionalConfiguration?.apiConfiguration {
+    let flow = MerchantNPCKnowledgeAuthorFlow(
+        scope: scope,
+        publisher: nil,
+        currentScope: { [weak self] in self?.merchantNPCScope(row: row) })
+    let caller = MerchantNPCThemeDraftRequestRead(
+        configuration: api,
+        transport: runtimeHTTPTransport,
+        memberID: { [weak self] in self?.account.map { Int64($0.id) } },
+        token: { [weak self] in self?.token })
+    let heldMember = flow.heldThemeDraftMemberID
+    let heldRequest = flow.heldThemeDraftRequestID
+    return merchantStoreCharacterDestination(
+        authorFlow: flow,
+        themeDraftRequestRead: caller,
+        draftReadMemberID: heldMember,
+        draftReadRequestID: heldRequest)
+}
+
+func merchantStoreCharacterDestination(
+    authorFlow: MerchantNPCKnowledgeAuthorFlow? = nil,
+    themeDraftRequestRead: MerchantNPCThemeDraftRequestRead? = nil,
+    draftReadMemberID: Int64? = nil,
+    draftReadRequestID: String? = nil) -> AnyView {
+    AnyView(SessionMerchantStoreCharacterView(
+        reader: merchantOperationsReader,
+        npcSaveReader: merchantNPCSaveOperationsReader,
+        authorFlow: authorFlow,
+        themeDraftRequestRead: themeDraftRequestRead,
+        draftReadMemberID: draftReadMemberID,
+        draftReadRequestID: draftReadRequestID))
+}
+
+NavigationLink {
+    MerchantOperationsDocumentView(
+        reader: npcSaveReader,
+        destination: .character,
+        authorFlow: authorFlow,
+        draftReadMemberID: draftReadMemberID,
+        draftReadRequestID: draftReadRequestID,
+        themeDraftRequestRead: themeDraftRequestRead)
+} label: { Text("manage", tableName: "MerchantNPCSaveReceipt") }
+MerchantStoreCharacterView(coordinator: StoreCharacterCoordinator(reader: StoreCharacterOperationsReader(reader: reader)))
+```
+
+The paste passes `caller` into the existing nested manage destination. It does
+not drop that value and does not call the read from the session. The manage
+editor calls the read. Not inserted.
+
+XCTest / App / CI = NOT_RUN where swiftc is absent. Not 100%.
