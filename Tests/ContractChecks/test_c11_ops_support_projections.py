@@ -11,6 +11,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 CORE_FILES = [
     "Core/SupportEventLocator.swift",
+    "Core/OrderPageReadback.swift",
     "Core/CompensationEntryProjection.swift",
     "Core/DataDeletionEvidenceTable.swift",
     "Core/ReviewResultVisibilityAdapter.swift",
@@ -18,6 +19,7 @@ CORE_FILES = [
 ]
 TEST_FILES = [
     "Tests/CoreTests/SupportEventLocatorTests.swift",
+    "Tests/CoreTests/OrderPageReadbackTests.swift",
     "Tests/CoreTests/CompensationEntryProjectionTests.swift",
     "Tests/CoreTests/DataDeletionEvidenceTableTests.swift",
     "Tests/CoreTests/ReviewResultVisibilityAdapterTests.swift",
@@ -25,7 +27,8 @@ TEST_FILES = [
 ]
 CONTRACT = "Tests/ContractChecks/test_c11_ops_support_projections.py"
 HUNK = "docs/issue5-hunks/C11-ios-dot-hunk.md"
-WHITELIST = CORE_FILES + TEST_FILES + [CONTRACT, HUNK]
+ORDER_PAGE = "App/ProfileOrdersView.swift"
+WHITELIST = CORE_FILES + TEST_FILES + [CONTRACT, HUNK, ORDER_PAGE]
 FORBIDDEN_TOUCH = [
     "App/AppSession.swift",
     "App/AppCompositionRoot.swift",
@@ -264,6 +267,31 @@ class C11OpsSupportProjectionContracts(unittest.TestCase):
         self.assertIn("NOT_RUN", self.hunk)
         self.assertIn("not 100%", self.hunk.lower())
         self.assertNotIn("IPHONEOS_DEPLOYMENT_TARGET = 1", self.hunk)
+
+    def test_order_page_reads_back_the_same_order_id(self):
+        page = (ROOT / ORDER_PAGE).read_text()
+        readback = self.sources["Core/OrderPageReadback.swift"]
+        self.assertIn("let id: Int", page)
+        self.assertEqual(page.count("locateByOrderId("), 1)
+        self.assertIn("OrderPageReadback.openedID", page)
+        self.assertIn("openedOrderID = nil", page)
+        self.assertNotIn("/business/audit-log", page)
+        self.assertNotIn("api/registration/original-event", page)
+        self.assertNotIn("OwnedOrderReadRoute", page)
+        self.assertNotIn(".list", page)
+        self.assertNotIn(".detail(", page)
+        self.assertIn("targetType == \"ORDER\"", readback)
+        self.assertIn("firstOrderID(events) == requested", readback)
+        self.assertIn("return nil", readback)
+        self.assertNotIn("locateByOrderId", readback)
+        self.assertNotIn("/business/audit-log", readback)
+        self.assertNotIn("original-event", readback)
+        self.assertNotIn("originalEvent", readback)
+        tests = self.sources["Tests/CoreTests/OrderPageReadbackTests.swift"]
+        self.assertIn("testAnotherOrderIdDoesNotOpen", tests)
+        self.assertIn("ORDER:501", tests)
+        self.assertIn("locateByOrderId(501", tests)
+        self.assertIn("orderLookups, 1", tests)
 
     def test_linux_xctest_is_explicitly_not_run(self):
         self.assertIn("XCTest on Linux is NOT_RUN", Path(__file__).read_text())
