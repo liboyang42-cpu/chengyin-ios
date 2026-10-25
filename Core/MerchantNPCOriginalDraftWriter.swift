@@ -8,14 +8,23 @@ import FoundationNetworking
 ///
 /// Submit path is `ApiAiController.themeDraft`: class `@RequestMapping("/api/ai")`
 /// plus `@PostMapping("/theme/draft")`. This is not a second path.
-/// The body sends the request id this flow already holds and the four fields
-/// already on the draft: name, greeting, persona, and knowledge.
+/// The body is requestId plus idea.
+/// idea is exactly four lines, and nothing else:
+/// name: <name value>
+/// greeting: <greeting value>
+/// persona: <persona value>
+/// knowledge: <knowledge value>
+/// That string is what AiCreatorServiceImpl puts into the model user JSON as idea.
+/// If the held request id is missing, this does not POST and does not mint one.
 ///
 /// A request id kept locally is not server acceptance. The read is
 /// `MerchantNPCThemeDraftRequestRead` and uses only the request id the submit
-/// response returned. A response that does not return one does not fall back
+/// response returned, and only after `ApiAiController.themeDraftWithRequestId`
+/// acceptance and after `holdThemeDraftRequest` has stored that id.
+/// A response that does not return one does not fall back
 /// to the held id, a new UUID, or a hand-filled id.
-/// A response that is not acceptance returns no receipt and does not publish.
+/// A response that is not acceptance does not GET, does not replace the held id, returns nil, and does not publish.
+/// If holdThemeDraftRequest rejects the returned id, this does not GET and does not publish.
 /// A missing publisher does not publish the NPC.
 @MainActor public final class MerchantNPCOriginalDraftWriter {
     public static let path = "api/ai/theme/draft"
@@ -46,12 +55,11 @@ import FoundationNetworking
         self.token = token
     }
 
-    /// POST the held draft, then read with the request id the response returned.
+    /// POST the held draft. Read only after acceptance, and only after the returned id is stored.
     /// Returns the existing read's fact only when that response is acceptance.
     /// Does not invent a receipt and does not publish.
     public func submitHeldDraftThenRead(_ flow: MerchantNPCKnowledgeAuthorFlow) async throws -> MerchantNPCDraftReadFact? {
         guard let prepared = try makeSubmission(flow) else { return nil }
-        let previous = flow.heldThemeDraftRequestID
         let response = try await transport.send(prepared.request)
         guard memberID() == prepared.memberID, token() == prepared.token,
               flow.heldThemeDraftMemberID == prepared.memberID,
@@ -62,28 +70,15 @@ import FoundationNetworking
             return nil
         }
         guard let returned = Self.returnedRequestID(body: response.0, status: response.1),
+              Self.isAcceptance(body: response.0, status: response.1, requestID: returned),
               flow.holdThemeDraftRequest(memberID: prepared.memberID, requestID: returned) else {
+            // Not acceptance, or the returned id was rejected: does not GET, does not replace the held id, and does not publish.
             return nil
         }
-        var fact: MerchantNPCDraftReadFact?
-        do {
-            fact = try await reader.readAndRecover(flow)
-        } catch {
-            if !Self.isAcceptance(body: response.0, status: response.1, requestID: returned), let previous {
-                _ = flow.holdThemeDraftRequest(memberID: prepared.memberID, requestID: previous)
-            }
-            throw error
-        }
-        guard Self.isAcceptance(body: response.0, status: response.1, requestID: returned) else {
-            if let previous {
-                _ = flow.holdThemeDraftRequest(memberID: prepared.memberID, requestID: previous)
-            }
-            return nil
-        }
-        return fact
+        return try await reader.readAndRecover(flow)
     }
 
-    /// The id this flow already holds, plus the four field values already on the draft.
+    /// JSON keys are exactly requestId and idea. If the held request id is missing, returns nil and does not POST.
     private func makeSubmission(_ flow: MerchantNPCKnowledgeAuthorFlow) throws -> Submission? {
         guard let held = flow.heldThemeDraftRequestID,
               MerchantNPCKnowledgeAuthorFlow.isThemeDraftRequestID(held),
@@ -95,12 +90,10 @@ import FoundationNetworking
         let greeting = authored.greeting.value
         let persona = authored.persona.value
         let knowledge = authored.knowledge.value
+        let idea = "name: \(name)\ngreeting: \(greeting)\npersona: \(persona)\nknowledge: \(knowledge)"
         let payload: [String: String] = [
             "requestId": held,
-            "name": name,
-            "greeting": greeting,
-            "persona": persona,
-            "knowledge": knowledge
+            "idea": idea
         ]
         guard let request = try makeRequest(token: credential, payload: payload) else { return nil }
         return Submission(request: request, memberID: member, token: credential,
@@ -139,8 +132,10 @@ import FoundationNetworking
         return requestID
     }
 
-    /// Acceptance is the submit response itself: HTTP success, business code 200,
-    /// `requestState` SUCCEEDED, and the same top-level request id. Anything else is not a receipt.
+    /// Acceptance is `ApiAiController.themeDraftWithRequestId`: HTTP status 200..<300,
+    /// top-level code 200, errorCode absent, top-level requestState SUCCEEDED,
+    /// and the same top-level requestId when it is a valid theme-draft request id.
+    /// PROCESSING, FAILED, UNKNOWN, a non-2xx status, or a body that contains errorCode is not acceptance.
     private static func isAcceptance(body: Data, status: Int, requestID: String) -> Bool {
         guard (200..<300).contains(status), body.count <= 1024 * 1024,
               let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
