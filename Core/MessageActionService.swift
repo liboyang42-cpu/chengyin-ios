@@ -55,11 +55,12 @@ public struct MessageActionService {
               (object["code"] as? Int)==200,
               let payload=object["data"] as? [String:Any],
               let found=payload["found"] as? Bool else { throw APIError.malformedResponse }
-        guard found, let raw=payload["message"] as? [String:Any],
+        guard found else { return nil }
+        guard let raw=payload["message"] as? [String:Any],
               raw["clientMessageId"] as? String==intent.clientMessageID,
               let messageData=try? JSONSerialization.data(withJSONObject:raw),
               let message=try? JSONDecoder().decode(MessagingMessage.self,from:messageData),
-              message.conversationID==intent.conversationID, message.type==1, message.content==intent.content else { return nil }
+              message.conversationID==intent.conversationID, message.type==1, message.content==intent.content else { throw APIError.malformedResponse }
         return message
     }
     private struct Header:Decodable { let code:Int;let errorCode:String?;let msg:String? }
