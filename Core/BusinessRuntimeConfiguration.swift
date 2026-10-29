@@ -138,7 +138,7 @@ public extension BusinessRuntimeFeature {
         case .imStart: paths = ["api/im/start"]
         case .imRead: paths = ["api/im/read"]
         case .imMute: paths = ["api/im/mute"]
-        case .imSend: paths = ["api/im/send"]
+        case .imSend: paths = ["api/im/send", "api/im/send-receipt"]
         case .publishingRead: paths = ["api/publish/home", "api/publisher/identity/status", "api/category/list", "api/user/list", "api/template/my-list", "api/project/my", "api/ai/theme/draft/quota"]
         case .topicSelfPlayRead: paths = ["api/topic/info-to-user", "api/registration/info"]
         case .topicSelfPlayCreate: paths = ["api/registration/create"]
