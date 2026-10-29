@@ -51,9 +51,14 @@ public struct MessageActionService {
         let (data,status)=try await transport.send(request)
         try Task.checkCancellation()
         guard (200..<300).contains(status) else { throw APIError.malformedResponse }
-        struct Body:Decodable { struct Payload:Decodable { let found:Bool; let message:MessagingMessage? }; let code:Int; let data:Payload }
-        guard let body=try? JSONDecoder().decode(Body.self,from:data), body.code==200 else { throw APIError.malformedResponse }
-        guard body.data.found, let message=body.data.message,
+        guard let object=try? JSONSerialization.jsonObject(with:data) as? [String:Any],
+              (object["code"] as? Int)==200,
+              let payload=object["data"] as? [String:Any],
+              let found=payload["found"] as? Bool else { throw APIError.malformedResponse }
+        guard found, let raw=payload["message"] as? [String:Any],
+              raw["clientMessageId"] as? String==intent.clientMessageID,
+              let messageData=try? JSONSerialization.data(withJSONObject:raw),
+              let message=try? JSONDecoder().decode(MessagingMessage.self,from:messageData),
               message.conversationID==intent.conversationID, message.type==1, message.content==intent.content else { return nil }
         return message
     }
