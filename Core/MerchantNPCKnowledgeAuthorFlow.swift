@@ -108,6 +108,16 @@ import Foundation
     /// Disk identity is used only when this flow does not already hold the request.
     /// The current member and merchant must match. One GET then fills the four strings.
     /// A missing row stays closed and is not deleted. This does not POST or publish.
+    /// One GET for a request id already stored beside the character save. Does not POST or publish.
+    public func recoverKnowledgeRequest(_ requestID: UUID) async throws -> MerchantNPCKnowledgeReviewReentry? {
+        let memberID = Int64(gate.scope.accountID)
+        guard memberID > 0 else { return nil }
+        let kept = try await gate.recoverKnowledgeIdentity(requestID: requestID, memberID: memberID)
+        guard kept.requestID == requestID, kept.memberID == memberID else { return nil }
+        heldKnowledgeReview = kept
+        return kept
+    }
+
     public func recoverStoredKnowledgeReview() async throws -> MerchantNPCKnowledgeReviewReentry? {
         if let heldKnowledgeReview { return heldKnowledgeReview }
         guard let recovery, let stored = recovery.read(),

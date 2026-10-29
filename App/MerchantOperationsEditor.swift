@@ -352,6 +352,8 @@ struct MerchantOperationsEditor: View {
                         greeting: greeting.value,
                         persona: persona.value,
                         knowledge: knowledge.value)
+                    (model.coordinator.reader as? MerchantOperationsSessionReader)?
+                        .rememberKnowledgeRequest(requestID, merchantRowID: flow.gate.scope.merchantRowID.rawValue)
                 }
             }
         } catch {
@@ -385,6 +387,19 @@ struct MerchantOperationsEditor: View {
     private func recoverHeldKnowledgeReview() async {
         if heldKnowledgeReview == nil, let retained = authorFlow?.heldKnowledgeReview {
             heldKnowledgeReview = retained
+        }
+        if heldKnowledgeReview == nil, let flow = authorFlow,
+           let requestID = (model.coordinator.reader as? MerchantOperationsSessionReader)?
+            .knowledgeRequest(merchantRowID: flow.gate.scope.merchantRowID.rawValue) {
+            do {
+                if let restored = try await flow.recoverKnowledgeRequest(requestID) {
+                    heldKnowledgeReview = restored
+                    didRecoverHeldKnowledgeReview = true
+                    return
+                }
+            } catch {
+                return
+            }
         }
         if heldKnowledgeReview == nil, let flow = authorFlow {
             do {
