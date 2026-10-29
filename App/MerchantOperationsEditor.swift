@@ -386,6 +386,18 @@ struct MerchantOperationsEditor: View {
         if heldKnowledgeReview == nil, let retained = authorFlow?.heldKnowledgeReview {
             heldKnowledgeReview = retained
         }
+        if heldKnowledgeReview == nil, let flow = authorFlow {
+            do {
+                if let restored = try await flow.recoverStoredKnowledgeReview() {
+                    heldKnowledgeReview = restored
+                    didRecoverHeldKnowledgeReview = true
+                    return
+                }
+            } catch {
+                // A missing row or a different member stays closed.
+                return
+            }
+        }
         guard let held = heldKnowledgeReview, !didRecoverHeldKnowledgeReview else { return }
         guard let recover = knowledgeReviewReentry else { return }
         didRecoverHeldKnowledgeReview = true

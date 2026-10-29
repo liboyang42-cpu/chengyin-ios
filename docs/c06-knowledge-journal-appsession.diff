@@ -1,0 +1,12 @@
+--- a/App/AppSession.swift
++++ b/App/AppSession.swift
+@@ -167,7 +167,8 @@
+                 authorFlow = MerchantNPCKnowledgeAuthorFlow(
+                     scope: scope,
+                     publisher: knowledgeReviewWriter,
+-                    currentScope: { [weak self] in self?.merchantNPCScope(row: row) })
++                    currentScope: { [weak self] in self?.merchantNPCScope(row: row) },
++                    recovery: MerchantNPCKnowledgeRecoveryStore(defaults: sessionDefaults, ownerKey: scope.namespace + ":" + String(scope.accountID), merchantRowID: row.rawValue))
+             }
+             // Knowledge review uses its original writer/read contract, not the theme-draft reader.
+             return merchantStoreCharacterDestination(authorFlow: authorFlow)
