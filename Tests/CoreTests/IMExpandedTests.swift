@@ -126,6 +126,28 @@ final class IMExpandedTests: XCTestCase {
         } catch {}
         XCTAssertTrue(transport.requests.isEmpty)
     }
+    func testProjectedRouteReceiptKeepsTopicAndClientMessage() async throws {
+        let key = String(repeating: "c", count: 32)
+        let intent = try IMOutgoingIntent(scope: scope(), payload: .route(topicID: 11), clientMessageID: key)
+        let transport = IMExpandedFakeTransport()
+        let api = try service(transport)
+        func body(_ content: String, topic: Int) throws -> String {
+            let message: [String: Any] = [
+                "id": 3, "conversationId": 9, "senderId": 7, "status": 0, "msgType": 3,
+                "content": content, "extraJson": #"{"cardType":"route","topicId":\#(topic)}"#,
+                "clientMessageId": key
+            ]
+            return String(data: try JSONSerialization.data(withJSONObject: ["code": 200, "data": message]), encoding: .utf8)!
+        }
+        transport.body = try body("[路线] 西湖", topic: 11)
+        guard case .sent(let message) = try await api.perform(.send(intent), token: "test") else { return XCTFail() }
+        XCTAssertEqual(message.content, "[路线] 西湖")
+        transport.body = try body("路线已不可用", topic: 11)
+        guard case .sent = try await api.perform(.send(intent), token: "test") else { return XCTFail() }
+        transport.body = try body("[路线] 西湖", topic: 12)
+        do { _ = try await api.perform(.send(intent), token: "test"); XCTFail() }
+        catch { XCTAssertEqual(error as? APIError, .malformedResponse) }
+    }
     func testRouteAndLocationWireFieldsAreSourceExact() throws {
         let route = try IMOutgoingPayload.route(topicID: 11).wireFields(approvedOrigins: [])
         XCTAssertEqual(route["msg_type"], "3"); XCTAssertEqual(route["content"], "[路线]")
