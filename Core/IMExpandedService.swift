@@ -56,8 +56,39 @@ public struct IMExpandedService {
                   message.conversationID == intent.scope.conversationID, message.senderID == intent.scope.identity.accountID,
                   String(message.type ?? 0) == fields["msg_type"], message.content == fields["content"],
                   message.extraJSON == fields["extra_json"] else { throw APIError.malformedResponse }
+            guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let raw = object["data"] as? [String: Any],
+                  raw["clientMessageId"] as? String == intent.clientMessageID else { throw APIError.malformedResponse }
             return .sent(message)
         }
+    }
+    /// Ordinary read of the same client message id. A missing grant or a missing row returns nil.
+    /// A found row that does not match throws and must not be sent again.
+    /// `found` plus the message is not a nine-field send proof.
+    public func readSent(_ intent: IMOutgoingIntent, token: String) async throws -> MessagingMessage? {
+        guard writesEnabled, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
+        if let enabledPaths, !enabledPaths.contains("api/im/send-receipt") { return nil }
+        let request = try AuthRequestBuilder.makeFormRequest(
+            url: configuration.baseURL.appendingPathComponent("api/im/send-receipt"),
+            fields: ["conversation_id": String(intent.scope.conversationID), "client_message_id": intent.clientMessageID],
+            token: token)
+        let data = try await response(request)
+        guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              (object["code"] as? Int) == 200,
+              let payload = object["data"] as? [String: Any],
+              let found = payload["found"] as? Bool else { throw APIError.malformedResponse }
+        guard found else { return nil }
+        let fields = try intent.payload.wireFields(approvedOrigins: approvedMediaOrigins)
+        guard let raw = payload["message"] as? [String: Any],
+              raw["clientMessageId"] as? String == intent.clientMessageID,
+              let messageData = try? JSONSerialization.data(withJSONObject: raw),
+              let message = try? JSONDecoder().decode(MessagingMessage.self, from: messageData),
+              message.conversationID == intent.scope.conversationID,
+              message.senderID == intent.scope.identity.accountID,
+              String(message.type ?? 0) == fields["msg_type"],
+              message.content == fields["content"],
+              message.extraJSON == fields["extra_json"] else { throw APIError.malformedResponse }
+        return message
     }
     public func upload(_ selection: IMMediaSelection, consent: IMMediaConsent, token: String) async throws -> URL {
         guard writesEnabled, enabledPaths?.contains("api/common/uploadOSS") ?? true else { throw APIError.notConfigured }

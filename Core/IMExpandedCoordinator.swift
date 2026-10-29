@@ -9,13 +9,16 @@ public struct IMExpandedSession: Equatable {
         identity = .init(accountID: accountID, epoch: epoch); self.token = token
     }
 }
+@MainActor public protocol IMSentReading: AnyObject {
+    func readSent(_ intent: IMOutgoingIntent, expectedIdentity: MessagingReadIdentity) async throws -> MessagingMessage?
+}
 @MainActor public protocol IMExpandedWriting: AnyObject {
     var identity: MessagingReadIdentity? { get }
     var isConfigured: Bool { get }
     func perform(_ mutation: IMMutation, expectedIdentity: MessagingReadIdentity) async throws -> IMMutationReceipt
     func upload(_ selection: IMMediaSelection, consent: IMMediaConsent, expectedIdentity: MessagingReadIdentity) async throws -> URL
 }
-@MainActor public final class IMExpandedWriter: IMExpandedWriting {
+@MainActor public final class IMExpandedWriter: IMExpandedWriting, IMSentReading {
     private let service: IMExpandedService?
     private let session: () -> IMExpandedSession?
     private let onUnauthorized: (IMExpandedSession) -> Void
@@ -34,6 +37,13 @@ public struct IMExpandedSession: Equatable {
             if (error as? MessagingReadFailure)?.isUnauthorized == true { onUnauthorized(snapshot) }
             throw error
         }
+    }
+    public func readSent(_ intent: IMOutgoingIntent, expectedIdentity: MessagingReadIdentity) async throws -> MessagingMessage? {
+        guard let service else { throw APIError.notConfigured }
+        guard let snapshot = session(), snapshot.identity == expectedIdentity, intent.scope.identity == expectedIdentity else { throw APIError.unauthorized }
+        let message = try await service.readSent(intent, token: snapshot.token)
+        guard session() == snapshot, !Task.isCancelled else { throw IMCapabilityGap.staleScope }
+        return message
     }
     public func upload(_ selection: IMMediaSelection, consent: IMMediaConsent, expectedIdentity: MessagingReadIdentity) async throws -> URL {
         guard let service else { throw APIError.notConfigured }
@@ -72,7 +82,24 @@ public enum IMReviewState: Equatable { case idle, reviewing(IMMutation), submitt
         await dispatch(mutation)
     }
     public func retryUnchanged() async {
-        switch state { case .outcomeUnknown(let mutation), .rejected(let mutation): await dispatch(mutation); default: return }
+        switch state {
+        case .outcomeUnknown(let mutation):
+            if case .send(let intent) = mutation, let identity = writer.identity, identity == scope.identity,
+               let reader = writer as? IMSentReading {
+                do {
+                    if let message = try await reader.readSent(intent, expectedIdentity: identity), message.senderID == identity.accountID {
+                        state = .acknowledged(.sent(message)); onChange?(); return
+                    }
+                } catch {
+                    state = .outcomeUnknown(mutation); onChange?(); return
+                }
+            }
+            await dispatch(mutation)
+        case .rejected(let mutation):
+            await dispatch(mutation)
+        default:
+            return
+        }
     }
     private func dispatch(_ mutation: IMMutation) async {
         guard isCurrent, writer.isConfigured, !Task.isCancelled else { return }
