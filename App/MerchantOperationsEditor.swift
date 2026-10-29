@@ -398,7 +398,7 @@ struct MerchantOperationsEditor: View {
                     return
                 }
             } catch {
-                return
+                // This journal id did not read. A defaults record can still be tried.
             }
         }
         if heldKnowledgeReview == nil, let flow = authorFlow {
