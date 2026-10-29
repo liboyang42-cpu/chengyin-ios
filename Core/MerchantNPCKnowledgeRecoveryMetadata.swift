@@ -48,8 +48,12 @@ public struct MerchantNPCKnowledgeRecoveryMetadata: Codable, Equatable {
             requestID: requestID, memberID: memberID, ownerKey: ownerKey, merchantRowID: merchantRowID)
         let data = try JSONEncoder().encode(record)
         let name = storageKey
+        let previous = defaults.data(forKey: name)
         defaults.set(data, forKey: name)
-        guard defaults.data(forKey: name) == data else { throw APIError.malformedResponse }
+        guard defaults.data(forKey: name) == data else {
+            if let previous { defaults.set(previous, forKey: name) } else { defaults.removeObject(forKey: name) }
+            throw APIError.malformedResponse
+        }
     }
 
     /// A different owner or merchant stays unread. This does not delete that row.
