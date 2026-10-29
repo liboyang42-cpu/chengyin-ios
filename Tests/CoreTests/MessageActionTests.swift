@@ -32,7 +32,10 @@ final class MessageActionServiceTests:XCTestCase {
         XCTAssertThrowsError(try MessageTextIntent(conversationID:9,content:"hello",clientMessageID:"invalid"))
     }
     func testExactWireAndNoImplicitReadReceipt() async throws {
-        let t=MessageTransport();let intent=try MessageTextIntent(conversationID:9,content:"hello")
+        let key=String(repeating:"b",count:32)
+        let t=MessageTransport()
+        t.json=messageReceiptJSON.replacingOccurrences(of:"\"content\":\"hello\"",with:"\"content\":\"hello\",\"clientMessageId\":\"\(key)\"")
+        let intent=try MessageTextIntent(conversationID:9,content:"hello",clientMessageID:key)
         let receipt=try await service(t).send(intent,token:"fixture-token")
         XCTAssertEqual(receipt.id,42);XCTAssertEqual(t.requests.count,1)
         let request=try XCTUnwrap(t.requests.first)
