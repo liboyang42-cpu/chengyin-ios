@@ -88,6 +88,20 @@ final class MessageActionServiceTests:XCTestCase {
         if let error { throw error };return try messageReceipt()
     }
 }
+@MainActor private final class ForeignSenderWriter:MessageActionWriting,MessageSentReading {
+    var isConfigured=true
+    var identity:MessagingReadIdentity? = .init(accountID:7,epoch:1)
+    var intents:[MessageTextIntent]=[]
+    func send(_ intent:MessageTextIntent,expectedIdentity:MessagingReadIdentity) async throws -> MessagingMessage {
+        intents.append(intent)
+        throw URLError(.timedOut)
+    }
+    func readSent(_ intent:MessageTextIntent,expectedIdentity:MessagingReadIdentity) async throws -> MessagingMessage? {
+        let json=messageReceiptJSON.replacingOccurrences(of:"\"senderId\":7",with:"\"senderId\":99")
+        struct Wrapper:Decodable { let data:MessagingMessage }
+        return try JSONDecoder().decode(Wrapper.self,from:Data(json.utf8)).data
+    }
+}
 @MainActor final class MessageActionCoordinatorTests:XCTestCase {
     private let identity=MessagingReadIdentity(accountID:7,epoch:1)
     func testDuplicateTapWhileSuspendedSendsOnce() async throws {
@@ -125,6 +139,16 @@ final class MessageActionServiceTests:XCTestCase {
         try writer.resolve();let result=await task.value;XCTAssertFalse(result)
         writer.identity = .init(accountID:7,epoch:3)
         XCTAssertEqual(flow.visibleState,.outcomeUnknown);XCTAssertEqual(flow.pendingText,"hello")
+    }
+    func testForeignSenderReceiptDoesNotSendAgain() async throws {
+        let writer=ForeignSenderWriter()
+        let flow=MessageActionCoordinator(accountID:7,conversationID:9,writer:writer)
+        _=await flow.sendNew("hello",conversationReady:true,expectedIdentity:identity)
+        XCTAssertEqual(flow.visibleState,.outcomeUnknown)
+        let retry=await flow.retry(conversationReady:true,expectedIdentity:identity)
+        XCTAssertFalse(retry)
+        XCTAssertEqual(flow.visibleState,.outcomeUnknown)
+        XCTAssertEqual(writer.intents.count,1)
     }
     func testClosedConversationDoesNotRetry() async {
         let writer=MessageWriter();writer.error=MessagingReadFailure(code:409,errorCode:"HANGOUT_CLOSED")

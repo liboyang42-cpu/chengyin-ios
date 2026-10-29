@@ -117,7 +117,8 @@ public struct MessageActionSession: Equatable {
         guard let snapshot=currentSession(),snapshot.identity==expectedIdentity else { throw APIError.unauthorized }
         let message=try await service.readSent(intent,token:snapshot.token)
         guard !Task.isCancelled,currentSession()==snapshot else { throw CancellationError() }
-        if let message, message.senderID != snapshot.identity.accountID { return nil }
+        guard let message else { return nil }
+        guard message.senderID == snapshot.identity.accountID else { throw APIError.malformedResponse }
         return message
     }
 }

@@ -87,7 +87,10 @@ public enum IMReviewState: Equatable { case idle, reviewing(IMMutation), submitt
             if case .send(let intent) = mutation, let identity = writer.identity, identity == scope.identity,
                let reader = writer as? IMSentReading {
                 do {
-                    if let message = try await reader.readSent(intent, expectedIdentity: identity), message.senderID == identity.accountID {
+                    if let message = try await reader.readSent(intent, expectedIdentity: identity) {
+                        guard message.senderID == identity.accountID else {
+                            state = .outcomeUnknown(mutation); onChange?(); return
+                        }
                         state = .acknowledged(.sent(message)); onChange?(); return
                     }
                 } catch {

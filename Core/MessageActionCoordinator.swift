@@ -39,7 +39,10 @@ public enum MessageSendState:Equatable {
         if state == .outcomeUnknown, let intent, let identity=writer.identity, identity==expectedIdentity,
            let reader=writer as? MessageSentReading {
             do {
-                if let message=try await reader.readSent(intent,expectedIdentity:identity), message.senderID==identity.accountID {
+                if let message=try await reader.readSent(intent,expectedIdentity:identity) {
+                    guard message.senderID==identity.accountID else {
+                        state = .outcomeUnknown;sendingIdentity=nil;onStateChange?();return false
+                    }
                     state = .acknowledged(message);sendingIdentity=nil;onStateChange?();return true
                 }
             } catch {
