@@ -105,9 +105,6 @@ import Foundation
         try await gate.recoverKnowledgeReview(held)
     }
 
-    /// Disk identity is used only when this flow does not already hold the request.
-    /// The current member and merchant must match. One GET then fills the four strings.
-    /// A missing row stays closed and is not deleted. This does not POST or publish.
     /// One GET for a request id already stored beside the character save. Does not POST or publish.
     public func recoverKnowledgeRequest(_ requestID: UUID) async throws -> MerchantNPCKnowledgeReviewReentry? {
         let memberID = Int64(gate.scope.accountID)
@@ -118,14 +115,19 @@ import Foundation
         return kept
     }
 
+    /// A different request id on the accept record is read once. The current member and merchant must match.
+    /// A missing row stays closed and is not deleted. This does not POST or publish.
     public func recoverStoredKnowledgeReview() async throws -> MerchantNPCKnowledgeReviewReentry? {
-        if let heldKnowledgeReview { return heldKnowledgeReview }
-        guard let recovery, let stored = recovery.read(),
-              stored.memberID == Int64(gate.scope.accountID),
-              stored.merchantRowID == gate.scope.merchantRowID.rawValue,
-              stored.ownerKey == recovery.ownerKey else { return nil }
+        let stored = recovery?.read()
+        let storedMatches = stored?.memberID == Int64(gate.scope.accountID)
+            && stored?.merchantRowID == gate.scope.merchantRowID.rawValue
+            && stored?.ownerKey == recovery?.ownerKey
+        if let heldKnowledgeReview, !storedMatches || stored?.requestID == heldKnowledgeReview.requestID {
+            return heldKnowledgeReview
+        }
+        guard let stored, storedMatches else { return heldKnowledgeReview }
         let kept = try await gate.recoverKnowledgeIdentity(requestID: stored.requestID, memberID: stored.memberID)
-        guard kept.requestID == stored.requestID, kept.memberID == stored.memberID else { return nil }
+        guard kept.requestID == stored.requestID, kept.memberID == stored.memberID else { return heldKnowledgeReview }
         heldKnowledgeReview = kept
         return kept
     }

@@ -395,22 +395,21 @@ struct MerchantOperationsEditor: View {
                 if let restored = try await flow.recoverKnowledgeRequest(requestID) {
                     heldKnowledgeReview = restored
                     didRecoverHeldKnowledgeReview = true
-                    return
                 }
             } catch {
                 // This journal id did not read. A defaults record can still be tried.
             }
         }
-        if heldKnowledgeReview == nil, let flow = authorFlow {
+        if let flow = authorFlow {
             do {
-                if let restored = try await flow.recoverStoredKnowledgeReview() {
+                if let restored = try await flow.recoverStoredKnowledgeReview(),
+                   heldKnowledgeReview?.requestID != restored.requestID {
                     heldKnowledgeReview = restored
                     didRecoverHeldKnowledgeReview = true
                     return
                 }
             } catch {
-                // A missing row or a different member stays closed.
-                return
+                if heldKnowledgeReview == nil { return }
             }
         }
         guard let held = heldKnowledgeReview, !didRecoverHeldKnowledgeReview else { return }
