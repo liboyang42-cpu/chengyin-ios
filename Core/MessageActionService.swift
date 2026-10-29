@@ -38,6 +38,9 @@ public struct MessageActionService {
         do { receipt=try JSONDecoder().decode(Receipt.self,from:data) } catch { throw APIError.malformedResponse }
         guard receipt.data.conversationID==intent.conversationID,receipt.data.type==1,
               receipt.data.content==intent.content else { throw APIError.malformedResponse }
+        guard let object=try? JSONSerialization.jsonObject(with:data) as? [String:Any],
+              let raw=object["data"] as? [String:Any],
+              raw["clientMessageId"] as? String==intent.clientMessageID else { throw APIError.malformedResponse }
         return receipt.data
     }
     /// Ordinary read of the same client message id. `found` plus the message is not a nine-field send proof.
