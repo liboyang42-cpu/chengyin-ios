@@ -53,9 +53,7 @@ public struct IMExpandedService {
         case .send(let intent):
             struct Receipt: Decodable { let data: MessagingMessage }
             guard let message = try? JSONDecoder().decode(Receipt.self, from: data).data,
-                  message.conversationID == intent.scope.conversationID, message.senderID == intent.scope.identity.accountID,
-                  String(message.type ?? 0) == fields["msg_type"], message.content == fields["content"],
-                  message.extraJSON == fields["extra_json"] else { throw APIError.malformedResponse }
+                  matchesSent(message, intent: intent, fields: fields) else { throw APIError.malformedResponse }
             guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                   let raw = object["data"] as? [String: Any],
                   raw["clientMessageId"] as? String == intent.clientMessageID else { throw APIError.malformedResponse }
@@ -83,11 +81,7 @@ public struct IMExpandedService {
               raw["clientMessageId"] as? String == intent.clientMessageID,
               let messageData = try? JSONSerialization.data(withJSONObject: raw),
               let message = try? JSONDecoder().decode(MessagingMessage.self, from: messageData),
-              message.conversationID == intent.scope.conversationID,
-              message.senderID == intent.scope.identity.accountID,
-              String(message.type ?? 0) == fields["msg_type"],
-              message.content == fields["content"],
-              message.extraJSON == fields["extra_json"] else { throw APIError.malformedResponse }
+              matchesSent(message, intent: intent, fields: fields) else { throw APIError.malformedResponse }
         return message
     }
     public func upload(_ selection: IMMediaSelection, consent: IMMediaConsent, token: String) async throws -> URL {
@@ -105,6 +99,23 @@ public struct IMExpandedService {
               let origin = SocialMessageMediaService.origin(url), approvedMediaOrigins.contains(origin),
               URLComponents(url: url, resolvingAgainstBaseURL: false)?.fragment == nil else { throw APIError.malformedResponse }
         return url
+    }
+    /// Route cards come back projected: the server replaces `[路线]` with the live title or `路线已不可用`.
+    private func matchesSent(_ message: MessagingMessage, intent: IMOutgoingIntent, fields: [String: String]) -> Bool {
+        guard message.conversationID == intent.scope.conversationID,
+              message.senderID == intent.scope.identity.accountID else { return false }
+        if case .route(let topicID) = intent.payload {
+            guard message.type == 3,
+                  let extra = message.extraJSON?.data(using: .utf8),
+                  let object = try? JSONSerialization.jsonObject(with: extra) as? [String: Any],
+                  object["cardType"] as? String == "route" else { return false }
+            let returned = object["topicId"] as? Int ?? (object["topicId"] as? NSNumber)?.intValue
+            guard returned == topicID else { return false }
+            return message.content == "路线已不可用" || message.content?.hasPrefix("[路线] ") == true
+        }
+        return String(message.type ?? 0) == fields["msg_type"]
+            && message.content == fields["content"]
+            && message.extraJSON == fields["extra_json"]
     }
     private func response(_ input: URLRequest) async throws -> Data {
         var request = input
