@@ -48,11 +48,16 @@ public struct MerchantOperationsSession: Equatable {
         let target = Self.knowledgeTarget(merchantRowID)
         let owner = session.ownerKey
         do {
+            let next = OperationPendingRecord(operationID: requestID, ownerKey: owner, targetKey: target)
             if let existing = try journal.pending(ownerKey: owner, targetKey: target) {
                 if existing.operationID == requestID, existing.ownerKey == owner, existing.targetKey == target { return }
+                if let replacing = journal as? OperationPendingReplacing {
+                    try replacing.replace(existing, with: next)
+                    return
+                }
                 try journal.clear(existing)
             }
-            try journal.write(OperationPendingRecord(operationID: requestID, ownerKey: owner, targetKey: target))
+            try journal.write(next)
         } catch {
             // The accepted ticket stays on the author flow. A journal failure does not submit again.
         }
