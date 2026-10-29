@@ -36,6 +36,16 @@ public enum MessageSendState:Equatable {
     /// Explicit action only. Never rotate the ID or change text when retrying an existing intent.
     @discardableResult public func retry(conversationReady:Bool,expectedIdentity:MessagingReadIdentity) async -> Bool {
         guard state == .outcomeUnknown || state == .rejected else { return false }
+        if state == .outcomeUnknown, let intent, let identity=writer.identity, identity==expectedIdentity,
+           let reader=writer as? MessageSentReading {
+            do {
+                if let message=try await reader.readSent(intent,expectedIdentity:identity), message.senderID==identity.accountID {
+                    state = .acknowledged(message);sendingIdentity=nil;onStateChange?();return true
+                }
+            } catch {
+                state = .outcomeUnknown;sendingIdentity=nil;onStateChange?();return false
+            }
+        }
         return await dispatch(conversationReady:conversationReady,expectedIdentity:expectedIdentity)
     }
     private func dispatch(conversationReady:Bool,expectedIdentity:MessagingReadIdentity) async -> Bool {

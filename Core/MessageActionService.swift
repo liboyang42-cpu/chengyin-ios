@@ -40,6 +40,23 @@ public struct MessageActionService {
               receipt.data.content==intent.content else { throw APIError.malformedResponse }
         return receipt.data
     }
+    /// Ordinary read of the same client message id. `found` plus the message is not a nine-field send proof.
+    /// A missing row returns nil and does not send.
+    public func readSent(_ intent:MessageTextIntent,token:String) async throws -> MessagingMessage? {
+        guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
+        try Task.checkCancellation()
+        let request=try AuthRequestBuilder.makeFormRequest(url:configuration.baseURL.appendingPathComponent("api/im/send-receipt"),fields:[
+            "conversation_id":String(intent.conversationID),"client_message_id":intent.clientMessageID
+        ],token:token)
+        let (data,status)=try await transport.send(request)
+        try Task.checkCancellation()
+        guard (200..<300).contains(status) else { throw APIError.malformedResponse }
+        struct Body:Decodable { struct Payload:Decodable { let found:Bool; let message:MessagingMessage? }; let code:Int; let data:Payload }
+        guard let body=try? JSONDecoder().decode(Body.self,from:data), body.code==200 else { throw APIError.malformedResponse }
+        guard body.data.found, let message=body.data.message,
+              message.conversationID==intent.conversationID, message.type==1, message.content==intent.content else { return nil }
+        return message
+    }
     private struct Header:Decodable { let code:Int;let errorCode:String?;let msg:String? }
     private struct Receipt:Decodable { let data:MessagingMessage }
 }
@@ -53,13 +70,17 @@ public struct MessageActionSession: Equatable {
     }
 }
 
+@MainActor public protocol MessageSentReading:AnyObject {
+    func readSent(_ intent:MessageTextIntent,expectedIdentity:MessagingReadIdentity) async throws -> MessagingMessage?
+}
+
 @MainActor public protocol MessageActionWriting:AnyObject {
     var isConfigured:Bool { get }
     var identity:MessagingReadIdentity? { get }
     func send(_ intent:MessageTextIntent,expectedIdentity:MessagingReadIdentity) async throws -> MessagingMessage
 }
 
-@MainActor public final class MessageSessionWriter:MessageActionWriting {
+@MainActor public final class MessageSessionWriter:MessageActionWriting,MessageSentReading {
     private let service:MessageActionService?
     private let currentSession:()->MessageActionSession?
     private let onUnauthorized:(MessageActionSession)->Void
@@ -81,5 +102,13 @@ public struct MessageActionSession: Equatable {
             if (error as? MessagingReadFailure)?.isUnauthorized==true { onUnauthorized(snapshot) }
             throw error
         }
+    }
+    public func readSent(_ intent:MessageTextIntent,expectedIdentity:MessagingReadIdentity) async throws -> MessagingMessage? {
+        guard let service else { throw APIError.notConfigured }
+        guard let snapshot=currentSession(),snapshot.identity==expectedIdentity else { throw APIError.unauthorized }
+        let message=try await service.readSent(intent,token:snapshot.token)
+        guard !Task.isCancelled,currentSession()==snapshot else { throw CancellationError() }
+        if let message, message.senderID != snapshot.identity.accountID { return nil }
+        return message
     }
 }
