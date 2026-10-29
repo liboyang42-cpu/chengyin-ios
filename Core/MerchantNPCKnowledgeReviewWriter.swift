@@ -167,6 +167,30 @@ public struct MerchantNPCKnowledgeReviewReentry: Equatable {
         return held
     }
 
+    /// One GET by request id and member. The four strings come back from that body.
+    /// They are not read from disk. Does not POST and does not publish.
+    public func recoverIdentity(requestID: UUID, memberID: Int64) async throws -> MerchantNPCKnowledgeReviewReentry {
+        guard memberID > 0,
+              let loggedIn = memberID(), loggedIn == memberID,
+              let credential = token(), AuthRequestBuilder.isValidToken(credential),
+              let readRequest = makeReadRequest(token: credential, requestID: requestID) else {
+            throw MerchantNPCDraftGateFailure.waitingSource(capability: MerchantNPCWaitingSourcePublisher.knowledgeReviewAuthority)
+        }
+        let read: (Data, Int)
+        do {
+            read = try await transport.send(readRequest)
+        } catch {
+            throw MerchantNPCDraftGateFailure.waitingSource(capability: MerchantNPCWaitingSourcePublisher.knowledgeReviewAuthority)
+        }
+        guard memberID() == memberID, token() == credential,
+              let fields = Self.identityFields(body: read.0, status: read.1, requestID: requestID.uuidString, memberID: memberID) else {
+            throw MerchantNPCDraftGateFailure.waitingSource(capability: MerchantNPCWaitingSourcePublisher.knowledgeReviewAuthority)
+        }
+        return MerchantNPCKnowledgeReviewReentry(requestID: requestID, memberID: memberID,
+                                                  name: fields.name, greeting: fields.greeting,
+                                                  persona: fields.persona, knowledge: fields.knowledge)
+    }
+
     /// JSON keys are the given request id and the four draft fields. Does not POST when one is missing.
     private func makeSubmission(_ draft: MerchantNPCKnowledgeDraft, requestID: UUID, scope: MerchantNPCScope) throws -> Submission? {
         guard scope.accountID > 0,
@@ -265,6 +289,22 @@ public struct MerchantNPCKnowledgeReviewReentry: Equatable {
               data["persona"] as? String == persona,
               data["knowledge"] as? String == knowledge else { return false }
         return true
+    }
+
+    /// Success envelope for this request and member. The four strings are the server's, not a local copy.
+    private static func identityFields(body: Data, status: Int, requestID: String, memberID: Int64) -> (name: String, greeting: String, persona: String, knowledge: String)? {
+        guard (200..<300).contains(status), body.count <= 1024 * 1024,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+              object["code"] as? Int == 200,
+              object["errorCode"] == nil,
+              let data = object["data"] as? [String: Any],
+              let returned = data["requestId"] as? String, returned == requestID,
+              let member = exactMember(data["memberId"]), member == memberID, member > 0,
+              let name = data["name"] as? String,
+              let greeting = data["greeting"] as? String,
+              let persona = data["persona"] as? String,
+              let knowledge = data["knowledge"] as? String else { return nil }
+        return (name, greeting, persona, knowledge)
     }
 
     private static func exactMember(_ value: Any?) -> Int64? {

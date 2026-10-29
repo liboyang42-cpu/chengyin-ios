@@ -184,6 +184,16 @@ enum MerchantNPCDraftDigest {
         }
         return try await writer.recoverReentry(held)
     }
+
+    /// One GET from the stored request id. The current scope member must already match.
+    /// Does not POST and does not publish.
+    public func recoverKnowledgeIdentity(requestID: UUID, memberID: Int64) async throws -> MerchantNPCKnowledgeReviewReentry {
+        guard isCurrent, memberID > 0, Int64(scope.accountID) == memberID else { throw fail(.staleScope) }
+        guard let writer = publisher as? MerchantNPCKnowledgeReviewWriter else {
+            throw MerchantNPCDraftGateFailure.waitingSource(capability: MerchantNPCWaitingSourcePublisher.knowledgeReviewAuthority)
+        }
+        return try await writer.recoverIdentity(requestID: requestID, memberID: memberID)
+    }
     public func publishApproved() async throws -> MerchantNPCPublishedRevision {
         guard isCurrent else { throw fail(.staleScope) }
         guard authorizer?.matches(scope) == true else { throw fail(.authorizerRequired) }

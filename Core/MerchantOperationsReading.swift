@@ -41,6 +41,39 @@ public struct MerchantOperationsSession: Equatable {
     private let approval: OperationEndpointApproval?
     private let journal: (any OperationPendingJournal)?
     public var canSave: Bool { service != nil && approval != nil && journal != nil }
+
+    /// Accepted knowledge-review request id. Not the character-save record.
+    public func rememberKnowledgeRequest(_ requestID: UUID, merchantRowID: Int) {
+        guard merchantRowID > 0, let session = currentSession(), let journal else { return }
+        let target = Self.knowledgeTarget(merchantRowID)
+        let owner = session.ownerKey
+        do {
+            let next = OperationPendingRecord(operationID: requestID, ownerKey: owner, targetKey: target)
+            if let existing = try journal.pending(ownerKey: owner, targetKey: target) {
+                if existing.operationID == requestID, existing.ownerKey == owner, existing.targetKey == target { return }
+                if let replacing = journal as? OperationPendingReplacing {
+                    try replacing.replace(existing, with: next)
+                    return
+                }
+                try journal.clear(existing)
+            }
+            try journal.write(next)
+        } catch {
+            // The accepted ticket stays on the author flow. A journal failure does not submit again.
+        }
+    }
+
+    public func knowledgeRequest(merchantRowID: Int) -> UUID? {
+        guard merchantRowID > 0, let session = currentSession(), let journal else { return nil }
+        let target = Self.knowledgeTarget(merchantRowID)
+        guard let record = try? journal.pending(ownerKey: session.ownerKey, targetKey: target),
+              record.ownerKey == session.ownerKey, record.targetKey == target else { return nil }
+        return record.operationID
+    }
+
+    private static func knowledgeTarget(_ merchantRowID: Int) -> String {
+        "merchant-npc-knowledge-review:\(merchantRowID)"
+    }
     public var isConfigured: Bool { service != nil }
     public var isAuthenticated: Bool { currentSession() != nil }
     public var isOfflineExample: Bool { false }

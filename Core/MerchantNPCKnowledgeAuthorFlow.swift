@@ -31,10 +31,15 @@ import Foundation
     /// Accepted knowledge-review request. Outlives one editor state. Not a theme-draft id.
     public private(set) var heldKnowledgeReview: MerchantNPCKnowledgeReviewReentry?
 
+    /// Nil keeps the accepted request in memory only. The store is the disk identity, not a second writer.
+    public let recovery: MerchantNPCKnowledgeRecoveryStore?
+
     public init(scope: MerchantNPCScope, publisher: (any MerchantNPCOriginalReviewPublishing)? = nil,
                 isolation: MerchantNPCPublicPrivateIsolation = .init(),
                 qualification: MerchantNPCQualificationRevoke = .init(),
-                currentScope: @escaping () -> MerchantNPCScope?) {
+                currentScope: @escaping () -> MerchantNPCScope?,
+                recovery: MerchantNPCKnowledgeRecoveryStore? = nil) {
+        self.recovery = recovery
         gate = MerchantNPCDraftApprovalGate(
             scope: scope, publisher: publisher, isolation: isolation, qualification: qualification, currentScope: currentScope
         )
@@ -100,6 +105,33 @@ import Foundation
         try await gate.recoverKnowledgeReview(held)
     }
 
+    /// One GET for a request id already stored beside the character save. Does not POST or publish.
+    public func recoverKnowledgeRequest(_ requestID: UUID) async throws -> MerchantNPCKnowledgeReviewReentry? {
+        let memberID = Int64(gate.scope.accountID)
+        guard memberID > 0 else { return nil }
+        let kept = try await gate.recoverKnowledgeIdentity(requestID: requestID, memberID: memberID)
+        guard kept.requestID == requestID, kept.memberID == memberID else { return nil }
+        heldKnowledgeReview = kept
+        return kept
+    }
+
+    /// A different request id on the accept record is read once. The current member and merchant must match.
+    /// A missing row stays closed and is not deleted. This does not POST or publish.
+    public func recoverStoredKnowledgeReview() async throws -> MerchantNPCKnowledgeReviewReentry? {
+        let stored = recovery?.read()
+        let storedMatches = stored?.memberID == Int64(gate.scope.accountID)
+            && stored?.merchantRowID == gate.scope.merchantRowID.rawValue
+            && stored?.ownerKey == recovery?.ownerKey
+        if let heldKnowledgeReview, !storedMatches || stored?.requestID == heldKnowledgeReview.requestID {
+            return heldKnowledgeReview
+        }
+        guard let stored, storedMatches else { return heldKnowledgeReview }
+        let kept = try await gate.recoverKnowledgeIdentity(requestID: stored.requestID, memberID: stored.memberID)
+        guard kept.requestID == stored.requestID, kept.memberID == stored.memberID else { return heldKnowledgeReview }
+        heldKnowledgeReview = kept
+        return kept
+    }
+
     /// Store the accepted re-entry from the ticket member and the four strings supply already kept.
     /// A different request id is not stored. Missing authored strings are not invented.
     private func retainAcceptedKnowledgeReview(requestID: UUID, ticket: MerchantNPCOriginalReviewTicket) {
@@ -111,6 +143,14 @@ import Foundation
             greeting: authored.greeting.value,
             persona: authored.persona.value,
             knowledge: authored.knowledge.value)
+        guard let recovery,
+              ticket.scope.merchantRowID.rawValue == recovery.merchantRowID,
+              Int64(ticket.scope.accountID) > 0 else { return }
+        do {
+            try recovery.saveAccepted(requestID: requestID, memberID: Int64(ticket.scope.accountID))
+        } catch {
+            // The accepted ticket stays on this flow. A disk failure does not become a second submit.
+        }
     }
 
     /// Keep the request id this submit already received. A different returned id is refused and does not replace a held id.

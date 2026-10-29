@@ -35,9 +35,14 @@ public struct OperationPendingRecord: Codable, Equatable {
     func write(_ record: OperationPendingRecord) throws
     func clear(_ record: OperationPendingRecord) throws
 }
+/// One write of a new operation id for the same owner and target.
+/// A failed write leaves the previous record.
+@MainActor public protocol OperationPendingReplacing: OperationPendingJournal {
+    func replace(_ existing: OperationPendingRecord, with next: OperationPendingRecord) throws
+}
 /// Stores only account/deployment scoped operation identity, target and acknowledged step count.
 /// Never stores tokens, invite codes, drafts, media, member names or response messages.
-@MainActor public final class OperationDefaultsJournal: OperationPendingJournal {
+@MainActor public final class OperationDefaultsJournal: OperationPendingJournal, OperationPendingReplacing {
     private let defaults: UserDefaults
     public init(defaults: UserDefaults) { self.defaults = defaults }
     private func key(_ owner: String, _ target: String) -> String {
@@ -59,6 +64,18 @@ public struct OperationPendingRecord: Codable, Equatable {
         guard try pending(ownerKey: record.ownerKey, targetKey: record.targetKey) == record else { throw APIError.invalidRequest }
         let name = key(record.ownerKey, record.targetKey); defaults.removeObject(forKey: name)
         guard defaults.object(forKey: name) == nil else { throw APIError.malformedResponse }
+    }
+    public func replace(_ existing: OperationPendingRecord, with next: OperationPendingRecord) throws {
+        guard existing.ownerKey == next.ownerKey, existing.targetKey == next.targetKey,
+              try pending(ownerKey: existing.ownerKey, targetKey: existing.targetKey) == existing else { throw APIError.invalidRequest }
+        let data = try JSONEncoder().encode(next)
+        let name = key(next.ownerKey, next.targetKey)
+        let previous = defaults.data(forKey: name)
+        defaults.set(data, forKey: name)
+        guard defaults.data(forKey: name) == data else {
+            if let previous { defaults.set(previous, forKey: name) } else { defaults.removeObject(forKey: name) }
+            throw APIError.malformedResponse
+        }
     }
 }
 
