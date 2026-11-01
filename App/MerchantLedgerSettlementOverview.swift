@@ -57,7 +57,7 @@ import UIKit
         if mutate({ $0.replaceOwner(owner) }) { cancelTasks() }
         guard let ticket = mutate({ $0.begin(section, page: page, owner: owner) }) else { return }
         tasks[section]?.cancel()
-        let task = Task { [weak self] in await self?.perform(section, ticket: ticket, owner: owner) }
+        let task = Task { [weak self] in _ = await self?.perform(section, ticket: ticket, owner: owner) }
         tasks[section] = task
     }
 
@@ -214,7 +214,7 @@ import UIKit
         if mutate({ $0.replaceOwner(owner) }) { task?.cancel(); task = nil }
         guard reader.isConfigured, reader.scope != nil, let batch = try? MerchantBatchID(batchID) else { return }
         guard let ticket = mutate({ $0.begin(owner: owner) }) else { return }
-        let task = Task { [weak self] in await self?.perform(batch, ticket: ticket, owner: owner) }
+        let task = Task { [weak self] in _ = await self?.perform(batch, ticket: ticket, owner: owner) }
         self.task = task
     }
     func disappear() {

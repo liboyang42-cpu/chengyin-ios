@@ -18,12 +18,13 @@ final class W20607ParityCompletionTests: XCTestCase {
 
         let known = try JSONDecoder().decode(
             OfficialPublishedBroadcastFacts.self,
-            from: Data(#"{"id":9,"copyMode":1,"audience":"PLAYER,MERCHANT","status":2,"city":"杭州"}"#.utf8)
+            from: Data(#"{"id":9,"copyMode":1,"audience":"player,merchant","status":2,"city":"杭州"}"#.utf8)
         )
         XCTAssertEqual(
             OfficialPublishedPresentation.broadcastSummaryLine(known),
             "一起发 · 发给 玩家 / 商家 · 杭州"
         )
+        XCTAssertEqual(known.audience, [.player, .merchant])
         XCTAssertEqual(known.sourceStatusText, "已发")
 
         let fallback = try JSONDecoder().decode(
@@ -34,6 +35,7 @@ final class W20607ParityCompletionTests: XCTestCase {
             OfficialPublishedPresentation.broadcastSummaryLine(fallback),
             "发送方式待确认 · 发给 对象待确认 · 范围待确认"
         )
+        XCTAssertNil(fallback.audience)
         XCTAssertEqual(fallback.sourceStatusText, "状态待确认")
     }
 

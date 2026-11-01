@@ -54,9 +54,9 @@ final class NPCChatAndSceneAISafetyAuditTests: XCTestCase {
             report.rejectedDataClasses,
             [
                 .contactInfo,
-                .coordinates,
                 .otherPlayerMemory,
-                .paymentCredentials
+                .paymentCredentials,
+                .coordinates
             ]
         )
     }

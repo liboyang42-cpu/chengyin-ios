@@ -16,7 +16,10 @@ final class WorkshopModuleImportEntryTests: XCTestCase {
                                                       entry: "mod-2", originalRequestID: "import-req-0002")) { error in
             XCTAssertEqual(error as? WorkshopModuleImportFailure, .answersOrHiddenCoordinatesForbidden)
         }
-        XCTAssertEqual(entry.importQmod(entry: "mod-q", originalRequestID: "import-req-0003"),
+        XCTAssertEqual(entry.importQmod(entry: "mod-q", originalRequestID: "import-req-0003"), .requestMismatch)
+        XCTAssertEqual(entry.gate.entry, "mod-1")
+        XCTAssertEqual(entry.gate.originalRequestID, "import-req-0001")
+        XCTAssertEqual(entry.importQmod(entry: "mod-1", originalRequestID: "import-req-0001"),
                        .waitingSource(capability: WorkshopModuleSourceInventory.qmodCandidateBinaries))
     }
 

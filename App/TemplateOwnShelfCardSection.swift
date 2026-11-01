@@ -37,8 +37,10 @@ private struct TemplateOwnShelfCardFactLines: View {
             Text(verbatim: zh ? "\(count) 次引用" : "\(count) references")
                 .accessibilityIdentifier("templateOwnShelf.card.uses.\(rowID)")
         }
-        Text(verbatim: zh ? "\(facts.durationMinutes)分钟" : "\(facts.durationMinutes) min")
-            .accessibilityIdentifier("templateOwnShelf.card.duration.\(rowID)")
+        if let duration = facts.durationMinutes {
+            Text(verbatim: zh ? "\(duration)分钟" : "\(duration) min")
+                .accessibilityIdentifier("templateOwnShelf.card.duration.\(rowID)")
+        }
         if let created = facts.createTime {
             Text(verbatim: created)
                 .accessibilityIdentifier("templateOwnShelf.card.created.\(rowID)")

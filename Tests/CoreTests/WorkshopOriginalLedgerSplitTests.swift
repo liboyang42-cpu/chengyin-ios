@@ -23,14 +23,30 @@ final class WorkshopOriginalLedgerSplitTests: XCTestCase {
 
     func testAdvancedProvenanceIsNotACommandReceipt() async throws {
         let source = LedgerRead()
-        let provenance = #"{"schema":"mod-installation-native-runtime-v1","status":"SUPPORTED","kind":"CHOICE","sourceHash":"\#(fixtureContentHash)","runHash":"\#(runHash)","sessionId":"8","activityId":"1","topicId":"2","nodeId":"5"}"#
+        let provenance = #"{"schema":"mod-installation-native-runtime-v1","status":"SUPPORTED","sourceHash":"\#(fixtureContentHash)","runHash":"\#(runHash)","sessionId":"8","activityId":"1","topicId":"2","nodeId":"5"}"#
         source.advanced = Data("""
-        {"sessionId":"8","activityId":"1","topicId":"2","nodeId":"5","status":"RUNNING","modInstallationRuntime":\(provenance)}
+        {"sessionId":"8","activityId":"1","topicId":"2","nodeId":"5","kind":"CHOICE","status":"RUNNING","modInstallationRuntime":\(provenance)}
         """.utf8)
         let fact = try await WorkshopOriginalLedgerSplit().readAdvanced(sessionID: 8, memberID: 3, source: source)
         XCTAssertFalse(fact.isCommandReceipt)
         XCTAssertFalse(fact.grantsServerPass)
         XCTAssertEqual(fact.nodeID, 5)
+        let valid = try XCTUnwrap(JSONSerialization.jsonObject(with: try XCTUnwrap(source.advanced)) as? [String: Any])
+        var missingKind = valid
+        missingKind["kind"] = nil
+        var unknownKind = valid
+        unknownKind["kind"] = "UNSUPPORTED"
+        var foreignTuple = valid
+        foreignTuple["activityId"] = "9"
+        for invalid in [missingKind, unknownKind, foreignTuple] {
+            source.advanced = try JSONSerialization.data(withJSONObject: invalid)
+            do {
+                _ = try await WorkshopOriginalLedgerSplit().readAdvanced(sessionID: 8, memberID: 3, source: source)
+                XCTFail("Unknown or mismatched provenance cannot become a command receipt")
+            } catch {
+                XCTAssertEqual(error as? WorkshopOriginalLedgerError, .unknown)
+            }
+        }
         source.advanced = Data(#"{"activityId":9,"requestId":"req-1","outcome":"APPLIED","replayed":true}"#.utf8)
         do {
             _ = try await WorkshopOriginalLedgerSplit().readAdvanced(sessionID: 8, memberID: 3, source: source)

@@ -137,7 +137,7 @@ final class AppStoreSubmissionReadinessAuditTests: XCTestCase {
         XCTAssertEqual(report.failedChecks, [.iosRel04NonCashRewardLedger])
         XCTAssertEqual(
             report.violations,
-            [.nonCashRewardLedgerViolations([.points, .stamps, .fragments, .seasonScores])]
+            [.nonCashRewardLedgerViolations([.fragments, .points, .seasonScores, .stamps])]
         )
     }
 

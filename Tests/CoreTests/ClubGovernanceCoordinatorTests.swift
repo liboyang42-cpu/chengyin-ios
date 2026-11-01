@@ -56,7 +56,12 @@ import XCTest
     func testRevokedPermissionsRejectBeforeDispatch() async throws {
         let access = ClubGovernanceFixtureAccess(), command = try ClubGovernanceFixtures.command(.saveCustomer)
         let coordinator = ClubGovernanceCoordinator(access: access), review = try await coordinator.prepare(command)
-        var changed = ClubGovernanceFixtures.permissions.object!; changed["permissions"] = .array([]); changed["eventAccesses"] = .array([]); access.permissionValue = .object(changed)
+        var changed = ClubGovernanceFixtures.permissions.object!
+        changed["permissions"] = .array([]); changed["eventAccesses"] = .array([])
+        changed["roleCodes"] = .array([]); changed["canManageRoles"] = .bool(false)
+        let revoked = try ClubGovernancePermissions(value: .object(changed), scope: command.scope)
+        XCTAssertFalse(revoked.allows(command.operation.permission, scope: command.scope))
+        access.permissionValue = .object(changed)
         do { _ = try await coordinator.confirm(review); XCTFail() } catch { XCTAssertEqual(error as? ClubGovernanceFailure, .forbidden) }
         XCTAssertTrue(access.sent.isEmpty)
     }

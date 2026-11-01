@@ -189,6 +189,7 @@ public struct ChannelGovernanceProjection: Equatable, Sendable {
 
     public mutating func authorizeReadWrite() throws -> ChannelAuthorizationGrant {
         try ensureActive()
+        guard role != .none else { throw ChannelAuthorizationError.notMember }
         guard role.capabilities.contains(.read), role.capabilities.contains(.write) else {
             throw ChannelAuthorizationError.roleRequired
         }

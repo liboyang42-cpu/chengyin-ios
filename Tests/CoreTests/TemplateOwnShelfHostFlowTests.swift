@@ -52,10 +52,21 @@ import FoundationNetworking
         ], ["id": 8, "title": "Next"]])
         let first = try XCTUnwrap(result.cardFacts[7])
         XCTAssertNil(first.rating); XCTAssertNil(first.useCount); XCTAssertNil(first.reviewFeedback); XCTAssertNil(first.createTime)
-        XCTAssertEqual(first.durationMinutes, 0)
-        XCTAssertEqual(result.cardFacts[8]?.durationMinutes, 0)
+        XCTAssertNil(first.durationMinutes)
+        XCTAssertNil(result.cardFacts[8]?.durationMinutes)
         XCTAssertEqual(Set(result.rows.map(\.id)), Set(result.cardFacts.keys))
         XCTAssertEqual(Set(result.rows.map(\.id)), Set(result.rowStates.keys))
+        for malformed in [true, false, -1, 0.5, 1e100, "1.5", "", " ", "1e2", String(Int.max) + "0", ["future": 1], [1], NSNull()] as [Any] {
+            let page = try self.page([["id": 7, "status": 1, "publishStatus": 1, "useNum": malformed, "duration": malformed]])
+            XCTAssertEqual(page.rows.map(\.id), [7]); XCTAssertEqual(page.rows.first?.publishStatus, 1)
+            XCTAssertNil(page.rows.first?.useNum); XCTAssertNil(page.rows.first?.duration)
+            XCTAssertNil(page.cardFacts[7]?.useCount); XCTAssertNil(page.cardFacts[7]?.durationMinutes)
+        }
+        for (raw, expected) in [(0 as Any, 0), (" 0 " as Any, 0), (Int.max as Any, Int.max), (String(Int.max) as Any, Int.max)] {
+            let page = try self.page([["id": 7, "useNum": raw, "duration": raw]])
+            XCTAssertEqual(page.rows.first?.useNum, expected); XCTAssertEqual(page.rows.first?.duration, expected)
+            XCTAssertEqual(page.cardFacts[7]?.useCount, expected); XCTAssertEqual(page.cardFacts[7]?.durationMinutes, expected)
+        }
     }
     func testLeaveNewKeywordAndAuthClearCardFactsWithStates() async throws {
         let row: [String: Any] = ["id": 7, "title": "Owned", "draftStatus": 1, "status": 1, "checkStatus": 1,

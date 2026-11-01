@@ -55,7 +55,7 @@ struct TemplateOwnShelfCardFactsEnvelope: Decodable {
 public struct TemplateOwnShelfCardFacts: Decodable, Equatable {
     public let rating: Decimal?
     public let useCount: Int?
-    public let durationMinutes: Int
+    public let durationMinutes: Int?
     public let createTime: String?
     public let reviewFeedback: String?
     private enum Keys: String, CodingKey { case rating, useNum, duration, createTime, reason }
@@ -70,10 +70,15 @@ public struct TemplateOwnShelfCardFacts: Decodable, Equatable {
             if let value = try? values.decode(Decimal.self, forKey: key) { return value }
             return text(key).flatMap { Decimal(string: $0, locale: Locale(identifier: "en_US_POSIX")) }
         }
+        func integer(_ key: Keys) -> Int? {
+            if let value = try? values.decode(Int.self, forKey: key), value >= 0 { return value }
+            guard let raw = text(key), raw.utf8.allSatisfy({ (48...57).contains($0) }),
+                  let value = Int(raw), value >= 0 else { return nil }
+            return value
+        }
         rating = number(.rating).flatMap { $0 >= 0 ? $0 : nil }
-        useCount = number(.useNum).flatMap { $0 >= 0 ? NSDecimalNumber(decimal: $0).intValue : nil }
-        // Source renders `${duration || 0}分钟`.
-        durationMinutes = number(.duration).flatMap { $0 > 0 ? NSDecimalNumber(decimal: $0).intValue : nil } ?? 0
+        useCount = integer(.useNum)
+        durationMinutes = integer(.duration)
         createTime = text(.createTime)
         reviewFeedback = text(.reason)
     }

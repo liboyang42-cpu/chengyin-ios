@@ -665,11 +665,13 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
             "canManageOperators": .bool(false)
         ])
         let journal = MerchantBusinessMemoryIntentStore()
+        let session = try MerchantBusinessSession(accountID: 7, epoch: 1, token: token)
+        let authorization = UUID()
         let desk = MerchantDeskSkuDesk(service: readService, journal: journal,
                                       scope: MerchantBusinessScope(realm: "desk", accountID: 7, epoch: 1),
                                       production: { change, merchantID in
             factory.service(for: change, merchantID: merchantID)
-        })
+        }, currentSession: { session }, authorizationGeneration: { authorization })
         await desk.load(productID: 3, skuID: 44, edit: MerchantDeskSkuDesk.Edit(skuName: "door", price: "88.00", stock: 2),
                         access: access, accountID: 7, token: token)
         guard case .frozen = desk.phase else {

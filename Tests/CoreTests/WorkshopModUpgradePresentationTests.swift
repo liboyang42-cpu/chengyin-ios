@@ -128,12 +128,15 @@ final class WorkshopModUpgradePresentationTests: XCTestCase {
     }
 
     func testPerpetualPurchasedUseDisclosureSurvivesSubscriptionAndForbidsRedistribution() throws {
-        let term = try WorkshopPurchasedUseTerm(makePurchasedItem(licenseId: "lic-99", moduleId: "mod-city", versionId: "ver-1"))
+        XCTAssertThrowsError(try makePurchasedItem(licenseId: "lic-99")) {
+            XCTAssertEqual($0 as? WorkshopPurchasedIssue, .malformed)
+        }
+        let term = try WorkshopPurchasedUseTerm(makePurchasedItem(licenseId: "w18-paid-99", moduleId: "mod-city", versionId: "ver-1"))
         let disclosure = WorkshopPurchasedUseTermPresentation(term: term)
 
         XCTAssertTrue(disclosure.term.survivesSubscriptionEnd)
         XCTAssertFalse(disclosure.term.permitsRedistribution)
-        XCTAssertTrue(disclosure.versionSummaryText.contains("lic-99"))
+        XCTAssertTrue(disclosure.versionSummaryText.contains("w18-paid-99"))
         XCTAssertTrue(disclosure.versionSummaryText.contains("mod-city"))
         XCTAssertTrue(disclosure.versionSummaryText.contains("ver-1"))
         XCTAssertTrue(disclosure.subscriptionSurvivalNotice.contains("不随会员或订阅到期而失效"))

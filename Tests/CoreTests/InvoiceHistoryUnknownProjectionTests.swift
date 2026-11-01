@@ -45,7 +45,19 @@ final class InvoiceHistoryUnknownProjectionTests: XCTestCase {
             with: try JSONSerialization.data(withJSONObject: view.jsonObject())) as! [String: Any]
         XCTAssertTrue(object["originalRequestID"] is NSNull)
         XCTAssertEqual(history.recoverOriginal(originalRequestID: "c07-inv-missing").fileStatus, .unknown)
-        XCTAssertNil(history.recoverOriginal(originalRequestID: "c07-inv-missing").originalRequestID)
+        XCTAssertEqual(history.recoverOriginal(originalRequestID: "c07-inv-missing").originalRequestID,
+                       "c07-inv-missing", "An explicit lookup identity is preserved without becoming a new application")
+        let beforeBlankReads = history
+        for blank in ["", " \n\t"] {
+            let unknown = history.reread(InvoiceApplicationFact(originalRequestID: blank, status: InvoiceHistoryKnown.issued,
+                                                               invoiceNo: "INV-1", fileLocator: "file://x", provider: "OTHER"))
+            XCTAssertNil(unknown.originalRequestID)
+            XCTAssertEqual(unknown.fileStatus, .unknown)
+            XCTAssertFalse(unknown.startedNewApply)
+            XCTAssertTrue(unknown.jsonObject()["originalRequestID"] is NSNull)
+            XCTAssertNil(history.recoverOriginal(originalRequestID: blank).originalRequestID)
+        }
+        XCTAssertEqual(history, beforeBlankReads, "Blank or never-seen identities do not occupy the original ledger")
     }
     func testRecoverOfNeverSeenIdDoesNotOccupyLedgerThenPresentApplies() {
         var history = InvoiceHistoryUnknownProjection()

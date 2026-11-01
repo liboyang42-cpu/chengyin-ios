@@ -7,7 +7,8 @@ import FoundationNetworking
 
 private let inviteRow = #"{"id":12,"topicId":70,"chapterId":7,"topicName":"Route","chapterName":"Market chapter","status":0,"source":1,"merchantId":1}"#
 private func accessJSON(role: String = "MERCHANT_OWNER", permissions: [String]) -> String {
-    #"{"active":true,"merchant":{"id":31,"name":"Shop"},"roleCode":""# + role + #"","permissions":["# + permissions.joined(separator: "\",\"") + #"]}"#
+    let encodedPermissions = permissions.map { "\"\($0)\"" }.joined(separator: ",")
+    return #"{"active":true,"merchant":{"id":31,"name":"Shop"},"roleCode":""# + role + #"","permissions":["# + encodedPermissions + #"]}"#
 }
 private let coopAccess = accessJSON(permissions: ["merchant:coop:manage"])
 

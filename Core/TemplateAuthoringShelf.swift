@@ -148,19 +148,29 @@ public struct TemplateOwnShelfPage {
         guard let payload = body["data"]?.object, let raw = payload["rows"]?.array else {
             throw TemplateAuthoringError.invalidContract
         }
-        let rows = try JSONDecoder().decode([DiscoveryPlayTemplate].self, from: JSONEncoder().encode(raw))
+        // Decode optional display columns from the same original bytes. The shared
+        // discovery DTO stays strict; only this own-shelf display projection normalizes them.
+        let states = try JSONDecoder().decode(TemplateOwnShelfStateEnvelope.self, from: data).data.rows
+        let facts = try JSONDecoder().decode(TemplateOwnShelfCardFactsEnvelope.self, from: data).data.rows
+        let original = try JSONSerialization.jsonObject(with: data)
+        guard let envelope = original as? [String: Any], let originalPayload = envelope["data"] as? [String: Any],
+              let originalRows = originalPayload["rows"] as? [[String: Any]],
+              states.count == raw.count, facts.count == raw.count, originalRows.count == raw.count else {
+            throw TemplateAuthoringError.invalidContract
+        }
+        let normalized = zip(originalRows, facts).map { original, fact -> [String: Any] in
+            var row = original
+            if let count = fact.useCount { row["useNum"] = count } else { row.removeValue(forKey: "useNum") }
+            if let duration = fact.durationMinutes { row["duration"] = duration } else { row.removeValue(forKey: "duration") }
+            return row
+        }
+        let rows = try JSONDecoder().decode([DiscoveryPlayTemplate].self,
+            from: JSONSerialization.data(withJSONObject: normalized))
         guard rows.count <= pageSize,
               rows.allSatisfy({ MemberPlayTemplateID(rawValue: $0.id) != nil }),
               Set(rows.map(\.id)).count == rows.count else { throw TemplateAuthoringError.invalidContract }
         let total = payload["total"]?.integer
-        // Decode optional display columns from original bytes, avoiding Double
-        // roundtripping of backend Long values. Malformed optional columns are unknown.
-        let states = try JSONDecoder().decode(TemplateOwnShelfStateEnvelope.self, from: data).data.rows
-        guard states.count == rows.count else { throw TemplateAuthoringError.invalidContract }
         let rowStates = Dictionary(uniqueKeysWithValues: zip(rows.map(\.id), states))
-        // Same response bytes as the state sidecar. No second read and no new path.
-        let facts = try JSONDecoder().decode(TemplateOwnShelfCardFactsEnvelope.self, from: data).data.rows
-        guard facts.count == rows.count else { throw TemplateAuthoringError.invalidContract }
         let cardFacts = Dictionary(uniqueKeysWithValues: zip(rows.map(\.id), facts))
         return .init(rows: rows, total: total.flatMap { $0 >= 0 ? $0 : nil }, rowStates: rowStates, cardFacts: cardFacts)
     }

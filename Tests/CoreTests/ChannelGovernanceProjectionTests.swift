@@ -65,12 +65,23 @@ final class ChannelGovernanceProjectionTests: XCTestCase {
         XCTAssertThrowsError(try journey.submitInviteOrApply()) {
             XCTAssertEqual($0 as? ChannelAuthorizationError, .rulesConsentRequired)
         }
+        var dispatches = 0
+        XCTAssertThrowsError(try journey.submitInviteOrApply(kind: 1, spaceID: 12, requestID: "c08-unconsented") { _, _, _, _, _, request in
+            dispatches += 1
+            return ["request_id": request, "status": 0, "join_state": "PENDING_REVIEW"]
+        }) {
+            XCTAssertEqual($0 as? ChannelAuthorizationError, .rulesConsentRequired)
+        }
+        XCTAssertEqual(dispatches, 0)
         try journey.requireRulesConsent()
         XCTAssertEqual(journey.phase, .rulesConsentRequired)
         XCTAssertNil(journey.grant)
+        let beforeAuthorization = journey
         XCTAssertThrowsError(try journey.authorizeReadWrite()) {
             XCTAssertEqual($0 as? ChannelAuthorizationError, .notMember)
         }
+        XCTAssertEqual(journey, beforeAuthorization)
+        XCTAssertNil(journey.grant)
     }
 
     func testFirstJourneyJoinAfterConsentAuthorizedRWRevokeLateRequestAndFriendDenied() throws {
