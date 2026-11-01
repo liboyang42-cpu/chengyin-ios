@@ -1,0 +1,138 @@
+# C02 iOS pbx hunk (dot-owned)
+
+Do not apply from this exclusive line. `Questify.xcodeproj/project.pbxproj` stays with dot.
+
+Base: `migration/native-ios` `76ce1b313af2595f9b7d7ace49040866209c7974`.
+
+`Package.swift` already compiles every `Core/*.swift` leaf and discovers `Tests/CoreTests`. The Xcode app target still lists Core sources explicitly.
+
+## Inventory (reuse, do not take over)
+
+Existing Play/RPG/character surfaces kept as hosts: `App/PlayExperienceView.swift`, `App/PlayAdvancedView.swift`, `App/PlayAdvancedTeamViews.swift`, `App/PlayPlayerTeamStatusView.swift`, `App/PlayObjectCardRevealView.swift`, `App/SessionPlayRuntimeView.swift`, `Core/JourneyCheckCoordinator.swift`, `Core/PlayPlayerTeamReadback.swift`, `Core/PlayAdvancedTeamProjection.swift`, `Core/JourneyRoleProjection`. Merchant NPC character readback is a different domain.
+
+HTTP reused: `PlayExperienceService.request`, `playerProjection`, `playerCommand`, `playerReceipt`. No second writer, dice, wallet, or request ledger.
+
+## Object IDs
+
+| path | PBXFileReference | PBXBuildFile |
+|---|---|---|
+| Core/WorldEnvironmentProjection.swift | 9A7A1ABBD54A4490BAD39CA1 | 1116D159A2A84FF99E53F093 |
+| Core/PartyRosterProjection.swift | 7303562FBC934B8F8085C484 | D82544EFF0A949AAB327D4DA |
+| Core/CharacterCardReadback.swift | 3E66D03105B44A40AB14FBF3 | 074DC406DE614CD0BC25509B |
+| Core/EnvironmentExpiryClock.swift | 512E9A186AE04EB6BD750F88 | 9C252AB70B154DFCAEFD6D6C |
+| Core/CharacterCardReadRoute.swift | A1C02E0A11B24C0A9D0E0001 | A1C02E0A11B24C0A9D0E0002 |
+| App/CharacterCardReadbackView.swift | B2C02E0B22C34D1B8E0F0003 | B2C02E0B22C34D1B8E0F0004 |
+
+CoreTests stay on the SPM `QuestifyCoreTests` directory target. Optional `Resources/WorldEnvironment.fragment.json` is not the shared `Localizable.xcstrings`.
+
+## File reference objects (insert near ClubTerminalSessionProjection.swift)
+
+```
+		"9A7A1ABBD54A4490BAD39CA1" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/WorldEnvironmentProjection.swift";
+			"sourceTree" = "<group>";
+		};
+		"1116D159A2A84FF99E53F093" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "9A7A1ABBD54A4490BAD39CA1";
+		};
+		"7303562FBC934B8F8085C484" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/PartyRosterProjection.swift";
+			"sourceTree" = "<group>";
+		};
+		"D82544EFF0A949AAB327D4DA" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "7303562FBC934B8F8085C484";
+		};
+		"3E66D03105B44A40AB14FBF3" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/CharacterCardReadback.swift";
+			"sourceTree" = "<group>";
+		};
+		"074DC406DE614CD0BC25509B" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "3E66D03105B44A40AB14FBF3";
+		};
+		"512E9A186AE04EB6BD750F88" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/EnvironmentExpiryClock.swift";
+			"sourceTree" = "<group>";
+		};
+		"9C252AB70B154DFCAEFD6D6C" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "512E9A186AE04EB6BD750F88";
+		};
+		"A1C02E0A11B24C0A9D0E0001" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/CharacterCardReadRoute.swift";
+			"sourceTree" = "<group>";
+		};
+		"A1C02E0A11B24C0A9D0E0002" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "A1C02E0A11B24C0A9D0E0001";
+		};
+		"B2C02E0B22C34D1B8E0F0003" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/CharacterCardReadbackView.swift";
+			"sourceTree" = "<group>";
+		};
+		"B2C02E0B22C34D1B8E0F0004" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "B2C02E0B22C34D1B8E0F0003";
+		};
+```
+
+## Group children
+
+In group `19F479106CE8C3BA8C106518`, after `"CD67475D43FFD2D955BEC7F5"` add:
+
+```
+				"9A7A1ABBD54A4490BAD39CA1",
+				"7303562FBC934B8F8085C484",
+				"3E66D03105B44A40AB14FBF3",
+				"512E9A186AE04EB6BD750F88",
+				"A1C02E0A11B24C0A9D0E0001",
+				"B2C02E0B22C34D1B8E0F0003",
+```
+
+## Sources build phase
+
+In `878A52FC5FF6A57D50B7B870` PBXSourcesBuildPhase, after `"9BF7536550C8D523C539CF39"` add:
+
+```
+				"1116D159A2A84FF99E53F093",
+				"D82544EFF0A949AAB327D4DA",
+				"074DC406DE614CD0BC25509B",
+				"9C252AB70B154DFCAEFD6D6C",
+				"A1C02E0A11B24C0A9D0E0002",
+				"B2C02E0B22C34D1B8E0F0004",
+```
+
+## SHA256
+
+5f8416501af443af8f2acffc36d7e1c8e35868f2e21d382db9a755e1f007f2d0 Core/WorldEnvironmentProjection.swift
+4c3c01dc14df64a7824e0c307353ebab688b221af1ea4c9c1a748734eda09380 Core/PartyRosterProjection.swift
+400793791e53055d2f59a281be69115f6560c10c4a9ac61d29f3784399e220c7 Core/CharacterCardReadback.swift
+dbb8ae6c03723350836cd3b4ea0b91fdaa0e07251b87d31cd399909813c0fa62 Core/EnvironmentExpiryClock.swift
+c051ee13c51b303ea6b6f961811db6ebb04cab054d0dede7e74401296c8d0841 Tests/CoreTests/WorldEnvironmentProjectionTests.swift
+28cc42a977cc43bda072cfe7613bd8bb6d3bfa83214aed4f501e7f8888c4417b Tests/CoreTests/PartyRosterProjectionTests.swift
+5f556865f0eb0fdc00c19234967f705bc47487c4988136b24e5370fdde56eafd Tests/CoreTests/CharacterCardReadbackTests.swift
+25dce9565d87ac3d5e7a2ce579087d1def7fca09f0da1cf79178ad4ecb0139de Resources/WorldEnvironment.fragment.json
+900066cc7a20ffdde2ba1c20b728fc499b2854fb4dbc0b1c464991ed7096cc76 Core/CharacterCardReadRoute.swift
+f23fd6048ee519348c036a3c43194ac2199ae123a233dc43bb69b15b66d1502e App/CharacterCardReadbackView.swift
+
+## Blockers
+
+- Linux XCTest NOT_RUN. Contract checks: `python3 -m unittest Tests.ContractChecks.test_c02_world_party_character`.
+- Xcode compile / simulator journey blocked until dot applies this pbx hunk.
+- Dedicated RPG party/equipment expiry fields are WAITING_SOURCE unless the signed character, rpg/status, or session-view payload includes them. No client weather and no device-clock success.
+- The two new file references and build files are in this hunk. `project.pbxproj` is still unchanged until dot applies it. Do not add `api/play/character` or `api/play/rpg/status` to `PlayReadRoute`.
+- The activity page caller is `activity.openCharacterCard`. It stays nil until the read approval lists both character paths. `play.character.card` is not in the string catalog.

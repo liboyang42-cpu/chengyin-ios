@@ -58,8 +58,13 @@ class W204P2MemberToolsChecks(unittest.TestCase):
             self.assertEqual(self.catalog[key], entry)
 
     def test_pinned_template_files_untouched_by_this_pass(self):
-        # Display of the template market plan stays blocked on a reviewed pin update.
-        self.assertNotIn('TemplateOwnShelfMarketPlan', read('App/TemplateAuthoringMineView.swift'))
+        # The host now shows the plan through the card section. It stays a preview.
+        view = read('App/TemplateAuthoringMineView.swift')
+        self.assertIn('TemplateOwnShelfCardSection', view)
+        self.assertNotIn('/market-submit', view)
+        self.assertNotIn('TemplateOwnShelfMarketPlan', view)
+        self.assertIn('public var isDispatchable: Bool { false }', read('Core/TemplateOwnShelfMarketPlan.swift'))
+        self.assertIn('plan.isDispatchable == false', read('App/TemplateOwnShelfCardSection.swift'))
 
 
 if __name__ == '__main__':

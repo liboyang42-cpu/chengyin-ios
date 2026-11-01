@@ -1,14 +1,16 @@
 import SwiftUI
 
-/// Normal account destination; its live service remains explicitly unconfigured in AppSession.
+/// Account reward list. The pledge service stays nil until the approval flag is on.
 @MainActor struct NonCashRewardsView: View {
     let reader: any NonCashRewardReading
     let merchantHome: PublicMerchantHomeContext?
+    let pledge: RewardPledgeEntry?
     @StateObject private var model = NonCashRewardCollectionScreenModel()
     private var key: AccountCollectionLoadKey { .init(rewardReader: reader) }
     init(reader identity: any AccountCollectionReading, rewards: (any NonCashRewardReading)? = nil,
-         merchantHome: PublicMerchantHomeContext? = nil) {
+         merchantHome: PublicMerchantHomeContext? = nil, pledge: RewardPledgeEntry? = nil) {
         self.merchantHome = merchantHome
+        self.pledge = pledge
         #if DEBUG
         if let scenario = NonCashRewardDemo.scenario {
             reader = NonCashRewardFixtureReader(identity: identity, scenario: scenario)
@@ -18,12 +20,35 @@ import SwiftUI
         reader = rewards ?? UnconfiguredNonCashRewardReader(identity: identity)
     }
     var body: some View {
+        if !reader.isOfflineExample {
+            liveRewardList
+        } else {
+            offlinePage
+        }
+    }
+    @ViewBuilder private var liveRewardList: some View {
+        if !reader.isAuthenticated {
+            List { AccountCollectionIssueView(issue: .login) }
+                .listStyle(.insetGrouped).appNavigationTitle("rewards.title")
+        } else if let pledge, pledge.current()?.read == true {
+            RewardPledgeClaimHost(entry: pledge)
+        } else {
+            List {
+                ContentUnavailableView("rewards.unavailable", systemImage: "gift", description: Text("rewards.unavailableHint"))
+                    .accessibilityIdentifier("rewards.unavailable")
+                Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.closed")
+            }
+            .listStyle(.insetGrouped).appNavigationTitle("rewards.title")
+        }
+    }
+    private var offlinePage: some View {
         List {
             if reader.isOfflineExample { Text("rewards.demo").font(.footnote).accessibilityIdentifier("rewards.demo") }
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
             else if !reader.isConfigured {
                 ContentUnavailableView("rewards.unavailable", systemImage: "gift", description: Text("rewards.unavailableHint"))
                     .accessibilityIdentifier("rewards.unavailable")
+                Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.closed")
             } else if model.state.isLoading || model.state.loadedScope != key.scope {
                 ProgressView("accountCollection.loading")
             } else if let issue = model.state.issue {

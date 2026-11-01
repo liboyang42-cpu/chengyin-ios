@@ -16,8 +16,12 @@ import FoundationNetworking
     func testExactUnpaginatedRoutesRejectAllExtraScopeAndMalformedShapes() throws {
         XCTAssertEqual(OwnedOrderReadRoute(request: try form("list", ["owner_type":"3"]), baseURL: base), .list)
         XCTAssertEqual(OwnedOrderReadRoute(request: try form("info", ["id":"41"]), baseURL: base), .detail(41))
+        XCTAssertEqual(OwnedOrderReadRoute(request: try form("original-event", ["id":"41"]), baseURL: base), .originalEvent(41))
+        XCTAssertNotEqual(OwnedOrderReadRoute(request: try form("info", ["id":"41"]), baseURL: base), .originalEvent(41))
+        XCTAssertNotEqual(OwnedOrderReadRoute(request: try form("list", ["owner_type":"3"]), baseURL: base), .originalEvent(3))
         for fields in [[:], ["owner_type":"1"], ["owner_type":"03"], ["owner_type":"3", "memberId":"7"], ["owner_type":"3", "status":"0"], ["owner_type":"3", "is_online":"0"], ["owner_type":"3", "pageNum":"1"], ["owner_type":"3", "pageSize":"10"], ["owner_type":"3", "cursor":"next"]] { XCTAssertNil(OwnedOrderReadRoute(request: try form("list", fields), baseURL: base)) }
         for fields in [["id":"0"], ["id":"-1"], ["id":"041"], ["id":"1.5"], ["id":"41", "memberId":"7"]] { XCTAssertNil(OwnedOrderReadRoute(request: try form("info", fields), baseURL: base)) }
+        for fields in [["id":"0"], ["id":"-1"], ["id":"041"], ["id":"1.5"], ["id":"41", "memberId":"7"]] { XCTAssertNil(OwnedOrderReadRoute(request: try form("original-event", fields), baseURL: base)) }
         let exact = try form("info", ["id":"41"])
         var variants:[URLRequest] = []
         for method in ["GET","PUT","PATCH","DELETE"] { var v=exact; v.httpMethod=method; variants.append(v) }
@@ -29,6 +33,44 @@ import FoundationNetworking
         for type in ["application/json","multipart/form-data; boundary=wrong","multipart/form-data; boundary=Orders; x=1"] { v=exact;v.setValue(type,forHTTPHeaderField:"Content-Type");variants.append(v) }
         for request in variants { XCTAssertNil(OwnedOrderReadRoute(request:request,baseURL:base)) }
         for path in ["create","pay","pay/app","cancel","cancel-refund","quote","join_info","scan_qr_code"] { XCTAssertNil(OwnedOrderReadRoute(request:try form(path,["id":"41"]),baseURL:base)) }
+        let event = try form("original-event", ["id":"41"])
+        var eventVariants: [URLRequest] = []
+        for method in ["GET","PUT","PATCH","DELETE"] { var copy = event; copy.httpMethod = method; eventVariants.append(copy) }
+        for url in [event.url!.absoluteString+"?id=41", event.url!.absoluteString+"#x", event.url!.absoluteString+"/", "https://other.test/native/api/registration/original-event"] {
+            var copy = event; copy.url = URL(string: url); eventVariants.append(copy)
+        }
+        for request in eventVariants { XCTAssertNil(OwnedOrderReadRoute(request: request, baseURL: base)) }
+    }
+    /// Swift/XCTest is NOT_RUN unless this file is compiled.
+    /// A detail approval, the existing approvalRevision, or a previously allowed info request
+    /// does not count as an original-event send.
+    func testInfoApprovalDoesNotCountAsAnOriginalEventSend() throws {
+        let context = try context()
+        let approval = try OwnedOrderReadApproval(context: context, expiresAt: Date().addingTimeInterval(600))
+        let session = OwnedOrderReadSession(context: context, viewerRevision: 4, approvalRevision: approval.revision)
+        let allowedInfo = try form("info", ["id":"41"])
+        let infoApproval = OwnedOrderReadRoute(request: allowedInfo, baseURL: base)
+        XCTAssertEqual(infoApproval, .detail(41))
+        XCTAssertEqual(session.approvalRevision, approval.revision)
+        XCTAssertNotEqual(infoApproval, .originalEvent(41))
+        XCTAssertEqual(OwnedOrderReadRoute(request: allowedInfo, baseURL: base), .detail(41))
+        XCTAssertEqual(OwnedOrderReadRoute(request: try form("list", ["owner_type":"3"]), baseURL: base), .list)
+        XCTAssertNotEqual(OwnedOrderReadRoute(request: try form("list", ["owner_type":"3"]), baseURL: base), .originalEvent(41))
+        for path in ["pay", "pay/app"] { XCTAssertNil(OwnedOrderReadRoute(request: try form(path, ["id":"41"]), baseURL: base)) }
+        for path in ["business/audit-log", "business/audit-log/list", "api/merchant/chapter-application/audit", "api/merchant/chapter-node/audit"] {
+            XCTAssertNil(OwnedOrderReadRoute(request: try posted(path, ["id":"41"]), baseURL: base))
+        }
+        let event = try form("original-event", ["id":"41"])
+        XCTAssertEqual(OwnedOrderReadRoute(request: event, baseURL: base), .originalEvent(41))
+        XCTAssertNotEqual(OwnedOrderReadRoute(request: event, baseURL: base), infoApproval)
+        XCTAssertEqual(OwnedOrderReadRoute(request: try form("original-event", ["id":"42"]), baseURL: base), .originalEvent(42))
+        XCTAssertNotEqual(OwnedOrderReadRoute(request: try form("original-event", ["id":"42"]), baseURL: base), .originalEvent(41))
+        var query = event; query.url = URL(string: event.url!.absoluteString + "?id=41"); XCTAssertNil(OwnedOrderReadRoute(request: query, baseURL: base))
+        var fragment = event; fragment.url = URL(string: event.url!.absoluteString + "#x"); XCTAssertNil(OwnedOrderReadRoute(request: fragment, baseURL: base))
+        XCTAssertEqual(OwnedOrderReadRoute(request: allowedInfo, baseURL: base), .detail(41))
+    }
+    private func posted(_ path: String, _ fields: [String: String]) throws -> URLRequest {
+        try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent(path), fields: fields, token: "synthetic-7", boundary: "Orders")
     }
     func testOwnerCorrelationUniqueIDsAndCompleteTableAreRequired() async throws {
         let wire=Wire(),service=ProfileService(configuration:try APIConfiguration(baseURL:base),transport:wire)

@@ -13,9 +13,12 @@ import UIKit
         var device: PlayDeviceCaptureCoordinator!
         var owner: PlayerTaskEvidenceReviewController!
         var root: PlayerTaskEvidenceRootController!
-        let parent = UIViewController(), window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let parent = UIViewController()
+        let sceneWindow: HostedNavigationSceneWindow
+        var window: UIWindow { sceneWindow.window }
         var bytes = Data([1]), uploads: [Data] = []
         init(kind: String) throws {
+            sceneWindow = try HostedNavigationSceneWindow()
             session = try .init(accountID: 1, epoch: 1, namespace: "evidence-review-app-tests", token: "synthetic-token")
             transport = EvidenceReviewAppTransport(kind: kind)
             let service = PlayExperienceService(configuration: try .init(baseURL: URL(string: "https://example.test")!), transport: transport, enabled: [.reads, .playerCommands])
@@ -40,7 +43,7 @@ import UIKit
         }
         func close() {
             owner?.retire(); root?.willMove(toParent: nil); root?.view.removeFromSuperview(); root?.removeFromParent()
-            window.isHidden = true; window.rootViewController = nil
+            sceneWindow.retire()
         }
     }
     private func setup(_ kind: String = "SCAN") async throws -> Harness {
@@ -151,7 +154,7 @@ import UIKit
         let h = try Harness(kind: "SCAN"); await h.model.load(); let target = try h.model.evidenceTarget(nodeID: 701)
         let host = UIHostingController(rootView: PlayerTaskEvidenceView(target: target, player: h.model, device: h.device).environment(\.scenePhase, .active))
         h.window.rootViewController = host; h.window.makeKeyAndVisible(); host.view.layoutIfNeeded()
-        defer { h.window.isHidden = true; h.window.rootViewController = nil }
+        defer { h.sceneWindow.retire() }
         func anchor(_ root: UIViewController) -> PlayerTaskEvidenceRootController? {
             if let value = root as? PlayerTaskEvidenceRootController { return value }
             return root.children.compactMap { anchor($0) }.first

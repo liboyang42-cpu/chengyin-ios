@@ -71,8 +71,30 @@ public struct MerchantContentReceipt: Equatable {
     func load(_ query: MerchantContentQuery) async throws -> MerchantContentSnapshot
     func perform(_ command: MerchantContentCommand, baseline: MerchantContentSnapshot) async throws -> MerchantContentReceipt
     func pending() throws -> [MerchantContentPendingRecord]
+    func reconcileChapterInvitation(_ record: MerchantContentPendingRecord) async throws -> MerchantChapterInvitationReadback
+    func chapterReplacementInvitationEffects(scope: ChapterReplacementInvitationScope, publisherProof: ChapterReplacementInvitationPublisherProof?) -> ChapterReplacementInvitationEffects?
+    func chapterReplacementPublisherProof(topicID: Int, actorAccountID: Int, access: MerchantAccess?) async -> ChapterReplacementInvitationPublisherProof?
     func reconcile(_ record: MerchantContentPendingRecord) async throws -> MerchantContentReceipt
     func retryStation(_ record: MerchantContentPendingRecord) async throws -> MerchantContentReceipt
+}
+extension MerchantContentServing {
+    /// Readers that are not the real service cannot confirm a write.
+    public func permits(_ command: MerchantContentCommand) -> Bool { false }
+    /// Only the real service overrides this; other readers keep the intent lock untouched.
+    public func reconcileChapterInvitation(_ record: MerchantContentPendingRecord) async throws -> MerchantChapterInvitationReadback {
+        throw MerchantContentFailure.locked
+    }
+    public func chapterReplacementInvitationEffects(scope: ChapterReplacementInvitationScope, publisherProof: ChapterReplacementInvitationPublisherProof?) -> ChapterReplacementInvitationEffects? { nil }
+    /// No topic-publisher read on this reader. Fail closed: a nil proof cannot invite.
+    public func chapterReplacementPublisherProof(topicID: Int, actorAccountID: Int, access: MerchantAccess?) async -> ChapterReplacementInvitationPublisherProof? { nil }
+}
+/// Real-transport gate for chapter invite and accept/reject. Both default closed.
+public struct MerchantContentWriteApproval: Equatable {
+    public let chapterInvite: Bool
+    public let chapterRespond: Bool
+    public init(chapterInvite: Bool = false, chapterRespond: Bool = false) {
+        self.chapterInvite = chapterInvite; self.chapterRespond = chapterRespond
+    }
 }
 @MainActor public final class MerchantContentService: MerchantContentServing {
     /// This is a test-injection switch, never a production capability approval.
@@ -83,6 +105,7 @@ public struct MerchantContentReceipt: Equatable {
     private let onUnauthorized: (MerchantContentSession) -> Void
     private let journal: (any MerchantContentPendingStorage)?
     private let execution: Execution
+    private let writeApproval: () -> MerchantContentWriteApproval
     private let requiredMerchantID: Int?
     private var previous: MerchantContentSession?
     private var stamp = UUID()
@@ -90,9 +113,21 @@ public struct MerchantContentReceipt: Equatable {
     public var isConfigured: Bool { configuration != nil }
     public var isAuthenticated: Bool { currentSession() != nil }
     public var permitsWrites: Bool { execution == .injectedOfflineHarness && transport is any MerchantContentOfflineTransport && journal != nil }
-    public init(configuration: APIConfiguration?, transport: any HTTPTransport, currentSession: @escaping () -> MerchantContentSession?, journal: (any MerchantContentPendingStorage)? = nil, execution: Execution = .disabled, requiredMerchantID: Int? = nil, onUnauthorized: @escaping (MerchantContentSession) -> Void = { _ in }) {
+    /// Chapter invite / accept / reject on the real transport when this approval says so.
+    /// Every other command stays on `permitsWrites`. The offline harness is not this path.
+    public func permits(_ command: MerchantContentCommand) -> Bool {
+        if execution == .injectedOfflineHarness { return permitsWrites }
+        guard journal != nil, !(transport is any MerchantContentOfflineTransport) else { return false }
+        switch command {
+        case .invite: return writeApproval().chapterInvite
+        case .respondChapterInvitation: return writeApproval().chapterRespond
+        default: return false
+        }
+    }
+    public init(configuration: APIConfiguration?, transport: any HTTPTransport, currentSession: @escaping () -> MerchantContentSession?, journal: (any MerchantContentPendingStorage)? = nil, execution: Execution = .disabled, requiredMerchantID: Int? = nil, onUnauthorized: @escaping (MerchantContentSession) -> Void = { _ in }, writeApproval: @escaping () -> MerchantContentWriteApproval = { .init() }) {
         self.configuration = configuration; self.transport = transport; self.currentSession = currentSession
-        self.journal = journal; self.execution = execution; self.requiredMerchantID = requiredMerchantID; self.onUnauthorized = onUnauthorized; previous = currentSession()
+        self.journal = journal; self.execution = execution; self.writeApproval = writeApproval
+        self.requiredMerchantID = requiredMerchantID; self.onUnauthorized = onUnauthorized; previous = currentSession()
     }
     private enum Body { case none, json([String: MerchantContentValue]), form([String: String]) }
     private struct Envelope: Decodable { let code: Int; let msg: String?; let data: MerchantContentValue? }
@@ -131,7 +166,11 @@ public struct MerchantContentReceipt: Equatable {
             let permissions = Set((raw["permissions"].array ?? []).compactMap { $0.text })
             guard permissions.contains("merchant:marketing:read") else { throw MerchantContentFailure.denied }
         }
-        guard access.active, access.merchantID != nil, !query.requiresProjects || access.allows(.projects) else { throw MerchantContentFailure.denied }
+        if query.requiresCoopOwner {
+            guard MerchantChapterInvitation.accessAllows(access) else { throw MerchantContentFailure.denied }
+        } else {
+            guard access.active, access.merchantID != nil, !query.requiresProjects || access.allows(.projects) else { throw MerchantContentFailure.denied }
+        }
         if let requiredMerchantID {
             guard requiredMerchantID > 0, access.merchantID == requiredMerchantID else { throw MerchantContentFailure.denied }
         }
@@ -143,7 +182,7 @@ public struct MerchantContentReceipt: Equatable {
         let access = try await access(session, query: query)
         let value = try await document(query, session: session)
         try ensure(session)
-        return .init(query: query, scope: capturedScope, access: access, value: value, observedAt: Date())
+        return .init(query: query, scope: capturedScope, access: access, value: value, observedAt: Date(), ownerMemberID: session.accountID)
     }
     /// Cooperation-center plaza: same fresh `.recruiting` access gate, but keeps the whole
     /// marketing-home document so counts and truncation can be disclosed. Read-only.
@@ -221,11 +260,11 @@ public struct MerchantContentReceipt: Equatable {
             }
             let chapters = try accepted(e, session: s); guard chapters.array != nil else { throw MerchantContentFailure.malformed }
             return .object(["mode": .string("chapters"), "topic": topic, "chapters": chapters])
-        case .applications: value = try await read("api/merchant/chapter-application/mine", session: s)
+        case .applications, .chapterInvitations: value = try await read("api/merchant/chapter-application/mine", session: s)
         case .chapterNodes(let id): value = try await read("api/merchant/chapter-node/mine", .form(id.map { ["topicId": String($0)] } ?? [:]), session: s)
         case .upcoming(let id): value = try await read("api/merchant/upcoming-runs", .json(["topicId": .integer(id)]), session: s)
         case .ownerApplications(let id): value = try await read("api/merchant/chapter-application/owner-list", .json(["topicId": .integer(id)]), session: s)
-        case .invitable(let id): value = try await read("api/merchant/chapter-application/invitable", .json(["topicId": .integer(id)]), session: s)
+        case .invitable(let id): value = try await read("api/merchant/chapter-application/invitable", .json(ChapterReplacementInvitationInvitableRequest(topicID: id).fields()), session: s)
         case .pendingNodes(let id): value = try await read("api/merchant/chapter-node/pending", .form(["topicId": String(id)]), session: s)
         case .registrations(let filter): value = try await read("api/registration/merchant/list", .form(["status": String(filter)]), session: s)
         case .registration(let id):
@@ -268,7 +307,7 @@ public struct MerchantContentReceipt: Equatable {
             guard try MerchantStationProjection(value).activityID == id else { throw MerchantContentFailure.malformed }
         }
         switch q {
-        case .recruiting, .applications, .chapterNodes, .upcoming, .ownerApplications, .invitable, .pendingNodes, .claimable, .gameEntries:
+        case .recruiting, .applications, .chapterInvitations, .chapterNodes, .upcoming, .ownerApplications, .invitable, .pendingNodes, .claimable, .gameEntries:
             guard let rows = value.array, rows.allSatisfy({ $0.object != nil }) else { throw MerchantContentFailure.malformed }
             if q == .gameEntries {
                 guard rows.allSatisfy({ ($0["activityId"].safeInteger ?? 0) > 0 && ($0["topicId"].safeInteger ?? 0) > 0 && ($0["stationCount"].safeInteger ?? 0) > 0 && !($0["activityName"].text ?? "").isEmpty }) else { throw MerchantContentFailure.malformed }
@@ -291,7 +330,7 @@ public struct MerchantContentReceipt: Equatable {
         return try journal?.records().filter { $0.storageScope == session.storageScope && $0.accountID == session.accountID } ?? []
     }
     public func perform(_ command: MerchantContentCommand, baseline: MerchantContentSnapshot) async throws -> MerchantContentReceipt {
-        guard permitsWrites, let journal else { throw MerchantContentFailure.disabled }
+        guard permits(command), let journal else { throw MerchantContentFailure.disabled }
         guard let session = currentSession() else { throw APIError.unauthorized }
         let latest = try await load(baseline.query); try ensure(session)
         guard latest == baseline else { throw MerchantContentFailure.conflict }
@@ -313,6 +352,17 @@ public struct MerchantContentReceipt: Equatable {
             var receipt = MerchantContentReceipt(message: e.msg, data: e.data ?? .null, station: nil)
             if let station { receipt = try await stationReceipt(station, session: session) }
             if case .place = command { guard MerchantCityPlacementReceipt.applicationID(receipt.data) != nil else { throw MerchantContentFailure.unknown } }
+            if case .respondChapterInvitation = command {
+                // An ACK is not the fact. Read the original application back before clearing the lock.
+                try ensure(session)
+                let verdict = try await reconcileChapterInvitation(record)
+                switch verdict {
+                case .confirmedCurrentFact(let reason, let row), .oppositeTerminal(let reason, let row):
+                    return MerchantContentReceipt(message: reason ?? e.msg, data: row, station: nil)
+                case .stillPending, .missing, .conflict:
+                    throw MerchantContentFailure.unknown
+                }
+            }
             try ensure(session); try journal.remove(key: record.key)
             return receipt
         } catch {
@@ -325,6 +375,40 @@ public struct MerchantContentReceipt: Equatable {
         let data = try await read("api/game/session/receipt", query: ["activityId": String(command.activityID), "requestId": command.requestID], get: true, session: session)
         let receipt = try MerchantStationReceipt(data, command: command)
         return .init(message: receipt.reason, data: data, station: receipt)
+    }
+    /// Exact C7 readback after a lost respond response. Reads `mine` once, never resends the
+    /// respond, and removes the intent lock only when the exact row is in a terminal state.
+    /// Missing / conflicting / unreadable rows keep the lock (the thrown or returned verdict
+    /// is surfaced by the caller without claiming this submission caused the server fact).
+    public func reconcileChapterInvitation(_ record: MerchantContentPendingRecord) async throws -> MerchantChapterInvitationReadback {
+        guard let session = currentSession(), record.storageScope == session.storageScope, record.accountID == session.accountID,
+              let journal, try journal.records().contains(record), let intent = MerchantChapterInvitationIntent(record: record) else { throw MerchantContentFailure.locked }
+        let access = try await access(session, query: .chapterInvitations)
+        guard access.merchantID == record.merchantID, intent.merchantID == record.merchantID,
+              intent.ownerMemberID == session.accountID else { throw MerchantContentFailure.denied }
+        let value = try await read("api/merchant/chapter-application/mine", session: session)
+        guard let rows = value.array ?? value["rows"].array else { throw MerchantContentFailure.malformed }
+        let verdict = MerchantChapterInvitationReadback.evaluate(intent: intent, row: rows.first { $0["id"].integer == intent.applicationID }, currentOwnerMemberID: session.accountID)
+        if verdict.clearsIntentLock { try ensure(session); try journal.remove(key: record.key) }
+        return verdict
+    }
+    /// After a successful C9 readback, remove the one invite row for this account,
+    /// namespace, and chapter/member/replacement/scope. The message bit is ignored.
+    /// Another account, another namespace, or two matching rows leaves every row in place.
+    public func releaseChapterReplacementInviteLock(_ plan: ChapterReplacementInvitationPlan) throws {
+        guard let session = currentSession(), session.accountID == plan.actorAccountID, let journal else {
+            throw ChapterReplacementInvitationFailure.unknown
+        }
+        let scope = plan.scope.wireValue ?? "SELF"
+        let prefix = "invite:\(plan.candidate.chapterID):\(plan.candidate.merchantMemberID):\(plan.candidate.replacementOfOfferID):\(scope):"
+        let tuple = try journal.records().filter { row in
+            guard row.action == "invite", row.station == nil, row.target.hasPrefix(prefix) else { return false }
+            let bit = row.target.dropFirst(prefix.count)
+            return bit == "0" || bit == "1"
+        }
+        let mine = tuple.filter { $0.accountID == session.accountID && $0.storageScope == session.storageScope }
+        if tuple.count != mine.count || mine.count > 1 { throw ChapterReplacementInvitationFailure.unknown }
+        if let row = mine.first { try journal.remove(key: row.key) }
     }
     public func reconcile(_ record: MerchantContentPendingRecord) async throws -> MerchantContentReceipt {
         guard let session = currentSession(), record.storageScope == session.storageScope, record.accountID == session.accountID,
@@ -360,3 +444,87 @@ public struct MerchantContentReceipt: Equatable {
     }
 
 }
+
+extension MerchantContentService {
+    /// C9 adapter over this service's real endpoints. `sendInvite` requires the
+    /// caller-supplied publisher proof to verify this plan's topic and actor. This
+    /// method does not fetch or invent that proof. It re-loads the `.invitable`
+    /// baseline, then performs the invite exactly once through the existing
+    /// journal/`perform` path. `permits` is the chapter-invite gate. Nothing here retries.
+    public func chapterReplacementInvitationEffects(scope: ChapterReplacementInvitationScope, publisherProof: ChapterReplacementInvitationPublisherProof?) -> ChapterReplacementInvitationEffects? {
+        return ChapterReplacementInvitationEffects(
+            loadVacancyRows: { [weak self] topic in
+                guard let self else { throw ChapterReplacementInvitationFailure.unknown }
+                return try await self.load(.ownerApplications(topicID: topic)).rows
+            },
+            loadCandidateRows: { [weak self] request in
+                guard let self else { throw ChapterReplacementInvitationFailure.unknown }
+                return try await self.chapterReplacementRows(path: ChapterReplacementInvitationInvitableRequest.path, fields: request.fields(), gate: .invitable(topicID: request.topicID))
+            },
+            loadExistingRows: { [weak self] topic, _ in
+                guard let self else { throw ChapterReplacementInvitationFailure.unknown }
+                return try await self.load(.ownerApplications(topicID: topic)).rows
+            },
+            sendInvite: { [weak self] plan in
+                guard let self else { throw ChapterReplacementInvitationFailure.unknown }
+                guard let publisherProof, publisherProof.verified,
+                      publisherProof.topicID == plan.topicID,
+                      publisherProof.actorAccountID == plan.actorAccountID else {
+                    throw ChapterReplacementInvitationFailure.notTopicPublisher
+                }
+                // Closed execution never reaches the invite POST. This is a definitive
+                // local refusal, not an unknown outcome, so the intent lock is released.
+                guard self.permits(.invite(chapterID: plan.candidate.chapterID, merchantMemberID: plan.candidate.merchantMemberID,
+                                           replacementOfOfferID: plan.candidate.replacementOfOfferID, scope: plan.scope.wireValue, message: plan.message)) else {
+                    throw ChapterReplacementInvitationFailure.denied
+                }
+                let baseline = try await self.load(.invitable(topicID: plan.topicID))
+                do {
+                    _ = try await self.perform(.invite(chapterID: plan.candidate.chapterID, merchantMemberID: plan.candidate.merchantMemberID,
+                                                       replacementOfOfferID: plan.candidate.replacementOfOfferID, scope: plan.scope.wireValue, message: plan.message),
+                                               baseline: baseline)
+                } catch MerchantContentFailure.unknown {
+                    throw ChapterReplacementInvitationFailure.unknown
+                } catch MerchantContentFailure.disabled {
+                    throw ChapterReplacementInvitationFailure.denied
+                } catch MerchantContentFailure.rejected {
+                    throw ChapterReplacementInvitationFailure.denied
+                } catch MerchantContentFailure.denied {
+                    throw ChapterReplacementInvitationFailure.denied
+                }
+            },
+            loadOwnerListRows: { [weak self] request in
+                guard let self else { throw ChapterReplacementInvitationFailure.unknown }
+                return try await self.chapterReplacementRows(path: ChapterReplacementInvitationOwnerListRequest.path, fields: request.fields(), gate: .ownerApplications(topicID: request.topicID))
+            },
+            loadOwnerMineRows: { [weak self] request in
+                guard let self else { throw ChapterReplacementInvitationFailure.unknown }
+                return try await self.chapterReplacementRows(path: ChapterReplacementInvitationOwnerMineRequest.path, fields: request.fields(), gate: .projects)
+            },
+            releaseInviteLock: { [weak self] plan in
+                guard let self else { throw ChapterReplacementInvitationFailure.unknown }
+                try self.releaseChapterReplacementInviteLock(plan)
+            })
+    }
+    /// Fresh `api/topic/info-to-user` for this signed-in member only.
+    /// The merchant-visible topic document is not a publisher proof, and
+    /// access/me's owner member id is not substituted for the actor.
+    public func chapterReplacementPublisherProof(topicID: Int, actorAccountID: Int, access: MerchantAccess?) async -> ChapterReplacementInvitationPublisherProof? {
+        guard topicID > 0, actorAccountID > 0, let session = currentSession(), session.accountID == actorAccountID else { return nil }
+        let mapped = access?.active == true && access?.isOwner == true && access?.allows(.projects) == true
+        do {
+            let value = try await read("api/topic/info-to-user", .form(["id": String(topicID)]), session: session)
+            try ensure(session)
+            return ChapterReplacementInvitationPublisherProof.fromFreshTopicRead(
+                topicID: topicID, actorAccountID: actorAccountID, document: value, projectManageOwnerMapped: mapped)
+        } catch { return nil }
+    }
+    fileprivate func chapterReplacementRows(path: String, fields: [String: MerchantContentValue], gate: MerchantContentQuery) async throws -> [MerchantContentValue] {
+        guard let session = currentSession() else { throw APIError.unauthorized }
+        _ = try await access(session, query: gate)
+        let value = try await read(path, .json(fields), session: session)
+        guard let rows = value.array ?? value["rows"].array else { throw MerchantContentFailure.malformed }
+        try ensure(session); return rows
+    }
+}
+

@@ -199,6 +199,160 @@ import FoundationNetworking
         await reopened.load(.refund(try .init(31))); reopened.prepare(try mutation())
         XCTAssertNil(reopened.confirmation); XCTAssertEqual(reopened.failure, .pending); XCTAssertEqual(wire.writes, 1)
     }
+    // These are real production factory/reader/coordinator calls over a held test wire.
+    // No test creates a dispatch authorization or bypasses the durable reservation gate.
+    private func heldReader(_ wire: HeldResponseWire, current: @escaping () -> RuntimeDependencyContext?,
+                            onUnauthorized: @escaping (MerchantBusinessSession) -> Void) throws -> MerchantBusinessSessionReader {
+        let api = try APIConfiguration(baseURL: url), grant = try approval(mutation())
+        return MerchantBusinessSessionReader(service: .init(configuration: api, readTransport: wire), currentSession: {
+            guard let c = current() else { return nil }
+            return try? .init(accountID: c.session.accountID, epoch: c.session.epoch, token: c.session.token)
+        }, productionService: { mutation, merchantID in
+            MerchantBusinessProductionFactory(api: api, approval: grant, transport: wire, current: current)
+                .service(for: mutation, merchantID: merchantID)
+        }, runtimeContext: current, onUnauthorized: onUnauthorized)
+    }
+    private func checkHeldAuthentication(_ response: (Data, Int), cancelled: Bool) async throws {
+        var live: RuntimeDependencyContext? = try context()
+        let sent = try XCTUnwrap(live), wire = HeldResponseWire(), journal = ReentrantJournal()
+        var expired: [MerchantBusinessSession] = []
+        let reader = try heldReader(wire, current: { live }, onUnauthorized: { expired.append($0); live = nil })
+        let coordinator = MerchantBusinessCoordinator(reader: reader, journal: journal)
+        let pending = try await review(coordinator)
+        let task = Task { await coordinator.confirm(pending) }
+        let held = await wire.waitUntilHeld()
+        guard held else { task.cancel(); wire.finish(.failure(URLError(.cancelled))); await task.value; XCTFail("Expected the original POST to reach the held wire"); return }
+        let original = try journal.intents()
+        XCTAssertEqual(original.count, 1)
+        if cancelled { task.cancel() }
+        wire.finish(.success(response)); await task.value
+        XCTAssertEqual(expired, [try MerchantBusinessSession(accountID: sent.session.accountID, epoch: sent.session.epoch, token: sent.session.token)])
+        XCTAssertNil(live); XCTAssertNil(coordinator.receipt)
+        XCTAssertEqual(try journal.intents(), original); XCTAssertEqual(wire.base.writes, 1)
+        // A newly authenticated same owner can read again, but cannot retransmit this intent.
+        live = try context(epoch: 2)
+        let reopened = MerchantBusinessCoordinator(reader: reader, journal: journal)
+        await reopened.load(.refund(try .init(31))); reopened.prepare(try mutation())
+        XCTAssertNil(reopened.confirmation); XCTAssertEqual(reopened.failure, .pending)
+        XCTAssertEqual(try journal.intents(), original); XCTAssertEqual(wire.base.writes, 1)
+    }
+    func testHeldCurrentHTTPAndBusiness401ReachCapturedUnauthorized() async throws {
+        for response in [(Data(), 401), (Data(#"{"code":401}"#.utf8), 200), (Data(#"{"code":"401"}"#.utf8), 201)] {
+            try await checkHeldAuthentication(response, cancelled: false)
+        }
+    }
+    func testHeldCancelledHTTPAndBusiness401StillReachCapturedUnauthorized() async throws {
+        for response in [(Data(), 401), (Data(#"{"code":401}"#.utf8), 200), (Data(#"{"code":"401"}"#.utf8), 201)] {
+            try await checkHeldAuthentication(response, cancelled: true)
+        }
+    }
+    func testHeld401AfterConfirmationRetirementStillExpiresOnlyCapturedCredential() async throws {
+        let current = try context(), wire = HeldResponseWire(), journal = ReentrantJournal()
+        var expired: [MerchantBusinessSession] = []
+        let reader = try heldReader(wire, current: { current }, onUnauthorized: { expired.append($0) })
+        let coordinator = MerchantBusinessCoordinator(reader: reader, journal: journal)
+        let pending = try await review(coordinator)
+        let task = Task { await coordinator.confirm(pending) }
+        let held = await wire.waitUntilHeld()
+        guard held else { task.cancel(); wire.finish(.failure(URLError(.cancelled))); await task.value; XCTFail("Expected held POST"); return }
+        let original = try journal.intents(); coordinator.cancelConfirmation()
+        wire.finish(.success((Data(), 401))); await task.value
+        XCTAssertEqual(expired.count, 1); XCTAssertEqual(expired.first?.accountID, 21)
+        XCTAssertEqual(try journal.intents(), original); XCTAssertNil(coordinator.receipt)
+        XCTAssertEqual(coordinator.failure, .unknown); XCTAssertTrue(coordinator.isLocked)
+    }
+    func testHeldOld401CannotExpireReplacementAccountEpochOrToken() async throws {
+        let replacements = [
+            RuntimeDependencyContext(market: .china, baseURL: url, role: "merchant", session: try .init(accountID: 22, epoch: 1, namespace: "merchant-cn", token: "test-token")),
+            try context(epoch: 2),
+            RuntimeDependencyContext(market: .china, baseURL: url, role: "merchant", session: try .init(accountID: 21, epoch: 1, namespace: "merchant-cn", token: "replacement-token")),
+            try context(role: "member"), try context(namespace: "replacement-namespace"),
+            RuntimeDependencyContext(market: .china, baseURL: URL(string: "https://replacement.example.com")!, role: "merchant", session: try context().session)
+        ]
+        for successor in replacements {
+            var live: RuntimeDependencyContext? = try context()
+            let wire = HeldResponseWire(), journal = ReentrantJournal()
+            var expired: [MerchantBusinessSession] = []
+            let reader = try heldReader(wire, current: { live }, onUnauthorized: { expired.append($0) })
+            let coordinator = MerchantBusinessCoordinator(reader: reader, journal: journal)
+            let pending = try await review(coordinator)
+            let task = Task { await coordinator.confirm(pending) }
+            let held = await wire.waitUntilHeld()
+            guard held else { task.cancel(); wire.finish(.failure(URLError(.cancelled))); await task.value; XCTFail("Expected held POST"); return }
+            let original = try journal.intents()
+            live = successor; task.cancel(); wire.finish(.success((Data(), 401))); await task.value
+            XCTAssertTrue(expired.isEmpty); XCTAssertEqual(live, successor)
+            XCTAssertEqual(try journal.intents(), original); XCTAssertNil(coordinator.receipt); XCTAssertEqual(wire.base.writes, 1)
+        }
+    }
+    func testHeldCancelledNonAuthenticationRepliesNeverExpireOrSettle() async throws {
+        let responses = [(Data(#"{"code":200,"data":{"id":41,"refundId":31,"decision":"AGREE","refunded":false}}"#.utf8), 200),
+                         (Data(#"{"code":true}"#.utf8), 200), (Data(#"{"code":401.5}"#.utf8), 200),
+                         (Data(#"{"code":null}"#.utf8), 200), (Data(#"{"data":{}}"#.utf8), 200),
+                         (Data("not-json".utf8), 200), (Data(#"{"code":401}"#.utf8), 403),
+                         (Data(#"{"code":401}"#.utf8), 500)]
+        for response in responses {
+            let current = try context(), wire = HeldResponseWire(), journal = ReentrantJournal()
+            var expired: [MerchantBusinessSession] = []
+            let reader = try heldReader(wire, current: { current }, onUnauthorized: { expired.append($0) })
+            let coordinator = MerchantBusinessCoordinator(reader: reader, journal: journal)
+            let pending = try await review(coordinator)
+            let task = Task { await coordinator.confirm(pending) }
+            let held = await wire.waitUntilHeld()
+            guard held else { task.cancel(); wire.finish(.failure(URLError(.cancelled))); await task.value; XCTFail("Expected held POST"); return }
+            let original = try journal.intents(); task.cancel(); wire.finish(.success(response)); await task.value
+            XCTAssertTrue(expired.isEmpty); XCTAssertEqual(try journal.intents(), original)
+            XCTAssertNil(coordinator.receipt); XCTAssertEqual(wire.base.writes, 1)
+        }
+    }
+    func testHeldCancelledNetworkErrorIsNotInventedAuthenticationFailure() async throws {
+        let current = try context(), wire = HeldResponseWire(), journal = ReentrantJournal()
+        var expired: [MerchantBusinessSession] = []
+        let reader = try heldReader(wire, current: { current }, onUnauthorized: { expired.append($0) })
+        let coordinator = MerchantBusinessCoordinator(reader: reader, journal: journal)
+        let pending = try await review(coordinator)
+        let task = Task { await coordinator.confirm(pending) }
+        let held = await wire.waitUntilHeld()
+        guard held else { task.cancel(); wire.finish(.failure(URLError(.cancelled))); await task.value; XCTFail("Expected held POST"); return }
+        let original = try journal.intents(); task.cancel(); wire.finish(.failure(URLError(.timedOut))); await task.value
+        XCTAssertTrue(expired.isEmpty); XCTAssertEqual(try journal.intents(), original)
+        XCTAssertNil(coordinator.receipt); XCTAssertEqual(wire.base.writes, 1)
+    }
+    func testHeldCurrentSuccessStillSettlesExactlyOriginalIntentOnce() async throws {
+        let current = try context(), wire = HeldResponseWire(), journal = ReentrantJournal()
+        var expired: [MerchantBusinessSession] = []
+        let reader = try heldReader(wire, current: { current }, onUnauthorized: { expired.append($0) })
+        let coordinator = MerchantBusinessCoordinator(reader: reader, journal: journal)
+        let pending = try await review(coordinator)
+        let task = Task { await coordinator.confirm(pending) }
+        let held = await wire.waitUntilHeld()
+        guard held else { task.cancel(); wire.finish(.failure(URLError(.cancelled))); await task.value; XCTFail("Expected held POST"); return }
+        wire.finish(.success(try XCTUnwrap(wire.originalResponse))); await task.value
+        XCTAssertTrue(expired.isEmpty); XCTAssertTrue(try journal.intents().isEmpty)
+        XCTAssertNotNil(coordinator.receipt); XCTAssertEqual(wire.base.writes, 1)
+        await coordinator.confirm(pending); XCTAssertEqual(wire.base.writes, 1)
+    }
+    @MainActor private final class HeldResponseWire: HTTPTransport {
+        let base = Wire()
+        private var pending: CheckedContinuation<(Data, Int), Error>?
+        private var earlyFinish: Result<(Data, Int), Error>?
+        private(set) var originalResponse: (Data, Int)?
+        func send(_ request: URLRequest) async throws -> (Data, Int) {
+            let response = try await base.send(request)
+            guard request.url?.path == "/api/merchant/aftercare/respond" else { return response }
+            originalResponse = response
+            if let earlyFinish { return try earlyFinish.get() }
+            return try await withCheckedThrowingContinuation { pending = $0 }
+        }
+        func waitUntilHeld() async -> Bool {
+            for _ in 0..<1000 { if pending != nil { return true }; await Task.yield() }
+            return false
+        }
+        func finish(_ response: Result<(Data, Int), Error>) {
+            let captured = pending; pending = nil
+            if let captured { captured.resume(with: response) } else { earlyFinish = response }
+        }
+    }
     @MainActor private final class ReentrantJournal: MerchantBusinessIntentStore {
         let isDurable = true; var rows: [MerchantBusinessIntent] = []; var onReserve: (() -> Void)?
         func intents() throws -> [MerchantBusinessIntent] { rows }

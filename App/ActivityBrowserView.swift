@@ -140,12 +140,21 @@ struct AmountLabel: View {
         formatter.minimumFractionDigits=2;formatter.maximumFractionDigits=2
         return formatter.string(from:NSDecimalNumber(decimal:amount))
     }
+    var captionKey: String? = nil
     var body: some View {
         if let formatted {
-            VStack(alignment:.leading,spacing:4) {
-                Text(formatted).monospacedDigit()
-                Text("activity.currencyUnconfirmed").font(.caption).foregroundStyle(.primary)
-            }
+            RevolutAmountView(figure: formatted, label: quietLabel(includeCurrency: true))
+        } else if let captionKey {
+            RevolutAmountView(figure: appLocalized("activity.priceUnknown", locale: locale), label: localized(captionKey))
         } else { Text("activity.priceUnknown").foregroundStyle(.secondary) }
+    }
+    private func quietLabel(includeCurrency: Bool) -> String {
+        var parts: [String] = []
+        if let captionKey { parts.append(localized(captionKey)) }
+        if includeCurrency { parts.append(appLocalized("activity.currencyUnconfirmed", locale: locale)) }
+        return parts.joined(separator: "\n")
+    }
+    private func localized(_ key: String) -> String {
+        appLocalized(String.LocalizationValue(stringLiteral: key), locale: locale)
     }
 }

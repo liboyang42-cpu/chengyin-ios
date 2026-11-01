@@ -106,8 +106,11 @@ typealias WorkshopPaidInstalledTextControllerFactory = @MainActor (WorkshopPaidI
         guard let action else { return }; ownedTask?.cancel(); ownedTask = Task { await action() }
     }
     private func paidFact(_ key: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) { paidText(key).font(.caption).foregroundStyle(.secondary); Text(verbatim: value) }
+        RevolutInsetRow(title: paidLabel(key, locale: locale), value: value)
             .fixedSize(horizontal: false, vertical: true)
     }
+}
+private func paidLabel(_ key: String, locale: Locale) -> String {
+    String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: "workshopPaidInstalledText." + key), table: "WorkshopPaidInstalledText", locale: locale))
 }
 private func paidText(_ key: String) -> Text { Text(LocalizedStringKey("workshopPaidInstalledText." + key), tableName: "WorkshopPaidInstalledText") }

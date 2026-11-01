@@ -1,5 +1,22 @@
 import SwiftUI
 
+private struct AccountCollectionFavoritesGateKey: Hashable {
+    let readerID: ObjectIdentifier
+    let readerScope: UUID
+    let gateID: ObjectIdentifier?
+    let gateScope: UUID?
+    let authenticated: Bool
+    let configured: Bool
+    @MainActor init(reader: any AccountCollectionReading, gate: (any SquareCommunityFeatureReading)?) {
+        readerID = ObjectIdentifier(reader)
+        readerScope = reader.scope
+        gateID = gate.map { ObjectIdentifier($0) }
+        gateScope = gate?.scope
+        authenticated = reader.isAuthenticated
+        configured = reader.isConfigured
+    }
+}
+
 @MainActor struct AccountCollectionFavoritesView: View {
     let reader: any AccountCollectionReading
     let onOpenTopic: (Int) -> Void
@@ -8,11 +25,11 @@ import SwiftUI
     var favoriteRemoval: ProfileFavoriteRemovalController? = nil
     var communityGate: (any SquareCommunityFeatureReading)? = nil
     @State private var selectedTab: Tab = .posts
-    @State private var gateFeatures: SquareCommunityFeatures?
-    @State private var gateScope: UUID?
-    @State private var gateFailed = false
+    @State private var gateModel = AccountCollectionCommunityGateModel()
     private enum Tab: Hashable { case posts, topics }
-    private var postsAllowed: Bool { guard let communityGate else { return true }; return gateScope == communityGate.scope && gateFeatures?.read == true && !gateFailed }
+    private var gateKey: AccountCollectionFavoritesGateKey { AccountCollectionFavoritesGateKey(reader: reader, gate: communityGate) }
+    /// Nil, signed-out, unconfigured, pending, denied, and failed all stay closed.
+    private var postsAllowed: Bool { gateModel.postsAllowed(reader: reader, gate: communityGate) }
     var body: some View {
         VStack(spacing: 0) {
             if postsAllowed {
@@ -27,33 +44,14 @@ import SwiftUI
                 AccountCollectionFavoritePostsView(reader: reader, pageSize: pageSize, onOpenPost: onOpenPost, favoriteRemoval: favoriteRemoval)
             } else {
                 AccountCollectionFavoriteTopicsView(reader: reader, onOpenTopic: onOpenTopic, pageSize: pageSize, retryGate: {
-                    if gateFailed || gateScope != communityGate?.scope { await loadGate() }
+                    await gateModel.load(reader: { reader }, gate: { communityGate }, forceRetry: gateModel.failed)
                 })
             }
         }
         .appNavigationTitle("accountCollection.favorites.title")
-        .task(id: communityGate?.scope) { await loadGate() }
-        .onChange(of: communityGate?.scope) { _, next in
-            if gateScope != next { gateFeatures = nil; gateScope = nil; gateFailed = false }
-        }
-        .onChange(of: reader.scope) { _, _ in
-            gateFeatures = nil; gateScope = nil; gateFailed = false
-        }
-    }
-    private func loadGate() async {
-        guard let communityGate, reader.isAuthenticated, reader.isConfigured else {
-            gateFeatures = nil; gateScope = nil; gateFailed = false; return
-        }
-        guard gateScope != communityGate.scope else { return }
-        let scope = communityGate.scope
-        gateFailed = false
-        do {
-            let value = try await communityGate.communityFeatures()
-            guard !Task.isCancelled, scope == communityGate.scope else { return }
-            gateFeatures = value; gateScope = scope; gateFailed = false
-        } catch {
-            guard !Task.isCancelled, !(error is CancellationError), scope == communityGate.scope else { return }
-            gateFeatures = nil; gateScope = nil; gateFailed = true
+        .task(id: gateKey) { await gateModel.load(reader: { reader }, gate: { communityGate }) }
+        .onChange(of: gateKey) { _, _ in
+            gateModel.invalidateIfIdentityChanged(reader: { reader }, gate: { communityGate })
         }
     }
 }
@@ -121,9 +119,11 @@ import SwiftUI
     private func refresh() async {
         guard reader.isAuthenticated, reader.isConfigured else { model.invalidate(); return }
         unliked = []
-        await retryGate?()
+        async let gateReload: Void = reloadGate()
         await model.refresh(reader: reader, pageSize: pageSize)
+        await gateReload
     }
+    private func reloadGate() async { await retryGate?() }
     private func loadMore() async {
         guard reader.isAuthenticated, reader.isConfigured else { model.invalidate(); return }
         await model.loadMore(reader: reader, pageSize: pageSize)
@@ -156,6 +156,7 @@ private struct AccountCollectionFavoriteCard: View {
     let reader: any AccountCollectionReading
     let onOpenTopic: (Int) -> Void
     var rewards: (any NonCashRewardReading)? = nil
+    var pledge: RewardPledgeEntry? = nil
     var onOpenPost: ((SquareContentRoute) -> Void)? = nil
     var favoriteRemoval: ProfileFavoriteRemovalController? = nil
     var couponReader: (any AccountCollectionReading)? = nil
@@ -168,7 +169,7 @@ private struct AccountCollectionFavoriteCard: View {
         let saved = savedReader, renderedScope = saved.scope
         Section {
             NavigationLink {
-                NonCashRewardsView(reader: reader, rewards: rewards, merchantHome: rewardMerchant).id(reader.scope)
+                NonCashRewardsView(reader: reader, rewards: rewards, merchantHome: rewardMerchant, pledge: pledge).id(reader.scope)
             } label: { Label("rewards.title", systemImage: "gift") }
             .accessibilityIdentifier("rewards.open")
             NavigationLink {

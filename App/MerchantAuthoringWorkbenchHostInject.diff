@@ -1,0 +1,43 @@
+--- a/App/MerchantHomeView.swift
++++ b/App/MerchantHomeView.swift
+@@ -18,6 +18,7 @@
+     var exportRecovery: (any MerchantExportRecoveryStoring)? = nil
+     var showsRecordLinks = true
+     var predictionReader: MerchantPredictionReader? = nil
++    var authoringCoordinator: MerchantAuthoringCoordinator? = nil
+     @StateObject private var access = MerchantLoadModel<MerchantAccess>()
+ 
+     var body: some View {
+@@ -28,7 +29,7 @@
+                 ContentUnavailableView("merchant.title", systemImage: "person.crop.circle.badge.exclamationmark", description: Text("merchant.signIn"))
+             } else if access.loadedRevision == reader.sessionRevision, let identity = access.value {
+                 if identity.active {
+-                    MerchantWorkbench(reader: reader, access: identity, marketingModel: marketingModel, marketingDestination: marketingDestination, operationsReader: operationsReader, operationsDestinationFactory: operationsDestinationFactory, businessReader: businessReader, businessJournal: businessJournal, contentService: contentService, cooperationFlowReader: cooperationFlowReader, engagementReader: engagementReader, exportRecovery: exportRecovery, showsRecordLinks: showsRecordLinks, predictionReader: predictionReader, refreshAccess: reload)
++                    MerchantWorkbench(reader: reader, access: identity, marketingModel: marketingModel, marketingDestination: marketingDestination, operationsReader: operationsReader, operationsDestinationFactory: operationsDestinationFactory, businessReader: businessReader, businessJournal: businessJournal, contentService: contentService, cooperationFlowReader: cooperationFlowReader, engagementReader: engagementReader, exportRecovery: exportRecovery, showsRecordLinks: showsRecordLinks, predictionReader: predictionReader, authoringCoordinator: authoringCoordinator, refreshAccess: reload)
+                         .id("\(reader.sessionRevision):\(identity.merchantID ?? 0):\(identity.role?.rawValue ?? "")")
+                 } else {
+                     List {
+@@ -79,6 +80,7 @@
+     let exportRecovery: (any MerchantExportRecoveryStoring)?
+     let showsRecordLinks: Bool
+     let predictionReader: MerchantPredictionReader?
++    let authoringCoordinator: MerchantAuthoringCoordinator?
+     let refreshAccess: () async -> Void
+     @StateObject private var dashboard = MerchantLoadModel<MerchantDashboard>()
+     @StateObject private var todo = MerchantLoadModel<MerchantTodo>()
+@@ -109,6 +111,15 @@
+                 // Source merchant tools expose this entry. Visibility is separate from service/AI/settlement grants.
+                 Section { MerchantMarketingEntry(model: marketingModel, isSourceVisible: true, suggestionDestination: marketingDestination,
+                     recommendationOrigin: .init(merchantID: access.merchantID, readerScope: operationsReader?.scope)) }
++            }
++            if let authoringCoordinator {
++                // Unapplied host inject. Call adopt with the signed-in account, merchant, this store, and the permission revision before presentation and whenever those change.
++                Section {
++                    NavigationLink {
++                        MerchantAuthoringView(coordinator: authoringCoordinator, owner: authoringCoordinator.owner)
++                    } label: { Text(verbatim: "本店 AI 草稿") }
++                    .accessibilityIdentifier("merchant.authoring.open")
++                }
+             }
+             if let operationsReader {
+                 Section {

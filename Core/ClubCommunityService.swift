@@ -79,17 +79,142 @@ public final class ClubCommunityCoordinator {
     private let service: ClubCommunityService
     private let currentSession: () throws -> ClubCommunitySession
     private let refreshEvidence: (ClubCommunityEvidence) async throws -> ClubCommunityEvidence
+    private let journal: any ClubCommunityPendingJournal
+    private let namespace: () -> String
+    private let outcomeQuery: any ClubCommunityPendingOutcomeQuerying
     private var locks: Set<String> = []
     private var consumed: Set<UUID> = []
     private var generation: UInt64 = 0
     public private(set) var review: ClubCommunityReview?
     public private(set) var outcome: ClubCommunityOutcome = .idle
     public var permitsInjectedWrites: Bool { service.allowsInjectedWrites }
-    public init(service: ClubCommunityService, currentSession: @escaping () throws -> ClubCommunitySession, refreshEvidence: @escaping (ClubCommunityEvidence) async throws -> ClubCommunityEvidence) {
-        self.service = service; self.currentSession = currentSession; self.refreshEvidence = refreshEvidence
+    public var permitsAuthoritativeOutcomeQueries: Bool { outcomeQuery.allowsAuthoritativeQueries }
+    public init(
+        service: ClubCommunityService,
+        currentSession: @escaping () throws -> ClubCommunitySession,
+        refreshEvidence: @escaping (ClubCommunityEvidence) async throws -> ClubCommunityEvidence,
+        journal: (any ClubCommunityPendingJournal)? = nil,
+        namespace: @escaping () -> String = { "default" },
+        outcomeQuery: (any ClubCommunityPendingOutcomeQuerying)? = nil
+    ) {
+        self.service = service
+        self.currentSession = currentSession
+        self.refreshEvidence = refreshEvidence
+        self.journal = journal ?? ClubCommunityInMemoryPendingJournal()
+        self.namespace = namespace
+        self.outcomeQuery = outcomeQuery ?? ClubCommunityDormantPendingOutcomeQuery()
+    }
+    private func lockKey(for evidence: ClubCommunityEvidence) -> String {
+        "\(evidence.identity.accountID ?? 0):\(evidence.clubID):\(evidence.post?.id ?? 0):\(evidence.comment?.id ?? 0)"
+    }
+    private func pendingTarget(for evidence: ClubCommunityEvidence) throws -> ClubCommunityPendingTarget {
+        try ClubCommunityPendingTarget(evidence: evidence, namespace: namespace())
+    }
+    public func pendingRecord(for evidence: ClubCommunityEvidence) -> ClubCommunityPendingRecord? {
+        guard recoverPendingLock(for: evidence),
+              let target = try? pendingTarget(for: evidence) else { return nil }
+        return try? journal.record(for: target)
+    }
+    /// Recovers any unresolved `sending` or `unknownLocked` journal record across restarts.
+    /// Never pretends the operation succeeded or disambiguates by list/content guessing.
+    @discardableResult
+    public func recoverPendingLock(for evidence: ClubCommunityEvidence) -> Bool {
+        let key = lockKey(for: evidence)
+        if locks.contains(key) { return true }
+        do {
+            let target = try pendingTarget(for: evidence)
+            if let existing = try journal.record(for: target) {
+                locks.insert(key)
+                if existing.phase == .sending {
+                    try? journal.markUnknown(target: target, operationID: existing.operationID)
+                }
+                outcome = .unknownLocked
+                return true
+            }
+            return false
+        } catch {
+            locks.insert(key)
+            outcome = .unknownLocked
+            return true
+        }
+    }
+    /// Releases a recovered lock ONLY when an explicit authoritative resolution matching the exact
+    /// persisted `operationID` is supplied (never from post/comment list reads or content matching).
+    public func resolvePendingLock(
+        for evidence: ClubCommunityEvidence,
+        resolution: ClubCommunityAuthoritativeResolution
+    ) throws {
+        let target = try pendingTarget(for: evidence)
+        let existing = try journal.record(for: target)
+        try journal.releaseAfterAuthoritativeOutcome(target: target, resolution: resolution)
+        locks.remove(lockKey(for: evidence))
+        switch resolution {
+        case .acknowledged:
+            if existing?.operationKind == "report" || existing?.operationKind == "reportComment" {
+                outcome = .moderationQueued
+            } else {
+                outcome = .acknowledgedRefreshRequired
+            }
+        case .rejected:
+            outcome = .rejected
+        }
+    }
+    /// Queries the authoritative same-request outcome for an unresolved pending operation on `evidence`.
+    /// Never generates a new request ID, never re-submits the write, and never infers success from list reads.
+    @discardableResult
+    public func reconcilePendingOperation(for evidence: ClubCommunityEvidence) async throws -> ClubCommunityOutcome {
+        let target: ClubCommunityPendingTarget
+        let existing: ClubCommunityPendingRecord
+        do {
+            target = try pendingTarget(for: evidence)
+            guard let record = try journal.record(for: target) else {
+                throw ClubCommunityFailure.invalid
+            }
+            if record.phase == .sending {
+                try journal.markUnknown(target: target, operationID: record.operationID)
+                existing = try journal.record(for: target) ?? record
+            } else {
+                existing = record
+            }
+        } catch let error as ClubCommunityFailure {
+            throw error
+        } catch {
+            locks.insert(lockKey(for: evidence))
+            outcome = .unknownLocked
+            throw ClubCommunityFailure.locked
+        }
+        locks.insert(lockKey(for: evidence))
+        outcome = .unknownLocked
+        let session = try currentSession()
+        guard session.identity.isSignedIn,
+              session.identity.accountID == existing.target.accountID else {
+            throw ClubCommunityFailure.stale
+        }
+        let queryResult = try await outcomeQuery.queryOutcome(for: existing, session: session) {
+            guard try self.currentSession() == session else { throw ClubCommunityFailure.stale }
+        }
+        switch queryResult {
+        case .stillPending:
+            locks.insert(lockKey(for: evidence))
+            outcome = .unknownLocked
+            return .unknownLocked
+        case .resolved(let resolution):
+            guard resolution.operationID == existing.operationID else {
+                throw ClubCommunityFailure.locked
+            }
+            do {
+                try resolvePendingLock(for: evidence, resolution: resolution)
+                return outcome
+            } catch {
+                locks.insert(lockKey(for: evidence))
+                outcome = .unknownLocked
+                throw ClubCommunityFailure.locked
+            }
+        }
     }
     public func prepare(_ operation: ClubCommunityOperation, evidence: ClubCommunityEvidence) async throws -> ClubCommunityReview {
         guard permitsInjectedWrites else { throw ClubCommunityFailure.unavailable }
+        guard !recoverPendingLock(for: evidence) else { throw ClubCommunityFailure.locked }
         generation &+= 1; let ticket = generation
         let session = try currentSession()
         guard session.identity == evidence.identity else { throw ClubCommunityFailure.stale }
@@ -98,12 +223,13 @@ public final class ClubCommunityCoordinator {
               fresh.post == evidence.post, fresh.comment == evidence.comment,
               Date().timeIntervalSince(fresh.observedAt) >= 0, Date().timeIntervalSince(fresh.observedAt) < 60 else { throw ClubCommunityFailure.stale }
         let result = try ClubCommunityReview(operation: operation, evidence: fresh)
-        guard !locks.contains(result.lockKey) else { throw ClubCommunityFailure.locked }
+        guard !recoverPendingLock(for: fresh), !locks.contains(result.lockKey) else { throw ClubCommunityFailure.locked }
         review = result; outcome = .reviewing; return result
     }
     public func cancel() { generation &+= 1; review = nil; if outcome == .reviewing { outcome = .idle } }
     public func confirm(_ candidate: ClubCommunityReview) async throws {
-        guard candidate == review, !consumed.contains(candidate.id), !locks.contains(candidate.lockKey) else { throw ClubCommunityFailure.locked }
+        guard candidate == review, !consumed.contains(candidate.id),
+              !recoverPendingLock(for: candidate.evidence), !locks.contains(candidate.lockKey) else { throw ClubCommunityFailure.locked }
         let session = try currentSession()
         guard session.identity == candidate.evidence.identity else { throw ClubCommunityFailure.stale }
         let fresh = try await refreshEvidence(candidate.evidence)
@@ -111,26 +237,71 @@ public final class ClubCommunityCoordinator {
               fresh.clubID == candidate.evidence.clubID, fresh.post == candidate.evidence.post, fresh.comment == candidate.evidence.comment,
               fresh.joined == candidate.evidence.joined, fresh.owner == candidate.evidence.owner, fresh.administrator == candidate.evidence.administrator,
               Date().timeIntervalSince(fresh.observedAt) >= 0, Date().timeIntervalSince(fresh.observedAt) < 60,
-              fresh.allows(candidate.operation), !locks.contains(candidate.lockKey) else { throw ClubCommunityFailure.stale }
+              fresh.allows(candidate.operation) else { throw ClubCommunityFailure.stale }
+        guard !recoverPendingLock(for: fresh), !locks.contains(candidate.lockKey) else { throw ClubCommunityFailure.locked }
+        let target: ClubCommunityPendingTarget
+        do {
+            target = try pendingTarget(for: fresh)
+            let pendingRecord = try ClubCommunityPendingRecord(
+                target: target,
+                operationID: candidate.id,
+                operationKind: candidate.operation.labelKey,
+                phase: .sending,
+                postVersion: fresh.post?.version
+            )
+            try journal.recordBeforeSend(pendingRecord)
+        } catch ClubCommunityPendingJournalFailure.locked {
+            locks.insert(candidate.lockKey)
+            outcome = .unknownLocked
+            throw ClubCommunityFailure.locked
+        } catch {
+            // Fail-closed: if minimal operation identity cannot be durably persisted, never send.
+            throw ClubCommunityFailure.unavailable
+        }
         consumed.insert(candidate.id); locks.insert(candidate.lockKey); outcome = .sending; review = nil
         do {
             try await service.submit(candidate, session: session) {
                 guard try self.currentSession() == session else { throw ClubCommunityFailure.stale }
             }
-            locks.remove(candidate.lockKey)
-            switch candidate.operation { case .report, .reportComment: outcome = .moderationQueued; default: outcome = .acknowledgedRefreshRequired }
+            do {
+                try journal.releaseAfterAuthoritativeOutcome(
+                    target: target,
+                    resolution: .acknowledged(operationID: candidate.id)
+                )
+                locks.remove(candidate.lockKey)
+                switch candidate.operation { case .report, .reportComment: outcome = .moderationQueued; default: outcome = .acknowledgedRefreshRequired }
+            } catch {
+                outcome = .unknownLocked
+                throw ClubCommunityFailure.unknown
+            }
         } catch let error as ClubCommunityFailure {
-            if case .rejected = error { locks.remove(candidate.lockKey); outcome = .rejected }
-            else if error == .unavailable || error == .stale { locks.remove(candidate.lockKey); outcome = .rejected }
-            else { outcome = .unknownLocked }
+            if case let .rejected(code) = error {
+                try? journal.releaseAfterAuthoritativeOutcome(
+                    target: target,
+                    resolution: .rejected(operationID: candidate.id, code: code)
+                )
+                locks.remove(candidate.lockKey); outcome = .rejected
+            } else if error == .unavailable || error == .stale {
+                try? journal.releaseAfterAuthoritativeOutcome(
+                    target: target,
+                    resolution: .rejected(operationID: candidate.id, code: 0)
+                )
+                locks.remove(candidate.lockKey); outcome = .rejected
+            } else {
+                try? journal.markUnknown(target: target, operationID: candidate.id)
+                outcome = .unknownLocked
+            }
             throw error
-        } catch { outcome = .unknownLocked; throw ClubCommunityFailure.unknown }
+        } catch {
+            try? journal.markUnknown(target: target, operationID: candidate.id)
+            outcome = .unknownLocked
+            throw ClubCommunityFailure.unknown
+        }
     }
     /// No reset/retry API: unknown legacy writes cannot be reconciled by guessed receipts,
     /// title matching, a changed count, a new epoch, or new request IDs.
     public func isLocked(_ evidence: ClubCommunityEvidence) -> Bool {
-        let key = "\(evidence.identity.accountID ?? 0):\(evidence.clubID):\(evidence.post?.id ?? 0):\(evidence.comment?.id ?? 0)"
-        return locks.contains(key)
+        recoverPendingLock(for: evidence)
     }
 }
 

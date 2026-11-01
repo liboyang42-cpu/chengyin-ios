@@ -67,9 +67,14 @@ public enum CreatorContentDestination: Equatable { case topic(Int), activity(Int
 public struct CreatorContentProjectPage: Decodable, Equatable {
     public let rows: [CreatorContentProject]
     public let total: Int
-    public var isTruncated: Bool { total > rows.count }
-    public init(rows: [CreatorContentProject], total: Int) { self.rows = rows; self.total = total }
-    private enum CodingKeys: String, CodingKey { case rows, total }
+    /// Decoded if a response ever carries `data.scope`. `api/project/my` does not send it.
+    /// Browse-only is the entry scope plus access/me, not this field.
+    public let serverScope: String?
+    public var isTruncated: Bool { total > rows.count || rows.count >= MyProjectListPresentation.loadCap }
+    public init(rows: [CreatorContentProject], total: Int, serverScope: String? = nil) {
+        self.rows = rows; self.total = total; self.serverScope = serverScope
+    }
+    private enum CodingKeys: String, CodingKey { case rows, total, scope }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         // Only a real array proves an empty page. Missing/null/wrong-type rows
@@ -79,6 +84,8 @@ public struct CreatorContentProjectPage: Decodable, Equatable {
         rows = raw.filter { seen.insert($0.id).inserted }
         let number = (try? c.decode(Int.self, forKey: .total)) ?? (try? c.decode(String.self, forKey: .total)).flatMap(Int.init)
         total = number.map { $0 >= 0 ? $0 : raw.count } ?? raw.count
+        // A missing or non-string scope is not MERCHANT. Role codes are not read here.
+        serverScope = try? c.decode(String.self, forKey: .scope)
     }
 }
 public struct CreatorContentQuery: Equatable, Hashable {

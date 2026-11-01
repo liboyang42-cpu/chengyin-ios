@@ -139,7 +139,7 @@ public extension BusinessRuntimeFeature {
         case .imStart: paths = ["api/im/start"]
         case .imRead: paths = ["api/im/read"]
         case .imMute: paths = ["api/im/mute"]
-        case .imSend: paths = ["api/im/send"]
+        case .imSend: paths = ["api/im/send", "api/im/send-receipt"]
         case .imDelete: paths = ["api/im/delete"]
         case .imReport: paths = ["api/im/report"]
         case .imBlock: paths = ["api/im/block"]

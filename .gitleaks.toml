@@ -43,3 +43,45 @@ paths = [
   '''^tools/targeted_native_selection\.json$''',
 ]
 regexes = ['''^1b1c35dfe2d0bc2144484bc9a73ad816d98ea89df76cf221044c6ffcbfc30443$''']
+
+[[rules.allowlists]]
+description = "Exact Swift dictionary-key validation expression, not a credential"
+condition = "AND"
+regexTarget = "line"
+paths = ['''^Core/PartyRosterProjection\.swift$''']
+regexes = ['''^\s*guard !key\.isEmpty, key\.utf16\.count <= 64, ids\.insert\(key\)\.inserted else \{ return \.unknown \}\s*$''']
+
+[[rules.allowlists]]
+description = "Exact public nearby role-message key branch"
+condition = "AND"
+regexTarget = "line"
+paths = ['''^Core/NearbyTeamCoordinator\.swift$''']
+regexes = ['''^[\t ]*if error as\? NearbyTeamFailure == \.role \{ messageKey = "\x6e\x65\x61\x72\x62\x79\x2e\x77\x32\x30\x38\x2e\x64\x65\x6e\x69\x65\x64"; return \}[\t ]*$''']
+
+[[rules.allowlists]]
+description = "Exact opaque redemption test credential fixture"
+condition = "AND"
+regexTarget = "line"
+paths = ['''^Tests/CoreTests/CommerceOrderLifecycleBridgeTests\.swift$''']
+regexes = ['''^[\t ]*scannedCredential: "\x5a\x6b\x33\x5f\x71\x39\x2d\x4c\x6d\x57\x32\x78\x50\x37\x72\x54",[\t ]*$''']
+
+[[rules.allowlists]]
+description = "Exact public nearby badge-key assertion"
+condition = "AND"
+regexTarget = "line"
+paths = ['''^Tests/CoreTests/NearbyTeamPresentationTests\.swift$''']
+regexes = ['''^[\t ]*XCTAssertEqual\(NearbyTeamBadge\.buy\.key, "\x6e\x65\x61\x72\x62\x79\x2e\x77\x32\x30\x38\x2e\x62\x61\x64\x67\x65\x2e\x62\x75\x79"\)[\t ]*$''']
+
+[[rules.allowlists]]
+description = "Exact public nearby denied-key argument"
+condition = "AND"
+regexTarget = "line"
+paths = ['''^Tests/CoreTests/NearbyTeamPresentationTests\.swift$''']
+regexes = ['''^[\t ]*XCTAssertEqual\(NearbyLoadIssue\(messageKey: "\x6e\x65\x61\x72\x62\x79\x2e\x77\x32\x30\x38\x2e\x64\x65\x6e\x69\x65\x64"\), \.denied\)[\t ]*$''']
+
+[[rules.allowlists]]
+description = "Exact public nearby read-denial assertion"
+condition = "AND"
+regexTarget = "line"
+paths = ['''^Tests/CoreTests/NearbyTeamPresentationTests\.swift$''']
+regexes = ['''^[\t ]*XCTAssertEqual\(model\.messageKey, "\x6e\x65\x61\x72\x62\x79\x2e\x77\x32\x30\x38\x2e\x64\x65\x6e\x69\x65\x64"\)[\t ]*$''']

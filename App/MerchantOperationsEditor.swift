@@ -11,6 +11,18 @@ struct MerchantOperationsEditor: View {
     @State private var assist: MerchantTemplateAssistPresentation?
     @State private var categoryPicker: MerchantTemplateCategoryPickerModel?
     var imageContext: ((MerchantImageField) -> RetainedImageSelectionContext?)? = nil
+    /// Supplied by the session. Nil stays on this page and does not construct a publisher.
+    var authorFlow: MerchantNPCKnowledgeAuthorFlow? = nil
+    var draftReadMemberID: Int64? = nil
+    var draftReadRequestID: String? = nil
+    var draftRead: ((Int64, String) -> MerchantNPCDraftReadFact?)? = nil
+    /// Existing theme-draft GET reader. Nil does not invent a request and does not publish.
+    var themeDraftRequestRead: MerchantNPCThemeDraftRequestRead? = nil
+    /// Re-reads the accepted request through the author flow. Nil does not send and does not publish.
+    var knowledgeReviewReentry: ((MerchantNPCKnowledgeReviewReentry) async throws -> MerchantNPCKnowledgeReviewReentry)? = nil
+    @State private var showsUnpublishedDraft = false
+    @State private var heldKnowledgeReview: MerchantNPCKnowledgeReviewReentry?
+    @State private var didRecoverHeldKnowledgeReview = false
     private var coordinator: MerchantOperationsCoordinator { model.coordinator }
     private var isExample: Bool { coordinator.reader.isOfflineExample }
     var body: some View {
@@ -39,6 +51,8 @@ struct MerchantOperationsEditor: View {
         .modifier(MerchantNPCFieldStablePresentation(document: model, presentation: npcFieldPresentation))
         .modifier(MerchantNPCPresetStablePresentation(document: model, presentation: presetPresentation))
         .modifier(MerchantCoopFieldStablePresentation(document: model, route: $coopFieldRoute))
+        .onAppear { Task { await recoverHeldKnowledgeReview() } }
+        .onDisappear { didRecoverHeldKnowledgeReview = false }
     }
     @ViewBuilder private func fields(_ draft: MerchantOperationsDraft) -> some View {
         switch draft {
@@ -150,6 +164,16 @@ struct MerchantOperationsEditor: View {
                     Text("merchantPreset.emptyPersona").font(.footnote).foregroundStyle(.secondary)
                 }
                 Text("merchant.operations.characterReviewHint").font(.footnote).foregroundStyle(.secondary)
+                if authorFlow != nil {
+                    Button("merchantNPC.author.submit") { Task { await submitAuthoredFields() } }
+                        .font(.body)
+                        .disabled(!coordinator.isCurrent || coordinator.isBusy || coordinator.isLocked || coordinator.confirmation != nil)
+                        .accessibilityIdentifier("merchantNPC.author.submit")
+                    if showsUnpublishedDraft || authorFlow?.gate.published == nil {
+                        Text("merchantNPC.draft.unpublished").font(.footnote).foregroundStyle(.secondary)
+                            .accessibilityIdentifier("merchantNPC.author.unpublished")
+                    }
+                }
             }
             mediaSection("merchant.operations.avatar", field: .avatar)
             MerchantNPCGreetingPreviewEntry(document: model).id(coordinator.draftIdentity)
@@ -293,12 +317,113 @@ struct MerchantOperationsEditor: View {
             guard var value = currentTemplate else { return }; value[keyPath: key] = text; model.edit(.template(value))
         }), axis: .vertical).accessibilityIdentifier("merchant.operations.field." + id)
     }
+
+    /// The merchant submits name, greeting, persona, and knowledge on this character page.
+    /// The existing author flow ingests an AI draft and stops at original review.
+    /// The read uses the one request id that submit stored on the flow.
+    /// A missing stored id does not call GET. A missing publisher stays unpublished.
+    private func submitAuthoredFields() async {
+        guard let flow = authorFlow else { return }
+        guard let source = coordinator.draft, case .character = source,
+              let name = MerchantNPCFieldDraft(field: .name, source: source),
+              let greeting = MerchantNPCFieldDraft(field: .greeting, source: source),
+              let persona = MerchantNPCFieldDraft(field: .persona, source: source),
+              let knowledge = MerchantNPCFieldDraft(field: .knowledge, source: source) else { return }
+        do {
+            _ = try flow.supply(name: name, greeting: greeting, persona: persona, knowledge: knowledge, source: source)
+            try flow.ingestAsAIDraft()
+            if let authorizer = MerchantNPCAuthorizer(accountID: flow.gate.scope.accountID, merchantRowID: flow.gate.scope.merchantRowID) {
+                try flow.verify(authorizer)
+                let requestID = UUID()
+                let ticket = try await flow.submitForOriginalReview(requestID: requestID)
+                if ticket.requestID == requestID {
+                    heldKnowledgeReview = MerchantNPCKnowledgeReviewReentry(
+                        requestID: requestID,
+                        memberID: Int64(ticket.scope.accountID),
+                        name: name.value,
+                        greeting: greeting.value,
+                        persona: persona.value,
+                        knowledge: knowledge.value)
+                    (model.coordinator.reader as? MerchantOperationsSessionReader)?
+                        .rememberKnowledgeRequest(requestID, merchantRowID: flow.gate.scope.merchantRowID.rawValue)
+                }
+            }
+        } catch {
+            // Missing review or draft capability stays on the authored character.
+        }
+        let phase = flow.gate.phase
+        await readHeldThemeDraft(flow)
+        guard flow.gate.phase == phase else { return }
+        if flow.stayedOnMissingPublisher {
+            showsUnpublishedDraft = flow.gate.published == nil
+        } else {
+            showsUnpublishedDraft = flow.gate.published == nil && flow.gate.phase != .published
+        }
+    }
+
+    /// Read with the request id submit stored on this flow and the member id already on that author request.
+    /// Does not mint another id. A missing stored id does not GET and does not publish.
+    private func readHeldThemeDraft(_ flow: MerchantNPCKnowledgeAuthorFlow) async {
+        guard let memberID = flow.heldThemeDraftMemberID, let requestID = flow.heldThemeDraftRequestID,
+              flow.holdThemeDraftRequest(memberID: memberID, requestID: requestID),
+              let reader = themeDraftRequestRead else { return }
+        do {
+            _ = try await reader.readAndRecover(flow)
+        } catch {
+            // A failed read stays unpublished.
+        }
+    }
+
+    /// Later entry of this editor state. One GET of the request submit already accepted.
+    /// Does not POST again and does not publish. A missing row or a different member stays closed.
+    private func recoverHeldKnowledgeReview() async {
+        if heldKnowledgeReview == nil, let retained = authorFlow?.heldKnowledgeReview {
+            heldKnowledgeReview = retained
+        }
+        if heldKnowledgeReview == nil, let flow = authorFlow,
+           let requestID = (model.coordinator.reader as? MerchantOperationsSessionReader)?
+            .knowledgeRequest(merchantRowID: flow.gate.scope.merchantRowID.rawValue) {
+            do {
+                if let restored = try await flow.recoverKnowledgeRequest(requestID) {
+                    heldKnowledgeReview = restored
+                    didRecoverHeldKnowledgeReview = true
+                }
+            } catch {
+                // This journal id did not read. A defaults record can still be tried.
+            }
+        }
+        if let flow = authorFlow {
+            do {
+                if let restored = try await flow.recoverStoredKnowledgeReview(),
+                   heldKnowledgeReview?.requestID != restored.requestID {
+                    heldKnowledgeReview = restored
+                    didRecoverHeldKnowledgeReview = true
+                    return
+                }
+            } catch {
+                if heldKnowledgeReview == nil { return }
+            }
+        }
+        guard let held = heldKnowledgeReview, !didRecoverHeldKnowledgeReview else { return }
+        guard let recover = knowledgeReviewReentry else { return }
+        didRecoverHeldKnowledgeReview = true
+        do {
+            let kept = try await recover(held)
+            guard kept.requestID == held.requestID, kept.memberID == held.memberID,
+                  kept.name == held.name, kept.greeting == held.greeting,
+                  kept.persona == held.persona, kept.knowledge == held.knowledge else { return }
+            heldKnowledgeReview = kept
+        } catch {
+            // A missing row or a different member stays closed.
+        }
+    }
 }
 
 @MainActor
 struct MerchantOperationsConfirmationView: View {
     @ObservedObject var model: MerchantOperationsViewModel
     let confirmation: MerchantOperationsConfirmation
+    @Environment(\.locale) private var locale
     private var isExample: Bool { model.coordinator.reader.isOfflineExample }
     var body: some View {
         NavigationStack {
@@ -340,14 +465,8 @@ struct MerchantOperationsConfirmationView: View {
                             .accessibilityIdentifier("merchant.featuredClear.review")
                     }
                     ForEach(confirmation.draft.reviewLines) { line in
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(LocalizedStringKey(line.key)).font(.caption).foregroundStyle(.secondary)
-                            if line.key == "merchant.operations.businessStatus", let raw = Int(line.value), let status = MerchantBusinessStatus(rawValue: raw) {
-                                Text(LocalizedStringKey(status.titleKey))
-                            } else if line.key == "merchant.operations.chargeType", ["0", "1"].contains(line.value) {
-                                Text(LocalizedStringKey(line.value == "0" ? "merchant.operations.charge.free" : "merchant.operations.charge.paid"))
-                            } else { Text(verbatim: line.value.isEmpty ? "—" : line.value).fixedSize(horizontal: false, vertical: true) }
-                        }
+                        RevolutInsetRow(title: appLocalized(String.LocalizationValue(stringLiteral: line.key), locale: locale), value: reviewValue(line))
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     if case .template(let value) = confirmation.draft, let method = value.method { Text(LocalizedStringKey(method.titleKey)) }
                 }
@@ -395,6 +514,15 @@ struct MerchantOperationsConfirmationView: View {
             }
             .appNavigationTitle("merchant.operations.reviewDraft")
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { model.cancel() }.accessibilityIdentifier("merchant.operations.confirm.cancel") } }
+        }
+    }
+    private func reviewValue(_ line: MerchantOperationsReviewLine) -> String {
+        if line.key == "merchant.operations.businessStatus", let raw = Int(line.value), let status = MerchantBusinessStatus(rawValue: raw) {
+            return appLocalized(String.LocalizationValue(stringLiteral: status.titleKey), locale: locale)
+        } else if line.key == "merchant.operations.chargeType", ["0", "1"].contains(line.value) {
+            return appLocalized(String.LocalizationValue(stringLiteral: line.value == "0" ? "merchant.operations.charge.free" : "merchant.operations.charge.paid"), locale: locale)
+        } else {
+            return line.value.isEmpty ? "—" : line.value
         }
     }
 }

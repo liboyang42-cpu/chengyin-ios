@@ -232,7 +232,9 @@ import UIKit
         wire.hold=false;wire.finish(status:200);await settled();XCTAssertEqual(model.coordinator.phase,.idle)
         model.setForeground(true);await settled();XCTAssertTrue(model.visible);XCTAssertEqual(wire.ids,[17])
         XCTAssertEqual(model.coordinator.phase,.idle)
-        model.recoveryAction()();await settled();XCTAssertEqual(wire.ids,[17,17]);XCTAssertEqual(model.coordinator.phase,.active)
+        model.recoveryAction()()
+        for _ in 0..<100 where model.loading { try await Task.sleep(for: .milliseconds(20)) }
+        XCTAssertFalse(model.loading);XCTAssertEqual(wire.ids,[17,17]);XCTAssertEqual(model.coordinator.phase,.active)
     }
     @MainActor private final class Grants {
         var enabled=true;var retained:RoamSessionFactReadAccess?

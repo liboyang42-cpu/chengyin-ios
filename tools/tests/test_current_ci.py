@@ -127,37 +127,111 @@ final class Real: XCTestCase {
 
     def test_ui_workers_require_successful_same_run_build_artifact(self):
         source=(ci.ROOT/'.github/workflows/native-ios.yml').read_text()
-        native=source.split('  native:\n',1)[1].split('  ui:\n',1)[0]
+        native=source.split('  native:\n',1)[1].split('  ui_build:\n',1)[0]
+        build=source.split('  ui_build:\n',1)[1].split('  ui:\n',1)[0]
         ui=source.split('  ui:\n',1)[1].split('  platforms:\n',1)[0]
-        self.assertIn("ui_build_artifact: ${{ steps.ui_build_upload.outputs.artifact-id }}", native)
-        self.assertIn("id: ui_build_upload\n        if: ${{ success() && matrix.partition == 'ui-build' }}", native)
-        self.assertIn("if: ${{ always() && needs.controls.result == 'success' && needs.native.outputs.ui_build_artifact != '' }}", ui)
-        self.assertIn('needs: [controls, native]', ui)
-        self.assertNotIn("needs.native.result == 'success'", ui)
+        self.assertIn('partition: [core, app-unit]', native)
+        self.assertNotIn('ui_build_artifact', native)
+        self.assertIn('needs: [controls, secrets]', build)
+        self.assertIn("--role 'ui-build'", build)
+        self.assertIn("ui_build_artifact: ${{ steps.ui_build_upload.outputs.artifact-id }}", build)
+        self.assertIn("id: ui_build_upload\n        if: success()", build)
+        self.assertIn("if: ${{ always() && needs.controls.result == 'success' && needs.ui_build.result == 'success' && needs.ui_build.outputs.ui_build_artifact != '' }}", ui)
+        self.assertIn('needs: [controls, ui_build]', ui)
+        self.assertNotIn('needs.native', ui)
         name='current-ui-build-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}'
-        self.assertIn('name: '+name,native);self.assertIn('name: '+name,ui)
+        self.assertIn('name: '+name,build);self.assertIn('name: '+name,ui)
         for section in (native,ui):
-            self.assertIn('max-parallel: 20',section);self.assertIn('timeout-minutes: 45',section)
+            self.assertIn('max-parallel: 20',section)
+        for section in (native,build,ui):
+            self.assertIn('timeout-minutes: 45',section)
 
     def test_missing_ui_execution_or_failed_units_still_fail_current_aggregate(self):
         from tools import current_native as native
-        good={key:{'result':'success'} for key in ['controls','secrets','native','ui']}
+        good={key:{'result':'success'} for key in ['controls','secrets','native','ui_build','ui']}
         good['platforms']={'result':'skipped'}
-        for part,result in [('ui','skipped'),('ui','failure'),('ui','cancelled'),('native','failure')]:
+        for part,result in [('ui','skipped'),('ui','failure'),('ui','cancelled'),('native','failure'),('ui_build','failure')]:
             needs={key:dict(value) for key,value in good.items()};needs[part]['result']=result
             with self.subTest(part=part,result=result),self.assertRaisesRegex(ValueError,'required current worker'):
                 native.aggregate_current({}, {}, needs)
 
     def test_failed_ui_build_retains_small_raw_diagnostics_only(self):
         source=(ci.ROOT/'.github/workflows/native-ios.yml').read_text()
-        step=source.split('      - name: Preserve exact command and result diagnostics\n',1)[1].split('      - name: Transfer one same-run UI build\n',1)[0]
-        self.assertIn("if: ${{ always() && (matrix.partition != 'ui-build' || failure()) }}",step)
+        build=source.split('  ui_build:\n',1)[1].split('  ui:\n',1)[0]
+        step=build.split('      - name: Preserve exact command and result diagnostics\n',1)[1].split('      - name: Transfer one same-run UI build\n',1)[0]
+        self.assertIn('if: failure()',step)
         for suffix in ('*.json','*.xml','*.stdout'):
             self.assertIn('${{ runner.temp }}/current-native/'+suffix,step)
         self.assertNotIn('products.tar.gz',step)
         self.assertNotIn('ui-build/',step)
         self.assertIn('if-no-files-found: error',step)
-        self.assertIn("name: ${{ matrix.partition == 'ui-build' && 'current-diagnostics' || 'current-result' }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.partition }}",step)
+        self.assertIn("name: current-diagnostics-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-ui-build",step)
+
+
+    def test_swift_dictionary_key_exception_cannot_allow_credentials_or_other_files(self):
+        import re, tomllib
+        rules = tomllib.loads((ci.ROOT / '.gitleaks.toml').read_text())['rules']
+        rule = next(row for row in rules if row['id'] == 'generic-api-key')
+        entries = [row for row in rule['allowlists']
+                   if row['description'] == 'Exact Swift dictionary-key validation expression, not a credential']
+        self.assertEqual(len(entries), 1)
+        entry = entries[0]
+        self.assertEqual((entry['condition'], entry['regexTarget']), ('AND', 'line'))
+        self.assertEqual(len(entry['paths']), 1)
+        self.assertIsNotNone(re.fullmatch(entry['paths'][0], 'Core/PartyRosterProjection.swift'))
+        self.assertIsNone(re.fullmatch(entry['paths'][0], 'App/PartyRosterProjection.swift'))
+        pattern = re.compile(entry['regexes'][0])
+        line = 'guard !key.isEmpty, ' + 'key.utf16.count <= 64, ids.insert(key).inserted else { return .unknown }'
+        self.assertIsNotNone(pattern.fullmatch(line))
+        for changed in ['let key = userCredential', line + '; additionalStatement()', line.replace('64', '65')]:
+            with self.subTest(changed=changed):
+                self.assertIsNone(pattern.fullmatch(changed))
+
+
+    def test_exact_public_key_and_fixture_exceptions_are_path_and_line_bound(self):
+        import re, tomllib
+        rule = next(row for row in tomllib.loads((ci.ROOT / '.gitleaks.toml').read_text())['rules']
+                    if row['id'] == 'generic-api-key')
+        expected = {
+            'Exact public nearby role-message key branch': 'Core/NearbyTeamCoordinator.swift',
+            'Exact opaque redemption test credential fixture': 'Tests/CoreTests/CommerceOrderLifecycleBridgeTests.swift',
+            'Exact public nearby badge-key assertion': 'Tests/CoreTests/NearbyTeamPresentationTests.swift',
+            'Exact public nearby denied-key argument': 'Tests/CoreTests/NearbyTeamPresentationTests.swift',
+            'Exact public nearby read-denial assertion': 'Tests/CoreTests/NearbyTeamPresentationTests.swift',
+        }
+        entries = [row for row in rule['allowlists'] if row['description'] in expected]
+        self.assertEqual(len(entries), len(expected))
+        self.assertEqual({row['description'] for row in entries}, set(expected))
+
+        def allowed(path, line):
+            return any(any(re.fullmatch(pattern, path) for pattern in row['paths'])
+                       and any(re.fullmatch(pattern, line) for pattern in row['regexes'])
+                       for row in entries)
+
+        for entry in entries:
+            path = expected[entry['description']]
+            with self.subTest(entry=entry['description']):
+                self.assertEqual((entry['condition'], entry['regexTarget']), ('AND', 'line'))
+                self.assertEqual((len(entry['paths']), len(entry['regexes'])), (1, 1))
+                self.assertTrue(entry['paths'][0].startswith('^') and entry['paths'][0].endswith('$'))
+                pattern = entry['regexes'][0]
+                self.assertTrue(pattern.startswith('^') and pattern.endswith('$'))
+                lines = [line for line in (ci.ROOT / path).read_text().splitlines()
+                         if re.fullmatch(pattern, line)]
+                self.assertEqual(len(lines), 1)
+                line = lines[0]
+                self.assertTrue(allowed(path, line))
+                literal = re.search(r'"([^"]+)"', line)
+                self.assertIsNotNone(literal)
+                for value in (literal.group(1) + 'x', 'A' * 64):
+                    changed = line[:literal.start(1)] + value + line[literal.end(1):]
+                    self.assertFalse(allowed(path, changed))
+                for changed in (line + '; additionalStatement()', 'unrelatedAssignment(); ' + line):
+                    self.assertFalse(allowed(path, changed))
+                for wrong_path in ('App/Unreviewed.swift', path + '.backup'):
+                    self.assertFalse(allowed(wrong_path, line))
+                for wrong_path in set(expected.values()) - {path}:
+                    self.assertFalse(allowed(wrong_path, line))
 
 
 class DeviceOnlyClassificationControls(unittest.TestCase):

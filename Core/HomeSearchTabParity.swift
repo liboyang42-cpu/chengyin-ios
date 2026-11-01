@@ -4,6 +4,11 @@ import Foundation
 
 /// Presentation rules for the mini-program Home screen (`pages/index/index`).
 public enum HomeIndexParityPresentation {
+    public static func isEnglish(_ locale: Locale) -> Bool {
+        let code = (locale.language.languageCode?.identifier ?? locale.identifier).lowercased()
+        return code.hasPrefix("en")
+    }
+
     /// Shelf identifiers matching the mini-program home page sections.
     public enum ShelfKind: String, CaseIterable, Hashable, Sendable {
         case featuredRoutes
@@ -13,6 +18,18 @@ public enum HomeIndexParityPresentation {
 
         /// Mini-program section header title.
         public var title: String {
+            title(locale: Locale(identifier: "zh-Hans"))
+        }
+
+        public func title(locale: Locale) -> String {
+            if HomeIndexParityPresentation.isEnglish(locale) {
+                switch self {
+                case .featuredRoutes: return "Featured Routes"
+                case .upcomingActivities: return "Upcoming Activities"
+                case .popularTopics: return "Popular Topics"
+                case .readyMadeTemplates: return "Ready-Made Templates"
+                }
+            }
             switch self {
             case .featuredRoutes: return "精选路线"
             case .upcomingActivities: return "近期活动"
@@ -23,6 +40,18 @@ public enum HomeIndexParityPresentation {
 
         /// Optional subtitle or action hint shown alongside the shelf header.
         public var actionHint: String {
+            actionHint(locale: Locale(identifier: "zh-Hans"))
+        }
+
+        public func actionHint(locale: Locale) -> String {
+            if HomeIndexParityPresentation.isEnglish(locale) {
+                switch self {
+                case .featuredRoutes: return "View All"
+                case .upcomingActivities: return "More"
+                case .popularTopics: return "All Topics"
+                case .readyMadeTemplates: return "Explore"
+                }
+            }
             switch self {
             case .featuredRoutes: return "查看全部"
             case .upcomingActivities: return "更多活动"
@@ -43,11 +72,27 @@ public enum HomeIndexParityPresentation {
             self.title = title
             self.routePath = routePath
         }
+
+        public func title(locale: Locale) -> String {
+            guard HomeIndexParityPresentation.isEnglish(locale) else { return title }
+            switch id {
+            case "club_apply": return "Become a Club"
+            case "merchant_apply": return "Become a Merchant"
+            case "activity_list": return "Join Activities with Friends"
+            default: return title
+            }
+        }
     }
 
     public static let defaultCityFallback = "选择城市"
     public static let nationwideCityLabel = "全国"
     public static let defaultTravelerNickname = "旅人"
+
+    public static let recommendedTopicsTitle = "推荐主题"
+    public static let nearbyActivitiesTitle = "附近活动"
+    public static let upcomingActivitiesTitle = "即将上线"
+    public static let topicsFeedTabTitle = "主题"
+    public static let activitiesFeedTabTitle = "活动"
 
     public static let emptyStateTitle = "暂无内容"
     public static let emptyStateHint = "切换城市或稍后再来看看"
@@ -56,32 +101,318 @@ public enum HomeIndexParityPresentation {
     public static let retryButtonTitle = "重试"
     public static let noMoreFooterCopy = "· 没有更多了 ·"
 
+    public static func emptyStateTitle(locale: Locale) -> String {
+        isEnglish(locale) ? "No content yet" : emptyStateTitle
+    }
+
+    public static func emptyStateHint(locale: Locale) -> String {
+        isEnglish(locale) ? "Switch city or check back later" : emptyStateHint
+    }
+
+    public static func loadingCopy(locale: Locale) -> String {
+        isEnglish(locale) ? "Loading..." : loadingCopy
+    }
+
+    public static func errorCopy(locale: Locale) -> String {
+        isEnglish(locale) ? "Failed to load. Tap to retry" : errorCopy
+    }
+
+    public static func retryButtonTitle(locale: Locale) -> String {
+        isEnglish(locale) ? "Retry" : retryButtonTitle
+    }
+
+    public static func noMoreFooterCopy(locale: Locale) -> String {
+        isEnglish(locale) ? "· No more items ·" : noMoreFooterCopy
+    }
+
+    public static func continuationSectionTitle(locale: Locale = Locale(identifier: "zh-Hans")) -> String {
+        isEnglish(locale) ? "Continue Game / Continue Exploration" : "继续游戏 / 继续探索"
+    }
+
     public static let fixedActionBanners: [ActionBanner] = [
         ActionBanner(id: "club_apply", title: "成为俱乐部", routePath: "pages/club/apply"),
         ActionBanner(id: "merchant_apply", title: "成为商家", routePath: "pages/merchant/apply"),
         ActionBanner(id: "activity_list", title: "和朋友报名活动", routePath: "pages/activity/list")
     ]
 
-    /// Resolves the city selector label: returns trimmed city name, `"全国"` when nationwide is selected,
-    /// or `"选择城市"` when no city is resolved.
-    public static func citySelectorLabel(selectedCity: String?, isNationwide: Bool = false) -> String {
-        if isNationwide {
-            return nationwideCityLabel
+    /// Continuation card kind for Home (`play/run-session/list` vs `registration/my-joined`).
+    public enum ContinuationKind: String, Equatable, Hashable, Sendable {
+        case continueGame
+        case continueExploration
+
+        public var badgeTitle: String {
+            badgeTitle(locale: Locale(identifier: "zh-Hans"))
         }
-        let trimmed = selectedCity?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        return trimmed.isEmpty ? defaultCityFallback : trimmed
+
+        public func badgeTitle(locale: Locale) -> String {
+            if HomeIndexParityPresentation.isEnglish(locale) {
+                switch self {
+                case .continueGame: return "Continue Game"
+                case .continueExploration: return "Continue Exploration"
+                }
+            }
+            switch self {
+            case .continueGame: return "继续游戏"
+            case .continueExploration: return "继续探索"
+            }
+        }
     }
 
-    /// Formats the mini-program hero greeting (`"Hi, {昵称‖旅人}!"`).
-    public static func greetingText(nickname: String?) -> String {
+    /// Home continuation card model combining paused run sessions and joined registrations.
+    public struct ContinuationCard: Equatable, Hashable, Identifiable {
+        public let id: String
+        public let kind: ContinuationKind
+        public let destination: HomeFeedDestination
+        public let title: String
+        public let subtitle: String?
+        public let elapsedMinutes: Int?
+        public let isFallbackTitle: Bool
+
+        public var playScope: PlaySessionScope {
+            switch destination {
+            case .activity(let id): return .activity(id)
+            case .topic(let id): return .topic(id)
+            }
+        }
+
+        public init(
+            id: String,
+            kind: ContinuationKind,
+            destination: HomeFeedDestination,
+            title: String,
+            subtitle: String? = nil,
+            elapsedMinutes: Int? = nil,
+            isFallbackTitle: Bool = false
+        ) {
+            self.id = id
+            self.kind = kind
+            self.destination = destination
+            self.title = title
+            self.subtitle = subtitle
+            self.elapsedMinutes = elapsedMinutes
+            self.isFallbackTitle = isFallbackTitle
+        }
+
+        public func localizedTitle(locale: Locale) -> String {
+            guard isFallbackTitle, HomeIndexParityPresentation.isEnglish(locale) else { return title }
+            let scopeID = playScope.id
+            switch kind {
+            case .continueGame:
+                return "Route in progress #\(scopeID)"
+            case .continueExploration:
+                return "Joined #\(scopeID)"
+            }
+        }
+
+        public func localizedSubtitle(locale: Locale) -> String? {
+            if let elapsedMinutes, elapsedMinutes > 0 {
+                return HomeIndexParityPresentation.isEnglish(locale)
+                    ? "\(elapsedMinutes) min elapsed"
+                    : "已进行 \(elapsedMinutes) 分钟"
+            }
+            return subtitle
+        }
+    }
+
+    /// Reconciles paused run sessions (`play/run-session/list`) and joined registrations (`registration/my-joined`)
+    /// into deduplicated Home continuation cards (`继续游戏` prioritized ahead of `继续探索`).
+    public static func continuationCards(
+        pausedRuns: [PlayContinueRun] = [],
+        participations: [ParticipationRecord] = [],
+        locale: Locale = Locale(identifier: "zh-Hans")
+    ) -> [ContinuationCard] {
+        var cards: [ContinuationCard] = []
+        var seenDestinations = Set<HomeFeedDestination>()
+        let english = isEnglish(locale)
+
+        for run in pausedRuns {
+            let destination: HomeFeedDestination
+            switch run.scope {
+            case .activity(let id): destination = .activity(id)
+            case .topic(let id): destination = .topic(id)
+            }
+            guard seenDestinations.insert(destination).inserted else { continue }
+            let trimmedTitle = run.title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let isFallback = trimmedTitle.isEmpty
+            let resolvedTitle = isFallback
+                ? (english ? "Route in progress #\(run.scope.id)" : "进行中的路线 #\(run.scope.id)")
+                : trimmedTitle
+            let elapsedMinutes: Int?
+            let subtitle: String?
+            if let elapsed = run.elapsedSeconds, elapsed > 0 {
+                let minutes = max(1, elapsed / 60)
+                elapsedMinutes = minutes
+                subtitle = english ? "\(minutes) min elapsed" : "已进行 \(minutes) 分钟"
+            } else {
+                elapsedMinutes = nil
+                subtitle = nil
+            }
+            cards.append(
+                ContinuationCard(
+                    id: "run_\(run.id)",
+                    kind: .continueGame,
+                    destination: destination,
+                    title: resolvedTitle,
+                    subtitle: subtitle,
+                    elapsedMinutes: elapsedMinutes,
+                    isFallbackTitle: isFallback
+                )
+            )
+        }
+
+        for record in participations {
+            guard let scope = record.destination else { continue }
+            let destination: HomeFeedDestination
+            switch scope {
+            case .activity(let id): destination = .activity(id)
+            case .topic(let id): destination = .topic(id)
+            }
+            guard seenDestinations.insert(destination).inserted else { continue }
+            let trimmedTitle = record.name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let isFallback = trimmedTitle.isEmpty
+            let resolvedTitle = isFallback
+                ? (english ? "Joined #\(scope.id)" : "已报名 #\(scope.id)")
+                : trimmedTitle
+            let trimmedAddress = record.address?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            cards.append(
+                ContinuationCard(
+                    id: "joined_\(record.id)",
+                    kind: .continueExploration,
+                    destination: destination,
+                    title: resolvedTitle,
+                    subtitle: trimmedAddress.isEmpty ? nil : trimmedAddress,
+                    elapsedMinutes: nil,
+                    isFallbackTitle: isFallback
+                )
+            )
+        }
+
+        return cards
+    }
+
+    /// Formats a deterministic countdown label for an upcoming activity (`即将上线`) when `start > now`.
+    public static func upcomingCountdownText(
+        start: Date,
+        now: Date,
+        locale: Locale = Locale(identifier: "zh-Hans")
+    ) -> String? {
+        let interval = start.timeIntervalSince(now)
+        guard interval > 0 else { return nil }
+        let remaining = Int((interval + 1e-6).rounded(.down))
+        let days = remaining / 86_400
+        let hours = (remaining % 86_400) / 3_600
+        let rawMinutes = (remaining % 3_600) / 60
+        let minutes = (days == 0 && hours == 0) ? max(1, rawMinutes) : rawMinutes
+        if isEnglish(locale) {
+            if days > 0 {
+                return "Starts in \(days)d \(hours)h"
+            } else if hours > 0 {
+                return "Starts in \(hours)h \(minutes)m"
+            } else {
+                return "Starts in \(minutes)m"
+            }
+        }
+        if days > 0 {
+            return "距上线 \(days)天\(hours)小时"
+        } else if hours > 0 {
+            return "距上线 \(hours)小时\(minutes)分"
+        } else {
+            return "距上线 \(minutes)分钟"
+        }
+    }
+
+    /// Parses `startDate` via `HomeFeedDate.parse` and formats the `即将上线` countdown when `start > now`.
+    public static func upcomingCountdownText(
+        startDate: String?,
+        now: Date,
+        sourceTimeZone: TimeZone? = nil,
+        locale: Locale = Locale(identifier: "zh-Hans")
+    ) -> String? {
+        guard let start = HomeFeedDate.parse(startDate, sourceTimeZone: sourceTimeZone) else { return nil }
+        return upcomingCountdownText(start: start, now: now, locale: locale)
+    }
+
+    /// Maximum allowed schedule horizon (7 days = 604_800s, at most ~1_586 ticks) so even `.infinity`, `.nan`,
+    /// or extreme caller values cannot allocate unbounded schedule arrays.
+    public static let maxAllowedScheduleHorizon: TimeInterval = 7 * 86_400
+
+    /// Generates display-granularity boundary dates (hour boundaries when >24h, minute boundaries when <=24h)
+    /// from `date` up to `start` within a bounded horizon (default & hard ceiling 7 days = 1_586 ticks max) so countdown labels
+    /// advance without a 1 Hz timer, without premature 256-entry truncation, and without unbounded far-future arrays.
+    public static func countdownScheduleDates(
+        from date: Date,
+        start: Date,
+        base: [Date] = [],
+        maxScheduleHorizon: TimeInterval = maxAllowedScheduleHorizon
+    ) -> [Date] {
+        guard start > date else { return base.isEmpty ? [date] : base }
+        let clampedHorizon: TimeInterval
+        if maxScheduleHorizon.isFinite && maxScheduleHorizon > 0 {
+            clampedHorizon = min(max(60, maxScheduleHorizon), maxAllowedScheduleHorizon)
+        } else {
+            clampedHorizon = maxAllowedScheduleHorizon
+        }
+        let horizonLimit = min(start, date.addingTimeInterval(clampedHorizon))
+        var dates: [Date] = [date]
+        var cursor = date
+        while cursor < horizonLimit {
+            let remaining = start.timeIntervalSince(cursor)
+            guard remaining > 0 else { break }
+            let step: TimeInterval = remaining > 86_400 ? 3_600 : 60
+            let nextRemaining = floor((remaining - 1e-6) / step) * step
+            if nextRemaining <= 0 {
+                break
+            }
+            let tick = start.addingTimeInterval(-nextRemaining)
+            if tick > cursor && tick <= horizonLimit && tick < start {
+                dates.append(tick)
+                cursor = tick
+            } else {
+                break
+            }
+        }
+        let terminalDate = horizonLimit < start ? horizonLimit : start
+        if dates.last != terminalDate {
+            dates.append(terminalDate)
+        }
+        return dates
+    }
+
+    /// Resolves the city selector label: returns trimmed city name, `"全国"` / `"Nationwide"` when nationwide is selected,
+    /// or `"选择城市"` / `"Select City"` when no city is resolved.
+    public static func citySelectorLabel(
+        selectedCity: String?,
+        isNationwide: Bool = false,
+        locale: Locale = Locale(identifier: "zh-Hans")
+    ) -> String {
+        if isNationwide {
+            return isEnglish(locale) ? "Nationwide" : nationwideCityLabel
+        }
+        let trimmed = selectedCity?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if !trimmed.isEmpty {
+            return trimmed
+        }
+        return isEnglish(locale) ? "Select City" : defaultCityFallback
+    }
+
+    /// Formats the mini-program hero greeting (`"Hi, {昵称‖旅人}!"` / `"Hi, {Nickname‖Traveler}!"`).
+    public static func greetingText(
+        nickname: String?,
+        locale: Locale = Locale(identifier: "zh-Hans")
+    ) -> String {
         let trimmed = nickname?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let resolved = trimmed.isEmpty ? defaultTravelerNickname : trimmed
+        let fallback = isEnglish(locale) ? "Traveler" : defaultTravelerNickname
+        let resolved = trimmed.isEmpty ? fallback : trimmed
         return "Hi, \(resolved)!"
     }
 
     /// Returns all shelf headers in display order.
     public static var shelfHeaders: [String] {
         ShelfKind.allCases.map(\.title)
+    }
+
+    public static func shelfHeaders(locale: Locale) -> [String] {
+        ShelfKind.allCases.map { $0.title(locale: locale) }
     }
 }
 
@@ -255,6 +586,19 @@ public enum RootTabBarParity {
         }
     }
 
+    /// Root container destination resolved from `(RoleMode, RootTab)`.
+    public enum RootContainerRoute: String, CaseIterable, Equatable, Hashable, Sendable {
+        case consumerHome
+        case consumerRoam
+        case consumerTemplateLibrary
+        case consumerClub
+        case merchantWorkbench
+        case merchantMarketing
+        case merchantTemplates
+        case merchantCooperation
+        case mine
+    }
+
     public struct TabBarState: Equatable, Hashable, Sendable {
         public let mode: RoleMode
         public let selectedTab: RootTab
@@ -270,6 +614,42 @@ public enum RootTabBarParity {
 
         public func requiresAuthenticationPrompt(for tab: RootTab) -> Bool {
             false
+        }
+
+        /// Active root container route for the current `mode` and `selectedTab`.
+        public var activeContainerRoute: RootContainerRoute {
+            RootTabBarParity.containerRoute(for: selectedTab, mode: mode)
+        }
+
+        /// Returns a new state switched to `newMode`, resetting the selected tab to `defaultTab`.
+        public func switchingMode(to newMode: RoleMode, resettingTabTo defaultTab: RootTab = .home) -> TabBarState {
+            TabBarState(mode: newMode, selectedTab: defaultTab, isAuthenticated: isAuthenticated)
+        }
+    }
+
+    public static let consumerModeTitle = "玩家视角"
+    public static let merchantModeTitle = "商家工作台"
+
+    /// Resolves the active root container mode. Fails closed to `.consumer` unless `prefersMerchantContainer`
+    /// is true and `accountRole` is `"merchant"`.
+    public static func resolvedMode(accountRole: String?, prefersMerchantContainer: Bool = false) -> RoleMode {
+        guard prefersMerchantContainer else { return .consumer }
+        let normalized = accountRole?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? ""
+        return normalized == "merchant" ? .merchant : .consumer
+    }
+
+    /// Maps a `(RootTab, RoleMode)` pair to its dedicated root container route.
+    public static func containerRoute(for tab: RootTab, mode: RoleMode) -> RootContainerRoute {
+        switch (mode, tab) {
+        case (.consumer, .home): return .consumerHome
+        case (.consumer, .roam): return .consumerRoam
+        case (.consumer, .publish): return .consumerTemplateLibrary
+        case (.consumer, .club): return .consumerClub
+        case (.merchant, .home): return .merchantWorkbench
+        case (.merchant, .roam): return .merchantMarketing
+        case (.merchant, .publish): return .merchantTemplates
+        case (.merchant, .club): return .merchantCooperation
+        case (_, .mine): return .mine
         }
     }
 
@@ -365,6 +745,373 @@ public enum RootTabBarParity {
         switch mode {
         case .consumer: return consumerTabs
         case .merchant: return merchantTabs
+        }
+    }
+}
+
+// MARK: - Publish Tab Floating Sheet Parity (`pages/template` + `/api/publish/home`)
+
+/// Presentation model for the floating publish button and action sheet on the Publish/Template tab (`pages/template`).
+public enum PublishTabFloatingSheetParity {
+    public enum ActionKind: String, CaseIterable, Hashable, Sendable {
+        case quickTopic
+        case proTopic
+        case singleActivity
+
+        public var title: String {
+            switch self {
+            case .quickTopic: return "快速发布主题"
+            case .proTopic: return "专业版主题创编"
+            case .singleActivity: return "发布单场活动"
+            }
+        }
+
+        public var subtitle: String {
+            switch self {
+            case .quickTopic: return "3步轻量创建城市探索主题"
+            case .proTopic: return "完整章节、节点与道具配置"
+            case .singleActivity: return "面向俱乐部主理人发起定时活动"
+            }
+        }
+
+        public var systemImage: String {
+            switch self {
+            case .quickTopic: return "bolt.fill"
+            case .proTopic: return "slider.horizontal.3"
+            case .singleActivity: return "calendar.badge.plus"
+            }
+        }
+    }
+
+    public struct ActionDescriptor: Equatable, Hashable, Sendable, Identifiable {
+        public let kind: ActionKind
+        public let title: String
+        public let subtitle: String
+        public let systemImage: String
+        public let isEnabled: Bool
+        public let disabledReason: String?
+
+        public var id: String { kind.rawValue }
+
+        public init(
+            kind: ActionKind,
+            isEnabled: Bool,
+            disabledReason: String? = nil
+        ) {
+            self.kind = kind
+            self.title = kind.title
+            self.subtitle = kind.subtitle
+            self.systemImage = kind.systemImage
+            self.isEnabled = isEnabled
+            self.disabledReason = disabledReason
+        }
+    }
+
+    public struct SheetPresentation: Equatable, Hashable, Sendable {
+        public let fabTitle: String
+        public let sheetTitle: String
+        public let quotaBadgeText: String?
+        public let actions: [ActionDescriptor]
+
+        public init(
+            fabTitle: String = PublishTabFloatingSheetParity.fabButtonTitle,
+            sheetTitle: String = PublishTabFloatingSheetParity.sheetHeaderTitle,
+            quotaBadgeText: String?,
+            actions: [ActionDescriptor]
+        ) {
+            self.fabTitle = fabTitle
+            self.sheetTitle = sheetTitle
+            self.quotaBadgeText = quotaBadgeText
+            self.actions = actions
+        }
+    }
+
+    public static let fabButtonTitle = "发布"
+    public static let sheetHeaderTitle = "选择发布方式"
+    public static let signInRequiredReason = "请先登录并获取发布权限"
+    public static let quotaExhaustedReason = "主题发布额度已用完"
+    public static let clubOnlyActivityReason = "仅认证俱乐部主理人可发布单场活动"
+
+    /// Builds the floating publish sheet presentation from `/api/publish/home` capability.
+    /// Fails closed when `capability` is nil.
+    public static func presentation(capability: PublishingCapability?) -> SheetPresentation {
+        guard let capability else {
+            return SheetPresentation(
+                quotaBadgeText: nil,
+                actions: ActionKind.allCases.map {
+                    ActionDescriptor(kind: $0, isEnabled: false, disabledReason: signInRequiredReason)
+                }
+            )
+        }
+
+        let quotaText: String?
+        if capability.quotaExhausted {
+            quotaText = "今日发布额度已用完"
+        } else if let remaining = capability.remaining {
+            quotaText = "剩余可发布 \(remaining) 个主题"
+        } else {
+            quotaText = nil
+        }
+
+        let quickEnabled = capability.simple && !capability.quotaExhausted
+        let quickReason: String? = quickEnabled
+            ? nil
+            : (capability.quotaExhausted ? quotaExhaustedReason : "当前账号暂无快速发布权限")
+
+        let proEnabled = capability.pro && !capability.quotaExhausted
+        let proReason: String? = proEnabled
+            ? nil
+            : (capability.quotaExhausted ? quotaExhaustedReason : "当前账号暂无专业创编权限")
+
+        let activityEnabled = capability.activity
+        let activityReason: String? = activityEnabled ? nil : clubOnlyActivityReason
+
+        return SheetPresentation(
+            quotaBadgeText: quotaText,
+            actions: [
+                ActionDescriptor(kind: .quickTopic, isEnabled: quickEnabled, disabledReason: quickReason),
+                ActionDescriptor(kind: .proTopic, isEnabled: proEnabled, disabledReason: proReason),
+                ActionDescriptor(kind: .singleActivity, isEnabled: activityEnabled, disabledReason: activityReason)
+            ]
+        )
+    }
+}
+
+// MARK: - Home Continuation Coordinator (P1 End-to-End Business Flow)
+
+/// Account + session-revision + journey-scope identity binding for Home continuation cards.
+public struct HomeContinuationOwnerScope: Equatable, Hashable, Sendable {
+    public let accountID: Int
+    public let sessionRevision: UInt64
+    public let journeyScope: UUID
+
+    public init(accountID: Int, sessionRevision: UInt64, journeyScope: UUID) {
+        self.accountID = accountID
+        self.sessionRevision = sessionRevision
+        self.journeyScope = journeyScope
+    }
+}
+
+/// Explicit read-availability state for Home continuation cards.
+/// Keeps `PlayerJourneyService` default `readsEnabled = false` fail-closed while surfacing the approval gap.
+public enum HomeContinuationReadAvailability: String, Equatable, Sendable {
+    case available
+    case journeyReadNotApproved
+    case unauthenticated
+    case failed
+
+    public var messageKey: String? {
+        switch self {
+        case .available:
+            return nil
+        case .journeyReadNotApproved:
+            return "homeContinuation.journeyReadNotApproved"
+        case .unauthenticated:
+            return "homeContinuation.signInRequired"
+        case .failed:
+            return "homeContinuation.loadFailed"
+        }
+    }
+}
+
+/// Result of pre-tap re-verification before entering a continuation card's runtime or detail destination.
+public enum HomeContinuationNavigationDecision: Equatable {
+    case enterRuntime(PlaySessionScope)
+    case openDetail(HomeFeedDestination)
+    case staleRejected
+}
+
+/// Coordinates Home continuation cards (`玩家“退出后继续玩”完整组`) with:
+/// - `(accountID, sessionRevision, journeyScope)` binding,
+/// - independent load leases (`activeLoadTicket`) and per-scope navigation leases (`scopeNavigationTickets`),
+/// - explicit `journeyReadNotApproved` reporting when remote `PlayerJourneyService` reads remain default-off (`readsEnabled == false`),
+/// - durable post-restart paused-run recovery and pre-tap re-verification before navigation.
+@MainActor
+public final class HomeContinuationCoordinator {
+    public private(set) var ownerScope: HomeContinuationOwnerScope?
+    public private(set) var cards: [HomeIndexParityPresentation.ContinuationCard] = []
+    public private(set) var readAvailability: HomeContinuationReadAvailability = .unauthenticated
+    public private(set) var activeGeneration: UInt64 = 0
+    public private(set) var activeLoadTicket = UUID()
+    private var scopeGenerations: [PlaySessionScope: UInt64] = [:]
+    private var scopeNavigationTickets: [PlaySessionScope: UUID] = [:]
+
+    public init() {}
+
+    public func generation(for scope: PlaySessionScope) -> UInt64 {
+        scopeGenerations[scope] ?? 0
+    }
+
+    public func navigationTicket(for scope: PlaySessionScope) -> UUID? {
+        scopeNavigationTickets[scope]
+    }
+
+    /// Resets all continuation cards and invalidates both load and navigation leases so any in-flight work is discarded.
+    public func reset(readAvailability: HomeContinuationReadAvailability = .unauthenticated) {
+        activeGeneration &+= 1
+        activeLoadTicket = UUID()
+        ownerScope = nil
+        cards = []
+        self.readAvailability = readAvailability
+        scopeGenerations.removeAll()
+        scopeNavigationTickets.removeAll()
+    }
+
+    /// Reloads continuation cards for `ownerScope` with an independent load lease (`activeLoadTicket`) and monotonic generation isolation.
+    /// Older completions, failures, or cancellations never overwrite newer state, and any in-flight navigation verification is invalidated.
+    @discardableResult
+    public func reload(
+        ownerScope: HomeContinuationOwnerScope?,
+        isAuthenticated: Bool,
+        isJourneyReadConfigured: Bool,
+        locale: Locale = Locale(identifier: "zh-Hans"),
+        currentOwnerScope: () -> HomeContinuationOwnerScope?,
+        loadParticipations: () async throws -> [ParticipationRecord],
+        loadPausedRuns: ([ParticipationRecord]) async -> [PlayContinueRun]
+    ) async -> [HomeIndexParityPresentation.ContinuationCard] {
+        activeGeneration &+= 1
+        let generation = activeGeneration
+        let loadTicket = UUID()
+        activeLoadTicket = loadTicket
+        scopeNavigationTickets.removeAll()
+
+        guard isAuthenticated, let ownerScope, ownerScope.accountID > 0 else {
+            if generation == activeGeneration && activeLoadTicket == loadTicket {
+                self.ownerScope = nil
+                self.cards = []
+                self.readAvailability = .unauthenticated
+                self.scopeGenerations.removeAll()
+                self.scopeNavigationTickets.removeAll()
+            }
+            return []
+        }
+
+        if self.ownerScope != ownerScope {
+            self.ownerScope = ownerScope
+            self.cards = []
+            self.scopeGenerations.removeAll()
+            self.scopeNavigationTickets.removeAll()
+        }
+
+        var remoteRecords: [ParticipationRecord] = []
+        let resolvedAvailability: HomeContinuationReadAvailability
+
+        if isJourneyReadConfigured {
+            do {
+                let fetched = try await loadParticipations()
+                try Task.checkCancellation()
+                guard generation == activeGeneration,
+                      activeLoadTicket == loadTicket,
+                      currentOwnerScope() == ownerScope else {
+                    return self.cards
+                }
+                remoteRecords = fetched
+                resolvedAvailability = .available
+            } catch is CancellationError {
+                return self.cards
+            } catch {
+                guard generation == activeGeneration,
+                      activeLoadTicket == loadTicket,
+                      currentOwnerScope() == ownerScope else {
+                    return self.cards
+                }
+                remoteRecords = []
+                resolvedAvailability = .failed
+            }
+        } else {
+            // Remote PlayerJourneyService reads remain default-off (`readsEnabled == false`);
+            // expose the approval gap explicitly while still recovering local durable paused runs.
+            resolvedAvailability = .journeyReadNotApproved
+        }
+
+        let pausedRuns = await loadPausedRuns(remoteRecords)
+        guard !Task.isCancelled,
+              generation == activeGeneration,
+              activeLoadTicket == loadTicket,
+              currentOwnerScope() == ownerScope else {
+            return self.cards
+        }
+
+        for run in pausedRuns {
+            let previous = scopeGenerations[run.scope] ?? 0
+            if generation >= previous {
+                scopeGenerations[run.scope] = generation
+            }
+        }
+        for record in remoteRecords {
+            if let scope = record.destination {
+                let previous = scopeGenerations[scope] ?? 0
+                if generation >= previous {
+                    scopeGenerations[scope] = generation
+                }
+            }
+        }
+
+        let nextCards = HomeIndexParityPresentation.continuationCards(
+            pausedRuns: pausedRuns,
+            participations: remoteRecords,
+            locale: locale
+        )
+        self.ownerScope = ownerScope
+        self.cards = nextCards
+        self.readAvailability = resolvedAvailability
+        return nextCards
+    }
+
+    /// Re-verifies owner scope, load lease (`activeLoadTicket`), per-scope navigation lease (`scopeNavigationTickets`),
+    /// card freshness, and runtime/durable eligibility right before navigating on tap.
+    /// Any concurrent reload, account/revision change, cancellation, or duplicate tap invalidates the prior lease.
+    public func verifyNavigation(
+        for card: HomeIndexParityPresentation.ContinuationCard,
+        currentOwnerScope: () -> HomeContinuationOwnerScope?,
+        canEnterRuntime: (PlaySessionScope) -> Bool,
+        hasDurableOrLivePause: (PlaySessionScope) async -> Bool
+    ) async -> HomeContinuationNavigationDecision {
+        let capturedGeneration = activeGeneration
+        let capturedLoadTicket = activeLoadTicket
+        guard let expectedScope = ownerScope,
+              currentOwnerScope() == expectedScope,
+              cards.contains(card) else {
+            if currentOwnerScope() != ownerScope {
+                reset()
+            }
+            return .staleRejected
+        }
+
+        let playScope = card.playScope
+        let navTicket = UUID()
+        scopeNavigationTickets[playScope] = navTicket
+        scopeGenerations[playScope] = (scopeGenerations[playScope] ?? capturedGeneration) &+ 1
+        let capturedScopeGen = scopeGenerations[playScope]
+
+        let hasPause = await hasDurableOrLivePause(playScope)
+        guard !Task.isCancelled,
+              activeGeneration == capturedGeneration,
+              activeLoadTicket == capturedLoadTicket,
+              currentOwnerScope() == expectedScope,
+              ownerScope == expectedScope,
+              scopeNavigationTickets[playScope] == navTicket,
+              scopeGenerations[playScope] == capturedScopeGen,
+              cards.contains(card) else {
+            if currentOwnerScope() != ownerScope {
+                reset()
+            }
+            return .staleRejected
+        }
+        scopeNavigationTickets[playScope] = nil
+
+        switch card.kind {
+        case .continueGame:
+            guard hasPause, canEnterRuntime(playScope) else {
+                cards.removeAll { $0.id == card.id }
+                return .staleRejected
+            }
+            return .enterRuntime(playScope)
+        case .continueExploration:
+            if hasPause && canEnterRuntime(playScope) {
+                return .enterRuntime(playScope)
+            }
+            return .openDetail(card.destination)
         }
     }
 }

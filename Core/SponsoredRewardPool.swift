@@ -73,6 +73,10 @@ public struct SponsoredPoolItem: Equatable, Sendable {
             && !termsText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !title.isEmpty
             && (allocation != .guaranteed || guaranteeReserved)
     }
+    /// Pledge presentation keeps cash, random and guaranteed off even when this item would otherwise show.
+    public func pledgePresentable(_ capabilities: SponsoredRewardCapabilities) -> Bool {
+        capabilities.cash == false && capabilities.random == false && capabilities.guaranteed == false && isPresentable(capabilities)
+    }
 }
 
 /// Merchant-side counts (25A). Each bucket is shown separately; "awarded" is never "redeemed".

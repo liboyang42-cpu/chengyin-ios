@@ -39,9 +39,10 @@ import SwiftUI
     }
 
     func testSourceCountIsNotClampedOrNarrowed() {
-        for count in [-1, 10_000, Int.max] {
-            XCTAssertEqual(ClubMemberCountLocalization.text(count, locale: Locale(identifier: "en")), "\(count) members")
-            XCTAssertEqual(ClubMemberCountLocalization.text(count, locale: Locale(identifier: "zh-Hans")), "\(count) 名成员")
+        let cases: [(Int, String)] = [(-1, "-1"), (10_000, "10,000"), (Int.max, "9,223,372,036,854,775,807")]
+        for (count, expected) in cases {
+            XCTAssertEqual(ClubMemberCountLocalization.text(count, locale: Locale(identifier: "en")), "\(expected) members")
+            XCTAssertEqual(ClubMemberCountLocalization.text(count, locale: Locale(identifier: "zh-Hans")), "\(expected) 名成员")
         }
     }
 

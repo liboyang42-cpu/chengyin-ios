@@ -110,7 +110,7 @@ import SwiftUI
         } else if c.issue == "merchant.content.denied" {
             stateView(title: "merchantCityNode.permission.title", sub: MerchantCityNodeCopy.string("merchantCityNode.permission.sub"), identifier: "cityNodeCreate.noPermission", retry: false)
         } else {
-            stateView(title: "merchantCityNode.create.accessFailed", sub: MerchantCityNodeCopy.failure(c, fallback: "门店信息加载失败，请重试"),
+            stateView(title: "merchantCityNode.create.accessFailed", sub: MerchantCityNodeCopy.failure(c, fallback: MerchantCityNodeCopy.string("merchantCityNode.create.accessFallback")),
                       identifier: "cityNodeCreate.accessError", retry: true)
         }
     }

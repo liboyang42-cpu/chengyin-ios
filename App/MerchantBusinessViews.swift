@@ -343,7 +343,9 @@ import SwiftUI
         .navigationDestination(for: MerchantBusinessHomeRoute.self) { route in
             if route.isCurrent(reader: reader, journal: journal) {
                 switch route.target {
-                case .query(let query): MerchantBusinessPage(reader: route.reader, journal: route.journal, query: query)
+                case .query(let query):
+                    if query == .overview { MerchantLedgerSettlementOverview(reader: route.reader) }
+                    else { MerchantBusinessPage(reader: route.reader, journal: route.journal, query: query) }
                 case .scan:
                     if let nativeVerificationDestination { nativeVerificationDestination() }
                     else { MerchantScanPreviewView() }

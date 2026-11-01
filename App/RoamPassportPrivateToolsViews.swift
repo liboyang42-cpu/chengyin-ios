@@ -112,13 +112,17 @@ enum RoamShanghaiPicker {
             if let issue = model.issue {
                 Section { RoamPrivateIssueView(issue: issue, retry: issue == .outcomeUnknown ? nil : { Task { await model.load() } }) }
             }
-            if model.pending != nil {
+            if model.pending != nil || model.pendingRequestID != nil {
                 Section {
                     Text("roam.capsule.pending").accessibilityIdentifier("roam.capsule.pending")
                     Button("roam.capsule.verify") { Task { await model.verifyPending() } }
                         .disabled(model.isBusy).accessibilityIdentifier("roam.capsule.verify")
-                    Button("roam.capsule.retryOriginal") { Task { _ = await model.retryPending() } }
-                        .disabled(model.isBusy || !model.canWrite).accessibilityIdentifier("roam.capsule.retryOriginal")
+                    // A restored lock has only the original request ID. Checking that
+                    // receipt is the only action; the body is never rebuilt in order to resend.
+                    if model.pending != nil {
+                        Button("roam.capsule.retryOriginal") { Task { _ = await model.retryPending() } }
+                            .disabled(model.isBusy || !model.canWrite).accessibilityIdentifier("roam.capsule.retryOriginal")
+                    }
                 }
             }
             if let opened = model.opened {
@@ -291,13 +295,16 @@ extension RoamGoalState {
             if let issue = model.issue, !(creating && (issue == .invalidDraft || isRejection(issue))) {
                 Section { RoamPrivateIssueView(issue: issue, retry: issue == .outcomeUnknown ? nil : { Task { await model.load() } }) }
             }
-            if model.pending != nil {
+            if model.pending != nil || model.pendingRequestID != nil {
                 Section {
                     Text("roam.goals.pending").accessibilityIdentifier("roam.goals.pending")
                     Button("roam.goals.verify") { Task { await model.verifyPending() } }
                         .disabled(model.isBusy).accessibilityIdentifier("roam.goals.verify")
-                    Button("roam.goals.retryOriginal") { Task { _ = await model.retryPending() } }
-                        .disabled(model.isBusy || !model.canWrite).accessibilityIdentifier("roam.goals.retryOriginal")
+                    // Restored lock: receipt check only. No draft means no resend.
+                    if model.pending != nil {
+                        Button("roam.goals.retryOriginal") { Task { _ = await model.retryPending() } }
+                            .disabled(model.isBusy || !model.canWrite).accessibilityIdentifier("roam.goals.retryOriginal")
+                    }
                 }
             }
             if let detail = model.detail { detailSection(detail) }

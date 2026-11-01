@@ -282,9 +282,9 @@ extension ProfileIdentityShareFlowTests {
         let fixture = PageFixture(profile: try profile())
         let page = UIHostingController(rootView: MountedPage(fixture: fixture))
         let navigation = UINavigationController(rootViewController: page)
-        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window
         window.rootViewController = navigation; window.makeKeyAndVisible()
-        defer { window.isHidden = true; window.rootViewController = nil }
+        defer { sceneWindow.retire() }
         try await Task.sleep(nanoseconds: 150_000_000)
         XCTAssertTrue(fixture.owner.visible)
         let context = pageContext(fixture.reader)

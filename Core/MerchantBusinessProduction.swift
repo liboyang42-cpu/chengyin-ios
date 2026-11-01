@@ -6,7 +6,7 @@ import FoundationNetworking
 /// Separate opinion decisions and team/CRM actions; no refund-execution action exists.
 public enum MerchantBusinessAction: String, Hashable {
     case addNote, hideNote, assignTag, removeTag, batchTag, aftercareAgree, aftercareReject, aftercareEvidence
-    case reviewReply, reviewUpdate, reviewDelete, reviewReport, inviteOperator, operatorRole, removeOperator, revokeInvite
+    case reviewReply, reviewUpdate, reviewDelete, reviewReport, inviteOperator, operatorRole, removeOperator, revokeInvite, saveSku
 }
 public extension MerchantBusinessMutation {
     var action: MerchantBusinessAction {
@@ -19,6 +19,7 @@ public extension MerchantBusinessMutation {
             switch action { case .reply: return .reviewReply; case .update: return .reviewUpdate; case .delete: return .reviewDelete; case .report: return .reviewReport }
         case .inviteOperator: return .inviteOperator; case .operatorRole: return .operatorRole
         case .removeOperator: return .removeOperator; case .revokeInvite: return .revokeInvite
+        case .saveSku: return .saveSku
         }
     }
     /// Batch grants preserve the exact customer set instead of the broad UI lock category.
@@ -97,10 +98,23 @@ public struct MerchantBusinessProductionApproval {
         // envelope() may hop executors. Recheck the exact review at the final gate.
         try authorization.validate(mutation, merchantID: merchantID)
         let result = try await transport.send(request)
+        // Authentication is about the credential actually sent, not UI/task lifetime.
+        // The existing reader retires only its captured session and retains UNKNOWN intent.
+        if Self.receivedUnauthorized(result) {
+            guard current() == captured else { throw MerchantBusinessFailure.unknown }
+            throw APIError.unauthorized
+        }
         guard !Task.isCancelled, current() == captured else { throw MerchantBusinessFailure.unknown }
         try authorization.validate(mutation, merchantID: merchantID)
         return result
     }
+    private static func receivedUnauthorized(_ result: (Data, Int)) -> Bool {
+        if result.1 == 401 { return true }
+        guard (200..<300).contains(result.1),
+              let body = try? JSONDecoder().decode(MerchantBusinessValue.self, from: result.0).object else { return false }
+        return (try? body.mbInt("code")) == 401
+    }
+
 }
 @MainActor public struct MerchantBusinessProductionFactory {
     private let api: APIConfiguration

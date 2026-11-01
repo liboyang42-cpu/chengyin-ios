@@ -69,8 +69,17 @@ import SwiftUI
     }
 }
 
+/// Synthetic open gate for the offline favorites host. Nil is not treated as permission.
+@MainActor final class AccountCollectionFixtureGate: SquareCommunityFeatureReading {
+    let scope = UUID()
+    func communityFeatures() async throws -> SquareCommunityFeatures {
+        SquareCommunityFeatures(read: true, write: false)
+    }
+}
+
 @MainActor struct AccountCollectionFixtureHostView: View {
     @State private var reader: AccountCollectionFixtureReader
+    @State private var communityGate = AccountCollectionFixtureGate()
     @State private var revision = 0
     @State private var codeFixture = AccountCollectionCodeFixture()
     @State private var topicRoute: TopicRoute?
@@ -107,7 +116,7 @@ import SwiftUI
                     Form {
                         NavigationLink {
                             AccountCollectionFavoritesView(reader: reader, onOpenTopic: { topicRoute = TopicRoute(id: $0) }, pageSize: 2,
-                                                           onOpenPost: { postRoute = PostRoute(route: $0) })
+                                                           onOpenPost: { postRoute = PostRoute(route: $0) }, communityGate: communityGate)
                         } label: { Label("accountCollection.favorites.title", systemImage: "heart") }
                         .accessibilityIdentifier("accountCollection.openFavorites")
                         NavigationLink { AccountCollectionCouponsView(reader: reader) } label: {

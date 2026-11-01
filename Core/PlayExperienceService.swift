@@ -33,6 +33,14 @@ public struct PlayExperienceService {
     public init(configuration: APIConfiguration, transport: any HTTPTransport, enabled: Set<PlayExperienceCapability> = [], readLifetime: PlayInteractionLifetime? = nil) {
         self.configuration = configuration; self.transport = transport; self.enabled = enabled; self.readLifetime = readLifetime
     }
+    /// Only an actual bounded reply can prove authentication loss. Malformed or
+    /// over-limit envelopes remain ordinary unknown errors, never guessed 401s.
+    public static func isAuthenticationFailure(_ reply: (Data, Int)) -> Bool {
+        if reply.1 == 401 { return true }
+        guard reply.0.count <= 512 * 1024,
+              let envelope = try? JSONDecoder().decode(PlayWireValue.self, from: reply.0) else { return false }
+        return envelope["code"].tolerantInteger == 401
+    }
     @MainActor public var readLifetimeID: String? { readLifetime?.identity }
     @MainActor public var hasCurrentReadLifetime: Bool { readLifetime?.isCurrent ?? true }
     @MainActor public func bound(to lifetime: PlayInteractionLifetime) -> PlayExperienceService {

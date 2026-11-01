@@ -9,6 +9,8 @@ public struct CityNodeRedemptionCode: Equatable {
         value = code
     }
     public var request: MerchantBusinessRequest { .form("api/verify/citynode/redeem", ["code": value]) }
+    /// Staff reward-pledge redeem uses the coupon routes, never this city-node form.
+    public static func acceptsPledgeRedeem(_ path: String) -> Bool { false }
 }
 
 /// The original backend message is business information, including rejection and restocking guidance.

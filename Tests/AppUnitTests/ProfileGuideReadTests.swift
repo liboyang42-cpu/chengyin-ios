@@ -165,8 +165,8 @@ import UIKit
         let h=try Harness();await h.login();let reader=try h.reader();h.wire.requests=[]
         let view=ProfileGuideHost(reader:reader,makeArticleReader:{h.session.makeProfileGuideArticleReader($0)})
         let host=UIHostingController(rootView:AnyView(NavigationStack{view}.environment(\.scenePhase,.active)))
-        let window=UIWindow(frame:UIScreen.main.bounds);window.rootViewController=host;window.makeKeyAndVisible()
-        defer{window.isHidden=true;window.rootViewController=nil};host.loadViewIfNeeded();host.view.layoutIfNeeded()
+        let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window;window.rootViewController=host;window.makeKeyAndVisible()
+        defer { sceneWindow.retire() };host.loadViewIfNeeded();host.view.layoutIfNeeded()
         for _ in 0..<100 where h.wire.requests.isEmpty{try await Task.sleep(for:.milliseconds(20))}
         XCTAssertEqual(h.wire.paths,["infomation_list"]);reader.refresh()
         for _ in 0..<100 where h.wire.requests.count<2{try await Task.sleep(for:.milliseconds(20))}

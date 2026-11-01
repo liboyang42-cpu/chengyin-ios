@@ -99,8 +99,13 @@ final class IMInboxTests: XCTestCase {
         ]).first)
         XCTAssertEqual(IMConversationPreviewPolicy.defaultPolicy, .redactedPlaceholder)
         XCTAssertEqual(IMConversationPreviewPolicy.resolve(for: conversation), "打开会话查看消息")
+        XCTAssertNil(conversation.lastMessageText)
         XCTAssertEqual(
             IMConversationPreviewPolicy.resolve(for: conversation, policy: .serverPreviewWhenUnrecalled),
+            "打开会话查看消息"
+        )
+        XCTAssertEqual(
+            IMConversationPreviewPolicy.serverPreviewWhenUnrecalled.previewText(serverPreview: "  周末集合点确认  "),
             "周末集合点确认"
         )
         XCTAssertEqual(

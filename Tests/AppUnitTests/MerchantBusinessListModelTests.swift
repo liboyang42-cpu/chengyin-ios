@@ -755,7 +755,7 @@ extension MerchantTeamResultRefreshTests {
             row["canReply"] = .bool(action == .reply)
             row["canEditReply"] = .bool(action == .update || action == .delete)
             if action == .update || action == .delete { row["merchantReply"] = .string("Original reply") }
-            if sends > 0 { row["version"] = .int(1); row["merchantReply"] = action == .delete ? .null : .string("Server fresh reply") }
+            if sends > 0 { row["version"] = .int(1); row["canReply"] = .bool(action == .delete); row["merchantReply"] = action == .delete ? .null : .string("Server fresh reply") }
             payload["items"] = .array([.object(row)])
             return try .init(access: grant, document: .init(query: query, payload: .object(payload)))
         }

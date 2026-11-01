@@ -187,13 +187,65 @@
     "en": "Scan the store code",
     "zh-Hans": "扫描门店码"
   },
+  "playx.merchant.scan.detail": {
+    "en": "Records arrival time; does not mean verified",
+    "zh-Hans": "记录到店时间，不代表已核销"
+  },
   "playx.merchant.photo": {
     "en": "Provide the requested photo",
     "zh-Hans": "提交现场凭证"
   },
+  "playx.merchant.photo.default": {
+    "en": "Take a photo showing you have arrived at the store",
+    "zh-Hans": "拍一张能证明已到店的照片"
+  },
+  "playx.merchant.photo.locked": {
+    "en": "Photo instructions appear after arrival",
+    "zh-Hans": "到店后显示拍摄要求"
+  },
   "playx.merchant.verify": {
     "en": "Merchant verification",
     "zh-Hans": "商家核销"
+  },
+  "playx.merchant.verify.detail": {
+    "en": "Service starts when the merchant verifies",
+    "zh-Hans": "商家核销的时刻才算服务开始"
+  },
+  "playx.merchant.reference": {
+    "en": "On-site reference",
+    "zh-Hans": "现场参考"
+  },
+  "playx.merchant.onsite": {
+    "en": "On-site status",
+    "zh-Hans": "现场"
+  },
+  "playx.merchant.crowd.queue": {
+    "en": "Queuing now, consider visiting another store first",
+    "zh-Hans": "排队中，建议先去别家"
+  },
+  "playx.merchant.crowd.go": {
+    "en": "Ready to visit",
+    "zh-Hans": "可前往"
+  },
+  "playx.merchant.crowd.unknown": {
+    "en": "Status pending sync",
+    "zh-Hans": "状态待同步"
+  },
+  "playx.merchant.stat.load": {
+    "en": "Arrived & waiting for verification",
+    "zh-Hans": "已到店待核销"
+  },
+  "playx.merchant.stat.perHour": {
+    "en": "Served per hour",
+    "zh-Hans": "每小时接待"
+  },
+  "playx.merchant.stat.wait": {
+    "en": "Estimated wait (min)",
+    "zh-Hans": "预计等待(分)"
+  },
+  "playx.merchant.degraded.quantity": {
+    "en": "Live headcount is temporarily unavailable; please follow staff arrangements",
+    "zh-Hans": "现场人数暂时取不到，请以店员安排为准"
   },
   "playx.merchant.notice": {
     "en": "Arrival and photo evidence are separate steps. The merchant confirms completion.",
@@ -1514,5 +1566,369 @@
   "playx.preference.done": {
     "en": "Return to journey",
     "zh-Hans": "返回旅程"
+  },
+  "playx.finishRoute.eyebrow": {
+    "en": "Next route nearby",
+    "zh-Hans": "附近下一程"
+  },
+  "playx.finishRoute.untitled": {
+    "en": "Nearby route",
+    "zh-Hans": "附近路线"
+  },
+  "playx.finishRoute.priceFrom %@": {
+    "en": "From ¥%@",
+    "zh-Hans": "¥%@ 起"
+  },
+  "playx.finishRoute.free": {
+    "en": "Free",
+    "zh-Hans": "免费"
+  },
+  "playx.finishRoute.action": {
+    "en": "See prices and tickets →",
+    "zh-Hans": "查看票价并购票 →"
+  },
+  "playx.finishRoute.metaKm %@ %@": {
+    "en": "%1$@ km · %2$@",
+    "zh-Hans": "%1$@ 公里 · %2$@"
+  },
+  "playx.finishRoute.metaM %@ %@": {
+    "en": "%1$@ m · %2$@",
+    "zh-Hans": "%1$@ 米 · %2$@"
+  },
+  "playx.finishRoute.km %@": {
+    "en": "%@ km",
+    "zh-Hans": "%@ 公里"
+  },
+  "playx.finishRoute.m %@": {
+    "en": "%@ m",
+    "zh-Hans": "%@ 米"
+  },
+  "playx.finishRoute.address %@": {
+    "en": "%@",
+    "zh-Hans": "%@"
+  },
+  "playx.finishRoute.fixtureLoaded": {
+    "en": "Finish sheet (synthetic)",
+    "zh-Hans": "完成页（合成数据）"
+  },
+  "playx.opening.title": {
+    "en": "Opening chapter",
+    "zh-Hans": "开局章节"
+  },
+  "playx.opening.depart": {
+    "en": "Set off",
+    "zh-Hans": "出发"
+  },
+  "playx.opening.finishFirst": {
+    "en": "Finish the opening play first",
+    "zh-Hans": "请先完成开局玩法"
+  },
+  "playx.opening.review": {
+    "en": "Setting off records the opening as finished on the server. Continue?",
+    "zh-Hans": "出发后服务端会记录开局已完成，确定出发吗？"
+  },
+  "playx.opening.confirm": {
+    "en": "Confirm and set off",
+    "zh-Hans": "确认出发"
+  },
+  "playx.opening.cancel": {
+    "en": "Not yet",
+    "zh-Hans": "先不出发"
+  },
+  "playx.opening.departed": {
+    "en": "Opening finished. The route continues.",
+    "zh-Hans": "开局已完成，继续路线。"
+  },
+  "playx.opening.saveFailed": {
+    "en": "Couldn’t save. Please try again.",
+    "zh-Hans": "保存失败，请重试"
+  },
+  "playx.opening.unknown": {
+    "en": "The result isn’t confirmed yet. Check again instead of resubmitting.",
+    "zh-Hans": "结果待确认，请重新核对，不要重复提交。"
+  },
+  "playx.opening.readBack": {
+    "en": "Check again",
+    "zh-Hans": "再核对一次"
+  },
+  "playx.opening.loadFailed": {
+    "en": "Route status couldn’t be loaded.",
+    "zh-Hans": "路线状态没有加载出来。"
+  },
+  "playx.opening.disabled": {
+    "en": "Setting off from the opening chapter isn’t available in this version.",
+    "zh-Hans": "当前版本暂未开放开局出发。"
+  },
+  "playx.circleLink.title": {
+    "en": "This exploration link is incomplete",
+    "zh-Hans": "探索链接不完整"
+  },
+  "playx.circleLink.subtitle": {
+    "en": "Open it again from the circle theme or the invite a companion shared",
+    "zh-Hans": "请从圈层主题或同行人分享的邀请重新进入"
+  },
+  "playx.circleLink.home": {
+    "en": "Back to home",
+    "zh-Hans": "返回首页"
+  },
+  "playx.circleLink.fixtureHome": {
+    "en": "Home (synthetic)",
+    "zh-Hans": "首页（合成数据）"
+  },
+  "playx.themeRecords.title": {
+    "en": "My play records",
+    "zh-Hans": "我的游玩记录"
+  },
+  "playx.themeRecords.empty": {
+    "en": "No play records yet",
+    "zh-Hans": "还没有游玩记录"
+  },
+  "playx.themeRecords.loading": {
+    "en": "Loading play records",
+    "zh-Hans": "正在加载游玩记录"
+  },
+  "playx.themeRecords.more": {
+    "en": "Show more",
+    "zh-Hans": "查看更多"
+  },
+  "playx.themeRecords.reload": {
+    "en": "Reload",
+    "zh-Hans": "重新加载"
+  },
+  "playx.themeRecords.completed": {
+    "en": "Run completed",
+    "zh-Hans": "本局完成"
+  },
+  "playx.themeRecords.ended": {
+    "en": "Run ended",
+    "zh-Hans": "本局结束"
+  },
+  "playx.themeRecords.inProgress": {
+    "en": "In progress",
+    "zh-Hans": "游玩中"
+  },
+  "playx.themeRecords.historyFailed": {
+    "en": "Play records didn’t load. Please try again later.",
+    "zh-Hans": "游玩记录暂未加载，请稍后重试"
+  },
+  "playx.themeRecords.cardFailed": {
+    "en": "This run’s result didn’t load. Please try again later.",
+    "zh-Hans": "本局结果暂未加载，请稍后重试"
+  },
+  "playx.themeRecords.teamCardMissing": {
+    "en": "Your team’s result didn’t load. Refresh and try again.",
+    "zh-Hans": "本队结果暂未加载，请刷新后重试"
+  },
+  "playx.themeRecords.cardTitle": {
+    "en": "Run result",
+    "zh-Hans": "本局结果"
+  },
+  "playx.themeRecords.cardLoading": {
+    "en": "Loading this run’s result",
+    "zh-Hans": "正在加载本局结果"
+  },
+  "playx.themeRecords.retryCard": {
+    "en": "Reload this run’s result",
+    "zh-Hans": "重新加载本局结果"
+  },
+  "playx.themeRecords.backToList": {
+    "en": "Back to play records",
+    "zh-Hans": "返回游玩记录"
+  },
+  "playx.themeRecords.scene": {
+    "en": "Scene",
+    "zh-Hans": "场景"
+  },
+  "playx.themeRecords.hp": {
+    "en": "Health",
+    "zh-Hans": "生命值"
+  },
+  "playx.themeRecords.luck": {
+    "en": "Luck",
+    "zh-Hans": "幸运值"
+  },
+  "playx.themeRecords.actions": {
+    "en": "Actions",
+    "zh-Hans": "行动次数"
+  },
+  "playx.themeRecords.rescues": {
+    "en": "Rescues",
+    "zh-Hans": "获救次数"
+  },
+  "playx.themeRecords.knownEndings": {
+    "en": "Endings discovered",
+    "zh-Hans": "已发现的结局"
+  },
+  "playx.themeRecords.nextScene %@": {
+    "en": "Next scene: %@",
+    "zh-Hans": "下次场景：%@"
+  },
+  "playx.entryCode.open": {
+    "en": "Entry code",
+    "zh-Hans": "入场码"
+  },
+  "playx.entryCode.missing.title": {
+    "en": "Open from your ticket wallet to show the entry code",
+    "zh-Hans": "从票夹进入才能出示入场码"
+  },
+  "playx.entryCode.missing.body": {
+    "en": "The entry code is tied to your ticket, so it’s only available when you open play from the ticket wallet. Go to the ticket wallet now?",
+    "zh-Hans": "入场码要绑定你那张票，所以只有从票夹点进来才带得到。现在去票夹？"
+  },
+  "playx.entryCode.missing.wallet": {
+    "en": "Go to ticket wallet",
+    "zh-Hans": "去票夹"
+  },
+  "playx.entryCode.missing.later": {
+    "en": "Not now",
+    "zh-Hans": "先不去"
+  },
+  "playx.entryCode.fixtureWallet": {
+    "en": "Ticket wallet (synthetic)",
+    "zh-Hans": "票夹（合成数据）"
+  },
+  "playx.backpack.title": {
+    "en": "Backpack",
+    "zh-Hans": "背包"
+  },
+  "playx.backpack.load": {
+    "en": "Backpack load",
+    "zh-Hans": "背包装载"
+  },
+  "playx.backpack.slots %lld %lld": {
+    "en": "%1$lld / %2$lld slots",
+    "zh-Hans": "%1$lld / %2$lld 格"
+  },
+  "playx.backpack.zero": {
+    "en": "Depleted",
+    "zh-Hans": "已归零"
+  },
+  "playx.backpack.tabs": {
+    "en": "Backpack sections",
+    "zh-Hans": "背包分类"
+  },
+  "playx.backpack.tab.items": {
+    "en": "Items",
+    "zh-Hans": "物品"
+  },
+  "playx.backpack.tab.clues": {
+    "en": "Clues",
+    "zh-Hans": "线索"
+  },
+  "playx.backpack.tab.game": {
+    "en": "Tasks",
+    "zh-Hans": "任务"
+  },
+  "playx.backpack.claimOnly": {
+    "en": "This run has ended; only pending rewards can be claimed",
+    "zh-Hans": "本局已结束，仅可领取待领奖励"
+  },
+  "playx.backpack.pending": {
+    "en": "To claim",
+    "zh-Hans": "待领取"
+  },
+  "playx.backpack.pendingReward": {
+    "en": "Pending reward",
+    "zh-Hans": "待领奖励"
+  },
+  "playx.backpack.takesSlots %lld": {
+    "en": "Takes %lld slots",
+    "zh-Hans": "占 %lld 格"
+  },
+  "playx.backpack.carried": {
+    "en": "Carried items",
+    "zh-Hans": "随身物品"
+  },
+  "playx.backpack.perItemSlots %lld": {
+    "en": "%lld slots each",
+    "zh-Hans": "每件 %lld 格"
+  },
+  "playx.backpack.noItems": {
+    "en": "No items yet",
+    "zh-Hans": "还没有物品"
+  },
+  "playx.backpack.noClues": {
+    "en": "No clues yet",
+    "zh-Hans": "还没有线索"
+  },
+  "playx.backpack.clue": {
+    "en": "Clue",
+    "zh-Hans": "线索"
+  },
+  "playx.backpack.scope.public": {
+    "en": "Public to everyone",
+    "zh-Hans": "全场公开"
+  },
+  "playx.backpack.scope.team": {
+    "en": "Your team’s clue",
+    "zh-Hans": "本队线索"
+  },
+  "playx.backpack.clueImages %lld": {
+    "en": "%lld images (not loaded in this version)",
+    "zh-Hans": "%lld 张图片（当前版本不加载）"
+  },
+  "playx.backpack.gameUnavailable": {
+    "en": "Tasks, trades and recovery actions aren’t available in this version.",
+    "zh-Hans": "当前版本暂未开放任务、交换与恢复操作。"
+  },
+  "playx.backpack.carriedSupply": {
+    "en": "Carried supply",
+    "zh-Hans": "随身物资"
+  },
+  "playx.backpack.genericNumber": {
+    "en": "Value",
+    "zh-Hans": "数值"
+  },
+  "playx.backpack.genericSupply": {
+    "en": "Supply",
+    "zh-Hans": "物资"
+  },
+  "playx.backpack.unavailable": {
+    "en": "The backpack isn’t available in this version.",
+    "zh-Hans": "当前版本暂未开放背包。"
+  },
+  "playx.backpack.failed": {
+    "en": "The backpack didn’t load. Tap to retry.",
+    "zh-Hans": "背包暂未加载，点击重试"
+  },
+  "playx.backpack.retry": {
+    "en": "Retry",
+    "zh-Hans": "重试"
+  },
+  "playx.backpack.zeroPolicy.WAIT": {
+    "en": "Rest to recover",
+    "zh-Hans": "休息恢复"
+  },
+  "playx.backpack.zeroPolicy.CHALLENGE": {
+    "en": "Depletion challenge",
+    "zh-Hans": "归零挑战"
+  },
+  "playx.backpack.zeroPolicy.STEPS": {
+    "en": "Walk to recover",
+    "zh-Hans": "步行恢复"
+  },
+  "playx.backpack.zeroPolicy.BLOCK_HP_COST": {
+    "en": "Costly tasks paused",
+    "zh-Hans": "暂停消耗任务"
+  },
+  "playx.backpack.zeroPolicy.BLOCK_PAID": {
+    "en": "Paid tasks paused",
+    "zh-Hans": "暂停付费任务"
+  },
+  "playx.backpack.zeroPolicy.THEME_FAIL": {
+    "en": "Run ended",
+    "zh-Hans": "本局结束"
+  },
+  "playx.backpack.zeroPolicy.OTHER": {
+    "en": "Depleted state",
+    "zh-Hans": "归零状态"
+  },
+  "playx.device.accuracy": {
+    "en": "Measured accuracy",
+    "zh-Hans": "定位精度"
+  },
+  "playx.device.lowAccuracy": {
+    "en": "Low location accuracy · you can scan the code to complete",
+    "zh-Hans": "定位精度不足 · 可扫码完成"
   }
 }

@@ -1,0 +1,56 @@
+# C06 author page read — session attach closed
+
+Issue: https://github.com/liboyang42-cpu/chengyin-remote-ops/issues/5
+Repo: github.com/liboyang42-cpu/chengyin-ios
+Branch: cursor/c06-author-page-read-e504
+Base: cursor/c06-npc-author-flow-e504 @ bf047931651304b240942b59564b4bae9a58b30e
+
+The character page already calls `MerchantOperationsEditor.submitAuthoredFields`.
+That method passes name, greeting, persona, and knowledge into the existing
+`MerchantNPCKnowledgeAuthorFlow`, ingests the AI draft, and stops at original review.
+A missing publisher stays unpublished. `recoverFromDraftRead` does not change the phase.
+The page shows `merchantNPC.draft.unpublished`.
+
+This branch does not construct a publisher on the page, does not invent a grant,
+and does not add a screen.
+
+## Not applied
+
+Supplying the flow into the running merchant destination needs the session.
+That attach is only the paste below. Do not apply it. Do not edit:
+
+```
+App/AppSession.swift
+App/AppCompositionRoot.swift
+Questify.xcodeproj/project.pbxproj
+```
+
+Not inserted into `merchantOperationsDestination`. `publisher` stays nil, so the
+existing waiting-source publisher is the one the flow already owns. Do not add a
+grant, a policy version, or a second writer.
+
+```swift
+if destination == .character,
+   let merchantID = access.identity.merchantID,
+   let row = PublicMerchantRowID(merchantID),
+   let scope = merchantNPCScope(row: row) {
+    let flow = MerchantNPCKnowledgeAuthorFlow(
+        scope: scope,
+        publisher: nil,
+        currentScope: { [weak self] in self?.merchantNPCScope(row: row) })
+    return AnyView(MerchantOperationsDocumentView(
+        reader: merchantOperationsReader,
+        destination: destination,
+        imageHost: retainedMerchantImages,
+        templateAssistFactory: { [weak self] coordinator in
+            self?.merchantTemplateAssistFlow(coordinator: coordinator) ?? MerchantTemplateAssistFlow(coordinator: coordinator, client: nil)
+        },
+        authorFlow: flow))
+}
+```
+
+`draftReadMemberID`, `draftReadRequestID`, and `draftRead` stay nil until a real
+`AiThemeDraftRequestService.read` closure exists. The page still calls
+`recoverFromDraftRead`. A missing closure does not change the phase.
+
+XCTest / App / CI = NOT_RUN where swiftc is absent. Not 100%.

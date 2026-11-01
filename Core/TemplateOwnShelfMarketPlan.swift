@@ -43,6 +43,13 @@ public struct TemplateOwnShelfMarketPlan: Equatable {
     }
 }
 
+/// Same approved `api/template/my-list` object as the state projection.
+/// A malformed optional column is absent; this envelope adds no request.
+struct TemplateOwnShelfCardFactsEnvelope: Decodable {
+    struct Payload: Decodable { let rows: [TemplateOwnShelfCardFacts] }
+    let data: Payload
+}
+
 /// Optional card columns the source card shows (评分, 次引用, 时长, 创建时间, 审核反馈).
 /// Decoded separately from the shared DTO; a malformed column is simply absent.
 public struct TemplateOwnShelfCardFacts: Decodable, Equatable {

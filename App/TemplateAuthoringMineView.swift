@@ -19,6 +19,7 @@ import SwiftUI
     @State private var viewRequest = UUID()
     @State private var rows: [DiscoveryPlayTemplate] = []
     @State private var rowStates: [Int: TemplateOwnShelfStateProjection] = [:]
+    @State private var cardFacts: [Int: TemplateOwnShelfCardFacts] = [:]
     @State private var messageKey: String?
     @State private var review: TemplateOwnShelfReview?
     @State private var busy = false
@@ -29,7 +30,7 @@ import SwiftUI
             Section {
                 Text("templateAuthor.mineScope").foregroundStyle(.secondary)
                 Text("templateAuthor.shelf.pageScope").font(.caption)
-                if !coordinator.canRead { Text("templateAuthor.unavailable") }
+                readStateCopy
                 TextField("templateAuthor.shelf.keyword", text: $keyword)
                     .submitLabel(.search)
                     .onSubmit { Task { await refresh() } }
@@ -75,6 +76,9 @@ import SwiftUI
                         LabeledContent("templateShelfState.market.feedback") { Text(verbatim: reason).textSelection(.enabled) }
                             .accessibilityIdentifier("templateShelfState.feedback.\(row.id)")
                     }
+                    TemplateOwnShelfCardSection(facts: cardFacts[row.id], state: state, rowID: row.id)
+                    Text(LocalizedStringKey(row.publishStatus == 1 ? "templateAuthor.shelf.inLibrary" : "templateAuthor.shelf.outLibrary"))
+                        .accessibilityIdentifier("templateAuthor.shelf.libraryState.\(row.id)")
                     Text("templateAuthor.existingEditUnavailable").font(.caption).foregroundStyle(.secondary)
                     Button(LocalizedStringKey(row.publishStatus == 1 ? "templateAuthor.shelf.removeLibrary" : "templateAuthor.shelf.addLibrary")) {
                         prepare(row.id, .libraryStatus)
@@ -85,11 +89,10 @@ import SwiftUI
                         .disabled(readSnapshot)
                 }
             }
-            if hasMore, appliedKeyword == keyword {
-                Button("templateAuthor.shelf.loadMore") { Task { await loadMore() } }
-                    .disabled(busy).accessibilityIdentifier("templateAuthor.shelf.loadMore")
+            if hasMore, appliedKeyword == keyword { loadMoreCopy }
+            if appliedKeyword == keyword, let readMessageKey, !Self.replacesReadKey(readMessageKey) {
+                Text(LocalizedStringKey(readMessageKey)).accessibilityIdentifier("templateAuthor.shelf.readStatus")
             }
-            if appliedKeyword == keyword, let readMessageKey { Text(LocalizedStringKey(readMessageKey)).accessibilityIdentifier("templateAuthor.shelf.readStatus") }
             if appliedKeyword == keyword, let messageKey { Text(LocalizedStringKey(messageKey)).accessibilityIdentifier("templateAuthor.shelf.status") }
         }.navigationTitle("templateAuthor.mine")
             // Stable typed destination survives invalidation of its source list on push.
@@ -113,8 +116,12 @@ import SwiftUI
             .onChange(of: sessionRevision) { _, _ in selectedCreatorConsent = nil }
             .onChange(of: sessionRevision) { _, _ in selectedConfiguration = nil }
             .onChange(of: sessionRevision) { _, _ in selectedMember = nil }
-            .task(id: sessionRevision) { viewRequest = UUID(); busy = false; rows = []; review = nil; rowStates = [:]; await refresh() }
-            .onDisappear { viewRequest = UUID(); coordinator.shelfReader.leave(); coordinator.leaveShelfScreen(); rows = []; review = nil; busy = false; rowStates = [:] }
+            .onChange(of: selectedMember) { previous, next in
+                guard previous != nil, next == nil else { return }
+                Task { await refresh() }
+            }
+            .task(id: sessionRevision) { viewRequest = UUID(); busy = false; rows = []; cardFacts = [:]; review = nil; rowStates = [:]; await refresh() }
+            .onDisappear { viewRequest = UUID(); coordinator.shelfReader.leave(); coordinator.leaveShelfScreen(); rows = []; review = nil; busy = false; rowStates = [:]; cardFacts = [:] }
             .sheet(item: $review, onDismiss: { coordinator.cancelShelfReview() }) { value in
                 NavigationStack {
                     Form {
@@ -126,6 +133,7 @@ import SwiftUI
                                 .accessibilityValue(Text(verbatim: String(value.templateID.rawValue)))
                                 .accessibilityIdentifier("templateAuthor.shelf.identity")
                             Text(LocalizedStringKey(value.action == .remove ? "templateAuthor.shelf.deleteReview" : value.desiredPublishStatus == 1 ? "templateAuthor.shelf.addReview" : "templateAuthor.shelf.removeReview"))
+                            if value.action == .remove { TemplateOwnShelfDeleteReviewCopy(title: value.title) }
                             Text("templateAuthor.shelf.readback")
                         }
                         if coordinator.canSimulate { Text("templateAuthor.fixtureNotice") }
@@ -161,10 +169,41 @@ import SwiftUI
                 }
             }
     }
+    private static func replacesReadKey(_ key: String) -> Bool {
+        key == "templateAuthor.signIn" || key == "templateAuthor.listUnavailable" || key == "templateAuthor.shelf.empty" || key == "templateAuthor.shelf.moreFailed" || key == "templateOwnShelf.read.denied"
+    }
+    @ViewBuilder private var readStateCopy: some View {
+        if readMessageKey == "templateAuthor.signIn" {
+            TemplateOwnShelfReadCopy(title: "templateOwnShelf.read.signIn", subtitle: "templateOwnShelf.read.signInHint", action: "templateOwnShelf.read.signInAction")
+        } else if readMessageKey == "templateOwnShelf.read.denied" || !coordinator.canRead {
+            TemplateOwnShelfReadCopy(title: "templateOwnShelf.read.denied", subtitle: "templateOwnShelf.read.deniedHint", action: "templateOwnShelf.read.retry", identifier: "templateOwnShelf.read.retry") { Task { await refresh() } }
+        } else if appliedKeyword == keyword, busy, rows.isEmpty, readMessageKey == nil {
+            Text("templateOwnShelf.read.loading").accessibilityIdentifier("templateOwnShelf.read.loading")
+        } else if appliedKeyword == keyword, readMessageKey == "templateAuthor.listUnavailable", rows.isEmpty {
+            TemplateOwnShelfReadCopy(title: "templateOwnShelf.read.failed", action: "templateOwnShelf.read.retry", identifier: "templateOwnShelf.read.retry") { Task { await refresh() } }
+        } else if appliedKeyword == keyword, readMessageKey == "templateAuthor.listUnavailable" {
+            Text("templateOwnShelf.read.failedKept").accessibilityIdentifier("templateOwnShelf.read.failedKept")
+        } else if appliedKeyword == keyword, readMessageKey == "templateAuthor.shelf.empty" {
+            TemplateOwnShelfReadCopy(title: "templateOwnShelf.read.empty", subtitle: "templateOwnShelf.read.emptyHint")
+        }
+    }
+    @ViewBuilder private var loadMoreCopy: some View {
+        if busy {
+            Text("templateOwnShelf.read.loadingMore").accessibilityIdentifier("templateOwnShelf.read.loadingMore")
+        } else if readMessageKey == "templateAuthor.shelf.moreFailed" {
+            TemplateOwnShelfReadCopy(title: "templateOwnShelf.read.moreFailed", subtitle: "templateOwnShelf.read.moreFailedHint", action: "templateOwnShelf.read.retry", identifier: "templateAuthor.shelf.loadMore") { Task { await loadMore() } }
+        } else {
+            Button("templateOwnShelf.read.loadMore") { Task { await loadMore() } }
+                .disabled(busy)
+                .accessibilityIdentifier("templateAuthor.shelf.loadMore")
+                .accessibilityLabel(Text("templateOwnShelf.read.loadMoreLabel"))
+        }
+    }
     private func sync() {
         coordinator.synchronizeSession(); coordinator.shelfReader.synchronizeSession()
         rows = coordinator.shelfReader.rows; hasMore = coordinator.shelfReader.hasMore
         rowStates = coordinator.shelfReader.rowStates
+        cardFacts = coordinator.shelfReader.cardFacts
         readSnapshot = coordinator.shelfReader.isShowingRefreshSnapshot
         readMessageKey = coordinator.shelfReader.messageKey; messageKey = coordinator.shelfMessageKey; locked = coordinator.shelfLocked
     }
@@ -192,13 +231,14 @@ import SwiftUI
         let stamp = UUID(); viewRequest = stamp
         defer {
             if stamp == viewRequest, Task.isCancelled {
-                rows = []; hasMore = false; readSnapshot = false; busy = false; rowStates = [:]
+                rows = []; hasMore = false; readSnapshot = false; busy = false; rowStates = [:]; cardFacts = [:]
             }
         }
         busy = true; review = nil; hasMore = false; readMessageKey = nil; messageKey = nil
         coordinator.synchronizeSession(); coordinator.cancelShelfReview()
         rows = coordinator.shelfReader.refreshSnapshot(keyword: keyword)
         rowStates = rows.isEmpty ? [:] : coordinator.shelfReader.rowStates
+        cardFacts = rows.isEmpty ? [:] : coordinator.shelfReader.cardFacts
         readSnapshot = !rows.isEmpty
         await coordinator.shelfReader.refresh(keyword: keyword)
         guard stamp == viewRequest, !Task.isCancelled else { return }
@@ -206,5 +246,24 @@ import SwiftUI
         if coordinator.canSubmit { await coordinator.loadMine() }
         guard stamp == viewRequest, !Task.isCancelled else { return }
         sync(); busy = false
+    }
+}
+
+/// Read-state wording for 我的节点玩法. The action closure is an existing read; login has none.
+private struct TemplateOwnShelfReadCopy: View {
+    let title: LocalizedStringKey
+    var subtitle: LocalizedStringKey? = nil
+    var action: LocalizedStringKey? = nil
+    var identifier: String? = nil
+    var perform: (() -> Void)? = nil
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+            if let subtitle { Text(subtitle).font(.footnote).foregroundStyle(.secondary) }
+            if let action {
+                if let perform { Button(action, action: perform).accessibilityIdentifier(identifier ?? "templateOwnShelf.read.action") }
+                else { Text(action).font(.footnote) }
+            }
+        }
     }
 }

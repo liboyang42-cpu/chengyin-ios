@@ -1305,8 +1305,8 @@ import UIKit
         let bytes = storage.bytes, calls = service.calls, fixes = location.calls
         let host = UIHostingController(rootView: RoamLiveSessionView(controller: owner).environment(\.scenePhase, .active))
         let navigation = UINavigationController(rootViewController: host)
-        let window = UIWindow(frame: UIScreen.main.bounds); window.rootViewController = navigation; window.makeKeyAndVisible()
-        defer { window.isHidden = true; window.rootViewController = nil }
+        let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window; window.rootViewController = navigation; window.makeKeyAndVisible()
+        defer { sceneWindow.retire() }
         host.loadViewIfNeeded(); host.view.layoutIfNeeded()
         for _ in 0..<10 { try await Task.sleep(for: .milliseconds(20)) }
         XCTAssertEqual(owner.finishedRouteTrack, points)

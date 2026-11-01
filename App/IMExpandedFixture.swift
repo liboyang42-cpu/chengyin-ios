@@ -8,7 +8,7 @@ import SwiftUI
     func perform(_ mutation: IMMutation, expectedIdentity: MessagingReadIdentity) async throws -> IMMutationReceipt {
         guard isConfigured, identity == expectedIdentity else { throw APIError.notConfigured }
         switch mutation {
-        case .read: return .read
+        case .read, .readCursor: return .read
         case .mute(_, let muted): return .muted(muted)
         case .start: return .started(conversationID: 9)
         case .send: throw IMCapabilityGap.unknownOutcome

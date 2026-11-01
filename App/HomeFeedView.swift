@@ -6,7 +6,16 @@ import SwiftUI
     var unavailableMessageKey: String? = nil
     /// Supply only from verified backend configuration, never language/device locale.
     var sourceTimeZone: TimeZone? = nil
+    var viewerNickname: String? = nil
+    var selectedCity: String? = nil
+    var showsHeroBanners: Bool = false
+    var continuationCards: [HomeIndexParityPresentation.ContinuationCard] = []
+    var continuationReadAvailability: HomeContinuationReadAvailability = .available
+    var onActionBanner: ((HomeIndexParityPresentation.ActionBanner) -> Void)? = nil
+    var onContinuation: ((HomeIndexParityPresentation.ContinuationCard) -> Void)? = nil
+    var onRetryContinuation: (() -> Void)? = nil
     let onDestination: (HomeFeedDestination) -> Void
+    @Environment(\.locale) private var locale
     @StateObject private var model = HomeFeedModel()
     @State private var kind: HomeFeedKind = .topics
     @State private var keyword = ""
@@ -26,8 +35,32 @@ import SwiftUI
                 List {
                     if reader.isOfflineExample { Text("homeFeed.example").font(.caption) }
                     if model.loading { ProgressView("homeFeed.loading") }
+                    if showsHeroBanners || viewerNickname != nil || selectedCity != nil || onActionBanner != nil {
+                        HomeHeroHeaderSectionView(nickname: viewerNickname, selectedCity: selectedCity) { banner in
+                            if banner.id == "activity_list" { kind = .activities }
+                            onActionBanner?(banner)
+                        }
+                    }
                     bannerSection
                     feedSection(.recommended)
+                    if !continuationCards.isEmpty || (continuationReadAvailability != .available && continuationReadAvailability != .unauthenticated) {
+                        PlayContinuationBannerView(
+                            cards: continuationCards,
+                            readAvailability: continuationReadAvailability,
+                            onSelectCard: { card in
+                                guard model.canOpen(reader) else { return }
+                                if let onContinuation {
+                                    onContinuation(card)
+                                } else {
+                                    onDestination(card.destination)
+                                }
+                            },
+                            onOpen: { destination in
+                                if model.canOpen(reader) { onDestination(destination) }
+                            },
+                            onRetry: onRetryContinuation
+                        )
+                    }
                     feedSection(.nearby)
                     feedSection(.upcoming)
                     Section {
@@ -51,6 +84,12 @@ import SwiftUI
                             Button("homeFeed.loadMore") { model.schedule(.page, reader: reader, permit: permit) }
                                 .frame(minHeight: 44)
                                 .accessibilityIdentifier("homeFeed.loadMore")
+                        } else if !model.pagination.hasMore && !model.loadingPage && !model.pageFailed && !model.pagination.items.isEmpty {
+                            Text(verbatim: HomeIndexParityPresentation.noMoreFooterCopy(locale: locale))
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .accessibilityIdentifier("homeFeed.noMoreFooter")
                         }
                     } header: { Text("homeFeed.explore") }
                 }
@@ -137,6 +176,7 @@ struct HomeFeedCard: View {
     let item: HomeFeedItem
     private let liveStart: Date?
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.locale) private var locale
     init(item: HomeFeedItem, sourceTimeZone: TimeZone? = nil) {
         self.item = item
         if case .activity = item { liveStart = HomeFeedDate.parse(item.startDate, sourceTimeZone: sourceTimeZone) }
@@ -158,12 +198,7 @@ struct HomeFeedCard: View {
             if item.isBeta { Text("homeFeed.beta").font(.caption.weight(.semibold)) }
             QuestifyImageEntityMetadata(label:"homeFeed.date",value:item.startDate ?? "—",systemImage:"calendar")
             QuestifyImageEntityMetadata(label:"homeFeed.place",value:item.place ?? "—",systemImage:"mappin")
-            VStack(alignment:.leading,spacing:3) {
-                Text("homeFeed.priceFrom").font(.caption)
-                if let amount=item.amount,amount>=0 { Text(amount,format:.number.precision(.fractionLength(2))).font(.headline) }
-                else { Text("homeFeed.unknown") }
-                Text("homeFeed.currencyUnknown").font(.caption)
-            }
+            priceBlock(showCurrencyWhenUnknown: true)
         }
     }
     private var standardCard:some View {
@@ -188,14 +223,7 @@ struct HomeFeedCard: View {
             Divider()
             let layout = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10)) : AnyLayout(HStackLayout(alignment: .bottom, spacing: 12))
             layout {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("homeFeed.priceFrom").font(.caption).foregroundStyle(.secondary)
-                    if let amount = item.amount, amount >= 0 {
-                        Text(amount, format: .number.precision(.fractionLength(2)))
-                            .font(.headline).monospacedDigit()
-                        Text("homeFeed.currencyUnknown").font(.caption).foregroundStyle(.secondary)
-                    } else { Text("homeFeed.unknown").font(.headline) }
-                }
+                priceBlock(showCurrencyWhenUnknown: false)
                 if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
                 VStack(alignment: .leading, spacing: 6) {
                     if item.isBeta { QuestifyStatusBadge(title: "homeFeed.beta", systemImage: "flask") }
@@ -207,22 +235,39 @@ struct HomeFeedCard: View {
         .fixedSize(horizontal: false, vertical: true)
         .questifyCardSurface()
     }
+    private func priceBlock(showCurrencyWhenUnknown: Bool) -> some View {
+        let from = appLocalized("homeFeed.priceFrom", locale: locale)
+        let currency = appLocalized("homeFeed.currencyUnknown", locale: locale)
+        let known = item.amount.flatMap { $0 >= 0 ? $0 : nil }
+        let figure = known.map { $0.formatted(.number.precision(.fractionLength(2)).locale(locale)) }
+            ?? appLocalized("homeFeed.unknown", locale: locale)
+        let label = known != nil || showCurrencyWhenUnknown ? from + "\n" + currency : from
+        return RevolutAmountView(figure: figure, label: label)
+    }
 }
 
-/// One initial entry and, only if needed, the source start boundary. No per-card 1 Hz timer.
+/// One initial entry, display-granularity minute/hour boundaries, and the source start boundary. No per-card 1 Hz timer.
 private struct HomeFeedStartSchedule: TimelineSchedule {
     let start: Date
     func entries(from date: Date, mode: Mode) -> [Date] {
-        start > date ? [date, start] : [date]
+        let base = start > date ? [date, start] : [date]
+        return HomeIndexParityPresentation.countdownScheduleDates(from: date, start: start, base: base)
     }
 }
 
 private struct HomeFeedLiveBadge: View {
+    @Environment(\.locale) private var locale
     let start: Date
     var body: some View {
         TimelineView(HomeFeedStartSchedule(start: start)) { context in
             // Preserves the source's start <= now rule. No timezone or end-state is inferred.
-            if start <= context.date { QuestifyStatusBadge(title: "homeFeed.live", systemImage: "clock") }
+            if start <= context.date {
+                QuestifyStatusBadge(title: "homeFeed.live", systemImage: "clock")
+            } else if let countdown = HomeIndexParityPresentation.upcomingCountdownText(start: start, now: context.date, locale: locale) {
+                Text(verbatim: countdown)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 }

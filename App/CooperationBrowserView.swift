@@ -6,10 +6,14 @@ import SwiftUI
     var peerReader: (any CoopFlowReading)? = nil
     /// Source `?scope=MERCHANT`; forwarded to the chapter owner leg and the new-invitation route.
     var operationScope: String? = nil
+    /// Existing public topic screen. Nil keeps the topic reference and does not navigate.
+    var topicDestination: ((Int) -> AnyView)? = nil
     @State private var direction: CooperationDirection
     init(reader: any CooperationReading, onClose: (() -> Void)? = nil, peerReader: (any CoopFlowReading)? = nil,
-         operationScope: String? = nil, initialDirection: CooperationDirection = .received) {
+         operationScope: String? = nil, initialDirection: CooperationDirection = .received,
+         topicDestination: ((Int) -> AnyView)? = nil) {
         self.reader = reader; self.onClose = onClose; self.peerReader = peerReader; self.operationScope = operationScope
+        self.topicDestination = topicDestination
         _direction = State(initialValue: initialDirection)
     }
     @State private var topicFilter: CooperationInboxTopicFilter?
@@ -53,6 +57,7 @@ import SwiftUI
             .onChange(of: reader.isAuthenticated) { _, _ in topicFilter = nil }
             .toolbar { if let onClose { ToolbarItem(placement:.cancellationAction) { Button("action.close",action:onClose) } } }
         }
+        .id(CooperationProjectNavigationHost(scope: reader.scope, authenticated: reader.isAuthenticated, reader: ObjectIdentifier(reader)))
     }
     @ViewBuilder private func topicFilterSection(_ inbox: CooperationInbox) -> some View {
         let owner = ObjectIdentifier(reader)
@@ -99,6 +104,7 @@ import SwiftUI
                 ForEach(rows, id: \.offset) { index, row in
                     NavigationLink {
                         CooperationInviteDetailView(key: CooperationInviteKey(id: row.id, direction: direction), reader: reader, peerReader: peerReader)
+                            .environment(\.cooperationProjectDestination, topicDestination)
                     } label: {
                         VStack(alignment: .leading, spacing: 8) {
                             CooperationName(name: row.partner?.name).font(.headline)
@@ -132,7 +138,8 @@ import SwiftUI
                         } else { Text("cooperation.application.intent").font(.footnote).foregroundStyle(.secondary) }
                         if direction == .received { CooperationCandidateLink(topicID: row.topicId, reader: reader) }
                         if let linked = replied?.linkedInviteID {
-                            NavigationLink { CooperationInviteDetailView(key: CooperationInviteKey(id: linked, direction: .sent), reader: reader, peerReader: peerReader) } label: {
+                            NavigationLink { CooperationInviteDetailView(key: CooperationInviteKey(id: linked, direction: .sent), reader: reader, peerReader: peerReader)
+                                .environment(\.cooperationProjectDestination, topicDestination) } label: {
                                 Text("cooperation.list.apply.viewCooperation")
                             }.accessibilityIdentifier("cooperation.list.apply.linked.\(linked)")
                         }

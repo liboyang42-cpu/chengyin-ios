@@ -83,31 +83,32 @@ import SwiftUI
 private struct PackageValueRow: View {
     let key: String
     let value: String
+    @Environment(\.locale) private var locale
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            packageText(key).font(.caption).foregroundStyle(.secondary)
-            Text(verbatim: value)
-        }.fixedSize(horizontal: false, vertical: true)
+        RevolutInsetRow(title: packageLabel(key, locale: locale), value: value)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
 private struct PackagePolicyRow: View {
     let key: String
     let value: String
+    @Environment(\.locale) private var locale
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            packageText(key).font(.caption).foregroundStyle(.secondary)
-            packageText("policy." + value)
-        }.fixedSize(horizontal: false, vertical: true)
+        RevolutInsetRow(title: packageLabel(key, locale: locale), value: packageLabel("policy." + value, locale: locale))
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
 private struct PackageLimitRow: View {
     let key: String
     let limit: WorkshopOwnedPackage.Limit
+    @Environment(\.locale) private var locale
     var body: some View {
-        LabeledContent {
-            if limit.unlimited { packageText("unlimited") } else { Text(verbatim: String(limit.maximum)) }
-        } label: { packageText(key) }
+        RevolutInsetRow(title: packageLabel(key, locale: locale), value: limit.unlimited ? packageLabel("unlimited", locale: locale) : String(limit.maximum))
+            .fixedSize(horizontal: false, vertical: true)
     }
+}
+private func packageLabel(_ key: String, locale: Locale) -> String {
+    String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: "workshopOwned.package." + key), table: "WorkshopOwned", locale: locale))
 }
 private func packageText(_ key: String) -> Text { Text(LocalizedStringKey("workshopOwned.package." + key), tableName: "WorkshopOwned") }
 private struct PackageNavigationTitle: ViewModifier {

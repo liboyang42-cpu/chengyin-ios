@@ -25,7 +25,7 @@ struct ProfileParticipantsView: View {
                                     else { Text(verbatim: participant.fullName).font(.headline) }
                                     if !participant.mobilePhone.isEmpty { Text(verbatim: participant.mobilePhone).foregroundStyle(.secondary) }
                                     // Mini-program address list repeats the purpose on every row.
-                                    Text("profile.participants.hint").font(.caption).foregroundStyle(.tertiary)
+                                    Text("participant.form.purpose").font(.caption).foregroundStyle(.tertiary)
                                 }.padding(.vertical, 4)
                             }.accessibilityIdentifier("profile.participant.\(participant.id)")
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
@@ -38,7 +38,7 @@ struct ProfileParticipantsView: View {
                                 }
                             }
                         }
-                    } footer: { Text("profile.participants.hint") }
+                    } footer: { Text("participant.form.purpose") }
                 }
             }
         }
@@ -157,7 +157,7 @@ struct ProfileParticipantDetailView: View {
                 }
                 // Same stored row can contain an address. No invented shipping purpose,
                 // default badge, default switch, editing, add, or delete in this read slice.
-                Section { Text("profile.participants.hint").foregroundStyle(.secondary) }
+                Section { Text("participant.form.purpose").foregroundStyle(.secondary) }
                 Section { Text("profile.readOnly").foregroundStyle(.secondary) }
             }
         }

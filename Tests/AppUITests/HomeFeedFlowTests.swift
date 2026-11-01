@@ -40,7 +40,9 @@ final class HomeFeedFlowTests: XCTestCase {
     }
     func testPageFailureRetriesAndDuplicateFullPageStillPaginates() {
         launch("retry")
-        let retry = app.buttons["homeFeed.retry.page"]; reveal(retry); retry.tap()
+        let retry = app.buttons["homeFeed.retry.page"]; reveal(retry)
+        attachFixtureScreenshot(self, app: app, name: "Home feed page failure before retry")
+        retry.tap()
         let row = app.buttons["homeFeed.stream.topic.7"]; reveal(row)
         XCTAssertEqual(app.buttons.matching(identifier: "homeFeed.stream.topic.7").count, 1)
         let more = app.buttons["homeFeed.loadMore"]; reveal(more); more.tap()
@@ -66,5 +68,6 @@ final class HomeFeedFlowTests: XCTestCase {
         for _ in 0..<12 { if empty.exists { break }; app.swipeUp() }
         XCTAssertTrue(empty.waitForExistence(timeout: 15), app.debugDescription)
         XCTAssertFalse(app.buttons["homeFeed.retry.page"].exists)
+        attachFixtureScreenshot(self, app: app, name: "Home feed known empty state")
     }
 }

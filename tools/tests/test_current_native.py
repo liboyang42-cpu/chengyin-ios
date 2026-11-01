@@ -13,7 +13,7 @@ class CurrentNativeControls(unittest.TestCase):
         for role,methods in groups.items():
             key='ui-0' if role=='ui' else role
             receipts[key]={'identity':plan['identity'],'plan_sha256':control.digest(control.encode(plan)),'toolchain':{key:'observed' for key in ['xcode','developer','swift','sdk_version','sdk_path','architecture']},'worker_seconds':1,'status':'PASS','role':role,'index':0 if role=='ui' else None,'expected':methods,'actual':[{'method':m,'status':'Passed'} for m in methods]}
-        return plan,receipts,{**{name:{'result':'success'} for name in ('controls','secrets','native','ui')},'platforms':{'result':'skipped'}}
+        return plan,receipts,{**{name:{'result':'success'} for name in ('controls','secrets','native','ui_build','ui')},'platforms':{'result':'skipped'}}
 
     def test_exact_current_selection_union_passes(self):
         plan,receipts,needs=self.fixture();result=native.aggregate_current(plan,receipts,needs)
@@ -35,6 +35,14 @@ class CurrentNativeControls(unittest.TestCase):
         for outcome in ['failure','skipped','cancelled',None]:
             plan,receipts,needs=self.fixture();needs['native']['result']=outcome
             with self.assertRaises(ValueError):native.aggregate_current(plan,receipts,needs)
+
+    def test_ui_build_must_succeed_even_when_all_execution_receipts_pass(self):
+        for outcome in ['failure','skipped','cancelled',None,'missing']:
+            plan,receipts,needs=self.fixture()
+            if outcome=='missing':del needs['ui_build']
+            else:needs['ui_build']['result']=outcome
+            with self.subTest(outcome=outcome),self.assertRaisesRegex(ValueError,'required current worker'):
+                native.aggregate_current(plan,receipts,needs)
 
     def test_original_native_outcome_validator_keeps_exact_identity_requirement(self):
         method='QuestifyUITests/Case/testOne';rows=[{'method':method,'status':'Passed'}]

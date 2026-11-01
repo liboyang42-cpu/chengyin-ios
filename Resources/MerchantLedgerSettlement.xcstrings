@@ -1,0 +1,102 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "merchant.ledgerSettlement.detailIncomplete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This response has no complete detail total, so the count covers only the lines returned here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "响应未提供完整明细总数，以上计数仅覆盖本次返回的明细。"
+          }
+        }
+      }
+    },
+    "merchant.ledgerSettlement.emptyBatches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No settlement batches on this page"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本页暂无结算批次"
+          }
+        }
+      }
+    },
+    "merchant.ledgerSettlement.emptyEntries": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No income entries on this page"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本页暂无入账明细"
+          }
+        }
+      }
+    },
+    "merchant.ledgerSettlement.notLoaded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not loaded yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未加载"
+          }
+        }
+      }
+    },
+    "merchant.ledgerSettlement.retrySection": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry this section"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试本区"
+          }
+        }
+      }
+    },
+    "merchant.ledgerSettlement.returnedDetails %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detail lines returned in this response: %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次响应返回明细：%lld 条"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

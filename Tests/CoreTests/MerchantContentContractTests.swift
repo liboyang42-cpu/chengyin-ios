@@ -35,13 +35,15 @@ final class MerchantContentContractTests: XCTestCase {
         XCTAssertEqual(try fields(.apply(chapterID: 7, message: " hi "))["message"], .string("hi"))
     }
     func testInviteKeepsMemberAndMerchantIDsDistinct() throws {
-        let f = try fields(.invite(chapterID: 7, merchantMemberID: 42))
-        XCTAssertEqual(Set(f.keys), ["chapterId", "merchantMemberId"]); XCTAssertEqual(f["merchantMemberId"], .integer(42))
+        // C9 five-field invite: replacement tuple is mandatory; memberId stays distinct.
+        let f = try fields(.invite(chapterID: 7, merchantMemberID: 42, replacementOfOfferID: 99, scope: nil, message: nil))
+        XCTAssertEqual(Set(f.keys), ["chapterId", "merchantMemberId", "replacementOfOfferId"]); XCTAssertEqual(f["merchantMemberId"], .integer(42))
     }
     func testInvitableRequiresExactChapterMemberPair() throws {
-        let s = try snapshot(.invitable(topicID: 70), #"[{"chapterId":7,"memberId":42},{"chapterId":8,"memberId":43}]"#)
-        XCTAssertNoThrow(try MerchantContentCommand.invite(chapterID: 7, merchantMemberID: 42).validate(against: s))
-        XCTAssertThrowsError(try MerchantContentCommand.invite(chapterID: 7, merchantMemberID: 43).validate(against: s))
+        let s = try snapshot(.invitable(topicID: 70), #"[{"chapterId":7,"memberId":42,"replacementOfOfferId":99},{"chapterId":8,"memberId":43,"replacementOfOfferId":99}]"#)
+        XCTAssertNoThrow(try MerchantContentCommand.invite(chapterID: 7, merchantMemberID: 42, replacementOfOfferID: 99, scope: nil, message: nil).validate(against: s))
+        XCTAssertThrowsError(try MerchantContentCommand.invite(chapterID: 7, merchantMemberID: 43, replacementOfOfferID: 99, scope: nil, message: nil).validate(against: s))
+        XCTAssertThrowsError(try MerchantContentCommand.invite(chapterID: 7, merchantMemberID: 42, replacementOfOfferID: 98, scope: nil, message: nil).validate(against: s))
     }
     func testInvitedOrMissingSourceApplicationCannotWithdraw() throws {
         for raw in [#"[{"id":9,"status":0,"source":1}]"#, #"[{"id":9,"status":0}]"#, #"[{"id":9,"status":1,"source":0}]"#] {

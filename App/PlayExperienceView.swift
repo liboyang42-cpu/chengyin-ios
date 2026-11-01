@@ -32,6 +32,8 @@ import SwiftUI
     var makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil
     var spatialApproval = PlayKitSpatialApproval()
     var rewardCollectionDestination: ((PlayRewardBadgeTarget) -> AnyView)? = nil
+    /// Session attachment. Nil leaves the map on the ids this view already holds.
+    var routeActionRead: RouteActionPageReadRequest? = nil
     @State private var selectedNode: Int?
     @State private var showRouteMap = false
     @State private var confirmEnd = false
@@ -58,7 +60,10 @@ import SwiftUI
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(item: $selectedNode) { id in nodeDestination(id) }
         .navigationDestination(isPresented: $showRouteMap) {
-            PlayRouteMapView(model: model, nodeDestination: { AnyView(nodeDestination($0)) })
+            PlayRouteMapView(
+                model: model,
+                nodeDestination: { AnyView(nodeDestination($0)) },
+                actionRead: routeActionRead ?? heldRouteActionRead)
         }
         .confirmationDialog("playx.run.end", isPresented: $confirmEnd, titleVisibility: .visible) {
             Button("playx.run.end", role: .destructive) { Task { await model.endRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) } }
@@ -89,6 +94,12 @@ import SwiftUI
                 Task { await model.pauseRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) }
             }
         }
+    }
+    /// Action id and route session id already on the completion journal or receipt.
+    /// Absent ids leave this read closed. Does not mint either id and does not set an approval.
+    private var heldRouteActionRead: RouteActionPageReadRequest? {
+        guard let held = model.heldRouteActionIdentity else { return nil }
+        return RouteActionPageReadRequest(sessionID: held.routeSessionID, actionID: held.actionID)
     }
     private var orientationContent: some View {
         List {
@@ -331,13 +342,7 @@ import SwiftUI
                     }
                 }
                 if model.snapshot?.result.mode == 2 {
-                    Section("playx.merchant.steps") {
-                        stateRow("playx.merchant.scan", done: node.arrived == true)
-                        stateRow("playx.merchant.photo", done: node.selfReported == true)
-                        stateRow("playx.merchant.verify", done: node.done == true)
-                        Text("playx.merchant.notice").font(.footnote)
-                        if node.arrived == true, let requirement = node.photoRequirement { Text(verbatim: requirement) }
-                    }
+                    FreeExplorationVisitSteps(node: node)
                 }
                 if PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node) == .answer {
                     Section("playx.answer") {

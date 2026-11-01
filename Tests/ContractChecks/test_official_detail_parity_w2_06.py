@@ -77,7 +77,7 @@ class OfficialDetailParityChecks(unittest.TestCase):
 
     def test_cta_is_a_label_not_navigation(self):
         view = read("App/OfficialEventDetailView.swift")
-        cta = view[view.index("Text(LocalizedStringKey(presentation.cta.key))") - 400:view.index("OfficialDetailID.cta)")]
+        cta = view[view.rindex("Text(LocalizedStringKey(presentation.cta.key))"):view.index("OfficialDetailID.cta)")]
         for forbidden in ["Button(", "NavigationLink", "onTapGesture", "openURL"]:
             self.assertNotIn(forbidden, cta)
 

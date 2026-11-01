@@ -41,6 +41,7 @@ import SwiftUI
     @State private var error: Error?
     @State private var loading = false
     @State private var generation = 0
+    @State private var navigation = RoamAnniversaryNavigationState()
     private static let shanghai: Calendar = {
         var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(secondsFromGMT: RoamShanghaiCalendar.offsetSeconds)!; return calendar
     }()
@@ -81,9 +82,22 @@ import SwiftUI
                         Text("roam.tools.anniversary.completed \(item.completedMinuteText)").font(.subheadline).foregroundStyle(.secondary)
                     }.accessibilityElement(children: .combine)
                         .accessibilityIdentifier("roam.tools.anniversary.row")
-                    if let routeDestination {
-                        NavigationLink { routeDestination(item.topicID) } label: { Text("roam.tools.anniversary.openRoute") }
-                            .accessibilityIdentifier("roam.tools.anniversary.openRoute")
+                    switch RoamAnniversaryRouteAvailability.resolve(memory: item, hasDestination: routeDestination != nil) {
+                    case .available(let target):
+                        if let routeDestination {
+                            NavigationLink {
+                                RoamAnniversaryRouteHost(presentation: navigation.openedPresentation, owner: reader?.identity,
+                                                         destination: routeDestination, navigation: $navigation)
+                            } label: { Text("roam.tools.anniversary.openRoute") }
+                                .accessibilityIdentifier("roam.tools.anniversary.openRoute")
+                                .simultaneousGesture(TapGesture().onEnded {
+                                    _ = navigation.open(target, memory: item, currentRows: rows, owner: reader?.identity)
+                                })
+                        }
+                    case .invalidTopicID, .noDestination:
+                        Label("topic.unavailable", systemImage: "exclamationmark.circle")
+                            .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("roam.tools.anniversary.routeUnavailable")
                     }
                 }
             }
@@ -96,12 +110,25 @@ import SwiftUI
                     .accessibilityIdentifier("roam.tools.anniversary.more")
             }
         }
-        .task { await load(cursor: nil) }
+        .task { navigation.bind(to: reader?.identity); await load(cursor: nil) }
+        .onAppear {
+            navigation.bind(to: reader?.identity)
+            // Only this screen becoming visible again is a true pop/close of
+            // the route. It must carry the original lease, and refreshes the
+            // same selected date exactly once; a stale lease changes nothing.
+            if let lease = navigation.openedPresentation,
+               navigation.completeReturn(presentation: lease, owner: reader?.identity) { Task { await load(cursor: nil) } }
+        }
+        .onChange(of: reader?.identity) { _, newOwner in
+            navigation.bind(to: newOwner)
+            generation += 1; loading = false; rows = []; page = nil; error = nil; selected = nil
+        }
         .onChange(of: pickerDate) { _, value in
             let parts = Self.shanghai.dateComponents([.month, .day], from: value)
             guard let month = parts.month, let day = parts.day else { return }
             if let selected, selected.month == month, selected.day == day { return }
             selected = (month, day)
+            navigation.invalidate()
             Task { await load(cursor: nil) }
         }
         .refreshable { await load(cursor: nil) }
@@ -122,11 +149,37 @@ import SwiftUI
             if cursor == nil { rows = value.items } else { rows += value.items }
             page = value
         } catch {
-            guard ticket == generation, owner == reader.identity, !(error is CancellationError) else { return }
+            guard ticket == generation, owner == reader.identity else { return }
+            // Cancellation is a result, not an error: keep the confirmed rows and show no error.
+            if error is CancellationError { loading = false; return }
             // A failed continuation keeps nothing unconfirmed: the old page stays, the new one is not merged.
             self.error = error
         }
         loading = false
+    }
+}
+
+/// Pushes the host's existing topic detail for one validated card, under the
+/// lease minted when the card was tapped. Disappearing is NOT a return: the
+/// detail may only be covered (e.g. it drilled into a child page), so it just
+/// notes the cover and keeps the lease. Only the anniversary screen becoming
+/// visible again completes the return, carrying this same lease.
+@MainActor private struct RoamAnniversaryRouteHost: View {
+    let presentation: RoamAnniversaryRoutePresentation?
+    let owner: RoamExperienceIdentity?
+    let destination: (String) -> AnyView
+    @Binding var navigation: RoamAnniversaryNavigationState
+    var body: some View {
+        Group {
+            if let presentation, navigation.mayRemainOpen(presentation, owner: owner) {
+                destination(presentation.target.topicID)
+            } else {
+                Label("topic.unavailable", systemImage: "exclamationmark.circle")
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("roam.tools.anniversary.routeUnavailable")
+            }
+        }
+        .onDisappear { navigation.noteCovered(presentation, owner: owner) }
     }
 }
 

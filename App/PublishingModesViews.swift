@@ -81,6 +81,7 @@ import MapKit
 }
 @MainActor struct ActivityPublishingView: View {
     @Environment(\.locale) private var locale
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var localClear = ActivityPublishingLocalClearOwner()
     @StateObject private var timeRange = ActivityPublishingTimeRangeOwner()
@@ -101,6 +102,9 @@ import MapKit
     @State private var picker: String?
     @State private var review: PublishingReview?
     @State private var localReview = false
+    @State private var wizardStep = 0
+    @State private var wizardBlock: String?
+    @State private var abandonConfirm = false
     private var busy: Bool { submission.busy }
     @State private var message = ""
     private var acknowledged: Bool { submission.outcome == .acknowledged }
@@ -112,6 +116,7 @@ import MapKit
             Decimal(string: $0.price, locale: Locale(identifier: "en_US_POSIX")).map { $0 > 0 } == true
         }
     }
+    private var chinese: Bool { locale.language.languageCode?.identifier == "zh" }
     var body: some View {
         let _ = submission.bind(account: account, draftID: draftID, draft: draft, service: service)
         let _ = cover.bind(read: { .init(session: account, target: .newDraft(draftID), draft: ProjectEditPendingMaterials.exactData(draft), reference: draft.coverURL, editable: coverEditable) }, apply: { value in
@@ -155,47 +160,68 @@ import MapKit
     private func publishingForm(templateSelectionAction: UUID, templateReadID: UUID) -> some View {
         Form {
             Section { Text("publishModes.clubOnly"); Text("publishModes.offlineNotice").foregroundStyle(.secondary) }
-            Section("publishModes.details") {
-                TextField("publishParity.activity.title", text: $draft.name)
-                clearButton(.name)
-                TextField("publishParity.activity.description", text: $draft.description, axis: .vertical).lineLimit(3...8)
-                clearButton(.description)
-                TextField("publishModes.cover", text: $draft.coverURL).textInputAutocapitalization(.never).autocorrectionDisabled()
-                TextField("publishModes.addressName", text: $draft.addressName)
-                Button("publishModes.choosePlace") { picker = "place" }
-                if let place = draft.place { Text(place.name); Text(place.address).font(.caption) }
-                TextField("publishModes.start", text: $draft.start).accessibilityIdentifier("publishModes.activity.start")
-                TextField("publishModes.end", text: $draft.end)
-                Text("publishModes.dateFormat").font(.caption)
-                Button {
-                    localClear.invalidate()
-                    timeRange.open(account: account, draftID: draftID, draft: draft, now: Date(), timeZoneID: TimeZone.autoupdatingCurrent.identifier)
-                } label: { Text(verbatim: locale.language.languageCode?.identifier == "zh" ? "选择活动起止时间" : "Choose activity start and end") }
-                    .disabled(!mayEditTimeRange || !timeRange.canOpen(account: account, draftID: draftID, draft: draft, now: Date()))
-                    .accessibilityIdentifier("publishModes.activity.timeRange.open")
-                Button("publishParity.activity.type") { picker = "category" }; Text(draft.categoryIDs.map(String.init).joined(separator: ", "))
-                Button("publishModes.template") {
-                    localClear.invalidate(); timeRange.retire()
-                    templateSelection.begin(service: service, expected: templateSelectionAction, allowed: mayEditTimeRange)
-                }.accessibilityIdentifier("activityTemplate.open")
-                Text(draft.playTemplateID.map { String($0.rawValue) } ?? "—")
-                Button("publishModes.collaborators") { picker = "collaborator" }; Text(draft.collaboratorMemberIDs.map(String.init).joined(separator: ", "))
-            }.disabled(!editable)
-            Section { ActivityCoverAuthoringSection(owner: cover) }
-            ForEach($draft.tickets) { $ticket in
-                Section("publishModes.ticket") {
-                    TextField("publishParity.ticket.name", text: $ticket.name)
-                    clearButton(.ticketName(ticket.id))
-                    TextField("publishParity.ticket.price", text: $ticket.price).keyboardType(.decimalPad)
-                    TextField("publishParity.ticket.stock", text: $ticket.stock).keyboardType(.numberPad)
-                    clearButton(.ticketStock(ticket.id))
-                    TextField("publishModes.start", text: $ticket.start)
-                    TextField("publishModes.end", text: $ticket.end)
-                    Button("publishModes.remove", role: .destructive) { draft.tickets.removeAll { $0.id == ticket.id } }
+            Section { ActivityPublishingWizardChrome(step: wizardStep, block: wizardBlock) }
+            if ActivityPublishingWizard.clamp(wizardStep) == 0 {
+                Section {
+                    TextField("publishParity.activity.title", text: $draft.name)
+                    clearButton(.name)
+                    TextField("publishModes.addressName", text: $draft.addressName)
+                    Button("publishModes.choosePlace") { picker = "place" }
+                    if let place = draft.place { Text(place.name); Text(place.address).font(.caption) }
+                    TextField("publishModes.start", text: $draft.start).accessibilityIdentifier("publishModes.activity.start")
+                    TextField("publishModes.end", text: $draft.end)
+                    Text("publishModes.dateFormat").font(.caption)
+                    Button {
+                        localClear.invalidate()
+                        timeRange.open(account: account, draftID: draftID, draft: draft, now: Date(), timeZoneID: TimeZone.autoupdatingCurrent.identifier)
+                    } label: { Text(verbatim: chinese ? "选择活动起止时间" : "Choose activity start and end") }
+                        .disabled(!mayEditTimeRange || !timeRange.canOpen(account: account, draftID: draftID, draft: draft, now: Date()))
+                        .accessibilityIdentifier("publishModes.activity.timeRange.open")
+                    Button("publishParity.activity.type") { picker = "category" }; Text(draft.categoryIDs.map(String.init).joined(separator: ", "))
                 }.disabled(!editable)
             }
-            // Mini-program publish/activity: 添加票单 directly follows the ticket list, before publisher identity.
-            Button("publishModes.addTicket") { draft.tickets.append(.init()) }.disabled(!editable)
+            if ActivityPublishingWizard.clamp(wizardStep) == 1 {
+                Section {
+                    TextField("publishParity.activity.description", text: $draft.description, axis: .vertical).lineLimit(3...8)
+                    clearButton(.description)
+                    TextField("publishModes.cover", text: $draft.coverURL).textInputAutocapitalization(.never).autocorrectionDisabled()
+                    Button("publishModes.template") {
+                        localClear.invalidate(); timeRange.retire()
+                        templateSelection.begin(service: service, expected: templateSelectionAction, allowed: mayEditTimeRange)
+                    }.accessibilityIdentifier("activityTemplate.open")
+                    Text(draft.playTemplateID.map { String($0.rawValue) } ?? "—")
+                }.disabled(!editable)
+                Section { ActivityCoverAuthoringSection(owner: cover) }
+                if templateSelection.open {
+                    ActivityTemplateSelectionSection(owner: templateSelection, apply: { stamp in
+                        templateSelection.apply(expected: stamp, draft: $draft, session: account, draftID: draftID,
+                            allowed: !busy && !acknowledged && !uncertain && !identityRegistration.open)
+                    }, createAvailable: makeActivityTemplate != nil)
+                }
+            }
+            if ActivityPublishingWizard.clamp(wizardStep) == 2 {
+                Section {
+                    Button("publishModes.collaborators") { picker = "collaborator" }
+                    Text(draft.collaboratorMemberIDs.map(String.init).joined(separator: ", "))
+                }.disabled(!editable)
+                ForEach($draft.tickets) { $ticket in
+                    Section("publishModes.ticket") {
+                        TextField("publishParity.ticket.name", text: $ticket.name)
+                        clearButton(.ticketName(ticket.id))
+                        TextField("publishParity.ticket.price", text: $ticket.price).keyboardType(.decimalPad)
+                        TextField("publishParity.ticket.stock", text: $ticket.stock).keyboardType(.numberPad)
+                        clearButton(.ticketStock(ticket.id))
+                        TextField("publishModes.start", text: $ticket.start)
+                        TextField("publishModes.end", text: $ticket.end)
+                        Button("publishModes.remove", role: .destructive) { draft.tickets.removeAll { $0.id == ticket.id } }
+                    }.disabled(!editable)
+                }
+                // Mini-program publish/activity: 添加票单 directly follows the ticket list, before publisher identity.
+                Button("publishModes.addTicket") { draft.tickets.append(.init()) }.disabled(!editable)
+                if requiresIdentity {
+                    PublisherIdentityRegistrationSection(owner: identityRegistration, makeService: makeIdentityRegistration, enabled: mayClear)
+                }
+            }
             Section {
                 Button("publishModes.saveLocal") {
                     guard let account, let draftStore else { return }
@@ -206,26 +232,30 @@ import MapKit
                     localClear.invalidate(); timeRange.retire()
                     guard let account, let draftStore else { return }
                     do {
-                        if let saved = try draftStore.loadActive(activity: true, session: account), let activity = saved.activity { draft = activity; draftID = saved.identity; message = "publishModes.restoredLocal" }
-                        else { message = "publishModes.noSavedLocal" }
+                        if let saved = try draftStore.loadActive(activity: true, session: account), let activity = saved.activity {
+                            draft = activity; draftID = saved.identity; message = "publishModes.restoredLocal"
+                            wizardStep = ActivityPublishingWizard.located(ActivityPublishingWizard.steps.count, activity)
+                            wizardBlock = ActivityPublishingWizard.blockingField(wizardStep, activity)
+                        } else { message = "publishModes.noSavedLocal" }
                     } catch { message = "publishModes.storageFailed" }
                 }.disabled(!editable || account == nil || draftStore == nil)
             }
-            if templateSelection.open {
-                ActivityTemplateSelectionSection(owner: templateSelection, apply: { stamp in
-                    templateSelection.apply(expected: stamp, draft: $draft, session: account, draftID: draftID,
-                        allowed: !busy && !acknowledged && !uncertain && !identityRegistration.open)
-                }, createAvailable: makeActivityTemplate != nil)
-            }
-            if requiresIdentity {
-                PublisherIdentityRegistrationSection(owner: identityRegistration, makeService: makeIdentityRegistration, enabled: mayClear)
-            }
             if !message.isEmpty { Text(LocalizedStringKey(message)).accessibilityIdentifier("publishModes.message") }
             submissionResult
-            Button("publishModes.review") { Task { await prepare() } }.disabled(!editable).accessibilityIdentifier("publishModes.activity.review")
+            ActivityPublishingWizardNavigation(step: wizardStep, enabled: editable, onCancel: cancelWizard, onBack: goBack, onNext: goNext, onReview: { Task { await prepare() } })
         }.navigationTitle(Text("publishModes.activity"))
         .onChange(of: draft) { _, _ in timeRange.retire(); if let review { service?.cancel(review) }; review = nil; localReview = false }
-        .onChange(of: account) { _, _ in cover.accountChanged(); localClear.invalidate(); timeRange.retire(); service?.invalidateReviews(); draft = .init(); draftID = UUID(); review = nil; localReview = false; message = "" }
+        .onChange(of: account) { _, _ in
+            cover.accountChanged(); localClear.invalidate(); timeRange.retire(); service?.invalidateReviews()
+            draft = .init(); draftID = UUID(); review = nil; localReview = false; message = ""
+            wizardStep = 0; wizardBlock = nil; abandonConfirm = false
+        }
+        .alert(Text(verbatim: chinese ? "放弃未发布的活动？" : "Give up this unpublished activity?"), isPresented: $abandonConfirm) {
+            Button(role: .destructive) { dismiss() } label: { Text(verbatim: chinese ? "放弃" : "Give up") }
+            Button(role: .cancel) {} label: { Text(verbatim: chinese ? "继续编辑" : "Keep editing") }
+        } message: {
+            Text(verbatim: chinese ? "已填写的活动内容不会保留。" : "What you entered in this activity will not be kept.")
+        }
         .onAppear { submission.setActive(scenePhase == .active); cover.appear(active: scenePhase == .active); localClear.appear(active: scenePhase == .active); timeRange.setActive(scenePhase == .active); identityRegistration.appear(active: scenePhase == .active); templateSelection.setActive(scenePhase == .active) }
         .onChange(of: scenePhase) { _, phase in
             submission.setActive(phase == .active)
@@ -301,7 +331,27 @@ import MapKit
             Text("publishModes.readFailed").accessibilityIdentifier("publishModes.activity.result.lockUnavailable")
         }
     }
+    private func goNext() {
+        if let next = ActivityPublishingWizard.advance(from: wizardStep, draft: draft) {
+            wizardStep = next; wizardBlock = nil; message = ""
+        } else {
+            wizardStep = ActivityPublishingWizard.located(wizardStep, draft)
+            wizardBlock = ActivityPublishingWizard.blockingField(wizardStep, draft)
+            message = "publishModes.invalid"
+        }
+    }
+    private func goBack() { wizardStep = ActivityPublishingWizard.retreat(from: wizardStep); wizardBlock = nil }
+    private func cancelWizard() {
+        guard editable else { return }
+        if draft == ActivityPublishDraft() { dismiss() } else { abandonConfirm = true }
+    }
     private func prepare() async {
+        guard ActivityPublishingWizard.acceptsReview(draft) else {
+            wizardStep = ActivityPublishingWizard.located(ActivityPublishingWizard.steps.count, draft)
+            wizardBlock = ActivityPublishingWizard.blockingField(wizardStep, draft)
+            message = "publishModes.invalid"
+            return
+        }
         guard let operation = submission.begin(allowCovered: false) else { return }
         localClear.invalidate(); timeRange.retire()
         defer { submission.finish(operation) }

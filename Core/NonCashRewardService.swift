@@ -45,6 +45,11 @@ public struct NonCashRewardService {
         else { throw APIError.malformedResponse }
         return value
     }
+    /// Pledge list refresh. Coupon-history approval uses `api/coupon/myrecvlist` instead, never both.
+    public func pledgeList(limit: Int, cursor: String?, token: String, source: RewardPledgePolicy.ReadSource) async throws -> NonCashRewardPage {
+        guard source == .plannedController, RewardPledgeRoutes.listPath(source) == "api/rewards/noncash" else { throw APIError.invalidConfiguration }
+        return try await rewards(limit: limit, cursor: cursor, token: token)
+    }
     private func get(path: String, query: [URLQueryItem], token: String) async throws -> Data {
         guard AuthRequestBuilder.isValidToken(token), var parts = URLComponents(url: configuration.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)
         else { throw APIError.invalidRequest }

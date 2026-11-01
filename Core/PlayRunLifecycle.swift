@@ -34,11 +34,16 @@ public struct PlayPausedRead: Equatable {
         self.init()
     }
 }
-public struct PlayContinueRun: Equatable, Identifiable {
+public struct PlayContinueRun: Equatable, Hashable, Identifiable {
     public let scope: PlaySessionScope
     public let elapsedSeconds: Int?
     public let title: String?
     public var id: String { scope.fields.keys.first! + ":" + String(scope.id) }
+    public init(scope: PlaySessionScope, elapsedSeconds: Int? = nil, title: String? = nil) {
+        self.scope = scope
+        self.elapsedSeconds = elapsedSeconds.flatMap { $0 >= 0 ? $0 : nil }
+        self.title = title
+    }
     init?(_ raw: PlayWireValue) {
         let activity = raw["activityId"].tolerantInteger ?? 0, topic = raw["topicId"].tolerantInteger ?? 0
         // Source activity is the run identity even when its topic metadata is also present.

@@ -20,11 +20,31 @@ public struct MerchantNPCHTTPResponse {
     public func perform(_ request: MerchantNPCHTTPRequest) async throws -> MerchantNPCHTTPResponse { throw MerchantNPCFailure.disabled }
 }
 @MainActor public struct MerchantNPCHTTPClient {
+    /// Exact currently served merchant-NPC routes. Knowledge draft publish/review is not among them.
+    public static let servedPaths: Set<String> = [
+        "/api/ai/npc/merchant-chat",
+        "/api/merchant/npc/voice/script",
+        "/api/merchant/npc/voice/enroll",
+        "/api/merchant/npc/voice/revoke",
+        "/api/merchant/npc/avatar/generate",
+    ]
     private let transport: any MerchantNPCHTTPTransport
     public init(transport: (any MerchantNPCHTTPTransport)? = nil) { self.transport = transport ?? MerchantNPCDormantTransport() }
+    public func refuseUnservedKnowledgePath(_ path: String) throws {
+        guard Self.servedPaths.contains(path) else {
+            throw MerchantNPCDraftGateFailure.waitingSource(capability: path)
+        }
+    }
+    public func refuseAICommerce(_ mutation: MerchantNPCForbiddenAICommerce) throws -> Never {
+        throw MerchantNPCDraftGateFailure.commerce(mutation)
+    }
+    public func refuseAiGatewayPublicAuth() throws -> Never {
+        throw MerchantNPCDraftGateFailure.waitingSource(capability: "AiGateway.publicAuth")
+    }
     private struct Envelope<T: Decodable>: Decodable { let code: Int; let msg: String?; let data: T? }
     private struct Empty: Decodable { init(from decoder: Decoder) throws {} }
     private func post<T: Decodable>(_ path: String, fields: [String: Any], scope: MerchantNPCScope, as type: T.Type) async throws -> (T?, String?) {
+        try refuseUnservedKnowledgePath(path)
         guard scope.accountID > 0, !scope.namespace.isEmpty else { throw MerchantNPCFailure.invalid }
         let request = MerchantNPCHTTPRequest(path: path, method: "POST", body: try JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys]), scope: scope)
         let response: MerchantNPCHTTPResponse

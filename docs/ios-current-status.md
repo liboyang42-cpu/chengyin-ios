@@ -1,5 +1,7 @@
 # CY-HANDOFF: IOS — 统一范围、状态与证据入口
 
+> Historical scope review, pinned to the October evidence below. For the 2026-11-01 main consolidation, use [the current integration record](main-consolidation-20261101.md); no old pass counts are transferred to the new candidate.
+
 更新：2026-10-15 UTC。**这是文档整合，不是新功能交付或业务验收。** 当前源码核对基线为 `migration/native-ios@7c21af4572ce6084a9cc7b87129aa2c5ececadeb`，tree `17ad90730eba744fd9eb37612038174db7aaa11a`。本文后续文档提交不改变该源码证据基线。未合并 main，未部署，未进行应用签名或应用发布；能力门禁保持原状。
 
 ## 先读什么

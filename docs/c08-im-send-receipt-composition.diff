@@ -1,0 +1,13 @@
+--- a/App/AppCompositionRoot.swift
++++ b/App/AppCompositionRoot.swift
+@@ -1580,6 +1580,10 @@
+         } else if let route = PublicTopicTemplateReadRoute(url: url, baseURL: api.baseURL) {
+             guard deployment.reads.contains(.publicTopicTemplateCatalogAndDetail),
+                   route.accepts(request), captured.isPublicTemplateViewer else { throw APIError.notConfigured }
++        } else if request.httpMethod == "POST",
++                  url == api.baseURL.appendingPathComponent("api/im/send-receipt"),
++                  request.url?.query == nil, request.url?.fragment == nil {
++            guard captured.isSignedInContentViewer else { throw APIError.notConfigured }
+         } else {
+             guard request.httpMethod == "POST", deployment.reads.contains(.homeAndSearch),
+                   captured.isPublicTemplateViewer,

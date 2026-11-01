@@ -4,7 +4,7 @@ import SwiftUI
 
 @MainActor
 final class AppSession: ObservableObject {
-    @Published private(set) var account: Account? { willSet { if account?.id != newValue?.id || account?.effectiveRole.data(using: .utf8) != newValue?.effectiveRole.data(using: .utf8) { invalidateWorkshopReadBindings() }; invalidateOwnerDraftBrowser(); if account?.id != newValue?.id || account?.effectiveRole != newValue?.effectiveRole { invalidateShopNPCConversations(); merchantNPCSessionOwner.invalidate() }; if account?.id != newValue?.id { platformConsumers.invalidate() } } didSet { _ = runtimeDependencies; synchronizeAccountMarketingEntry() } }
+    @Published private(set) var account: Account? { willSet { if account?.id != newValue?.id || account?.effectiveRole.data(using: .utf8) != newValue?.effectiveRole.data(using: .utf8) { invalidateWorkshopReadBindings() }; invalidateOwnerDraftBrowser(); if account?.id != newValue?.id || account?.effectiveRole != newValue?.effectiveRole { invalidateShopNPCConversations(); merchantNPCSessionOwner.invalidate() }; if account?.id != newValue?.id { platformConsumers.invalidate() } } didSet { _ = runtimeDependencies; synchronizeAccountMarketingEntry(); _ = searchMapReader.scope } }
     @Published private(set) var isWorking = false { didSet { synchronizeAccountMarketingEntry() } }
     @Published private(set) var errorKey: String?
     let platformConsumers = PlatformConsumerSessionOwner()
@@ -142,23 +142,124 @@ final class AppSession: ObservableObject {
             register: { [weak self] in self?.merchantNPCSessionOwner.register($0) })
         return context
     }
-    private let communityService = ClubCommunityService(dormantBaseURL: URL(string: "https://disabled.invalid")!, transport: CommunityDormantHTTPTransport())
+    private let dormantCommunityService = ClubCommunityService(dormantBaseURL: URL(string: "https://disabled.invalid")!, transport: CommunityDormantHTTPTransport())
+    var clubCommunityReadApprovalSelector: (RuntimeDependencyContext) -> ClubCommunityReadApproval? = { _ in nil }
+    var clubCommunityTransportOverride: (any HTTPTransport)?
+    var clubCommunityPendingOutcomeQueryOverride: (any ClubCommunityPendingOutcomeQuerying)?
+    var clubPostImageUploadApprovalSelector: (RuntimeDependencyContext, Int) -> ClubPostImageUploadApproval? = { _, _ in nil }
+    func compositionClubCommunityReadApproval(_ context: RuntimeDependencyContext) -> ClubCommunityReadApproval? {
+        composition.clubCommunityReadApproval(context)
+    }
+    private var communityService: ClubCommunityService {
+        resolvedClubCommunityService(fallback: dormantCommunityService)
+    }
+    var clubCommunityRuntimeContext: RuntimeDependencyContext? { currentRuntimeDependencyContext }
+    var clubCommunityRuntimeTransport: any HTTPTransport { scopedTransport(clubCommunityTransportOverride) }
+    func currentClubCommunitySession() throws -> ClubCommunitySession { try currentCommunitySession() }
     private func currentCommunitySession() throws -> ClubCommunitySession {
         try ClubCommunitySession(identity: clubIdentity, token: token)
     }
-    private lazy var communityCoordinator = ClubCommunityCoordinator(service: communityService, currentSession: { [weak self] in
-        guard let self else { throw ClubCommunityFailure.unavailable }; return try self.currentCommunitySession()
-    }, refreshEvidence: { [weak self] old in
-        guard let self else { throw ClubCommunityFailure.unavailable }
-        return try await self.communityEvidence(clubID: old.clubID, post: old.post, comment: old.comment)
-    })
-    var clubCommunityContext: ClubCommunityContext {
-        ClubCommunityContext(service: communityService, currentSession: { [weak self] in
+    private struct ClubCommunityDynamicPendingOutcomeQuery: ClubCommunityPendingOutcomeQuerying {
+        let resolve: () -> any ClubCommunityPendingOutcomeQuerying
+        var allowsAuthoritativeQueries: Bool { resolve().allowsAuthoritativeQueries }
+        func queryOutcome(
+            for record: ClubCommunityPendingRecord,
+            session: ClubCommunitySession,
+            check: () throws -> Void
+        ) async throws -> ClubCommunityPendingQueryResult {
+            try await resolve().queryOutcome(for: record, session: session, check: check)
+        }
+    }
+    private lazy var communityCoordinator = ClubCommunityCoordinator(
+        service: dormantCommunityService,
+        currentSession: { [weak self] in
             guard let self else { throw ClubCommunityFailure.unavailable }; return try self.currentCommunitySession()
-        }, coordinator: communityCoordinator, evidence: { [weak self] clubID, post, comment in
+        },
+        refreshEvidence: { [weak self] old in
             guard let self else { throw ClubCommunityFailure.unavailable }
-            return try await self.communityEvidence(clubID: clubID, post: post, comment: comment)
+            return try await self.communityEvidence(clubID: old.clubID, post: old.post, comment: old.comment)
+        },
+        journal: ClubCommunityStoredPendingJournal(defaults: sessionDefaults),
+        namespace: { [weak self] in self?.storageScope?.service ?? "default" },
+        outcomeQuery: ClubCommunityDynamicPendingOutcomeQuery(resolve: { [weak self] in
+            self?.clubCommunityPendingOutcomeQueryOverride ?? ClubCommunityDormantPendingOutcomeQuery()
         })
+    )
+    func currentClubPostImageUploadContext(clubID: Int, postID: Int?) -> ClubPostImageUploadContext? {
+        guard let account, token != nil, let namespace = storageScope?.service else { return nil }
+        return try? ClubPostImageUploadContext(
+            accountID: account.id,
+            epoch: gate.currentStamp,
+            namespace: namespace,
+            clubID: clubID,
+            postID: postID
+        )
+    }
+    func selectClubPostImageUploadApproval(clubID: Int) -> ClubPostImageUploadApproval? {
+        guard let runtimeContext = currentRuntimeDependencyContext,
+              let uploadContext = currentClubPostImageUploadContext(clubID: clubID, postID: nil),
+              let configuration = regionalConfiguration?.apiConfiguration,
+              let approval = clubPostImageUploadApprovalSelector(runtimeContext, clubID)
+                  ?? composition.clubPostImageUploadApproval(runtimeContext, clubID),
+              approval.matches(baseURL: configuration.baseURL, context: uploadContext) else {
+            return nil
+        }
+        return approval
+    }
+    func makeClubPostImagePickerContext() -> ClubPostImagePickerContext {
+        ClubPostImagePickerContext(
+            makePickerForClub: { [weak self] clubID, postID in
+                guard let self else { return ClubPostDisabledImagePicker() }
+                return ClubPostNativeImagePicker(
+                    host: self.retainedImagePickerHost,
+                    permitted: { [weak self] in
+                        guard let self,
+                              self.currentClubPostImageUploadContext(clubID: clubID, postID: postID) != nil,
+                              let approval = self.selectClubPostImageUploadApproval(clubID: clubID) else {
+                            return false
+                        }
+                        return approval.nativePicker
+                    }
+                )
+            },
+            makeUploaderForClub: { [weak self] clubID, postID in
+                guard let self,
+                      let configuration = self.regionalConfiguration?.apiConfiguration else {
+                    return ClubPostImageDisabledUploader()
+                }
+                let transport = self.compositionTransport
+                    .scopedForClubPostImageUpload(clubID: clubID)
+                    .replacingUnderlying(self.composition.makeClubPostImageUploadTransport())
+                return ClubPostImageUploadClient(
+                    configuration: configuration,
+                    transport: transport,
+                    currentContext: { [weak self] in
+                        self?.currentClubPostImageUploadContext(clubID: clubID, postID: postID)
+                    },
+                    currentToken: { [weak self] in self?.token },
+                    currentApproval: { [weak self] in
+                        self?.selectClubPostImageUploadApproval(clubID: clubID)
+                    }
+                )
+            },
+            currentUploadContext: { [weak self] clubID, postID in
+                self?.currentClubPostImageUploadContext(clubID: clubID, postID: postID)
+            }
+        )
+    }
+    var clubCommunityContext: ClubCommunityContext {
+        ClubCommunityContext(
+            service: communityService,
+            currentSession: { [weak self] in
+                guard let self else { throw ClubCommunityFailure.unavailable }; return try self.currentCommunitySession()
+            },
+            coordinator: communityCoordinator,
+            evidence: { [weak self] clubID, post, comment in
+                guard let self else { throw ClubCommunityFailure.unavailable }
+                return try await self.communityEvidence(clubID: clubID, post: post, comment: comment)
+            },
+            postImagePicker: makeClubPostImagePickerContext()
+        )
     }
     private func communityEvidence(clubID: Int, post: ClubCommunityPost?, comment: ClubCommunityComment?) async throws -> ClubCommunityEvidence {
         let captured = try currentCommunitySession()
@@ -199,6 +300,7 @@ final class AppSession: ObservableObject {
     private let accountSessionService: CNAccountSessionService?
     private let activityService: ActivityService?
     private let searchMapService: SearchMapService?
+    private let mapPublicLayerService: MapPublicLayerService?
     private let searchMapSelection = ManualMapAreaSelection()
     private let roamMapSelection = ManualMapAreaSelection()
     private var currentSearchMapContext: SearchMapContext {
@@ -213,16 +315,30 @@ final class AppSession: ObservableObject {
               let approval = composition.manualMapReadApproval(context), approval.matches(context) else { return nil }
         return approval.revision
     }
+    private var isMapPublicLayerReadApproved: Bool {
+        guard composition.reviewed?.reads.isDisjoint(with: [.manualMap, .publicMapLayers]) == false,
+              let context = currentRuntimeDependencyContext,
+              let approval = composition.mapPublicLayerReadApproval(context), approval.matches(context) else { return false }
+        return true
+    }
     var searchMapHistoryNamespace: String? {
         guard let storageScope else { return nil }
         return storageScope.service + ".search." + (account.map { String($0.id) } ?? "guest")
     }
+    lazy var mapPublicLayerCoordinator = MapPublicLayerCoordinator(service: mapPublicLayerService, currentContext: { [weak self] in
+        self?.currentSearchMapContext ?? SearchMapContext(guestEpoch: 0)
+    }, isApproved: { [weak self] in
+        self?.isMapPublicLayerReadApproved == true
+    }, onUnauthorized: { [weak self] captured in
+        guard let self, self.currentSearchMapContext == captured else { return }
+        self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
+    }, manualAreaSelection: searchMapSelection)
     lazy var searchMapReader = SearchMapSessionReader(service: searchMapService, currentContext: { [weak self] in
         self?.currentSearchMapContext ?? SearchMapContext(guestEpoch: 0)
     }, onUnauthorized: { [weak self] captured in
         guard let self, self.currentSearchMapContext == captured else { return }
         self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
-    }, manualAreaSelection: searchMapSelection)
+    }, manualAreaSelection: searchMapSelection, publicLayerCoordinator: mapPublicLayerCoordinator, topicReader: topicReader)
     private let registrationApproval: RegistrationProductionApproval?
     private let registrationStorefront: () -> String?
     private var registrationJournal: any OperationPendingJournal { composition.storage.operationJournal() }
@@ -395,6 +511,7 @@ final class AppSession: ObservableObject {
                 self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: captured.token)
             })
         playExperienceCoordinators[key] = coordinator
+        registerPlayContinuationScope(scope)
         return coordinator
     }
     // w2-19 source pages/play/merchant: store-day reads share the play read approval; every write gate stays off.
@@ -416,6 +533,47 @@ final class AppSession: ObservableObject {
     /// Same viewer-revision and play-read-issuance ABA fence as the play readers above.
     private func playStoreDayFence(_ key: PlayReaderKey) -> Bool {
         key.approval != nil && compositionViewerRevision == key.viewerRevision && currentPlayReadApprovalKey == key.approval
+    }
+    /// Read-only character card. Approval is the character and rpg/status paths, captured with issuance.
+    func characterCardReadback(topicID: Int, activityID: Int?, scope: PlaySessionScope) -> CharacterCardReadback? {
+        guard topicID > 0, characterCardScopeMatches(topicID: topicID, activityID: activityID, scope: scope),
+              let regional = regionalConfiguration,
+              let configuration = regional.apiConfiguration, let storageScope,
+              let factory = playReadDependencyFactory, factory.accepted?.play.contains(.reads) == true,
+              let approval = characterCardReadApproval else { return nil }
+        let current: () -> PlayExperienceSession? = { [weak self] in
+            guard let self, !self.committingAuthenticatedSession,
+                  self.compositionViewerRevision == approval.viewerRevision,
+                  self.characterCardReadApproval == approval,
+                  let account = self.account, let token = self.token,
+                  let role = PlayRecoveryAccountRole(rawValue: account.effectiveRole) else { return nil }
+            return try? PlayExperienceSession(accountID: account.id, epoch: self.gate.currentStamp,
+                namespace: storageScope.service, token: token, role: role.rawValue)
+        }
+        let api = PlayExperienceService(configuration: configuration, transport: factory.transport,
+            enabled: factory.accepted?.play.intersection([.reads]) ?? [])
+        return CharacterCardReadback(topicID: topicID, activityID: activityID, service: api, currentSession: current,
+            onUnauthorized: { [weak self] snapshot in
+                guard let self, self.characterCardReadApproval == approval,
+                      self.compositionViewerRevision == approval.viewerRevision,
+                      current() == snapshot else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: snapshot.epoch, credential: snapshot.token)
+            })
+    }
+    private struct CharacterCardReadApproval: Equatable { let issuance: UUID; let viewerRevision: UInt64 }
+    private var characterCardReadApproval: CharacterCardReadApproval? {
+        guard let context = currentRuntimeDependencyContext,
+              let approval = compositionTransport.playReadConfiguration(context),
+              let issuance = approval.playReadApprovalID,
+              approval.matches(context), approval.play.contains(.reads),
+              approval.endpoints.paths.isSuperset(of: CharacterCardReadRoute.paths) else { return nil }
+        return .init(issuance: issuance, viewerRevision: compositionViewerRevision)
+    }
+    private func characterCardScopeMatches(topicID: Int, activityID: Int?, scope: PlaySessionScope) -> Bool {
+        switch scope {
+        case .topic(let id): return activityID == nil && id == topicID
+        case .activity(let id): return activityID == id && id > 0
+        }
     }
     // Journey extras are independent of task completion, advanced games and local dice.
     private var retainedJourneyNarratives: [String: JourneyNarrativeCoordinator] = [:]
@@ -1524,6 +1682,11 @@ final class AppSession: ObservableObject {
             }, journal: composition.storage.operationJournal())
     }
     private let activityEditingApproval: (RuntimeDependencyContext) -> ActivityEditingGrants
+    /// Nil approval keeps coop writes on the dormant path. The slot is read at the POST.
+    private let coopFlowExecutionApproval: (RuntimeDependencyContext) -> CoopFlowExecutionApproval?
+    private let coopFlowExecutionSlot: CoopFlowExecutionSlot
+    /// Closed write approval: chapter invite and accept/reject do not POST.
+    private let merchantContentWriteApproval: (RuntimeDependencyContext) -> MerchantContentWriteApproval
     func activityEditingController(id: Int) -> ActivityEditingController? {
         guard let captured = publishingSession, let context = currentRuntimeDependencyContext,
               let configuration = regionalConfiguration?.apiConfiguration else { return nil }
@@ -1538,6 +1701,11 @@ final class AppSession: ObservableObject {
                 return try? PublishingCredentials(session: captured, token: token)
             })
         return ActivityEditingController(activityID: id, session: captured, service: service)
+    }
+    /// Pass-through of `activityEditingApproval`. Nil read/update stay closed; this does not approve `api/activity/info` or `api/activity/update`.
+    func activityEditingGrants() -> ActivityEditingGrants {
+        guard let context = currentRuntimeDependencyContext else { return .init() }
+        return activityEditingApproval(context)
     }
     private var retainedPublishingService: (context: RuntimeDependencyContext, service: PublishingService)?
     var publishingService: PublishingService? {
@@ -1965,13 +2133,77 @@ final class AppSession: ObservableObject {
                 self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: captured.token)
             })
     }
-    // No live source/deployment approval exists yet. Keep the reward read capability nil.
-    private let nonCashRewardService: NonCashRewardService? = nil
+    func makeNonCashRewardService() -> NonCashRewardService? {
+        guard runtimeDependencies.nonCashRewardApproved, let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        return NonCashRewardService(configuration: configuration, transport: runtimeHTTPTransport)
+    }
+    func makeRewardPledgeClient() -> RewardPledgeClient? {
+        guard rewardCaller().anyOpen, let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        return RewardPledgeClient(configuration: configuration, transport: runtimeHTTPTransport)
+    }
+    func makeRewardPledgeEntry() -> RewardPledgeEntry? {
+        guard let client = makeRewardPledgeClient(), account != nil, token != nil else { return nil }
+        let url = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent((storageScope?.service ?? "unconfigured") + "/reward-pledge-unknown.json")
+        return RewardPledgeEntry(client: client, journalURL: url, current: { [weak self] in self?.rewardCaller() },
+                                  coupons: { [weak self] in
+                                      guard let self else { return .failure(.closed("not open")) }
+                                      return await self.publishedStoreCoupons()
+                                  },
+                                  access: { [weak self] in
+                                      guard let self, let revision = self.storageScope?.service, !revision.isEmpty,
+                                            let account = self.account else { return nil }
+                                      guard let access = try? await self.merchantAccess(), access.active,
+                                            let store = access.merchantID, store > 0,
+                                            let owner = access.ownerMemberID, owner > 0,
+                                            let principal = access.principalMemberID, principal == account.id else { return nil }
+                                      return RewardPledgeAccessBind(storeID: String(store), ownerID: String(owner),
+                                                                     principalID: String(principal), revision: revision)
+                                  })
+    }
+    private func rewardCaller() -> RewardPledgeCaller {
+        let deps = runtimeDependencies
+        return RewardPledgeCaller(accountID: account.map { String($0.id) } ?? "", epoch: gate.currentStamp,
+                                  region: operationalMarket?.rawValue ?? "", token: token ?? "",
+                                  read: deps.nonCashRewardApproved, claim: deps.nonCashRewardClaimApproved,
+                                  preview: deps.nonCashRewardPreviewApproved, redeem: deps.nonCashRewardRedeemApproved,
+                                  draft: deps.nonCashRewardDraftApproved, freeze: deps.nonCashRewardFreezeApproved,
+                                  hold: deps.nonCashRewardHoldApproved, withdrawVersion: deps.nonCashRewardWithdrawApproved,
+                                  expire: deps.nonCashRewardExpireApproved, returnPool: deps.nonCashRewardReturnApproved,
+                                  support: deps.nonCashRewardCaseApproved, stats: deps.nonCashRewardStatsApproved,
+                                  catalog: deps.nonCashRewardCatalogApproved, manage: deps.nonCashRewardManageApproved)
+    }
+    func publishedStoreCoupons() async -> Result<[CouponDefinition], RewardPledgeFailure> {
+        let coordinator = makeCouponManagementCoordinator()
+        await coordinator.load()
+        guard coordinator.issue == nil else { return .failure(.closed("not open")) }
+        return .success(coordinator.rows)
+    }
+    private func rewardPledgePermits(_ operation: String) -> Bool {
+        let caller = rewardCaller()
+        switch operation {
+        case "read", "detail": return caller.read
+        case "catalog", "offer": return caller.catalog
+        case "claim", "recover": return caller.claim
+        case "preview", "store", "resolve": return caller.preview
+        case "redeem": return caller.redeem
+        case "draft", "submit", "confirm": return caller.draft
+        case "manage", "readPledge": return caller.manage || caller.draft
+        case "freeze", "review": return caller.freeze
+        case "hold": return caller.hold
+        case "withdraw": return caller.withdrawVersion
+        case "expire": return caller.expire
+        case "return": return caller.returnPool
+        case "case": return caller.support
+        case "stats": return caller.stats
+        default: return false
+        }
+    }
     private var currentNonCashRewardSession: NonCashRewardReadSession? {
         guard let account, let token else { return nil }
         return try? NonCashRewardReadSession(accountID: account.id, epoch: gate.currentStamp, token: token)
     }
-    lazy var nonCashRewardReader = NonCashRewardSessionReader(service: nonCashRewardService,
+    lazy var nonCashRewardReader = NonCashRewardSessionReader(service: { [weak self] in self?.makeNonCashRewardService() },
         currentSession: { [weak self] in self?.currentNonCashRewardSession },
         onUnauthorized: { [weak self] captured in
             guard let self, self.currentNonCashRewardSession == captured else { return }
@@ -2703,11 +2935,22 @@ final class AppSession: ObservableObject {
         return try? MerchantContentSession(accountID: account.id, epoch: gate.currentStamp,
             storageScope: storageScope.service, token: token)
     }
+    lazy var merchantContentJournal = MerchantContentFilePendingStorage(
+        url: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent((storageScope?.service ?? "unconfigured") + "/MerchantContent/pending-v1.json"))
+    // Execution stays the init default, which is closed. The offline harness is not passed.
+    // The file journal is what a new detail, a refresh, and a process restart read.
+    // Only a matching chapter-invitation readback removes a record.
     lazy var merchantContentService = MerchantContentService(configuration: regionalConfiguration?.apiConfiguration,
         transport: runtimeHTTPTransport, currentSession: { [weak self] in self?.currentMerchantContentSession },
+        journal: merchantContentJournal,
         onUnauthorized: { [weak self] captured in
             guard let self, self.currentMerchantContentSession == captured else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
+        },
+        writeApproval: { [weak self] in
+            guard let self, let context = self.currentRuntimeDependencyContext else { return .init() }
+            return self.merchantContentWriteApproval(context)
         })
     private var retainedNearbyMerchants: (context: RuntimeDependencyContext, revision: UInt64, coordinator: NearbyMerchantCoordinator)?
     var nearbyMerchantCoordinator: NearbyMerchantCoordinator? {
@@ -2746,6 +2989,25 @@ final class AppSession: ObservableObject {
             guard let self, self.currentCooperationFlowSession == captured else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
         })
+    /// Real withdraw port behind `CoopFlowService.permitsDispatch`. The production
+    /// service is built with the closed defaults, so the POST does not leave.
+    lazy var offerWithdrawalExecutor: any MerchantOfferWithdrawalExecuting = makeOfferWithdrawalExecutor()
+    private func makeOfferWithdrawalExecutor() -> any MerchantOfferWithdrawalExecuting {
+        guard let service = cooperationFlowService else { return MerchantOfferWithdrawalDormantExecutor() }
+        let reader = cooperationFlowReader
+        return MerchantOfferWithdrawalProtectedExecutor.gated(service: service, reader: reader,
+            coopSession: { [weak self] in self?.currentCooperationFlowSession },
+            locks: CoopFlowFileLocks(url: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+                .appendingPathComponent((storageScope?.service ?? "unconfigured") + "/CoopFlow/offer-withdraw-locks-v1.json")),
+            topic: { [weak self] topicID in
+                guard let self else { return nil }
+                let snapshot = try await self.merchantContentService.load(.chapters(topicID: topicID))
+                let topic = snapshot.value["topic"]
+                guard let product = topic["productType"].integer, let life = topic["lifecycle"].integer else { return nil }
+                let circle = topic["circleThemeCode"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
+                return MerchantOfferWithdrawalTopicFacts(productType: product, lifecycle: life, circleThemeCode: circle.flatMap { $0.isEmpty ? nil : $0 })
+            })
+    }
     private let merchantOperationsService: MerchantOperationsService?
     private var currentMerchantOperationsSession: MerchantOperationsSession? {
         guard let account, let token else { return nil }
@@ -3425,11 +3687,17 @@ final class AppSession: ObservableObject {
          registrationApproval: RegistrationProductionApproval? = nil,
          activityCoverApproval: @escaping (RuntimeDependencyContext) -> ActivityCoverApproval? = { _ in nil },
          activityEditingApproval: @escaping (RuntimeDependencyContext) -> ActivityEditingGrants = { _ in .init() },
+         coopFlowExecutionApproval: @escaping (RuntimeDependencyContext) -> CoopFlowExecutionApproval? = { _ in nil },
+         merchantContentWriteApproval: @escaping (RuntimeDependencyContext) -> MerchantContentWriteApproval = { _ in .init() },
          publisherIdentityRegistrationApproval: @escaping (RuntimeDependencyContext) -> PublisherIdentityRegistrationGrants = { _ in .init() },
          registrationStorefront: @escaping () -> String? = { nil }) {
         let composition = composition ?? RegionalLaunchConfiguration.composition
         self.activityCoverApproval = activityCoverApproval
         self.activityEditingApproval = activityEditingApproval
+        self.coopFlowExecutionApproval = coopFlowExecutionApproval
+        self.merchantContentWriteApproval = merchantContentWriteApproval
+        let coopSlot = CoopFlowExecutionSlot()
+        self.coopFlowExecutionSlot = coopSlot
         self.publisherIdentityRegistrationApproval = publisherIdentityRegistrationApproval
         self.registrationApproval = registrationApproval; self.registrationStorefront = registrationStorefront
         self.roamLiveDependencies = roamLiveDependencies ?? .dormant
@@ -3448,7 +3716,8 @@ final class AppSession: ObservableObject {
             accountSessionService=try? CNAccountSessionService(configuration:regional,storageScope:scope,transport:transport)
             service=regional.availability(of:.usernamePassword) == .available ? AuthService(configuration:configuration,transport:transport) : nil
             authChannelService=regional.canUseDomesticChinaPhone ? AuthChannelService(configuration:configuration,transport:transport) : nil
-            searchMapService=composition.reviewed?.reads.isDisjoint(with: [.homeAndSearch, .manualMap]) == false ? SearchMapService(configuration:configuration,transport:transport.scopedForManualMap(searchMapSelection)) : nil
+            searchMapService=composition.reviewed?.reads.isDisjoint(with: [.homeAndSearch, .manualMap, .publicMapLayers]) == false ? SearchMapService(configuration:configuration,transport:transport.scopedForManualMap(searchMapSelection)) : nil
+            mapPublicLayerService=composition.reviewed?.reads.isDisjoint(with: [.manualMap, .publicMapLayers]) == false ? MapPublicLayerService(configuration:configuration,transport:transport.scopedForManualMap(searchMapSelection)) : nil
             activityService=ActivityService(configuration:configuration,transport:transport)
             registrationBackend=RegistrationService(configuration:configuration,transport:transport)
             homeFeedService=composition.reviewed?.reads.contains(.homeAndSearch) == true ? HomeFeedService(configuration:configuration,transport:transport) : nil
@@ -3471,7 +3740,8 @@ final class AppSession: ObservableObject {
             merchantService=MerchantService(configuration:configuration,transport:transport)
             merchantEngagementService=MerchantEngagementService(configuration:configuration,readTransport:transport)
             merchantBusinessService=MerchantBusinessService(configuration:configuration,readTransport:transport)
-            cooperationFlowService=CoopFlowService(configuration:configuration,transport:transport)
+            cooperationFlowService=CoopFlowService(configuration:configuration,transport:transport,
+                executionApproval: { coopSlot.current() })
             merchantOperationsService=MerchantOperationsService(configuration:configuration,transport:transport)
             merchantOnboardingService=MerchantOnboardingService(configuration:configuration,transport:transport)
             clubService=ClubService(configuration:configuration,transport:transport)
@@ -3484,7 +3754,11 @@ final class AppSession: ObservableObject {
             roamExperienceService=RoamExperienceService(configuration:configuration,transport:transport)
             messagingService=MessagingService(configuration:configuration,transport:transport)
             messageActionService=MessageActionService(configuration:configuration,transport:transport)
-        } else { service=nil;accountSessionService=nil;authChannelService=nil;activityService=nil;searchMapService=nil;registrationBackend=UnconfiguredRegistrationBackend();homeFeedService=nil;orderLifecycleService=nil;ticketWalletService=nil;squareService=nil;socialAccountService=nil;cooperationService=nil;accountCollectionService=nil;officialEventService=nil;growthCenterService=nil;profileWeeklyPointsService=nil;creatorContentService=nil;topicService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;merchantOperationsService=nil;merchantBusinessService=nil;merchantEngagementService=nil;cooperationFlowService=nil;merchantOnboardingService=nil;clubService=nil;clubManagementService=nil;clubOperationsService=nil;clubGovernanceService=nil;profileEditService=nil;clubActionService=nil;roamService=nil;roamExperienceService=nil;messagingService=nil;messageActionService=nil }
+        } else { service=nil;accountSessionService=nil;authChannelService=nil;activityService=nil;searchMapService=nil;mapPublicLayerService=nil;registrationBackend=UnconfiguredRegistrationBackend();homeFeedService=nil;orderLifecycleService=nil;ticketWalletService=nil;squareService=nil;socialAccountService=nil;cooperationService=nil;accountCollectionService=nil;officialEventService=nil;growthCenterService=nil;profileWeeklyPointsService=nil;creatorContentService=nil;topicService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;merchantOperationsService=nil;merchantBusinessService=nil;merchantEngagementService=nil;cooperationFlowService=nil;merchantOnboardingService=nil;clubService=nil;clubManagementService=nil;clubOperationsService=nil;clubGovernanceService=nil;profileEditService=nil;clubActionService=nil;roamService=nil;roamExperienceService=nil;messagingService=nil;messageActionService=nil }
+        coopFlowExecutionSlot.current = { [weak self] in
+            guard let self, let context = self.currentRuntimeDependencyContext else { return nil }
+            return self.coopFlowExecutionApproval(context)
+        }
         compositionTransport.projectEditConfigurationRevision = { [weak self] in
             guard let self, !self.projectConfigurationChanging else { return nil }; return self.projectConfigurationRevision
         }
@@ -3535,6 +3809,22 @@ final class AppSession: ObservableObject {
         compositionTransport.activityEditingApproval = { [weak self] context in
             guard let self, self.currentRuntimeDependencyContext == context else { return .init() }
             return self.activityEditingApproval(context)
+        }
+        compositionTransport.chapterInviteExecution = { [weak self] context in
+            guard let self, self.currentRuntimeDependencyContext == context else { return false }
+            return self.merchantContentWriteApproval(context).chapterInvite
+        }
+        compositionTransport.chapterRespondExecution = { [weak self] context in
+            guard let self, self.currentRuntimeDependencyContext == context else { return false }
+            return self.merchantContentWriteApproval(context).chapterRespond
+        }
+        compositionTransport.offerWithdrawExecution = { [weak self] context, id, reason in
+            guard let self, self.currentRuntimeDependencyContext == context,
+                  let approval = self.coopFlowExecutionApproval(context) else { return false }
+            return approval.permits(.withdrawOffer(id: id, reason: reason), endpoint: context.baseURL)
+        }
+        compositionTransport.rewardPledgePermit = { [weak self] operation in
+            self?.rewardPledgePermits(operation) == true
         }
         compositionTransport.current = { [weak self] in
             guard let self, !self.committingAuthenticatedSession else { return nil }
@@ -3895,3 +4185,258 @@ extension AppSession: ClubReading {
 
 // Registration intent is navigation only; merchant authorization still comes from access/me.
 extension AppSession: MerchantOnboardingObserving {}
+
+extension AppSession {
+    var currentHomeContinuationOwnerScope: HomeContinuationOwnerScope? {
+        guard isSignedIn, let account else { return nil }
+        return HomeContinuationOwnerScope(
+            accountID: account.id,
+            sessionRevision: sessionRevision,
+            journeyScope: playerJourneyReader.scope
+        )
+    }
+
+    private static func playContinuationDefaultsKeys(
+        namespace: String,
+        accountID: Int,
+        role: String
+    ) -> (scopesKey: String, titlesKey: String)? {
+        guard !namespace.isEmpty, accountID > 0,
+              let parsedRole = PlayRecoveryAccountRole(rawValue: role) else { return nil }
+        let prefix = "play.continuation.\(namespace).\(accountID).\(parsedRole.rawValue)"
+        return ("\(prefix).scopes", "\(prefix).titles")
+    }
+
+    private func playContinuationDefaultsKeys() -> (scopesKey: String, titlesKey: String)? {
+        guard let storageScope, let account else { return nil }
+        return Self.playContinuationDefaultsKeys(
+            namespace: storageScope.service,
+            accountID: account.id,
+            role: account.effectiveRole
+        )
+    }
+
+    private static func encodeContinuationScopeToken(_ scope: PlaySessionScope) -> String {
+        switch scope {
+        case .activity(let id): return "activity:\(id)"
+        case .topic(let id): return "topic:\(id)"
+        }
+    }
+
+    private static func decodeContinuationScopeToken(_ token: String) -> PlaySessionScope? {
+        let parts = token.split(separator: ":", maxSplits: 1)
+        guard parts.count == 2, let id = Int(parts[1]), id > 0 else { return nil }
+        switch parts[0] {
+        case "activity": return .activity(id)
+        case "topic": return .topic(id)
+        default: return nil
+        }
+    }
+
+    private func matchesContinuationSession(_ expected: PlayExperienceSession, viewerRevision: UInt64) -> Bool {
+        guard !committingAuthenticatedSession,
+              isSignedIn,
+              let currentStorage = storageScope,
+              let currentAccount = account,
+              let currentToken = token,
+              currentStorage.service == expected.namespace,
+              currentAccount.id == expected.accountID,
+              gate.currentStamp == expected.epoch,
+              currentToken == expected.token,
+              currentAccount.effectiveRole == expected.role,
+              compositionViewerRevision == viewerRevision else {
+            return false
+        }
+        return true
+    }
+
+    private func persistPlayContinuationScope(
+        _ scope: PlaySessionScope,
+        title: String? = nil,
+        expectedSession: PlayExperienceSession,
+        expectedViewerRevision: UInt64
+    ) {
+        guard scope.isValid,
+              matchesContinuationSession(expectedSession, viewerRevision: expectedViewerRevision),
+              let keys = Self.playContinuationDefaultsKeys(
+                  namespace: expectedSession.namespace,
+                  accountID: expectedSession.accountID,
+                  role: expectedSession.role
+              ) else { return }
+        let token = Self.encodeContinuationScopeToken(scope)
+        var existing = sessionDefaults.stringArray(forKey: keys.scopesKey) ?? []
+        if !existing.contains(token) {
+            existing.append(token)
+            sessionDefaults.set(existing, forKey: keys.scopesKey)
+        }
+        if let trimmed = title?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty {
+            var titles = (sessionDefaults.dictionary(forKey: keys.titlesKey) as? [String: String]) ?? [:]
+            titles[token] = trimmed
+            sessionDefaults.set(titles, forKey: keys.titlesKey)
+        }
+    }
+
+    func registerPlayContinuationScope(_ scope: PlaySessionScope, title: String? = nil) {
+        guard !committingAuthenticatedSession,
+              let storageScope,
+              let account,
+              let token,
+              let role = PlayRecoveryAccountRole(rawValue: account.effectiveRole),
+              let playSession = try? PlayExperienceSession(
+                  accountID: account.id,
+                  epoch: gate.currentStamp,
+                  namespace: storageScope.service,
+                  token: token,
+                  role: role.rawValue
+              ) else { return }
+        persistPlayContinuationScope(
+            scope,
+            title: title,
+            expectedSession: playSession,
+            expectedViewerRevision: compositionViewerRevision
+        )
+    }
+
+    func loadPausedContinueRuns(
+        participations: [ParticipationRecord] = [],
+        additionalScopes: [PlaySessionScope] = []
+    ) async -> [PlayContinueRun] {
+        guard !committingAuthenticatedSession,
+              let regional = regionalConfiguration,
+              let capturedStorageScope = storageScope,
+              let capturedAccount = account,
+              let capturedToken = token,
+              let role = PlayRecoveryAccountRole(rawValue: capturedAccount.effectiveRole),
+              let playSession = try? PlayExperienceSession(
+                  accountID: capturedAccount.id,
+                  epoch: gate.currentStamp,
+                  namespace: capturedStorageScope.service,
+                  token: capturedToken,
+                  role: role.rawValue
+              ) else {
+            return []
+        }
+        let capturedViewerRevision = compositionViewerRevision
+        let capturedApprovalKey = currentPlayReadApprovalKey
+
+        let keys = Self.playContinuationDefaultsKeys(
+            namespace: playSession.namespace,
+            accountID: playSession.accountID,
+            role: playSession.role
+        )
+        let persistedTokens = keys.flatMap { sessionDefaults.stringArray(forKey: $0.scopesKey) } ?? []
+        let persistedTitles = keys.flatMap { sessionDefaults.dictionary(forKey: $0.titlesKey) as? [String: String] } ?? [:]
+
+        var titlesByScope: [PlaySessionScope: String] = [:]
+        for (tokenKey, storedTitle) in persistedTitles {
+            if let scope = Self.decodeContinuationScopeToken(tokenKey) {
+                titlesByScope[scope] = storedTitle
+            }
+        }
+        for record in participations {
+            if let scope = record.destination,
+               let name = record.name?.trimmingCharacters(in: .whitespacesAndNewlines),
+               !name.isEmpty {
+                titlesByScope[scope] = name
+                persistPlayContinuationScope(
+                    scope,
+                    title: name,
+                    expectedSession: playSession,
+                    expectedViewerRevision: capturedViewerRevision
+                )
+            }
+        }
+
+        var candidateScopes: [PlaySessionScope] = []
+        var seen = Set<PlaySessionScope>()
+        func appendScope(_ scope: PlaySessionScope) {
+            guard scope.isValid, seen.insert(scope).inserted else { return }
+            candidateScopes.append(scope)
+        }
+
+        for record in participations {
+            if let scope = record.destination { appendScope(scope) }
+        }
+        for scope in additionalScopes {
+            appendScope(scope)
+        }
+        for tokenKey in persistedTokens {
+            if let scope = Self.decodeContinuationScopeToken(tokenKey) {
+                appendScope(scope)
+            }
+        }
+        for (key, _) in playExperienceCoordinators
+        where key.accountID == playSession.accountID && key.epoch == playSession.epoch && key.role == playSession.role && key.viewerRevision == capturedViewerRevision {
+            appendScope(key.scope)
+        }
+
+        var runs: [PlayContinueRun] = []
+        for scope in candidateScopes {
+            guard !Task.isCancelled,
+                  matchesContinuationSession(playSession, viewerRevision: capturedViewerRevision) else {
+                return []
+            }
+            let readerKey = PlayReaderKey(
+                accountID: playSession.accountID,
+                epoch: playSession.epoch,
+                role: playSession.role,
+                viewerRevision: capturedViewerRevision,
+                approval: capturedApprovalKey,
+                scope: scope
+            )
+            let retained = playExperienceCoordinators[readerKey]
+            if let retained, retained.clock.phase == .paused || retained.clock.phase == .running {
+                runs.append(
+                    PlayContinueRun(
+                        scope: scope,
+                        elapsedSeconds: retained.clock.elapsedSeconds,
+                        title: titlesByScope[scope]
+                    )
+                )
+                continue
+            }
+            // If an in-memory coordinator for this session already loaded and explicitly ended the run, do not resurrect it.
+            if let retained, retained.phase != .idle && retained.clock.phase == .idle {
+                continue
+            }
+            guard let recovery = try? composition.storage.playRecovery.make(
+                session: playSession,
+                scope: scope,
+                regionalConfiguration: regional,
+                storageScope: capturedStorageScope
+            ) else {
+                continue
+            }
+            let storageKey = PlayRunStorageKey.make(session: playSession, scope: scope)
+            let paused = try? await recovery.read(key: storageKey)
+            guard !Task.isCancelled,
+                  matchesContinuationSession(playSession, viewerRevision: capturedViewerRevision) else {
+                return []
+            }
+            if let paused,
+               let snapshot = paused.value,
+               snapshot.owner.matches(playSession),
+               let record = snapshot.record {
+                persistPlayContinuationScope(
+                    scope,
+                    title: titlesByScope[scope],
+                    expectedSession: playSession,
+                    expectedViewerRevision: capturedViewerRevision
+                )
+                runs.append(
+                    PlayContinueRun(
+                        scope: scope,
+                        elapsedSeconds: record.elapsedSeconds,
+                        title: titlesByScope[scope]
+                    )
+                )
+            }
+        }
+        return runs
+    }
+
+    func hasResumablePlayState(for scope: PlaySessionScope) async -> Bool {
+        let runs = await loadPausedContinueRuns(additionalScopes: [scope])
+        return runs.contains { $0.scope == scope }
+    }
+}

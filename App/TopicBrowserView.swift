@@ -51,12 +51,7 @@ struct TopicBrowserView: View {
                                 if let date=item.startDate,!date.isEmpty {
                                     QuestifyImageEntityMetadata(label:"homeFeed.date",value:date,systemImage:"calendar")
                                 }
-                                VStack(alignment:.leading,spacing:3) {
-                                    Text("topic.startingPrice").font(.caption)
-                                    if let amount=item.minimumAmount,amount>=0 { Text(amount,format:.number.precision(.fractionLength(2))).font(.headline) }
-                                    else { Text("topic.priceUnknown") }
-                                    Text("homeFeed.currencyUnknown").font(.caption)
-                                }
+                                TopicStartingPrice(amount: item.minimumAmount)
                             }
                         }.buttonStyle(QuestifyCardButtonStyle()).questifyCardListRow()
                         .accessibilityIdentifier("topic.row.\(item.id)")
@@ -104,5 +99,21 @@ struct TopicBrowserView: View {
             guard operation == generation, captured == key else { return }
             issue = TopicScreenIssue(error); loadedKey = captured
         }
+    }
+}
+
+private struct TopicStartingPrice: View {
+    let amount: Decimal?
+    @Environment(\.locale) private var locale
+    var body: some View {
+        let starting = appLocalized("topic.startingPrice", locale: locale)
+        let currency = appLocalized("homeFeed.currencyUnknown", locale: locale)
+        let figure: String
+        if let amount, amount >= 0 {
+            figure = amount.formatted(.number.precision(.fractionLength(2)).locale(locale))
+        } else {
+            figure = appLocalized("topic.priceUnknown", locale: locale)
+        }
+        RevolutAmountView(figure: figure, label: starting + "\n" + currency)
     }
 }

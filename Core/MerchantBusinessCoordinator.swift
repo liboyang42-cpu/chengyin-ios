@@ -70,7 +70,7 @@ public struct MerchantBusinessConfirmation: Equatable, Identifiable {
     private let review: MerchantBusinessConfirmation
     private var consumed = false
     private let validity: () throws -> Void
-    fileprivate init(_ review: MerchantBusinessConfirmation, check: @escaping () throws -> Void) { self.review = review; validity = check }
+    init(_ review: MerchantBusinessConfirmation, check: @escaping () throws -> Void) { self.review = review; validity = check }
     func consume(_ review: MerchantBusinessConfirmation) throws {
         guard !consumed, self.review == review else { throw MerchantBusinessFailure.stale }
         consumed = true; try validity()
@@ -189,6 +189,58 @@ public struct MerchantBusinessConfirmation: Equatable, Identifiable {
         // Also remove the original raw response, but never a newer/different receipt.
         if ownsReceipt { receipt = nil }
     }
+    /// Production desk save. This function writes the journal row, then mints the one-shot ticket.
+    /// A caller-supplied intent or authorization UUID is not that reservation.
+    /// The document query stays `.overview` because the desk detail is not a session snapshot.
+    @MainActor static func reserveDeskSkuThenDispatch(journal: any MerchantBusinessIntentStore,
+                                                      mutation: MerchantBusinessMutation,
+                                                      intent: MerchantBusinessIntent,
+                                                      detail: MerchantBusinessValue,
+                                                      access: MerchantBusinessAccess,
+                                                      scope: MerchantBusinessScope,
+                                                      authorizationGeneration: UUID?,
+                                                      reader: MerchantBusinessService,
+                                                      service: MerchantBusinessService,
+                                                      token: String,
+                                                      check: @escaping () throws -> Void) async throws -> MerchantBusinessReceipt {
+        guard journal.isDurable, authorizationGeneration != nil else { throw MerchantBusinessFailure.disabled }
+        guard case .saveSku = mutation else { throw MerchantBusinessFailure.invalid }
+        let issued = try await reader.access(token: token)
+        guard issued.merchantID == access.merchantID, issued.role == access.role else { throw MerchantBusinessFailure.conflict }
+        let document = try MerchantBusinessDocument(query: .overview, payload: detail)
+        let review = MerchantBusinessConfirmation(id: UUID(), authorizationGeneration: authorizationGeneration, journalRealm: scope.realm,
+                                                  mutation: mutation, requestID: intent.requestID,
+                                                  request: try mutation.request(requestID: intent.requestID), scope: scope,
+                                                  baseline: MerchantBusinessSnapshot(access: issued, document: document))
+        guard intent.requestID == review.requestID, intent.realm == review.journalRealm, intent.accountID == review.scope.accountID,
+              intent.merchantID == review.baseline.access.merchantID, intent.target == review.mutation.targetKey else {
+            throw MerchantBusinessFailure.invalid
+        }
+        try check()
+        try journal.reserve(intent)
+        try check()
+        let again: MerchantBusinessAccess
+        do {
+            again = try await reader.access(token: token)
+            guard again.merchantID == access.merchantID, again.role == access.role else {
+                throw MerchantBusinessFailure.conflict
+            }
+        } catch {
+            // The save has not been sent. Clear only this unsent reservation.
+            try? journal.complete(intent)
+            throw error
+        }
+        let latest = MerchantBusinessSnapshot(access: again, document: try MerchantBusinessDocument(query: .overview, payload: detail))
+        let authorization = MerchantBusinessDispatchAuthorization(review, check: check)
+        do {
+            try authorization.consume(review)
+            return try await service.executeReviewed(review, latest: latest, token: token, authorization: authorization, check: check)
+        } catch {
+            if MerchantMutationFailureDisposition.provesNoDispatch(error) { try journal.complete(intent) }
+            throw error
+        }
+    }
+
     private func set(_ error: Error) {
         if let failure = error as? MerchantBusinessFailure { self.failure = failure; failureKey = failure.key }
         else if error as? APIError == .notConfigured { failureKey = "auth.notConfigured" }

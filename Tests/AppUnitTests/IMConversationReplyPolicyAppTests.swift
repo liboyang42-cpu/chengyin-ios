@@ -383,7 +383,7 @@ import XCTest
             if fail { throw URLError(.timedOut) }
             if let receiptOverride { return receiptOverride }
             switch mutation {
-            case .read: return .read
+            case .read, .readCursor: return .read
             case .mute(_, let muted): return .muted(muted)
             case .send: return .sent(try message("card"))
             case .start: return .started(conversationID: 9)

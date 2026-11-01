@@ -13,14 +13,38 @@ public enum StoryNavigationTransition: Equatable {
     case completedMission
 }
 
+/// W15.2: a destination is only ever a reviewed entrance. A missing state is explicit and the
+/// place pin is never substituted as the door.
+public enum StoryEntranceState: Equatable {
+    case none
+    case reviewed(PlaceNavigationEntrance)
+    case missing(Reason)
+    public enum Reason: Equatable { case noReviewedEntrance, temporarilyClosed(alternative: String?) }
+}
+
 public struct StoryWalkingNavigationHostBridge: Equatable {
+    public private(set) var entranceState: StoryEntranceState = .none
     public private(set) var sequence: StoryNavigationSequence
     public private(set) var activeWalkingStop: WalkingTargetReference?
     public private(set) var activeEntrance: PlaceNavigationEntrance?
     public private(set) var stopTransitionCount: Int = 0
 
-    public init(missionID: Int) throws {
-        self.sequence = try StoryNavigationSequence(missionID: missionID)
+    public init(missionID: Int, scope: StoryNavigationRunScope? = nil) throws {
+        self.sequence = try StoryNavigationSequence(missionID: missionID, scope: scope)
+    }
+
+    /// Restart recovery fenced by account/run. Walking stays idle until a fresh readback arrives.
+    public init(restoring record: StoryNavigationResumeRecord, expected: StoryNavigationRunScope, missionID: Int) throws {
+        self.sequence = try StoryNavigationSequence.restore(record, expected: expected, missionID: missionID)
+    }
+
+    public var resumeRecord: StoryNavigationResumeRecord? { sequence.resumeRecord }
+
+    /// The only coordinate the walking planner may be given: the reviewed entrance while navigating.
+    /// Nil when the entrance is missing; callers must show the missing state, not the pin.
+    public var walkingDestination: MapCoordinateObservation? {
+        guard activeWalkingStop != nil, case .reviewed(let entrance) = entranceState else { return nil }
+        return entrance.coordinate
     }
 
     public var missionID: Int {
@@ -44,18 +68,19 @@ public struct StoryWalkingNavigationHostBridge: Equatable {
         switch sequence.phase {
         case .finished:
             activeWalkingStop = nil
-            activeEntrance = nil
+            activeEntrance = nil; entranceState = .none
             return .completedMission
         case .noNavigableStop, .awaitingAuthority:
             activeWalkingStop = nil
-            activeEntrance = nil
+            activeEntrance = nil; entranceState = .none
             return .clearedStop
         case .verificationAvailable(let stop), .verificationSubmitted(let stop):
-            activeWalkingStop = nil
+            activeWalkingStop = nil; activeEntrance = nil; entranceState = .none
             return .holdingVerification(stop)
         case .navigating(let nextStop):
             activeWalkingStop = nextStop
             activeEntrance = Self.firstNavigableEntrance(from: entrances)
+            entranceState = Self.entranceState(from: entrances)
             if let previousStop {
                 if previousStop == nextStop {
                     return .unchanged(nextStop)
@@ -76,7 +101,7 @@ public struct StoryWalkingNavigationHostBridge: Equatable {
     public mutating func recordWalkingArrival(for reference: WalkingTargetReference) -> Bool {
         sequence.reachedNearDestination(reference)
         if case .verificationAvailable(let current) = sequence.phase, current == reference {
-            activeWalkingStop = nil
+            activeWalkingStop = nil; activeEntrance = nil; entranceState = .none
             return true
         }
         return false
@@ -99,6 +124,14 @@ public struct StoryWalkingNavigationHostBridge: Equatable {
             return current == reference
         }
         return false
+    }
+
+    public static func entranceState(from entrances: [PlaceNavigationEntrance]) -> StoryEntranceState {
+        if let e = firstNavigableEntrance(from: entrances) { return .reviewed(e) }
+        if let closed = entrances.first(where: { $0.isDisplayable && $0.temporarilyClosed }) {
+            return .missing(.temporarilyClosed(alternative: closed.accessibleAlternative))
+        }
+        return .missing(.noReviewedEntrance)
     }
 
     public static func firstNavigableEntrance(from entrances: [PlaceNavigationEntrance]) -> PlaceNavigationEntrance? {

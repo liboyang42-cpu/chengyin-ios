@@ -48,6 +48,11 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
     public let photoRequirement: String?
     public let businessTime: String?
     public let openStatus: String?
+    public let crowded: Bool?
+    public let inStoreLoad: Int?
+    public let servicePerHour: Double?
+    public let expectedWaitMinutes: Int?
+    public let quantityUnavailable: Bool?
     public let routeNodeState: String?
     public let lockReason: String?
     public let unlockAfterNodeID: Int?
@@ -62,10 +67,11 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
     private enum CodingKeys: String, CodingKey {
         case nodeId, name, npc, address, latitude, longitude, sortId, done, arrived, selfReported, hasGame, gameDone, locked, validationMethod
         case needScan, needAnswer, needGps, question, questionImg, questionAudio, options, description
-        case hookText, storyText, gameTitle, ruleInstructions, requiredMaterials, duration, difficulty
-        case players, photoRequireDesc, businessTime, openStatus, routeNodeState, lockReason
+        case hookText, storyText, gameTitle, ruleInstructions, rule, requiredMaterials, duration, difficulty
+        case players, photoRequireDesc, photoDesc, businessTime, openStatus, crowded, inStoreLoad, serviceCapacity, expectedWaitMinutes, quantityUnavailable, routeNodeState, lockReason
         case unlockAfterNodeId, chapterId, xp, puzzleScore, completionMode, sensorType, advancedConfigJson
     }
+    private enum ServiceCapacityKeys: String, CodingKey { case perHour }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         guard let nodeID = try c.playInt(.nodeId), nodeID > 0 else { throw APIError.malformedResponse }
@@ -89,14 +95,25 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
         hookText = try c.decodeIfPresent(String.self, forKey: .hookText)
         storyText = try c.decodeIfPresent(String.self, forKey: .storyText)
         gameTitle = try c.decodeIfPresent(String.self, forKey: .gameTitle)
-        ruleInstructions = try c.decodeIfPresent(String.self, forKey: .ruleInstructions)
+        ruleInstructions = try c.decodeIfPresent(String.self, forKey: .ruleInstructions) ?? c.decodeIfPresent(String.self, forKey: .rule)
         requiredMaterials = try c.decodeIfPresent(String.self, forKey: .requiredMaterials)
         durationMinutes = try c.playInt(.duration)
         difficulty = try c.decodeIfPresent(String.self, forKey: .difficulty)
         players = try c.decodeIfPresent(String.self, forKey: .players)
-        photoRequirement = try c.decodeIfPresent(String.self, forKey: .photoRequireDesc)
+        photoRequirement = try c.decodeIfPresent(String.self, forKey: .photoRequireDesc) ?? c.decodeIfPresent(String.self, forKey: .photoDesc)
         businessTime = try c.decodeIfPresent(String.self, forKey: .businessTime)
         openStatus = try c.decodeIfPresent(String.self, forKey: .openStatus)
+        crowded = try? c.playBool(.crowded)
+        inStoreLoad = Self.sanitizeQueueCount(try? c.playInt(.inStoreLoad))
+        if let cap = try? c.nestedContainer(keyedBy: ServiceCapacityKeys.self, forKey: .serviceCapacity) {
+            let rawRate: Double?
+            if let value = try? cap.decodeIfPresent(Double.self, forKey: .perHour) { rawRate = value }
+            else if let raw = try? cap.decodeIfPresent(String.self, forKey: .perHour) { rawRate = Double(raw.trimmingCharacters(in: .whitespacesAndNewlines)) }
+            else { rawRate = nil }
+            servicePerHour = Self.sanitizeQueueRate(rawRate)
+        } else { servicePerHour = nil }
+        expectedWaitMinutes = Self.sanitizeQueueCount(try? c.playInt(.expectedWaitMinutes))
+        quantityUnavailable = try? c.playBool(.quantityUnavailable)
         routeNodeState = try c.decodeIfPresent(String.self, forKey: .routeNodeState)
         lockReason = try c.decodeIfPresent(String.self, forKey: .lockReason)
         unlockAfterNodeID = try c.playInt(.unlockAfterNodeId)
@@ -121,6 +138,25 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
                   case .bool(false)? = config["enabled"] else { return true }
         }
         return false
+    }
+    public static let maxQueueMetricValue = 100_000
+    public static func sanitizeQueueCount(_ value: Int?) -> Int? {
+        guard let value, value >= 0, value <= maxQueueMetricValue else { return nil }
+        return value
+    }
+    public static func sanitizeQueueRate(_ value: Double?) -> Double? {
+        guard let value, value.isFinite, value >= 0, value <= Double(maxQueueMetricValue) else { return nil }
+        return value == 0 ? 0 : value
+    }
+    public static func formatQueueCount(_ value: Int?) -> String {
+        sanitizeQueueCount(value).map(String.init) ?? "—"
+    }
+    public static func formatQueueRate(_ value: Double?) -> String {
+        guard let valid = sanitizeQueueRate(value) else { return "—" }
+        if valid.rounded() == valid, let exact = Int(exactly: valid) {
+            return String(exact)
+        }
+        return String(valid)
     }
 }
 

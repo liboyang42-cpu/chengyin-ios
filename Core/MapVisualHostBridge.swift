@@ -60,7 +60,7 @@ public enum MapVisualHostBridge {
     /// Maps a business layer item source type to its MV03 layer slot.
     public static func layerOrder(for sourceType: MapSourceType) -> MapLayerOrder {
         switch sourceType {
-        case .themeNode, .roamPOI, .store, .registrableActivity, .sideQuest, .cityBoardPoint:
+        case .themeNode, .storyNode, .roamPOI, .store, .registrableActivity, .sideQuest, .cityBoardPoint:
             return .gameMarkers
         }
     }
@@ -179,5 +179,15 @@ public enum MapVisualHostBridge {
         to destination: MapCoordinateObservation
     ) throws -> Double {
         try MapCoordinateObservation.distanceMeters(origin, destination)
+    }
+
+    /// Projects items `MapPublicLayerAdapter` has already accepted.
+    /// `readyItems` merges through `MapLayerMerge`. `aggregatedQueryEnabled` is not read or set here.
+    public static func projectAcceptedPublicLayers(
+        _ session: MapPublicLayerSession,
+        visibleLayers: Set<MapSourceType>,
+        theme: MapVisualHostThemeSnapshot
+    ) throws -> [MapAnnotationVisualProjection] {
+        try projectAnnotations(items: MapPublicLayerAdapter.readyItems(in: session), visibleLayers: visibleLayers, theme: theme)
     }
 }

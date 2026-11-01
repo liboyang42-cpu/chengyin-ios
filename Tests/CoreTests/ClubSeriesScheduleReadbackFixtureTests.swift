@@ -7,9 +7,9 @@ final class ClubSeriesScheduleReadbackFixtureTests: XCTestCase {
     private let now = ISO8601DateFormatter().date(from: "2027-01-10T04:00:00Z")!
     private let scope = ClubGovernanceScope(clubID: 21, topicID: 31, seriesID: 61)
     // Contract fields plus the pre-existing required detail fields ("其他原字段照旧").
-    private func detail(_ startTime: String?) -> ClubGovernanceValue {
+    private func detail(_ startTime: String?, id: Int = 61) -> ClubGovernanceValue {
         let time = startTime.map { #","startTime":"\#($0)""# } ?? ""
-        return ClubGovernanceFixtures.json(#"{"id":61,"clubId":21,"topicId":31,"timezone":"Asia/Shanghai"\#(time),"futureDates":["2027-01-17"],"version":0,"recurrenceType":"WEEKLY","defaultLeadMemberId":41,"defaultCapacity":12,"waitlistEnabled":true,"offerMinutes":60}"#)
+        return ClubGovernanceFixtures.json(#"{"id":\#(id),"clubId":21,"topicId":31,"timezone":"Asia/Shanghai"\#(time),"futureDates":["2027-01-17"],"version":0,"recurrenceType":"WEEKLY","defaultLeadMemberId":41,"defaultCapacity":12,"waitlistEnabled":true,"offerMinutes":60}"#)
     }
     private func form(_ value: ClubGovernanceValue) throws -> ClubGovernanceFormDraft {
         let validated = try ClubGovernanceValidation.validate(value, operation: .seriesDetail, scope: scope)
@@ -41,9 +41,10 @@ final class ClubSeriesScheduleReadbackFixtureTests: XCTestCase {
         }
     }
     func testListCarriesNullableStartTimeWithoutPaginationOrDefault() throws {
-        let list = ClubGovernanceValue.array([detail("00:30"), detail(nil)])
+        let list = ClubGovernanceValue.array([detail("00:30"), detail(nil, id: 62)])
         let validated = try ClubGovernanceValidation.validate(list, operation: .series, scope: .init(clubID: 21))
         XCTAssertEqual(validated.array?.count, 2)
+        XCTAssertEqual(validated.array?.compactMap { $0["id"].int }, [61, 62])
         XCTAssertEqual(validated.array?.first?["startTime"].string, "00:30")
         XCTAssertNil(validated.array?.last?["startTime"].string)
     }

@@ -61,7 +61,7 @@ class ProjectStoryImageContracts(unittest.TestCase):
         self.assertIn('storyImages.presentation == nil, storyAudios.presentation == nil', view)
         self.assertNotIn('Button("projectEdit.addImage") { appendBlock(.image) }', view)
         panel = self.read('App/ProjectStoryImageAuthorView.swift')
-        for token in ['TemplateImageCropSession', 'TemplateImageCropView', 'selectionApproval:', 'flow.claimUpload(review)', 'ProjectStoryImagePreparedReferences', 'payload["chapters"]']:
+        for token in ['CreatorCropExportSession', 'CreatorCropExportView', 'selectionApproval:', 'flow.claimUpload(review)', 'ProjectStoryImagePreparedReferences', 'payload["chapters"]']:
             self.assertIn(token, panel)
         for absent in ['requestAuthorization', 'PHPhotoLibrary', 'AVCapture', 'AVAudioRecorder']:
             self.assertNotIn(absent, panel)

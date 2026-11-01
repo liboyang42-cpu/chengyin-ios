@@ -179,7 +179,8 @@ import XCTest
     func testDeniedRoleAndStaleCompletionAreDropped() async {
         let transport = StoreCharacterTestTransport()
         transport.set(StoreCharacterEndpoint.access, #"{"code":200,"data":{"active":true,"merchant":{"id":31},"roleCode":"MERCHANT_CHECKIN","permissions":["merchant:basic:read"]}}"#)
-        let reader = backend(transport, scope: { UUID() })
+        let scope = UUID()
+        let reader = backend(transport, scope: { scope })
         let coordinator = StoreCharacterCoordinator(reader: reader)
         await coordinator.load()
         XCTAssertEqual(coordinator.phase, .denied(.missingPermission))

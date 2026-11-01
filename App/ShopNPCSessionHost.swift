@@ -19,12 +19,16 @@ import Observation
     }
     private var conversations: [Reference] = []
     private(set) var accessRevision: UInt64 = 0
+    /// Set only from a published release snapshot. Cleared with every access revision.
+    private(set) var publicReleaseID: String?
+    func bindPublicRelease(_ read: ShopNPCPublicRead) { publicReleaseID = read.releaseID }
     func register(_ coordinator: ShopNPCCoordinator) {
         conversations.removeAll { $0.value == nil }
         conversations.append(Reference(coordinator))
     }
     func invalidate() {
         accessRevision &+= 1
+        publicReleaseID = nil
         conversations.forEach { $0.value?.invalidate() }
         conversations.removeAll()
     }

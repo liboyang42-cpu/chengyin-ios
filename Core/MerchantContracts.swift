@@ -31,6 +31,16 @@ public struct MerchantTodo: Decodable, Equatable {
     /// nil when the server omits `byProject`: per-project chips are then unknown, not "no todo".
     public let byProject: [MerchantProjectTodo]?
     enum CodingKeys: String, CodingKey { case pendingVerify, verifiedCount, pendingScanConfirm, pendingOrders, refundCount, pendingPredict, biddingTopics, byProject }
+    public init(aftercareRefundCount: Int) {
+        pendingVerify = 0
+        verifiedCount = 0
+        pendingScanConfirm = 0
+        pendingOrders = 0
+        refundCount = max(0, aftercareRefundCount)
+        pendingPredict = 0
+        biddingTopics = 0
+        byProject = nil
+    }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         pendingVerify = try c.decodeIfPresent(Int.self, forKey: .pendingVerify) ?? 0
@@ -42,6 +52,11 @@ public struct MerchantTodo: Decodable, Equatable {
         pendingPredict = max(0, (try? c.decodeIfPresent(Int.self, forKey: .pendingPredict)) ?? 0)
         biddingTopics = max(0, (try? c.decodeIfPresent(Int.self, forKey: .biddingTopics)) ?? 0)
         byProject = (try? c.decodeIfPresent([MerchantProjectTodo].self, forKey: .byProject)) ?? nil
+    }
+    /// Non-owner aftercare readers receive only the aftercare refund count; order, verification,
+    /// prediction, bidding, and per-project fields stay owner-only.
+    public func scoped(for access: MerchantAccess) -> MerchantTodo {
+        access.isOwner ? self : Self(aftercareRefundCount: access.canReadAftercare ? refundCount : 0)
     }
     /// Completed verifications are not pending work.
     public var hasPendingWork: Bool { pendingVerify > 0 || pendingScanConfirm > 0 || pendingOrders > 0 || refundCount > 0 }

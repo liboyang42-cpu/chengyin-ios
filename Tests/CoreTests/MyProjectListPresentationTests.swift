@@ -152,4 +152,24 @@ final class MyProjectListPresentationTests: XCTestCase {
         XCTAssertTrue(threeConfirmed.allPOIsConfirmed)
         XCTAssertTrue(threeConfirmed.isValid)
     }
+
+    func testProjectPageTruncatesAtTwoHundredLoadCapEvenWithoutHigherTotal() throws {
+        let row = try project(#"{"id":1,"bizType":"topic","state":"running"}"#)
+        let fullPage = CreatorContentProjectPage(
+            rows: Array(repeating: row, count: MyProjectListPresentation.loadCap),
+            total: MyProjectListPresentation.loadCap
+        )
+        XCTAssertTrue(fullPage.isTruncated)
+        let underCap = CreatorContentProjectPage(rows: [row], total: 1)
+        XCTAssertFalse(underCap.isTruncated)
+
+        let root = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let data = try Data(contentsOf: root.appendingPathComponent("docs/creator-content-localizations.json"))
+        let catalog = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: [String: String]])
+        XCTAssertEqual(catalog["creatorContent.truncated"]?["zh-Hans"], "已达到200条加载上限，请筛选查找")
+        XCTAssertEqual(catalog["creatorContent.truncated"]?["en"], "Reached the 200-item load limit. Use filters to narrow results.")
+    }
 }

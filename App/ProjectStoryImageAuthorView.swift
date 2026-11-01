@@ -6,7 +6,7 @@ import UIKit
     let pickerHost = RetainedImagePickerHost()
     @Published private(set) var revision = 0
     @Published private(set) var preview: UIImage?
-    let crop: TemplateImageCropSession
+    let crop: CreatorCropExportSession
     private let injectedPicker: (any OwnedTopicCoverSelecting)?
     private let applyDraft: (ProjectStoryImagePresentation.Presentation) -> Void
     private lazy var nativePicker = pickerHost.makePicker(selectionApproval: { [weak self] in
@@ -36,7 +36,7 @@ import UIKit
                 let image = try await selected.select()
                 guard self.pickerID == id, !Task.isCancelled, self.flow.isCurrent else { return }
                 if let image, self.flow.matchesCapturedDraft {
-                    self.crop.stage(image)
+                    self.crop.stage([image])
                     if self.crop.draft != nil { self.cropPickerID = id }
                     else { self.flow.finishPicking(nil, original: id) }
                 } else { self.flow.finishPicking(nil, original: id) }
@@ -45,11 +45,16 @@ import UIKit
         pickerTask = task
         await withTaskCancellationHandler(operation: { await task.value }, onCancel: { task.cancel() })
     }
-    func confirmCrop(_ id: UUID, _ rect: TemplateImageCropRect) {
-        guard let pickerID = cropPickerID, let image = crop.confirm(id: id, rect: rect) else { revision += 1; return }
+    func confirmCrop(_ id: UUID, _ results: [MiniCropView.Result]) {
+        guard let pickerID = cropPickerID, let image = crop.confirm(id: id, results: results)?.first else { revision += 1; return }
         flow.finishPicking(image, original: pickerID); cropPickerID = nil
         if flow.review?.image.jpeg == image.jpeg { preview = UIImage(data: image.jpeg) }
         revision += 1
+    }
+    /// Compatibility for already-authored tests: an identity rect means 使用原图,
+    /// any other rect is the same source rectangle expressed as a Mini crop result.
+    func confirmCrop(_ id: UUID, _ rect: TemplateImageCropRect) {
+        confirmCrop(id, [rect.isIdentity ? .original : .crop(.init(x: rect.x, y: rect.y, width: rect.width, height: rect.height))])
     }
     func cancelCrop(_ id: UUID) {
         guard crop.draft?.id == id else { return }
@@ -134,7 +139,7 @@ struct ProjectStoryImagePreparedReferences: View {
                     Button(text("projectStoryImage.choose", "Choose an image")) { Task { await model.choose() } }
                         .buttonStyle(.borderless).disabled(!model.canChoose).accessibilityIdentifier("projectStoryImage.choose")
                     if let draft = model.crop.draft {
-                        TemplateImageCropView(draft: draft, confirm: { model.confirmCrop($0, $1) }, cancel: { model.cancelCrop($0) })
+                        CreatorCropExportView(draft: draft, confirm: { model.confirmCrop($0, $1) }, cancel: { model.cancelCrop($0) })
                     }
                     if let preview = model.preview {
                         Image(uiImage: preview).resizable().scaledToFit().accessibilityIdentifier("projectStoryImage.localPreview")

@@ -172,8 +172,8 @@ import SwiftUI
             let reader = h.session.makeProfileFavoriteDetailReader(selected), owner = ProfileFavoriteNavigationOwner(), probe = CoverProbe()
             probe.author = author;let scope = h.session.profileFavoritesReader.scope
             let host = UIHostingController(rootView:AnyView(RouteFixture(owner:owner,scope:scope,reader:reader,account:h.session.socialAccountReader,probe:probe).environment(\.scenePhase,.active)))
-            let window = UIWindow(frame:UIScreen.main.bounds);window.rootViewController = host;window.makeKeyAndVisible()
-            defer { window.isHidden = true;window.rootViewController = nil }
+            let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window;window.rootViewController = host;window.makeKeyAndVisible()
+            defer { sceneWindow.retire() }
             host.loadViewIfNeeded();host.view.layoutIfNeeded()
         for _ in 0..<100 where probe.rootAppearances == 0 { try await Task.sleep(for:.milliseconds(20)) }
         XCTAssertGreaterThan(probe.rootAppearances,0);XCTAssertTrue(owner.open(selected,scope:scope))

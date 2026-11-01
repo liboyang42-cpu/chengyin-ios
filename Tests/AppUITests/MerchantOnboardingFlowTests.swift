@@ -46,6 +46,7 @@ final class MerchantOnboardingFlowTests: XCTestCase {
         let name = app.textFields["merchant.onboarding.name"]
         XCTAssertTrue(name.waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertEqual(name.value as? String, "Example Store")
+        capture("Merchant reapply native form")
         tap(app.buttons["merchant.onboarding.next"])
         tap(app.buttons["merchant.onboarding.next"])
         XCTAssertTrue(element("merchant.onboarding.licenseUploaded").waitForExistence(timeout: 5), app.debugDescription)

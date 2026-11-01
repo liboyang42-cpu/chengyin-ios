@@ -174,20 +174,24 @@ import UIKit
 }
 
 @MainActor extension PlayAnswerReviewTests {
-    private func hosted() async throws -> (UIWindow, UINavigationController, PlayAnswerReviewRootController, PlayAnswerReviewPresentation, AnswerReviewReader, PlayViewModel) {
+    private func hosted() async throws -> (HostedNavigationSceneWindow, UINavigationController, PlayAnswerReviewRootController, PlayAnswerReviewPresentation, AnswerReviewReader, PlayViewModel) {
         let reader = AnswerReviewReader()
         // Use the same reader/model and normal view construction as the ordinary destination.
         let actualModel = PlayViewModel(reader: reader); await actualModel.load()
         let host = UIHostingController(rootView: PlayNodeDetailView(nodeID: 701, model: actualModel))
         let navigation = UINavigationController(rootViewController: host)
-        let window = UIWindow(frame: UIScreen.main.bounds); window.rootViewController = navigation; window.makeKeyAndVisible()
+        let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window
+        var handedOff = false
+        defer { if !handedOff { sceneWindow.retire() } }
+        window.rootViewController = navigation; window.makeKeyAndVisible()
         func root(_ current: UIViewController) -> PlayAnswerReviewRootController? {
             if let value = current as? PlayAnswerReviewRootController { return value }
             return current.children.compactMap(root).first
         }
         for _ in 0..<100 {
             if let value = root(host), value.owner?.capture(nodeID: 701) != nil {
-                return (window, navigation, value, try XCTUnwrap(value.owner), reader, actualModel)
+                handedOff = true
+                return (sceneWindow, navigation, value, try XCTUnwrap(value.owner), reader, actualModel)
             }
             try await Task.sleep(nanoseconds: 20_000_000)
         }
@@ -205,8 +209,8 @@ import UIKit
         return try XCTUnwrap(presented(root))
     }
     func testNormalHostFirstOpenCreatesConcretePresenterAndCancelAllowsReopen() async throws {
-        let (window, nav, _, owner, reader, _) = try await hosted()
-        defer { window.isHidden = true; window.rootViewController = nil }
+        let (sceneWindow, nav, _, owner, reader, _) = try await hosted()
+        defer { sceneWindow.retire() }
         XCTAssertNil(owner.review)
         try owner.prepare(answer: "A", offered: owner.capture(nodeID: 701))
         let first = try XCTUnwrap(owner.review); _ = try await waitForReview(nav)
@@ -220,8 +224,8 @@ import UIKit
         owner.dismissed(first); XCTAssertEqual(owner.review?.id, second.id)
     }
     func testNormalHostOwnSheetCoverageKeepsVisitUntilSingleConfirmedSend() async throws {
-        let (window, nav, _, owner, reader, _) = try await hosted()
-        defer { window.isHidden = true; window.rootViewController = nil }
+        let (sceneWindow, nav, _, owner, reader, _) = try await hosted()
+        defer { sceneWindow.retire() }
         try owner.prepare(answer: "A", offered: owner.capture(nodeID: 701))
         let review = try XCTUnwrap(owner.review); _ = try await waitForReview(nav)
         owner.disappear() // The lifecycle notification a covering own sheet can deliver.
@@ -231,12 +235,12 @@ import UIKit
         XCTAssertEqual(reader.sentAnswers, ["A"])
     }
     func testNormalHostRemovalRetiresConfirmedSendAndOldPrepareTicket() async throws {
-        let (window, nav, _, owner, reader, _) = try await hosted()
-        defer { window.isHidden = true; window.rootViewController = nil }
+        let (sceneWindow, nav, _, owner, reader, _) = try await hosted()
+        defer { sceneWindow.retire() }
         let ticket = try XCTUnwrap(owner.capture(nodeID: 701))
         try owner.prepare(answer: "A", offered: ticket); let review = try XCTUnwrap(owner.review)
         _ = try await waitForReview(nav); XCTAssertTrue(owner.confirm(review))
-        window.rootViewController = nil
+        sceneWindow.window.rootViewController = nil
         for _ in 0..<100 { if !owner.hasVisibleVisit { break }; try await Task.sleep(nanoseconds: 20_000_000) }
         // Actual native host removal, without manually invoking the owner cleanup.
         await owner.sendClaimed(review)
@@ -244,8 +248,8 @@ import UIKit
         XCTAssertThrowsError(try owner.prepare(answer: "A", offered: ticket))
     }
     func testNormalHostFreshReadBeforePresentationClearsExpiredReviewAndAllowsReopen() async throws {
-        let (window, nav, _, owner, reader, model) = try await hosted()
-        defer { window.isHidden = true; window.rootViewController = nil }
+        let (sceneWindow, nav, _, owner, reader, model) = try await hosted()
+        defer { sceneWindow.retire() }
         try owner.prepare(answer: "A", offered: owner.capture(nodeID: 701))
         let old = try XCTUnwrap(owner.review)
         await model.load()
@@ -257,8 +261,8 @@ import UIKit
         owner.dismissed(old); XCTAssertEqual(owner.review?.id, fresh.id)
     }
     func testHostedPreparationRejectsFreshReadAndBackgroundTickets() async throws {
-        let (window, _, _, owner, reader, model) = try await hosted()
-        defer { window.isHidden = true; window.rootViewController = nil }
+        let (sceneWindow, _, _, owner, reader, model) = try await hosted()
+        defer { sceneWindow.retire() }
         let old = try XCTUnwrap(owner.capture(nodeID: 701)); await model.load()
         XCTAssertThrowsError(try owner.prepare(answer: "A", offered: old))
         let visible = try XCTUnwrap(owner.capture(nodeID: 701))

@@ -293,6 +293,8 @@ struct RoamToolUnavailableView: View {
     var liveDestination: (() -> AnyView)? = nil
     var toolsReader: (any RoamPassportToolsReading)? = nil
     var discoverDestination: (() -> AnyView)? = nil
+    /// Host's existing topic detail for an anniversary card's current route; nil = honestly unavailable.
+    var anniversaryRouteDestination: ((String) -> AnyView)? = nil
     @State private var home: Result<RoamPassportHome, Error>?
     var body: some View {
         List {
@@ -307,7 +309,7 @@ struct RoamToolUnavailableView: View {
             Section {
                 ForEach(RoamPassportHome.Play.allCases) { play in playCard(play) }
             }
-            RoamPassportToolsSection(reader: toolsReader)
+            RoamPassportToolsSection(reader: toolsReader, routeDestination: anniversaryRouteDestination)
             Section {
                 NavigationLink { RoamToolUnavailableView(titleKey: "roam.w208.tool.export") } label: {
                     Label("roam.w208.tool.export", systemImage: "square.and.arrow.up")

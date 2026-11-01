@@ -204,8 +204,8 @@ import UIKit
         let h=try Harness();await h.login();let reader=try h.reader(),probe=Probe()
         h.wire.requests=[]
         let host=UIHostingController(rootView:AnyView(NormalHost(reader:reader,session:h.session,probe:probe).environment(\.scenePhase,.active)))
-        let window=UIWindow(frame:UIScreen.main.bounds);window.rootViewController=host;window.makeKeyAndVisible()
-        defer{window.isHidden=true;window.rootViewController=nil}
+        let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window;window.rootViewController=host;window.makeKeyAndVisible()
+        defer { sceneWindow.retire() }
         host.loadViewIfNeeded();host.view.layoutIfNeeded()
         for _ in 0..<100 where !h.wire.paths.contains("public-info") {try await Task.sleep(for:.milliseconds(20))}
         XCTAssertTrue(h.wire.paths.contains("public-info"));XCTAssertTrue(reader.isVisible)

@@ -585,7 +585,7 @@ def screenshot_probe_command(argv, root, deadline, stage, developer, capture_hel
         return status, raw
 
 
-def bounded_failure_images(stage, method, remaining_bytes, remaining_count):
+def bounded_failure_images(stage, method, remaining_bytes, remaining_count, allowed_names=None):
     """Read only the exact app screenshot attachment of the requested test."""
     stage = screenshot_safe_directory(stage)
     manifest = stage / 'manifest.json'
@@ -607,7 +607,7 @@ def bounded_failure_images(stage, method, remaining_bytes, remaining_count):
     for attachment in attachments:
         require(isinstance(attachment, dict), 'Unknown attachment schema')
         name = attachment.get('suggestedHumanReadableName')
-        if not isinstance(name, str) or name not in names: continue
+        if not isinstance(name, str) or name not in (names if allowed_names is None else allowed_names): continue
         filename = attachment.get('exportedFileName')
         require(isinstance(filename, str) and re.fullmatch(r'[A-Za-z0-9_.-]{1,200}', filename)
                 and filename not in ('.', '..'), 'Unsafe attachment path')
@@ -981,7 +981,7 @@ def reparse_actual_result(directory, plan):
 
 
 def aggregate_current(plan, artifacts, needs):
-    require(type(needs) is dict and set(needs) == {'controls', 'secrets', 'native', 'ui', 'platforms'} and all(needs[key].get('result') == 'success' for key in ('controls','secrets','native','ui')), 'A required current worker failed/skipped/cancelled')
+    require(type(needs) is dict and set(needs) == {'controls', 'secrets', 'native', 'ui_build', 'ui', 'platforms'} and all(needs[key].get('result') == 'success' for key in ('controls','secrets','native','ui_build','ui')), 'A required current worker failed/skipped/cancelled')
     require(needs['platforms'].get('result') == ('success' if plan['scope']=='full-current-regression' else 'skipped'), 'Required full platform checks did not succeed')
     expected = {'core': group(plan, 'core')['methods'], 'app-unit': group(plan, 'app-unit')['methods']}
     expected.update({'ui-'+str(i): row['methods'] for i, row in enumerate(plan['ui_shards'])})

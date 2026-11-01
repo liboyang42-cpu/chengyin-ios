@@ -1,0 +1,37 @@
+--- a/App/AppSession.swift
++++ b/App/AppSession.swift
+@@ -58,6 +58,34 @@
+         return factory.chatClient(currentScope: { [weak self] row in self?.merchantNPCScope(row: row) })
+     }
+     func merchantOperationsDestination(_ destination: MerchantOperationsDestination, access: MerchantOperationsAccess) -> AnyView {
++        if destination == .character {
++            var authorFlow: MerchantNPCKnowledgeAuthorFlow? = nil
++            if let merchantID = access.identity.merchantID,
++               let row = PublicMerchantRowID(merchantID),
++               let scope = merchantNPCScope(row: row) {
++                var writer: MerchantNPCKnowledgeReviewWriter? = nil
++                if let api = regionalConfiguration?.apiConfiguration {
++                    writer = MerchantNPCKnowledgeReviewWriter(
++                        configuration: api,
++                        transport: runtimeHTTPTransport,
++                        memberID: { [weak self] in
++                            guard let self, self.merchantNPCScope(row: row) == scope else { return nil }
++                            return self.account.map { Int64($0.id) }
++                        },
++                        token: { [weak self] in
++                            guard let self, self.merchantNPCScope(row: row) == scope else { return nil }
++                            return self.token
++                        })
++                }
++                authorFlow = MerchantNPCKnowledgeAuthorFlow(
++                    scope: scope,
++                    publisher: writer,
++                    currentScope: { [weak self] in self?.merchantNPCScope(row: row) })
++            }
++            return AnyView(MerchantOperationsDocumentView(reader: merchantOperationsReader, destination: destination, imageHost: retainedMerchantImages, templateAssistFactory: { [weak self] coordinator in
++                self?.merchantTemplateAssistFlow(coordinator: coordinator) ?? MerchantTemplateAssistFlow(coordinator: coordinator, client: nil)
++            }, authorFlow: authorFlow))
++        }
+         guard destination == .assets else { return AnyView(MerchantOperationsDocumentView(reader: merchantOperationsReader, destination: destination, imageHost: retainedMerchantImages, templateAssistFactory: { [weak self] coordinator in
+             self?.merchantTemplateAssistFlow(coordinator: coordinator) ?? MerchantTemplateAssistFlow(coordinator: coordinator, client: nil)
+         })) }

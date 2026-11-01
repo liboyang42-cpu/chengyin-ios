@@ -1,0 +1,38 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "unavailable %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activity %lld cannot be edited for this account because the activity editor is unavailable."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "活动 %lld 当前账号无法编辑，因为活动编辑器不可用。"
+          }
+        }
+      }
+    },
+    "revoked %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Editing for activity %lld stopped because this account is no longer the one that opened it."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "活动 %lld 的编辑已停止，因为当前账号已不是打开它的账号。"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

@@ -5,7 +5,7 @@ import SwiftUI
     var topicID: Int? = nil
     @Environment(\.merchantCityNodeHubDestination) private var cityNodeHub
     private var routes: [MerchantContentQuery] {
-        var routes: [MerchantContentQuery] = [.recruiting, .projects, .applications, .registrations(filter: 0), .city, .gameEntries]
+        var routes: [MerchantContentQuery] = [.recruiting, .projects, .applications, .chapterInvitations, .registrations(filter: 0), .city, .gameEntries]
         if let topicID, topicID > 0 { routes.insert(.chapters(topicID: topicID), at: 0) }
         return routes
     }
@@ -66,6 +66,7 @@ import SwiftUI
     func cancel() { coordinator.cancelReview(); revision += 1 }
     func confirm(_ r: MerchantContentReview) async { guard projectActionsAreCurrent else { return }; revision += 1; await coordinator.confirm(r); revision += 1 }
     func reconcile() async { guard projectActionsAreCurrent else { return }; revision += 1; await coordinator.reconcile(); revision += 1 }
+    func reconcileChapterInvitation() async { guard projectActionsAreCurrent else { return }; revision += 1; await coordinator.reconcileChapterInvitation(); revision += 1 }
     func retryStation() async { guard projectActionsAreCurrent else { return }; revision += 1; await coordinator.retryStation(); revision += 1 }
     func suspend() { coordinator.suspend(); revision += 1 }
     func invalidate() { coordinator.invalidate(); revision += 1 }
@@ -256,6 +257,7 @@ struct MerchantContentFields: View {
     let kind: Kind
     var focusedTopicID: Int? = nil
     @Environment(\.merchantGameNodeDestination) private var gameNodeDestination
+    @Environment(\.merchantChapterReplacementContext) private var replacementContext
     private var rowNamespace: String {
         switch kind { case .city: return "city"; case .cityApplication: return "cityApplication"; case .player: return "player"; case .query(let query): return query.key }
     }
@@ -288,7 +290,7 @@ struct MerchantContentFields: View {
         case .query(let query):
             switch query { case .recruiting: return ["merchantSignUpEndDate"]
             case .upcoming: return ["startTime", "clubName", "paidCount", "teamStatus", "arrivalStart", "arrivalEnd"]
-            case .applications, .ownerApplications: return ["chapterName", "status", "source", "message", "auditRemark", "circleSupplyCheckedAt"]
+            case .applications, .chapterInvitations, .ownerApplications: return ["chapterName", "status", "source", "message", "auditRemark", "circleSupplyCheckedAt"]
             case .pendingNodes, .chapterNodes: return ["address", "nodeAuditStatus", "nodeAuditReason"]
             default: return ["chapterName", "stateText", "status", "reason", "address", "startAt", "endAt", "stationCount"] }
         }
@@ -320,12 +322,18 @@ struct MerchantContentFields: View {
         case .recruiting: if let id = row["id"].integer, id > 0 { link(.chapters(topicID: id), key: "chapters") }
         case .projects:
             if row["bizType"].text == "topic", let id = row["id"].integer, id > 0 { link(.project(topicID: id), key: "project") }
-        case .applications:
-            if let topic = row["topicId"].integer, topic > 0 { link(.chapters(topicID: topic), key: "chapters") }
-            if let id = row["id"].integer, row["status"].integer == 0, row["source"].integer == 0 { Button("merchant.content.withdraw") { model.prepare(.withdraw(applicationID: id)) }.accessibilityIdentifier("merchant.content.withdraw") }
-            if let chapter = row["chapterId"].integer, [0, 1].contains(row["status"].integer ?? -1) {
-                NavigationLink("merchant.content.submitNode") { MerchantContentEditView(service: service, query: .nodeAuthoring(chapterID: chapter), kind: .chapterNode(chapter)) }
-                Text("merchant.content.supplyBoundary").font(.footnote)
+        case .chapterInvitations, .applications:
+            if case .applications = query, let topic = row["topicId"].integer, topic > 0 { link(.chapters(topicID: topic), key: "chapters") }
+            if let id = row["id"].integer, id > 0, let invitation = try? MerchantChapterInvitation(row: row), invitation.canRespond {
+                NavigationLink { MerchantChapterInvitationDetailView(service: service, applicationID: id) { Task { await model.load() } } } label: { Text("merchantChapterInvitation.openDetail") }
+                    .accessibilityIdentifier("merchantChapterInvitation.open." + String(id))
+            }
+            if case .applications = query {
+                if let id = row["id"].integer, row["status"].integer == 0, row["source"].integer == 0 { Button("merchant.content.withdraw") { model.prepare(.withdraw(applicationID: id)) }.accessibilityIdentifier("merchant.content.withdraw") }
+                if let chapter = row["chapterId"].integer, [0, 1].contains(row["status"].integer ?? -1) {
+                    NavigationLink("merchant.content.submitNode") { MerchantContentEditView(service: service, query: .nodeAuthoring(chapterID: chapter), kind: .chapterNode(chapter)) }
+                    Text("merchant.content.supplyBoundary").font(.footnote)
+                }
             }
         case .registrations: if let id = row["id"].integer, id > 0 { link(.registration(id: id), key: "registration") }
         case .chapterNodes:
@@ -336,11 +344,18 @@ struct MerchantContentFields: View {
             }
         case .pendingNodes:
             if let id = row["id"].integer, id > 0 { NavigationLink("merchant.content.auditNode") { MerchantContentEditView(service: service, query: query, kind: .auditNode(id)) } }
-        case .invitable:
-            if let chapter = row["chapterId"].integer, let member = row["memberId"].integer, chapter > 0, member > 0 {
-                Button("merchant.content.invite") { model.prepare(.invite(chapterID: chapter, merchantMemberID: member)) }
-                Text("merchant.content.inviteWarning").font(.footnote)
+        case .invitable(let topic):
+            // No bare ordinary invite: replacement invites go through the C9 flow only
+            // when a host-supplied replacement context exists; otherwise no send is offered.
+            if let replacementContext {
+                NavigationLink {
+                    ChapterReplacementInvitationEntry(context: replacementContext, topicID: topic,
+                        merchantAccess: model.coordinator.snapshot?.access)
+                        .onDisappear { Task { await model.load() } }
+                } label: { Text("merchant.content.invite") }
+                .accessibilityIdentifier("merchant.chapterReplacement.open")
             }
+            Text("merchant.content.inviteWarning").font(.footnote)
         case .claimable:
             if let poi = row["poiId"].integer ?? row["id"].integer, poi > 0 { Button("merchant.content.claim") { model.prepare(.claim(poiID: poi)) } }
         case .gameEntries: if let id = row["activityId"].integer, id > 0 {
@@ -520,6 +535,11 @@ struct MerchantContentCodeView: View {
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("merchant.cityClaim.reviewNotice")
                     }
+                    if case .respondChapterInvitation(_, let accepted, _, _) = review.command {
+                        ForEach(MerchantChapterInvitation.impactKeys(accepted: accepted), id: \.self) { key in
+                            Text(LocalizedStringKey(key)).fixedSize(horizontal: false, vertical: true)
+                        }.accessibilityIdentifier("merchantChapterInvitation.reviewNotice")
+                    }
                     if case .station(let command) = review.command, command.pausesWithoutFallback {
                         Label("merchant.stationPause.reviewTitle", systemImage: "exclamationmark.triangle")
                             .font(.headline)
@@ -529,7 +549,7 @@ struct MerchantContentCodeView: View {
                     }
                     Text("merchant.content.reviewWarning").font(.footnote)
                     Button("merchant.content.confirm") { Task { await model.confirm(review); dismiss() } }
-                        .buttonStyle(.borderedProminent).disabled(model.coordinator.busy || !model.coordinator.service.permitsWrites)
+                        .buttonStyle(.borderedProminent).disabled(model.coordinator.busy || !model.coordinator.service.permits(review.command))
                         .accessibilityIdentifier("merchant.content.confirm")
                     Button("action.cancel") { model.cancel(); dismiss() }.accessibilityIdentifier("merchant.content.review.cancel")
                 }.padding()
@@ -547,12 +567,40 @@ extension EnvironmentValues {
         get { self[MerchantContentSupplyDestinationKey.self] }
         set { self[MerchantContentSupplyDestinationKey.self] = newValue }
     }
+    var merchantOfferWithdrawalDestination: (@MainActor (MerchantContentSupplyContext) -> AnyView)? {
+        get { self[MerchantOfferWithdrawalDestinationKey.self] }
+        set { self[MerchantOfferWithdrawalDestinationKey.self] = newValue }
+    }
+    var merchantChapterReplacementContext: MerchantChapterReplacementHostContext? {
+        get { self[MerchantChapterReplacementContextKey.self] }
+        set { self[MerchantChapterReplacementContextKey.self] = newValue }
+    }
+}
+private struct MerchantOfferWithdrawalDestinationKey: EnvironmentKey {
+    static let defaultValue: (@MainActor (MerchantContentSupplyContext) -> AnyView)? = nil
+}
+private struct MerchantChapterReplacementContextKey: EnvironmentKey {
+    static let defaultValue: MerchantChapterReplacementHostContext? = nil
+}
+/// Host-supplied C9 composition. The environment default stays nil. A mounted
+/// host passes a per-topic proof loader and builds effects only from that proof.
+/// Coordinates stay nil when location was refused; candidate lookup still runs.
+@MainActor struct MerchantChapterReplacementHostContext {
+    let makeEffects: (ChapterReplacementInvitationPublisherProof?) -> ChapterReplacementInvitationEffects?
+    let actorAccountID: Int
+    let scope: ChapterReplacementInvitationScope
+    let merchantAccess: MerchantAccess?
+    /// Fresh `api/topic/info-to-user` proof for one topic. Nil means fail closed.
+    let loadPublisherProof: (Int) async -> ChapterReplacementInvitationPublisherProof?
+    /// Nil when location was refused. Candidate lookup still runs without coordinates.
+    let coordinates: ChapterReplacementInvitationCoordinates?
 }
 @MainActor private struct MerchantContentRecruitSupplyView: View {
     let service: any MerchantContentServing
     let topicID: Int
     let chapters: [MerchantContentValue]
     @Environment(\.merchantContentSupplyDestination) private var destination
+    @Environment(\.merchantOfferWithdrawalDestination) private var withdrawalDestination
     @State private var snapshot: MerchantContentSnapshot?
     @State private var error = false
     var body: some View {
@@ -569,6 +617,10 @@ extension EnvironmentValues {
                             if (context.canEnroll || context.canReconfirmOrPause), let destination {
                                 NavigationLink { destination(context) } label: { Text("merchant.content.manageSupply") }
                             } else if !context.offerActive && context.termsMode == nil { Text("merchant.content.supplyTermsUnknown").font(.footnote) }
+                            if context.offerActive, context.offerID != nil, let withdrawalDestination {
+                                NavigationLink { withdrawalDestination(context) } label: { Text("merchant.offerWithdrawal.title") }
+                                    .accessibilityIdentifier("merchant.offerWithdrawal.open")
+                            }
                         }
                     }
                 }

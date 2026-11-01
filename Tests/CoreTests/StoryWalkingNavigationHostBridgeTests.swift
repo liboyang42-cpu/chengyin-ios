@@ -104,6 +104,48 @@ final class StoryWalkingNavigationHostBridgeTests: XCTestCase {
         XCTAssertNil(bridge.activeEntrance)
     }
 
+    func testMissingEntranceIsExplicitAndNeverFallsBackToPin() throws {
+        var bridge = try StoryWalkingNavigationHostBridge(missionID: 8)
+        try bridge.ingestAuthorityReadback(readback(1, stop: 1), entrances: [try entrance(label: "N", reviewedBy: nil, closed: false)])
+        XCTAssertEqual(bridge.entranceState, .missing(.noReviewedEntrance))
+        XCTAssertNil(bridge.walkingDestination)
+        try bridge.ingestAuthorityReadback(readback(2, stop: 1), entrances: [try entrance(label: "E", reviewedBy: "ops", closed: true)])
+        XCTAssertEqual(bridge.entranceState, .missing(.temporarilyClosed(alternative: "Use South Gate")))
+        XCTAssertNil(bridge.walkingDestination)
+        let ok = try entrance(label: "S", reviewedBy: "ops", closed: false)
+        try bridge.ingestAuthorityReadback(readback(3, stop: 1), entrances: [ok])
+        XCTAssertEqual(bridge.walkingDestination, ok.coordinate)
+    }
+
+    func testArrivalClearsDestinationAndOnlyOriginalVerificationRemains() throws {
+        var bridge = try StoryWalkingNavigationHostBridge(missionID: 8)
+        let s1 = try stop(1)
+        try bridge.ingestAuthorityReadback(readback(1, stop: 1), entrances: [try entrance(label: "S", reviewedBy: "ops", closed: false)])
+        XCTAssertTrue(bridge.recordWalkingArrival(for: s1))
+        XCTAssertNil(bridge.walkingDestination)
+        XCTAssertEqual(bridge.entranceState, .none)
+        XCTAssertTrue(bridge.canOpenVerification(for: s1))
+    }
+
+    func testRestartRecoveryIsFencedByAccountRunAndNeverCompletesNode() throws {
+        let scope = try StoryNavigationRunScope(account: "acct-1", runID: 5)
+        var bridge = try StoryWalkingNavigationHostBridge(missionID: 8, scope: scope)
+        try bridge.ingestAuthorityReadback(try .init(missionID: 8, revision: 1, currentStop: stop(1), finished: false, scope: scope))
+        XCTAssertTrue(bridge.recordWalkingArrival(for: try stop(1)))
+        let record = try XCTUnwrap(bridge.resumeRecord)
+        let other = try StoryNavigationRunScope(account: "acct-2", runID: 5)
+        XCTAssertThrowsError(try StoryWalkingNavigationHostBridge(restoring: record, expected: other, missionID: 8))
+        XCTAssertThrowsError(try StoryWalkingNavigationHostBridge(restoring: record, expected: try .init(account: "acct-1", runID: 6), missionID: 8))
+        var restored = try StoryWalkingNavigationHostBridge(restoring: record, expected: scope, missionID: 8)
+        XCTAssertEqual(restored.phase, .awaitingAuthority)
+        XCTAssertNil(restored.activeWalkingStop)
+        XCTAssertFalse(restored.canOpenVerification(for: try stop(1)))
+        // Foreign-scope or unscoped readbacks are rejected.
+        XCTAssertThrowsError(try restored.ingestAuthorityReadback(readback(1, stop: 1)))
+        XCTAssertThrowsError(try restored.ingestAuthorityReadback(try .init(missionID: 8, revision: 1, currentStop: stop(1), finished: false, scope: other)))
+        XCTAssertEqual(try restored.ingestAuthorityReadback(try .init(missionID: 8, revision: 1, currentStop: stop(1), finished: false, scope: scope)), .startedStop(try stop(1)))
+    }
+
     func testFogCoordinatorProjectsConfirmedAndPredictedTilesWhileKeepingRevealSyncDisabled() throws {
         var coordinator = try PersonalFogRoamHostCoordinator(ownerScope: "acct-1", samplePolicy: samplePolicy)
         XCTAssertFalse(coordinator.overlayProjection.revealSyncEnabled)

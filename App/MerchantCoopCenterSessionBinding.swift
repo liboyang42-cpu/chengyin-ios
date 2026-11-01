@@ -27,7 +27,7 @@ extension AppSession {
         MerchantCoopCenterView(content: session.merchantContentService, official: official, initialTab: initialTab,
             focusTopicID: focusTopicID, officialActions: session.officialActionCoordinator,
             inboxDestination: { close in
-                AnyView(CooperationBrowserView(reader: session.cooperationReader, onClose: close, peerReader: session.cooperationFlowReader)
+                AnyView(CooperationBrowserView(reader: session.cooperationReader, onClose: close, peerReader: session.cooperationFlowReader, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) })
                     .id(session.cooperationReader.scope))
             })
             .id(official.scope)

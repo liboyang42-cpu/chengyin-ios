@@ -187,8 +187,8 @@ import UIKit
         let reader=session.roamAlbumMetadataReader,identity=try XCTUnwrap(reader.identity)
         let scope=RoamStampAlbumReadOnlyScope(reader:reader,identity:identity,isCurrent:{true}),probe=AlbumProbe()
         let host=UIHostingController(rootView:AnyView(AlbumNavigationHost(reader:reader,scope:scope,probe:probe)))
-        let window=UIWindow(frame:UIScreen.main.bounds);window.rootViewController=host;window.makeKeyAndVisible()
-        defer {window.isHidden=true;window.rootViewController=nil}
+        let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window;window.rootViewController=host;window.makeKeyAndVisible()
+        defer { sceneWindow.retire() }
         host.loadViewIfNeeded();host.view.layoutIfNeeded()
         for _ in 0..<100 where probe.appearances==0 {try await Task.sleep(for:.milliseconds(20))}
         XCTAssertGreaterThan(probe.appearances,0);XCTAssertTrue(scope.isCurrent)

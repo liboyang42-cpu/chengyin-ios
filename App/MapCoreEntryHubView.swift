@@ -6,10 +6,11 @@ import SwiftUI
 struct MapCoreEntryHubView: View {
     let manifest: MapVisualStyleManifest
     let onOpen: (MapCoreEntry) -> Void
+    var publicLayers: MapPublicLayerCaller? = nil
     @Environment(\.colorScheme) private var colorScheme
     @State private var showsSharingExplainer = false
-    init(manifest: MapVisualStyleManifest = .candidate, onOpen: @escaping (MapCoreEntry) -> Void) {
-        self.manifest = manifest; self.onOpen = onOpen
+    init(manifest: MapVisualStyleManifest = .candidate, onOpen: @escaping (MapCoreEntry) -> Void, publicLayers: MapPublicLayerCaller? = nil) {
+        self.manifest = manifest; self.onOpen = onOpen; self.publicLayers = publicLayers
     }
     private var appearance: MapAppearance { .resolve(systemIsDark: colorScheme == .dark) }
 
@@ -28,6 +29,14 @@ struct MapCoreEntryHubView: View {
                     .accessibilityIdentifier("mapCore.entry.\(entry.rawValue)")
                 }
             } header: { Text("mapCore.entries.title", tableName: "MapCoreEntry") } footer: { Text("mapCore.entries.footer", tableName: "MapCoreEntry") }
+            if let publicLayers {
+                Section {
+                    NavigationLink { MapPublicLayerCallerView(caller: publicLayers) } label: {
+                        Text(verbatim: "Public layers").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                    }
+                    .accessibilityIdentifier("mapPublic.entry")
+                }
+            }
 
             Section {
                 ForEach(MapMarkerVisualState.allCases, id: \.self) { state in

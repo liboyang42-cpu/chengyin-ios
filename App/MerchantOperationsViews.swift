@@ -160,14 +160,24 @@ struct MerchantOperationsDocumentView: View {
     let imageHost: MerchantRetainedImageHost?
     var templateAssistFactory: ((MerchantOperationsCoordinator) -> MerchantTemplateAssistFlow)? = nil
     var templateReturn: MerchantCityTemplateReturnAction? = nil
+    var authorFlow: MerchantNPCKnowledgeAuthorFlow? = nil
+    var draftReadMemberID: Int64? = nil
+    var draftReadRequestID: String? = nil
+    var draftRead: ((Int64, String) -> MerchantNPCDraftReadFact?)? = nil
+    var themeDraftRequestRead: MerchantNPCThemeDraftRequestRead? = nil
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
     @StateObject private var model: MerchantOperationsViewModel
     @State private var confirmDiscard = false
     @State private var confirmReload = false
-    init(reader: any MerchantOperationsReading, destination: MerchantOperationsDestination, imageHost: MerchantRetainedImageHost? = nil, templateAssistFactory: ((MerchantOperationsCoordinator) -> MerchantTemplateAssistFlow)? = nil, templateReturn: MerchantCityTemplateReturnAction? = nil) {
+    init(reader: any MerchantOperationsReading, destination: MerchantOperationsDestination, imageHost: MerchantRetainedImageHost? = nil, templateAssistFactory: ((MerchantOperationsCoordinator) -> MerchantTemplateAssistFlow)? = nil, templateReturn: MerchantCityTemplateReturnAction? = nil, authorFlow: MerchantNPCKnowledgeAuthorFlow? = nil, draftReadMemberID: Int64? = nil, draftReadRequestID: String? = nil, draftRead: ((Int64, String) -> MerchantNPCDraftReadFact?)? = nil, themeDraftRequestRead: MerchantNPCThemeDraftRequestRead? = nil) {
         self.templateReturn = templateReturn
         self.reader = reader; self.destination = destination; self.imageHost = imageHost; self.templateAssistFactory = templateAssistFactory
+        self.authorFlow = authorFlow
+        self.draftReadMemberID = draftReadMemberID
+        self.draftReadRequestID = draftReadRequestID
+        self.draftRead = draftRead
+        self.themeDraftRequestRead = themeDraftRequestRead
         _model = StateObject(wrappedValue: .init(reader: reader, destination: destination, imageHost: imageHost))
     }
     private var coordinator: MerchantOperationsCoordinator { model.coordinator }
@@ -181,7 +191,9 @@ struct MerchantOperationsDocumentView: View {
             if coordinator.isCurrent, let document = coordinator.document {
                 switch document {
                 case .draft:
-                    MerchantOperationsEditor(model: model, templateAssistFactory: templateAssistFactory, imageContext: model.imageContext)
+                    MerchantOperationsEditor(model: model, templateAssistFactory: templateAssistFactory, imageContext: model.imageContext, authorFlow: authorFlow, draftReadMemberID: draftReadMemberID, draftReadRequestID: draftReadRequestID, draftRead: draftRead, themeDraftRequestRead: themeDraftRequestRead, knowledgeReviewReentry: authorFlow.map { flow in
+                        { held in try await flow.recoverKnowledgeReview(held) }
+                    })
                 case .cityNodes(let catalog): MerchantOperationsCityView(catalog: catalog)
                 case .templates: MerchantTemplateBrowserView(reader: reader, imageHost: imageHost, templateAssistFactory: templateAssistFactory)
                 case .assets(let resources): MerchantOperationsAssetsView(resources: resources)

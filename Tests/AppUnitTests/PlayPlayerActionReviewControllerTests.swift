@@ -10,8 +10,11 @@ import UIKit
         var model: PlayPlayerGameCoordinator!
         var owner: PlayPlayerActionReviewController!
         var root: PlayPlayerActionRootController!
-        let parent = UIViewController(), window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let parent = UIViewController()
+        let sceneWindow: HostedNavigationSceneWindow
+        var window: UIWindow { sceneWindow.window }
         init() throws {
+            sceneWindow = try HostedNavigationSceneWindow()
             session = try .init(accountID: 1, epoch: 1, namespace: "player-action-app-tests", token: "synthetic-token")
             let service = PlayExperienceService(configuration: try .init(baseURL: URL(string: "https://example.test")!), transport: wire, enabled: [.reads, .playerCommands])
             model = PlayPlayerGameCoordinator(activityID: 41, service: service, currentSession: { [weak self] in self?.session })
@@ -21,7 +24,7 @@ import UIKit
             await model.load(); window.rootViewController = parent; window.makeKeyAndVisible()
             parent.addChild(root); parent.view.addSubview(root.view); root.didMove(toParent: parent); owner.appear(active: true)
         }
-        func close() { owner.retire(); root.willMove(toParent: nil); root.view.removeFromSuperview(); root.removeFromParent(); window.isHidden = true; window.rootViewController = nil }
+        func close() { owner.retire(); root.willMove(toParent: nil); root.view.removeFromSuperview(); root.removeFromParent(); sceneWindow.retire() }
     }
     private func setup() async throws -> Harness { let h = try Harness(); await h.open(); return h }
     private func textReview(_ h: Harness, text: String = "Synthetic answer") throws -> PlayPlayerActionReviewController.Review {
@@ -117,7 +120,7 @@ import UIKit
         let h = try Harness(); await h.model.load()
         let host = UIHostingController(rootView: PlayPlayerSessionView(model: h.model).environment(\.scenePhase, .active))
         h.window.rootViewController = host; h.window.makeKeyAndVisible(); host.view.layoutIfNeeded()
-        defer { h.window.isHidden = true; h.window.rootViewController = nil }
+        defer { h.sceneWindow.retire() }
         func anchor(_ c: UIViewController) -> PlayPlayerActionRootController? {
             if let value = c as? PlayPlayerActionRootController { return value }; return c.children.compactMap { anchor($0) }.first
         }

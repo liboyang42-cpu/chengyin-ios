@@ -11,6 +11,9 @@ struct TeamReformHooks {
     var meetingService: @MainActor () -> (any TeamMeetingServing)?
     /// Fixture stand-in for a decoded camera scan. Camera capture itself is not wired.
     var simulatedPeerCode: (@MainActor (Int) -> TeamMeetingChallenge?)? = nil
+    /// Durable confirm intent. Nil keeps the in-memory meeting path.
+    var meetingJournal: TeamMeetingPendingJournal? = nil
+    var meetingOwner: TeamMeetingOwner? = nil
 }
 private struct TeamReformHooksKey: EnvironmentKey { static let defaultValue: TeamReformHooks? = nil }
 extension EnvironmentValues {
@@ -47,6 +50,11 @@ struct TeamReformEntries: View {
                 Button { open(.meeting(teamID: detail.team.id)) } label: { Label("teamReform.meeting.open", systemImage: "person.line.dotted.person").frame(maxWidth: .infinity, minHeight: 44) }
                     .buttonStyle(.bordered).accessibilityIdentifier("teamReform.meeting.open")
             }
+            if hooks.capabilities.allows(.teamFirstMeeting), let owner = hooks.meetingOwner, let journal = hooks.meetingJournal,
+               journal.outstanding(owner: owner, teamId: String(detail.team.id)) != nil {
+                Button { open(.meeting(teamID: detail.team.id)) } label: { Text(verbatim: "查原会面请求").frame(maxWidth: .infinity, minHeight: 44) }
+                    .buttonStyle(.bordered).accessibilityIdentifier("teamReform.meeting.recovery")
+            }
         }
     }
 }
@@ -59,7 +67,7 @@ struct TeamReformSheetHost: View {
         case .invite(let teamID):
             TeamFriendInviteSheet(flow: TeamFriendInviteFlow(teamID: teamID, sender: hooks.inviteSender(), capabilities: hooks.capabilities))
         case .meeting(let teamID):
-            TeamMeetingSheet(flow: TeamMeetingFlow(teamID: teamID, service: hooks.meetingService(), capabilities: hooks.capabilities),
+            TeamMeetingSheet(flow: TeamMeetingFlow(teamID: teamID, service: hooks.meetingService(), capabilities: hooks.capabilities, journal: hooks.meetingJournal, owner: hooks.meetingOwner),
                              simulatedPeerCode: hooks.simulatedPeerCode.map { make in { @MainActor in make(teamID) } })
         }
     }
@@ -209,11 +217,21 @@ struct TeamReformSheetHost: View {
                 handshake
             case .confirmationPending:
                 Text("teamReform.meeting.pending").accessibilityIdentifier("teamReform.meeting.pending")
+                if flow.cancelCase == .sentUnknown {
+                    Text(verbatim: "确认已发出但结果未知，不能重发。请查原请求。").font(.footnote).accessibilityIdentifier("teamReform.meeting.cancel.sentUnknown")
+                }
                 Button("teamReform.meeting.checkResult") { Task { await box.run { await $0.readBackConfirmation() } } }
                     .frame(minHeight: 44).disabled(flow.busy).accessibilityIdentifier("teamReform.meeting.checkResult")
-            case .met: Label("teamReform.meeting.met", systemImage: "checkmark.seal").accessibilityIdentifier("teamReform.meeting.met")
+            case .met:
+                Label("teamReform.meeting.met", systemImage: "checkmark.seal").accessibilityIdentifier("teamReform.meeting.met")
+                if flow.cancelCase == .confirmed {
+                    Text(verbatim: "会面已确认，取消不会再次确认。").font(.footnote).accessibilityIdentifier("teamReform.meeting.cancel.confirmed")
+                }
             case .cancelled:
                 Label("teamReform.meeting.cancelled", systemImage: "xmark.octagon").accessibilityIdentifier("teamReform.meeting.cancelled")
+                if flow.cancelCase == .notSent {
+                    Text(verbatim: "确认尚未发送，已在本地取消。").font(.footnote).accessibilityIdentifier("teamReform.meeting.cancel.notSent")
+                }
                 if flow.cancelUnknown { Text("teamReform.meeting.cancelUnknown").font(.footnote) }
             case .expired: Label("teamReform.meeting.expired", systemImage: "clock.badge.xmark")
             }
@@ -239,7 +257,10 @@ struct TeamReformSheetHost: View {
             Text(LocalizedStringKey(method == .dynamicQR ? "teamReform.meeting.methodQR" : "teamReform.meeting.methodNFC")).font(.footnote)
         }
         Text("teamReform.meeting.scannerNotWired").font(.footnote).foregroundStyle(.secondary)
-        if let simulatedPeerCode {
+        if flow.blocksResend {
+            Button("teamReform.meeting.checkResult") { Task { await box.run { await $0.readBackConfirmation() } } }
+                .frame(minHeight: 44).disabled(flow.busy).accessibilityIdentifier("teamReform.meeting.checkResult")
+        } else if let simulatedPeerCode {
             Button("teamReform.meeting.simulateScan") {
                 Task { await box.run { flow in if let code = simulatedPeerCode() { await flow.submitScanned(code) } } }
             }.frame(minHeight: 44).disabled(flow.busy).accessibilityIdentifier("teamReform.meeting.simulateScan")

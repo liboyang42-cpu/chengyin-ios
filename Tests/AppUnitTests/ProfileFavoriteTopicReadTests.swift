@@ -130,8 +130,8 @@ import UIKit
         let owner=ProfileFavoriteTopicNavigationOwner(),probe=Probe(),scope=h.session.profileFavoritesReader.scope
         let detail=try await reader.topicDetail(id:201);let chapter=try XCTUnwrap(detail.chapters.first);h.wire.requests=[]
         let host=UIHostingController(rootView:AnyView(NormalHost(owner:owner,scope:scope,reader:reader,session:h.session,chapter:chapter,probe:probe)))
-        let window=UIWindow(frame:UIScreen.main.bounds);window.rootViewController=host;window.makeKeyAndVisible()
-        defer {window.isHidden=true;window.rootViewController=nil}
+        let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window;window.rootViewController=host;window.makeKeyAndVisible()
+        defer { sceneWindow.retire() }
         host.loadViewIfNeeded();host.view.layoutIfNeeded()
         for _ in 0..<100 where probe.rootAppearances==0 {try await Task.sleep(for:.milliseconds(20))}
         XCTAssertGreaterThan(probe.rootAppearances,0);XCTAssertTrue(h.wire.requests.isEmpty)

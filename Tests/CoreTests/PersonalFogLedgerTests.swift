@@ -65,4 +65,34 @@ final class PersonalFogLedgerTests: XCTestCase {
         try ledger.predict(cell("wtw3sj"), fix: fix(), policy: policy, now: now)
         XCTAssertEqual(ledger.pendingCount, 0)
     }
+
+    func testBatchCapMatchesServerRevealCap() {
+        XCTAssertNoThrow(try PersonalFogSamplePolicy(maxAccuracyMeters: 10, maxAge: 30, maxBatch: 500))
+        XCTAssertThrowsError(try PersonalFogSamplePolicy(maxAccuracyMeters: 10, maxAge: 30, maxBatch: 501))
+    }
+    func testReinstallAndMultiDeviceUnionFromCursorPages() throws {
+        // Device A explored sj,sk; device B explored sk,sm. Server pages are the union by id.
+        var fresh = try PersonalFogLedger(ownerScope: "acct-1")
+        try fresh.applyServerPage(owner: "acct-1", cells: ["wtw3sj", "wtw3sk"], nextCursor: 2)
+        try fresh.applyServerPage(owner: "acct-1", cells: ["wtw3sm"], nextCursor: 3)
+        try fresh.applyServerPage(owner: "acct-1", cells: [], nextCursor: 3) // last empty page keeps cursor
+        XCTAssertEqual(fresh.confirmed.count, 3)
+        XCTAssertEqual(fresh.readCursor, 3)
+        // Replaying the same pages is idempotent.
+        try fresh.applyServerPage(owner: "acct-1", cells: ["wtw3sj", "wtw3sk"], nextCursor: 3)
+        XCTAssertEqual(fresh.confirmed.count, 3)
+    }
+    func testSignOutPurgeAndAccountIsolation() throws {
+        var ledger = try PersonalFogLedger(ownerScope: "acct-1")
+        try ledger.applyServerPage(owner: "acct-1", cells: ["wtw3sj"], nextCursor: 4)
+        try ledger.predict(cell("wtw3sk"), fix: fix(), policy: policy, now: now)
+        _ = ledger.nextBatchForContract(policy: policy, key: UUID())
+        ledger.purgeForSignOut()
+        XCTAssertTrue(ledger.confirmed.isEmpty); XCTAssertEqual(ledger.pendingCount, 0)
+        XCTAssertNil(ledger.inFlight); XCTAssertEqual(ledger.readCursor, 0)
+        XCTAssertEqual(ledger.state(of: try cell("wtw3sj")), .hidden)
+        var other = try PersonalFogLedger(ownerScope: "acct-2")
+        XCTAssertEqual(other.confirmed.count, 0)
+        XCTAssertThrowsError(try other.applyServerPage(owner: "acct-1", cells: ["wtw3sj"], nextCursor: 1))
+    }
 }

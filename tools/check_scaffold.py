@@ -124,6 +124,7 @@ localizable_ui=localizable_ui.replace('.accessibilityIdentifier(effectiveReduceM
 localizable_ui=localizable_ui.replace('.accessibilityIdentifier(snapshot.alwaysAuthorized ? "roam.locationSettings.always.granted" : "roam.locationSettings.always.notGranted")', '')
 localizable_ui=localizable_ui.replace('.accessibilityIdentifier(snapshot.servicesEnabled ? "roam.locationSettings.services.enabled" : "roam.locationSettings.services.disabled")', '')
 localizable_ui=localizable_ui.replace('.accessibilityIdentifier(result == .copied ? "profile.orderNumberCopy.copied" : "profile.orderNumberCopy.failed")', '')
+localizable_ui=localizable_ui.replace('.accessibilityIdentifier(openedOrderID == Int64(id) ? "profile.order.readback.opened.\\(id)" : "profile.order.readback.closed")', '')
 localizable_ui=localizable_ui.replace('OfficialReadScreen(reader: reader, isPrivate: true, requestID: "merchant.officialRecruitment",', 'OfficialReadScreen(reader: reader, isPrivate: true,')
 localizable_ui=localizable_ui.replace('MerchantTemplateStoryTimelineContent(timeline: timeline, prefix: "merchant.storyTimeline.review")', 'MerchantTemplateStoryTimelineContent(timeline: timeline)')
 # Exact computed accessibility IDs only; identical literals in Text still require translations.

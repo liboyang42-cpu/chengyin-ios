@@ -228,6 +228,7 @@ final class AppSessionContainer: ObservableObject {
 @MainActor
 struct SessionRootView: View {
     @ObservedObject var session: AppSession
+    @StateObject private var merchantRootCoordinator = MerchantRootModeCoordinator()
     @State private var browsingAsGuest=false
     @State private var selectedTab=RootTab.home
     @State private var showsAreaPicker=false
@@ -238,6 +239,12 @@ struct SessionRootView: View {
     var body: some View {
         Group {
             if session.account != nil || browsingAsGuest {
+                if let access = merchantRootCoordinator.activeMerchantAccess(accountID: session.account?.id, isSignedIn: session.isSignedIn, isConfigured: session.isConfigured, revision: session.sessionRevision) {
+                    SessionMerchantRootContainerView(session: session, coordinator: merchantRootCoordinator, access: access, onReturnToConsumer: { destination in
+                        merchantRootCoordinator.switchToConsumerMode()
+                        if let destination { selectedTab = destination }
+                    })
+                } else {
                 TabView(selection:$selectedTab) {
                     SessionHomeFeedView(onSignIn:{ selectedTab = .mine }).tabItem { rootTabLabel(.home) }.tag(RootTab.home)
                     RoamBrowserView(reader:session.roamReader,nearbyEventsReader:session.roamNearbyEventsReader,nearbyPlayersReader:session.roamNearbyPlayersReader,onChooseArea:{ showsAreaPicker=true },onOpenAccount:{ selectedTab = .mine },experienceReader:session.roamExperienceReader, albumMetadataReader:session.roamAlbumMetadataReader, tileMemoryReader:session.roamTileMemoryReader, sessionFactReader:session.roamSessionFactReader, cityDestination: { AnyView(SessionCityPlayerView()) }, nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView()) }, stampDestination: { AnyView(SessionRoamStampCameraView()) }, liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader)) }, posterDestination: { AnyView(SessionRoamPosterView(node: $0)) }, eventDestination: { target in
@@ -263,7 +270,15 @@ struct SessionRootView: View {
                         else { WelcomeView() }
                     }.tabItem { rootTabLabel(.mine) }.tag(RootTab.mine)
                 }.id(session.account?.id ?? 0).environment(\.rootTabSwitch, RootTabSwitch { selectedTab = $0 })
+                }
             } else { WelcomeView(onBrowse:{ browsingAsGuest=true }) }
+        }
+        .environment(\.merchantRootModeSwitch, merchantRootCoordinator.makeModeSwitch(session: session))
+        .onChange(of: session.account?.id) { _, accountID in
+            merchantRootCoordinator.handleSessionChange(accountID: accountID, isSignedIn: session.isSignedIn, isConfigured: session.isConfigured, revision: session.sessionRevision)
+        }
+        .onChange(of: session.sessionRevision) { _, revision in
+            merchantRootCoordinator.handleSessionChange(accountID: session.account?.id, isSignedIn: session.isSignedIn, isConfigured: session.isConfigured, revision: revision)
         }
         .background {
             if session.account != nil { RetainedImagePresenterHost(host: session.retainedImagePickerHost).frame(width: 0, height: 0) }

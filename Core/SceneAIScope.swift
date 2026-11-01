@@ -174,3 +174,11 @@ public struct SceneAIAvailability: Equatable, Sendable {
         return .display
     }
 }
+
+extension SceneAIScenario {
+    /// Public store NPC receives only approved store facts, and only from a published release.
+    public func publicReleaseData(_ classes: Set<SceneAIDataClass>, releaseStage: MerchantAuthoringStage) -> Set<SceneAIDataClass> {
+        guard self == .storePublicNPC, releaseStage == .published else { return [] }
+        return classes.intersection(allowedData)
+    }
+}

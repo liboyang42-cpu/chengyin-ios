@@ -1,0 +1,67 @@
+# C06 theme draft request read — manage link closed
+
+Issue: https://github.com/liboyang42-cpu/chengyin-remote-ops/issues/5
+Repo: github.com/liboyang42-cpu/chengyin-ios
+Branch: cursor/c06-theme-draft-request-read-e504
+Base: cursor/c06-author-page-read-e504 @ b0e203e927792679dab705a0801e54e213e7dc13
+
+The exclusive caller is `MerchantNPCThemeDraftRequestRead`. It sends
+GET `api/ai/theme/draft/request?requestId=` using the request id already held on
+`MerchantNPCKnowledgeAuthorFlow` and the logged-in member token. A hit is passed
+into `recoverFromDraftRead` only when the returned request id and member id match.
+`NOT_FOUND` or a mismatch leaves the phase unchanged and does not publish.
+The caller does not POST `api/ai/theme/draft`, does not call `publishApproved`,
+and does not invent a request id. An invalid request id is rejected before the read.
+
+`MerchantOperationsEditor.submitAuthoredFields` is not rewritten. The character
+page is not replaced. `draftRead` on that page stays the injected closure.
+
+## Not applied
+
+Giving the running merchant destination this caller needs the session.
+That attach is only the paste below. Do not apply it. Do not edit:
+
+```
+App/AppSession.swift
+App/AppCompositionRoot.swift
+Questify.xcodeproj/project.pbxproj
+```
+
+Not inserted into `merchantOperationsDestination`. `publisher` stays nil.
+Do not add a grant, a policy version, or a second writer. Do not mint a request id
+here. If the flow does not already hold one, the caller sends nothing.
+
+```swift
+if destination == .character,
+   let merchantID = access.identity.merchantID,
+   let row = PublicMerchantRowID(merchantID),
+   let scope = merchantNPCScope(row: row),
+   let api = regionalConfiguration?.apiConfiguration {
+    let flow = MerchantNPCKnowledgeAuthorFlow(
+        scope: scope,
+        publisher: nil,
+        currentScope: { [weak self] in self?.merchantNPCScope(row: row) })
+    let caller = MerchantNPCThemeDraftRequestRead(
+        configuration: api,
+        transport: runtimeHTTPTransport,
+        memberID: { [weak self] in self?.account.map { Int64($0.id) } },
+        token: { [weak self] in self?.token })
+    // `caller` is received here and is not passed into the document view.
+    // Do not call readAndRecover until the flow already holds the request id.
+    _ = caller
+    return AnyView(MerchantOperationsDocumentView(
+        reader: merchantOperationsReader,
+        destination: destination,
+        imageHost: retainedMerchantImages,
+        templateAssistFactory: { [weak self] coordinator in
+            self?.merchantTemplateAssistFlow(coordinator: coordinator) ?? MerchantTemplateAssistFlow(coordinator: coordinator, client: nil)
+        },
+        authorFlow: flow))
+}
+```
+
+The paste receives the caller and does not call `readAndRecover` until the flow
+already holds the request id. Not inserted. `Core/MerchantNPCThemeDraftRequestRead.swift`
+is not added to the Xcode project from this branch.
+
+XCTest / App / CI = NOT_RUN where swiftc is absent. Not 100%.
