@@ -139,8 +139,9 @@ import XCTest
     }
     func testLibraryReviewShowsIdentityAndCancellationDoesNotSubmit() {
         let app = app(); defer { attachFailureScreenshot(self, app: app); app.terminate() }; let button = app.buttons["templateAuthor.shelf.library.901"]
-        XCTAssertTrue(button.waitForExistence(timeout: 3)); button.tap()
+        reveal(button, in: app); XCTAssertTrue(button.waitForExistence(timeout: 3)); button.tap()
         let identity = app.descendants(matching: .any)["templateAuthor.shelf.identity"].firstMatch
+        reveal(identity, in: app, requiresHittable: false)
         XCTAssertTrue(identity.waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertEqual(identity.value as? String, "901")
         app.buttons["templateAuthor.shelf.cancel"].tap()
@@ -151,14 +152,17 @@ import XCTest
         let app = app(); defer { attachFailureScreenshot(self, app: app); app.terminate() }; let button = app.buttons["templateAuthor.shelf.delete.901"]
         reveal(button, in: app); XCTAssertTrue(button.waitForExistence(timeout: 3)); XCTAssertTrue(button.isEnabled); button.tap()
         XCTAssertTrue(app.staticTexts["Delete this exact template from your own shelf? This may not be reversible."].exists)
-        app.buttons["templateAuthor.shelf.confirm"].tap()
+        let confirm = app.buttons["templateAuthor.shelf.confirm"]
+        reveal(confirm, in: app); confirm.tap()
         let status = app.staticTexts["templateAuthor.shelf.status"]
         reveal(status, in: app)
         XCTAssertEqual(status.label, "Simulation completed. No template was saved to a server or published.")
     }
     func testUnknownLocksBothActionsAcrossReopen() {
         let app = app(["--template-author-unknown"]); defer { attachFailureScreenshot(self, app: app); app.terminate() }; let button = app.buttons["templateAuthor.shelf.delete.901"]
-        reveal(button, in: app); XCTAssertTrue(button.waitForExistence(timeout: 3)); XCTAssertTrue(button.isEnabled); button.tap(); app.buttons["templateAuthor.shelf.confirm"].tap()
+        reveal(button, in: app); XCTAssertTrue(button.waitForExistence(timeout: 3)); XCTAssertTrue(button.isEnabled); button.tap()
+        let confirm = app.buttons["templateAuthor.shelf.confirm"]
+        reveal(confirm, in: app); confirm.tap()
         let status = app.staticTexts["templateAuthor.shelf.status"]
         reveal(status, in: app)
         XCTAssertEqual(status.label, "This change is unresolved. Further shelf changes are locked; refreshing alone cannot confirm an unknown request.")
@@ -202,19 +206,28 @@ import XCTest
         reveal(button, in: app)
         XCTAssertTrue(button.waitForExistence(timeout: 3)); button.tap()
         XCTAssertTrue(app.staticTexts["Delete this exact template from your own shelf? This may not be reversible."].exists)
-        XCTAssertTrue(app.staticTexts["templateOwnShelf.delete.body"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.staticTexts["templateOwnShelf.delete.confirm"].exists)
+        let dangerCopy = app.staticTexts["templateOwnShelf.delete.body"]
+        reveal(dangerCopy, in: app, requiresHittable: false)
+        XCTAssertTrue(dangerCopy.waitForExistence(timeout: 3))
+        let confirmCopy = app.staticTexts["templateOwnShelf.delete.confirm"]
+        reveal(confirmCopy, in: app, requiresHittable: false)
+        XCTAssertTrue(confirmCopy.exists)
+        reveal(dangerCopy, in: app, requiresHittable: false)
+        attachFixtureScreenshot(self, app: app, name: "Owned template deletion review danger copy")
         app.buttons["templateAuthor.shelf.cancel"].tap()
         XCTAssertFalse(app.buttons["templateAuthor.shelf.confirm"].exists)
         XCTAssertTrue(button.isEnabled)
         button.tap()
-        XCTAssertTrue(app.buttons["templateAuthor.shelf.confirm"].waitForExistence(timeout: 3))
+        let confirm = app.buttons["templateAuthor.shelf.confirm"]
+        reveal(confirm, in: app)
+        XCTAssertTrue(confirm.waitForExistence(timeout: 3))
     }
     func testOwnedCardShowsZeroDurationAndNoMarketplacePublishButton() {
         let app = app(); defer { attachFailureScreenshot(self, app: app); app.terminate() }
         let duration = app.staticTexts["templateOwnShelf.card.duration.901"]
         reveal(duration, in: app)
         XCTAssertEqual(duration.label, "0 min")
+        attachFixtureScreenshot(self, app: app, name: "Owned template card with known zero duration")
         XCTAssertFalse(app.buttons["templateOwnShelf.market.plan.901"].exists)
         XCTAssertFalse(app.buttons["templateOwnShelf.market.held.901"].exists)
         let library = app.buttons["templateAuthor.shelf.library.901"]

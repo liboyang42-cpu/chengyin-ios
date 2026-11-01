@@ -17,8 +17,8 @@ import XCTest
             authorizationGeneration: access.authorizationGeneration,
             readerIdentity: ObjectIdentifier(reader), accessIdentity: ObjectIdentifier(access))
     }
-    private func templates(_ reader: any MemberTemplateReading, destination: Bool = true) -> ClubStoryTemplateContext {
-        .init(viewerRevision: 1, reader: reader, destination: destination ? { id in AnyView(Text(verbatim: String(id.rawValue))) } : nil)
+    private func templates(_ reader: any MemberTemplateReading, destination: Bool = true, viewerRevision: UInt64 = 1) -> ClubStoryTemplateContext {
+        .init(viewerRevision: viewerRevision, reader: reader, destination: destination ? { id in AnyView(Text(verbatim: String(id.rawValue))) } : nil)
     }
     private func play(_ snapshot: ClubGovernanceSnapshot) throws -> ClubStoryGameplay {
         try XCTUnwrap(ClubStoryPresentation(snapshot: snapshot).chapters.first?.gameplay.first)
@@ -60,10 +60,23 @@ import XCTest
         XCTAssertFalse(selection.isCurrent(snapshot: snapshot, context: self.context(reader, viewerRevision: 2), snapshotGeneration: 4, templates: templates(reader)))
         XCTAssertEqual(reader.reads + replacement.reads, 0)
     }
-    func testRefreshClearsSelectionEvenForIdenticalBytesAndChangedUnselectedChapter() throws {
-        let reader = ClubStoryUnitMemberReader(), snapshot = try snapshot(), context = context(reader)
+    func testRefreshClearsSelectionEvenForIdenticalBytesAndChangedUnselectedChapter() async throws {
+        let wire = ClubStoryUnitWire()
+        let service = PlayerJourneyService(configuration: try APIConfiguration(baseURL: URL(string: "https://example.test")!), transport: wire, readsEnabled: true)
+        let session = try PlayerJourneySession(accountID: 701, epoch: 1, namespace: "synthetic", token: "synthetic")
+        let reader = PlayerJourneySessionReader(service: service, currentSession: { session })
+        let snapshot = try snapshot(), context = context(reader)
         let selection = try XCTUnwrap(ClubStoryTemplateSelection(gameplay: play(snapshot), snapshot: snapshot,
             context: context, snapshotGeneration: 5, templates: templates(reader)))
+        XCTAssertTrue(selection.isCurrent(snapshot: snapshot, context: context, snapshotGeneration: 5, templates: templates(reader)))
+        let originalScope = reader.scope
+        let refreshedTemplates = templates(reader, viewerRevision: 2)
+        XCTAssertEqual(reader.scope, originalScope)
+        XCTAssertEqual(refreshedTemplates.readerIdentity, context.readerIdentity)
+        XCTAssertFalse(selection.isCurrent(snapshot: snapshot, context: context, snapshotGeneration: 5, templates: refreshedTemplates),
+                       "The active destination must retire before the covered parent updates its context or snapshot")
+        XCTAssertNil(ClubStoryTemplateSelection(gameplay: try play(snapshot), snapshot: snapshot, context: context,
+            snapshotGeneration: 5, templates: refreshedTemplates), "Old cards cannot queue another detail during refresh")
         XCTAssertFalse(selection.isCurrent(snapshot: nil, context: context, snapshotGeneration: 5, templates: templates(reader)))
         XCTAssertFalse(selection.isCurrent(snapshot: snapshot, context: context, snapshotGeneration: 6, templates: templates(reader)))
         var value = try XCTUnwrap(snapshot.value.object)
@@ -71,7 +84,16 @@ import XCTest
         let changed = ClubGovernanceSnapshot(operation: snapshot.operation, scope: snapshot.scope,
             permissions: snapshot.permissions, value: .object(value))
         XCTAssertFalse(selection.isCurrent(snapshot: changed, context: context, snapshotGeneration: 5, templates: templates(reader)))
-        XCTAssertEqual(reader.reads, 0)
+        XCTAssertTrue(wire.requests.isEmpty)
+
+        let freshContext = self.context(reader, viewerRevision: 2)
+        let freshSelection = try XCTUnwrap(ClubStoryTemplateSelection(gameplay: play(snapshot), snapshot: snapshot,
+            context: freshContext, snapshotGeneration: 6, templates: refreshedTemplates))
+        XCTAssertTrue(freshSelection.isCurrent(snapshot: snapshot, context: freshContext, snapshotGeneration: 6, templates: refreshedTemplates))
+        let detail = try await reader.memberTemplate(id: freshSelection.route.templateID)
+        XCTAssertEqual(detail.id, freshSelection.route.templateID)
+        XCTAssertEqual(wire.requests.count, 1)
+        XCTAssertEqual(wire.requests.first?.url?.path, "/api/template/myinfo")
     }
     func testCurrentReaderUsesExactMyInfoAndRejectsWrongReturnedID() async throws {
         let wire = ClubStoryUnitWire()

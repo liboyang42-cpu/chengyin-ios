@@ -354,7 +354,11 @@ import XCTest
         let app = launch(); signIn(app); tab("Me", app); tap("Messages", app)
         XCTAssertTrue(app.buttons["messaging.conversation.901"].waitForExistence(timeout: 5))
         tap("messaging.conversation.901", app)
-        XCTAssertTrue(app.staticTexts["Synthetic latest history"].waitForExistence(timeout: 5))
+        let latest = app.buttons["messaging.message.52"]
+        let latestReady = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            latest.exists && latest.isHittable && latest.label.contains("Synthetic latest history")
+        }, object: latest)
+        XCTAssertEqual(XCTWaiter.wait(for: [latestReady], timeout: 5), .completed)
         XCTAssertFalse(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "SYNTHETIC-RECALLED-PAYLOAD")).firstMatch.exists)
         XCTAssertTrue(app.buttons["messaging.message.53"].exists)
         tap("messaging.message.53", app)
@@ -366,7 +370,11 @@ import XCTest
         XCTAssertFalse(app.textFields["message.send.input"].exists)
         XCTAssertFalse(app.buttons["message.send.button"].exists)
         tap("messaging.history.earlier", app)
-        XCTAssertTrue(app.staticTexts["Synthetic earlier history"].waitForExistence(timeout: 5))
+        let earlier = app.buttons["messaging.message.12"]
+        let earlierReady = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            earlier.exists && earlier.isHittable && earlier.label.contains("Synthetic earlier history")
+        }, object: earlier)
+        XCTAssertEqual(XCTWaiter.wait(for: [earlierReady], timeout: 5), .completed)
         let reads = try evidence(app).ledger.filter { $0.route.hasPrefix("history.") }
         XCTAssertEqual(reads.map(\.route), ["history.conversations", "history.messages", "history.messages"])
         XCTAssertEqual(reads[1].fields, ["conversation_id": "901", "cursor_id": "0", "size": "30"])

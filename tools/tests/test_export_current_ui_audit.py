@@ -37,9 +37,12 @@ class ExportCurrentUIAuditTests(unittest.TestCase):
             'QuestifyUITests/TicketWalletFlowTests/testWalletDetailEntitlementsBackAndReopenNeverOffersCodeOrPayment': [
                 'Ticket wallet initial content – synthetic fixture', 'Ticket detail entitlements – synthetic fixture'],
         }[self.method]
+        names = getattr(self, 'attachment_names', names)
         attachments = []
         for index, name in enumerate(names + ['Unrequested automatic screenshot']):
-            filename = str(index) + '.png'; (folder / filename).write_bytes(self.image + bytes([index]))
+            filename = str(index) + '.png'
+            data = self.image if getattr(self, 'same_image_bytes', False) else self.image + bytes([index])
+            (folder / filename).write_bytes(data)
             attachments.append({'exportedFileName': filename, 'suggestedHumanReadableName': name})
         audit.n.write_json(folder / 'manifest.json', [{'testIdentifier': self.method, 'attachments': attachments}])
         return 'OK', b''
@@ -49,6 +52,7 @@ class ExportCurrentUIAuditTests(unittest.TestCase):
                 patch.object(audit.n, 'screenshot_probe_command', side_effect=self.probe), \
                 patch.object(audit.n.control, 'source_identity', return_value=self.identity), \
                 contextlib.redirect_stdout(io.StringIO()) as captured:
+            self.export_stdout = captured
             audit.export(self.plan, self.output)
         return captured.getvalue()
 
@@ -141,6 +145,45 @@ class ExportCurrentUIAuditTests(unittest.TestCase):
         emit.assert_not_called()
         self.assertEqual(audit.n.read_json(self.packet / 'audit-index.json')['status'], 'INCOMPLETE')
 
+    def testExactNameAndFilenameExtensionsKeepCanonicalLabel(self):
+        label = 'Order detail – synthetic data'
+        for suffix in ('', '.png', '.jpg', '.jpeg'):
+            with self.subTest(suffix=suffix):
+                self.attachment_names = [label + suffix]
+                self.export_fixture()
+                report = audit.n.read_json(self.packet / 'audit-index.json')
+                self.assertEqual(report['status'], 'COMPLETE')
+                self.assertEqual([item['attachment'] for item in report['files']], [label])
+                for path in self.packet.iterdir(): path.unlink()
+                self.packet.rmdir()
+
+    def testWrongNamesAndDuplicateAliasesStayIncompleteWithDiagnostics(self):
+        label = 'Order detail – synthetic data'
+        for names in (['Wrong screenshot'], [label + '.png.extra'], [label + '.PNG'], [label, label + '.png']):
+            with self.subTest(names=names):
+                self.attachment_names = names
+                self.same_image_bytes = True
+                with self.assertRaises(ValueError):
+                    self.export_fixture()
+                report = audit.n.read_json(self.packet / 'audit-index.json')
+                self.assertEqual(report['status'], 'INCOMPLETE')
+                self.assertNotIn('QUESTIFY_UI_AUDIT_COMPLETE_V1 ', self.export_stdout.getvalue())
+                if len(names) == 1:
+                    prefix = 'QUESTIFY_UI_AUDIT_DIAGNOSTIC_V1 '
+                    lines = self.export_stdout.getvalue().splitlines()
+                    self.assertEqual(len(lines), 1)
+                    self.assertTrue(lines[0].startswith(prefix))
+                    diagnostic = json.loads(lines[0][len(prefix):])
+                    self.assertEqual(diagnostic['requestedLabel'], label)
+                    self.assertEqual(diagnostic['actualTestIdentifier'], self.method)
+                    self.assertEqual(diagnostic['attachments'][0]['friendlyName'], names[0])
+                    self.assertEqual(diagnostic['attachments'][0]['exportedBasename'], '0.png')
+                    self.assertEqual(diagnostic['attachments'][0]['magic'], 'PNG')
+                    self.assertEqual(diagnostic['attachments'][0]['bytes'], len(self.image))
+                    self.assertEqual(report['diagnostics'][0]['requestedLabel'], label)
+                for path in self.packet.iterdir(): path.unlink()
+                self.packet.rmdir()
+
     def testFailureNameDefaultIsUnchangedAndSelectionHasTwentySixImages(self):
         folder = self.output / 'attachments'; folder.mkdir()
         (folder / 'image.png').write_bytes(self.image)
@@ -149,7 +192,7 @@ class ExportCurrentUIAuditTests(unittest.TestCase):
         self.assertEqual(audit.n.bounded_failure_images(folder, self.method, 1024 * 1024, 1), [])
         self.assertEqual(len(audit.n.bounded_failure_images(folder, self.method, 1024 * 1024, 1,
             allowed_names=['Success – synthetic fixture'])), 1)
-        self.assertEqual(sum(map(len, audit.WANTED.values())), 26)
+        self.assertEqual(sum(map(len, audit.WANTED.values())), 28)
 
     def testRelatedPlanSkipsInsteadOfDependingOnWorkflowDispatchInput(self):
         with patch('sys.argv', ['export_current_ui_audit', '--plan', 'plan.json', '--output', 'output']), \

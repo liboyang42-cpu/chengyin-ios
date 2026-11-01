@@ -24,7 +24,7 @@ The source merge preserves both order readback and optional support lookup, and 
 
 Preserve the existing native design and components first. Use the mini-program to cross-check business content, fields, copy, and rules; adapt structure and interaction to the App. SwiftUI and UIKit navigation, lists, forms, sheets, and controls should follow the native platform. Messaging and other App-specific experiences are reviewed for their own user journeys. WeChat navigation geometry is not a layout constraint for this App.
 
-Visual findings require screenshots from the candidate being reviewed. The current CI is configured to export 26 named synthetic screenshots covering discovery, tickets, messaging with the keyboard, merchant forms and confirmation, empty/error states, and large-text presentation. Those images must be inspected; passing XCTest does not itself establish visual quality, VoiceOver support, or physical-device behavior.
+Visual findings require screenshots from the candidate being reviewed. The current CI is configured to export 28 named synthetic screenshots covering discovery, tickets, messaging with the keyboard, merchant forms and confirmation, empty/error states, and large-text presentation. Those images must be inspected; passing XCTest does not itself establish visual quality, VoiceOver support, or physical-device behavior.
 
 ## Verification and publication boundary
 

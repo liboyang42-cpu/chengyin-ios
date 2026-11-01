@@ -29,6 +29,8 @@ WANTED = {
     'PlayRouteMapContinuationFlowTests/testChineseMaximumTextUsesFullListAndExplicitRouteDisclaimer': ['Chinese maximum-text route navigation'],
     'PlayExperienceFlowTests/testOrdinaryReadFallbackUsesFreeStoreCardsAndNoOrientationAnswerForm': ['Normal read fallback retains free-exploration store UI'],
     'NonCashRewardFlowTests/testNormalAccountRewardDetailCloseReopenAndBack': ['Synthetic My Rewards normal account journey'],
+    'TemplateOwnShelfFlowTests/testOwnedCardShowsZeroDurationAndNoMarketplacePublishButton': ['Owned template card with known zero duration'],
+    'TemplateOwnShelfFlowTests/testDeleteReviewShowsSourceDangerCopyAndCancelDoesNotSubmit': ['Owned template deletion review danger copy'],
 }
 
 
@@ -59,6 +61,34 @@ def emit_stdout_images(published, report):
             print(line, flush=True)
     print('QUESTIFY_UI_AUDIT_COMPLETE_V1 ' + n.encode({
         'identity': report['identity'], 'index': report['index'], 'files': len(report['files'])}), flush=True)
+
+
+def attachment_diagnostic(folder, method, requested):
+    groups = n.read_json(folder / 'manifest.json')
+    group = groups[0]
+    def text(value):
+        return ''.join(char if char.isprintable() else '?' for char in value[:240]) if isinstance(value, str) else None
+    attachments = group['attachments']
+    rows = []
+    for attachment in attachments[:8]:
+        filename = attachment.get('exportedFileName')
+        basename = filename.replace('\\', '/').rsplit('/', 1)[-1] if isinstance(filename, str) else None
+        size = None; magic = 'OTHER'
+        if isinstance(filename, str) and n.re.fullmatch(r'[A-Za-z0-9_.-]{1,200}', filename) and filename not in ('.', '..'):
+            path = folder / filename
+            if not path.is_symlink() and path.is_file():
+                try:
+                    size = path.stat().st_size
+                    with path.open('rb') as stream: header = stream.read(16)
+                    if header.startswith(b'\x89PNG\r\n\x1a\n') and header[12:16] == b'IHDR': magic = 'PNG'
+                    elif header.startswith(b'\xff\xd8\xff'): magic = 'JPEG'
+                except OSError:
+                    pass
+        rows.append({'friendlyName': text(attachment.get('suggestedHumanReadableName')),
+                     'uti': text(attachment.get('uniformTypeIdentifier', attachment.get('uti', attachment.get('contentType')))),
+                     'exportedBasename': text(basename), 'bytes': size, 'magic': magic})
+    return {'method': method, 'requestedLabel': requested, 'actualTestIdentifier': text(group.get('testIdentifier')),
+            'attachmentCount': len(attachments), 'truncated': len(attachments) > 8, 'attachments': rows}
 
 
 def export(plan, output):
@@ -100,8 +130,16 @@ def export(plan, output):
                 n.require(status == 'OK', 'Attachment export did not complete')
                 for label in labels:
                     name = label if method.startswith(('QuestifyUITests/MerchantOnboardingFlowTests/', 'QuestifyUITests/ModuleFlowTests/')) else label + ' – synthetic fixture'
-                    images = n.bounded_failure_images(folder, method, 64 * 1024 * 1024 - total, 1, allowed_names=[name])
-                    n.require(len(images) == 1, 'Missing or ambiguous requested attachment')
+                    allowed = [name] + [name + suffix for suffix in ('.png', '.jpg', '.jpeg')]
+                    images = n.bounded_failure_images(folder, method, 64 * 1024 * 1024 - total, 1, allowed_names=allowed)
+                    if not images:
+                        diagnostic = attachment_diagnostic(folder, method, name)
+                        report.setdefault('diagnostics', []).append(diagnostic)
+                        print('QUESTIFY_UI_AUDIT_DIAGNOSTIC_V1 ' + n.encode({
+                            'identity': plan['identity'], 'index': receipt['index'], **diagnostic}), flush=True)
+                    matches = [item for item in n.read_json(folder / 'manifest.json')[0]['attachments']
+                               if item.get('suggestedHumanReadableName') in allowed]
+                    n.require(len(images) == len(matches) == 1, 'Missing or ambiguous requested attachment')
                     filename, data = images[0]
                     destination = published / filename
                     if not destination.exists(): destination.write_bytes(data)

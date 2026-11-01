@@ -134,6 +134,7 @@ private actor TopicUnlikeFixtureWire: HTTPTransport {
 
 @MainActor struct TopicUnlikeFixtureHost: View {
     @State private var reader = AccountCollectionFixtureReader(scenario: .content)
+    @State private var communityGate = AccountCollectionFixtureGate()
     @State private var controller: TopicUnlikeController
     init(scenario: String) {
         let base = URL(string: "https://fixture.invalid/native")!
@@ -145,7 +146,7 @@ private actor TopicUnlikeFixtureWire: HTTPTransport {
     }
     var body: some View {
         NavigationStack {
-            AccountCollectionFavoritesView(reader: reader, onOpenTopic: { _ in })
+            AccountCollectionFavoritesView(reader: reader, onOpenTopic: { _ in }, communityGate: communityGate)
                 .environment(\.topicUnlikeController, controller)
         }
     }

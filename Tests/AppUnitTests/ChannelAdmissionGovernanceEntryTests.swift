@@ -38,7 +38,7 @@ import XCTest
         let page = try await ChannelAdmissionParent.page(
             configuration: configuration, transport: transport, token: "token",
             accountID: 7, epoch: 1, channelID: 21, spaceID: 12, kind: 1)
-        XCTAssertEqual(transport.requests, [("GET", "api/channels/21")])
+        XCTAssertEqual(transport.requests.map { [$0.0, $0.1] }, [["GET", "api/channels/21"]])
         XCTAssertEqual(page.catalog?.channelID, 21)
         XCTAssertEqual(page.catalog?.rules.publishedVersion, 4)
         XCTAssertEqual(page.catalog?.rules.expectedVersion, 4)
@@ -59,7 +59,7 @@ import XCTest
             XCTFail("\(error)")
         }
         XCTAssertFalse(opened)
-        XCTAssertEqual(unpublished.requests, [("GET", "api/channels/21")])
+        XCTAssertEqual(unpublished.requests.map { [$0.0, $0.1] }, [["GET", "api/channels/21"]])
 
         let otherGuild = ParentDirectoryTransport(body: directoryDetail(version: "4", guild: "99"))
         opened = false
@@ -74,7 +74,7 @@ import XCTest
             XCTFail("\(error)")
         }
         XCTAssertFalse(opened)
-        XCTAssertEqual(otherGuild.requests, [("GET", "api/channels/21")])
+        XCTAssertEqual(otherGuild.requests.map { [$0.0, $0.1] }, [["GET", "api/channels/21"]])
     }
 
     private func directoryDetail(version: String, guild: String) -> Data {

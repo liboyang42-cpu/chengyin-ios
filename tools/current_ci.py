@@ -258,15 +258,37 @@ def audit(previous, current, retired=None):
                                            if current_hashes[p] != previous_hashes.get(p))}
 
 
-def partition(costs):
-    groups = []
+def current_ui_capture_methods(root, snapshot):
+    path = 'tools/export_current_ui_audit.py'; raw = (Path(root) / path).read_bytes()
+    require(source_hashes(snapshot).get(path) == digest(raw), 'UI capture declaration source is not verified')
+    declarations = [node for node in ast.parse(raw).body if isinstance(node, ast.Assign)
+                    and any(isinstance(target, ast.Name) and target.id == 'WANTED' for target in node.targets)]
+    require(len(declarations) == 1 and len(declarations[0].targets) == 1, 'Expected one literal WANTED declaration')
+    declaration = declarations[0].value
+    try: wanted = ast.literal_eval(declaration)
+    except (ValueError, TypeError, SyntaxError) as error: raise ValueError('WANTED must be a literal dictionary') from error
+    require(type(wanted) is dict and bool(wanted) and isinstance(declaration, ast.Dict)
+            and len(wanted) == len(declaration.keys), 'Invalid or duplicate WANTED declaration')
+    for method, labels in wanted.items():
+        require(type(method) is str and 'QuestifyUITests/' + method in snapshot['native_methods'], 'Unknown UI capture method')
+        require(type(labels) is list and bool(labels) and all(type(label) is str and label.strip() for label in labels)
+                and len(labels) == len(set(labels)), 'Invalid UI capture attachment names')
+    return {'QuestifyUITests/' + method for method in wanted}
+
+
+def partition(costs, isolated=()):
+    require(type(isolated) in (list, tuple, set, frozenset) and all(type(method) is str for method in isolated), 'Invalid isolated UI selection')
+    require(len(isolated) == len(set(isolated)) and set(isolated) <= set(costs), 'Unknown or duplicate isolated UI selection')
+    isolated = set(isolated); groups = []
     for method, cost in sorted(costs.items(), key=lambda item: (-item[1], item[0])):
         require(type(cost) in (int, float) and math.isfinite(cost) and 0 < cost <= METHOD_LIMIT, 'Invalid complete method cost')
+        if method in isolated: continue
         choices = [i for i, row in enumerate(groups) if row['seconds'] + cost <= SHARD_LIMIT]
         index = min(choices, key=lambda i: (groups[i]['seconds'], i)) if choices else len(groups)
         if index == len(groups): groups.append({'methods': [], 'seconds': 0})
         groups[index]['methods'].append(method); groups[index]['seconds'] += cost
     for group in groups: group['methods'].sort()
+    groups = [{'methods': [method], 'seconds': costs[method]} for method in sorted(isolated, key=lambda method: (costs[method], method))] + groups
     require(Counter(method for row in groups for method in row['methods']) == Counter(costs.keys()), 'Incomplete or duplicate UI partition')
     return groups
 
@@ -553,7 +575,8 @@ def make_plan(root, manifest, base, mode, environ=None):
         registration_only=pbx_registration_only(git(root,'show',base+':Questify.xcodeproj/project.pbxproj').decode(),(Path(root)/'Questify.xcodeproj/project.pbxproj').read_text(),exact_renames)
     selection_paths=[p for p in changed if p not in exact_renames and p not in exact_renames.values()]
     groups = select(manifest['snapshot'], selection_paths, manifest['smoke']+manifest['required_current_methods'], mode, manifest['source_dependencies'],registration_only)
-    shards = partition({method: manifest['ui_costs'][method] for method in groups['ui']})
+    isolated = current_ui_capture_methods(root, manifest['snapshot']) & set(groups['ui'])
+    shards = partition({method: manifest['ui_costs'][method] for method in groups['ui']}, isolated=isolated)
     return {'version': 1, 'scope': 'full-current-regression' if mode == 'full' else 'current-related-and-smoke', 'identity': identity,
             'base': base, 'exact_source_renames':exact_renames, 'pbx_pure_registration':registration_only, 'ui_selection_policy':'Related explicit groups plus smoke; global/unmapped changes require full unit coverage, full UI is manual full mode', 'manifest_sha256': digest(encode(manifest)), 'changed_paths': changed, 'groups': groups, 'ui_shards': shards,
             'complete_native_ledger_count': len(manifest['snapshot']['native_methods']), 'device_only_not_run': device_only_not_run(manifest['snapshot']), 'execution_platforms': ['macos-host', 'ios-simulator'], 'test_audit': actual_audit,

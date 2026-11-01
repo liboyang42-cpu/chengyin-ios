@@ -38,7 +38,8 @@ final class WorkshopOriginalLedgerSplitTests: XCTestCase {
         unknownKind["kind"] = "UNSUPPORTED"
         var foreignTuple = valid
         foreignTuple["activityId"] = "9"
-        for invalid in [missingKind, unknownKind, foreignTuple] {
+        let commandReceipt: [String: Any] = ["activityId": 9, "requestId": "req-1", "outcome": "APPLIED", "replayed": true]
+        for invalid in [missingKind, unknownKind, foreignTuple, commandReceipt] {
             source.advanced = try JSONSerialization.data(withJSONObject: invalid)
             do {
                 _ = try await WorkshopOriginalLedgerSplit().readAdvanced(sessionID: 8, memberID: 3, source: source)
@@ -47,12 +48,16 @@ final class WorkshopOriginalLedgerSplitTests: XCTestCase {
                 XCTAssertEqual(error as? WorkshopOriginalLedgerError, .unknown)
             }
         }
-        source.advanced = Data(#"{"activityId":9,"requestId":"req-1","outcome":"APPLIED","replayed":true}"#.utf8)
-        do {
-            _ = try await WorkshopOriginalLedgerSplit().readAdvanced(sessionID: 8, memberID: 3, source: source)
-            XCTFail("mixed")
-        } catch let error as WorkshopOriginalLedgerError {
-            XCTAssertEqual(error, .mixed)
+        for foreignKey in ["session", "topic", "node"] {
+            var mixed = valid
+            mixed[foreignKey] = commandReceipt
+            source.advanced = try JSONSerialization.data(withJSONObject: mixed)
+            do {
+                _ = try await WorkshopOriginalLedgerSplit().readAdvanced(sessionID: 8, memberID: 3, source: source)
+                XCTFail("mixed")
+            } catch let error as WorkshopOriginalLedgerError {
+                XCTAssertEqual(error, .mixed)
+            }
         }
     }
 

@@ -193,6 +193,14 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 1
+      - name: Transfer same-run UI build identity for platform checks
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: current-ui-build-metadata-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/current-native/receipt.json
+          if-no-files-found: error
+          retention-days: 1
   ui:
     needs: [controls, ui_build]
     if: ${{ always() && needs.controls.result == 'success' && needs.ui_build.result == 'success' && needs.ui_build.outputs.ui_build_artifact != '' }}
@@ -256,8 +264,8 @@ jobs:
           if-no-files-found: ignore
           retention-days: 1
   platforms:
-    needs: [controls, native, ui]
-    if: ${{ needs.controls.outputs.scope == 'full-current-regression' }}
+    needs: [controls, ui_build]
+    if: ${{ needs.controls.result == 'success' && needs.controls.outputs.scope == 'full-current-regression' && needs.ui_build.result == 'success' && needs.ui_build.outputs.ui_build_artifact != '' }}
     runs-on: macos-26
     timeout-minutes: ${{ matrix.minutes }}
     strategy:
@@ -282,7 +290,7 @@ jobs:
           path: ${{ runner.temp }}/current-plan
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
-          name: current-result-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-ui-0
+          name: current-ui-build-metadata-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/current-ui-identity
       - name: Bind current platform compile to the same source and Apple toolchain
         run: |
@@ -292,9 +300,11 @@ jobs:
           from tools import current_native as n
           root=Path.cwd(); tmp=Path(os.environ['RUNNER_TEMP']); plan=n.verify_plan(root,tmp/'current-plan/plan.json')
           prior=n.read_json(tmp/'current-ui-identity/receipt.json');n.same_identity(prior,plan)
+          n.require(prior.get('role')=='ui-build' and prior.get('status')=='BUILT' and prior.get('executed_methods')==[],'Platform compile requires a successful same-run UI build')
+          n.require(type(prior.get('build_returncode')) is int and prior['build_returncode']==0,'UI build command did not succeed')
           def run(argv,seconds,stem):
-              code,raw=n.execute(argv,root,seconds,True);n.require(code==0,'Toolchain read failed');return raw
-          n.require(n.toolchain(run)==prior['toolchain'],'Full platform build changed toolchain')
+              code,raw=n.execute(argv,root,seconds,True);n.require(type(code) is int and code==0,'Toolchain read failed');return raw
+          n.require(n.toolchain(run)==prior.get('toolchain'),'Full platform build changed toolchain')
           PYCODE
       - name: Compile unsigned device app and protected storage bundle
         if: matrix.kind == 'device'

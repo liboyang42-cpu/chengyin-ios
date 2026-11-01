@@ -193,7 +193,7 @@ struct ClubGovernanceReadView: View {
     @State private var feedClub: ClubFeedClubRoute?
     @State private var feedMediaScope = UUID()
     private var readContext: ClubGovernanceReadContext {
-        .init(operation: operation, scope: scope, identity: identity, viewerRevision: operation == .feed ? feedContext.viewerRevision : max(customerTopics.viewerRevision, storyTemplates.viewerRevision),
+        .init(operation: operation, scope: scope, identity: identity, viewerRevision: operation == .feed ? feedContext.viewerRevision : (operation == .topicOverview ? storyTemplates.viewerRevision : max(customerTopics.viewerRevision, storyTemplates.viewerRevision)),
               authorizationGeneration: access.authorizationGeneration,
               readerIdentity: operation == .feed ? feedContext.readerIdentity : (operation == .topicOverview ? storyTemplates.readerIdentity : nil), accessIdentity: ObjectIdentifier(access))
     }
@@ -1486,7 +1486,8 @@ struct ClubGovernanceEventView: View {
 
     private var sourceIsCurrent: Bool {
         identity?.isSignedIn == true && identity == access.identity && access.isConfigured &&
-        snapshotContext == context && context.authorizationGeneration == access.authorizationGeneration &&
+        snapshotContext == context && context.viewerRevision == templates.viewerRevision &&
+        context.authorizationGeneration == access.authorizationGeneration &&
         context.accessIdentity == ObjectIdentifier(access) && context.readerIdentity == templates.readerIdentity
     }
     private var presentation: ClubStoryPresentation? {
@@ -1495,8 +1496,13 @@ struct ClubGovernanceEventView: View {
     }
     private var sourceRevision: ClubStorySourceRevision {
         .init(snapshot: snapshot, context: context, snapshotGeneration: snapshotGeneration,
-              sourceIsCurrent: sourceIsCurrent, readerScope: templates.readerScope,
-              destinationAvailable: templates.isAvailable)
+              sourceIsCurrent: sourceIsCurrent, viewerRevision: templates.viewerRevision,
+              readerScope: templates.readerScope, destinationAvailable: templates.isAvailable)
+    }
+    private var reloadContext: ClubGovernanceReadContext {
+        .init(operation: context.operation, scope: context.scope, identity: context.identity,
+              viewerRevision: templates.viewerRevision, authorizationGeneration: context.authorizationGeneration,
+              readerIdentity: context.readerIdentity, accessIdentity: context.accessIdentity)
     }
     var body: some View {
         List {
@@ -1564,7 +1570,7 @@ struct ClubGovernanceEventView: View {
                 selectedAnswer = nil
             }
         }
-        .task(id: context) {
+        .task(id: reloadContext) {
             // The overview is also covered. On return, obtain a fresh source
             // through its original scoped loader, rather than reuse old cards.
             if !sourceIsCurrent { await reload() }

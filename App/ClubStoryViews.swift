@@ -37,6 +37,7 @@ struct ClubStorySourceRevision: Equatable {
     let context: ClubGovernanceReadContext
     let snapshotGeneration: UInt64
     let sourceIsCurrent: Bool
+    let viewerRevision: UInt64
     let readerScope: UUID?
     let destinationAvailable: Bool
 }
@@ -45,18 +46,21 @@ struct ClubStorySourceRevision: Equatable {
 struct ClubStoryTemplateSelection: Identifiable, Hashable {
     let route: ClubStoryTemplateRoute
     let readerScope: UUID
+    let viewerRevision: UInt64
     var id: UUID { route.id }
     @MainActor init?(gameplay: ClubStoryGameplay, snapshot: ClubGovernanceSnapshot,
           context: ClubGovernanceReadContext, snapshotGeneration: UInt64, templates: ClubStoryTemplateContext) {
         guard templates.isAvailable, let readerScope = templates.readerScope,
+              context.viewerRevision == templates.viewerRevision,
               context.readerIdentity == templates.readerIdentity,
               let route = ClubStoryTemplateRoute(gameplay: gameplay, snapshot: snapshot,
                   context: context, snapshotGeneration: snapshotGeneration) else { return nil }
-        self.route = route; self.readerScope = readerScope
+        self.route = route; self.readerScope = readerScope; viewerRevision = templates.viewerRevision
     }
     @MainActor func isCurrent(snapshot: ClubGovernanceSnapshot?, context: ClubGovernanceReadContext,
                    snapshotGeneration: UInt64, templates: ClubStoryTemplateContext) -> Bool {
-        templates.isAvailable && templates.readerScope == readerScope && context.readerIdentity == templates.readerIdentity &&
+        templates.isAvailable && templates.viewerRevision == viewerRevision &&
+        templates.readerScope == readerScope && context.readerIdentity == templates.readerIdentity &&
         route.isCurrent(snapshot: snapshot, context: context, snapshotGeneration: snapshotGeneration)
     }
     static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
