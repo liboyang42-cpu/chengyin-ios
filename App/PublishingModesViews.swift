@@ -234,7 +234,7 @@ import MapKit
                     do {
                         if let saved = try draftStore.loadActive(activity: true, session: account), let activity = saved.activity {
                             draft = activity; draftID = saved.identity; message = "publishModes.restoredLocal"
-                            wizardStep = ActivityPublishingWizard.located(ActivityPublishingWizard.steps.count, activity)
+                            wizardStep = ActivityPublishingWizard.located(ActivityPublishingWizard.steps.count, draft: activity)
                             wizardBlock = ActivityPublishingWizard.blockingField(wizardStep, activity)
                         } else { message = "publishModes.noSavedLocal" }
                     } catch { message = "publishModes.storageFailed" }
@@ -335,7 +335,7 @@ import MapKit
         if let next = ActivityPublishingWizard.advance(from: wizardStep, draft: draft) {
             wizardStep = next; wizardBlock = nil; message = ""
         } else {
-            wizardStep = ActivityPublishingWizard.located(wizardStep, draft)
+            wizardStep = ActivityPublishingWizard.located(wizardStep, draft: draft)
             wizardBlock = ActivityPublishingWizard.blockingField(wizardStep, draft)
             message = "publishModes.invalid"
         }
@@ -347,7 +347,7 @@ import MapKit
     }
     private func prepare() async {
         guard ActivityPublishingWizard.acceptsReview(draft) else {
-            wizardStep = ActivityPublishingWizard.located(ActivityPublishingWizard.steps.count, draft)
+            wizardStep = ActivityPublishingWizard.located(ActivityPublishingWizard.steps.count, draft: draft)
             wizardBlock = ActivityPublishingWizard.blockingField(wizardStep, draft)
             message = "publishModes.invalid"
             return

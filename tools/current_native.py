@@ -102,9 +102,20 @@ def core_command(group, output):
 
 
 
-def core_serial_command(group):
-    # SwiftPM6.3.3's parallel runner launches one process per method even with
-    # one worker. Its serial XCTest path runs the same explicit filter once.
+def core_serial_command(group, complete_core=None):
+    methods = group['methods']
+    require(bool(methods), 'Empty Core selection')
+    require(type(methods) is list and all(type(method) is str and METHOD.fullmatch(method) and method.startswith('QuestifyCoreTests/') for method in methods), 'Malformed Core selection')
+    require(len(methods) == len(set(methods)), 'Duplicated Core selection')
+    # verify_plan binds this manifest and the selection to the same source. For
+    # the entire sole Core test target, XCTest needs no enormous filter argv.
+    if complete_core is None:
+        inventory = control.read_json(control.ROOT / control.MANIFEST)['snapshot']['native_methods']
+        complete_core = {method for method in inventory if method.startswith('QuestifyCoreTests/')}
+    if complete_core and len(group['methods']) == len(complete_core) and set(group['methods']) == set(complete_core):
+        return ['swift', 'test', '--skip-build', '--verbose', '--no-parallel', '--disable-swift-testing']
+    # True subsets retain the same exact serial XCTest filter.
+    # shortcut: If a large true subset hits argv limits, use equivalent compact class/complement filters.
     original = core_command(group, 'unused-serial-xunit.xml')
     return original[:4] + ['--no-parallel', '--disable-swift-testing', '--filter',
                            original[original.index('--filter') + 1]]

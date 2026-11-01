@@ -82,7 +82,7 @@ import SwiftUI
                         .lineLimit(3...6)
                         .accessibilityIdentifier("merchant.offerWithdrawal.reason")
                     Text(verbatim: "\(reasonLength)/\(MerchantOfferWithdrawalReason.maximumLength)")
-                        .font(.caption).foregroundStyle(reasonValid || reason.isEmpty ? .secondary : .red)
+                        .font(.caption).foregroundStyle(reasonValid || reason.isEmpty ? Color.secondary : Color.red)
                 } header: { Text("merchant.offerWithdrawal.reason") }
             }
 

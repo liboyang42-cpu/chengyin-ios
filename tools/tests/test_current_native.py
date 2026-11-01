@@ -100,6 +100,43 @@ class CoreSerialEvidenceControls(unittest.TestCase):
         for m in g['methods']:self.assertRegex(m.replace('/','.',1),pattern)
         self.assertIsNone(re.fullmatch(pattern,'QuestifyCoreTests.A/testOneExtra'))
 
+    def test_complete_core_selection_omits_oversized_filter_only_for_exact_inventory(self):
+        methods=['QuestifyCoreTests/Case'+str(i)+'/testMethod' for i in range(10841)]
+        argv=native.core_serial_command({'methods':methods},complete_core=set(methods))
+        self.assertEqual(argv,['swift','test','--skip-build','--verbose','--no-parallel','--disable-swift-testing'])
+        self.assertLess(sum(len(arg.encode())+1 for arg in argv),1024)
+        for selected in [methods[:-1],methods+['QuestifyCoreTests/Other/testExtra']]:
+            with self.subTest(count=len(selected)):
+                self.assertIn('--filter',native.core_serial_command({'methods':selected},complete_core=set(methods)))
+        with self.assertRaisesRegex(ValueError,'Empty Core selection'):
+            native.core_serial_command({'methods':[]},complete_core=set(methods))
+        with self.assertRaisesRegex(ValueError,'Duplicated Core selection'):
+            native.core_serial_command({'methods':methods+[methods[0]]},complete_core=set(methods))
+        for malformed in [['QuestifyCoreTests/Case/testWildcard*'],['QuestifyUITests/Case/testOtherTarget'],[None]]:
+            with self.subTest(malformed=malformed),self.assertRaisesRegex(ValueError,'Malformed Core selection'):
+                native.core_serial_command({'methods':malformed},complete_core=set(methods))
+
+    def test_unfiltered_core_command_is_bound_to_manifest_and_reparsed_exact_union(self):
+        import tempfile
+        from pathlib import Path
+        from unittest.mock import patch
+        plan,_,_=CurrentNativeControls().fixture();methods=plan['groups']['core']
+        manifest={'snapshot':{'native_methods':{methods[0]:'Tests/CoreTests/A.swift','QuestifyUITests/C/testThree':'Tests/AppUITests/C.swift'}}}
+        for mutation in ['none','command','missing','extra']:
+            with tempfile.TemporaryDirectory() as tmp,patch.object(control,'read_json',return_value=manifest):
+                d=Path(tmp);plan,receipt,commands=self.serial_artifact(d)
+                self.assertNotIn('--filter',commands[0]['argv'])
+                if mutation=='none':
+                    self.assertEqual(native.reparse_actual_result(d,plan)['actual'],receipt['actual']);continue
+                if mutation=='command':
+                    commands[0]['argv']+=['--filter','.*'];native.write_json(d/'commands.json',commands);receipt['commands_sha256']=native.digest(d/'commands.json')
+                else:
+                    raw=self.transcript(methods+['QuestifyCoreTests/Other/testExtra']) if mutation=='extra' else self.transcript(['QuestifyCoreTests/Other/testExtra'])
+                    (d/'core-test.stdout').write_bytes(raw);commands[0]['stdout_sha256']=control.digest(raw)
+                    native.write_json(d/'commands.json',commands);receipt['commands_sha256']=native.digest(d/'commands.json');receipt['raw_sha256']['core-test.stdout']=control.digest(raw)
+                native.write_json(d/'receipt.json',receipt)
+                with self.subTest(mutation=mutation),self.assertRaises(ValueError):native.reparse_actual_result(d,plan)
+
     def test_actual_native_events_and_both_summaries_match_complete_selection(self):
         methods=['QuestifyCoreTests/A/testOne','QuestifyCoreTests/B/testTwo'];rows,summary=native.validate_core_serial_evidence(self.transcript(),methods,0)
         self.assertEqual([r['method'] for r in rows],methods)
