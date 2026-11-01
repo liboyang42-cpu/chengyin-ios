@@ -67,7 +67,7 @@ final class MerchantSideQuestHostPresentationTests: XCTestCase {
         var host = MerchantSideQuestHostPresentation(instances: [quest])
         XCTAssertFalse(host.isAcceptFeatureEnabled)
         XCTAssertThrowsError(try host.requestAccept(for: quest, now: now)) { error in
-            XCTAssertEqual(error as? SideQuestFailure, .featureDisabled)
+            XCTAssertEqual(error as? MerchantSideQuestFailure, .featureDisabled)
         }
     }
 
@@ -134,7 +134,7 @@ final class MerchantSideQuestHostPresentationTests: XCTestCase {
 
         // Cannot submit photo evidence before an active attempt exists.
         XCTAssertThrowsError(try host.submitPhotoEvidence(for: "sq-photo")) { error in
-            XCTAssertEqual(error as? SideQuestFailure, .illegalTransition)
+            XCTAssertEqual(error as? MerchantSideQuestFailure, .illegalTransition)
         }
 
         let request = try host.requestAcceptForContract(quest, now: now)
@@ -142,7 +142,7 @@ final class MerchantSideQuestHostPresentationTests: XCTestCase {
 
         // Accepted (not yet active) still rejects photo evidence submission.
         XCTAssertThrowsError(try host.submitPhotoEvidence(for: "sq-photo")) { error in
-            XCTAssertEqual(error as? SideQuestFailure, .illegalTransition)
+            XCTAssertEqual(error as? MerchantSideQuestFailure, .illegalTransition)
         }
 
         // Move to active via server readback, then submit photo evidence.
@@ -173,7 +173,7 @@ final class MerchantSideQuestHostPresentationTests: XCTestCase {
         XCTAssertThrowsError(
             try host.applyAttemptReadback(instanceID: "sq-lifecycle", attemptNo: 1, status: .completed, revision: 2)
         ) { error in
-            XCTAssertEqual(error as? SideQuestFailure, .illegalTransition)
+            XCTAssertEqual(error as? MerchantSideQuestFailure, .illegalTransition)
         }
 
         // ACCEPTED -> ACTIVE is legal; stale revision is ignored.

@@ -22,7 +22,6 @@ struct TopicDetailView: View {
     @State private var loads = SignedInContentDetailLoadOwner()
     @Environment(\.topicPricingDestination) private var pricingDestination
     @State private var showsPricing = false
-    @State private var showingSessionSelection = false
     private struct Key: Hashable { let id: Int; let scope: UUID; let configured: Bool }
     private var key: Key { Key(id: id, scope: reader.scope, configured: reader.isConfigured) }
     var body: some View {

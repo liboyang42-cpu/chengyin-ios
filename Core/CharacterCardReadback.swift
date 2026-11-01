@@ -282,7 +282,7 @@ public enum GameReceiptOriginalRecovery {
                     activityID: Int64(command.activityID),
                     requestID: command.requestID,
                     receipt: { _, _, _ in
-                        let found = try await service.playerReceipt(command, token: session.token)
+                        let found = try await self.service.playerReceipt(command, token: session.token)
                         return (found.requestID, Int64(found.activityID), found.outcome, false)
                     })
                 guard let recovered else {

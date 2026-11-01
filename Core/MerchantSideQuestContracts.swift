@@ -27,7 +27,7 @@ public struct SideQuestSpawnInstance: Equatable {
               place.type == .store || place.type == .roamPOI, visibleUntil > visibleFrom,
               remainingCapacity.map({ $0 >= 0 }) ?? true,
               !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, title.count <= 200 else {
-            throw SideQuestFailure.invalidInstance
+            throw MerchantSideQuestFailure.invalidInstance
         }
         self.instanceID = instanceID; self.definitionID = definitionID; self.definitionVersion = definitionVersion
         self.place = place; self.themeReleaseID = themeReleaseID; self.visibleFrom = visibleFrom; self.visibleUntil = visibleUntil
@@ -44,7 +44,7 @@ public struct SideQuestSpawnInstance: Equatable {
     }
 }
 
-public enum SideQuestFailure: Error, Equatable { case invalidInstance, featureDisabled, illegalTransition, outcomeUnknown }
+public enum MerchantSideQuestFailure: Error, Equatable { case invalidInstance, featureDisabled, illegalTransition, outcomeUnknown }
 
 /// W14.3 attempt lifecycle: ACCEPTED → ACTIVE → COMPLETED/FAILED/CANCELLED/EXPIRED.
 public enum SideQuestAttemptStatus: String, CaseIterable, Codable {
@@ -81,15 +81,15 @@ public struct SideQuestAttemptBook: Equatable {
     public init() {}
 
     public mutating func prepareAccept(_ instance: SideQuestSpawnInstance, now: Date, requestID: UUID = UUID()) throws -> SideQuestAcceptRequest {
-        guard SideQuestFeature.acceptEnabled else { throw SideQuestFailure.featureDisabled }
+        guard SideQuestFeature.acceptEnabled else { throw MerchantSideQuestFailure.featureDisabled }
         return try prepareAcceptForContract(instance, now: now, requestID: requestID)
     }
     /// Feature-independent builder used by contract tests; never call it from UI.
     mutating func prepareAcceptForContract(_ instance: SideQuestSpawnInstance, now: Date, requestID: UUID) throws -> SideQuestAcceptRequest {
         // An unknown earlier outcome must be read back before any new attempt (no blind duplicate).
         if case .unknown(let request) = pending { return request }
-        guard case .idle = pending, instance.offersAccept(now: now) else { throw SideQuestFailure.illegalTransition }
-        if let current = attempts[instance.instanceID], !current.status.isTerminal { throw SideQuestFailure.illegalTransition }
+        guard case .idle = pending, instance.offersAccept(now: now) else { throw MerchantSideQuestFailure.illegalTransition }
+        if let current = attempts[instance.instanceID], !current.status.isTerminal { throw MerchantSideQuestFailure.illegalTransition }
         let next = (attempts[instance.instanceID]?.attemptNo ?? 0) + 1
         let request = SideQuestAcceptRequest(instanceID: instance.instanceID, definitionVersion: instance.definitionVersion,
                                              attemptNo: next, requestID: requestID)
@@ -108,7 +108,7 @@ public struct SideQuestAttemptBook: Equatable {
         if let current = attempts[attempt.instanceID] {
             guard attempt.revision > current.revision else { return }
             guard attempt.attemptNo != current.attemptNo || current.status == attempt.status || current.status.canMove(to: attempt.status) else {
-                throw SideQuestFailure.illegalTransition
+                throw MerchantSideQuestFailure.illegalTransition
             }
         }
         attempts[attempt.instanceID] = attempt

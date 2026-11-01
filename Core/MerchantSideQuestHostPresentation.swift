@@ -175,7 +175,7 @@ public struct MerchantSideQuestHostPresentation: Equatable {
     @discardableResult
     public mutating func submitPhotoEvidence(for instanceID: String) throws -> SideQuestEvidenceState {
         guard let current = attemptBook.attempts[instanceID], current.status == .active else {
-            throw SideQuestFailure.illegalTransition
+            throw MerchantSideQuestFailure.illegalTransition
         }
         evidenceByInstanceID[instanceID] = .submittedAwaitingReview
         return .submittedAwaitingReview

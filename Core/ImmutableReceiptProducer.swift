@@ -416,7 +416,7 @@ public struct ImmutableReceiptProducer: Equatable {
         if Self.replayUnavailableWithoutMessageID(sent) {
             return Self.unknownChannelReceipt(requestId: raw, kind: .edit)
         }
-        let echoed = channelID(sent, "message_id")
+        let echoed = Self.channelID(sent, "message_id")
         guard echoed.present, echoed.value == messageID else {
             throw NotifyFailure.fingerprintConflict(requestId: raw)
         }
@@ -458,7 +458,7 @@ public struct ImmutableReceiptProducer: Equatable {
         if Self.replayUnavailableWithoutMessageID(sent) {
             return Self.unknownChannelReceipt(requestId: raw, kind: .withdraw)
         }
-        let echoed = channelID(sent, "message_id")
+        let echoed = Self.channelID(sent, "message_id")
         guard echoed.present, echoed.value == messageID else {
             throw NotifyFailure.fingerprintConflict(requestId: raw)
         }
@@ -494,7 +494,7 @@ public struct ImmutableReceiptProducer: Equatable {
         if Self.replayUnavailableWithoutMessageID(sent) {
             return Self.unknownChannelReceipt(requestId: raw, kind: .pin)
         }
-        let echoed = channelID(sent, "message_id")
+        let echoed = Self.channelID(sent, "message_id")
         guard echoed.present, echoed.value == messageID, (sent["pinned"] as? Bool) == pinned else {
             throw NotifyFailure.fingerprintConflict(requestId: raw)
         }

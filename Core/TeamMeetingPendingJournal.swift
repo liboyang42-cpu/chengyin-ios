@@ -136,7 +136,7 @@ public struct TeamMeetingIntentRecord: Equatable, Sendable {
     }
     private func write(_ record: TeamMeetingIntentRecord) throws -> TeamMeetingIntentRecord {
         let data = try TeamMeetingIntentWire.encode(record)
-        let storageKey = key(owner: TeamMeetingOwner(accountID: record.ownerID, namespace: record.namespace), teamId: record.teamId, meetingId: record.meetingId)
+        let storageKey = key(owner: try TeamMeetingOwner(accountID: record.ownerID, namespace: record.namespace), teamId: record.teamId, meetingId: record.meetingId)
         try writer.writeAtomic(storageKey, data)
         guard let loaded = try writer.read(storageKey), loaded == data, let decoded = try? TeamMeetingIntentWire.decode(loaded), decoded == record else {
             throw TeamMeetingJournalIssue.saveFailed

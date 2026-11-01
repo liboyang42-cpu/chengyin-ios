@@ -96,7 +96,7 @@ public struct MessagingConversation: Decodable, Equatable, Identifiable {
         let own = MessagingDirectoryFacts.context(c, channel: .channel_id, space: .guild_id, kind: .guild_kind)
         var nested: MessagingDirectoryContext?
         if let box = try? c.decodeIfPresent(MessagingDirectoryContextBox.self, forKey: .context) {
-            nested = box?.value
+            nested = box.value
         }
         directoryContext = own ?? nested ?? counterparty?.directoryContext
         // The conversation response has no last-message status provenance. It may

@@ -15,7 +15,7 @@ import XCTest
         try XCTUnwrap(MerchantNPCAuthorizer(accountID: scope.accountID, merchantRowID: scope.merchantRowID))
     }
     private func gate(publisher: (any MerchantNPCOriginalReviewPublishing)? = nil,
-                      qualification: MerchantNPCQualificationRevoke = .init()) -> MerchantNPCDraftApprovalGate {
+                      qualification: MerchantNPCQualificationRevoke? = nil) -> MerchantNPCDraftApprovalGate {
         .init(scope: scope, publisher: publisher, isolation: .init(), qualification: qualification, currentScope: { self.scope })
     }
 

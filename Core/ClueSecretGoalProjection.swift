@@ -42,6 +42,7 @@ public struct ClueSecretGoalProjection: Equatable {
         try MechanismRequestIdProjection.requireExplicitChoice(play, .clueSecretGoal)
         try MechanismRequestIdProjection.requireEnabled(play, .clueSecretGoal)
         let action = play.playerChoice?.action
+        let applyLive = self.applyLive
         return try binder.oneShot(&play, mechanism: .clueSecretGoal, choice: action,
                                   originalRequestID: originalRequestID) { live in
             try applyLive(&live)

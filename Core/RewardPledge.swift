@@ -924,7 +924,7 @@ public struct RewardPledgeEntry {
                 access: @escaping @MainActor () async -> RewardPledgeAccessBind? = { nil }) {
         self.client = client; self.journalURL = journalURL; self.current = current; self.coupons = coupons; self.access = access
     }
-    public var accountID: String { current()?.accountID ?? "" }
+    @MainActor public var accountID: String { current()?.accountID ?? "" }
 }
 
 public struct RewardPledgeServerBody: Equatable, Sendable {

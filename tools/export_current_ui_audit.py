@@ -1,5 +1,6 @@
 """Export reviewed synthetic UI attachments after the same full-run shard passes."""
 import argparse
+import base64
 from pathlib import Path
 import tempfile
 import time
@@ -29,6 +30,35 @@ WANTED = {
     'PlayExperienceFlowTests/testOrdinaryReadFallbackUsesFreeStoreCardsAndNoOrientationAnswerForm': ['Normal read fallback retains free-exploration store UI'],
     'NonCashRewardFlowTests/testNormalAccountRewardDetailCloseReopenAndBack': ['Synthetic My Rewards normal account journey'],
 }
+
+
+def emit_stdout_images(published, report):
+    n.require(report.get('status') == 'COMPLETE'
+              and n.read_json(published / 'audit-index.json') == report, 'Incomplete image packet')
+    images = {}; total = 0
+    for item in report['files']:
+        name, sha = item['path'], item['sha256']
+        n.require(name == Path(name).name and name in (sha + '.png', sha + '.jpg'), 'Unsafe image filename')
+        path = published / name
+        n.require(not path.is_symlink() and path.is_file(), 'Unsafe image file')
+        data = path.read_bytes()
+        n.require(0 < len(data) == item['bytes'] <= n.FAILURE_IMAGE_LIMIT
+                  and n.control.digest(data) == sha, 'Image bytes changed')
+        total += len(data)
+        n.require(total <= 64 * 1024 * 1024, 'Image packet too large')
+        images.setdefault(sha, data)
+    print('QUESTIFY_UI_AUDIT_INDEX_V1 ' + n.encode(report), flush=True)
+    for sha, data in images.items():
+        encoded = base64.b64encode(data).decode('ascii')
+        chunks = (len(encoded) + 14999) // 15000
+        for index in range(chunks):
+            line = 'QUESTIFY_UI_AUDIT_IMAGE_V1 ' + n.encode({
+                'sha256': sha, 'chunkIndex': index, 'total': chunks,
+                'base64': encoded[index * 15000:(index + 1) * 15000]})
+            n.require(len(line) <= 16000, 'Image log line too large')
+            print(line, flush=True)
+    print('QUESTIFY_UI_AUDIT_COMPLETE_V1 ' + n.encode({
+        'identity': report['identity'], 'index': report['index'], 'files': len(report['files'])}), flush=True)
 
 
 def export(plan, output):
@@ -83,6 +113,7 @@ def export(plan, output):
             report['status'] = 'COMPLETE'
     finally:
         n.write_json(published / 'audit-index.json', report)
+    emit_stdout_images(published, report)
 
 
 def main():

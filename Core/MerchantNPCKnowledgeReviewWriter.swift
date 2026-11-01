@@ -171,7 +171,7 @@ public struct MerchantNPCKnowledgeReviewReentry: Equatable {
     /// They are not read from disk. Does not POST and does not publish.
     public func recoverIdentity(requestID: UUID, memberID: Int64) async throws -> MerchantNPCKnowledgeReviewReentry {
         guard memberID > 0,
-              let loggedIn = memberID(), loggedIn == memberID,
+              let loggedIn = self.memberID(), loggedIn == memberID,
               let credential = token(), AuthRequestBuilder.isValidToken(credential),
               let readRequest = makeReadRequest(token: credential, requestID: requestID) else {
             throw MerchantNPCDraftGateFailure.waitingSource(capability: MerchantNPCWaitingSourcePublisher.knowledgeReviewAuthority)
@@ -182,7 +182,7 @@ public struct MerchantNPCKnowledgeReviewReentry: Equatable {
         } catch {
             throw MerchantNPCDraftGateFailure.waitingSource(capability: MerchantNPCWaitingSourcePublisher.knowledgeReviewAuthority)
         }
-        guard memberID() == memberID, token() == credential,
+        guard self.memberID() == memberID, token() == credential,
               let fields = Self.identityFields(body: read.0, status: read.1, requestID: requestID.uuidString, memberID: memberID) else {
             throw MerchantNPCDraftGateFailure.waitingSource(capability: MerchantNPCWaitingSourcePublisher.knowledgeReviewAuthority)
         }

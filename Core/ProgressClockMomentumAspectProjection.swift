@@ -41,6 +41,7 @@ public struct ProgressClockMomentumAspectProjection: Equatable {
         try MechanismRequestIdProjection.requireExplicitChoice(play, .progressClock)
         try MechanismRequestIdProjection.requireEnabled(play, .progressClock)
         let action = play.playerChoice?.action
+        let applyLive = self.applyLive
         return try binder.oneShot(&play, mechanism: .progressClock, choice: action,
                                   originalRequestID: originalRequestID) { live in
             try applyLive(&live)

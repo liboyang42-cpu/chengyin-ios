@@ -128,11 +128,12 @@ enum MerchantNPCDraftDigest {
     public private(set) var published: MerchantNPCPublishedRevision?
     public private(set) var failure: MerchantNPCDraftGateFailure?
     public init(scope: MerchantNPCScope, publisher: (any MerchantNPCOriginalReviewPublishing)? = nil,
-                isolation: MerchantNPCPublicPrivateIsolation = .init(),
-                qualification: MerchantNPCQualificationRevoke = .init(),
+                isolation: MerchantNPCPublicPrivateIsolation? = nil,
+                qualification: MerchantNPCQualificationRevoke? = nil,
                 currentScope: @escaping () -> MerchantNPCScope?) {
         self.scope = scope; self.publisher = publisher ?? MerchantNPCWaitingSourcePublisher()
-        self.isolation = isolation; self.qualification = qualification; self.currentScope = currentScope
+        self.isolation = isolation ?? MerchantNPCPublicPrivateIsolation()
+        self.qualification = qualification ?? MerchantNPCQualificationRevoke(); self.currentScope = currentScope
     }
     public var isCurrent: Bool { currentScope() == scope && qualification.allowsServing(scope) }
     public var themeMainlineAvailableWhenAIUnavailable: Bool {

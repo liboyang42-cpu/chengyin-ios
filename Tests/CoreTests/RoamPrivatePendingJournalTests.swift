@@ -100,6 +100,25 @@ private actor C6PendingWire: HTTPTransport {
         }
     }
 
+    func testExplicitNilJournalStillBlocksDispatch() async throws {
+        let owner = try context()
+        let wire = C6PendingWire([])
+        let access = try RoamPrivateToolsAccess(context: owner, approval: .init(
+            baseURL: base, namespace: "roam-tools", accountID: owner.session.accountID,
+            paths: RoamPrivateToolsRoute.reads.union(RoamPrivateToolsRoute.writes)))
+        let service = try RoamPrivateToolsService(configuration: APIConfiguration(baseURL: base), transport: wire)
+        let reader = RoamPrivateToolsSessionReader(service: service, current: { owner }, access: { _ in access }, journal: nil)
+        XCTAssertTrue(reader.allowsWrites)
+        do {
+            _ = try await reader.createCapsule(.init(requestID: requestID, body: "draft", unlockDate: "2030-01-01"))
+            XCTFail("An explicit nil journal must never acquire an implicit live fallback")
+        } catch {
+            XCTAssertEqual(error as? RoamPrivatePendingJournalError, .unavailable)
+        }
+        let requests = await wire.requests
+        XCTAssertTrue(requests.isEmpty)
+    }
+
     func testUnknownCreateSurvivesRestartLocksNewRequestsAndClearsOnlyOnReceipt() async throws {
         let storage = RoamPrivatePendingInMemoryJournalStorage()
         let owner = try context()

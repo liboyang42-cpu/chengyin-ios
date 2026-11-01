@@ -117,10 +117,12 @@ public struct MerchantOfferWithdrawalReview: Equatable {
     public private(set) var confirmedOfferID: Int?
 
     public init(currentSession: @escaping () -> MerchantOfferWithdrawalSession?,
-                executor: any MerchantOfferWithdrawalExecuting = MerchantOfferWithdrawalDormantExecutor(),
-                locks: any MerchantOfferWithdrawalIntentLocking = MerchantOfferWithdrawalMemoryIntentLocks(),
+                executor: (any MerchantOfferWithdrawalExecuting)? = nil,
+                locks: (any MerchantOfferWithdrawalIntentLocking)? = nil,
                 now: @escaping () -> Date = Date.init) {
-        self.currentSession = currentSession; self.executor = executor; self.locks = locks; self.now = now
+        self.currentSession = currentSession
+        self.executor = executor ?? MerchantOfferWithdrawalDormantExecutor()
+        self.locks = locks ?? MerchantOfferWithdrawalMemoryIntentLocks(); self.now = now
     }
 
     public var permitsSubmission: Bool { executor.permitsSubmission }

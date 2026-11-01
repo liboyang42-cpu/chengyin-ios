@@ -12,7 +12,7 @@ final class MerchantSideQuestContractsTests: XCTestCase {
     func testAcceptStaysDisabled() throws {
         XCTAssertFalse(SideQuestFeature.acceptEnabled)
         var book = SideQuestAttemptBook()
-        XCTAssertThrowsError(try book.prepareAccept(instance(), now: now)) { XCTAssertEqual($0 as? SideQuestFailure, .featureDisabled) }
+        XCTAssertThrowsError(try book.prepareAccept(instance(), now: now)) { XCTAssertEqual($0 as? MerchantSideQuestFailure, .featureDisabled) }
     }
     func testThemeIsOptionalAndPlaceMustBeStoreOrPOI() throws {
         XCTAssertNil(try instance().themeReleaseID)

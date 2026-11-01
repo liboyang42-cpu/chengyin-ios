@@ -51,6 +51,7 @@ public struct OathFlashbackProjection: Equatable {
         try MechanismRequestIdProjection.requireExplicitChoice(play, .oathFlashback)
         try MechanismRequestIdProjection.requireEnabled(play, .oathFlashback)
         let action = play.playerChoice?.action
+        let applyLive = self.applyLive
         return try binder.oneShot(&play, mechanism: .oathFlashback, choice: action,
                                   originalRequestID: originalRequestID) { live in
             try applyLive(&live)

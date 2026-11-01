@@ -673,7 +673,7 @@ private enum QmodRawDeflate {
                 return withUnsafeMutablePointer(to: &probe) { pointer in
                     stream.next_out = pointer
                     stream.avail_out = 1
-                    return inflate(&stream, Z_FINISH)
+                    return zlib.inflate(&stream, Z_FINISH)
                 }
             }
             if stream.avail_out == 0 { return .exceeded }
@@ -693,7 +693,7 @@ private enum QmodRawDeflate {
                     guard let outBase = out.bindMemory(to: UInt8.self).baseAddress else { return Z_DATA_ERROR }
                     stream.next_out = outBase.advanced(by: produced)
                     stream.avail_out = UInt32(want)
-                    return inflate(&stream, produced + want == exact ? Z_FINISH : Z_NO_FLUSH)
+                    return zlib.inflate(&stream, produced + want == exact ? Z_FINISH : Z_NO_FLUSH)
                 }
                 let wrote = want - Int(stream.avail_out)
                 if wrote <= 0 { break }

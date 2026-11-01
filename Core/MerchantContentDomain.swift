@@ -185,8 +185,8 @@ public struct MerchantContentSupplyContext: Equatable {
         let term = matches.count == 1 ? matches[0]["recruitStatus"]["termsMode"].text : nil
         termsMode = ["TRAFFIC", "PERK", "REVSHARE"].contains(term ?? "") ? term : nil
         offerID = application["offerId"].integer.flatMap { $0 > 0 ? $0 : nil }
-        offerStateRaw = application["offerState"].text?.trimmingCharacters(in: .whitespacesAndNewlines).flatMap { $0.isEmpty ? nil : $0 }
-        offerWithdrawReason = application["offerWithdrawReason"].text?.trimmingCharacters(in: .whitespacesAndNewlines).flatMap { $0.isEmpty ? nil : $0 }
+        offerStateRaw = (application["offerState"].text?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 }
+        offerWithdrawReason = (application["offerWithdrawReason"].text?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 }
         circleThemeCode = application["circleThemeCode"].text
         offerActive = application["offerActive"].flag == true || application["offerActive"].integer == 1
         offerStateKnown = application["offerActive"].flag != nil || [0, 1].contains(application["offerActive"].integer ?? -1)

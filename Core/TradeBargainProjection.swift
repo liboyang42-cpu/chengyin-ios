@@ -31,6 +31,7 @@ public struct TradeBargainProjection: Equatable {
         try MechanismRequestIdProjection.requireExplicitChoice(play, .tradeBargain)
         try MechanismRequestIdProjection.requireEnabled(play, .tradeBargain)
         let action = play.playerChoice?.action
+        let applyLive = self.applyLive
         return try binder.oneShot(&play, mechanism: .tradeBargain, choice: action,
                                   originalRequestID: originalRequestID) { live in
             try applyLive(&live)

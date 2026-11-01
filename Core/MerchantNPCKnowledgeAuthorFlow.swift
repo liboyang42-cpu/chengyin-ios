@@ -35,8 +35,8 @@ import Foundation
     public let recovery: MerchantNPCKnowledgeRecoveryStore?
 
     public init(scope: MerchantNPCScope, publisher: (any MerchantNPCOriginalReviewPublishing)? = nil,
-                isolation: MerchantNPCPublicPrivateIsolation = .init(),
-                qualification: MerchantNPCQualificationRevoke = .init(),
+                isolation: MerchantNPCPublicPrivateIsolation? = nil,
+                qualification: MerchantNPCQualificationRevoke? = nil,
                 currentScope: @escaping () -> MerchantNPCScope?,
                 recovery: MerchantNPCKnowledgeRecoveryStore? = nil) {
         self.recovery = recovery

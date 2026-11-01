@@ -24,14 +24,14 @@ public struct WorkshopInstallJourneyEntry: Equatable {
     }
 
     public mutating func purchase() -> WorkshopInstallFailure {
-        closed { try machine.purchaseViaIAP() }
+        Self.closed { try machine.purchaseViaIAP() }
     }
 
     public mutating func consumeRuntime() -> WorkshopInstallFailure {
-        closed { try machine.consumeQmodRuntime() }
+        Self.closed { try machine.consumeQmodRuntime() }
     }
 
-    private mutating func closed(_ body: () throws -> Never) -> WorkshopInstallFailure {
+    private static func closed(_ body: () throws -> Never) -> WorkshopInstallFailure {
         do {
             try body()
         } catch let error as WorkshopInstallFailure {

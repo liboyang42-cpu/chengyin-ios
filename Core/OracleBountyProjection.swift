@@ -37,6 +37,7 @@ public struct OracleBountyProjection: Equatable {
         try MechanismRequestIdProjection.requireExplicitChoice(play, .oracleBounty)
         try MechanismRequestIdProjection.requireEnabled(play, .oracleBounty)
         let action = play.playerChoice?.action
+        let applyLive = self.applyLive
         return try binder.oneShot(&play, mechanism: .oracleBounty, choice: action,
                                   originalRequestID: originalRequestID) { live in
             try applyLive(&live)

@@ -153,7 +153,7 @@ public struct ChapterReplacementInvitationCandidate: Equatable, Identifiable, Se
               let replacement = row["replacementOfOfferId"].integer, replacement > 0 else {
             throw ChapterReplacementInvitationFailure.malformed
         }
-        merchantMemberID = member; chapterID = chapterID; replacementOfOfferID = replacement
+        merchantMemberID = member; self.chapterID = chapterID; replacementOfOfferID = replacement
         let name = (row["merchantName"].text ?? row["name"].text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         displayName = name.isEmpty ? nil : name
     }
@@ -182,7 +182,7 @@ public struct ChapterReplacementInvitationExisting: Equatable, Sendable {
     public init(row: MerchantContentValue) throws {
         guard row.object != nil, let id = row["id"].integer, id > 0,
               let status = row["status"].integer else { throw ChapterReplacementInvitationFailure.malformed }
-        applicationID = id; status = status
+        applicationID = id; self.status = status
         chapterID = row["chapterId"].integer
         merchantMemberID = ChapterReplacementInvitationVacancy.ownerMemberID(in: row)
         replacementOfOfferID = row["replacementOfOfferId"].integer

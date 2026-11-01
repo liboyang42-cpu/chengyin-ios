@@ -36,6 +36,7 @@ public struct RouteCommunityDayProjection: Equatable {
         try MechanismRequestIdProjection.requireExplicitChoice(play, .routeCommunityDay)
         try MechanismRequestIdProjection.requireEnabled(play, .routeCommunityDay)
         let action = play.playerChoice?.action
+        let applyLive = self.applyLive
         return try binder.oneShot(&play, mechanism: .routeCommunityDay, choice: action,
                                   originalRequestID: originalRequestID) { live in
             try applyLive(&live)

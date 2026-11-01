@@ -1,6 +1,7 @@
 import base64
 import contextlib
 import io
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -46,8 +47,10 @@ class ExportCurrentUIAuditTests(unittest.TestCase):
     def export_fixture(self):
         with patch.object(audit.n, 'reparse_actual_result', return_value=self.receipt), \
                 patch.object(audit.n, 'screenshot_probe_command', side_effect=self.probe), \
-                patch.object(audit.n.control, 'source_identity', return_value=self.identity):
+                patch.object(audit.n.control, 'source_identity', return_value=self.identity), \
+                contextlib.redirect_stdout(io.StringIO()) as captured:
             audit.export(self.plan, self.output)
+        return captured.getvalue()
 
     def testForeignSourceOrRunIdentityIsRejectedBeforeExport(self):
         for key in ('sha', 'tree', 'run_id', 'attempt'):
@@ -93,6 +96,50 @@ class ExportCurrentUIAuditTests(unittest.TestCase):
         for item in report['files']:
             self.assertEqual(audit.n.digest(self.packet / item['path']), item['sha256'])
         self.assertEqual((self.output / 'receipt.json').read_bytes(), original)
+
+    def testStdoutChunksRebuildBothOriginalImages(self):
+        self.method = 'QuestifyUITests/TicketWalletFlowTests/testWalletDetailEntitlementsBackAndReopenNeverOffersCodeOrPayment'
+        self.receipt['actual'] = [{'method': self.method}]
+        audit.n.write_json(self.output / 'receipt.json', self.receipt)
+        self.image += b'synthetic chunk boundary' * 1500
+        lines = self.export_fixture().splitlines()
+        report = audit.n.read_json(self.packet / 'audit-index.json')
+        self.assertEqual(json.loads(lines[0].removeprefix('QUESTIFY_UI_AUDIT_INDEX_V1 ')), report)
+        chunks = {}
+        for line in lines[1:-1]:
+            self.assertLessEqual(len(line), 16000)
+            self.assertTrue(line.startswith('QUESTIFY_UI_AUDIT_IMAGE_V1 '))
+            row = json.loads(line.removeprefix('QUESTIFY_UI_AUDIT_IMAGE_V1 '))
+            chunks.setdefault(row['sha256'], []).append(row)
+        self.assertEqual(set(chunks), {item['sha256'] for item in report['files']})
+        self.assertEqual(len(report['files']), 2)
+        for item in report['files']:
+            rows = chunks[item['sha256']]
+            self.assertGreater(len(rows), 1)
+            self.assertEqual([row['chunkIndex'] for row in rows], list(range(rows[0]['total'])))
+            self.assertTrue(all(row['total'] == len(rows) for row in rows))
+            data = base64.b64decode(''.join(row['base64'] for row in rows), validate=True)
+            self.assertEqual(data, (self.packet / item['path']).read_bytes())
+            self.assertEqual(audit.n.control.digest(data), item['sha256'])
+        self.assertEqual(json.loads(lines[-1].removeprefix('QUESTIFY_UI_AUDIT_COMPLETE_V1 ')), {
+            'identity': self.identity, 'index': 0, 'files': 2})
+
+    def testCorruptionAndFailedExportNeverEmitComplete(self):
+        self.export_fixture()
+        report = audit.n.read_json(self.packet / 'audit-index.json')
+        (self.packet / report['files'][0]['path']).write_bytes(b'changed')
+        with contextlib.redirect_stdout(io.StringIO()) as captured:
+            with self.assertRaisesRegex(ValueError, 'Image bytes changed'):
+                audit.emit_stdout_images(self.packet, report)
+        self.assertNotIn('QUESTIFY_UI_AUDIT_COMPLETE_V1 ', captured.getvalue())
+        for path in self.packet.iterdir(): path.unlink()
+        self.packet.rmdir()
+        with patch.object(self, 'probe', return_value=('EXPORT_FAILED', b'')), \
+                patch.object(audit, 'emit_stdout_images') as emit:
+            with self.assertRaises(ValueError):
+                self.export_fixture()
+        emit.assert_not_called()
+        self.assertEqual(audit.n.read_json(self.packet / 'audit-index.json')['status'], 'INCOMPLETE')
 
     def testFailureNameDefaultIsUnchangedAndSelectionHasTwentySixImages(self):
         folder = self.output / 'attachments'; folder.mkdir()

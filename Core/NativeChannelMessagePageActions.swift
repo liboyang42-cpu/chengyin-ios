@@ -95,7 +95,7 @@ public struct NativeChannelMessagePageActions<
         return (false, false)
     }
 
-    private static let outcomeUnknown = ImmutableReceiptProducer.outcomeUnknown
+    private static var outcomeUnknown: String { ImmutableReceiptProducer.outcomeUnknown }
 
     /// The whole string must already match. A padded key is not trimmed into another id.
     private static func exactRequestID(_ raw: String?) throws -> String {

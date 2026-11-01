@@ -384,7 +384,7 @@ public struct MerchantSkuSaveJourney: Equatable, Sendable {
                   let skuID = row["skuId"]?.integer, Int64(skuID) == intent.skuID,
                   row["skuName"]?.string == intent.skuName,
                   row["stock"]?.integer == intent.stock,
-                  let wirePrice = row["price"], sameMoney(wirePrice, intent.price),
+                  let wirePrice = row["price"], sameMoney(wirePrice, frozen: intent.price),
                   ruleMatches(row, intent) else { continue }
             return SkuRow(skuID: intent.skuID, skuName: intent.skuName, price: intent.price, stock: intent.stock)
         }
@@ -416,7 +416,7 @@ public struct MerchantSkuSaveJourney: Equatable, Sendable {
               sameFlag(row["bookable"], intent.bookable),
               sameOptionalText(row["pic"], intent.pic) else { return false }
         if let original = intent.originalPrice {
-            guard let wire = row["originalPrice"], wire != .null, sameMoney(wire, original) else { return false }
+            guard let wire = row["originalPrice"], wire != .null, sameMoney(wire, frozen: original) else { return false }
         } else if let wire = row["originalPrice"], wire != .null {
             return false
         }

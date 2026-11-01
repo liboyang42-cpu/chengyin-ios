@@ -231,9 +231,15 @@ public struct RoamPrivateToolsService {
     public init(service: RoamPrivateToolsService?, current: @escaping () -> RuntimeDependencyContext?,
                 access: @escaping (RuntimeDependencyContext) -> RoamPrivateToolsAccess?,
                 onUnauthorized: @escaping (RuntimeDependencyContext) -> Void = { _ in },
-                journal: RoamPrivatePendingJournal? = .live()) {
+                journal: RoamPrivatePendingJournal?) {
         self.service = service; self.current = current; selectAccess = access; self.onUnauthorized = onUnauthorized
         self.journal = journal
+    }
+    public convenience init(service: RoamPrivateToolsService?, current: @escaping () -> RuntimeDependencyContext?,
+                            access: @escaping (RuntimeDependencyContext) -> RoamPrivateToolsAccess?,
+                            onUnauthorized: @escaping (RuntimeDependencyContext) -> Void = { _ in }) {
+        self.init(service: service, current: current, access: access, onUnauthorized: onUnauthorized,
+                  journal: .live())
     }
     private func synchronize() -> RuntimeDependencyContext? {
         let context = current()

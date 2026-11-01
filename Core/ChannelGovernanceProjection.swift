@@ -266,7 +266,7 @@ public struct ChannelGovernanceProjection: Equatable, Sendable {
     }
 
     public func admit(_ request: ChannelIsolatedRequest) throws -> ChannelIsolatedAdmission {
-        ChannelRevokeIsolation(channelID: catalog.channelID, identity: identity,
+        try ChannelRevokeIsolation(channelID: catalog.channelID, identity: identity,
                                revokedAtGeneration: revokeReason == nil ? nil : generation,
                                reason: revokeReason, phase: phase).admit(request)
     }

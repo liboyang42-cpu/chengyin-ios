@@ -161,9 +161,13 @@ final class MerchantContentContractTests: XCTestCase {
         XCTAssertFalse(try MerchantContentSupplyContext(application: a, recruitmentChapters: []).canEnroll)
         let c = try value(#"{"id":7,"recruitStatus":{"termsMode":"TRAFFIC"}}"#)
         XCTAssertTrue(try MerchantContentSupplyContext(application: a, recruitmentChapters: [c]).canEnroll)
-        let active = try value(#"{"id":12,"chapterId":7,"status":1,"offerActive":1,"offerId":99,"circleThemeCode":"CIRCLE"}"#)
+        let active = try value(#"{"id":12,"chapterId":7,"status":1,"offerActive":1,"offerId":99,"circleThemeCode":"CIRCLE","offerState":" ACTIVE ","offerWithdrawReason":" reason "}"#)
         let bridge = try MerchantContentSupplyContext(application: active, recruitmentChapters: [c])
         XCTAssertEqual(bridge.offerID, 99); XCTAssertTrue(bridge.canReconfirmOrPause); XCTAssertFalse(bridge.canEnroll)
+        XCTAssertEqual(bridge.offerStateRaw, "ACTIVE"); XCTAssertEqual(bridge.offerWithdrawReason, "reason")
+        let blank = try value(#"{"id":12,"chapterId":7,"offerState":" \n ","offerWithdrawReason":" \t "}"#)
+        let blankBridge = try MerchantContentSupplyContext(application: blank, recruitmentChapters: [c])
+        XCTAssertNil(blankBridge.offerStateRaw); XCTAssertNil(blankBridge.offerWithdrawReason)
     }
     func testStationActionUnionCannotAuthorizeAnotherStationState() throws {
         let p = try MerchantStationProjection(value(MerchantContentFixtureData.projection))
