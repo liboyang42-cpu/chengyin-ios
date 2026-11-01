@@ -62,7 +62,7 @@ private actor C6PendingWire: HTTPTransport {
         XCTAssertNil(try journal.entry(kind: .goalCreate, scope: try scope(namespace: "other")))
         XCTAssertNil(try journal.entry(kind: .goalCreate, scope: try RoamHistoryScope(
             market: "cn", deployment: URL(string: "https://elsewhere.example/native")!, accountID: 7, namespace: "roam-tools")))
-        XCTAssertThrowsError(try journal.record(kind: .goalCreate, requestID: "ios_fedcba9876543210", scope: try scope())) {
+        XCTAssertThrowsError(try journal.record(kind: .goalCreate, requestID: "ios_fedcba9876543210", scope: try scope(), now: Date())) {
             XCTAssertEqual($0 as? RoamPrivatePendingJournalError, .locked, "A held slot is never overwritten by another request")
         }
         XCTAssertThrowsError(try journal.clear(kind: .goalCreate, requestID: "ios_fedcba9876543210", scope: try scope())) {
@@ -138,7 +138,8 @@ private actor C6PendingWire: HTTPTransport {
         let model = RoamCapsuleCoordinator(tools: surfaced)
         XCTAssertNil(model.pending)
         XCTAssertEqual(model.pendingRequestID, requestID)
-        XCTAssertFalse(await model.retryPending(), "A restored id never rebuilds or resends a body")
+        let retried = await model.retryPending()
+        XCTAssertFalse(retried, "A restored id never rebuilds or resends a body")
         let other = RoamCapsuleDraft(requestID: "ios_fedcba9876543210", body: "另一枚", unlockDate: "2030-01-01")
         do { _ = try await second.createCapsule(other); XCTFail() }
         catch { XCTAssertEqual(error as? RoamPrivateWriteError, .pendingMismatch) }
@@ -156,8 +157,8 @@ private actor C6PendingWire: HTTPTransport {
         let failingStorage = RoamPrivatePendingInMemoryJournalStorage()
         failingStorage.storeError = NSError(domain: "c6", code: 1)
         let wire = C6PendingWire([.body(#"{"code":200,"data":{"id":"40","state":"LOCKED"}}"#, 200)])
-        let reader = try reader(wire: wire, storage: failingStorage, context: owner)
-        do { _ = try await reader.createCapsule(draft); XCTFail() }
+        let failingReader = try reader(wire: wire, storage: failingStorage, context: owner)
+        do { _ = try await failingReader.createCapsule(draft); XCTFail() }
         catch { XCTAssertEqual(error as? RoamPrivatePendingJournalError, .saveFailed) }
         let sent = await wire.requests.count
         XCTAssertEqual(sent, 0, "When the minimal identity cannot be saved, the request is not sent")

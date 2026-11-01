@@ -492,7 +492,8 @@ extension AccountCollectionTests {
         let gate = AccountCollectionScriptGate()
         let model = AccountCollectionCommunityGateModel()
         await model.load(reader: { reader }, gate: { nil })
-        XCTAssertEqual(await gate.latch.calls, 0)
+        let nilGateCalls = await gate.latch.calls
+        XCTAssertEqual(nilGateCalls, 0)
         XCTAssertFalse(model.postsAllowed(reader: reader, gate: nil))
         XCTAssertFalse(model.postsAllowed(hasGate: false, currentScope: gate.scope))
         if model.postsAllowed(reader: reader, gate: nil) {
@@ -508,12 +509,14 @@ extension AccountCollectionTests {
 
         reader.isAuthenticated = false
         await model.load(reader: { reader }, gate: { gate })
-        XCTAssertEqual(await gate.latch.calls, 0)
+        let signedOutCalls = await gate.latch.calls
+        XCTAssertEqual(signedOutCalls, 0)
         XCTAssertFalse(model.postsAllowed(reader: reader, gate: gate))
         reader.isAuthenticated = true
         reader.isConfigured = false
         await model.load(reader: { reader }, gate: { gate })
-        XCTAssertEqual(await gate.latch.calls, 0)
+        let unconfiguredCalls = await gate.latch.calls
+        XCTAssertEqual(unconfiguredCalls, 0)
         XCTAssertFalse(model.postsAllowed(reader: reader, gate: gate))
 
         reader.isConfigured = true
@@ -659,7 +662,8 @@ extension AccountCollectionTests {
         reader.isAuthenticated = false
         let signedOut = Task { await model.load(reader: { currentReader }, gate: { currentGate }) }
         await signedOut.value
-        XCTAssertEqual(await gateB.latch.calls, 2)
+        let callsAfterSignOut = await gateB.latch.calls
+        XCTAssertEqual(callsAfterSignOut, 2)
         XCTAssertFalse(model.postsAllowed(reader: reader, gate: gateB))
         reader.isAuthenticated = true
         let reopen = Task { await model.load(reader: { reader }, gate: { gateB }) }

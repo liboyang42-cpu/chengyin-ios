@@ -14,7 +14,8 @@ final class H5DeclaredSessionEntryTests: XCTestCase {
         let opened = entry.open()
         XCTAssertEqual(opened, .waitingSource(capability: "h5.sdk.original"))
         XCTAssertEqual(entry.gate.phase, .waitingSource)
-        XCTAssertThrowsError(try entry.gate.openArbitraryH5("https://evil.example")) { error in
+        var rejectedGate = entry.gate
+        XCTAssertThrowsError(try rejectedGate.openArbitraryH5("https://evil.example")) { error in
             XCTAssertEqual(error as? H5SessionFailure, .arbitraryH5Forbidden)
         }
         let hash = String(repeating: "ab", count: 32)

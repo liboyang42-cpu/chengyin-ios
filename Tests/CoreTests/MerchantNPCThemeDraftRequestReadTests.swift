@@ -186,7 +186,8 @@ import XCTest
         XCTAssertNil(flow.gate.published)
         XCTAssertEqual(publisher.published, 0)
         XCTAssertFalse(flow.holdThemeDraftRequest(memberID: 0, requestID: heldRequest))
-        XCTAssertNil(try await caller(transport: transport).readAndRecover(flow))
+        let secondFact = try await caller(transport: transport).readAndRecover(flow)
+        XCTAssertNil(secondFact)
         XCTAssertTrue(transport.sent.isEmpty)
     }
 

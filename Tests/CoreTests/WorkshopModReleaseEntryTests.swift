@@ -21,7 +21,8 @@ final class WorkshopModReleaseEntryTests: XCTestCase {
         try entry.install()
         try entry.installAgain()
         XCTAssertEqual(entry.journey.machine.installCount, 1)
-        XCTAssertEqual(entry.freezeEntry.registerPublic(), .publicRegistryReserved)
+        var frozenEntry = entry.freezeEntry
+        XCTAssertEqual(frozenEntry.registerPublic(), .publicRegistryReserved)
     }
 
     private func manifest(_ hash: String) -> [String: String] {

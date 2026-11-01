@@ -224,18 +224,18 @@ final class MerchantSupplyDryRunProjectionTests: XCTestCase {
                                            "action": .string("SKU_SAVE"), "targetType": .string("pms_sku"),
                                            "targetId": .int(44), "storeId": .int(3)]))
         XCTAssertNil(supply.skuSaveRestartPayload(originalRequestID: "desk-req-01"))
-        let owner = try MerchantBusinessAccess(MerchantBusinessObject([
+        let owner = try MerchantBusinessAccess([
             "active": .bool(true),
             "merchant": .object(["id": .int(9), "name": .string("synthetic-shop")]),
             "roleCode": .string("MERCHANT_OWNER"),
             "permissions": .array([.string("merchant:sku:save")])
-        ]))
-        let staff = try MerchantBusinessAccess(MerchantBusinessObject([
+        ])
+        let staff = try MerchantBusinessAccess([
             "active": .bool(true),
             "merchant": .object(["id": .int(9)]),
             "roleCode": .string("MERCHANT_CHECKIN"),
             "permissions": .array([])
-        ]))
+        ])
         let journey = MerchantSkuSaveJourney()
         XCTAssertNil(journey.freeze(access: staff, accountID: 7, productID: 3, skuID: 44,
                                     requestID: "desk-req-01", skuName: "door", price: "1", stock: 2))

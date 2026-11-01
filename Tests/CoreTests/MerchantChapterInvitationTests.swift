@@ -38,18 +38,18 @@ final class MerchantChapterInvitationDomainTests: XCTestCase {
         XCTAssertThrowsError(try MerchantContentCommand.respondChapterInvitation(applicationID: 0, accepted: true, chapterID: 7, topicID: 70).request())
     }
     func testValidateRequiresPendingInviteExactChapterTopicAndOwner() throws {
-        let snapshot = try snapshot(try access(coopAccess), "[" + inviteRow + "]")
+        let snapshot = try self.snapshot(try access(coopAccess), "[" + inviteRow + "]")
         XCTAssertNoThrow(try MerchantContentCommand.respondChapterInvitation(applicationID: 12, accepted: false, chapterID: 7, topicID: 70).validate(against: snapshot))
         for raw in [inviteRow.replacingOccurrences(of: #""source":1"#, with: #""source":0"#),
                     inviteRow.replacingOccurrences(of: #""status":0"#, with: #""status":1"#),
                     inviteRow.replacingOccurrences(of: #""status":0"#, with: #""status":2"#),
                     inviteRow.replacingOccurrences(of: #""merchantId":1"#, with: #""merchantId":31"#)] {
             XCTAssertThrowsError(try MerchantContentCommand.respondChapterInvitation(applicationID: 12, accepted: true, chapterID: 7, topicID: 70)
-                .validate(against: snapshot(try access(coopAccess), "[" + raw + "]")))
+                .validate(against: self.snapshot(try access(coopAccess), "[" + raw + "]")))
         }
         XCTAssertThrowsError(try MerchantContentCommand.respondChapterInvitation(applicationID: 12, accepted: true, chapterID: 8, topicID: 70).validate(against: snapshot))
         XCTAssertThrowsError(try MerchantContentCommand.respondChapterInvitation(applicationID: 12, accepted: true, chapterID: 7, topicID: 71).validate(against: snapshot))
-        let projectsOnly = try snapshot(try access(accessJSON(permissions: ["merchant:project:manage"])), "[" + inviteRow + "]")
+        let projectsOnly = try self.snapshot(try access(accessJSON(permissions: ["merchant:project:manage"])), "[" + inviteRow + "]")
         XCTAssertThrowsError(try MerchantContentCommand.respondChapterInvitation(applicationID: 12, accepted: true, chapterID: 7, topicID: 70).validate(against: projectsOnly))
     }
     func testIntentRoundTripsThroughSharedJournalWithoutSensitiveFields() throws {
@@ -154,7 +154,8 @@ private final class InvitationScriptTransport: MerchantContentOfflineTransport {
         t.append(coopAccess); t.append("[" + inviteRow + "]")
         guard case .stillPending = try await s.reconcileChapterInvitation(record) else { return XCTFail("pending") }
         t.append(coopAccess); t.append("[]")
-        XCTAssertEqual(try await s.reconcileChapterInvitation(record), .missing)
+        let reconciliation = try await s.reconcileChapterInvitation(record)
+        XCTAssertEqual(reconciliation, .missing)
         XCTAssertEqual(try journal.records().count, 1); XCTAssertEqual(t.respondCount, 0)
         box.value = try .init(accountID: 2, epoch: 2, storageScope: "test-realm", token: "other-token")
         do { _ = try await s.reconcileChapterInvitation(record); XCTFail("locked") } catch { XCTAssertEqual(error as? MerchantContentFailure, .locked) }

@@ -965,7 +965,7 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
 
     private func reconcileDraft(_ key: String, _ digest: String, _ error: Error, _ entry: RewardPledgeEntry, _ caller: RewardPledgeCaller) async {
         guard businessRejection(error) != nil else { note(error); return }
-        await readReceipt("draft", key, digest, applied: { receipt($0, "draft", key, digest, pledgeID: key, awardID: "") }, read: {
+        await readReceipt("draft", key, digest, applied: { self.receipt($0, "draft", key, digest, pledgeID: key, awardID: "") }, read: {
             try await entry.client.readOp(op: "draft", key: key, token: caller.token, open: caller.manage || caller.draft, still: { entry.current() == caller })
         })
     }

@@ -419,8 +419,10 @@ final class OrdinaryCityCourseSelectorTests: XCTestCase {
     func testRecoverFromOriginalRewardReadDoesNotOccupyThenUniqueFactApplies() async throws {
         var ledger = EventScoreOriginalLedger()
         let available = EventScoreOriginalLedger.Wire.object(["state": .string("AVAILABLE")])
-        XCTAssertNil(try await ledger.recoverFromOriginalRewardRead(memberID: 0, sessionID: 30, read: { _, _ in available }))
-        XCTAssertNil(try await ledger.recoverFromOriginalRewardRead(memberID: 7, sessionID: 0, read: { _, _ in available }))
+        let invalidMemberReadback = try await ledger.recoverFromOriginalRewardRead(memberID: 0, sessionID: 30, read: { _, _ in available })
+        XCTAssertNil(invalidMemberReadback)
+        let invalidSessionReadback = try await ledger.recoverFromOriginalRewardRead(memberID: 7, sessionID: 0, read: { _, _ in available })
+        XCTAssertNil(invalidSessionReadback)
         do {
             _ = try await ledger.recoverFromOriginalRewardRead(memberID: 7, sessionID: 30, read: nil)
             XCTFail("missing original reward read must WAITING_SOURCE")
@@ -448,9 +450,10 @@ final class OrdinaryCityCourseSelectorTests: XCTestCase {
     }
     func testRecoverFromScoringReceiptReadsOriginalWithoutOccupyingFinishLedger() async throws {
         var ledger = EventScoreOriginalLedger()
-        XCTAssertNil(try await ledger.recoverFromScoringReceipt(
+        let unsupportedKindReadback = try await ledger.recoverFromScoringReceipt(
             memberID: 7, kind: "SCORE", sessionID: 30, idempotencyKey: "scr-rcpt-01",
-            receipt: { _, _, _, _ in .object(["state": .string("ACCEPTED"), "replayed": .bool(true)]) }))
+            receipt: { _, _, _, _ in .object(["state": .string("ACCEPTED"), "replayed": .bool(true)]) })
+        XCTAssertNil(unsupportedKindReadback)
         do {
             _ = try await ledger.recoverFromScoringReceipt(
                 memberID: 7, kind: "APPEAL", sessionID: 30, idempotencyKey: "scr-rcpt-01", receipt: nil)
@@ -494,9 +497,10 @@ final class OrdinaryCityCourseSelectorTests: XCTestCase {
     }
     func testRecoverFromSessionReceiptReadsOriginalWithoutOccupyingFinishLedger() async throws {
         var ledger = EventScoreOriginalLedger()
-        XCTAssertNil(try await ledger.recoverFromSessionReceipt(
+        let missingRequestReadback = try await ledger.recoverFromSessionReceipt(
             memberID: 7, sessionID: 30, idempotencyKey: nil,
-            receipt: { _, _, _ in .bool(true) }))
+            receipt: { _, _, _ in .bool(true) })
+        XCTAssertNil(missingRequestReadback)
         do {
             _ = try await ledger.recoverFromSessionReceipt(
                 memberID: 7, sessionID: 30, idempotencyKey: "orient-ses-01", receipt: nil)

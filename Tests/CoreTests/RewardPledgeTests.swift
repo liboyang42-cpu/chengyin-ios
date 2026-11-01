@@ -129,7 +129,7 @@ final class RewardPledgeTests: XCTestCase {
         XCTAssertEqual(machine.frozen?.status, "WITHDRAWN")
         XCTAssertEqual(machine.serviceCase?.reason, "WITHDRAWN")
         var staff = RewardPledgeMachine(accountID: "42", storeID: "7", policy: approved())
-        guard case .success(let staffIntent) = staff.confirmClaim(try terms(staff), seen: staff.scope) else { return XCTFail("staff confirm") }
+        guard case .success(let staffIntent) = staff.confirmClaim(try self.terms(staff), seen: staff.scope) else { return XCTFail("staff confirm") }
         _ = staff.acceptGrant(awardID: "15", termsVersion: "t1", termsText: "frozen terms", requestID: staffIntent.requestID, businessKey: staffIntent.businessKey, seen: staff.scope)
         XCTAssertNil(try? staffPreviewWrongStore(&staff))
         guard case .success = staff.preview(permissionStore: "7", seen: staff.scope) else { return XCTFail("preview") }
@@ -159,8 +159,8 @@ final class RewardPledgeTests: XCTestCase {
         var closed = approved(); closed.readSource = nil
         staff.applyPolicy(closed)
         guard case .failure(.closed("readSource")) = staff.refreshSource() else { return XCTFail("unset source") }
-        var coupon = approved(); coupon.readSource = .couponHistory
-        staff.applyPolicy(coupon)
+        var couponPolicy = approved(); couponPolicy.readSource = .couponHistory
+        staff.applyPolicy(couponPolicy)
         XCTAssertEqual(try staff.refreshSource().get(), "api/coupon/myrecvlist")
         XCTAssertEqual(RewardPledgeRoutes.detailPath(.couponHistory, awardID: "15"), "api/coupon/myrecvlist")
         XCTAssertFalse(CityNodeRedemptionCode.acceptsPledgeRedeem("api/coupon/verification"))

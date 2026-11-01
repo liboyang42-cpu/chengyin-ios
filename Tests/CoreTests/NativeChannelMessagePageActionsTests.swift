@@ -75,7 +75,8 @@ final class NativeChannelMessagePageActionsTests: XCTestCase {
         XCTAssertTrue(blank.blankBody)
         XCTAssertEqual(seeded.journal.command?.content, " \n ")
         let text = sendHarness(storedID: sendID)
-        XCTAssertEqual(await failure { try await text.page.send(requestID: sendID, content: " ") }, .invalidMessageContent)
+        let invalidContent = await failure { try await text.page.send(requestID: sendID, content: " ") }
+        XCTAssertEqual(invalidContent, .invalidMessageContent)
         XCTAssertEqual(text.sends, 0)
         XCTAssertNil(text.journal.record)
     }
@@ -109,7 +110,8 @@ final class NativeChannelMessagePageActionsTests: XCTestCase {
     func testRequestIDIsNotRewritten() async throws {
         let text = sendHarness(storedID: sendID)
         let padded = " \(sendID) "
-        XCTAssertEqual(await failure { try await text.page.send(requestID: padded, content: "hello") }, .invalidRequestID)
+        let invalidRequestID = await failure { try await text.page.send(requestID: padded, content: "hello") }
+        XCTAssertEqual(invalidRequestID, .invalidRequestID)
         XCTAssertEqual(text.sends, 0)
         XCTAssertNil(text.journal.record)
         let wide = String(repeating: "A", count: 32) + String(repeating: "b", count: 31) + "_"

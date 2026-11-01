@@ -2,7 +2,7 @@ import XCTest
 @testable import QuestifyCore
 
 final class H5AnswerProtectionTests: XCTestCase {
-    private let hash = String(repeating: "ab", count: 32)
+    private let fixtureContentHash = String(repeating: "ab", count: 32)
     private let other = String(repeating: "cd", count: 32)
     func testAnswersNeverInClientPackAndJSReportCannotSucceed() {
         var protection = H5AnswerProtection()
@@ -23,19 +23,19 @@ final class H5AnswerProtectionTests: XCTestCase {
     func testServerFrozenAuthorVersionCompareOnly() throws {
         var protection = H5AnswerProtection()
         XCTAssertThrowsError(try protection.compareServerFrozenAuthorVersion(
-            serverFrozenHash: hash, expectedHash: other, originalRequestID: "req-a1")) { error in
+            serverFrozenHash: fixtureContentHash, expectedHash: other, originalRequestID: "req-a1")) { error in
             XCTAssertEqual(error as? H5AnswerProtectionFailure, .hashMismatch)
         }
-        try protection.compareServerFrozenAuthorVersion(serverFrozenHash: hash, expectedHash: hash,
+        try protection.compareServerFrozenAuthorVersion(serverFrozenHash: fixtureContentHash, expectedHash: fixtureContentHash,
                                                         originalRequestID: "req-a1")
         XCTAssertEqual(protection.phase, .matched)
-        XCTAssertEqual(protection.matchedHash, hash)
+        XCTAssertEqual(protection.matchedHash, fixtureContentHash)
         XCTAssertEqual(protection.originalRequestID, "req-a1")
-        try protection.compareServerFrozenAuthorVersion(serverFrozenHash: hash, expectedHash: hash,
+        try protection.compareServerFrozenAuthorVersion(serverFrozenHash: fixtureContentHash, expectedHash: fixtureContentHash,
                                                         originalRequestID: "req-a1")
         XCTAssertEqual(protection.originalRequestID, "req-a1")
         XCTAssertThrowsError(try protection.compareServerFrozenAuthorVersion(
-            serverFrozenHash: hash, expectedHash: hash, originalRequestID: "req-a-other")) { error in
+            serverFrozenHash: fixtureContentHash, expectedHash: fixtureContentHash, originalRequestID: "req-a-other")) { error in
             XCTAssertEqual(error as? H5AnswerProtectionFailure, .requestMismatch)
         }
         XCTAssertEqual(protection.originalRequestID, "req-a1")
@@ -47,20 +47,20 @@ final class H5AnswerProtectionTests: XCTestCase {
         XCTAssertNil(protection.originalRequestID)
         XCTAssertEqual(protection.phase, .idle)
         XCTAssertThrowsError(try protection.compareServerFrozenAuthorVersion(
-            serverFrozenHash: hash, expectedHash: other, originalRequestID: "req-a-never-c10")) { error in
+            serverFrozenHash: fixtureContentHash, expectedHash: other, originalRequestID: "req-a-never-c10")) { error in
             XCTAssertEqual(error as? H5AnswerProtectionFailure, .hashMismatch)
         }
         XCTAssertNil(protection.originalRequestID)
         XCTAssertEqual(protection.phase, .idle)
-        try protection.compareServerFrozenAuthorVersion(serverFrozenHash: hash, expectedHash: hash,
+        try protection.compareServerFrozenAuthorVersion(serverFrozenHash: fixtureContentHash, expectedHash: fixtureContentHash,
                                                         originalRequestID: "req-a-never-c10")
         XCTAssertEqual(protection.originalRequestID, "req-a-never-c10")
         XCTAssertEqual(protection.phase, .matched)
-        try protection.compareServerFrozenAuthorVersion(serverFrozenHash: hash, expectedHash: hash,
+        try protection.compareServerFrozenAuthorVersion(serverFrozenHash: fixtureContentHash, expectedHash: fixtureContentHash,
                                                         originalRequestID: "req-a-never-c10")
         XCTAssertEqual(protection.originalRequestID, "req-a-never-c10")
         XCTAssertThrowsError(try protection.compareServerFrozenAuthorVersion(
-            serverFrozenHash: hash, expectedHash: hash, originalRequestID: "req-a-other")) { error in
+            serverFrozenHash: fixtureContentHash, expectedHash: fixtureContentHash, originalRequestID: "req-a-other")) { error in
             XCTAssertEqual(error as? H5AnswerProtectionFailure, .requestMismatch)
         }
         XCTAssertEqual(protection.originalRequestID, "req-a-never-c10")

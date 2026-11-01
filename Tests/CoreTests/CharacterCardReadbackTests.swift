@@ -217,9 +217,10 @@ import FoundationNetworking
         XCTAssertNil(swapped)
     }
     func testRecoverFromGameReceiptReadsPendingWithoutApplying() async throws {
-        XCTAssertNil(try await GameReceiptOriginalRecovery.recoverFromGameReceipt(
+        let invalidMember = try await GameReceiptOriginalRecovery.recoverFromGameReceipt(
             memberID: 0, activityID: 11, requestID: "game-req-01",
-            receipt: { _, _, _ in ("game-req-01", 11, "APPLIED", true) }))
+            receipt: { _, _, _ in ("game-req-01", 11, "APPLIED", true) })
+        XCTAssertNil(invalidMember)
         do {
             _ = try await GameReceiptOriginalRecovery.recoverFromGameReceipt(
                 memberID: 7, activityID: 11, requestID: "game-req-01", receipt: nil)
@@ -237,12 +238,14 @@ import FoundationNetworking
             receipt: { _, _, id in id == "game-req-01" ? (id, 11, "APPLIED", true) : ("other-request", 11, "APPLIED", true) })
         XCTAssertEqual(applied?.applied, true)
         XCTAssertEqual(applied?.replayed, true)
-        XCTAssertNil(try await GameReceiptOriginalRecovery.recoverFromGameReceipt(
+        let otherRequest = try await GameReceiptOriginalRecovery.recoverFromGameReceipt(
             memberID: 7, activityID: 11, requestID: "c02-game-other",
-            receipt: { _, _, _ in ("other-request", 11, "APPLIED", true) }))
-        XCTAssertNil(try await GameReceiptOriginalRecovery.recoverFromGameReceipt(
+            receipt: { _, _, _ in ("other-request", 11, "APPLIED", true) })
+        XCTAssertNil(otherRequest)
+        let otherActivity = try await GameReceiptOriginalRecovery.recoverFromGameReceipt(
             memberID: 7, activityID: 11, requestID: "game-req-01",
-            receipt: { _, _, id in (id, 99, "APPLIED", true) }))
+            receipt: { _, _, id in (id, 99, "APPLIED", true) })
+        XCTAssertNil(otherActivity)
     }
     func testRevokeClearsCardWithoutReloadOrLeavingAndBody401RetiresOwner() async throws {
         let (owner, transport, model) = try setup(enabled: [.reads])

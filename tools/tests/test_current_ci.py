@@ -15,8 +15,11 @@ final class Real: XCTestCase {
         self.assertEqual(ci.swift_methods(source, 'Target'), ['Target/Real/testOne','Target/Real/testTwo'])
 
     def test_python_method_ledger_never_imports_module(self):
-        source = "raise RuntimeError('must not import')\nclass Cases:\n def test_one(self): pass\ndef test_two(): pass\n"
-        self.assertEqual(ci.python_methods(source, 'tests.py'), ['tests.py::Cases.test_one','tests.py::test_two'])
+        source = "raise RuntimeError('must not import')\nclass Cases:\n def test_one(self): pass\n def testCamel(self): pass\n async def testAsync(self): pass\n def helper(self): pass\ndef test_two(): pass\ndef helper(): pass\n"
+        self.assertEqual(unittest.TestLoader().testMethodPrefix, 'test')
+        self.assertEqual(ci.python_methods(source, 'tests.py'), [
+            'tests.py::Cases.test_one', 'tests.py::Cases.testCamel',
+            'tests.py::Cases.testAsync', 'tests.py::test_two'])
 
     def test_duplicate_or_unclosed_declarations_fail(self):
         for source in ['class A: XCTestCase { func testA(){} func testA(){} }', 'class A: XCTestCase { func testA(){}', '/* unclosed']:

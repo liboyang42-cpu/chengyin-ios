@@ -8,7 +8,7 @@ final class H5LaunchProducerTests: XCTestCase {
     private let ownedID = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
     private let authorID = "bbbbbbbb-bbbb-4ccc-8ddd-eeeeeeeeeeee"
     private let origin = "https://shell.chengyin.test"
-    private let hash = String(repeating: "ab", count: 32)
+    private let fixtureContentHash = String(repeating: "ab", count: 32)
     private let terms = String(repeating: "cd", count: 32)
 
     func testAbsentLaunchFieldsStayClosedAndTheReceiptStaysReadable() async throws {
@@ -171,7 +171,7 @@ final class H5LaunchProducerTests: XCTestCase {
         var producer = try releasedProducer()
         let source = LaunchInstallRead(fact: try fact(ownedID, "INSTALLED_PRIVATE_DRAFT"))
         let other = try XCTUnwrap(WorkshopInstallIdentity(
-            licenseId: "lic-2", moduleId: "mod-1", releaseId: "rel-1", contentHash: hash, termsHash: terms))
+            licenseId: "lic-2", moduleId: "mod-1", releaseId: "rel-1", contentHash: fixtureContentHash, termsHash: terms))
         do {
             _ = try await producer.readOriginalReceipt(identity: other, source: source)
             XCTFail("identity")
@@ -184,14 +184,14 @@ final class H5LaunchProducerTests: XCTestCase {
         XCTAssertNil(H5LaunchProducer(owned: try owned(), author: sameAuthor))
         XCTAssertNil(H5LaunchProducer.OwnedLicenseInstall(
             requestID: ownedID, licenseId: "lic-1", moduleId: "mod-1", purchasedVersionId: "rel-1",
-            contentHash: hash, termsHash: terms, status: "SUSPENDED"))
+            contentHash: fixtureContentHash, termsHash: terms, status: "SUSPENDED"))
         XCTAssertNil(H5LaunchProducer.AuthorSubmission(requestID: "not-a-request"))
     }
 
     private func releasedProducer(ownedLaunch: H5LaunchProducer.EntryLaunch = .absent,
                                  authorLaunch: H5LaunchProducer.EntryLaunch = .absent) throws -> H5LaunchProducer {
         var entry = WorkshopInstallRecoverEntry()
-        try entry.submitManifest(manifest(hash), entry: "mod-1", originalRequestID: ownedID)
+        try entry.submitManifest(manifest(fixtureContentHash), entry: "mod-1", originalRequestID: ownedID)
         try entry.releaseReviewed(termsHash: terms, reviewed: true)
         return try XCTUnwrap(H5LaunchProducer(owned: try owned(launch: ownedLaunch), author: try author(launch: authorLaunch), entry: entry))
     }
@@ -199,7 +199,7 @@ final class H5LaunchProducerTests: XCTestCase {
     private func owned(launch: H5LaunchProducer.EntryLaunch = .absent) throws -> H5LaunchProducer.OwnedLicenseInstall {
         try XCTUnwrap(H5LaunchProducer.OwnedLicenseInstall(
             requestID: ownedID, licenseId: "lic-1", moduleId: "mod-1", purchasedVersionId: "rel-1",
-            contentHash: hash, termsHash: terms, status: "ACTIVE", launch: launch))
+            contentHash: fixtureContentHash, termsHash: terms, status: "ACTIVE", launch: launch))
     }
 
     private func author(launch: H5LaunchProducer.EntryLaunch = .absent) throws -> H5LaunchProducer.AuthorSubmission {
@@ -214,10 +214,10 @@ final class H5LaunchProducerTests: XCTestCase {
         try XCTUnwrap(WorkshopOriginalInstallFact(requestID: requestID, state: state))
     }
 
-    private func manifest(_ hash: String) -> [String: String] {
+    private func manifest(_ fixtureContentHash: String) -> [String: String] {
         ["formatVersion": "1.0", "kind": "questify.mod", "packageId": "mod-1",
-         "packageVersion": "1.0.0", "entrypoint": "content.json", "contentHash": hash,
-         "schemaVersion": "1", "filePath": "content.json", "fileSha256": hash, "fileBytes": "12"]
+         "packageVersion": "1.0.0", "entrypoint": "content.json", "contentHash": fixtureContentHash,
+         "schemaVersion": "1", "filePath": "content.json", "fileSha256": fixtureContentHash, "fileBytes": "12"]
     }
 }
 

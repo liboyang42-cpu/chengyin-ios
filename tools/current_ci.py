@@ -199,7 +199,7 @@ def python_methods(source, path):
     for node in tree.body:
         if isinstance(node, ast.ClassDef):
             for method in node.body:
-                if isinstance(method, (ast.FunctionDef, ast.AsyncFunctionDef)) and method.name.startswith('test_'):
+                if isinstance(method, (ast.FunctionDef, ast.AsyncFunctionDef)) and method.name.startswith('test'):
                     out.append(path + '::' + node.name + '.' + method.name)
         elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name.startswith('test_'):
             out.append(path + '::' + node.name)

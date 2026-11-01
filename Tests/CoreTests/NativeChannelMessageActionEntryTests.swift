@@ -63,7 +63,7 @@ final class NativeChannelMessageActionEntryTests: XCTestCase {
             port: { _, _, message, request, content, version, _, _, _ in
                 edits += 1
                 XCTAssertEqual(message, 44)
-                XCTAssertEqual(request, editID)
+                XCTAssertEqual(request, self.editID)
                 XCTAssertEqual(content, "hello")
                 XCTAssertEqual(version, 2)
                 return ["request_id": request, "message_id": message]
@@ -74,7 +74,7 @@ final class NativeChannelMessageActionEntryTests: XCTestCase {
             port: { _, _, message, request, reason, version in
                 recalls += 1
                 XCTAssertEqual(message, 44)
-                XCTAssertEqual(request, recallID)
+                XCTAssertEqual(request, self.recallID)
                 XCTAssertEqual(reason, "duplicate")
                 XCTAssertEqual(version, 2)
                 return ["request_id": request, "message_id": message]
@@ -84,7 +84,7 @@ final class NativeChannelMessageActionEntryTests: XCTestCase {
             port: { _, _, message, request, pinned in
                 pins += 1
                 XCTAssertEqual(message, 44)
-                XCTAssertEqual(request, pinID)
+                XCTAssertEqual(request, self.pinID)
                 XCTAssertFalse(pinned)
                 return ["request_id": request, "message_id": message, "pinned": false]
             })
@@ -163,7 +163,7 @@ final class NativeChannelMessageActionEntryTests: XCTestCase {
                                content: content, extraJSON: nil, replyToID: 88120,
                                port: { _, _, _, _, _, _, _, _, _, _ in
                                    calls += 1
-                                   return ["request_id": sendID, "message_id": 44]
+                                   return ["request_id": self.sendID, "message_id": 44]
                                })
             }, .invalidMessageContent)
             XCTAssertEqual(failure {
@@ -185,7 +185,7 @@ final class NativeChannelMessageActionEntryTests: XCTestCase {
             requestID: sendID, kind: .reply, actorID: 7, conversationID: 12, msgType: 1,
             content: "hello", extraJSON: nil, replyToID: 88120,
             port: { _, _, request, _, _, _, _, _, _, _ in
-                XCTAssertEqual(request, sendID)
+                XCTAssertEqual(request, self.sendID)
                 return unavailable
             })
         let edited = try entry.edit(

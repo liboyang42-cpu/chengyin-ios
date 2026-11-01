@@ -114,6 +114,6 @@ private struct TopicStartingPrice: View {
         } else {
             figure = appLocalized("topic.priceUnknown", locale: locale)
         }
-        RevolutAmountView(figure: figure, label: starting + "\n" + currency)
+        return RevolutAmountView(figure: figure, label: starting + "\n" + currency)
     }
 }

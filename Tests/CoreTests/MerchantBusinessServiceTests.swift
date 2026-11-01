@@ -152,26 +152,26 @@ final class MerchantBusinessServiceTests: XCTestCase {
         } catch {
             XCTAssertEqual(error as? MerchantBusinessFailure, .disabled)
         }
-        let denied = try MerchantBusinessAccess(MerchantBusinessObject([
+        let denied = try MerchantBusinessAccess([
             "active": .bool(true),
             "merchant": .object(["id": .int(9), "name": .string("synthetic-shop")]),
             "roleCode": .string("MERCHANT_OWNER"),
             "permissions": .array([.string("merchant:basic:read")]),
             "canManageOperators": .bool(false)
-        ]))
+        ])
         do {
             _ = try await idle.read(.productDetail(productID: 3), access: denied, token: "synthetic-token")
             XCTFail("detail needs project manage")
         } catch {
             XCTAssertEqual(error as? MerchantBusinessFailure, .denied)
         }
-        let allowed = try MerchantBusinessAccess(MerchantBusinessObject([
+        let allowed = try MerchantBusinessAccess([
             "active": .bool(true),
             "merchant": .object(["id": .int(9)]),
             "roleCode": .string("MERCHANT_OWNER"),
             "permissions": .array([.string("merchant:project:manage"), .string("merchant:basic:read")]),
             "canManageOperators": .bool(false)
-        ]))
+        ])
         do {
             _ = try await idle.read(.productDetail(productID: 0), access: allowed, token: "synthetic-token")
             XCTFail("product id")
@@ -418,13 +418,13 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
                                                   readTransport: transport, testingMutationTransport: transport)
         let journal = MerchantBusinessMemoryIntentStore()
         let scope = MerchantBusinessScope(realm: "desk", accountID: 7, epoch: 1)
-        let access = try MerchantBusinessAccess(MerchantBusinessObject([
+        let access = try MerchantBusinessAccess([
             "active": .bool(true),
             "merchant": .object(["id": .int(9)]),
             "roleCode": .string("MERCHANT_OWNER"),
             "permissions": .array([.string("merchant:project:manage"), .string("merchant:basic:read")]),
             "canManageOperators": .bool(false)
-        ]))
+        ])
         let session = try MerchantBusinessSession(accountID: 7, epoch: 1, token: "synthetic-token")
         let desk = MerchantDeskSkuDesk(service: service, journal: journal, scope: scope, currentSession: { session })
         let edit = MerchantDeskSkuDesk.Edit(skuName: "door", price: "88.00", stock: 2)
@@ -514,13 +514,13 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
                                                   readTransport: transport, testingMutationTransport: transport)
         let journal = MerchantBusinessMemoryIntentStore()
         let scope = MerchantBusinessScope(realm: "desk", accountID: 7, epoch: 1)
-        let access = try MerchantBusinessAccess(MerchantBusinessObject([
+        let access = try MerchantBusinessAccess([
             "active": .bool(true),
             "merchant": .object(["id": .int(9)]),
             "roleCode": .string("MERCHANT_OWNER"),
             "permissions": .array([.string("merchant:project:manage"), .string("merchant:basic:read")]),
             "canManageOperators": .bool(false)
-        ]))
+        ])
         let session = try MerchantBusinessSession(accountID: 7, epoch: 1, token: "synthetic-token")
         let desk = MerchantDeskSkuDesk(service: service, journal: journal, scope: scope, currentSession: { session })
         await desk.load(productID: 3, skuID: 44, edit: MerchantDeskSkuDesk.Edit(skuName: "door", price: "88.00", stock: 2),
@@ -593,13 +593,13 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
         let wire = DeskProductionWire()
         let factory = MerchantBusinessProductionFactory(api: try .init(baseURL: url), approval: approval, transport: wire, current: { context })
         let produced = try XCTUnwrap(factory.service(for: mutation, merchantID: 9))
-        let access = try MerchantBusinessAccess(MerchantBusinessObject([
+        let access = try MerchantBusinessAccess([
             "active": .bool(true),
             "merchant": .object(["id": .int(9)]),
             "roleCode": .string("MERCHANT_OWNER"),
             "permissions": .array([.string("merchant:project:manage"), .string("merchant:basic:read")]),
             "canManageOperators": .bool(false)
-        ]))
+        ])
         let scope = MerchantBusinessScope(realm: "desk", accountID: 7, epoch: 1)
         do {
             _ = try await produced.execute(mutation, requestID: "desk-req-0007", token: token)
@@ -657,13 +657,13 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
             reviewedPolicyVersion: "policy-1")
         let wire = DeskProductionWire()
         let factory = MerchantBusinessProductionFactory(api: try .init(baseURL: url), approval: approval, transport: wire, current: { context })
-        let access = try MerchantBusinessAccess(MerchantBusinessObject([
+        let access = try MerchantBusinessAccess([
             "active": .bool(true),
             "merchant": .object(["id": .int(9)]),
             "roleCode": .string("MERCHANT_OWNER"),
             "permissions": .array([.string("merchant:project:manage"), .string("merchant:basic:read")]),
             "canManageOperators": .bool(false)
-        ]))
+        ])
         let journal = MerchantBusinessMemoryIntentStore()
         let desk = MerchantDeskSkuDesk(service: readService, journal: journal,
                                       scope: MerchantBusinessScope(realm: "desk", accountID: 7, epoch: 1),
@@ -706,13 +706,13 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
             reviewedPolicyVersion: "policy-1")
         let wire = DeskProductionWire()
         let factory = MerchantBusinessProductionFactory(api: try .init(baseURL: url), approval: approval, transport: wire, current: { context })
-        let access = try MerchantBusinessAccess(MerchantBusinessObject([
+        let access = try MerchantBusinessAccess([
             "active": .bool(true),
             "merchant": .object(["id": .int(9)]),
             "roleCode": .string("MERCHANT_OWNER"),
             "permissions": .array([.string("merchant:project:manage"), .string("merchant:basic:read")]),
             "canManageOperators": .bool(false)
-        ]))
+        ])
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         let journal = MerchantBusinessFileIntentStore(url: folder.appendingPathComponent("intents.json"))
         let desk = MerchantDeskSkuDesk(service: readService, journal: journal,
@@ -740,13 +740,13 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
                                                   readTransport: transport, testingMutationTransport: transport)
         let journal = MerchantBusinessMemoryIntentStore()
         let scope = MerchantBusinessScope(realm: "desk", accountID: 7, epoch: 1)
-        let access = try MerchantBusinessAccess(MerchantBusinessObject([
+        let access = try MerchantBusinessAccess([
             "active": .bool(true),
             "merchant": .object(["id": .int(9)]),
             "roleCode": .string("MERCHANT_OWNER"),
             "permissions": .array([.string("merchant:project:manage"), .string("merchant:basic:read")]),
             "canManageOperators": .bool(false)
-        ]))
+        ])
         let session = try MerchantBusinessSession(accountID: 7, epoch: 1, token: "synthetic-token")
         let desk = MerchantDeskSkuDesk(service: service, journal: journal, scope: scope, currentSession: { session })
         await desk.load(productID: 3, skuID: 44, edit: MerchantDeskSkuDesk.Edit(skuName: "new door", price: "88.00", stock: 2),
@@ -774,13 +774,13 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
                                                   readTransport: transport, testingMutationTransport: transport)
         let journal = MerchantBusinessMemoryIntentStore()
         let scope = MerchantBusinessScope(realm: "desk", accountID: 7, epoch: 1)
-        let access = try MerchantBusinessAccess(MerchantBusinessObject([
+        let access = try MerchantBusinessAccess([
             "active": .bool(true),
             "merchant": .object(["id": .int(9)]),
             "roleCode": .string("MERCHANT_OWNER"),
             "permissions": .array([.string("merchant:project:manage"), .string("merchant:basic:read")]),
             "canManageOperators": .bool(false)
-        ]))
+        ])
         let session = try MerchantBusinessSession(accountID: 7, epoch: 1, token: "synthetic-token")
         let desk = MerchantDeskSkuDesk(service: service, journal: journal, scope: scope, currentSession: { session })
         await transport.setDetailEditable(false)
@@ -797,13 +797,13 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
                                                   readTransport: transport, testingMutationTransport: transport)
         let journal = MerchantBusinessMemoryIntentStore()
         let scope = MerchantBusinessScope(realm: "desk", accountID: 7, epoch: 1)
-        let access = try MerchantBusinessAccess(MerchantBusinessObject([
+        let access = try MerchantBusinessAccess([
             "active": .bool(true),
             "merchant": .object(["id": .int(9)]),
             "roleCode": .string("MERCHANT_OWNER"),
             "permissions": .array([.string("merchant:project:manage"), .string("merchant:basic:read")]),
             "canManageOperators": .bool(false)
-        ]))
+        ])
         let session = try MerchantBusinessSession(accountID: 7, epoch: 1, token: "synthetic-token")
         let desk = MerchantDeskSkuDesk(service: service, journal: journal, scope: scope, currentSession: { session })
         await desk.load(productID: 3, skuID: 44, edit: MerchantDeskSkuDesk.Edit(skuName: "door", price: "88.00", stock: 2),
@@ -826,13 +826,13 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
                                                   readTransport: transport, testingMutationTransport: transport)
         let journal = MerchantBusinessMemoryIntentStore()
         let scope = MerchantBusinessScope(realm: "desk", accountID: 7, epoch: 1)
-        let access = try MerchantBusinessAccess(MerchantBusinessObject([
+        let access = try MerchantBusinessAccess([
             "active": .bool(true),
             "merchant": .object(["id": .int(9)]),
             "roleCode": .string("MERCHANT_OWNER"),
             "permissions": .array([.string("merchant:project:manage"), .string("merchant:basic:read")]),
             "canManageOperators": .bool(false)
-        ]))
+        ])
         let held = SessionHold()
         held.session = try MerchantBusinessSession(accountID: 7, epoch: 1, token: "synthetic-token")
         let retired = SessionHold()
@@ -877,13 +877,13 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
                                                   readTransport: transport, testingMutationTransport: transport)
         let journal = MerchantBusinessMemoryIntentStore()
         let scope = MerchantBusinessScope(realm: "desk", accountID: 7, epoch: 1)
-        let access = try MerchantBusinessAccess(MerchantBusinessObject([
+        let access = try MerchantBusinessAccess([
             "active": .bool(true),
             "merchant": .object(["id": .int(9)]),
             "roleCode": .string("MERCHANT_OWNER"),
             "permissions": .array([.string("merchant:project:manage"), .string("merchant:basic:read")]),
             "canManageOperators": .bool(false)
-        ]))
+        ])
         let current = try MerchantBusinessSession(accountID: 7, epoch: 1, token: "synthetic-token-b")
         let retired = SessionHold()
         let desk = MerchantDeskSkuDesk(service: service, journal: journal, scope: scope,
@@ -909,13 +909,13 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
                                                   readTransport: transport, testingMutationTransport: transport)
         let journal = MerchantBusinessMemoryIntentStore()
         let scope = MerchantBusinessScope(realm: "desk", accountID: 7, epoch: 1)
-        let access = try MerchantBusinessAccess(MerchantBusinessObject([
+        let access = try MerchantBusinessAccess([
             "active": .bool(true),
             "merchant": .object(["id": .int(9)]),
             "roleCode": .string("MERCHANT_OWNER"),
             "permissions": .array([.string("merchant:project:manage"), .string("merchant:basic:read")]),
             "canManageOperators": .bool(false)
-        ]))
+        ])
         let session = try MerchantBusinessSession(accountID: 7, epoch: 1, token: "synthetic-token")
         let desk = MerchantDeskSkuDesk(service: service, journal: journal, scope: scope, currentSession: { session })
         await desk.load(productID: 3, skuID: 44, edit: MerchantDeskSkuDesk.Edit(skuName: "new door", price: "88.00", stock: 2),
@@ -936,26 +936,26 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
         let journal = MerchantBusinessMemoryIntentStore()
         let scope = MerchantBusinessScope(realm: "desk", accountID: 7, epoch: 1)
         let session = try MerchantBusinessSession(accountID: 7, epoch: 1, token: "synthetic-token")
-        let same = try MerchantBusinessAccess(MerchantBusinessObject([
+        let same = try MerchantBusinessAccess([
             "active": .bool(true),
             "merchant": .object(["id": .int(7)]),
             "roleCode": .string("MERCHANT_OWNER"),
             "permissions": .array([.string("merchant:project:manage"), .string("merchant:basic:read")]),
             "canManageOperators": .bool(false)
-        ]))
+        ])
         let desk = MerchantDeskSkuDesk(service: service, journal: journal, scope: scope, currentSession: { session })
         await desk.present(productID: 3, skuID: 44, access: same, accountID: 7, token: "synthetic-token")
         guard case .editing = desk.phase else {
             XCTFail("same account and merchant numbers may edit")
             return
         }
-        let staff = try MerchantBusinessAccess(MerchantBusinessObject([
+        let staff = try MerchantBusinessAccess([
             "active": .bool(true),
             "merchant": .object(["id": .int(7)]),
             "roleCode": .string("MERCHANT_CHECKIN"),
             "permissions": .array([.string("merchant:basic:read")]),
             "canManageOperators": .bool(false)
-        ]))
+        ])
         let wrongRole = MerchantDeskSkuDesk(service: service, journal: MerchantBusinessMemoryIntentStore(), scope: scope, currentSession: { session })
         let before = await transport.requests.count
         await wrongRole.present(productID: 3, skuID: 44, access: staff, accountID: 7, token: "synthetic-token")
@@ -987,13 +987,13 @@ private actor RedemptionSequenceTransport: MerchantBusinessTestTransport {
             reviewedPolicyVersion: "policy-1")
         let wire = DeskProductionWire()
         let factory = MerchantBusinessProductionFactory(api: try .init(baseURL: url), approval: approval, transport: wire, current: { context })
-        let access = try MerchantBusinessAccess(MerchantBusinessObject([
+        let access = try MerchantBusinessAccess([
             "active": .bool(true),
             "merchant": .object(["id": .int(9)]),
             "roleCode": .string("MERCHANT_OWNER"),
             "permissions": .array([.string("merchant:project:manage"), .string("merchant:basic:read")]),
             "canManageOperators": .bool(false)
-        ]))
+        ])
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         let journal = MerchantBusinessFileIntentStore(url: folder.appendingPathComponent("intents.json"))
         let desk = MerchantDeskSkuDesk(service: readService, journal: journal,

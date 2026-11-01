@@ -17,7 +17,8 @@ import FoundationNetworking
                                                         currentSession: { owner.value }))
         let entry = try XCTUnwrap(CharacterCardOpenEntry(model: model, requestID: requestID, activityID: activityID,
                                                          issuance: issuance))
-        let read = try XCTUnwrap(await entry.open())
+        let opened = await entry.open()
+        let read = try XCTUnwrap(opened)
 
         XCTAssertEqual(read.requestID, requestID)
         XCTAssertEqual(read.activityID, activityID)

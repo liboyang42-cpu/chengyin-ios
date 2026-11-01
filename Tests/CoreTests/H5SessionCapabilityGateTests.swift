@@ -2,11 +2,11 @@ import XCTest
 @testable import QuestifyCore
 
 final class H5SessionCapabilityGateTests: XCTestCase {
-    private let hash = String(repeating: "ab", count: 32)
+    private let fixtureContentHash = String(repeating: "ab", count: 32)
     private func frozen() throws -> H5FrozenCapability {
         try XCTUnwrap(H5FrozenCapability(signedDomains: ["play.chengyin.example"],
                                          sdkCapabilities: ["camera.scan", "location.once"],
-                                         packageVersion: "1.0.0", contentHash: hash))
+                                         packageVersion: "1.0.0", contentHash: fixtureContentHash))
     }
     func testSignedDomainAndSDKCapabilityAdmitWithoutOpeningH5() throws {
         var gate = H5SessionCapabilityGate()

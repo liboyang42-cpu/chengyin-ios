@@ -7,7 +7,7 @@ import FoundationNetworking
 final class H5LaunchIssuerTests: XCTestCase {
     private let ownedID = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
     private let authorID = "bbbbbbbb-bbbb-4ccc-8ddd-eeeeeeeeeeee"
-    private let hash = String(repeating: "ab", count: 32)
+    private let fixtureContentHash = String(repeating: "ab", count: 32)
     private let terms = String(repeating: "cd", count: 32)
 
     func testMissingConfigurationClosesOnlyTheLaunchAndTheReceiptStaysReadable() async throws {
@@ -137,7 +137,9 @@ final class H5LaunchIssuerTests: XCTestCase {
         let launch = try XCTUnwrap(issuer.presentedLaunch)
         let other = try XCTUnwrap(URL(string: "https://evil.example/shell"))
         XCTAssertNil(H5ShellParentFlow.loadRequest(shellURL: other, launch: launch))
-        XCTAssertNil(issuer.parent.open(shellURL: other, launch: launch))
+        var rejectedParent = issuer.parent
+        XCTAssertNil(rejectedParent.open(shellURL: other, launch: launch))
+        XCTAssertFalse(rejectedParent.shellLoaded)
         XCTAssertFalse(issuer.parent.shellLoaded)
         XCTAssertNil(H5ShellParentFlow.loadRequest(shellURL: try XCTUnwrap(URL(string: "http://api.example.test/")), launch: launch))
         XCTAssertNil(H5ShellParentFlow.loadRequest(shellURL: try XCTUnwrap(URL(string: "https://user:secret@api.example.test/")), launch: launch))
@@ -199,7 +201,7 @@ final class H5LaunchIssuerTests: XCTestCase {
         var issuer = try released(configuration: nil)
         let source = IssuerInstallRead(fact: try fact(ownedID, "INSTALLED_PRIVATE_DRAFT"))
         let other = try XCTUnwrap(WorkshopInstallIdentity(
-            licenseId: "lic-2", moduleId: "mod-1", releaseId: "rel-1", contentHash: hash, termsHash: terms))
+            licenseId: "lic-2", moduleId: "mod-1", releaseId: "rel-1", contentHash: fixtureContentHash, termsHash: terms))
         do {
             _ = try await issuer.readOwnedInstallReceipt(identity: other, source: source)
             XCTFail("identity")
@@ -212,14 +214,14 @@ final class H5LaunchIssuerTests: XCTestCase {
                                    configuration: nil))
         XCTAssertNil(H5LaunchIssuer.LicenseInstall(
             requestID: ownedID, licenseId: "lic-1", moduleId: "mod-1", purchasedVersionId: "rel-1",
-            contentHash: hash, termsHash: terms, status: "SUSPENDED"))
+            contentHash: fixtureContentHash, termsHash: terms, status: "SUSPENDED"))
         XCTAssertNil(H5LaunchIssuer.AuthorSubmission(requestID: "not-a-request"))
         XCTAssertNil(H5LaunchDescription(parentOrigin: "https://api.example.test", nonce: "abc", mainToken: "session-token"))
     }
 
     private func released(configuration: APIConfiguration?) throws -> H5LaunchIssuer {
         var entry = WorkshopInstallRecoverEntry()
-        try entry.submitManifest(manifest(hash), entry: "mod-1", originalRequestID: ownedID)
+        try entry.submitManifest(manifest(fixtureContentHash), entry: "mod-1", originalRequestID: ownedID)
         try entry.releaseReviewed(termsHash: terms, reviewed: true)
         return try XCTUnwrap(H5LaunchIssuer(owned: try owned(), author: try author(), configuration: configuration, entry: entry))
     }
@@ -227,7 +229,7 @@ final class H5LaunchIssuerTests: XCTestCase {
     private func owned() throws -> H5LaunchIssuer.LicenseInstall {
         try XCTUnwrap(H5LaunchIssuer.LicenseInstall(
             requestID: ownedID, licenseId: "lic-1", moduleId: "mod-1", purchasedVersionId: "rel-1",
-            contentHash: hash, termsHash: terms, status: "ACTIVE"))
+            contentHash: fixtureContentHash, termsHash: terms, status: "ACTIVE"))
     }
 
     private func author() throws -> H5LaunchIssuer.AuthorSubmission {
@@ -238,10 +240,10 @@ final class H5LaunchIssuerTests: XCTestCase {
         try XCTUnwrap(WorkshopOriginalInstallFact(requestID: requestID, state: state))
     }
 
-    private func manifest(_ hash: String) -> [String: String] {
+    private func manifest(_ fixtureContentHash: String) -> [String: String] {
         ["formatVersion": "1.0", "kind": "questify.mod", "packageId": "mod-1",
-         "packageVersion": "1.0.0", "entrypoint": "content.json", "contentHash": hash,
-         "schemaVersion": "1", "filePath": "content.json", "fileSha256": hash, "fileBytes": "12"]
+         "packageVersion": "1.0.0", "entrypoint": "content.json", "contentHash": fixtureContentHash,
+         "schemaVersion": "1", "filePath": "content.json", "fileSha256": fixtureContentHash, "fileBytes": "12"]
     }
 }
 

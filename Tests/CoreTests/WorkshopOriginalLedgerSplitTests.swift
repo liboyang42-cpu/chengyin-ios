@@ -2,7 +2,7 @@ import XCTest
 @testable import QuestifyCore
 
 final class WorkshopOriginalLedgerSplitTests: XCTestCase {
-    private let hash = String(repeating: "ab", count: 32)
+    private let fixtureContentHash = String(repeating: "ab", count: 32)
     private let runHash = String(repeating: "cd", count: 32)
 
     func testAppliedCommandDoesNotGrantServerPassAndMissingStaysPending() async throws {
@@ -23,7 +23,7 @@ final class WorkshopOriginalLedgerSplitTests: XCTestCase {
 
     func testAdvancedProvenanceIsNotACommandReceipt() async throws {
         let source = LedgerRead()
-        let provenance = #"{"schema":"mod-installation-native-runtime-v1","status":"SUPPORTED","kind":"CHOICE","sourceHash":"\#(hash)","runHash":"\#(runHash)","sessionId":"8","activityId":"1","topicId":"2","nodeId":"5"}"#
+        let provenance = #"{"schema":"mod-installation-native-runtime-v1","status":"SUPPORTED","kind":"CHOICE","sourceHash":"\#(fixtureContentHash)","runHash":"\#(runHash)","sessionId":"8","activityId":"1","topicId":"2","nodeId":"5"}"#
         source.advanced = Data("""
         {"sessionId":"8","activityId":"1","topicId":"2","nodeId":"5","status":"RUNNING","modInstallationRuntime":\(provenance)}
         """.utf8)
@@ -42,14 +42,14 @@ final class WorkshopOriginalLedgerSplitTests: XCTestCase {
 
     func testRegisteredArtifactReceiptDoesNotAdmitH5() throws {
         let receipt = Data("""
-        {"moduleId":"mod-1","releaseId":"rel-1","contentHash":"\(hash)","title":"door","contentApprovalReference":"audit-task:4","schema":"w18-native-text-template-v1","requiredBindings":[]}
+        {"moduleId":"mod-1","releaseId":"rel-1","contentHash":"\(fixtureContentHash)","title":"door","contentApprovalReference":"audit-task:4","schema":"w18-native-text-template-v1","requiredBindings":[]}
         """.utf8)
         let freeze = try WorkshopOriginalLedgerSplit().acceptRegisteredArtifact(receipt, moduleID: "mod-1", releaseID: "rel-1")
         XCTAssertFalse(freeze.h5Admitted)
         XCTAssertNil(freeze.sdkVersion)
-        XCTAssertEqual(freeze.contentHash, hash)
+        XCTAssertEqual(freeze.contentHash, fixtureContentHash)
         let internalRow = Data("""
-        {"moduleId":"mod-1","releaseId":"rel-1","contentHash":"\(hash)","title":"door","contentApprovalReference":"audit-task:4","schema":"w18-native-text-template-v1","requiredBindings":[],"status":"ACTIVE","template":{"title":"<script>"}}
+        {"moduleId":"mod-1","releaseId":"rel-1","contentHash":"\(fixtureContentHash)","title":"door","contentApprovalReference":"audit-task:4","schema":"w18-native-text-template-v1","requiredBindings":[],"status":"ACTIVE","template":{"title":"<script>"}}
         """.utf8)
         XCTAssertThrowsError(try WorkshopOriginalLedgerSplit().acceptRegisteredArtifact(
             internalRow, moduleID: "mod-1", releaseID: "rel-1")) { error in

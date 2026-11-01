@@ -112,11 +112,11 @@ private final class UnmarkedProtectedWire: HTTPTransport {
         XCTAssertFalse(mismatch.permitsDispatch(op))
         let offline = ProtectedWire()
         let ignored = CoopFlowService(configuration: try APIConfiguration(baseURL: endpoint), transport: offline, executionApproval: {
-            CoopFlowExecutionApproval(operations: [.withdrawOffer], endpoint: endpoint)
+            CoopFlowExecutionApproval(operations: [.withdrawOffer], endpoint: self.endpoint)
         })
         XCTAssertFalse(ignored.permitsDispatch(op), "An offline transport does not become the approved host")
         let open = CoopFlowService(configuration: try APIConfiguration(baseURL: endpoint), transport: wire, executionApproval: {
-            CoopFlowExecutionApproval(operations: [.withdrawOffer], endpoint: endpoint)
+            CoopFlowExecutionApproval(operations: [.withdrawOffer], endpoint: self.endpoint)
         })
         XCTAssertTrue(open.permitsDispatch(op))
         XCTAssertFalse(open.permitsDispatch(.contact(inviteID: 8)))

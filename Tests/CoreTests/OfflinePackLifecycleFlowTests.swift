@@ -14,11 +14,11 @@ final class OfflinePackLifecycleFlowTests: XCTestCase {
 
     func testOrderedLifecycleKeepsMachineOutcomesAndDoesNotInstall() throws {
         let now = Date(timeIntervalSince1970: 1_900_000_000)
-        let manifest = try manifest(operationID: "op-life")
+        let manifest = try self.manifest(operationID: "op-life")
         var prior = OfflinePackOperation()
-        try prior.startDownload(try manifest(operationID: "op-prior"), at: now)
+        try prior.startDownload(try self.manifest(operationID: "op-prior"), at: now)
         try prior.finishDownload(payload: payload)
-        try prior.applyUpdate(try manifest(version: "pack-v2", operationID: "op-prior"), keepOld: true, at: now)
+        try prior.applyUpdate(try self.manifest(version: "pack-v2", operationID: "op-prior"), keepOld: true, at: now)
 
         let report = try OfflinePackLifecycleFlow.walk(manifest: manifest, at: now, keepOldUpdate: prior)
 
