@@ -132,7 +132,10 @@ final class Real: XCTestCase {
         ui=source.split('  ui:\n',1)[1].split('  platforms:\n',1)[0]
         self.assertIn('partition: [core, app-unit]', native)
         self.assertNotIn('ui_build_artifact', native)
-        self.assertIn('needs: [controls, secrets]', build)
+        self.assertIn('needs: [controls]', native)
+        self.assertIn('needs: [controls]', build)
+        aggregate=source.split('  current-checks:\n',1)[1]
+        self.assertIn('needs: [controls, secrets, native, ui_build, ui, platforms]', aggregate)
         self.assertIn("--role 'ui-build'", build)
         self.assertIn("ui_build_artifact: ${{ steps.ui_build_upload.outputs.artifact-id }}", build)
         self.assertIn("id: ui_build_upload\n        if: success()", build)

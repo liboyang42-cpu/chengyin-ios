@@ -79,9 +79,35 @@ jobs:
       - name: Keep existing complete branch secret scan
         run: |
           test "$(gitleaks version)" = '8.24.3'
-          gitleaks git --redact --exit-code=2 --log-opts="--full-history -m HEAD"
+          scan_code=0
+          gitleaks git --redact --exit-code=2 --log-opts="--full-history -m HEAD" --report-format json --report-path "$RUNNER_TEMP/full-history-gitleaks.json" || scan_code=$?
+          metadata_code=0
+          python3 -B - <<'PY' || metadata_code=$?
+          import json, os
+          from pathlib import Path
+          allowed={'Commit','File','StartLine','EndLine','RuleID','Fingerprint','Entropy','Tags'}
+          report=Path(os.environ['RUNNER_TEMP'])/'full-history-gitleaks.json'
+          if report.is_file():
+              findings=json.loads(report.read_text())
+              assert isinstance(findings,list) and all(isinstance(row,dict) for row in findings), 'Unexpected Gitleaks report shape'
+              metadata=[{key:value for key,value in row.items() if key in allowed} for row in findings]
+              assert all(set(row)<=allowed and not {'Secret','Match'}.intersection(row) for row in metadata), 'Only finding metadata may be published'
+              encoded=json.dumps(metadata,indent=2)+'\n'
+              (report.parent/'full-history-gitleaks-metadata.json').write_text(encoded)
+              print(encoded,end='')
+          PY
+          if [ "$scan_code" -ne 0 ]; then exit "$scan_code"; fi
+          exit "$metadata_code"
+      - name: Preserve only secret-scan finding metadata
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: current-secret-findings-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/full-history-gitleaks-metadata.json
+          if-no-files-found: ignore
+          retention-days: 1
   native:
-    needs: [controls, secrets]
+    needs: [controls]
     runs-on: macos-26
     timeout-minutes: 45
     strategy:
@@ -120,7 +146,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
   ui_build:
-    needs: [controls, secrets]
+    needs: [controls]
     outputs:
       ui_build_artifact: ${{ steps.ui_build_upload.outputs.artifact-id }}
     runs-on: macos-26
