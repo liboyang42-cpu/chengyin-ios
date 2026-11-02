@@ -23,7 +23,7 @@ class StoryMediaGapContracts(unittest.TestCase):
         self.assertIn('exactData(oldValue.chapters)', s); self.assertIn('oldStory != newStory { storyGapRevision += 1 }', s)
         image = self.read('App/ProjectStoryImagePresentation.swift')
         self.assertIn('editor.storyGapRevision == (expectedGap ?? original.storyGapRevision)', image)
-        self.assertIn('appliedTopology = (original.opening.target.id, editor.storyTopologyRevision, editor.storyGapRevision)', image)
+        self.assertIn('appliedTopology = (original.opening.target.id, editor.storyTopologyRevision, editor.storyGapRevision, editor.draftMutationRevision)', image)
         audio = self.read('App/ProjectStoryAudioPresentation.swift')
         self.assertIn('editor.storyGapRevision == original.gapRevision', audio)
         self.assertIn('appliedGapRevision = (original.opening.block.target.id, editor.storyGapRevision)', audio)

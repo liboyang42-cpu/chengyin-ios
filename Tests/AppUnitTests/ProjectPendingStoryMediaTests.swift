@@ -39,7 +39,7 @@ import SwiftUI
     }
     private func selectImage(_ model: ProjectStoryImageAuthorModel) async throws {
         model.load(); await model.choose(); let crop = try XCTUnwrap(model.crop.draft)
-        model.confirmCrop(crop.id, try .init(sourceWidth: crop.source.width, sourceHeight: crop.source.height, horizontal: 0.5, vertical: 0.5, zoom: 1))
+        model.confirmCrop(crop.id, try .init(sourceWidth: crop.sources[0].width, sourceHeight: crop.sources[0].height, horizontal: 0.5, vertical: 0.5, zoom: 1))
     }
     private func uploadImage(_ model: ProjectStoryImageAuthorModel) async throws {
         try await selectImage(model); model.upload(try XCTUnwrap(model.flow.review))

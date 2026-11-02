@@ -9,7 +9,8 @@ struct CityGameSlot: View {
     @State private var model: CityGameCoordinator?
     @State private var resolved = false
     var body: some View {
-        Group {
+        // The task needs a concrete host even before model/resolved has content.
+        VStack(alignment: .leading, spacing: 0) {
             if let model { CityGamePanel(model: model, read: snapshot) }
             else if resolved {
                 VStack(alignment: .leading, spacing: 4) {

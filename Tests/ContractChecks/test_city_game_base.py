@@ -62,6 +62,12 @@ class CityGameBaseContracts(unittest.TestCase):
         city = text('App/CityPlayerView.swift')
         self.assertIn('CityPlayerView(reader: session.makeCityPlayerReader()).id(session.cityPlayerReadIdentity)', city)
         self.assertIn('CityGameSlot(snapshot: context.snapshot, factory: gameFactory).id(context.readID)', city)
+        slot = code('App/CityGamePanel.swift').split('struct CityGameSlot: View {', 1)[1].split('struct CityGamePanel:', 1)[0]
+        self.assertRegex(slot, r'var body: some View \{\s*VStack\(alignment: \.leading, spacing: 0\)')
+        self.assertIn('guard !resolved else { return }', slot)
+        self.assertIn('model = factory?(snapshot); resolved = true', slot)
+        self.assertIn('await model?.load()', slot)
+        self.assertIn('.onDisappear { model?.invalidate() }', slot)
         self.assertIn('static let defaultValue: HomeReturnCoordinator? = nil', text('App/HomeReturnSection.swift'))
         for path in ROOT.glob('App/*.swift'):
             if path.name == 'CityGameFixtureHost.swift':

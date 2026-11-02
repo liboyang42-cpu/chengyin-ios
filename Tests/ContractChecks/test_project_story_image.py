@@ -83,7 +83,7 @@ class ProjectStoryImageContracts(unittest.TestCase):
         core = self.read('Tests/CoreTests/ProjectStoryImageTests.swift')
         app = self.read('Tests/AppUnitTests/ProjectStoryImagePresentationTests.swift')
         composition = self.read('Tests/AppUnitTests/ProjectStoryImageCompositionTests.swift')
-        self.assertEqual(len(re.findall(r'func test\w+\(', core)), 12)
+        self.assertEqual(len(re.findall(r'func test\w+\(', core)), 22)
         self.assertEqual(len(re.findall(r'func test\w+\(', app)), 13)
         self.assertEqual(len(re.findall(r'func test\w+\(', composition)), 5)
         for token in ['testPartialLocalEnvelopeSave', 'testReceiptPersistenceFailureReopens', 'testRetainedCropCallback', 'testActualApplySavesRestores']:

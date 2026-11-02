@@ -51,7 +51,7 @@ import SwiftUI
     }
     private func imageUpload(_ model: ProjectStoryImageAuthorModel) async throws {
         model.load(); await model.choose(); let crop = try XCTUnwrap(model.crop.draft)
-        model.confirmCrop(crop.id, try .init(sourceWidth: crop.source.width, sourceHeight: crop.source.height, horizontal: 0.5, vertical: 0.5, zoom: 1))
+        model.confirmCrop(crop.id, try .init(sourceWidth: crop.sources[0].width, sourceHeight: crop.sources[0].height, horizontal: 0.5, vertical: 0.5, zoom: 1))
         model.upload(try XCTUnwrap(model.flow.review)); for _ in 0..<100 where model.flow.busy { await Task.yield() }
         XCTAssertNotNil(model.flow.receipt)
     }
@@ -98,7 +98,7 @@ import SwiftUI
         let model = try openImage(c, controller, before: try XCTUnwrap(c.editor.draft.chapters[0].blocks?[1].id))
         model.load(); await model.choose(); model.cancelCrop(try XCTUnwrap(model.crop.draft).id)
         await model.choose(); let crop = try XCTUnwrap(model.crop.draft)
-        model.confirmCrop(crop.id, try .init(sourceWidth: crop.source.width, sourceHeight: crop.source.height, horizontal: 0.5, vertical: 0.5, zoom: 1))
+        model.confirmCrop(crop.id, try .init(sourceWidth: crop.sources[0].width, sourceHeight: crop.sources[0].height, horizontal: 0.5, vertical: 0.5, zoom: 1))
         model.cancel(try XCTUnwrap(model.flow.review))
         XCTAssertEqual(ProjectEditPendingMaterials.exactData(c.editor.draft), before); XCTAssertEqual(c.image.uploadCount, 0)
     }
@@ -174,7 +174,7 @@ import SwiftUI
         let c = try await context(), controller = ProjectStoryImagePresentation(editor: c.editor)
         let model = try openImage(c, controller, before: try XCTUnwrap(c.editor.draft.chapters[0].blocks?.first?.id))
         model.load(); await model.choose(); let crop = try XCTUnwrap(model.crop.draft)
-        model.confirmCrop(crop.id, try .init(sourceWidth: crop.source.width, sourceHeight: crop.source.height, horizontal: 0.5, vertical: 0.5, zoom: 1))
+        model.confirmCrop(crop.id, try .init(sourceWidth: crop.sources[0].width, sourceHeight: crop.sources[0].height, horizontal: 0.5, vertical: 0.5, zoom: 1))
         model.upload(try XCTUnwrap(model.flow.review)); c.editor.discard()
         for _ in 0..<100 { await Task.yield() }
         XCTAssertEqual(c.image.uploadCount, 0); XCTAssertFalse(model.flow.isCurrent); XCTAssertEqual(c.editor.draft.chapters[0].blocks?.count, 3)
@@ -189,7 +189,7 @@ import SwiftUI
                 else { c.editor.draft.chapters[0].blocks?[1].kind = .text; c.editor.draft.chapters[0].blocks = original }
             }
             model.load(); await model.choose(); let crop = try XCTUnwrap(model.crop.draft)
-            model.confirmCrop(crop.id, try .init(sourceWidth: crop.source.width, sourceHeight: crop.source.height, horizontal: 0.5, vertical: 0.5, zoom: 1))
+            model.confirmCrop(crop.id, try .init(sourceWidth: crop.sources[0].width, sourceHeight: crop.sources[0].height, horizontal: 0.5, vertical: 0.5, zoom: 1))
             model.upload(try XCTUnwrap(model.flow.review)); for _ in 0..<100 where model.flow.busy { await Task.yield() }
             let current = ProjectEditPendingMaterials.exactData(c.editor.draft), stored = c.storage.data
             model.apply(); XCTAssertFalse(model.flow.isCurrent); XCTAssertNil(model.flow.receipt)

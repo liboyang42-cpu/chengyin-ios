@@ -7,7 +7,8 @@ func assertFixtureEnvironment(in app: XCUIApplication, noticeIdentifier: String 
                               dynamicTypeSize: String? = nil,
                               file: StaticString = #filePath, line: UInt = #line) {
     precondition(colorScheme != nil || dynamicTypeSize != nil)
-    let notice = app.descendants(matching: .any).matching(identifier: noticeIdentifier).firstMatch
+    let notices = app.descendants(matching: .any).matching(identifier: noticeIdentifier)
+    let notice = notices.firstMatch
     guard notice.waitForExistence(timeout: 10) else {
         XCTFail("Missing offline environment observation: " + app.debugDescription, file: file, line: line)
         return
@@ -19,8 +20,8 @@ func assertFixtureEnvironment(in app: XCUIApplication, noticeIdentifier: String 
     if let dynamicTypeSize {
         predicates.append(NSPredicate(format: "value ENDSWITH %@", ";dynamicTypeSize=\(dynamicTypeSize)"))
     }
-    let expected = XCTNSPredicateExpectation(predicate: NSCompoundPredicate(andPredicateWithSubpredicates: predicates), object: notice)
-    XCTAssertEqual(XCTWaiter.wait(for: [expected], timeout: 10), .completed,
+    let expected = notices.matching(NSCompoundPredicate(andPredicateWithSubpredicates: predicates)).firstMatch
+    XCTAssertTrue(expected.waitForExistence(timeout: 10),
                    "Unexpected actual fixture environment: \(String(describing: notice.value)). " + app.debugDescription,
                    file: file, line: line)
 }

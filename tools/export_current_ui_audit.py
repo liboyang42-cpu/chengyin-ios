@@ -130,15 +130,19 @@ def export(plan, output):
                 n.require(status == 'OK', 'Attachment export did not complete')
                 for label in labels:
                     name = label if method.startswith(('QuestifyUITests/MerchantOnboardingFlowTests/', 'QuestifyUITests/ModuleFlowTests/')) else label + ' – synthetic fixture'
+                    attachments = n.read_json(folder / 'manifest.json')[0]['attachments']
                     allowed = [name] + [name + suffix for suffix in ('.png', '.jpg', '.jpeg')]
+                    suffix = r'_(?:0|[1-9][0-9]*)_[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}\.(?:png|jpg|jpeg)'
+                    allowed += [item['suggestedHumanReadableName'] for item in attachments
+                                if isinstance(item.get('suggestedHumanReadableName'), str)
+                                and n.re.fullmatch(n.re.escape(name) + suffix, item['suggestedHumanReadableName'])]
                     images = n.bounded_failure_images(folder, method, 64 * 1024 * 1024 - total, 1, allowed_names=allowed)
                     if not images:
                         diagnostic = attachment_diagnostic(folder, method, name)
                         report.setdefault('diagnostics', []).append(diagnostic)
                         print('QUESTIFY_UI_AUDIT_DIAGNOSTIC_V1 ' + n.encode({
                             'identity': plan['identity'], 'index': receipt['index'], **diagnostic}), flush=True)
-                    matches = [item for item in n.read_json(folder / 'manifest.json')[0]['attachments']
-                               if item.get('suggestedHumanReadableName') in allowed]
+                    matches = [item for item in attachments if item.get('suggestedHumanReadableName') in allowed]
                     n.require(len(images) == len(matches) == 1, 'Missing or ambiguous requested attachment')
                     filename, data = images[0]
                     destination = published / filename

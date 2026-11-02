@@ -48,7 +48,7 @@ final class AccessibilityPresentationFlowTests:XCTestCase {
         XCTAssertTrue(app.descendants(matching:.any)["playRoute.screen"].waitForExistence(timeout:10),app.debugDescription)
         tap("playRouteCamera.controls");tap("playRouteCamera.choose");tap("playRouteCamera.choice.700")
         let map=app.descendants(matching:.any)["playRoute.map"].firstMatch
-        XCTAssertTrue(revealFixtureElement(map,in:app,towardTop:true,requiresHittable:false),app.debugDescription)
+        XCTAssertTrue(revealFixtureElement(map,in:app,requiresHittable:false),app.debugDescription)
         XCTAssertEqual(map.value as? String,"preview:700;camera=fitted",app.debugDescription)
         let pin=app.buttons["playRoute.pin.700"]
         XCTAssertTrue(pin.waitForExistence(timeout:5),app.debugDescription)

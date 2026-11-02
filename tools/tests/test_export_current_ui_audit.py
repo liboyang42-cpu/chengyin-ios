@@ -34,6 +34,7 @@ class ExportCurrentUIAuditTests(unittest.TestCase):
         folder = Path(argv[argv.index('--output-path') + 1])
         names = {
             'QuestifyUITests/ModuleFlowTests/testProfileOrderReadbackAndBack': ['Order detail – synthetic data'],
+            'QuestifyUITests/HomeFeedFlowTests/testEmptyStateIsNotAnError': ['Home feed known empty state – synthetic fixture'],
             'QuestifyUITests/TicketWalletFlowTests/testWalletDetailEntitlementsBackAndReopenNeverOffersCodeOrPayment': [
                 'Ticket wallet initial content – synthetic fixture', 'Ticket detail entitlements – synthetic fixture'],
         }[self.method]
@@ -147,7 +148,9 @@ class ExportCurrentUIAuditTests(unittest.TestCase):
 
     def testExactNameAndFilenameExtensionsKeepCanonicalLabel(self):
         label = 'Order detail – synthetic data'
-        for suffix in ('', '.png', '.jpg', '.jpeg'):
+        uuid = 'C52033D6-9B99-4918-891E-3575FBC6E417'
+        for suffix in ('', '.png', '.jpg', '.jpeg', '_0_' + uuid + '.png',
+                       '_1_' + uuid.lower() + '.jpg', '_23_' + uuid + '.jpeg'):
             with self.subTest(suffix=suffix):
                 self.attachment_names = [label + suffix]
                 self.export_fixture()
@@ -157,9 +160,26 @@ class ExportCurrentUIAuditTests(unittest.TestCase):
                 for path in self.packet.iterdir(): path.unlink()
                 self.packet.rmdir()
 
+        self.method = 'QuestifyUITests/HomeFeedFlowTests/testEmptyStateIsNotAnError'
+        self.receipt['actual'] = [{'method': self.method}]
+        audit.n.write_json(self.output / 'receipt.json', self.receipt)
+        original = (self.output / 'receipt.json').read_bytes()
+        self.attachment_names = ['Home feed known empty state – synthetic fixture_0_C52033D6-9B99-4918-891E-3575FBC6E417.png']
+        self.export_fixture()
+        report = audit.n.read_json(self.packet / 'audit-index.json')
+        self.assertEqual(report['status'], 'COMPLETE')
+        self.assertEqual([item['attachment'] for item in report['files']], ['Home feed known empty state – synthetic fixture'])
+        self.assertEqual((self.output / 'receipt.json').read_bytes(), original)
+        self.assertEqual(audit.n.digest(self.packet / report['files'][0]['path']), report['files'][0]['sha256'])
+
     def testWrongNamesAndDuplicateAliasesStayIncompleteWithDiagnostics(self):
         label = 'Order detail – synthetic data'
-        for names in (['Wrong screenshot'], [label + '.png.extra'], [label + '.PNG'], [label, label + '.png']):
+        uuid = 'C52033D6-9B99-4918-891E-3575FBC6E417'
+        for names in (['Wrong screenshot'], [label + '.png.extra'], [label + '.PNG'], [label, label + '.png'],
+                      [label + '_0_bad-uuid.png'], [label + '_-1_' + uuid + '.png'],
+                      [label + '_00_' + uuid + '.png'], [label + '_0_' + uuid + '.png.extra'],
+                      [label + '_0_' + uuid + '.PNG'], ['Wrong screenshot_0_' + uuid + '.png'],
+                      [label + '_0_' + uuid + '.png', label + '_1_' + uuid + '.png']):
             with self.subTest(names=names):
                 self.attachment_names = names
                 self.same_image_bytes = True

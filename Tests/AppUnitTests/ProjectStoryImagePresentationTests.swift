@@ -30,7 +30,7 @@ import XCTest
     private func select(_ model: ProjectStoryImageAuthorModel) async throws {
         model.load(); await model.choose(); let crop = try XCTUnwrap(model.crop.draft)
         XCTAssertNil(model.flow.review)
-        model.confirmCrop(crop.id, try .init(sourceWidth: crop.source.width, sourceHeight: crop.source.height, horizontal: 0.5, vertical: 0.5, zoom: 1))
+        model.confirmCrop(crop.id, try .init(sourceWidth: crop.sources[0].width, sourceHeight: crop.sources[0].height, horizontal: 0.5, vertical: 0.5, zoom: 1))
         XCTAssertNotNil(model.preview); XCTAssertNotNil(model.flow.review)
     }
     private func upload(_ model: ProjectStoryImageAuthorModel) async throws {
@@ -105,7 +105,7 @@ import XCTest
         let c = try await context(), original = try open(c), model = model(c, original)
         model.load(); await model.choose(); let old = try XCTUnwrap(model.crop.draft)
         model.cancelCrop(old.id); await model.choose(); let current = try XCTUnwrap(model.crop.draft)
-        model.confirmCrop(old.id, try .init(sourceWidth: old.source.width, sourceHeight: old.source.height, horizontal: 0.5, vertical: 0.5, zoom: 1))
+        model.confirmCrop(old.id, try .init(sourceWidth: old.sources[0].width, sourceHeight: old.sources[0].height, horizontal: 0.5, vertical: 0.5, zoom: 1))
         XCTAssertEqual(model.crop.draft?.id, current.id); XCTAssertNil(original.flow.review); XCTAssertEqual(c.source.uploadCount, 0)
     }
     func testNewCropCannotApplyPreviousReceiptBehindPendingSelection() async throws {
