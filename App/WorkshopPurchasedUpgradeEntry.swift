@@ -41,6 +41,7 @@ typealias WorkshopPurchasedUpgradeFactory = () -> WorkshopPurchasedUpgradeHandle
     static func performFinishCompare(item: WorkshopPurchasedItem, result: WorkshopModUpgradePresentation?, checking: inout Bool, unavailable: inout Bool, presentation: inout WorkshopModUpgradePresentation?, showing: inout Bool) {
         checking = false
         if let result, result.useTermPresentation.term.licenseId == item.licenseId, result.preview.installed.versionId == item.purchasedVersionId, result.preview.installed.moduleId == item.moduleId, result.preview.installed.contentHash == item.contentHash {
+            unavailable = false
             presentation = result; showing = true
         } else { presentation = nil; unavailable = true; showing = false }
     }

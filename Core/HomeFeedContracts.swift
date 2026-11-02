@@ -62,6 +62,14 @@ private func homeFeedNonempty(_ value: String?) -> String? {
 
 /// Matches the retained home_activity_live.dart wire contract, including strict calendar checks.
 public enum HomeFeedDate {
+    public static func display(_ raw: String?, locale: Locale, sourceTimeZone: TimeZone? = nil,
+                               displayTimeZone: TimeZone = .current) -> String {
+        guard let date = parse(raw, sourceTimeZone: sourceTimeZone) else { return homeFeedNonempty(raw) ?? "—" }
+        var style = Date.FormatStyle.dateTime.year().month(.abbreviated).day().hour().minute().locale(locale)
+        style.timeZone = displayTimeZone
+        return date.formatted(style)
+    }
+
     public static func parse(_ raw: String?, sourceTimeZone: TimeZone? = nil) -> Date? {
         guard let raw else { return nil }
         let text = raw.trimmingCharacters(in: .whitespacesAndNewlines)

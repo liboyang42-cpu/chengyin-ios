@@ -35,7 +35,10 @@ final class HomeFeedFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["homeFeed.destination.activity"].waitForExistence(timeout: 15), app.debugDescription)
         XCTAssertEqual(app.staticTexts["homeFeed.destination.activity"].label, "Synthetic activity destination 7")
         app.navigationBars.buttons.firstMatch.tap()
-        XCTAssertTrue(app.staticTexts["Currency not provided"].firstMatch.waitForExistence(timeout: 5))
+        let currency = app.staticTexts.matching(NSPredicate(format: "label == %@ OR label == %@",
+            "Currency not provided", "Starting price\nCurrency not provided")).firstMatch
+        XCTAssertTrue(revealFixtureElement(currency, in: app, requiresHittable: false), app.debugDescription)
+        XCTAssertTrue(currency.waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertFalse(app.buttons["Buy"].exists); XCTAssertFalse(app.buttons["Start playing"].exists)
     }
     func testPageFailureRetriesAndDuplicateFullPageStillPaginates() {

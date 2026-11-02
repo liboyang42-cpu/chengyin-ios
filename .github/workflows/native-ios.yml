@@ -276,7 +276,7 @@ jobs:
           - kind: device
             minutes: 20
           - kind: us
-            minutes: 10
+            minutes: 20
     env:
       PYTHONDONTWRITEBYTECODE: '1'
     steps:

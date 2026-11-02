@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import Combine
 
 @MainActor final class PlayPlayerActionReviewController: ObservableObject {
     struct Ticket { fileprivate let visit: UUID; fileprivate let context: PlayPlayerActionReviewContext }
@@ -10,11 +11,14 @@ import UIKit
     }
     struct Claim { fileprivate let review: Review }
     let model: PlayPlayerGameCoordinator
-    @Published private(set) var review: Review?
-    @Published private(set) var working = false
-    @Published private(set) var issue: PlayExperienceError?
-    @Published private var drafts: [Int: String] = [:]
-    @Published private var lifecycleRevision = 0
+    let objectWillChange = ObservableObjectPublisher()
+    private var dismantling = false
+    private(set) var review: Review? { willSet { publishChange() } }
+    private(set) var working = false { willSet { publishChange() } }
+    private(set) var issue: PlayExperienceError? { willSet { publishChange() } }
+    private var drafts: [Int: String] = [:] { willSet { publishChange() } }
+    private var lifecycleRevision = 0 { willSet { publishChange() } }
+    private func publishChange() { if !dismantling { objectWillChange.send() } }
     private var visible = false, active = false
     private var visit = UUID()
     private var claimed: UUID?
@@ -28,7 +32,11 @@ import UIKit
     func retire() { visible = false; active = false; clearVisit() }
     private func clearVisit() { visit = UUID(); claimed = nil; review = nil; drafts = [:]; issue = nil; working = false; lifecycleRevision += 1 }
     func attach(_ root: PlayPlayerActionRootController) { self.root = root }
-    func detached(_ root: PlayPlayerActionRootController) { guard self.root === root else { return }; self.root = nil; retire() }
+    func detached(_ root: PlayPlayerActionRootController) {
+        guard self.root === root else { return }
+        dismantling = true; self.root = nil; retire(); dismantling = false
+        Task { @MainActor [weak self] in self?.objectWillChange.send() }
+    }
     func departed(_ root: PlayPlayerActionRootController) { guard self.root === root, root.isActuallyLeaving else { return }; retire() }
     func disappear() { guard root?.isActuallyLeaving != false else { return }; retire() }
     func capture() -> Ticket? {

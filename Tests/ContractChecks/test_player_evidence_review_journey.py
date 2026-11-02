@@ -79,7 +79,7 @@ class PlayerEvidenceReviewJourneyContract(unittest.TestCase):
         for forbidden in ['URLSession', 'transport.send', 'api/', 'retryExact()', '.recover()', 'await recover()', 'enabled.insert', 'grant(', 'award(', 'complete(']:
             self.assertNotIn(forbidden, new)
         runtime=(ROOT/'Core/PlayGameSessionRuntime.swift').read_text()
-        self.assertIn('guard pending == nil, phase == "ready"',runtime)
+        self.assertIn('guard !Task.isCancelled, pending == nil, phase == "ready"',runtime)
         self.assertIn('if receipt.outcome == "PENDING" { phase = "unknown"; return }',runtime)
         self.assertIn('let value = try await service.playerProjection',runtime)
     def test_catalog_has_exact_bilingual_review_and_two_distinct_actions(self):

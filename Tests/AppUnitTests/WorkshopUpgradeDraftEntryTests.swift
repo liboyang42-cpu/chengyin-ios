@@ -110,7 +110,8 @@ import Core
         var showing = true
         var saveFailed = true
         var receipt: WorkshopUpgradeDraftReceipt?
-        XCTAssertThrowsError(try WorkshopPurchasedUpgradeEntry.performCommitDraft(draft, handlers: bare, item: item, presentation: preview, token: UUID(), current: UUID(), draftSaved: &draftSaved, showing: &showing, saveFailed: &saveFailed, receipt: &receipt)) {
+        let bareToken = UUID()
+        XCTAssertThrowsError(try WorkshopPurchasedUpgradeEntry.performCommitDraft(draft, handlers: bare, item: item, presentation: preview, token: bareToken, current: bareToken, draftSaved: &draftSaved, showing: &showing, saveFailed: &saveFailed, receipt: &receipt)) {
             XCTAssertEqual($0 as? WorkshopUpgradeDraftIssue, .unavailable)
         }
         XCTAssertFalse(called)

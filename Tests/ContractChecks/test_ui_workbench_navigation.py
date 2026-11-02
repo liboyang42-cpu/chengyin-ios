@@ -28,11 +28,17 @@ class WorkbenchUINavigationChecks(unittest.TestCase):
 
     def test_reveal_checks_viewport_and_keeps_gestures_above_keyboard(self):
         source = self.text('Tests/AppUITests/FailureScreenshot.swift')
-        for fragment in ['navigationBar.frame.maxY', 'toolbar.frame.minY', 'keyboard.frame.minY',
+        for fragment in ['foregroundBarFrame(.navigationBar)', 'frame.maxY + 4',
+                         'foregroundBarFrame(.toolbar)', 'foregroundBarFrame(.keyboard)', 'frame.minY - 4',
                          'fullyVisible && (!requiresHittable || element.isHittable)',
                          'bounds.minY + bounds.height * startFraction',
-                         'guard attempt < maximumSwipes, bounds.height > 80, app.frame.height > 0 else { break }']:
+                         'guard attempt < maximumSwipes, bounds.height > 80, screen.height > 0 else { break }']:
             self.assertIn(fragment, source)
+        viewport = source.split('func viewport()', 1)[1].split('for attempt in 0...maximumSwipes', 1)[0]
+        self.assertEqual(viewport.count('app.snapshot()'), 1)
+        self.assertIn('guard let snapshot = try? app.snapshot() else { return nil }', viewport)
+        self.assertIn('hierarchy.last', viewport)
+        self.assertNotIn('element(boundBy:', viewport)
 
     def test_merchant_scrolls_before_existence_assertion_and_checks_retained_lock(self):
         source = self.text('Tests/AppUITests/MerchantEngagementFlowTests.swift')

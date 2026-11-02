@@ -68,6 +68,15 @@ class CityGameBaseContracts(unittest.TestCase):
         self.assertIn('model = factory?(snapshot); resolved = true', slot)
         self.assertIn('await model?.load()', slot)
         self.assertIn('.onDisappear { model?.invalidate() }', slot)
+        review = code('App/CityGamePanel.swift').split('private func reviewCard(', 1)[1].split('private var unknownSection:', 1)[0]
+        for key in ['cityGame.review.confirm', 'cityGame.review.cancel']:
+            self.assertRegex(review, re.escape('Text("' + key + '", tableName: "CityGame")')
+                             + r'\s*\.frame\(maxWidth: \.infinity, minHeight: 44\)\.contentShape\(Rectangle\(\)\)')
+        self.assertIn('.buttonStyle(.borderedProminent)', review)
+        self.assertIn('.buttonStyle(.bordered)', review)
+        self.assertIn('.disabled(!model.reviewAffordable)', review)
+        self.assertIn('await model.confirm()', review)
+        self.assertIn('Button(role: .cancel) { model.cancelReview() }', review)
         self.assertIn('static let defaultValue: HomeReturnCoordinator? = nil', text('App/HomeReturnSection.swift'))
         for path in ROOT.glob('App/*.swift'):
             if path.name == 'CityGameFixtureHost.swift':

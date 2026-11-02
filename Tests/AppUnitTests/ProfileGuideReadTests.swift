@@ -167,7 +167,17 @@ import UIKit
         let host=UIHostingController(rootView:AnyView(NavigationStack{view}.environment(\.scenePhase,.active)))
         let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window;window.rootViewController=host;window.makeKeyAndVisible()
         defer { sceneWindow.retire() };host.loadViewIfNeeded();host.view.layoutIfNeeded()
-        for _ in 0..<100 where h.wire.requests.isEmpty{try await Task.sleep(for:.milliseconds(20))}
+        func revealDocuments(in view:UIView) {
+            if let list=view as? UICollectionView {
+                list.layoutIfNeeded()
+                let bottom=max(-list.adjustedContentInset.top,list.contentSize.height-list.bounds.height+list.adjustedContentInset.bottom)
+                list.setContentOffset(CGPoint(x:list.contentOffset.x,y:bottom),animated:false)
+            } else { for child in view.subviews { revealDocuments(in:child) } }
+        }
+        // The original information section is below the static guide modes in a lazy List.
+        for _ in 0..<100 where h.wire.requests.isEmpty {
+            revealDocuments(in:host.view);try await Task.sleep(for:.milliseconds(20))
+        }
         XCTAssertEqual(h.wire.paths,["infomation_list"]);reader.refresh()
         for _ in 0..<100 where h.wire.requests.count<2{try await Task.sleep(for:.milliseconds(20))}
         XCTAssertEqual(h.wire.paths,["infomation_list","infomation_list"])

@@ -131,7 +131,8 @@ import SwiftUI
         defer { window.isHidden = true;window.rootViewController = nil }
         host.loadViewIfNeeded();host.view.layoutIfNeeded()
         for _ in 0..<100 where h.wire.requests.isEmpty { try await Task.sleep(for:.milliseconds(20)) }
-        XCTAssertEqual(h.wire.paths,["list"])
+        // Without the independent community-read gate, the normal host reads saved topics.
+        XCTAssertEqual(h.wire.paths,["like_list"])
     }
 }
 
@@ -185,6 +186,7 @@ import SwiftUI
 @MainActor final class ProfileFavoritesWire: HTTPTransport {
     var requests:[URLRequest] = [], pages:[Int] = [], posts = [101]
     var account = 81, status = 200
+    var communityRead = false
     var override:String?, holdPath:String?, onHeld:(() -> Void)?
     var pending:CheckedContinuation<(Data,Int),Error>?
     var paths:[String] { requests.compactMap { $0.url?.lastPathComponent } }
@@ -195,6 +197,7 @@ import SwiftUI
         requests.append(request);let path = request.url!.lastPathComponent
         if path == "phone" { return (try JSONSerialization.data(withJSONObject:["code":200,"token":"synthetic-favorites","data":["id":account,"role":"player"]]),200) }
         if path == "userInfo" { return (try JSONSerialization.data(withJSONObject:["code":200,"appUser":["userId":account,"role":"player"]]),200) }
+        if path == "features" { return (try JSONSerialization.data(withJSONObject:["code":200,"data":["communityPostRead":communityRead,"communityPostWrite":false]]),200) }
         let body = String(data:request.httpBody ?? Data(),encoding:.utf8) ?? ""
         if let range = body.range(of:"name=\"pageNum\"\r\n\r\n"),let page = Int(body[range.upperBound...].components(separatedBy:"\r\n")[0]) { pages.append(page) }
         if path == holdPath { return try await withCheckedThrowingContinuation { pending = $0;onHeld?() } }

@@ -178,7 +178,7 @@ import UIKit
         let reader = AnswerReviewReader()
         // Use the same reader/model and normal view construction as the ordinary destination.
         let actualModel = PlayViewModel(reader: reader); await actualModel.load()
-        let host = UIHostingController(rootView: PlayNodeDetailView(nodeID: 701, model: actualModel))
+        let host = UIHostingController(rootView: PlayNodeDetailView(nodeID: 701, model: actualModel).environment(\.scenePhase, .active))
         let navigation = UINavigationController(rootViewController: host)
         let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window
         var handedOff = false

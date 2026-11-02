@@ -1,6 +1,7 @@
 import SwiftUI
 import UIKit
 import MapKit
+import Combine
 
 /// Additive composition surface. Parent supplies professional-editor routing and the current
 /// account epoch. No production mutation approval, map provider or token is created here.
@@ -488,13 +489,16 @@ struct ActivityPublishingTimeRangeDraft {
         let draft: ActivityPublishDraft
         let editable: Bool
     }
-    @Published private(set) var presentation: Presentation?
+    let objectWillChange = ObservableObjectPublisher()
+    private var dismantling = false
+    private(set) var presentation: Presentation? { willSet { publishChange() } }
+    private func publishChange() { if !dismantling { objectWillChange.send() } }
     private var source: Data?
     private var generation = UUID()
-    @Published private var pageVisible = false
+    private var pageVisible = false { willSet { publishChange() } }
     private var sheetID: UUID?
     private var coveredByOwnSheet = false
-    @Published private var active = false
+    private var active = false { willSet { publishChange() } }
     private func bytes(account: PublishingSession?, draftID: UUID, draft: ActivityPublishDraft, editable: Bool = true) -> Data? {
         ProjectEditPendingMaterials.exactData(Source(account: account, draftID: draftID, draft: draft, editable: editable))
     }
@@ -515,6 +519,10 @@ struct ActivityPublishingTimeRangeDraft {
         coveredByOwnSheet = true; pageVisible = false
     }
     func disappear() { pageVisible = false; coveredByOwnSheet = false; retire() }
+    func dismantle() {
+        dismantling = true; disappear(); dismantling = false
+        Task { @MainActor [weak self] in self?.objectWillChange.send() }
+    }
     func setActive(_ value: Bool) { active = value; if !value { retire() } }
     func retire() { generation = UUID(); presentation = nil; sheetID = nil; coveredByOwnSheet = false }
     func canOpen(account: PublishingSession?, draftID: UUID, draft: ActivityPublishDraft, now: Date) -> Bool {
@@ -574,7 +582,7 @@ struct ActivityPublishingTimeRangeDraft {
     }
     func updateUIViewController(_ controller: ActivityPublishingTimeRangeLifetimeController, context: Context) {}
     static func dismantleUIViewController(_ controller: ActivityPublishingTimeRangeLifetimeController, coordinator: ()) {
-        controller.owner?.disappear()
+        controller.owner?.dismantle()
     }
 }
 @MainActor final class ActivityPublishingTimeRangeLifetimeController: UIViewController {

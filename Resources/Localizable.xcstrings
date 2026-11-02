@@ -66381,13 +66381,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current service requires publisher identity registration. A US identity-registration path is not yet confirmed. Choosing merchant entry does not grant merchant access."
+            "value": "Identity registration is required before you upload a business license or submit an application. Submitting an application does not grant merchant access."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前服务要求发布者实名登记，美国实名登记路径尚未确认。选择商家入口不会获得商家权限。"
+            "value": "上传营业执照或提交申请前，需先完成实名登记。提交申请不代表已获得商家权限。"
           }
         }
       }
@@ -142266,13 +142266,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Editing this server template requires an owned full-detail contract that is not available in this source slice."
+            "value": "Editing is currently unavailable for this template."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "编辑服务端模板需要完整的个人详情契约，此真源切片未提供。"
+            "value": "此模板暂不支持编辑。"
           }
         }
       }

@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import Combine
 
 /// Frozen memory-only input for one exact normal task and one visible visit.
 /// It is never persisted, logged, or used to infer a successful answer.
@@ -51,9 +52,12 @@ struct PlayAnswerReview: Identifiable, Equatable {
 /// One stable screen owner. A concrete review gets its own presenter only after it exists.
 @MainActor final class PlayAnswerReviewPresentation: ObservableObject {
     let model: PlayViewModel
-    @Published private(set) var review: PlayAnswerReview?
-    @Published private var showing = false
-    @Published private var lifecycleRevision = 0
+    let objectWillChange = ObservableObjectPublisher()
+    private var dismantling = false
+    private(set) var review: PlayAnswerReview? { willSet { publishChange() } }
+    private var showing = false { willSet { publishChange() } }
+    private var lifecycleRevision = 0 { willSet { publishChange() } }
+    private func publishChange() { if !dismantling { objectWillChange.send() } }
     struct Ticket {
         fileprivate let visit: UUID
         fileprivate let generation: UInt64
@@ -75,7 +79,11 @@ struct PlayAnswerReview: Identifiable, Equatable {
     }
     func detach(_ root: PlayAnswerReviewRootController) {
         guard self.root === root else { return }
+        // Revoke synchronously; graph teardown must finish before notifying its subscribers.
+        dismantling = true
         self.root = nil; visible = false; retire()
+        dismantling = false
+        Task { @MainActor [weak self] in self?.objectWillChange.send() }
     }
     func appear(active: Bool) {
         visible = true; self.active = active

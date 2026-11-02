@@ -124,7 +124,6 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     private var applicationForm: some View {
         Form {
             Section {
-                Text(LocalizedStringKey("merchant.onboarding.step." + String(model.step))).font(.headline)
                 Text("merchant.onboarding.regionalNotice").font(.footnote).foregroundStyle(.secondary)
             }
             submissionSection

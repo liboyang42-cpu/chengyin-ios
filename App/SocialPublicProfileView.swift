@@ -37,6 +37,9 @@ import SwiftUI
         guard let selfEditDiagnostics else { return nil }
         return { selfEditDiagnostics(selfEditNavigation.ticket, ticket, selfEditContext) }
     }
+    private var profileReadRequestKey: String {
+        "profile-\(memberID)-\(selfEditNavigation.refreshID)-\(reader.presentationRevision)"
+    }
     var body: some View {
         ProfileIdentitySharePageHost(owner: identityShareOwner,
             context: .init(memberID: memberID, reader: reader, isCurrent: isCurrent())) {
@@ -69,20 +72,20 @@ import SwiftUI
                 .accessibilityIdentifier("social.incompleteLink")
             }
             else {
-                SocialReadScreen(reader: reader, requestKey: "profile-\(memberID)-\(selfEditNavigation.refreshID)", load: {
+                SocialReadScreen(reader: reader, requestKey: profileReadRequestKey, load: {
                     // A scoped parent may retire before SwiftUI unmounts this screen.
                     // Do not start a replacement-account read for that old route.
                     guard isCurrent() else { throw CancellationError() }
                     let shareContext = ProfileIdentitySharePageContext(memberID: memberID, reader: reader, isCurrent: isCurrent())
                     let shareRead = identityShareOwner.beginSourceRead(shareContext)
                     let headerKey = SocialReadPresentationKey(reader: reader,
-                        request: "profile-\(memberID)-\(selfEditNavigation.refreshID)", requiresSignIn: false)
+                        request: profileReadRequestKey, requiresSignIn: false)
                     let feedContext = authorPostsContext
                     let loaded: SocialPublicProfile
                     do { loaded = try await reader.publicProfile(memberID: memberID) }
                     catch {
                         let currentKey = SocialReadPresentationKey(reader: reader,
-                            request: "profile-\(memberID)-\(selfEditNavigation.refreshID)", requiresSignIn: false)
+                            request: profileReadRequestKey, requiresSignIn: false)
                         if !Task.isCancelled, isCurrent(), headerKey == currentKey,
                            feedContext == authorPostsContext,
                            authorPosts.rejectHeader(error, context: feedContext) {

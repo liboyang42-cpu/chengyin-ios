@@ -1859,10 +1859,10 @@ extension KeychainTokenStore: AppTokenStorage {}
         guard current() == captured, readApprovalStillValid?() != false else { throw CancellationError() }
         do {
             let result = try await underlying.send(request)
-            if (playRead != nil || characterRead != nil), current() == captured,
-               PlayExperienceService.isAuthenticationFailure(result) { return result }
             try Task.checkCancellation()
             guard current() == captured, readApprovalStillValid?() != false else { throw CancellationError() }
+            if (playRead != nil || characterRead != nil), current() == captured,
+               PlayExperienceService.isAuthenticationFailure(result) { return result }
             if let ticketWalletList {
                 try ticketWalletList.validateResponse(result, expectedAccountID: captured.accountID ?? 0)
             }

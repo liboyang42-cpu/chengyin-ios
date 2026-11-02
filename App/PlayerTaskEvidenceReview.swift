@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import Combine
 
 @MainActor final class PlayerTaskEvidenceReviewController: ObservableObject {
     struct Review: Identifiable {
@@ -20,11 +21,14 @@ import UIKit
     let target: PlayerTaskEvidenceTarget
     let player: PlayPlayerGameCoordinator
     let device: PlayDeviceCaptureCoordinator?
-    @Published private(set) var review: Review?
-    @Published private(set) var manualText = ""
-    @Published private(set) var working = false
-    @Published private(set) var issue: PlayExperienceError?
-    @Published private var lifecycleRevision = 0
+    let objectWillChange = ObservableObjectPublisher()
+    private var dismantling = false
+    private(set) var review: Review? { willSet { publishChange() } }
+    private(set) var manualText = "" { willSet { publishChange() } }
+    private(set) var working = false { willSet { publishChange() } }
+    private(set) var issue: PlayExperienceError? { willSet { publishChange() } }
+    private var lifecycleRevision = 0 { willSet { publishChange() } }
+    private func publishChange() { if !dismantling { objectWillChange.send() } }
     private var visit = UUID()
     private var visible = false
     private var active = false
@@ -41,7 +45,11 @@ import UIKit
     func departed(_ root: PlayerTaskEvidenceRootController) {
         guard self.root === root, root.isActuallyLeaving else { return }; retire()
     }
-    func detached(_ root: PlayerTaskEvidenceRootController) { guard self.root === root else { return }; self.root = nil; retire() }
+    func detached(_ root: PlayerTaskEvidenceRootController) {
+        guard self.root === root else { return }
+        dismantling = true; self.root = nil; retire(); dismantling = false
+        Task { @MainActor [weak self] in self?.objectWillChange.send() }
+    }
     func retire() {
         visible = false; active = false; visit = UUID(); review = nil; claimed = nil; working = false; issue = nil; manualText = ""; device?.cancel()
     }

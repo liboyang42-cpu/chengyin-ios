@@ -177,10 +177,10 @@ import UIKit
                     ProfileFavoriteTopicNavigationLayer(owner:owner) { selected in
                         ProfileFavoriteTopicDestination(selection:selected,session:session,makeReader:{probe.readerCreations += 1;return reader})
                             .onAppear{probe.detailAppearances += 1}.onDisappear{probe.detailDisappearances += 1}
-                            .navigationDestination(isPresented:$probe.covered) {
-                                TopicChapterView(chapter:chapter,reader:reader,scope:reader.scope).onAppear{probe.childAppearances += 1}
-                            }
                     }
+                }
+                .navigationDestination(isPresented:$probe.covered) {
+                    TopicChapterView(chapter:chapter,reader:reader,scope:reader.scope).onAppear{probe.childAppearances += 1}
                 }
             }.onAppear{owner.appear(scope:scope,foreground:true);probe.rootAppearances += 1}.onDisappear{owner.disappear()}
         }

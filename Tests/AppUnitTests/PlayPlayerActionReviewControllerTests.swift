@@ -1,6 +1,7 @@
 import XCTest
 import SwiftUI
 import UIKit
+import Combine
 @testable import Questify
 
 @MainActor final class PlayPlayerActionReviewControllerTests: XCTestCase {
@@ -87,12 +88,27 @@ import UIKit
     }
     func testOldNativeRootSynchronousAndQueuedCallbacksCannotRetireReplacement() async throws {
         let h = try await setup(); defer { h.close() }; let old = try XCTUnwrap(h.root)
+        let ticket = try XCTUnwrap(h.owner.capture()), retired = try textReview(h, text: "Retired private draft")
+        var notifications = 0, awaitingDeferred = false, notified = false
+        let deferred = expectation(description: "Detached owner notifies after synchronous revocation")
+        let changes = h.owner.objectWillChange.sink {
+            notifications += 1
+            if awaitingDeferred && !notified { notified = true; deferred.fulfill() }
+        }
+        h.owner.detached(old)
+        XCTAssertEqual(notifications, 0); XCTAssertNil(h.owner.review); XCTAssertEqual(h.owner.text(nodeID: 701), "")
+        XCTAssertNil(h.owner.capture()); XCTAssertFalse(h.owner.canConfirm(retired))
+        h.owner.setText("Old callback", nodeID: 701, ticket: ticket)
+        XCTAssertEqual(h.owner.text(nodeID: 701), "")
         old.willMove(toParent: nil); old.view.removeFromSuperview(); old.removeFromParent(); old.viewDidDisappear(false)
         let fresh = PlayPlayerActionRootController(owner: h.owner); h.root = fresh; h.owner.attach(fresh)
         h.parent.addChild(fresh); h.parent.view.addSubview(fresh.view); fresh.didMove(toParent: h.parent); h.owner.appear(active: true)
         let review = try textReview(h, text: "New root"); old.viewDidDisappear(false)
+        awaitingDeferred = true
+        await fulfillment(of: [deferred], timeout: 1)
         for _ in 0..<5 { await Task.yield() }
         XCTAssertEqual(h.owner.review?.id, review.id); XCTAssertEqual(h.owner.text(nodeID: 701), "New root"); XCTAssertTrue(h.owner.canConfirm(review))
+        withExtendedLifetime(changes) {}
     }
     func testNativeDepartureClearsDraftAndInvalidatesPendingConfirmation() async throws {
         let h = try await setup(); defer { h.close() }; let review = try textReview(h)

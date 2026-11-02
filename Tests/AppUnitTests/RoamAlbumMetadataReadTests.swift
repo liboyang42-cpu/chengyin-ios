@@ -159,6 +159,18 @@ import UIKit
         let oldNative=RoamAlbumMetadataLifetime.Controller(scope:old)
         RoamAlbumMetadataLifetime.dismantleUIViewController(oldNative,coordinator:())
         XCTAssertTrue(fresh.isCurrent);XCTAssertNotEqual(old.id,fresh.id)
+        let covered=RoamStampAlbumReadOnlyScope(reader:reader,identity:identity,isCurrent:{true})
+        var pageOwner:RoamAlbumPageOwner?=RoamAlbumPageOwner()
+        covered.bind(to:try XCTUnwrap(pageOwner))
+        let coveredNative=RoamAlbumMetadataLifetime.Controller(scope:covered)
+        RoamAlbumMetadataLifetime.dismantleUIViewController(coveredNative,coordinator:())
+        XCTAssertTrue(covered.isCurrent,"A rendering attachment can leave while its logical page is retained")
+        pageOwner=nil
+        XCTAssertFalse(covered.isCurrent,"Root page removal invalidates escaped scopes even without another dismantle")
+        let successorOwner=RoamAlbumPageOwner()
+        covered.bind(to:successorOwner)
+        XCTAssertFalse(covered.isCurrent,"A new page must not revive the old page's scope")
+        XCTAssertTrue(fresh.isCurrent)
         wire.requests=[];do {_ = try await old.album(page:1,pageSize:20);XCTFail()}catch{}
         XCTAssertTrue(wire.requests.isEmpty)
     }
@@ -186,6 +198,7 @@ import UIKit
         let wire=Wire(),session=try root(wire,Grants()).makeSession();await login(session)
         let reader=session.roamAlbumMetadataReader,identity=try XCTUnwrap(reader.identity)
         let scope=RoamStampAlbumReadOnlyScope(reader:reader,identity:identity,isCurrent:{true}),probe=AlbumProbe()
+        let originalMetadataScope=reader.scope
         let host=UIHostingController(rootView:AnyView(AlbumNavigationHost(reader:reader,scope:scope,probe:probe)))
         let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window;window.rootViewController=host;window.makeKeyAndVisible()
         defer { sceneWindow.retire() }
@@ -195,12 +208,25 @@ import UIKit
         probe.covered=true
         for _ in 0..<100 where probe.childAppearances==0 {try await Task.sleep(for:.milliseconds(20))}
         XCTAssertGreaterThan(probe.childAppearances,0);XCTAssertGreaterThan(probe.disappearances,0);XCTAssertTrue(scope.isCurrent)
+        XCTAssertEqual(reader.scope,originalMetadataScope)
         probe.covered=false
         for _ in 0..<100 where probe.appearances<2 {try await Task.sleep(for:.milliseconds(20))}
         XCTAssertGreaterThanOrEqual(probe.appearances,2);XCTAssertTrue(scope.isCurrent)
+        XCTAssertEqual(reader.scope,originalMetadataScope)
         host.rootView=AnyView(Text("Root left"));host.view.layoutIfNeeded()
         for _ in 0..<100 where scope.isCurrent {try await Task.sleep(for:.milliseconds(20))}
         XCTAssertFalse(scope.isCurrent)
+
+        let coveredScope=RoamStampAlbumReadOnlyScope(reader:reader,identity:identity,isCurrent:{true}),coveredProbe=AlbumProbe()
+        host.rootView=AnyView(AlbumNavigationHost(reader:reader,scope:coveredScope,probe:coveredProbe));host.view.layoutIfNeeded()
+        for _ in 0..<100 where coveredProbe.appearances==0 {try await Task.sleep(for:.milliseconds(20))}
+        XCTAssertGreaterThan(coveredProbe.appearances,0);XCTAssertTrue(coveredScope.isCurrent)
+        coveredProbe.covered=true
+        for _ in 0..<100 where coveredProbe.childAppearances==0 {try await Task.sleep(for:.milliseconds(20))}
+        XCTAssertGreaterThan(coveredProbe.childAppearances,0);XCTAssertTrue(coveredScope.isCurrent)
+        host.rootView=AnyView(Text("Root left while covered"));host.view.layoutIfNeeded()
+        for _ in 0..<100 where coveredScope.isCurrent {try await Task.sleep(for:.milliseconds(20))}
+        XCTAssertFalse(coveredScope.isCurrent)
     }
     @MainActor private final class AlbumProbe:ObservableObject {
         @Published var covered=false

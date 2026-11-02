@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import Combine
 
 @MainActor private final class RoamLiveViewModel: ObservableObject {
     let controller: RoamLiveSessionController
@@ -672,8 +673,11 @@ struct RoamPausedBrowseContext: Equatable {
     let albumScope: RoamStampAlbumReadOnlyScope?
 }
 @MainActor final class RoamPausedBrowsePresentation: ObservableObject {
-    @Published private(set) var target: RoamPausedBrowseTarget?
-    @Published private(set) var entryID = UUID()
+    let objectWillChange = ObservableObjectPublisher()
+    private var dismantling = false
+    private(set) var target: RoamPausedBrowseTarget? { willSet { publishChange() } }
+    private(set) var entryID = UUID() { willSet { publishChange() } }
+    private func publishChange() { if !dismantling { objectWillChange.send() } }
     private var visible = false
     private var attached = false
     func appear() { if !visible { entryID = UUID() }; visible = true; attached = true }
@@ -683,6 +687,10 @@ struct RoamPausedBrowseContext: Equatable {
         else { disappear() }
     }
     func disappear() { visible = false; attached = false; retire() }
+    func dismantle() {
+        dismantling = true; disappear(); dismantling = false
+        Task { @MainActor [weak self] in self?.objectWillChange.send() }
+    }
     func retire() { target?.albumScope?.retire(); target = nil; entryID = UUID() }
     func open(_ rendered: RoamPausedBrowseContext, entryID: UUID, owner: RoamLiveSessionController,
               reader: (any RoamExperienceReading)?) {
@@ -811,7 +819,7 @@ struct RoamPausedBrowseCopy {
     }
     func updateUIViewController(_ controller: RoamPausedBrowseLifetimeController, context: Context) {}
     static func dismantleUIViewController(_ controller: RoamPausedBrowseLifetimeController, coordinator: ()) {
-        controller.presentation?.disappear()
+        controller.presentation?.dismantle()
     }
 }
 @MainActor final class RoamPausedBrowseLifetimeController: UIViewController {

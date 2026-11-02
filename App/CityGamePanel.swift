@@ -147,10 +147,15 @@ struct CityGamePanel: View {
                 Text("cityGame.review.insufficient", tableName: "CityGame").font(.footnote).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("cityGame.review.insufficient")
             }
-            Button { Task { await model.confirm() } } label: { Text("cityGame.review.confirm", tableName: "CityGame") }
-                .frame(minHeight: 44).disabled(!model.reviewAffordable).accessibilityIdentifier("cityGame.confirm")
-            Button(role: .cancel) { model.cancelReview() } label: { Text("cityGame.review.cancel", tableName: "CityGame") }
-                .frame(minHeight: 44).accessibilityIdentifier("cityGame.cancel")
+            Button { Task { await model.confirm() } } label: {
+                Text("cityGame.review.confirm", tableName: "CityGame")
+                    .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
+            }.buttonStyle(.borderedProminent)
+                .disabled(!model.reviewAffordable).accessibilityIdentifier("cityGame.confirm")
+            Button(role: .cancel) { model.cancelReview() } label: {
+                Text("cityGame.review.cancel", tableName: "CityGame")
+                    .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
+            }.buttonStyle(.bordered).accessibilityIdentifier("cityGame.cancel")
         }
         .padding().background(.yellow.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
         .accessibilityElement(children: .contain).accessibilityIdentifier("cityGame.review")

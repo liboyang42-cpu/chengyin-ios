@@ -205,6 +205,7 @@ import UIKit
     }
     func testSettingsCollectionUsesOriginalDetailAndKeepsOwnerWhenCovered() async throws {
         let h = try ProfileFavoritesHarness(); await h.login(); h.wire.requests = []
+        h.wire.communityRead = true
         let owner = ProfileSettingsFavoritesOwner()
         let root = NavigationStack {
             Form { ProfileSettingsFavoritesEntry(session: h.session, owner: owner) }

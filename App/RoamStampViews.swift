@@ -178,6 +178,9 @@ struct RoamCityStampDraftView: View {
 }
 
 
+/// SwiftUI retains this owner for the logical page while a child destination covers it.
+final class RoamAlbumPageOwner: ObservableObject {}
+
 /// A frozen view-only album scope. It delegates the existing album read and no other capability.
 @MainActor @Observable final class RoamStampAlbumReadOnlyScope: RoamExperienceReading {
     private let base: any RoamExperienceReading
@@ -185,6 +188,8 @@ struct RoamCityStampDraftView: View {
     private let expected: RoamExperienceIdentity
     private let presentationIsCurrent: () -> Bool
     private let metadataScope: UUID?
+    @ObservationIgnored private weak var pageOwner: RoamAlbumPageOwner?
+    private var pageOwnerWasBound = false
     private var retired = false
     let id = UUID()
     init(reader: any RoamExperienceReading, identity: RoamExperienceIdentity,
@@ -193,10 +198,18 @@ struct RoamCityStampDraftView: View {
         metadataScope = (reader as? RoamAlbumMetadataReader)?.scope
     }
     var isCurrent: Bool {
-        !retired && presentationIsCurrent() && base.identity == expected &&
+        !retired && (!pageOwnerWasBound || pageOwner != nil) && presentationIsCurrent() && base.identity == expected &&
         (base as? RoamAlbumMetadataReader)?.scope == metadataScope
     }
     var allowsRemoteImages: Bool { !(base is RoamAlbumMetadataReader) }
+    var hasPageOwner: Bool { pageOwnerWasBound && pageOwner != nil }
+    func bind(to owner: RoamAlbumPageOwner) {
+        if pageOwnerWasBound {
+            if pageOwner !== owner { retire() }
+            return
+        }
+        pageOwner = owner; pageOwnerWasBound = true
+    }
     func retire() { retired = true }
     func matches(_ reader: any RoamExperienceReading) -> Bool { ObjectIdentifier(reader) == readerID && isCurrent }
     var identity: RoamExperienceIdentity? { isCurrent ? expected : nil }
@@ -232,6 +245,7 @@ private struct RoamStampReadOnlyUnavailable: View {
     let reader: RoamAlbumMetadataReader
     @Environment(\.scenePhase) private var scenePhase
     @State private var scope: RoamStampAlbumReadOnlyScope?
+    @StateObject private var pageOwner = RoamAlbumPageOwner()
     @State private var mounted = false
     init(reader: RoamAlbumMetadataReader, scope: RoamStampAlbumReadOnlyScope? = nil) {
         self.reader = reader; _scope = State(initialValue: scope)
@@ -252,8 +266,11 @@ private struct RoamStampReadOnlyUnavailable: View {
         }
     }
     private func attachIfVisible() {
-        guard mounted, scope == nil, scenePhase == .active, let identity = reader.identity else { return }
-        scope = RoamStampAlbumReadOnlyScope(reader: reader, identity: identity, isCurrent: { true })
+        guard mounted, scenePhase == .active else { return }
+        if let scope { scope.bind(to: pageOwner); return }
+        guard let identity = reader.identity else { return }
+        let fresh = RoamStampAlbumReadOnlyScope(reader: reader, identity: identity, isCurrent: { true })
+        fresh.bind(to: pageOwner); scope = fresh
     }
 }
 
@@ -262,13 +279,18 @@ private struct RoamStampReadOnlyUnavailable: View {
     let scope: RoamStampAlbumReadOnlyScope
     func makeUIViewController(context: Context) -> Controller { Controller(scope: scope) }
     func updateUIViewController(_ controller: Controller, context: Context) {}
-    static func dismantleUIViewController(_ controller: Controller, coordinator: ()) { controller.scope.retire() }
+    static func dismantleUIViewController(_ controller: Controller, coordinator: ()) {
+        // A covered page can lose this rendering attachment while its StateObject lives.
+        // Once the logical page leaves, its weak owner expires and the scope rejects reads.
+        if !controller.scope.hasPageOwner { controller.scope.retire() }
+    }
     @MainActor final class Controller: UIViewController {
         let scope: RoamStampAlbumReadOnlyScope
         init(scope: RoamStampAlbumReadOnlyScope) { self.scope = scope; super.init(nibName: nil, bundle: nil) }
         required init?(coder: NSCoder) { return nil }
         override func viewWillDisappear(_ animated: Bool) {
             super.viewWillDisappear(animated)
+            guard !scope.hasPageOwner else { return }
             var current: UIViewController? = self
             while let value = current {
                 if value.isBeingDismissed || value.isMovingFromParent { scope.retire(); return }

@@ -280,7 +280,7 @@ extension ProfileIdentityShareFlowTests {
     }
     func testMountedPageRowRemovalKeepsPreviewAndRealNavigationDepartureRetiresOwner() async throws {
         let fixture = PageFixture(profile: try profile())
-        let page = UIHostingController(rootView: MountedPage(fixture: fixture))
+        let page = UIHostingController(rootView: MountedPage(fixture: fixture).environment(\.scenePhase, .active))
         let navigation = UINavigationController(rootViewController: page)
         let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window
         window.rootViewController = navigation; window.makeKeyAndVisible()

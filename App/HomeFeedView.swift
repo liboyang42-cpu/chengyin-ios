@@ -175,12 +175,18 @@ extension HomeFeedItem {
 struct HomeFeedCard: View {
     let item: HomeFeedItem
     private let liveStart: Date?
+    private let sourceTimeZone: TimeZone?
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
+    @Environment(\.timeZone) private var timeZone
     init(item: HomeFeedItem, sourceTimeZone: TimeZone? = nil) {
         self.item = item
+        self.sourceTimeZone = sourceTimeZone
         if case .activity = item { liveStart = HomeFeedDate.parse(item.startDate, sourceTimeZone: sourceTimeZone) }
         else { liveStart = nil }
+    }
+    private var startDateText: String {
+        HomeFeedDate.display(item.startDate, locale: locale, sourceTimeZone: sourceTimeZone, displayTimeZone: timeZone)
     }
     private var typeTitle: LocalizedStringKey {
         switch item { case .activity: return "homeFeed.activities"; case .topic: return "homeFeed.topics" }
@@ -196,7 +202,7 @@ struct HomeFeedCard: View {
         QuestifyImageEntityCard(imageSource:item.imageURL,title:item.name,subtitle:item.introduction,fallbackSymbol:"map") {
             if case .topic(let topic) = item { TopicTotalStops(count: topic.locationCount, identifier: "homeFeed.totalStops.\(topic.id)") }
             if item.isBeta { Text("homeFeed.beta").font(.caption.weight(.semibold)) }
-            QuestifyImageEntityMetadata(label:"homeFeed.date",value:item.startDate ?? "—",systemImage:"calendar")
+            QuestifyImageEntityMetadata(label:"homeFeed.date",value:startDateText,systemImage:"calendar")
             QuestifyImageEntityMetadata(label:"homeFeed.place",value:item.place ?? "—",systemImage:"mappin")
             priceBlock(showCurrencyWhenUnknown: true)
         }
@@ -212,7 +218,7 @@ struct HomeFeedCard: View {
                 if item.name.isEmpty { Text("homeFeed.untitled").font(.title3.weight(.semibold)) }
                 else { Text(verbatim: item.name).font(.title3.weight(.semibold)) }
                 VStack(alignment: .leading, spacing: 7) {
-                    QuestifyMetadataLine(label: "homeFeed.date", value: item.startDate.flatMap { $0.isEmpty ? nil : $0 } ?? "—", systemImage: "calendar")
+                    QuestifyMetadataLine(label: "homeFeed.date", value: startDateText, systemImage: "calendar")
                     QuestifyMetadataLine(label: "homeFeed.place", value: item.place ?? "—", systemImage: "mappin.and.ellipse")
                 }
                 if let description = item.introduction, !description.isEmpty {

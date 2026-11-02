@@ -11,8 +11,11 @@ import SwiftUI
     var body: some View {
         ZStack {
             if let reader {
-                if reader.hasAppeared { content(reader) }
-                else { ProgressView() }
+                if reader.hasAppeared {
+                    content(reader)
+                        .onAppear { reader.appear(foreground: scenePhase == .active) }
+                        .onDisappear { reader.disappear() }
+                } else { ProgressView() }
             } else { SocialIssueView(error: APIError.unauthorized) }
         }
         .onAppear { reader?.appear(foreground: scenePhase == .active) }
