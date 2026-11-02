@@ -37,7 +37,11 @@ import XCTest
         tap("projectEdit.saveLocal", app, fixed: true); return app
     }
     private func back(_ app: XCUIApplication) {
-        let button = app.navigationBars.buttons.firstMatch; XCTAssertTrue(button.isEnabled && button.isHittable, app.debugDescription); button.tap()
+        let button = app.navigationBars["Chapter"].buttons["BackButton"]
+        // A sheet's close control can disappear before its dismissal releases the chapter.
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == true AND enabled == true AND hittable == true"), object: button)], timeout: 5), .completed, app.debugDescription)
+        XCTAssertTrue(button.isEnabled && button.isHittable, app.debugDescription); button.tap()
     }
     private func insert(_ kind: String, before anchor: String?, _ app: XCUIApplication) {
         if let anchor {

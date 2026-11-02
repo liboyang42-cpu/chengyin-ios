@@ -46,6 +46,7 @@ struct QuestifyImageEntityCard<Details:View>:View {
             .frame(maxWidth:.infinity,alignment:.leading)
             // Opaque backing keeps text contrast independent of artwork and compositing.
             .background(.black)
+            .environment(\.colorScheme,.dark)
         }
         .frame(maxWidth:.infinity,minHeight:minimumHeight,alignment:.bottomLeading)
         .background {

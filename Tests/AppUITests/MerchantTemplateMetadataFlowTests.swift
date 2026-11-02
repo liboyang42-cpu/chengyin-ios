@@ -25,9 +25,15 @@ final class MerchantTemplateMetadataFlowTests: XCTestCase {
         let metadata = app.descendants(matching: .any)["merchant.templateMetadata.review.players"].firstMatch
         XCTAssertTrue(revealFixtureElement(metadata, in: app, requiresHittable: false))
         let confirm = app.buttons["merchant.operations.confirm"]
-        XCTAssertTrue(revealFixtureElement(confirm, in: app)); XCTAssertTrue(confirm.isEnabled); confirm.tap()
+        XCTAssertTrue(revealFixtureElement(confirm, in: app)); XCTAssertTrue(confirm.isEnabled)
+        let confirmationBar = app.navigationBars["Review local draft"]
+        XCTAssertTrue(confirmationBar.exists, app.debugDescription)
+        confirm.tap()
+        // Do not use the departing sheet's bars to measure the underlying editor.
+        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: confirmationBar)
+        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 4), .completed, app.debugDescription)
         let saved = app.staticTexts["merchant.operations.exampleSaved"]
-        XCTAssertTrue(revealFixtureElement(saved, in: app, requiresHittable: false))
+        XCTAssertTrue(revealFixtureElement(saved, in: app, requiresHittable: false), app.debugDescription)
         let field = app.descendants(matching: .any)["merchant.operations.field.gameDurationMinutes"].firstMatch
         XCTAssertTrue(revealFixtureElement(field, in: app, towardTop: true)); XCTAssertEqual(field.value as? String, "25")
         app.buttons["merchant.operations.reload"].tap()

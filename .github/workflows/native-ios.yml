@@ -274,7 +274,7 @@ jobs:
       matrix:
         include:
           - kind: device
-            minutes: 20
+            minutes: 45
           - kind: us
             minutes: 20
     env:

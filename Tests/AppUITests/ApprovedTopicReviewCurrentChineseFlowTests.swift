@@ -23,8 +23,9 @@ import XCTest
         XCTAssertTrue(app.windows.firstMatch.frame.contains(target.frame)); target.tap()
     }
     @discardableResult private func value(_ id: String, _ expected: String? = nil, in app: XCUIApplication) -> String {
-        let target = app.staticTexts[id]; XCTAssertTrue(target.waitForExistence(timeout: 5), app.debugDescription)
+        let target = app.staticTexts[id]
         XCTAssertTrue(revealFixtureElement(target, in: app, maximumSwipes: 70, requiresHittable: false), app.debugDescription)
+        XCTAssertTrue(target.waitForExistence(timeout: 5), app.debugDescription)
         if let expected { XCTAssertEqual(Array(target.label.utf8), Array(expected.utf8)) }
         return target.label
     }

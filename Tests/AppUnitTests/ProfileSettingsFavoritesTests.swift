@@ -205,7 +205,21 @@ import UIKit
     }
     func testSettingsCollectionUsesOriginalDetailAndKeepsOwnerWhenCovered() async throws {
         let h = try ProfileFavoritesHarness(); await h.login(); h.wire.requests = []
+        do {
+            _ = try await h.session.squareReader.communityFeatures()
+            XCTFail("The normal composition has no independent community-feature approval")
+        } catch { XCTAssertEqual(error as? APIError, .notConfigured) }
+        XCTAssertTrue(h.wire.requests.isEmpty)
+        // This host explicitly supplies its independent synthetic gate; list/detail approvals stay scoped.
+        let identity = h.session.socialAccountReader.identity
+        let gateSession = try SquareReadSession(accountID: XCTUnwrap(identity.accountID), epoch: identity.epoch,
+            token: XCTUnwrap(h.vault.value))
         h.wire.communityRead = true
+        h.session.squareReader = SquareSessionReader(
+            service: SquareService(configuration: try APIConfiguration(baseURL: h.base), transport: h.wire),
+            currentSession: { [weak session = h.session] in
+                session?.socialAccountReader.identity == identity ? gateSession : nil
+            })
         let owner = ProfileSettingsFavoritesOwner()
         let root = NavigationStack {
             Form { ProfileSettingsFavoritesEntry(session: h.session, owner: owner) }

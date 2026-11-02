@@ -64,6 +64,13 @@ class StoryMediaGapContracts(unittest.TestCase):
                 self.assertIn('UNMEASURED complete-method estimate: 900 seconds',s)
                 self.assertIn(media.lower()+'Journey(.'+gap.lower()+')',s)
         helper = self.read('Tests/AppUITests/ProjectStoryMediaGapFlowSupport.swift')
+        back = helper.split('private func back(', 1)[1].split('private func insert(', 1)[0]
+        self.assertIn('app.navigationBars["Chapter"].buttons["BackButton"]', back)
+        self.assertIn('exists == true AND enabled == true AND hittable == true', back)
+        self.assertIn('timeout: 5', back)
+        self.assertIn('XCTAssertTrue(button.isEnabled && button.isHittable', back)
+        self.assertLess(back.index('XCTWaiter.wait('), back.index('button.tap()'))
+        self.assertEqual(back.count('button.tap()'), 1)
         for token in ['projectEdit.fixture.reopen','projectEdit.restore','submissionCount, 0','projectStoryImage.prepared.0.','projectStoryAudio.prepared.0.','projectStoryMedia.gap.']:
             self.assertIn(token,helper)
     def test_bilingual_gap_control_and_no_new_transport_or_permission(self):

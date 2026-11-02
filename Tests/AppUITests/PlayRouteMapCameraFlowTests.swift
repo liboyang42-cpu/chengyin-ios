@@ -12,7 +12,9 @@ final class PlayRouteMapCameraFlowTests: XCTestCase {
         if maximum { app.launchArguments += ["--uitesting-max-text", "--uitesting-dark"] }
         app.launch()
         if maximum { assertFixtureEnvironment(in: app, colorScheme: "dark", dynamicTypeSize: "accessibility5") }
-        tap("playRoute.open"); tap("playRouteCamera.controls")
+        tap("playRoute.open")
+        XCTAssertTrue(app.descendants(matching: .any)["playRoute.screen"].waitForExistence(timeout: 5), app.debugDescription)
+        tap("playRouteCamera.controls")
     }
     private func tap(_ id: String) {
         let button = app.buttons[id]

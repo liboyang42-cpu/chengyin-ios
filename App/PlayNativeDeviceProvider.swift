@@ -22,6 +22,7 @@ import PhotosUI
     private var motionReply: CheckedContinuation<PlayDeviceOutput, Error>?
     private var locationManager: CLLocationManager?
     private var locationGeneration: UInt64 = 0
+    private var locationRequestStarted = false
     private var motionManager: CMMotionManager?
     private let makeLocationManager: () -> CLLocationManager
     init(grants: Set<PlayDeviceKind> = [], makeLocationManager: @escaping () -> CLLocationManager = { CLLocationManager() }) {
@@ -113,7 +114,10 @@ import PhotosUI
     private func requestLocationIfAuthorized(_ manager: CLLocationManager) {
         guard manager === locationManager, locationReply != nil else { return }
         switch manager.authorizationStatus {
-        case .authorizedWhenInUse, .authorizedAlways: manager.requestLocation()
+        case .authorizedWhenInUse, .authorizedAlways:
+            guard !locationRequestStarted else { return }
+            locationRequestStarted = true
+            manager.requestLocation()
         case .denied, .restricted: locationManager(manager, didFailWithError: PlayExperienceError.disabled)
         default: break
         }
@@ -122,7 +126,7 @@ import PhotosUI
     /// cancelled/finished manager must never consume a successor's request.
     private func takeLocationReply(_ manager: CLLocationManager) -> CheckedContinuation<PlayDeviceOutput, Error>? {
         guard manager === locationManager, let reply = locationReply else { return nil }
-        locationReply = nil; locationManager = nil
+        locationReply = nil; locationManager = nil; locationRequestStarted = false
         manager.delegate = nil; manager.stopUpdatingLocation()
         return reply
     }

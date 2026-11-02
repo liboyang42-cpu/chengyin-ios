@@ -27,7 +27,9 @@ import XCTest
         XCTAssertEqual(Array(target.label.utf8), Array(expected.utf8))
     }
     private func submitAndRead(in app: XCUIApplication) {
-        tap("projectEdit.review", in: app, fixed: true); tap("projectEdit.confirmSimulation", in: app)
+        tap("projectEdit.review", in: app, fixed: true)
+        XCTAssertTrue(app.navigationBars["Review route"].waitForExistence(timeout: 5), app.debugDescription)
+        tap("projectEdit.confirmSimulation", in: app)
         assertProjectSubmissionEvidenceValue("projectSubmission.auditTaskID", "3301", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true); assertProjectSubmissionEvidenceValue("projectSubmission.submittedState", "Pending", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true)
         assertProjectSubmissionEvidenceValue("projectSubmission.templateIDs", "41", in: app, phase: .receipt, maximumSwipes: 65, revealFirst: true); tap("projectSubmission.done", in: app)
         XCTAssertFalse(app.buttons["projectEdit.review"].isEnabled)

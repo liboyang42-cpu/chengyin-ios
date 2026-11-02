@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import Combine
 
 /// Retained by the management journey; a review belongs to one visible detail visit.
 @MainActor final class ClubManagementReviewOwner: ObservableObject {
@@ -16,9 +17,12 @@ import UIKit
         let context: Context
         let confirmation: ClubManagementConfirmation
     }
-    @Published private(set) var item: Item?
-    @Published private(set) var isPresented = false
-    @Published private(set) var attachment: UUID?
+    let objectWillChange = ObservableObjectPublisher()
+    private var dismantling = false
+    private(set) var item: Item? { willSet { publishChange() } }
+    private(set) var isPresented = false { willSet { publishChange() } }
+    private(set) var attachment: UUID? { willSet { publishChange() } }
+    private func publishChange() { if !dismantling { objectWillChange.send() } }
     private(set) var context: Context?
     private(set) var visible = false
     private var covered = false
@@ -74,9 +78,20 @@ import UIKit
     }
     @discardableResult func depart(_ attachment: UUID) -> Bool {
         guard self.attachment == attachment else { return false }
-        retire(); return true
+        // Revoke synchronously; graph teardown must finish before notifying its subscribers.
+        dismantling = true
+        retire()
+        dismantling = false
+        Task { @MainActor [weak self] in self?.objectWillChange.send() }
+        return true
     }
-    func retire() { item = nil; isPresented = false; attachment = nil; context = nil; visible = false; covered = false; claimed = nil }
+    func retire() {
+        // The departure callback also clears its coordinator; repeated retirement has no new change.
+        if item != nil { item = nil }
+        if isPresented { isPresented = false }
+        if attachment != nil { attachment = nil }
+        context = nil; visible = false; covered = false; claimed = nil
+    }
 }
 
 /// Created only for a non-nil immutable review, outside every lazy row.

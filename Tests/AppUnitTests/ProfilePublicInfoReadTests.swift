@@ -214,7 +214,7 @@ import UIKit
         for _ in 0..<100 where h.wire.paths.filter({$0=="public-info"}).count==count {try await Task.sleep(for:.milliseconds(20))}
         XCTAssertGreaterThan(h.wire.paths.filter{$0=="public-info"}.count,count)
         let revision=reader.presentationRevision;probe.covered=true
-        for _ in 0..<100 where probe.childAppearances==0 {try await Task.sleep(for:.milliseconds(20))}
+        for _ in 0..<100 where probe.childAppearances==0 || reader.isVisible {try await Task.sleep(for:.milliseconds(20))}
         XCTAssertGreaterThan(probe.childAppearances,0);XCTAssertFalse(reader.isVisible)
         XCTAssertEqual(reader.presentationRevision,revision);XCTAssertTrue(reader.isConfigured);XCTAssertTrue(reader.isCurrent)
         probe.covered=false

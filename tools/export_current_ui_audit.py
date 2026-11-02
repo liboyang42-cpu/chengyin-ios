@@ -117,10 +117,12 @@ def export(plan, output):
     try:
         with tempfile.TemporaryDirectory(prefix='ui-audit-export-', dir=output.parent) as temp:
             stage = Path(temp)
-            status, version = n.screenshot_probe_command(['xcrun', 'xcresulttool', 'version'], n.control.ROOT, min(deadline, time.monotonic() + 5), stage, developer, True)
+            status, version = n.screenshot_probe_command(['xcrun', 'xcresulttool', 'version'], n.control.ROOT, min(deadline, time.monotonic() + 15), stage, developer, True)
+            report['probes'] = {'version': {'status': status, 'output_bytes': len(version)}}
             n.require(status == 'OK' and version.startswith(b'xcresulttool version ') and len(version) <= 512, 'Unknown xcresulttool')
             report['xcresulttool_version'] = version.decode().strip()
-            status, help_data = n.screenshot_probe_command(['xcrun', 'xcresulttool', 'help', 'export', 'attachments'], n.control.ROOT, min(deadline, time.monotonic() + 5), stage, developer, True)
+            status, help_data = n.screenshot_probe_command(['xcrun', 'xcresulttool', 'help', 'export', 'attachments'], n.control.ROOT, min(deadline, time.monotonic() + 15), stage, developer, True)
+            report['probes']['attachments_help'] = {'status': status, 'output_bytes': len(help_data)}
             n.require(status == 'OK' and all(flag in help_data for flag in (b'--path', b'--output-path', b'--test-id')), 'Unsupported attachment exporter')
             for ordinal, (method, labels) in enumerate(wanted.items()):
                 folder = stage / str(ordinal); folder.mkdir()

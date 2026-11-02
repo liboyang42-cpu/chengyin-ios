@@ -1,6 +1,7 @@
 import XCTest
 import SwiftUI
 import UIKit
+import Combine
 @testable import Questify
 
 @MainActor final class ClubManagementReviewOwnerTests: XCTestCase {
@@ -133,10 +134,28 @@ import UIKit
         XCTAssertNil(h.owner.item); XCTAssertEqual(h.access.sends, 0)
     }
     func testOldAttachmentHideAndDepartureCannotRetireNewDetail() async throws {
-        let h = ready(), old = try XCTUnwrap(h.owner.attachment)
-        h.depart(old); h.appear(); let fresh = try await h.prepare()
-        h.owner.hide(old); h.depart(old)
+        let h = ready(), old = try XCTUnwrap(h.owner.attachment), retired = try await h.prepare(), oldBinding = h.binding(retired)
+        var notifications = 0, awaitingDeferred = false, notified = false
+        let deferred = expectation(description: "Departed owner notifies after synchronous revocation")
+        let changes = h.owner.objectWillChange.sink {
+            notifications += 1
+            if awaitingDeferred && !notified { notified = true; deferred.fulfill() }
+        }
+        h.depart(old); h.owner.retire() // The normal detail callback also retires after leaving its coordinator.
+        XCTAssertEqual(notifications, 0); XCTAssertNil(h.owner.item); XCTAssertNil(h.owner.attachment); XCTAssertNil(h.owner.context)
+        XCTAssertFalse(h.owner.isPresented); XCTAssertFalse(h.owner.visible)
+        XCTAssertFalse(h.owner.claim(retired, context: h.context, active: true))
+        XCTAssertFalse(h.owner.permitsDispatch(retired, context: h.context, active: true))
+        oldBinding.wrappedValue = true; XCTAssertFalse(oldBinding.wrappedValue)
+        h.appear(); let replacement = try XCTUnwrap(h.owner.attachment)
+        awaitingDeferred = true
+        await fulfillment(of: [deferred], timeout: 1)
+        XCTAssertEqual(h.owner.attachment, replacement)
+        let fresh = try await h.prepare()
+        oldBinding.wrappedValue = false; h.owner.hide(old); h.depart(old)
         XCTAssertTrue(h.owner.current(fresh, context: h.context, active: true)); XCTAssertNotEqual(old, fresh.attachment)
+        XCTAssertEqual(h.owner.item?.id, fresh.id); XCTAssertEqual(h.access.sends, 0)
+        withExtendedLifetime(changes) {}
     }
     func testOwnModalCoverageAllowsConfirmationButRealDepartureRejectsIt() async throws {
         let h = ready(), item = try await h.prepare()
@@ -189,5 +208,12 @@ import UIKit
         try await wait { h.owner.attachment == nil && host.presentedViewController == nil }
         old.wrappedValue = true
         XCTAssertNil(h.owner.item); XCTAssertFalse(h.owner.claim(item, context: h.context, active: true))
+        host.rootView = AnyView(Host(owner: h.owner, h: h))
+        try await wait { h.owner.attachment != nil }
+        let fresh = try await h.prepare()
+        try await wait { host.presentedViewController?.viewIfLoaded?.window != nil }
+        old.wrappedValue = false; h.depart(item.attachment)
+        XCTAssertNotEqual(fresh.attachment, item.attachment)
+        XCTAssertEqual(h.owner.item?.id, fresh.id); XCTAssertTrue(h.owner.current(fresh, context: h.context, active: true))
     }
 }

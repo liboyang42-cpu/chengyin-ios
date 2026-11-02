@@ -105,6 +105,8 @@ import CoreLocation
         XCTAssertNil(old.delegate); XCTAssertEqual(old.stops, 1)
         let second = Task { try await provider.capture(.location, context: context) }
         await fulfillment(of: [nextRequested], timeout: 1)
+        provider.locationManagerDidChangeAuthorization(next)
+        provider.locationManagerDidChangeAuthorization(next)
         provider.locationManagerDidChangeAuthorization(old)
         provider.locationManager(old, didFailWithError: PlayExperienceError.disabled)
         provider.locationManager(old, didUpdateLocations: [fix(accuracy: 2)])
@@ -149,6 +151,8 @@ import CoreLocation
             let context = try context()
             let task = Task { try await provider.capture(.location, context: context) }
             await fulfillment(of: [requested], timeout: 1)
+            provider.locationManagerDidChangeAuthorization(manager)
+            XCTAssertEqual(manager.requests, 1)
             provider.locationManager(manager, didUpdateLocations: [sample])
             do { _ = try await task.value; XCTFail("Invalid native measurement accepted") } catch {}
             XCTAssertNil(manager.delegate); XCTAssertEqual(manager.stops, 1)

@@ -77,9 +77,21 @@ class ExportCurrentUIAuditTests(unittest.TestCase):
 
     def testExactAttachmentNamesAreSelectedAndReceiptIsUnchanged(self):
         original = (self.output / 'receipt.json').read_bytes()
-        self.export_fixture()
+        for clock, deadlines in (([100, 101, 102], [116, 117, 160]),
+                                 ([100, 149, 149], [160, 160, 160])):
+            with self.subTest(clock=clock):
+                if self.packet.exists():
+                    for path in self.packet.iterdir(): path.unlink()
+                    self.packet.rmdir()
+                with patch.object(self, 'probe', side_effect=self.probe) as probe, \
+                        patch.object(audit.time, 'monotonic', side_effect=clock):
+                    self.export_fixture()
+                self.assertEqual([call.args[2] for call in probe.call_args_list], deadlines)
         report = audit.n.read_json(self.packet / 'audit-index.json')
         self.assertEqual(report['status'], 'COMPLETE')
+        self.assertEqual(report['probes'], {
+            'version': {'status': 'OK', 'output_bytes': len(b'xcresulttool version 24757, schema version: 0.1.0')},
+            'attachments_help': {'status': 'OK', 'output_bytes': len(b'--path --output-path --test-id')}})
         expected = {'Order detail – synthetic data'}
         self.assertEqual({item['attachment'] for item in report['files']}, expected)
         self.assertEqual(len(report['files']), 1)
@@ -139,12 +151,28 @@ class ExportCurrentUIAuditTests(unittest.TestCase):
         self.assertNotIn('QUESTIFY_UI_AUDIT_COMPLETE_V1 ', captured.getvalue())
         for path in self.packet.iterdir(): path.unlink()
         self.packet.rmdir()
-        with patch.object(self, 'probe', return_value=('EXPORT_FAILED', b'')), \
-                patch.object(audit, 'emit_stdout_images') as emit:
-            with self.assertRaises(ValueError):
-                self.export_fixture()
-        emit.assert_not_called()
-        self.assertEqual(audit.n.read_json(self.packet / 'audit-index.json')['status'], 'INCOMPLETE')
+        original_probe = self.probe
+        for phase, status, payload, message in (
+                ('version', 'EXPORT_FAILED', b'', 'Unknown xcresulttool'),
+                ('version', 'TIME_LIMIT', b'xcresulttool version 24757', 'Unknown xcresulttool'),
+                ('attachments_help', 'EXPORT_FAILED', b'--path --output-path --test-id', 'Unsupported attachment exporter')):
+            with self.subTest(phase=phase, status=status):
+                def failed_probe(argv, *args, **kwargs):
+                    if (phase == 'version' and argv[-1] == 'version') or (phase == 'attachments_help' and 'help' in argv):
+                        return status, payload
+                    return original_probe(argv, *args, **kwargs)
+                with patch.object(self, 'probe', side_effect=failed_probe), \
+                        patch.object(audit, 'emit_stdout_images') as emit:
+                    with self.assertRaisesRegex(ValueError, message):
+                        self.export_fixture()
+                emit.assert_not_called()
+                report = audit.n.read_json(self.packet / 'audit-index.json')
+                self.assertEqual(report['status'], 'INCOMPLETE')
+                self.assertEqual(report['probes'][phase], {'status': status, 'output_bytes': len(payload)})
+                self.assertEqual(report['methods'], [])
+                self.assertNotIn('QUESTIFY_UI_AUDIT_COMPLETE_V1 ', self.export_stdout.getvalue())
+                for path in self.packet.iterdir(): path.unlink()
+                self.packet.rmdir()
 
     def testExactNameAndFilenameExtensionsKeepCanonicalLabel(self):
         label = 'Order detail – synthetic data'

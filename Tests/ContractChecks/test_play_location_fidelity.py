@@ -72,6 +72,9 @@ class PlayLocationFidelitySourceChecks(unittest.TestCase):
         self.assertIn('takeLocationReply(manager)?.resume(throwing: error)', failure)
         authorization = block(text, 'private func requestLocationIfAuthorized(', '/// Take only')
         self.assertIn('guard manager === locationManager, locationReply != nil else { return }', authorization)
+        self.assertLess(authorization.index('guard !locationRequestStarted'), authorization.index('locationRequestStarted = true'))
+        self.assertLess(authorization.index('locationRequestStarted = true'), authorization.index('manager.requestLocation()'))
+        self.assertIn('locationRequestStarted = false', take)
 
     def test_cancel_is_scoped_and_default_grants_stay_empty(self):
         text = read('App/PlayNativeDeviceProvider.swift')

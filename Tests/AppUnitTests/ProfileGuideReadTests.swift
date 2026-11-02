@@ -179,7 +179,9 @@ import UIKit
             revealDocuments(in:host.view);try await Task.sleep(for:.milliseconds(20))
         }
         XCTAssertEqual(h.wire.paths,["infomation_list"]);reader.refresh()
-        for _ in 0..<100 where h.wire.requests.count<2{try await Task.sleep(for:.milliseconds(20))}
+        for _ in 0..<100 where h.wire.requests.count<2 {
+            revealDocuments(in:host.view);try await Task.sleep(for:.milliseconds(20))
+        }
         XCTAssertEqual(h.wire.paths,["infomation_list","infomation_list"])
         host.rootView=AnyView(Text("Left guide"));host.view.layoutIfNeeded()
         for _ in 0..<100 where reader.isVisible{try await Task.sleep(for:.milliseconds(20))}

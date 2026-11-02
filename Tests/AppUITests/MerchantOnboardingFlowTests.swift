@@ -30,7 +30,11 @@ final class MerchantOnboardingFlowTests: XCTestCase {
     }
     private func tap(_ element: XCUIElement, file: StaticString = #filePath, line: UInt = #line) {
         reveal(element)
-        let ready = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == true AND hittable == true AND enabled == true"), object: element)
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            // Resolve existence and enabled state together before the separate hit test.
+            guard let snapshot = try? element.snapshot(), snapshot.isEnabled else { return false }
+            return element.isHittable
+        }, object: element)
         XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 10), .completed, app.debugDescription, file: file, line: line)
         element.tap()
     }

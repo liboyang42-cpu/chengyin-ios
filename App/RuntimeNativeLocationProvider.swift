@@ -8,6 +8,7 @@ import UIKit
     private var manager: CLLocationManager?
     private var pending: CheckedContinuation<RoamDeviceFix, Error>?
     private var pendingID: UUID?
+    private var locationRequestStarted = false
     private var timeout: Task<Void, Never>?
     init(enabled: Bool = false) { self.enabled = enabled; super.init() }
     func currentFix() async throws -> RoamDeviceFix {
@@ -34,7 +35,10 @@ import UIKit
     private func request(_ manager: CLLocationManager) {
         guard self.manager === manager, pending != nil else { return }
         switch manager.authorizationStatus {
-        case .authorizedAlways, .authorizedWhenInUse: manager.requestLocation()
+        case .authorizedAlways, .authorizedWhenInUse:
+            guard !locationRequestStarted else { return }
+            locationRequestStarted = true
+            manager.requestLocation()
         case .denied, .restricted: finish(.failure(PlayExperienceError.disabled))
         default: break
         }
@@ -51,7 +55,7 @@ import UIKit
         guard self.manager === manager else { return }; finish(.failure(error))
     }
     private func finish(_ result: Result<RoamDeviceFix, Error>) {
-        let reply = pending; pending = nil; pendingID = nil; timeout?.cancel(); timeout = nil
+        let reply = pending; pending = nil; pendingID = nil; locationRequestStarted = false; timeout?.cancel(); timeout = nil
         manager?.stopUpdatingLocation(); manager?.delegate = nil; manager = nil
         reply?.resume(with: result)
     }

@@ -47,7 +47,7 @@ import XCTest
         tap("ownedCover.reviewSelection",in:app);tap("ownedCover.confirm",in:app)
         value("ownedCover.selectedNotice.asset","11111111-1111-4111-8111-111111111111",in:app);value("ownedCover.selectedNotice.config","2",in:app)
         tap("topicReview.open",in:app);value("topicReview.selectedCover.hash",local.coverHash,in:app);value("topicReview.selectedCover.selection","1",in:app)
-        tap("topicReview.selectedCover.openImage",in:app);XCTAssertTrue(app.images["ownedCover.image.content"].waitForExistence(timeout:5))
+        tap("topicReview.selectedCover.openImage",in:app);XCTAssertTrue(app.images["ownedCover.image.content"].waitForExistence(timeout:5), app.debugDescription)
         value("ownedCover.image.asset","11111111-1111-4111-8111-111111111111",in:app);value("ownedCover.image.version","22222222-2222-4222-8222-222222222222",in:app)
         tap("ownedCover.image.close",in:app,fixed:true);tap("topicReview.close",in:app,fixed:true)
         let final=try inspect(app);XCTAssertEqual(final.coverUploadCount,1);XCTAssertEqual(final.coverSelectCount,1);XCTAssertEqual(final.coverImageCount,2);XCTAssertEqual(final.coverStatusCount,0);XCTAssertEqual(final.reviewSubmitCount,0);XCTAssertEqual(final.coverRequestIDs.count,1)

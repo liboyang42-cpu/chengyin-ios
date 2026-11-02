@@ -20,7 +20,7 @@ enum ProjectSubmissionEvidencePhase {
                                                      maximumSwipes: Int, revealFirst: Bool,
                                                      file: StaticString = #filePath, line: UInt = #line) {
     let target = phase.container(in: app).descendants(matching: .any).matching(identifier: id).element
-    if revealFirst {
+    if revealFirst || !target.exists {
         XCTAssertTrue(revealFixtureElement(target, in: app, towardTop: phase == .history, maximumSwipes: maximumSwipes, requiresHittable: false), app.debugDescription, file: file, line: line)
         XCTAssertTrue(target.waitForExistence(timeout: 5), app.debugDescription, file: file, line: line)
     } else {
