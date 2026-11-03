@@ -1,0 +1,39 @@
+{
+  "source_repo": "https://github.com/liboyang42-cpu/chengyin-ios",
+  "branch": "origin/codex/ios-main-integration-20261101",
+  "pr": 126,
+  "head_sha": "ab2d3905ec0b0fb17b58ba6b53ec433d83164701",
+  "parent_sha": "4b1bd1c88fd42177268e50ca58215c3fd79d86c2",
+  "root_tree": "95d4c55b5fd6dd1a76e923c6c076da6c12e0e864",
+  "dirty_count": 0,
+  "macos_sw_vers": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0\nBuildVersion:\t\t26A428",
+  "xcodebuild_version": "Xcode 27.1\nBuild version 27A9275",
+  "xcode_select_path": "/Applications/Xcode.app/Contents/Developer",
+  "swift_version": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0",
+  "iphonesimulator_sdk_version": "27.1",
+  "iphoneos_sdk_version": "27.1",
+  "architecture": "arm64",
+  "python3_version": "Python 3.9.6",
+  "simulators": [
+    {
+      "name": "Questify-iPhone17",
+      "udid": "25316F87-058C-46CE-8825-617906638207",
+      "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-27-0",
+      "state": "Booted"
+    },
+    {
+      "name": "Questify-iPhone17-Lane2",
+      "udid": "2337B386-AC5F-4417-B8B8-012A8DB888BD",
+      "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-27-0",
+      "state": "Booted"
+    }
+  ],
+  "redaction_policy": {
+    "replacements": {
+      "/Users/fanning/chengyin-ios-public-20261103": "<PUBLIC_REPO_WORKTREE>",
+      "/Users/fanning/chengyin-ios-handoff-20261027": "<ARTIFACTS_ROOT>",
+      "/Users/fanning": "<LOCAL_HOME>"
+    },
+    "preserves": "All compiler diagnostics, test suite/method names, assertions, durations, and exit codes are 100% unmodified."
+  }
+}

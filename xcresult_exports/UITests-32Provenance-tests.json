@@ -1,0 +1,554 @@
+{
+  "devices" : [
+    {
+      "architecture" : "arm64",
+      "deviceId" : "25316F87-058C-46CE-8825-617906638207",
+      "deviceName" : "Questify-iPhone17",
+      "modelName" : "iPhone 17",
+      "osBuildNumber" : "24A434",
+      "osVersion" : "27.0",
+      "platform" : "iOS Simulator"
+    }
+  ],
+  "testNodes" : [
+    {
+      "children" : [
+        {
+          "children" : [
+            {
+              "children" : [
+                {
+                  "children" : [
+                    {
+                      "name" : "XCTAssertTrue failed",
+                      "nodeType" : "Failure Message",
+                      "sourceLocation" : {
+                        "filePath" : "<PUBLIC_REPO_WORKTREE>/Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift",
+                        "lineNumber" : 94
+                      }
+                    }
+                  ],
+                  "duration" : "7秒",
+                  "durationInSeconds" : 7.809762001037598,
+                  "name" : "testActualPhoneHomeDetailManualMapPlayAndFreshOwnedOrderJourney()",
+                  "nodeIdentifier" : "IntegratedActivityPlayJourneyFlowTests/testActualPhoneHomeDetailManualMapPlayAndFreshOwnedOrderJourney()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/IntegratedActivityPlayJourneyFlowTests/testActualPhoneHomeDetailManualMapPlayAndFreshOwnedOrderJourney",
+                  "nodeType" : "Test Case",
+                  "result" : "Failed"
+                },
+                {
+                  "children" : [
+                    {
+                      "name" : "XCTAssertTrue failed",
+                      "nodeType" : "Failure Message",
+                      "sourceLocation" : {
+                        "filePath" : "<PUBLIC_REPO_WORKTREE>/Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift",
+                        "lineNumber" : 94
+                      }
+                    }
+                  ],
+                  "duration" : "5秒",
+                  "durationInSeconds" : 5.5618860721588135,
+                  "name" : "testNormalRootOwnedShelfPaginationAndDetailWithoutMutation()",
+                  "nodeIdentifier" : "IntegratedActivityPlayJourneyFlowTests/testNormalRootOwnedShelfPaginationAndDetailWithoutMutation()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/IntegratedActivityPlayJourneyFlowTests/testNormalRootOwnedShelfPaginationAndDetailWithoutMutation",
+                  "nodeType" : "Test Case",
+                  "result" : "Failed"
+                }
+              ],
+              "name" : "IntegratedActivityPlayJourneyFlowTests",
+              "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/IntegratedActivityPlayJourneyFlowTests",
+              "nodeType" : "Test Suite",
+              "result" : "Failed"
+            },
+            {
+              "children" : [
+                {
+                  "children" : [
+                    {
+                      "name" : "XCTAssertTrue failed",
+                      "nodeType" : "Failure Message",
+                      "sourceLocation" : {
+                        "filePath" : "<PUBLIC_REPO_WORKTREE>/Tests/AppUITests/IntegratedDeniedAcceptanceFlowTests.swift",
+                        "lineNumber" : 95
+                      }
+                    }
+                  ],
+                  "duration" : "5秒",
+                  "durationInSeconds" : 5.784121990203857,
+                  "name" : "testConfiguredAuthenticationDoesNotGrantDetailMapPlayOrOwnedOrders()",
+                  "nodeIdentifier" : "IntegratedDeniedAcceptanceFlowTests/testConfiguredAuthenticationDoesNotGrantDetailMapPlayOrOwnedOrders()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/IntegratedDeniedAcceptanceFlowTests/testConfiguredAuthenticationDoesNotGrantDetailMapPlayOrOwnedOrders",
+                  "nodeType" : "Test Case",
+                  "result" : "Failed"
+                },
+                {
+                  "children" : [
+                    {
+                      "name" : "XCTAssertTrue failed",
+                      "nodeType" : "Failure Message",
+                      "sourceLocation" : {
+                        "filePath" : "<PUBLIC_REPO_WORKTREE>/Tests/AppUITests/IntegratedDeniedAcceptanceFlowTests.swift",
+                        "lineNumber" : 95
+                      }
+                    }
+                  ],
+                  "duration" : "5秒",
+                  "durationInSeconds" : 5.995450019836426,
+                  "name" : "testNormalRootIMHistoryDefaultNilNeverDispatches()",
+                  "nodeIdentifier" : "IntegratedDeniedAcceptanceFlowTests/testNormalRootIMHistoryDefaultNilNeverDispatches()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/IntegratedDeniedAcceptanceFlowTests/testNormalRootIMHistoryDefaultNilNeverDispatches",
+                  "nodeType" : "Test Case",
+                  "result" : "Failed"
+                }
+              ],
+              "name" : "IntegratedDeniedAcceptanceFlowTests",
+              "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/IntegratedDeniedAcceptanceFlowTests",
+              "nodeType" : "Test Suite",
+              "result" : "Failed"
+            },
+            {
+              "children" : [
+                {
+                  "children" : [
+                    {
+                      "name" : "XCTAssertTrue failed",
+                      "nodeType" : "Failure Message",
+                      "sourceLocation" : {
+                        "filePath" : "<PUBLIC_REPO_WORKTREE>/Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift",
+                        "lineNumber" : 95
+                      }
+                    }
+                  ],
+                  "duration" : "6秒",
+                  "durationInSeconds" : 6.556352972984314,
+                  "name" : "testActualSettingsFavoritesNoGrantBackDoneAndRepeatedReopen()",
+                  "nodeIdentifier" : "IntegratedNativeAcceptanceFlowTests/testActualSettingsFavoritesNoGrantBackDoneAndRepeatedReopen()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/IntegratedNativeAcceptanceFlowTests/testActualSettingsFavoritesNoGrantBackDoneAndRepeatedReopen",
+                  "nodeType" : "Test Case",
+                  "result" : "Failed"
+                },
+                {
+                  "children" : [
+                    {
+                      "name" : "XCTAssertTrue failed",
+                      "nodeType" : "Failure Message",
+                      "sourceLocation" : {
+                        "filePath" : "<PUBLIC_REPO_WORKTREE>/Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift",
+                        "lineNumber" : 95
+                      }
+                    }
+                  ],
+                  "duration" : "7秒",
+                  "durationInSeconds" : 7.016963005065918,
+                  "name" : "testNormalRootIMHistoryNeverMarksReadOrSends()",
+                  "nodeIdentifier" : "IntegratedNativeAcceptanceFlowTests/testNormalRootIMHistoryNeverMarksReadOrSends()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/IntegratedNativeAcceptanceFlowTests/testNormalRootIMHistoryNeverMarksReadOrSends",
+                  "nodeType" : "Test Case",
+                  "result" : "Failed"
+                },
+                {
+                  "children" : [
+                    {
+                      "name" : "XCTAssertTrue failed",
+                      "nodeType" : "Failure Message",
+                      "sourceLocation" : {
+                        "filePath" : "<PUBLIC_REPO_WORKTREE>/Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift",
+                        "lineNumber" : 95
+                      }
+                    }
+                  ],
+                  "duration" : "7秒",
+                  "durationInSeconds" : 7.2818909883499146,
+                  "name" : "testNormalRootOwnedConfigurationReadOnlyAndStoryReturn()",
+                  "nodeIdentifier" : "IntegratedNativeAcceptanceFlowTests/testNormalRootOwnedConfigurationReadOnlyAndStoryReturn()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/IntegratedNativeAcceptanceFlowTests/testNormalRootOwnedConfigurationReadOnlyAndStoryReturn",
+                  "nodeType" : "Test Case",
+                  "result" : "Failed"
+                },
+                {
+                  "children" : [
+                    {
+                      "name" : "XCTAssertTrue failed",
+                      "nodeType" : "Failure Message",
+                      "sourceLocation" : {
+                        "filePath" : "<PUBLIC_REPO_WORKTREE>/Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift",
+                        "lineNumber" : 95
+                      }
+                    }
+                  ],
+                  "duration" : "6秒",
+                  "durationInSeconds" : 6.45551598072052,
+                  "name" : "testNormalRootTeamReadOnlyJourney()",
+                  "nodeIdentifier" : "IntegratedNativeAcceptanceFlowTests/testNormalRootTeamReadOnlyJourney()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/IntegratedNativeAcceptanceFlowTests/testNormalRootTeamReadOnlyJourney",
+                  "nodeType" : "Test Case",
+                  "result" : "Failed"
+                },
+                {
+                  "children" : [
+                    {
+                      "name" : "XCTAssertTrue failed",
+                      "nodeType" : "Failure Message",
+                      "sourceLocation" : {
+                        "filePath" : "<PUBLIC_REPO_WORKTREE>/Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift",
+                        "lineNumber" : 95
+                      }
+                    }
+                  ],
+                  "duration" : "10秒",
+                  "durationInSeconds" : 10.955735087394714,
+                  "name" : "testPhoneCancelLogoutAccountSwitchAndColdLaunchDoNotReuseOwnerState()",
+                  "nodeIdentifier" : "IntegratedNativeAcceptanceFlowTests/testPhoneCancelLogoutAccountSwitchAndColdLaunchDoNotReuseOwnerState()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/IntegratedNativeAcceptanceFlowTests/testPhoneCancelLogoutAccountSwitchAndColdLaunchDoNotReuseOwnerState",
+                  "nodeType" : "Test Case",
+                  "result" : "Failed"
+                },
+                {
+                  "children" : [
+                    {
+                      "name" : "XCTAssertTrue failed",
+                      "nodeType" : "Failure Message",
+                      "sourceLocation" : {
+                        "filePath" : "<PUBLIC_REPO_WORKTREE>/Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift",
+                        "lineNumber" : 95
+                      }
+                    }
+                  ],
+                  "duration" : "6秒",
+                  "durationInSeconds" : 6.716230034828186,
+                  "name" : "testSettingsOffersPlayerApplicationsInMiniProgramOrderAndSignsOut()",
+                  "nodeIdentifier" : "IntegratedNativeAcceptanceFlowTests/testSettingsOffersPlayerApplicationsInMiniProgramOrderAndSignsOut()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/IntegratedNativeAcceptanceFlowTests/testSettingsOffersPlayerApplicationsInMiniProgramOrderAndSignsOut",
+                  "nodeType" : "Test Case",
+                  "result" : "Failed"
+                }
+              ],
+              "name" : "IntegratedNativeAcceptanceFlowTests",
+              "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/IntegratedNativeAcceptanceFlowTests",
+              "nodeType" : "Test Suite",
+              "result" : "Failed"
+            },
+            {
+              "children" : [
+                {
+                  "children" : [
+                    {
+                      "name" : "XCTAssertTrue failed - Optional(Attributes: Application, 0x10977cc80, pid: 43019, label: 'Questify'\nElement subtree:\n →Application, 0x10977cc80, pid: 43019, label: 'Questify'\n    Window (Main), 0x10977cdc0, {{0.0, 0.0}, {402.0, 874.0}}\n      Other, 0x10977cf00, {{0.0, 0.0}, {402.0, 874.0}}\n        Other, 0x10977d040, {{0.0, 0.0}, {402.0, 874.0}}\n          Other, 0x10977d540, {{0.0, 0.0}, {402.0, 874.0}}\n            Other, 0x10977f340, {{0.0, 0.0}, {402.0, 874.0}}\n              Image, 0x10977f480, {{0.0, 0.0}, {402.0, 131.3}}, identifier: 'module.fixture.notice', label: 'UI test fixtures · No live data', value: colorScheme=dark;d...\n              Button, 0x10977d680, {{94.7, 131.3}, {93.3, 66.7}}, identifier: 'searchMap.fixture.guest', label: 'Fixture: guest'\n              Button, 0x10977d7c0, {{196.0, 133.3}, {111.7, 62.7}}, identifier: 'searchMap.fixture.account', label: 'Fixture: switch account'\n              Other, 0x10977d900, {{0.0, 198.0}, {402.0, 676.0}}\n                Other, 0x10977da40, {{0.0, 198.0}, {402.0, 676.0}}\n                  Other, 0x10977db80, {{0.0, 198.0}, {402.0, 676.0}}\n                    Other, 0x10977ebc0, {{0.0, 198.0}, {402.0, 676.0}}\n                      Other, 0x10977e940, {{0.0, 198.0}, {402.0, 676.0}}\n                        ScrollView, 0x10977e800, {{0.0, 198.0}, {402.0, 676.0}}\n                          Other, 0x10977e440, {{0.0, 198.0}, {402.0, 1150.7}}\n                            Button, 0x10977e580, {{16.0, 214.0}, {349.3, 125.3}}, identifier: 'mapList.fixture.pointSecond', label: 'Synthetic point selects second'\n                            Button, 0x10977f980, {{16.0, 355.3}, {332.3, 63.3}}, identifier: 'mapList.fixture.clear', label: 'Clear selection'\n                            StaticText, 0x10977e080, {{16.0, 434.7}, {112.7, 63.3}}, identifier: 'mapList.fixture.selection', label: 'none'\n                            Button, 0x10977e300, {{16.0, 514.0}, {195.3, 63.3}}, identifier: 'mapList.fixture.removed', label: 'removed'\n                            Button, 0x10977e1c0, {{16.0, 593.3}, {231.7, 63.3}}, identifier: 'mapList.fixture.duplicates', label: 'duplicates'\n                            Button, 0x10977df40, {{16.0, 672.7}, {213.0, 63.3}}, identifier: 'mapList.fixture.refreshed', label: 'refreshed'\n                            Button, 0x10977de00, {{16.0, 752.0}, {142.3, 63.3}}, identifier: 'mapList.fixture.empty', label: 'empty'\n                            Button, 0x10977d400, {{16.0, 831.3}, {154.3, 63.3}}, identifier: 'mapList.fixture.normal', label: 'normal'\n                            Button, 0x10977d2c0, {{16.0, 910.7}, {204.0, 63.3}}, identifier: 'mapList.fixture.readOnly', label: 'readOnly'\n                            Button, 0x10977d180, {{16.0, 990.0}, {227.3, 125.3}}, identifier: 'mapList.fixture.depart', label: 'Synthetic departure'\n                            Button, 0x10977f700, {{16.0, 1131.3}, {363.3, 201.3}}, identifier: 'mapList.toggle', label: 'Show places as a list', value: Collapsed\n                              StaticText, 0x10977f840, {{16.0, 1131.3}, {363.3, 201.3}}, label: 'Show places as a list'\n                              Image, 0x10977f5c0, {{43.3, 1155.0}, {41.3, 30.0}}, identifier: 'list.bullet', label: 'List'\n                          Other, 0x10977e6c0, {{369.0, 198.0}, {30.0, 614.0}}, label: 'Vertical scroll bar, 2 pages', value: 0%\n                            Other, 0x10977fac0, {{396.0, 201.0}, {3.0, 347.0}}\n                          Other, 0x10977fc00, {{369.0, 198.0}, {30.0, 614.0}}, label: 'Vertical scroll bar, 2 pages', value: 0%\n                            Other, 0x10977fd40, {{396.0, 201.0}, {3.0, 347.0}}\n                Toolbar, 0x10977fe80, {{0.0, 198.0}, {402.0, 676.0}}, identifier: 'Toolbar', label: 'Toolbar'\n                  Other, 0x109656440, {{0.0, 198.0}, {402.0, 676.0}}\nPath to element:\n →Application, 0x10977cc80, pid: 43019, label: 'Questify'\nQuery chain:\n →Find: Target Application 'invalid.example.questify.ios'\n  Output: {\n    Application, 0x1096566c0, pid: 43019, label: 'Questify'\n  }\n)",
+                      "nodeType" : "Failure Message",
+                      "sourceLocation" : {
+                        "filePath" : "<PUBLIC_REPO_WORKTREE>/Tests/AppUITests/SearchMapAlternativeListFlowTests.swift",
+                        "lineNumber" : 78
+                      }
+                    }
+                  ],
+                  "duration" : "23秒",
+                  "durationInSeconds" : 23.670647978782654,
+                  "name" : "testAlternativeListBilingualMaximumTypeKeepsFullTitlesAndParentSelectionInSync()",
+                  "nodeIdentifier" : "SearchMapAlternativeListFlowTests/testAlternativeListBilingualMaximumTypeKeepsFullTitlesAndParentSelectionInSync()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapAlternativeListFlowTests/testAlternativeListBilingualMaximumTypeKeepsFullTitlesAndParentSelectionInSync",
+                  "nodeType" : "Test Case",
+                  "result" : "Failed"
+                },
+                {
+                  "children" : [
+                    {
+                      "name" : "XCTAssertTrue failed - Optional(Attributes: Application, 0x10977f700, pid: 43510, label: 'Questify'\nElement subtree:\n →Application, 0x10977f700, pid: 43510, label: 'Questify'\n    Window (Main), 0x10977df40, {{0.0, 0.0}, {402.0, 874.0}}\n      Other, 0x10977d7c0, {{0.0, 0.0}, {402.0, 874.0}}\n        Other, 0x10977ebc0, {{0.0, 0.0}, {402.0, 874.0}}\n          Other, 0x10977db80, {{0.0, 0.0}, {402.0, 874.0}}\n            Other, 0x10977e940, {{0.0, 0.0}, {402.0, 874.0}}\n              StaticText, 0x10977e800, {{0.0, 0.0}, {402.0, 92.3}}, identifier: 'module.fixture.notice', label: 'UI test fixtures · No live data', value: colorScheme=light;...\n              Button, 0x10977f840, {{33.3, 97.3}, {127.7, 34.3}}, identifier: 'searchMap.fixture.guest', label: 'Fixture: guest'\n              Button, 0x10977f5c0, {{169.0, 97.3}, {199.7, 34.3}}, identifier: 'searchMap.fixture.account', label: 'Fixture: switch account'\n              Other, 0x10977d2c0, {{0.0, 136.3}, {402.0, 737.7}}\n                Other, 0x10977e6c0, {{0.0, 136.3}, {402.0, 737.7}}\n                  Other, 0x10977de00, {{0.0, 136.3}, {402.0, 737.7}}\n                    Other, 0x10977d400, {{0.0, 136.3}, {402.0, 737.7}}\n                      Other, 0x10977fd40, {{0.0, 136.3}, {402.0, 737.7}}\n                        ScrollView, 0x10977f980, {{0.0, 136.3}, {402.0, 737.7}}\n                          Other, 0x10977e580, {{0.0, 136.3}, {402.0, 652.3}}\n                            Button, 0x10977e300, {{16.0, 164.3}, {233.7, 20.3}}, identifier: 'mapList.fixture.pointSecond', label: 'Synthetic point selects second'\n                            Button, 0x10977e1c0, {{16.0, 224.3}, {113.0, 20.3}}, identifier: 'mapList.fixture.clear', label: 'Clear selection'\n                            StaticText, 0x10977fac0, {{16.0, 272.3}, {38.0, 20.3}}, identifier: 'mapList.fixture.selection', label: 'none'\n                            Button, 0x10977e440, {{16.0, 320.7}, {66.7, 20.3}}, identifier: 'mapList.fixture.removed', label: 'removed'\n                            Button, 0x10977fc00, {{16.0, 380.7}, {78.7, 20.3}}, identifier: 'mapList.fixture.duplicates', label: 'duplicates'\n                            Button, 0x109770000, {{16.0, 440.7}, {73.3, 20.3}}, identifier: 'mapList.fixture.refreshed', label: 'refreshed'\n                            Button, 0x109657c00, {{16.0, 500.7}, {48.3, 20.3}}, identifier: 'mapList.fixture.empty', label: 'empty'\n                            Button, 0x109656580, {{16.0, 560.7}, {52.7, 20.3}}, identifier: 'mapList.fixture.normal', label: 'normal'\n                            Button, 0x109657e80, {{16.0, 620.7}, {69.0, 20.3}}, identifier: 'mapList.fixture.readOnly', label: 'readOnly'\n                            Button, 0x109656bc0, {{16.0, 680.7}, {151.0, 20.3}}, identifier: 'mapList.fixture.depart', label: 'Synthetic departure'\n                            Button, 0x11268c000, {{16.0, 733.7}, {210.3, 34.3}}, identifier: 'mapList.toggle', label: 'Show places as a list', value: Collapsed\n                              StaticText, 0x11268c140, {{16.0, 733.7}, {210.3, 34.3}}, label: 'Show places as a list'\n                              Image, 0x11268c280, {{30.0, 744.7}, {17.0, 12.3}}, identifier: 'list.bullet', label: 'List'\n                          Other, 0x11268c3c0, {{369.0, 136.3}, {30.0, 675.7}}, label: 'Vertical scroll bar, 1 page', value: 0%\n                            Other, 0x11268c500, {{396.0, 190.7}, {3.0, 618.3}}\n                          Other, 0x11268c640, {{369.0, 136.3}, {30.0, 675.7}}, label: 'Vertical scroll bar, 1 page', value: 0%\n                            Other, 0x11268c780, {{396.0, 190.7}, {3.0, 618.3}}\n                Toolbar, 0x11268c8c0, {{0.0, 136.3}, {402.0, 737.7}}, identifier: 'Toolbar', label: 'Toolbar'\n                  Other, 0x11268ca00, {{0.0, 136.3}, {402.0, 737.7}}\nPath to element:\n →Application, 0x10977f700, pid: 43510, label: 'Questify'\nQuery chain:\n →Find: Target Application 'invalid.example.questify.ios'\n  Output: {\n    Application, 0x11268cb40, pid: 43510, label: 'Questify'\n  }\n)",
+                      "nodeType" : "Failure Message",
+                      "sourceLocation" : {
+                        "filePath" : "<PUBLIC_REPO_WORKTREE>/Tests/AppUITests/SearchMapAlternativeListFlowTests.swift",
+                        "lineNumber" : 78
+                      }
+                    }
+                  ],
+                  "duration" : "20秒",
+                  "durationInSeconds" : 20.564459919929504,
+                  "name" : "testAlternativeListCloseReopenAndEmptySnapshotNeverRetainOldRows()",
+                  "nodeIdentifier" : "SearchMapAlternativeListFlowTests/testAlternativeListCloseReopenAndEmptySnapshotNeverRetainOldRows()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapAlternativeListFlowTests/testAlternativeListCloseReopenAndEmptySnapshotNeverRetainOldRows",
+                  "nodeType" : "Test Case",
+                  "result" : "Failed"
+                },
+                {
+                  "children" : [
+                    {
+                      "name" : "XCTAssertTrue failed - Optional(Attributes: Application, 0x11268f5c0, pid: 43873, label: 'Questify'\nElement subtree:\n →Application, 0x11268f5c0, pid: 43873, label: 'Questify'\n    Window (Main), 0x11268d7c0, {{0.0, 0.0}, {402.0, 874.0}}\n      Other, 0x11268d900, {{0.0, 0.0}, {402.0, 874.0}}\n        Other, 0x11268da40, {{0.0, 0.0}, {402.0, 874.0}}\n          Other, 0x11268db80, {{0.0, 0.0}, {402.0, 874.0}}\n            Other, 0x11268dcc0, {{0.0, 0.0}, {402.0, 874.0}}\n              StaticText, 0x11268f0c0, {{0.0, 0.0}, {402.0, 92.3}}, identifier: 'module.fixture.notice', label: 'UI test fixtures · No live data', value: colorScheme=light;...\n              Button, 0x11268fe80, {{33.3, 97.3}, {127.7, 34.3}}, identifier: 'searchMap.fixture.guest', label: 'Fixture: guest'\n              Button, 0x11268de00, {{169.0, 97.3}, {199.7, 34.3}}, identifier: 'searchMap.fixture.account', label: 'Fixture: switch account'\n              Other, 0x11268ebc0, {{0.0, 136.3}, {402.0, 737.7}}\n                Other, 0x11268ee40, {{0.0, 136.3}, {402.0, 737.7}}\n                  Other, 0x11268ed00, {{0.0, 136.3}, {402.0, 737.7}}\n                    Other, 0x11268ea80, {{0.0, 136.3}, {402.0, 737.7}}\n                      Other, 0x11268fc00, {{0.0, 136.3}, {402.0, 737.7}}\n                        ScrollView, 0x11268fd40, {{0.0, 136.3}, {402.0, 737.7}}\n                          Other, 0x11268e940, {{0.0, 136.3}, {402.0, 652.3}}\n                            Button, 0x11268fac0, {{16.0, 164.3}, {233.7, 20.3}}, identifier: 'mapList.fixture.pointSecond', label: 'Synthetic point selects second'\n                            Button, 0x11268e6c0, {{16.0, 224.3}, {113.0, 20.3}}, identifier: 'mapList.fixture.clear', label: 'Clear selection'\n                            StaticText, 0x11268f700, {{16.0, 272.3}, {38.0, 20.3}}, identifier: 'mapList.fixture.selection', label: 'none'\n                            Button, 0x11268d2c0, {{16.0, 320.7}, {66.7, 20.3}}, identifier: 'mapList.fixture.removed', label: 'removed'\n                            Button, 0x11268f840, {{16.0, 380.7}, {78.7, 20.3}}, identifier: 'mapList.fixture.duplicates', label: 'duplicates'\n                            Button, 0x11268d400, {{16.0, 440.7}, {73.3, 20.3}}, identifier: 'mapList.fixture.refreshed', label: 'refreshed'\n                            Button, 0x11268d540, {{16.0, 500.7}, {48.3, 20.3}}, identifier: 'mapList.fixture.empty', label: 'empty'\n                            Button, 0x11268df40, {{16.0, 560.7}, {52.7, 20.3}}, identifier: 'mapList.fixture.normal', label: 'normal'\n                            Button, 0x11268e080, {{16.0, 620.7}, {69.0, 20.3}}, identifier: 'mapList.fixture.readOnly', label: 'readOnly'\n                            Button, 0x11268e1c0, {{16.0, 680.7}, {151.0, 20.3}}, identifier: 'mapList.fixture.depart', label: 'Synthetic departure'\n                            Button, 0x11268e440, {{16.0, 733.7}, {210.3, 34.3}}, identifier: 'mapList.toggle', label: 'Show places as a list', value: Collapsed\n                              StaticText, 0x11268e580, {{16.0, 733.7}, {210.3, 34.3}}, label: 'Show places as a list'\n                              Image, 0x11268e300, {{30.0, 744.7}, {17.0, 12.3}}, identifier: 'list.bullet', label: 'List'\n                          Other, 0x11268f980, {{369.0, 136.3}, {30.0, 675.7}}, label: 'Vertical scroll bar, 1 page', value: 0%\n                            Other, 0x11268e800, {{396.0, 190.7}, {3.0, 618.3}}\n                          Other, 0x11268ef80, {{369.0, 136.3}, {30.0, 675.7}}, label: 'Vertical scroll bar, 1 page', value: 0%\n                            Other, 0x11268f340, {{396.0, 190.7}, {3.0, 618.3}}\n                Toolbar, 0x11268f200, {{0.0, 136.3}, {402.0, 737.7}}, identifier: 'Toolbar', label: 'Toolbar'\n                  Other, 0x109656bc0, {{0.0, 136.3}, {402.0, 737.7}}\nPath to element:\n →Application, 0x11268f5c0, pid: 43873, label: 'Questify'\nQuery chain:\n →Find: Target Application 'invalid.example.questify.ios'\n  Output: {\n    Application, 0x109657e80, pid: 43873, label: 'Questify'\n  }\n)",
+                      "nodeType" : "Failure Message",
+                      "sourceLocation" : {
+                        "filePath" : "<PUBLIC_REPO_WORKTREE>/Tests/AppUITests/SearchMapAlternativeListFlowTests.swift",
+                        "lineNumber" : 78
+                      }
+                    }
+                  ],
+                  "duration" : "20秒",
+                  "durationInSeconds" : 20.787438988685608,
+                  "name" : "testAlternativeListRefreshRemovalAndDuplicateIDsCannotSelectAnotherPlace()",
+                  "nodeIdentifier" : "SearchMapAlternativeListFlowTests/testAlternativeListRefreshRemovalAndDuplicateIDsCannotSelectAnotherPlace()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapAlternativeListFlowTests/testAlternativeListRefreshRemovalAndDuplicateIDsCannotSelectAnotherPlace",
+                  "nodeType" : "Test Case",
+                  "result" : "Failed"
+                }
+              ],
+              "name" : "SearchMapAlternativeListFlowTests",
+              "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapAlternativeListFlowTests",
+              "nodeType" : "Test Suite",
+              "result" : "Failed"
+            },
+            {
+              "children" : [
+                {
+                  "duration" : "9秒",
+                  "durationInSeconds" : 9.74032199382782,
+                  "name" : "testCityEmptyStateRemainsExplicit()",
+                  "nodeIdentifier" : "SearchMapFlowTests/testCityEmptyStateRemainsExplicit()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testCityEmptyStateRemainsExplicit",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "children" : [
+                    {
+                      "name" : "XCTAssertTrue failed",
+                      "nodeType" : "Failure Message",
+                      "sourceLocation" : {
+                        "filePath" : "<PUBLIC_REPO_WORKTREE>/Tests/AppUITests/SearchMapFlowTests.swift",
+                        "lineNumber" : 180
+                      }
+                    }
+                  ],
+                  "duration" : "17秒",
+                  "durationInSeconds" : 17.489763021469116,
+                  "name" : "testCityFilterCancelPreservesSelectionButApplyClearsIt()",
+                  "nodeIdentifier" : "SearchMapFlowTests/testCityFilterCancelPreservesSelectionButApplyClearsIt()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testCityFilterCancelPreservesSelectionButApplyClearsIt",
+                  "nodeType" : "Test Case",
+                  "result" : "Failed"
+                },
+                {
+                  "children" : [
+                    {
+                      "name" : "XCTAssertTrue failed",
+                      "nodeType" : "Failure Message",
+                      "sourceLocation" : {
+                        "filePath" : "<PUBLIC_REPO_WORKTREE>/Tests/AppUITests/SearchMapFlowTests.swift",
+                        "lineNumber" : 168
+                      }
+                    }
+                  ],
+                  "duration" : "17秒",
+                  "durationInSeconds" : 17.975782990455627,
+                  "name" : "testCityListSelectionUsesSamePinAndPreservesExplicitMapGate()",
+                  "nodeIdentifier" : "SearchMapFlowTests/testCityListSelectionUsesSamePinAndPreservesExplicitMapGate()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testCityListSelectionUsesSamePinAndPreservesExplicitMapGate",
+                  "nodeType" : "Test Case",
+                  "result" : "Failed"
+                },
+                {
+                  "duration" : "29秒",
+                  "durationInSeconds" : 29.39509403705597,
+                  "name" : "testCityLoadingRetryAndScopeChangeNeverKeepSelectedPlace()",
+                  "nodeIdentifier" : "SearchMapFlowTests/testCityLoadingRetryAndScopeChangeNeverKeepSelectedPlace()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testCityLoadingRetryAndScopeChangeNeverKeepSelectedPlace",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "17秒",
+                  "durationInSeconds" : 17.51798903942108,
+                  "name" : "testCityMissingCoordinatesStayInListAndNodeOpensCorrectDomain()",
+                  "nodeIdentifier" : "SearchMapFlowTests/testCityMissingCoordinatesStayInListAndNodeOpensCorrectDomain()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testCityMissingCoordinatesStayInListAndNodeOpensCorrectDomain",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "18秒",
+                  "durationInSeconds" : 18.885325074195862,
+                  "name" : "testEnglishAndChineseRoutePreviewLargeTypeDarkReduceMotion()",
+                  "nodeIdentifier" : "SearchMapFlowTests/testEnglishAndChineseRoutePreviewLargeTypeDarkReduceMotion()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testEnglishAndChineseRoutePreviewLargeTypeDarkReduceMotion",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "children" : [
+                    {
+                      "name" : "Failed to tap \"searchMap.filter.min\" TextField: No matches found for Elements matching predicate '\"searchMap.filter.min\" IN identifiers' from input {(\n    TextField, identifier: 'searchMap.keyword', placeholderValue: 'Search topics, activities, clubs and shops',\n    TextField, identifier: 'searchMap.filter.start', placeholderValue: 'From YYYY-MM-DD',\n    TextField, identifier: 'searchMap.filter.end', placeholderValue: 'Through YYYY-MM-DD'\n)}",
+                      "nodeType" : "Failure Message",
+                      "sourceLocation" : {
+                        "filePath" : "<PUBLIC_REPO_WORKTREE>/Tests/AppUITests/SearchMapFlowTests.swift",
+                        "lineNumber" : 59
+                      }
+                    }
+                  ],
+                  "duration" : "8秒",
+                  "durationInSeconds" : 8.07716989517212,
+                  "name" : "testFilterValidationCancelAndReopen()",
+                  "nodeIdentifier" : "SearchMapFlowTests/testFilterValidationCancelAndReopen()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testFilterValidationCancelAndReopen",
+                  "nodeType" : "Test Case",
+                  "result" : "Failed"
+                },
+                {
+                  "children" : [
+                    {
+                      "name" : "XCTAssertTrue failed",
+                      "nodeType" : "Failure Message",
+                      "sourceLocation" : {
+                        "filePath" : "<PUBLIC_REPO_WORKTREE>/Tests/AppUITests/SearchMapFlowTests.swift",
+                        "lineNumber" : 71
+                      }
+                    }
+                  ],
+                  "duration" : "14秒",
+                  "durationInSeconds" : 14.908156037330627,
+                  "name" : "testGlobalCategoryApplyResetPreservesKeywordAndCancelPreservesResults()",
+                  "nodeIdentifier" : "SearchMapFlowTests/testGlobalCategoryApplyResetPreservesKeywordAndCancelPreservesResults()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testGlobalCategoryApplyResetPreservesKeywordAndCancelPreservesResults",
+                  "nodeType" : "Test Case",
+                  "result" : "Failed"
+                },
+                {
+                  "children" : [
+                    {
+                      "name" : "XCTAssertTrue failed",
+                      "nodeType" : "Failure Message",
+                      "sourceLocation" : {
+                        "filePath" : "<PUBLIC_REPO_WORKTREE>/Tests/AppUITests/SearchMapFlowTests.swift",
+                        "lineNumber" : 71
+                      }
+                    }
+                  ],
+                  "duration" : "12秒",
+                  "durationInSeconds" : 12.302935004234314,
+                  "name" : "testGlobalCategoryChangeRejectsEarlierCompletionAndClearReturnsSuggestions()",
+                  "nodeIdentifier" : "SearchMapFlowTests/testGlobalCategoryChangeRejectsEarlierCompletionAndClearReturnsSuggestions()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testGlobalCategoryChangeRejectsEarlierCompletionAndClearReturnsSuggestions",
+                  "nodeType" : "Test Case",
+                  "result" : "Failed"
+                },
+                {
+                  "duration" : "13秒",
+                  "durationInSeconds" : 13.593392014503479,
+                  "name" : "testGlobalDomainsAreSeparateAndMerchantDetailUsesMerchantID()",
+                  "nodeIdentifier" : "SearchMapFlowTests/testGlobalDomainsAreSeparateAndMerchantDetailUsesMerchantID()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testGlobalDomainsAreSeparateAndMerchantDetailUsesMerchantID",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "8秒",
+                  "durationInSeconds" : 8.531694054603577,
+                  "name" : "testGuestKeepsPublicResultsAndShowsExplicitGate()",
+                  "nodeIdentifier" : "SearchMapFlowTests/testGuestKeepsPublicResultsAndShowsExplicitGate()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testGuestKeepsPublicResultsAndShowsExplicitGate",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "children" : [
+                    {
+                      "name" : "XCTAssertTrue failed",
+                      "nodeType" : "Failure Message",
+                      "sourceLocation" : {
+                        "filePath" : "<PUBLIC_REPO_WORKTREE>/Tests/AppUITests/SearchMapFlowTests.swift",
+                        "lineNumber" : 216
+                      }
+                    }
+                  ],
+                  "duration" : "7秒",
+                  "durationInSeconds" : 7.325166940689087,
+                  "name" : "testManualAreaChangeClearsSelectionAndRequiresMapOptInAgain()",
+                  "nodeIdentifier" : "SearchMapFlowTests/testManualAreaChangeClearsSelectionAndRequiresMapOptInAgain()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testManualAreaChangeClearsSelectionAndRequiresMapOptInAgain",
+                  "nodeType" : "Test Case",
+                  "result" : "Failed"
+                },
+                {
+                  "duration" : "12秒",
+                  "durationInSeconds" : 12.740646958351135,
+                  "name" : "testMapMarkerSelectionKeepsDistinctObjectsInDarkLargeText()",
+                  "nodeIdentifier" : "SearchMapFlowTests/testMapMarkerSelectionKeepsDistinctObjectsInDarkLargeText()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testMapMarkerSelectionKeepsDistinctObjectsInDarkLargeText",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "8秒",
+                  "durationInSeconds" : 8.938119053840637,
+                  "name" : "testMapMarkerSelectionKeepsDistinctObjectsInLightAppearance()",
+                  "nodeIdentifier" : "SearchMapFlowTests/testMapMarkerSelectionKeepsDistinctObjectsInLightAppearance()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testMapMarkerSelectionKeepsDistinctObjectsInLightAppearance",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "8秒",
+                  "durationInSeconds" : 8.653702020645142,
+                  "name" : "testNearbyRouteNodeUsesTopicReferenceAndHonestRoutePreview()",
+                  "nodeIdentifier" : "SearchMapFlowTests/testNearbyRouteNodeUsesTopicReferenceAndHonestRoutePreview()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testNearbyRouteNodeUsesTopicReferenceAndHonestRoutePreview",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "8秒",
+                  "durationInSeconds" : 8.30675196647644,
+                  "name" : "testPartialFailureDoesNotBecomeEmptyWholePage()",
+                  "nodeIdentifier" : "SearchMapFlowTests/testPartialFailureDoesNotBecomeEmptyWholePage()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testPartialFailureDoesNotBecomeEmptyWholePage",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "8秒",
+                  "durationInSeconds" : 8.729512929916382,
+                  "name" : "testRecommendedKeywordFillsFieldAndSearches()",
+                  "nodeIdentifier" : "SearchMapFlowTests/testRecommendedKeywordFillsFieldAndSearches()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testRecommendedKeywordFillsFieldAndSearches",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "9秒",
+                  "durationInSeconds" : 9.643020033836365,
+                  "name" : "testRetryRecovers()",
+                  "nodeIdentifier" : "SearchMapFlowTests/testRetryRecovers()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testRetryRecovers",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "12秒",
+                  "durationInSeconds" : 12.115013003349304,
+                  "name" : "testSessionSwitchClearsResultsAndCityData()",
+                  "nodeIdentifier" : "SearchMapFlowTests/testSessionSwitchClearsResultsAndCityData()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testSessionSwitchClearsResultsAndCityData",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                }
+              ],
+              "name" : "SearchMapFlowTests",
+              "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests",
+              "nodeType" : "Test Suite",
+              "result" : "Failed"
+            }
+          ],
+          "name" : "QuestifyUITests",
+          "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests",
+          "nodeType" : "UI test bundle",
+          "result" : "Failed"
+        }
+      ],
+      "name" : "Questify",
+      "nodeType" : "Test Plan",
+      "result" : "Failed"
+    }
+  ],
+  "testPlanConfigurations" : [
+    {
+      "configurationId" : "1",
+      "configurationName" : "Test Scheme Action"
+    }
+  ]
+}

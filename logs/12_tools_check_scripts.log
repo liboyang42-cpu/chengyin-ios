@@ -1,0 +1,267 @@
+[FAIL(exit=1)] tools/check_account_compliance.py
+  err: Traceback (most recent call last):
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_account_compliance.py", line 11, in <module>
+  err:     source=(workspace/'app-audit/lib/data/api/account_api.dart').read_text()+(workspace/'app-audit/lib/data/api/page_parity_api.dart').read_text()
+  err:   File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1256, in read_text
+  err:     with self.open(mode='r', encoding=encoding, errors=errors) as f:
+[PASS] tools/check_chapter_thought_sync.py
+  stdout: PASS: visible-block claim barrier, separate default-off grant, exact claim-only JSON, session/version validation, authoritative readback and stable UI task identity
+  stdout: Swift, Apple UI/device, provider and live backend execution: NOT_RUN
+[FAIL(exit=1)] tools/check_club_community.py
+  err: Traceback (most recent call last):
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_club_community.py", line 6, in <module>
+  err:     api = (source/'lib/data/api/club_api.dart').read_text()
+  err:   File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1256, in read_text
+  err:     with self.open(mode='r', encoding=encoding, errors=errors) as f:
+[PASS] tools/check_club_coop_contextual.py
+  stdout: PASS scoped cooperation recipient domains, peer partial reads, five rule sections, exact dormant edit-ops and club-AI adoption
+  stdout: Swift tests, Apple builds, simulator visual/accessibility and live services NOT_RUN
+[FAIL(exit=1)] tools/check_club_event_calendar.py
+  err: Traceback (most recent call last):
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_club_event_calendar.py", line 27, in <module>
+  err:     check('normal club-detail entry', entry.count('ClubEventCalendarView(clubID: id, identity: reader.clubIdentity, governance: governance)') == 1)
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_club_event_calendar.py", line 24, in check
+  err:     raise AssertionError(label)
+[FAIL(exit=1)] tools/check_club_governance.py
+  err: Traceback (most recent call last):
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_club_governance.py", line 8, in <module>
+  err:     source='\n'.join(p.read_text() for p in source_files)
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_club_governance.py", line 8, in <genexpr>
+  err:     source='\n'.join(p.read_text() for p in source_files)
+[FAIL(exit=2)] tools/check_content_draft_api_boundary.py
+  err: usage: check_content_draft_api_boundary.py [-h] --module-path MODULE_PATH
+  err: check_content_draft_api_boundary.py: error: the following arguments are required: --module-path
+[PASS] tools/check_contextual_flows.py
+  stdout: PASS contextual-flow offline structure: scoped review clients, acknowledged participant ID readback, preference replacement, no manual IM topic ID, bilingual UI
+  stdout: Swift tests, Apple compile, simulator, visual/accessibility and live backend: NOT_RUN
+[FAIL(exit=1)] tools/check_cooperation_flows.py
+  err: Traceback (most recent call last):
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_cooperation_flows.py", line 15, in <module>
+  err:     check('source endpoint '+endpoint, '/api/coop/'+endpoint in source.read_text() and '"'+endpoint+'"' in contracts)
+  err:   File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1256, in read_text
+  err:     with self.open(mode='r', encoding=encoding, errors=errors) as f:
+[FAIL(exit=1)] tools/check_cooperation_protected_dispatch.py
+  err: Traceback (most recent call last):
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_cooperation_protected_dispatch.py", line 20, in <module>
+  err:     check('source path '+operation, '/api/coop/'+path in source.read_text() and '"'+path+'"' in contracts)
+  err:   File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1256, in read_text
+  err:     with self.open(mode='r', encoding=encoding, errors=errors) as f:
+[FAIL(exit=1)] tools/check_coupon_management.py
+  err: Traceback (most recent call last):
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_coupon_management.py", line 12, in <module>
+  err:     api = (source/'data/api/coupon_api.dart').read_text()
+  err:   File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1256, in read_text
+  err:     with self.open(mode='r', encoding=encoding, errors=errors) as f:
+[FAIL(exit=1)] tools/check_door_referral.py
+  err: Traceback (most recent call last):
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_door_referral.py", line 7, in <module>
+  err:     sources={s:(a.flutter/s).read_text() for s in source_paths}
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_door_referral.py", line 7, in <dictcomp>
+  err:     sources={s:(a.flutter/s).read_text() for s in source_paths}
+[PASS] tools/check_gltf_source.py
+  stdout: PASS: 32 official source files match immutable Git blobs and SHA256; MIT notices present; no optional binary codecs/scripts
+[FAIL(exit=1)] tools/check_im_expanded.py
+  err: Traceback (most recent call last):
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_im_expanded.py", line 7, in <module>
+  err:     api=(SOURCE/'data/api/im_api.dart').read_text()
+  err:   File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1256, in read_text
+  err:     with self.open(mode='r', encoding=encoding, errors=errors) as f:
+[FAIL(exit=1)] tools/check_image_upload_recovery.py
+  err: Traceback (most recent call last):
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_image_upload_recovery.py", line 35, in <module>
+  err:     assert 'transport: ResponseLimitedHTTPTransport()' in app
+  err: AssertionError
+[PASS] tools/check_journey_content.py
+  stdout: {
+  stdout:   "status": "PASS",
+  stdout:   "kind": "source assertions only",
+[PASS] tools/check_map_alternative_list.py
+  stdout: PASS: 38 map alternative-list source contracts
+  stdout:  - Online map exposes list before map accessibility subtree
+  stdout:  - List has no viewport, projection or group dependency
+[FAIL(exit=1)] tools/check_media_destinations.py
+  err: Traceback (most recent call last):
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_media_destinations.py", line 14, in <module>
+  err:     expect('App/SquareBrowserView.swift','showImages: false','NativeMediaGalleryEntry(sources: post.images, scope: reader.scope')
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_media_destinations.py", line 9, in expect
+  err:     for p in parts: assert p in s,(name,p)
+[FAIL(exit=1)] tools/check_merchant_business.py
+  err: test_all_static_localization_references_present (__main__.MerchantBusinessSourceChecks) ... ok
+  err: test_authorization_refresh_before_journal_reserve (__main__.MerchantBusinessSourceChecks) ... ok
+  err: test_catalog_bilingual_and_nonempty (__main__.MerchantBusinessSourceChecks) ... ok
+  err: test_exact_api_paths_have_source_evidence (__main__.MerchantBusinessSourceChecks) ... FAIL
+  err: test_fixture_json_literals_valid (__main__.MerchantBusinessSourceChecks) ... ok
+[FAIL(exit=1)] tools/check_merchant_content.py
+  err: Traceback (most recent call last):
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_merchant_content.py", line 10, in <module>
+  err:     dart='\n'.join(p.read_text() for p in refs)
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_merchant_content.py", line 10, in <genexpr>
+  err:     dart='\n'.join(p.read_text() for p in refs)
+[FAIL(exit=1)] tools/check_merchant_engagement.py
+  err: test_all_static_localization_keys (__main__.Checks) ... ok
+  err: test_bilingual_keys_are_nonempty (__main__.Checks) ... ok
+  err: test_campaign_creation_does_not_chain_dispatch (__main__.Checks) ... ok
+  err: test_contact_once_only_and_bound_scope (__main__.Checks) ... ok
+  err: test_default_action_transport_is_nil (__main__.Checks) ... ok
+[FAIL(exit=1)] tools/check_merchant_marketing.py
+  err: Traceback (most recent call last):
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_merchant_marketing.py", line 8, in <module>
+  err:     api=(flutter/'lib/data/api/merchant_api.dart').read_text(); predict=(flutter/'lib/data/api/merchant_predict_api.dart').read_text(); insight_source=(flutter/'lib/data/models/merchant_insight.dart').read_text(); subscription_source=(flutter/'lib/feature/merchant/merchant_subscription_page.dart').read_text()
+  err:   File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1256, in read_text
+  err:     with self.open(mode='r', encoding=encoding, errors=errors) as f:
+[FAIL(exit=1)] tools/check_merchant_template_assist.py
+  err: test_bilingual_keys_merged_without_empty_values (__main__.MerchantTemplateAssistSourceTests) ... ok
+  err: test_exact_scoped_route_and_default_off (__main__.MerchantTemplateAssistSourceTests) ... ok
+  err: test_fixtures_are_explicit_and_never_real_provider (__main__.MerchantTemplateAssistSourceTests) ... ok
+  err: test_focused_cases_are_authored (__main__.MerchantTemplateAssistSourceTests) ... ok
+  err: test_optional_flutter_contract_reference (__main__.MerchantTemplateAssistSourceTests) ... skipped 'Optional private Flutter source not configured'
+[PASS] tools/check_merchant_voice_samples.py
+  stdout: PASS MerchantNPC voice samples source checks (structural only)
+[PASS] tools/check_native_enrollment.py
+  stdout: PASS backend nonce is exact bytes00..1f
+  stdout: PASS backend decoded-nonce SHA256 vector
+  stdout: PASS fixture has no genuine attestation
+[PASS] tools/check_native_motion_reminders.py
+  stdout: PASS backend golden SHA-256
+  stdout: PASS 18 canonical lines and no trailing LF
+  stdout: PASS exact native action names
+[FAIL(exit=1)] tools/check_native_navigation_completion.py
+  stdout: PASS source team and badge route parsing
+  stdout: PASS empty external allowlist and HTTPS identity validation
+  stdout: PASS guest login continuation outside account tabs
+  err: PASS source team and badge route parsing
+  err: PASS empty external allowlist and HTTPS identity validation
+  err: PASS guest login continuation outside account tabs
+  err: PASS normal manual team and badge routes
+  err: PASS global safe fallback has home and dismiss actions
+[PASS] tools/check_native_verification.py
+  stdout: PASS: exact dormant verification flow, frozen review/store, lifecycle/replay locks, native entries, optional configured support, synthetic fixture, bilingual keys
+  stdout: Swift tests, Apple compile, visual/accessibility, camera and backend/provider acceptance: NOT_RUN
+[PASS] tools/check_nearby_team_module.py
+[PASS] tools/check_nearby_withdrawal_races.py
+  stdout: SOURCE CHECKS ONLY: Swift compile/runtime and Apple tests are NOT_RUN.
+[PASS] tools/check_nearby_write_repair.py
+[FAIL(exit=1)] tools/check_object_cards.py
+  err: Traceback (most recent call last):
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_object_cards.py", line 16, in <module>
+  err:     source_api=read(source/'lib/data/api/object_card_api.dart')
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_object_cards.py", line 7, in read
+  err:     def read(p): return p.read_text()
+[FAIL(exit=1)] tools/check_official_actions.py
+  err: Traceback (most recent call last):
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_official_actions.py", line 7, in <module>
+  err:     api=(source/'lib/data/api/official_api.dart').read_text()
+  err:   File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1256, in read_text
+  err:     with self.open(mode='r', encoding=encoding, errors=errors) as f:
+[PASS] tools/check_platform_consumers.py
+  stdout: PASS default-off audio
+  stdout: PASS default-off maps
+  stdout: PASS stale callbacks fenced
+[FAIL(exit=2)] tools/check_play_recovery_api_boundary.py
+  err: usage: check_play_recovery_api_boundary.py [-h] --module-path MODULE_PATH
+  err: check_play_recovery_api_boundary.py: error: the following arguments are required: --module-path
+[PASS] tools/check_play_reward_badges.py
+  stdout: PASS: receipt exact source key
+  stdout: PASS: stable unique identities
+  stdout: PASS: no name-based confirmation
+[FAIL(exit=1)] tools/check_play_runtime_hosts.py
+  err: Traceback (most recent call last):
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_play_runtime_hosts.py", line 25, in <module>
+  err:     assert 'public func reviewedPhoto()' in coordinator
+  err: AssertionError
+[PASS] tools/check_player_journey_screens.py
+  stdout: PASS: history normal entries and exact gated read adapter; chapter runtime/variable/spoiler/inline boundaries; bilingual catalogs
+  stdout: Swift, simulator, visual, accessibility, devices and live services: NOT_RUN
+[PASS] tools/check_private_home.py
+[FAIL(exit=1)] tools/check_profile_read_failure_contract.py
+  err: ..EFF.F...E.
+  err: ======================================================================
+  err: ERROR: test_current_gate_rejects_baseline_but_historical_gate_accepts_it (__main__.ProfileReadFailureContracts)
+  err: ----------------------------------------------------------------------
+  err: Traceback (most recent call last):
+[FAIL(exit=1)] tools/check_publish_modes.py
+  err: test_bilingual_catalog_coverage (__main__.PublishingSourceChecks) ... ok
+  err: test_category_parent_is_explicit (__main__.PublishingSourceChecks) ... ok
+  err: test_collaborators_field_does_not_use_pro_name (__main__.PublishingSourceChecks) ... ok
+  err: test_current_simple_page_hands_off (__main__.PublishingSourceChecks) ... ERROR
+  err: test_exact_management_paths_are_source_backed (__main__.PublishingSourceChecks) ... ERROR
+[FAIL(exit=1)] tools/check_publisher_authority.py
+  err: Traceback (most recent call last):
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_publisher_authority.py", line 11, in <module>
+  err:     source = '\n'.join((sibling / 'app-audit/lib/data/models' / name).read_text() for name in ['topic.dart', 'activity.dart'])
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_publisher_authority.py", line 11, in <genexpr>
+  err:     source = '\n'.join((sibling / 'app-audit/lib/data/models' / name).read_text() for name in ['topic.dart', 'activity.dart'])
+[FAIL(exit=1)] tools/check_publisher_lifecycle.py
+  err: Traceback (most recent call last):
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_publisher_lifecycle.py", line 10, in <module>
+  err:     sourcecode='\n'.join((source/name).read_text() for name in ['topic_api.dart','activity_api.dart','creator_api.dart','club_api.dart','roam_api.dart'])
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_publisher_lifecycle.py", line 10, in <genexpr>
+  err:     sourcecode='\n'.join((source/name).read_text() for name in ['topic_api.dart','activity_api.dart','creator_api.dart','club_api.dart','roam_api.dart'])
+[FAIL(exit=1)] tools/check_retained_image_hosts.py
+  err: Traceback (most recent call last):
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_retained_image_hosts.py", line 36, in <module>
+  err:     assert 'imageHost: imageHost' in views and 'destination: .template(nil), imageHost: imageHost' in views
+  err: AssertionError
+[FAIL(exit=1)] tools/check_retained_images.py
+  err: Traceback (most recent call last):
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_retained_images.py", line 11, in <module>
+  err:     assert "'/api/common/uploadOSS'" in (source/'data/api/play_api.dart').read_text()
+  err:   File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1256, in read_text
+  err:     with self.open(mode='r', encoding=encoding, errors=errors) as f:
+[FAIL(exit=1)] tools/check_roam_private_tools.py
+  err: Traceback (most recent call last):
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_roam_private_tools.py", line 75, in <module>
+  err:     check('Views persist nothing except the temporary share copy',
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_roam_private_tools.py", line 26, in check
+  err:     assert value, name
+[PASS] tools/check_scaffold.py
+  stdout: PASS structural checks: 3133 Swift source files, 12252 bilingual keys, references, scheme, read-only expected project equivalence
+  stdout: SCOPE: this script does not run Swift/Xcode, previews, simulator/device, accessibility or live backend checks; see separate evidence
+[FAIL(exit=1)] tools/check_search_map.py
+  err: Traceback (most recent call last):
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_search_map.py", line 14, in <module>
+  err:     check('all literal UI localization keys', literal_keys <= set(keys))
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_search_map.py", line 7, in check
+  err:     assert condition,name;checks.append(name)
+[PASS] tools/check_search_map_date_picker.py
+  stdout: PASS 30 offline structure/localization/calendar-oracle checks
+  stdout:  - wheel-only year bounds are exactly 1970–2050
+  stdout:  - selection components cannot be mutated outside clamped setters
+[FAIL(exit=2)] tools/check_settings_native.py
+  err: usage: check_settings_native.py [-h] [--root ROOT] --flutter-root FLUTTER_ROOT
+  err: check_settings_native.py: error: the following arguments are required: --flutter-root
+[FAIL(exit=1)] tools/check_shop_npc_host.py
+  err: Traceback (most recent call last):
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_shop_npc_host.py", line 5, in <module>
+  err:     root=Path(sys.argv[1]); checks=0
+  err: IndexError: list index out of range
+[FAIL(exit=2)] tools/check_signing_evidence.py
+  err: usage: check_signing_evidence.py <settings-file>
+[FAIL(exit=1)] tools/check_square_governance.py
+  err: Traceback (most recent call last):
+  err:   File "<PUBLIC_REPO_WORKTREE>/tools/check_square_governance.py", line 6, in <module>
+  err:     source=a.flutter/'lib/data/api/square_api.dart';dart=source.read_text()
+  err:   File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1256, in read_text
+  err:     with self.open(mode='r', encoding=encoding, errors=errors) as f:
+[FAIL(exit=2)] tools/check_swift_syntax.py
+  err: ERROR Swift parser preflight: missing parser dependency; install tools/requirements-swift-syntax.txt as described in docs/swift-syntax-preflight.md
+  err: SCOPE: supplementary Tree-sitter parse only; no Swift typechecking, Apple SDK/API checks, compilation, or runtime tests. Grammar gaps may fail valid Swift.
+[FAIL(exit=1)] tools/check_team_native.py
+  err: F.EEEFE.EE..E
+  err: ======================================================================
+  err: ERROR: test_creation_matches_source_eligibility_sizes_and_default (__main__.TeamSourceChecks)
+  err: ----------------------------------------------------------------------
+  err: Traceback (most recent call last):
+[PASS] tools/check_ticket_pending_order_navigation.py
+  stdout: PASS native structural guards and isolated bilingual catalog
+  stdout: AUTHORED 18 app-unit XCTest methods; NOT_RUN Apple compilation/XCTest/UI execution
+  stdout: NOT_RUN Mini source execution: pass --mini-evidence with the fixed local source receipt
+[FAIL(exit=1)] tools/check_wallet_commerce.py
+  err: test_all_native_paths_have_source_evidence (__main__.WalletSourceChecks) ... ERROR
+  err: test_bilingual_catalog_covers_literal_and_dynamic_keys (__main__.WalletSourceChecks) ... FAIL
+  err: test_existing_task_rule_filter_is_preserved (__main__.WalletSourceChecks) ... ok
+  err: test_locks_before_dispatch_and_no_pii_in_journal (__main__.WalletSourceChecks) ... ok
+  err: test_no_live_factory_or_root_navigation_mutation (__main__.WalletSourceChecks) ... ok
+
+SUMMARY: total=57, passed=20, failed=37
+TOOLS_CHECK_EXIT=1

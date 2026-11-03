@@ -1,0 +1,187 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "25316F87-058C-46CE-8825-617906638207",
+        "deviceName" : "Questify-iPhone17",
+        "modelName" : "iPhone 17",
+        "osBuildNumber" : "24A434",
+        "osVersion" : "27.0",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 5,
+      "passedTests" : 5597,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription" : "QuestifyAppUnitTests · Built with macOS 27.0",
+  "expectedFailures" : 0,
+  "failedTests" : 5,
+  "finishTime" : 1793715840.763,
+  "passedTests" : 5597,
+  "result" : "Failed",
+  "runtimeWarnings" : [
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing Environment<Locale>'s value outside of being installed on a View. This will always read the default value and will not update.",
+      "sourceURL" : "file://<PUBLIC_REPO_WORKTREE>/App/HomeSearchTabParityViews.swift"
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing State's value outside of being installed on a View. This will result in a constant Binding of the initial value and will not update.",
+      "sourceURL" : "file://<PUBLIC_REPO_WORKTREE>/App/OwnerDraftBrowserView.swift"
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing State<Bool>'s value without being installed on a View. This will create a new Bool instance each time.",
+      "sourceURL" : "file://<PUBLIC_REPO_WORKTREE>/App/OwnerDraftBrowserView.swift"
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing State's value outside of being installed on a View. This will result in a constant Binding of the initial value and will not update.",
+      "sourceURL" : "file://<PUBLIC_REPO_WORKTREE>/App/PlaySessionView.swift"
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing State<Optional<Int>>'s value without being installed on a View. This will create a new Optional<Int> instance each time.",
+      "sourceURL" : "file://<PUBLIC_REPO_WORKTREE>/App/PlaySessionView.swift"
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing State's value outside of being installed on a View. This will result in a constant Binding of the initial value and will not update.",
+      "sourceURL" : "file://<PUBLIC_REPO_WORKTREE>/App/PlaySessionView.swift"
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing State<Optional<Int>>'s value without being installed on a View. This will create a new Optional<Int> instance each time.",
+      "sourceURL" : "file://<PUBLIC_REPO_WORKTREE>/App/PlaySessionView.swift"
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing State<UUID>'s value without being installed on a View. This will create a new UUID instance each time.",
+      "sourceURL" : "file://<PUBLIC_REPO_WORKTREE>/App/ProfileParticipantsView.swift"
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing State's value outside of being installed on a View. This will result in a constant Binding of the initial value and will not update.",
+      "sourceURL" : "file://<PUBLIC_REPO_WORKTREE>/App/ProfileParticipantsView.swift"
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing State<Bool>'s value without being installed on a View. This will create a new Bool instance each time.",
+      "sourceURL" : "file://<PUBLIC_REPO_WORKTREE>/App/ProfileParticipantsView.swift"
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing State<Optional<ParticipantRowTarget>>'s value without being installed on a View. This will create a new Optional<ParticipantRowTarget> instance each time.",
+      "sourceURL" : "file://<PUBLIC_REPO_WORKTREE>/App/ProfileParticipantsView.swift"
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing State's value outside of being installed on a View. This will result in a constant Binding of the initial value and will not update.",
+      "sourceURL" : "file://<PUBLIC_REPO_WORKTREE>/App/WorkshopModUpgradeSheetView.swift"
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing State<Bool>'s value without being installed on a View. This will create a new Bool instance each time.",
+      "sourceURL" : "file://<PUBLIC_REPO_WORKTREE>/App/WorkshopModUpgradeSheetView.swift"
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing State<Optional<String>>'s value without being installed on a View. This will create a new Optional<String> instance each time.",
+      "sourceURL" : "file://<PUBLIC_REPO_WORKTREE>/App/WorkshopModUpgradeSheetView.swift"
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing State<Bool>'s value without being installed on a View. This will create a new Bool instance each time.",
+      "sourceURL" : "file://<PUBLIC_REPO_WORKTREE>/App/WorkshopPurchasedUpgradeEntry.swift"
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing State<WorkshopUpgradeLiveAccount>'s value without being installed on a View. This will create a new WorkshopUpgradeLiveAccount instance each time.",
+      "sourceURL" : "file://<PUBLIC_REPO_WORKTREE>/App/WorkshopPurchasedUpgradeEntry.swift"
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing Environment<Bool>'s value outside of being installed on a View. This will always read the default value and will not update.",
+      "sourceURL" : "file://<PUBLIC_REPO_WORKTREE>/App/WorkshopPurchasedUpgradeEntry.swift"
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing State's value outside of being installed on a View. This will result in a constant Binding of the initial value and will not update.",
+      "sourceURL" : "file://<PUBLIC_REPO_WORKTREE>/App/WorkshopPurchasedUpgradeEntry.swift"
+    }
+  ],
+  "skippedTests" : 0,
+  "startTime" : 1793715768.137,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+    {
+      "failureText" : "XCTAssertGreaterThan failed: (\"0\") is not greater than (\"0\")",
+      "targetName" : "QuestifyAppUnitTests",
+      "testIdentifier" : 2895,
+      "testIdentifierString" : "ProfileFavoriteTopicReadTests/testNormalFullDetailAndChapterCoverReturnUseSameReaderUntilRootLeaves()",
+      "testIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileFavoriteTopicReadTests/testNormalFullDetailAndChapterCoverReturnUseSameReaderUntilRootLeaves",
+      "testName" : "testNormalFullDetailAndChapterCoverReturnUseSameReaderUntilRootLeaves()"
+    },
+    {
+      "failureText" : "XCTAssertEqual failed: (\"[\"infomation_list\"]\") is not equal to (\"[\"infomation_list\", \"infomation_list\"]\")",
+      "targetName" : "QuestifyAppUnitTests",
+      "testIdentifier" : 2926,
+      "testIdentifierString" : "ProfileGuideReadTests/testOrdinaryConfiguredGuideLoadsOriginalListAndRefreshesWithoutWrites()",
+      "testIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileGuideReadTests/testOrdinaryConfiguredGuideLoadsOriginalListAndRefreshesWithoutWrites",
+      "testName" : "testOrdinaryConfiguredGuideLoadsOriginalListAndRefreshesWithoutWrites()"
+    },
+    {
+      "failureText" : "XCTAssertGreaterThan failed: (\"0\") is not greater than (\"0\")",
+      "targetName" : "QuestifyAppUnitTests",
+      "testIdentifier" : 2865,
+      "testIdentifierString" : "ProfileFavoriteDetailTests/testRealAuthorAndCommentAuthorChildNavigationReturnsToSameDetailReader()",
+      "testIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileFavoriteDetailTests/testRealAuthorAndCommentAuthorChildNavigationReturnsToSameDetailReader",
+      "testName" : "testRealAuthorAndCommentAuthorChildNavigationReturnsToSameDetailReader()"
+    },
+    {
+      "failureText" : "XCTAssertEqual failed: (\"ready\") is not equal to (\"idle\")",
+      "targetName" : "QuestifyAppUnitTests",
+      "testIdentifier" : 5532,
+      "testIdentifierString" : "WorkshopPaidInstallNormalFlowTests/testRealHostedInstallModalDismissAndReopenRetiresOldViewCallbacks()",
+      "testIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidInstallNormalFlowTests/testRealHostedInstallModalDismissAndReopenRetiresOldViewCallbacks",
+      "testName" : "testRealHostedInstallModalDismissAndReopenRetiresOldViewCallbacks()"
+    },
+    {
+      "failureText" : "XCTAssertTrue failed",
+      "targetName" : "QuestifyAppUnitTests",
+      "testIdentifier" : 3203,
+      "testIdentifierString" : "ProfileSettingsFavoritesTests/testSettingsCollectionUsesOriginalDetailAndKeepsOwnerWhenCovered()",
+      "testIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileSettingsFavoritesTests/testSettingsCollectionUsesOriginalDetailAndKeepsOwnerWhenCovered",
+      "testName" : "testSettingsCollectionUsesOriginalDetailAndKeepsOwnerWhenCovered()"
+    }
+  ],
+  "title" : "Test - QuestifyAppUnitTests",
+  "topInsights" : [
+    {
+      "category" : "Common Failures",
+      "impact" : "40% of failures",
+      "text" : "3 runs of 2 tests failed with XCTAssertGreaterThanOrEqual failed: (\"1\") is less than (\"2\")"
+    },
+    {
+      "category" : "Common Failures",
+      "impact" : "40% of failures",
+      "text" : "3 runs of 2 tests failed with XCTAssertGreaterThan failed: (\"0\") is not greater than (\"0\")"
+    },
+    {
+      "category" : "Longest Test Runs",
+      "impact" : "57% of duration",
+      "text" : "26 longest test runs with outlier durations exceeding 0.37s (three standard deviations)"
+    }
+  ],
+  "totalTestCount" : 5602
+}

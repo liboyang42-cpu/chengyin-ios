@@ -1,0 +1,16 @@
+testBothHelperAttachmentsExportWithHashesAndUnchangedReceipt (tools.tests.test_export_current_ui_audit.ExportCurrentUIAuditTests) ... ok
+testCorruptionAndFailedExportNeverEmitComplete (tools.tests.test_export_current_ui_audit.ExportCurrentUIAuditTests) ... ok
+testExactAttachmentNamesAreSelectedAndReceiptIsUnchanged (tools.tests.test_export_current_ui_audit.ExportCurrentUIAuditTests) ... ok
+testExactNameAndFilenameExtensionsKeepCanonicalLabel (tools.tests.test_export_current_ui_audit.ExportCurrentUIAuditTests) ... ok
+testFailureNameDefaultIsUnchangedAndSelectionHasTwentySixImages (tools.tests.test_export_current_ui_audit.ExportCurrentUIAuditTests) ... ok
+testForeignResultBundleIsRejectedBeforeExport (tools.tests.test_export_current_ui_audit.ExportCurrentUIAuditTests) ... ok
+testForeignSourceOrRunIdentityIsRejectedBeforeExport (tools.tests.test_export_current_ui_audit.ExportCurrentUIAuditTests) ... ok
+testRelatedPlanSkipsInsteadOfDependingOnWorkflowDispatchInput (tools.tests.test_export_current_ui_audit.ExportCurrentUIAuditTests) ... ok
+testStdoutChunksRebuildBothOriginalImages (tools.tests.test_export_current_ui_audit.ExportCurrentUIAuditTests) ... ok
+testWrongNamesAndDuplicateAliasesStayIncompleteWithDiagnostics (tools.tests.test_export_current_ui_audit.ExportCurrentUIAuditTests) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.163s
+
+OK
+EXIT=0

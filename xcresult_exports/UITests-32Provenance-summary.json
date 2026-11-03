@@ -1,0 +1,196 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "25316F87-058C-46CE-8825-617906638207",
+        "deviceName" : "Questify-iPhone17",
+        "modelName" : "iPhone 17",
+        "osBuildNumber" : "24A434",
+        "osVersion" : "27.0",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 19,
+      "passedTests" : 13,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription" : "Questify · Built with macOS 27.0",
+  "expectedFailures" : 0,
+  "failedTests" : 19,
+  "finishTime" : 1793715648.124,
+  "passedTests" : 13,
+  "result" : "Failed",
+  "runtimeWarnings" : [
+
+  ],
+  "skippedTests" : 0,
+  "startTime" : 1793715251.863,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+    {
+      "failureText" : "XCTAssertTrue failed",
+      "targetName" : "QuestifyUITests",
+      "testIdentifier" : 1,
+      "testIdentifierString" : "IntegratedActivityPlayJourneyFlowTests/testActualPhoneHomeDetailManualMapPlayAndFreshOwnedOrderJourney()",
+      "testIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/IntegratedActivityPlayJourneyFlowTests/testActualPhoneHomeDetailManualMapPlayAndFreshOwnedOrderJourney",
+      "testName" : "testActualPhoneHomeDetailManualMapPlayAndFreshOwnedOrderJourney()"
+    },
+    {
+      "failureText" : "XCTAssertTrue failed",
+      "targetName" : "QuestifyUITests",
+      "testIdentifier" : 5,
+      "testIdentifierString" : "IntegratedNativeAcceptanceFlowTests/testActualSettingsFavoritesNoGrantBackDoneAndRepeatedReopen()",
+      "testIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/IntegratedNativeAcceptanceFlowTests/testActualSettingsFavoritesNoGrantBackDoneAndRepeatedReopen",
+      "testName" : "testActualSettingsFavoritesNoGrantBackDoneAndRepeatedReopen()"
+    },
+    {
+      "failureText" : "XCTAssertTrue failed - Optional(Attributes: Application, 0x10977cc80, pid: 43019, label: 'Questify'\nElement subtree:\n →Application, 0x10977cc80, pid: 43019, label: 'Questify'\n    Window (Main), 0x10977cdc0, {{0.0, 0.0}, {402.0, 874.0}}\n      Other, 0x10977cf00, {{0.0, 0.0}, {402.0, 874.0}}\n        Other, 0x10977d040, {{0.0, 0.0}, {402.0, 874.0}}\n          Other, 0x10977d540, {{0.0, 0.0}, {402.0, 874.0}}\n            Other, 0x10977f340, {{0.0, 0.0}, {402.0, 874.0}}\n              Image, 0x10977f480, {{0.0, 0.0}, {402.0, 131.3}}, identifier: 'module.fixture.notice', label: 'UI test fixtures · No live data', value: colorScheme=dark;d...\n              Button, 0x10977d680, {{94.7, 131.3}, {93.3, 66.7}}, identifier: 'searchMap.fixture.guest', label: 'Fixture: guest'\n              Button, 0x10977d7c0, {{196.0, 133.3}, {111.7, 62.7}}, identifier: 'searchMap.fixture.account', label: 'Fixture: switch account'\n              Other, 0x10977d900, {{0.0, 198.0}, {402.0, 676.0}}\n                Other, 0x10977da40, {{0.0, 198.0}, {402.0, 676.0}}\n                  Other, 0x10977db80, {{0.0, 198.0}, {402.0, 676.0}}\n                    Other, 0x10977ebc0, {{0.0, 198.0}, {402.0, 676.0}}\n                      Other, 0x10977e940, {{0.0, 198.0}, {402.0, 676.0}}\n                        ScrollView, 0x10977e800, {{0.0, 198.0}, {402.0, 676.0}}\n                          Other, 0x10977e440, {{0.0, 198.0}, {402.0, 1150.7}}\n                            Button, 0x10977e580, {{16.0, 214.0}, {349.3, 125.3}}, identifier: 'mapList.fixture.pointSecond', label: 'Synthetic point selects second'\n                            Button, 0x10977f980, {{16.0, 355.3}, {332.3, 63.3}}, identifier: 'mapList.fixture.clear', label: 'Clear selection'\n                            StaticText, 0x10977e080, {{16.0, 434.7}, {112.7, 63.3}}, identifier: 'mapList.fixture.selection', label: 'none'\n                            Button, 0x10977e300, {{16.0, 514.0}, {195.3, 63.3}}, identifier: 'mapList.fixture.removed', label: 'removed'\n                            Button, 0x10977e1c0, {{16.0, 593.3}, {231.7, 63.3}}, identifier: 'mapList.fixture.duplicates', label: 'duplicates'\n                            Button, 0x10977df40, {{16.0, 672.7}, {213.0, 63.3}}, identifier: 'mapList.fixture.refreshed', label: 'refreshed'\n                            Button, 0x10977de00, {{16.0, 752.0}, {142.3, 63.3}}, identifier: 'mapList.fixture.empty', label: 'empty'\n                            Button, 0x10977d400, {{16.0, 831.3}, {154.3, 63.3}}, identifier: 'mapList.fixture.normal', label: 'normal'\n                            Button, 0x10977d2c0, {{16.0, 910.7}, {204.0, 63.3}}, identifier: 'mapList.fixture.readOnly', label: 'readOnly'\n                            Button, 0x10977d180, {{16.0, 990.0}, {227.3, 125.3}}, identifier: 'mapList.fixture.depart', label: 'Synthetic departure'\n                            Button, 0x10977f700, {{16.0, 1131.3}, {363.3, 201.3}}, identifier: 'mapList.toggle', label: 'Show places as a list', value: Collapsed\n                              StaticText, 0x10977f840, {{16.0, 1131.3}, {363.3, 201.3}}, label: 'Show places as a list'\n                              Image, 0x10977f5c0, {{43.3, 1155.0}, {41.3, 30.0}}, identifier: 'list.bullet', label: 'List'\n                          Other, 0x10977e6c0, {{369.0, 198.0}, {30.0, 614.0}}, label: 'Vertical scroll bar, 2 pages', value: 0%\n                            Other, 0x10977fac0, {{396.0, 201.0}, {3.0, 347.0}}\n                          Other, 0x10977fc00, {{369.0, 198.0}, {30.0, 614.0}}, label: 'Vertical scroll bar, 2 pages', value: 0%\n                            Other, 0x10977fd40, {{396.0, 201.0}, {3.0, 347.0}}\n                Toolbar, 0x10977fe80, {{0.0, 198.0}, {402.0, 676.0}}, identifier: 'Toolbar', label: 'Toolbar'\n                  Other, 0x109656440, {{0.0, 198.0}, {402.0, 676.0}}\nPath to element:\n →Application, 0x10977cc80, pid: 43019, label: 'Questify'\nQuery chain:\n →Find: Target Application 'invalid.example.questify.ios'\n  Output: {\n    Application, 0x1096566c0, pid: 43019, label: 'Questify'\n  }\n)",
+      "targetName" : "QuestifyUITests",
+      "testIdentifier" : 11,
+      "testIdentifierString" : "SearchMapAlternativeListFlowTests/testAlternativeListBilingualMaximumTypeKeepsFullTitlesAndParentSelectionInSync()",
+      "testIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapAlternativeListFlowTests/testAlternativeListBilingualMaximumTypeKeepsFullTitlesAndParentSelectionInSync",
+      "testName" : "testAlternativeListBilingualMaximumTypeKeepsFullTitlesAndParentSelectionInSync()"
+    },
+    {
+      "failureText" : "XCTAssertTrue failed - Optional(Attributes: Application, 0x10977f700, pid: 43510, label: 'Questify'\nElement subtree:\n →Application, 0x10977f700, pid: 43510, label: 'Questify'\n    Window (Main), 0x10977df40, {{0.0, 0.0}, {402.0, 874.0}}\n      Other, 0x10977d7c0, {{0.0, 0.0}, {402.0, 874.0}}\n        Other, 0x10977ebc0, {{0.0, 0.0}, {402.0, 874.0}}\n          Other, 0x10977db80, {{0.0, 0.0}, {402.0, 874.0}}\n            Other, 0x10977e940, {{0.0, 0.0}, {402.0, 874.0}}\n              StaticText, 0x10977e800, {{0.0, 0.0}, {402.0, 92.3}}, identifier: 'module.fixture.notice', label: 'UI test fixtures · No live data', value: colorScheme=light;...\n              Button, 0x10977f840, {{33.3, 97.3}, {127.7, 34.3}}, identifier: 'searchMap.fixture.guest', label: 'Fixture: guest'\n              Button, 0x10977f5c0, {{169.0, 97.3}, {199.7, 34.3}}, identifier: 'searchMap.fixture.account', label: 'Fixture: switch account'\n              Other, 0x10977d2c0, {{0.0, 136.3}, {402.0, 737.7}}\n                Other, 0x10977e6c0, {{0.0, 136.3}, {402.0, 737.7}}\n                  Other, 0x10977de00, {{0.0, 136.3}, {402.0, 737.7}}\n                    Other, 0x10977d400, {{0.0, 136.3}, {402.0, 737.7}}\n                      Other, 0x10977fd40, {{0.0, 136.3}, {402.0, 737.7}}\n                        ScrollView, 0x10977f980, {{0.0, 136.3}, {402.0, 737.7}}\n                          Other, 0x10977e580, {{0.0, 136.3}, {402.0, 652.3}}\n                            Button, 0x10977e300, {{16.0, 164.3}, {233.7, 20.3}}, identifier: 'mapList.fixture.pointSecond', label: 'Synthetic point selects second'\n                            Button, 0x10977e1c0, {{16.0, 224.3}, {113.0, 20.3}}, identifier: 'mapList.fixture.clear', label: 'Clear selection'\n                            StaticText, 0x10977fac0, {{16.0, 272.3}, {38.0, 20.3}}, identifier: 'mapList.fixture.selection', label: 'none'\n                            Button, 0x10977e440, {{16.0, 320.7}, {66.7, 20.3}}, identifier: 'mapList.fixture.removed', label: 'removed'\n                            Button, 0x10977fc00, {{16.0, 380.7}, {78.7, 20.3}}, identifier: 'mapList.fixture.duplicates', label: 'duplicates'\n                            Button, 0x109770000, {{16.0, 440.7}, {73.3, 20.3}}, identifier: 'mapList.fixture.refreshed', label: 'refreshed'\n                            Button, 0x109657c00, {{16.0, 500.7}, {48.3, 20.3}}, identifier: 'mapList.fixture.empty', label: 'empty'\n                            Button, 0x109656580, {{16.0, 560.7}, {52.7, 20.3}}, identifier: 'mapList.fixture.normal', label: 'normal'\n                            Button, 0x109657e80, {{16.0, 620.7}, {69.0, 20.3}}, identifier: 'mapList.fixture.readOnly', label: 'readOnly'\n                            Button, 0x109656bc0, {{16.0, 680.7}, {151.0, 20.3}}, identifier: 'mapList.fixture.depart', label: 'Synthetic departure'\n                            Button, 0x11268c000, {{16.0, 733.7}, {210.3, 34.3}}, identifier: 'mapList.toggle', label: 'Show places as a list', value: Collapsed\n                              StaticText, 0x11268c140, {{16.0, 733.7}, {210.3, 34.3}}, label: 'Show places as a list'\n                              Image, 0x11268c280, {{30.0, 744.7}, {17.0, 12.3}}, identifier: 'list.bullet', label: 'List'\n                          Other, 0x11268c3c0, {{369.0, 136.3}, {30.0, 675.7}}, label: 'Vertical scroll bar, 1 page', value: 0%\n                            Other, 0x11268c500, {{396.0, 190.7}, {3.0, 618.3}}\n                          Other, 0x11268c640, {{369.0, 136.3}, {30.0, 675.7}}, label: 'Vertical scroll bar, 1 page', value: 0%\n                            Other, 0x11268c780, {{396.0, 190.7}, {3.0, 618.3}}\n                Toolbar, 0x11268c8c0, {{0.0, 136.3}, {402.0, 737.7}}, identifier: 'Toolbar', label: 'Toolbar'\n                  Other, 0x11268ca00, {{0.0, 136.3}, {402.0, 737.7}}\nPath to element:\n →Application, 0x10977f700, pid: 43510, label: 'Questify'\nQuery chain:\n →Find: Target Application 'invalid.example.questify.ios'\n  Output: {\n    Application, 0x11268cb40, pid: 43510, label: 'Questify'\n  }\n)",
+      "targetName" : "QuestifyUITests",
+      "testIdentifier" : 12,
+      "testIdentifierString" : "SearchMapAlternativeListFlowTests/testAlternativeListCloseReopenAndEmptySnapshotNeverRetainOldRows()",
+      "testIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapAlternativeListFlowTests/testAlternativeListCloseReopenAndEmptySnapshotNeverRetainOldRows",
+      "testName" : "testAlternativeListCloseReopenAndEmptySnapshotNeverRetainOldRows()"
+    },
+    {
+      "failureText" : "XCTAssertTrue failed - Optional(Attributes: Application, 0x11268f5c0, pid: 43873, label: 'Questify'\nElement subtree:\n →Application, 0x11268f5c0, pid: 43873, label: 'Questify'\n    Window (Main), 0x11268d7c0, {{0.0, 0.0}, {402.0, 874.0}}\n      Other, 0x11268d900, {{0.0, 0.0}, {402.0, 874.0}}\n        Other, 0x11268da40, {{0.0, 0.0}, {402.0, 874.0}}\n          Other, 0x11268db80, {{0.0, 0.0}, {402.0, 874.0}}\n            Other, 0x11268dcc0, {{0.0, 0.0}, {402.0, 874.0}}\n              StaticText, 0x11268f0c0, {{0.0, 0.0}, {402.0, 92.3}}, identifier: 'module.fixture.notice', label: 'UI test fixtures · No live data', value: colorScheme=light;...\n              Button, 0x11268fe80, {{33.3, 97.3}, {127.7, 34.3}}, identifier: 'searchMap.fixture.guest', label: 'Fixture: guest'\n              Button, 0x11268de00, {{169.0, 97.3}, {199.7, 34.3}}, identifier: 'searchMap.fixture.account', label: 'Fixture: switch account'\n              Other, 0x11268ebc0, {{0.0, 136.3}, {402.0, 737.7}}\n                Other, 0x11268ee40, {{0.0, 136.3}, {402.0, 737.7}}\n                  Other, 0x11268ed00, {{0.0, 136.3}, {402.0, 737.7}}\n                    Other, 0x11268ea80, {{0.0, 136.3}, {402.0, 737.7}}\n                      Other, 0x11268fc00, {{0.0, 136.3}, {402.0, 737.7}}\n                        ScrollView, 0x11268fd40, {{0.0, 136.3}, {402.0, 737.7}}\n                          Other, 0x11268e940, {{0.0, 136.3}, {402.0, 652.3}}\n                            Button, 0x11268fac0, {{16.0, 164.3}, {233.7, 20.3}}, identifier: 'mapList.fixture.pointSecond', label: 'Synthetic point selects second'\n                            Button, 0x11268e6c0, {{16.0, 224.3}, {113.0, 20.3}}, identifier: 'mapList.fixture.clear', label: 'Clear selection'\n                            StaticText, 0x11268f700, {{16.0, 272.3}, {38.0, 20.3}}, identifier: 'mapList.fixture.selection', label: 'none'\n                            Button, 0x11268d2c0, {{16.0, 320.7}, {66.7, 20.3}}, identifier: 'mapList.fixture.removed', label: 'removed'\n                            Button, 0x11268f840, {{16.0, 380.7}, {78.7, 20.3}}, identifier: 'mapList.fixture.duplicates', label: 'duplicates'\n                            Button, 0x11268d400, {{16.0, 440.7}, {73.3, 20.3}}, identifier: 'mapList.fixture.refreshed', label: 'refreshed'\n                            Button, 0x11268d540, {{16.0, 500.7}, {48.3, 20.3}}, identifier: 'mapList.fixture.empty', label: 'empty'\n                            Button, 0x11268df40, {{16.0, 560.7}, {52.7, 20.3}}, identifier: 'mapList.fixture.normal', label: 'normal'\n                            Button, 0x11268e080, {{16.0, 620.7}, {69.0, 20.3}}, identifier: 'mapList.fixture.readOnly', label: 'readOnly'\n                            Button, 0x11268e1c0, {{16.0, 680.7}, {151.0, 20.3}}, identifier: 'mapList.fixture.depart', label: 'Synthetic departure'\n                            Button, 0x11268e440, {{16.0, 733.7}, {210.3, 34.3}}, identifier: 'mapList.toggle', label: 'Show places as a list', value: Collapsed\n                              StaticText, 0x11268e580, {{16.0, 733.7}, {210.3, 34.3}}, label: 'Show places as a list'\n                              Image, 0x11268e300, {{30.0, 744.7}, {17.0, 12.3}}, identifier: 'list.bullet', label: 'List'\n                          Other, 0x11268f980, {{369.0, 136.3}, {30.0, 675.7}}, label: 'Vertical scroll bar, 1 page', value: 0%\n                            Other, 0x11268e800, {{396.0, 190.7}, {3.0, 618.3}}\n                          Other, 0x11268ef80, {{369.0, 136.3}, {30.0, 675.7}}, label: 'Vertical scroll bar, 1 page', value: 0%\n                            Other, 0x11268f340, {{396.0, 190.7}, {3.0, 618.3}}\n                Toolbar, 0x11268f200, {{0.0, 136.3}, {402.0, 737.7}}, identifier: 'Toolbar', label: 'Toolbar'\n                  Other, 0x109656bc0, {{0.0, 136.3}, {402.0, 737.7}}\nPath to element:\n →Application, 0x11268f5c0, pid: 43873, label: 'Questify'\nQuery chain:\n →Find: Target Application 'invalid.example.questify.ios'\n  Output: {\n    Application, 0x109657e80, pid: 43873, label: 'Questify'\n  }\n)",
+      "targetName" : "QuestifyUITests",
+      "testIdentifier" : 13,
+      "testIdentifierString" : "SearchMapAlternativeListFlowTests/testAlternativeListRefreshRemovalAndDuplicateIDsCannotSelectAnotherPlace()",
+      "testIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapAlternativeListFlowTests/testAlternativeListRefreshRemovalAndDuplicateIDsCannotSelectAnotherPlace",
+      "testName" : "testAlternativeListRefreshRemovalAndDuplicateIDsCannotSelectAnotherPlace()"
+    },
+    {
+      "failureText" : "XCTAssertTrue failed",
+      "targetName" : "QuestifyUITests",
+      "testIdentifier" : 15,
+      "testIdentifierString" : "SearchMapFlowTests/testCityFilterCancelPreservesSelectionButApplyClearsIt()",
+      "testIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testCityFilterCancelPreservesSelectionButApplyClearsIt",
+      "testName" : "testCityFilterCancelPreservesSelectionButApplyClearsIt()"
+    },
+    {
+      "failureText" : "XCTAssertTrue failed",
+      "targetName" : "QuestifyUITests",
+      "testIdentifier" : 16,
+      "testIdentifierString" : "SearchMapFlowTests/testCityListSelectionUsesSamePinAndPreservesExplicitMapGate()",
+      "testIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testCityListSelectionUsesSamePinAndPreservesExplicitMapGate",
+      "testName" : "testCityListSelectionUsesSamePinAndPreservesExplicitMapGate()"
+    },
+    {
+      "failureText" : "XCTAssertTrue failed",
+      "targetName" : "QuestifyUITests",
+      "testIdentifier" : 3,
+      "testIdentifierString" : "IntegratedDeniedAcceptanceFlowTests/testConfiguredAuthenticationDoesNotGrantDetailMapPlayOrOwnedOrders()",
+      "testIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/IntegratedDeniedAcceptanceFlowTests/testConfiguredAuthenticationDoesNotGrantDetailMapPlayOrOwnedOrders",
+      "testName" : "testConfiguredAuthenticationDoesNotGrantDetailMapPlayOrOwnedOrders()"
+    },
+    {
+      "failureText" : "Failed to tap \"searchMap.filter.min\" TextField: No matches found for Elements matching predicate '\"searchMap.filter.min\" IN identifiers' from input {(\n    TextField, identifier: 'searchMap.keyword', placeholderValue: 'Search topics, activities, clubs and shops',\n    TextField, identifier: 'searchMap.filter.start', placeholderValue: 'From YYYY-MM-DD',\n    TextField, identifier: 'searchMap.filter.end', placeholderValue: 'Through YYYY-MM-DD'\n)}",
+      "targetName" : "QuestifyUITests",
+      "testIdentifier" : 20,
+      "testIdentifierString" : "SearchMapFlowTests/testFilterValidationCancelAndReopen()",
+      "testIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testFilterValidationCancelAndReopen",
+      "testName" : "testFilterValidationCancelAndReopen()"
+    },
+    {
+      "failureText" : "XCTAssertTrue failed",
+      "targetName" : "QuestifyUITests",
+      "testIdentifier" : 21,
+      "testIdentifierString" : "SearchMapFlowTests/testGlobalCategoryApplyResetPreservesKeywordAndCancelPreservesResults()",
+      "testIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testGlobalCategoryApplyResetPreservesKeywordAndCancelPreservesResults",
+      "testName" : "testGlobalCategoryApplyResetPreservesKeywordAndCancelPreservesResults()"
+    },
+    {
+      "failureText" : "XCTAssertTrue failed",
+      "targetName" : "QuestifyUITests",
+      "testIdentifier" : 22,
+      "testIdentifierString" : "SearchMapFlowTests/testGlobalCategoryChangeRejectsEarlierCompletionAndClearReturnsSuggestions()",
+      "testIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testGlobalCategoryChangeRejectsEarlierCompletionAndClearReturnsSuggestions",
+      "testName" : "testGlobalCategoryChangeRejectsEarlierCompletionAndClearReturnsSuggestions()"
+    },
+    {
+      "failureText" : "XCTAssertTrue failed",
+      "targetName" : "QuestifyUITests",
+      "testIdentifier" : 25,
+      "testIdentifierString" : "SearchMapFlowTests/testManualAreaChangeClearsSelectionAndRequiresMapOptInAgain()",
+      "testIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/SearchMapFlowTests/testManualAreaChangeClearsSelectionAndRequiresMapOptInAgain",
+      "testName" : "testManualAreaChangeClearsSelectionAndRequiresMapOptInAgain()"
+    },
+    {
+      "failureText" : "XCTAssertTrue failed",
+      "targetName" : "QuestifyUITests",
+      "testIdentifier" : 4,
+      "testIdentifierString" : "IntegratedDeniedAcceptanceFlowTests/testNormalRootIMHistoryDefaultNilNeverDispatches()",
+      "testIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/IntegratedDeniedAcceptanceFlowTests/testNormalRootIMHistoryDefaultNilNeverDispatches",
+      "testName" : "testNormalRootIMHistoryDefaultNilNeverDispatches()"
+    },
+    {
+      "failureText" : "XCTAssertTrue failed",
+      "targetName" : "QuestifyUITests",
+      "testIdentifier" : 6,
+      "testIdentifierString" : "IntegratedNativeAcceptanceFlowTests/testNormalRootIMHistoryNeverMarksReadOrSends()",
+      "testIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/IntegratedNativeAcceptanceFlowTests/testNormalRootIMHistoryNeverMarksReadOrSends",
+      "testName" : "testNormalRootIMHistoryNeverMarksReadOrSends()"
+    },
+    {
+      "failureText" : "XCTAssertTrue failed",
+      "targetName" : "QuestifyUITests",
+      "testIdentifier" : 7,
+      "testIdentifierString" : "IntegratedNativeAcceptanceFlowTests/testNormalRootOwnedConfigurationReadOnlyAndStoryReturn()",
+      "testIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/IntegratedNativeAcceptanceFlowTests/testNormalRootOwnedConfigurationReadOnlyAndStoryReturn",
+      "testName" : "testNormalRootOwnedConfigurationReadOnlyAndStoryReturn()"
+    },
+    {
+      "failureText" : "XCTAssertTrue failed",
+      "targetName" : "QuestifyUITests",
+      "testIdentifier" : 2,
+      "testIdentifierString" : "IntegratedActivityPlayJourneyFlowTests/testNormalRootOwnedShelfPaginationAndDetailWithoutMutation()",
+      "testIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/IntegratedActivityPlayJourneyFlowTests/testNormalRootOwnedShelfPaginationAndDetailWithoutMutation",
+      "testName" : "testNormalRootOwnedShelfPaginationAndDetailWithoutMutation()"
+    },
+    {
+      "failureText" : "XCTAssertTrue failed",
+      "targetName" : "QuestifyUITests",
+      "testIdentifier" : 8,
+      "testIdentifierString" : "IntegratedNativeAcceptanceFlowTests/testNormalRootTeamReadOnlyJourney()",
+      "testIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/IntegratedNativeAcceptanceFlowTests/testNormalRootTeamReadOnlyJourney",
+      "testName" : "testNormalRootTeamReadOnlyJourney()"
+    },
+    {
+      "failureText" : "XCTAssertTrue failed",
+      "targetName" : "QuestifyUITests",
+      "testIdentifier" : 9,
+      "testIdentifierString" : "IntegratedNativeAcceptanceFlowTests/testPhoneCancelLogoutAccountSwitchAndColdLaunchDoNotReuseOwnerState()",
+      "testIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/IntegratedNativeAcceptanceFlowTests/testPhoneCancelLogoutAccountSwitchAndColdLaunchDoNotReuseOwnerState",
+      "testName" : "testPhoneCancelLogoutAccountSwitchAndColdLaunchDoNotReuseOwnerState()"
+    },
+    {
+      "failureText" : "XCTAssertTrue failed",
+      "targetName" : "QuestifyUITests",
+      "testIdentifier" : 10,
+      "testIdentifierString" : "IntegratedNativeAcceptanceFlowTests/testSettingsOffersPlayerApplicationsInMiniProgramOrderAndSignsOut()",
+      "testIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyUITests/IntegratedNativeAcceptanceFlowTests/testSettingsOffersPlayerApplicationsInMiniProgramOrderAndSignsOut",
+      "testName" : "testSettingsOffersPlayerApplicationsInMiniProgramOrderAndSignsOut()"
+    }
+  ],
+  "title" : "Test - Questify",
+  "topInsights" : [
+
+  ],
+  "totalTestCount" : 32
+}

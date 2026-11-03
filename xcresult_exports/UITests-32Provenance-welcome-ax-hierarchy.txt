@@ -1,0 +1,50 @@
+Attributes: Application, 0x109645a40, pid: 42421, label: 'Questify'
+Element subtree:
+ →Application, 0x109645a40, pid: 42421, label: 'Questify'
+    Window (Main), 0x109645cc0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x109645e00, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x109645f40, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x109646080, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x109646580, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x1096466c0, {{0.0, 0.0}, {402.0, 874.0}}
+                NavigationBar, 0x109646f80, {{0.0, 62.0}, {402.0, 54.0}}, identifier: 'Questify'
+                  StaticText, 0x109647d40, {{167.0, 73.7}, {67.7, 20.7}}, label: 'Questify'
+                  Button, 0x109647e80, {{346.0, 66.0}, {36.0, 36.0}}, identifier: 'welcome.settings', label: 'Settings'
+                Other, 0x109647840, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x109647c00, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x109647700, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x109646d00, {{0.0, 0.0}, {402.0, 874.0}}
+                        ScrollView, 0x109646940, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x109654000, {{0.0, 0.0}, {402.0, 874.0}}
+                            Other, 0x109654140, {{0.0, 0.0}, {402.0, 156.0}}
+                          Other, 0x109654280, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x1096543c0, {{0.0, 116.0}, {402.0, 627.3}}
+                            StaticText, 0x109654500, {{24.0, 203.0}, {295.3, 81.7}}, label: 'Make the city your next adventure'
+                            StaticText, 0x109654640, {{24.0, 308.7}, {327.7, 20.3}}, label: 'Choose how you would like to join Questify.'
+                            Button, 0x109654780, {{24.0, 353.0}, {354.0, 96.3}}, identifier: 'welcome.player', label: 'Register as a player, Explore stories, join activities, and discover the city.'
+                              Image, 0x1096548c0, {{46.0, 370.0}, {16.0, 25.3}}, identifier: 'figure.walk', label: 'Walk'
+                              StaticText, 0x109654a00, {{80.7, 368.0}, {155.3, 20.3}}, label: 'Register as a player'
+                              StaticText, 0x109654b40, {{80.7, 396.3}, {236.3, 38.0}}, label: 'Explore stories, join activities, and discover the city.'
+                            Button, 0x109654c80, {{24.0, 473.3}, {354.0, 96.3}}, identifier: 'welcome.merchant', label: 'Register as a merchant, Bring your venue into city stories and activities.'
+                              Image, 0x109654dc0, {{46.7, 490.3}, {25.0, 23.7}}, identifier: 'storefront', label: 'Storefront With Awning'
+                              StaticText, 0x109654f00, {{90.3, 488.3}, {182.3, 20.3}}, label: 'Register as a merchant'
+                              StaticText, 0x109655040, {{90.3, 516.7}, {228.3, 38.0}}, label: 'Bring your venue into city stories and activities.'
+                            Button, 0x109655180, {{24.0, 593.7}, {187.7, 23.7}}, identifier: 'ownerDraft.guestEntry', label: 'Saved content drafts'
+                              StaticText, 0x1096552c0, {{24.0, 593.7}, {187.7, 23.7}}, label: 'Saved content drafts'
+                              Image, 0x109655400, {{26.0, 595.0}, {17.0, 21.0}}, identifier: 'doc.on.doc', label: 'Copy'
+                            StaticText, 0x109655540, {{24.0, 641.3}, {350.7, 33.7}}, label: 'This choice starts registration. Merchant access depends on account approval.'
+                            Button, 0x109655680, {{24.0, 699.0}, {138.3, 20.3}}, identifier: 'welcome.browse', label: 'Browse as a guest'
+                          Other, 0x1096557c0, {{369.0, 116.0}, {30.0, 696.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                            Other, 0x109655900, {{396.0, 215.7}, {3.0, 593.3}}
+                          Other, 0x109655a40, {{369.0, 116.0}, {30.0, 696.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                            Other, 0x109655b80, {{396.0, 215.7}, {3.0, 593.3}}
+                Toolbar, 0x109655cc0, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                  Other, 0x109655e00, {{0.0, 0.0}, {402.0, 874.0}}
+              StaticText, 0x109655f40, {{0.0, 826.7}, {402.0, 47.3}}, identifier: 'integratedAcceptance.evidence', label: 'Synthetic normal-root acceptance', value: {"epoch":1,"ledger...
+Path to element:
+ →Application, 0x109645a40, pid: 42421, label: 'Questify'
+Query chain:
+ →Find: Target Application 'invalid.example.questify.ios'
+  Output: {
+    Application, 0x109656080, pid: 42421, label: 'Questify'
+  }

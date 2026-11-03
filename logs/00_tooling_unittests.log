@@ -1,0 +1,587 @@
+test_all_complete_ui_methods_appear_once_within_original_budget (tools.tests.test_current_ci.CurrentCIControls) ... ok
+test_capture_declaration_is_bound_literal_never_imported_and_related_uses_only_intersection (tools.tests.test_current_ci.CurrentCIControls) ... ok
+test_daily_actual_diff_rejects_deleted_test_even_if_current_manifest_is_updated (tools.tests.test_current_ci.CurrentCIControls) ... ok
+test_deleted_method_requires_exact_explicit_review (tools.tests.test_current_ci.CurrentCIControls) ... ok
+test_display_only_impacts_require_exact_reviewed_before_and_after_bytes (tools.tests.test_current_ci.CurrentCIControls) ... ok
+test_duplicate_json_keys_rejected (tools.tests.test_current_ci.CurrentCIControls) ... ok
+test_duplicate_or_unclosed_declarations_fail (tools.tests.test_current_ci.CurrentCIControls) ... ok
+test_exact_public_key_and_fixture_exceptions_are_path_and_line_bound (tools.tests.test_current_ci.CurrentCIControls) ... ERROR
+test_failed_ui_build_retains_small_raw_diagnostics_only (tools.tests.test_current_ci.CurrentCIControls) ... ok
+test_isolated_capture_partition_preserves_exact_once_budgets_and_original_remainder (tools.tests.test_current_ci.CurrentCIControls) ... ok
+test_missing_tracked_file_is_explicitly_rejected (tools.tests.test_current_ci.CurrentCIControls) ... ok
+test_missing_ui_execution_or_failed_units_still_fail_current_aggregate (tools.tests.test_current_ci.CurrentCIControls) ... ok
+test_modified_test_file_and_full_mode_never_drop_methods (tools.tests.test_current_ci.CurrentCIControls) ... ok
+test_named_source_rows_preserve_hashes_and_reject_duplicate_or_unknown_fields (tools.tests.test_current_ci.CurrentCIControls) ... ok
+test_pbx_pure_registration_does_not_select_every_ui_method (tools.tests.test_current_ci.CurrentCIControls) ... ok
+test_platform_compiles_start_after_bound_ui_build_without_waiting_for_ui_execution (tools.tests.test_current_ci.CurrentCIControls) ... ok
+test_python_method_ledger_never_imports_module (tools.tests.test_current_ci.CurrentCIControls) ... ok
+test_readonly_project_equivalence_preserves_settings_and_duplicate_rejection (tools.tests.test_current_ci.CurrentCIControls) ... ok
+test_related_select_uses_explicit_transitive_sources_and_keeps_smoke (tools.tests.test_current_ci.CurrentCIControls) ... ok
+test_same_and_cross_file_test_extensions_are_not_silently_omitted (tools.tests.test_current_ci.CurrentCIControls) ... ok
+test_swift_dictionary_key_exception_cannot_allow_credentials_or_other_files (tools.tests.test_current_ci.CurrentCIControls) ... ERROR
+test_swift_lexing_preserves_real_methods_not_comments_strings_or_helpers (tools.tests.test_current_ci.CurrentCIControls) ... ok
+test_ui_workers_require_successful_same_run_build_artifact (tools.tests.test_current_ci.CurrentCIControls) ... ok
+test_actual_eight_remain_in_complete_ledger_but_never_simulator_groups (tools.tests.test_current_ci.DeviceOnlyClassificationControls) ... ok
+test_foreign_or_partial_classification_cannot_hide_a_simulator_method (tools.tests.test_current_ci.DeviceOnlyClassificationControls) ... ok
+test_guard_method_path_source_or_module_mutations_require_explicit_review (tools.tests.test_current_ci.DeviceOnlyClassificationControls) ... ok
+test_blank_reason_missing_replacement_or_changed_hash_are_rejected (tools.tests.test_current_ci.ExactBaseMigrationReviewControls) ... ok
+test_exact_main_27_and_dev_zero_use_distinct_reviews (tools.tests.test_current_ci.ExactBaseMigrationReviewControls) ... ok
+test_missing_entire_map_and_unlisted_base_cannot_borrow_other_review (tools.tests.test_current_ci.ExactBaseMigrationReviewControls) ... ok
+test_missing_or_extra_old_identity_never_relaxes_exact_removed_set (tools.tests.test_current_ci.ExactBaseMigrationReviewControls) ... ok
+test_original_comparison_base_review_remains_compatible_but_not_global (tools.tests.test_current_ci.ExactBaseMigrationReviewControls) ... ok
+test_portable_replacement_uses_exact_current_identity_and_source (tools.tests.test_current_ci.ExactBaseMigrationReviewControls) ... ok
+test_refresh_preserves_exact_review_and_refuses_stale_replacement_binding (tools.tests.test_current_ci.ExactBaseMigrationReviewControls) ... ok
+test_replacement_source_changes_require_renewed_review (tools.tests.test_current_ci.ExactBaseMigrationReviewControls) ... ok
+test_unknown_fields_empty_record_and_wrong_shapes_are_rejected (tools.tests.test_current_ci.ExactBaseMigrationReviewControls) ... ok
+test_wrong_base_and_tree_and_shadow_are_rejected (tools.tests.test_current_ci.ExactBaseMigrationReviewControls) ... ok
+test_actual_native_events_and_both_summaries_match_complete_selection (tools.tests.test_current_native.CoreSerialEvidenceControls) ... ok
+test_aggregate_reparses_raw_serial_events_and_rejects_self_consistent_tampering (tools.tests.test_current_native.CoreSerialEvidenceControls) ... ok
+test_complete_core_selection_omits_oversized_filter_only_for_exact_inventory (tools.tests.test_current_native.CoreSerialEvidenceControls) ... ok
+test_execute_builds_once_uses_one_bounded_serial_process_and_preserves_timeout (tools.tests.test_current_native.CoreSerialEvidenceControls) ... ok
+test_forged_pass_counts_wrong_bundle_or_truncated_summaries_fail (tools.tests.test_current_native.CoreSerialEvidenceControls) ... ok
+test_missing_duplicate_extra_skipped_unfinished_or_reordered_methods_fail (tools.tests.test_current_native.CoreSerialEvidenceControls) ... ok
+test_nonzero_timeout_and_boolean_returncodes_never_pass (tools.tests.test_current_native.CoreSerialEvidenceControls) ... ok
+test_serial_command_keeps_exact_filter_skip_build_and_original_budget (tools.tests.test_current_native.CoreSerialEvidenceControls) ... ok
+test_unfiltered_core_command_is_bound_to_manifest_and_reparsed_exact_union (tools.tests.test_current_native.CoreSerialEvidenceControls) ... ok
+test_actual_raw_core_reparse_rejects_modified_transcript (tools.tests.test_current_native.CurrentNativeControls) ... ok
+test_exact_current_selection_union_passes (tools.tests.test_current_native.CurrentNativeControls) ... ok
+test_failed_skipped_cancelled_or_missing_job_is_not_success (tools.tests.test_current_native.CurrentNativeControls) ... ok
+test_missing_duplicate_foreign_or_nonpassing_evidence_rejected (tools.tests.test_current_native.CurrentNativeControls) ... ok
+test_original_native_outcome_validator_keeps_exact_identity_requirement (tools.tests.test_current_native.CurrentNativeControls) ... ok
+test_original_xctest_command_uses_only_selected_methods_without_rebuild (tools.tests.test_current_native.CurrentNativeControls) ... ok
+test_ui_build_must_succeed_even_when_all_execution_receipts_pass (tools.tests.test_current_native.CurrentNativeControls) ... ok
+test_device_methods_are_explicit_not_run_and_not_counted_as_passed (tools.tests.test_current_native.DeviceOnlyAggregationControls) ... ok
+test_actual_process_staging_cap_and_symlink_terminate (tools.tests.test_current_native.FailureScreenshotControls) ... ERROR
+test_actual_readonly_process_deadline_terminates_without_output_leak (tools.tests.test_current_native.FailureScreenshotControls) ... ERROR
+test_command_hash_result_hash_and_exact_invocation_are_required (tools.tests.test_current_native.FailureScreenshotControls) ... test_diagnostic_baseexceptions_preserve_exact_original_execution_exception (tools.tests.test_current_native.FailureScreenshotControls) ... ok
+test_directory_enumeration_checks_deadline_per_entry (tools.tests.test_current_native.FailureScreenshotControls) ... ERROR
+test_duplicate_image_payload_is_not_copied_twice (tools.tests.test_current_native.FailureScreenshotControls) ... ERROR
+test_empty_directories_also_count_toward_staging_bound (tools.tests.test_current_native.FailureScreenshotControls) ... ERROR
+test_exact_failed_offline_test_exports_only_named_app_screenshot (tools.tests.test_current_native.FailureScreenshotControls) ... ERROR
+test_existing_diagnostics_are_never_overwritten (tools.tests.test_current_native.FailureScreenshotControls) ... ERROR
+test_export_error_never_serializes_arbitrary_error_text (tools.tests.test_current_native.FailureScreenshotControls) ... ERROR
+test_exporter_replaced_stage_directory_is_rejected_after_process_exit (tools.tests.test_current_native.FailureScreenshotControls) ... ERROR
+test_final_upload_count_bytes_hash_and_filename_are_rechecked (tools.tests.test_current_native.FailureScreenshotControls) ... ok
+test_foreign_receipt_plan_source_or_index_is_rejected_before_export (tools.tests.test_current_native.FailureScreenshotControls) ... test_foreign_selected_method_and_ambiguous_url_fail_closed (tools.tests.test_current_native.FailureScreenshotControls) ... test_manifest_traversal_symlink_foreign_identity_and_unknown_schema_rejected (tools.tests.test_current_native.FailureScreenshotControls) ... ok
+test_missing_bundle_never_calls_exporter (tools.tests.test_current_native.FailureScreenshotControls) ... ERROR
+test_only_failed_ui_role_can_create_diagnostics (tools.tests.test_current_native.FailureScreenshotControls) ... ok
+test_original_failure_survives_diagnostic_exception (tools.tests.test_current_native.FailureScreenshotControls) ... ok
+test_oversized_image_index_count_and_total_caps_reject (tools.tests.test_current_native.FailureScreenshotControls) ... ok
+test_partial_write_or_unexpected_upload_file_never_publishes (tools.tests.test_current_native.FailureScreenshotControls) ... FAIL
+test_passing_method_in_failed_shard_is_not_exported (tools.tests.test_current_native.FailureScreenshotControls) ... ERROR
+test_real_exporter_is_reaped_after_diagnostic_interrupt (tools.tests.test_current_native.FailureScreenshotControls) ... ERROR
+test_real_exporter_is_reaped_after_traversal_exception (tools.tests.test_current_native.FailureScreenshotControls) ... ERROR
+test_stage_and_parent_symlinks_are_rejected_before_reading_manifest (tools.tests.test_current_native.FailureScreenshotControls) ... ok
+test_successful_slow_export_cannot_publish_images_after_deadline (tools.tests.test_current_native.FailureScreenshotControls) ... ERROR
+test_unknown_help_capability_is_explicit_skip_without_export (tools.tests.test_current_native.FailureScreenshotControls) ... ERROR
+test_unreviewed_or_changed_source_does_not_invoke_exporter (tools.tests.test_current_native.FailureScreenshotControls) ... ERROR
+test_workflow_artifact_is_isolated_and_existing_gate_not_widened (tools.tests.test_current_native.FailureScreenshotControls) ... ok
+test_wrong_attachment_name_video_or_unsupported_bytes_not_uploaded (tools.tests.test_current_native.FailureScreenshotControls) ... ERROR
+test_zero_budget_uses_no_subprocess_and_shared_window_stays_within_deadline (tools.tests.test_current_native.FailureScreenshotControls) ... ERROR
+test_ui_build_uses_destination_active_architecture_once_and_preserves_checks (tools.tests.test_current_native.UIActiveArchitectureControls) ... test_ui_restore_rejects_archive_corruption_and_changed_file_with_updated_archive_hash (tools.tests.test_current_native.UIActiveArchitectureControls) ... test_ui_restore_rejects_different_worker_architecture_and_other_toolchain_fields (tools.tests.test_current_native.UIActiveArchitectureControls) ... ok
+test_plain_runtime_warning_preserves_exact_passed_method (tools.tests.test_current_native.XCTestDiagnosticControls) ... ok
+test_warning_cannot_hide_nested_case_failure_skip_repetition_or_identity (tools.tests.test_current_native.XCTestDiagnosticControls) ... ok
+test_warning_never_converts_failed_skipped_foreign_or_duplicate_execution_to_pass (tools.tests.test_current_native.XCTestDiagnosticControls) ... ok
+
+======================================================================
+ERROR: test_exact_public_key_and_fixture_exceptions_are_path_and_line_bound (tools.tests.test_current_ci.CurrentCIControls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_ci.py", line 296, in test_exact_public_key_and_fixture_exceptions_are_path_and_line_bound
+    import re, tomllib
+ModuleNotFoundError: No module named 'tomllib'
+
+======================================================================
+ERROR: test_swift_dictionary_key_exception_cannot_allow_credentials_or_other_files (tools.tests.test_current_ci.CurrentCIControls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_ci.py", line 276, in test_swift_dictionary_key_exception_cannot_allow_credentials_or_other_files
+    import re, tomllib
+ModuleNotFoundError: No module named 'tomllib'
+
+======================================================================
+ERROR: test_actual_process_staging_cap_and_symlink_terminate (tools.tests.test_current_native.FailureScreenshotControls) (kind='cap')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 565, in test_actual_process_staging_cap_and_symlink_terminate
+    status,raw=native.screenshot_probe_command([sys.executable,'-c',action],self.root,time.monotonic()+4,stage,'/Applications/Xcode.app/Contents/Developer')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 545, in screenshot_probe_command
+    screenshot_safe_directory(stage)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_actual_process_staging_cap_and_symlink_terminate (tools.tests.test_current_native.FailureScreenshotControls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 566, in test_actual_process_staging_cap_and_symlink_terminate
+    self.assertEqual(status,'STAGING_LIMIT' if kind=='cap' else 'UNSAFE_STAGING');self.assertEqual(raw,b'')
+UnboundLocalError: local variable 'status' referenced before assignment
+
+======================================================================
+ERROR: test_actual_readonly_process_deadline_terminates_without_output_leak (tools.tests.test_current_native.FailureScreenshotControls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 553, in test_actual_readonly_process_deadline_terminates_without_output_leak
+    status,raw=native.screenshot_probe_command([sys.executable,'-c','import time; print("PRIVATE"); time.sleep(20)'],self.root,started+2.15,stage,'/Applications/Xcode.app/Contents/Developer')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 545, in screenshot_probe_command
+    screenshot_safe_directory(stage)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_command_hash_result_hash_and_exact_invocation_are_required (tools.tests.test_current_native.FailureScreenshotControls) (mutation='command-hash')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 597, in test_command_hash_result_hash_and_exact_invocation_are_required
+    self.assertEqual(self.collect()['status'],'DIAGNOSTIC_UNAVAILABLE');self.assertEqual(self.calls,[])
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 426, in collect
+    native.collect_failure_screenshots(self.root,self.plan,self.receipt,self.output,deadline or time.monotonic()+100)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 647, in collect_failure_screenshots
+    screenshot_safe_directory(Path(output).parent)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_command_hash_result_hash_and_exact_invocation_are_required (tools.tests.test_current_native.FailureScreenshotControls) (mutation='document-hash')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 597, in test_command_hash_result_hash_and_exact_invocation_are_required
+    self.assertEqual(self.collect()['status'],'DIAGNOSTIC_UNAVAILABLE');self.assertEqual(self.calls,[])
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 426, in collect
+    native.collect_failure_screenshots(self.root,self.plan,self.receipt,self.output,deadline or time.monotonic()+100)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 647, in collect_failure_screenshots
+    screenshot_safe_directory(Path(output).parent)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_command_hash_result_hash_and_exact_invocation_are_required (tools.tests.test_current_native.FailureScreenshotControls) (mutation='other-bundle')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 597, in test_command_hash_result_hash_and_exact_invocation_are_required
+    self.assertEqual(self.collect()['status'],'DIAGNOSTIC_UNAVAILABLE');self.assertEqual(self.calls,[])
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 426, in collect
+    native.collect_failure_screenshots(self.root,self.plan,self.receipt,self.output,deadline or time.monotonic()+100)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 647, in collect_failure_screenshots
+    screenshot_safe_directory(Path(output).parent)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_command_hash_result_hash_and_exact_invocation_are_required (tools.tests.test_current_native.FailureScreenshotControls) (mutation='extra-selected-test')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 597, in test_command_hash_result_hash_and_exact_invocation_are_required
+    self.assertEqual(self.collect()['status'],'DIAGNOSTIC_UNAVAILABLE');self.assertEqual(self.calls,[])
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 426, in collect
+    native.collect_failure_screenshots(self.root,self.plan,self.receipt,self.output,deadline or time.monotonic()+100)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 647, in collect_failure_screenshots
+    screenshot_safe_directory(Path(output).parent)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_command_hash_result_hash_and_exact_invocation_are_required (tools.tests.test_current_native.FailureScreenshotControls) (mutation='failed-export')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 597, in test_command_hash_result_hash_and_exact_invocation_are_required
+    self.assertEqual(self.collect()['status'],'DIAGNOSTIC_UNAVAILABLE');self.assertEqual(self.calls,[])
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 426, in collect
+    native.collect_failure_screenshots(self.root,self.plan,self.receipt,self.output,deadline or time.monotonic()+100)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 647, in collect_failure_screenshots
+    screenshot_safe_directory(Path(output).parent)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_directory_enumeration_checks_deadline_per_entry (tools.tests.test_current_native.FailureScreenshotControls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 705, in test_directory_enumeration_checks_deadline_per_entry
+    status,_=native.screenshot_probe_command([sys.executable,'-c','import time; time.sleep(20)'],self.root,clock[0]+4,stage,'/Applications/Xcode.app/Contents/Developer')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 545, in screenshot_probe_command
+    screenshot_safe_directory(stage)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_duplicate_image_payload_is_not_copied_twice (tools.tests.test_current_native.FailureScreenshotControls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 537, in test_duplicate_image_payload_is_not_copied_twice
+    self.assertEqual(len(native.bounded_failure_images(folder,self.method,native.FAILURE_TOTAL_LIMIT,6)),1)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 601, in bounded_failure_images
+    stage = screenshot_safe_directory(stage)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_empty_directories_also_count_toward_staging_bound (tools.tests.test_current_native.FailureScreenshotControls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 688, in test_empty_directories_also_count_toward_staging_bound
+    status,_=native.screenshot_probe_command([sys.executable,'-c','import time; time.sleep(20)'],self.root,time.monotonic()+4,stage,'/Applications/Xcode.app/Contents/Developer')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 545, in screenshot_probe_command
+    screenshot_safe_directory(stage)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_exact_failed_offline_test_exports_only_named_app_screenshot (tools.tests.test_current_native.FailureScreenshotControls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 437, in test_exact_failed_offline_test_exports_only_named_app_screenshot
+    before=(self.output/'receipt.json').read_bytes(); report=self.collect()
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 426, in collect
+    native.collect_failure_screenshots(self.root,self.plan,self.receipt,self.output,deadline or time.monotonic()+100)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 647, in collect_failure_screenshots
+    screenshot_safe_directory(Path(output).parent)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_existing_diagnostics_are_never_overwritten (tools.tests.test_current_native.FailureScreenshotControls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 601, in test_existing_diagnostics_are_never_overwritten
+    self.assertIsNone(self.collect());self.assertEqual(self.calls,[])
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 426, in collect
+    native.collect_failure_screenshots(self.root,self.plan,self.receipt,self.output,deadline or time.monotonic()+100)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 647, in collect_failure_screenshots
+    screenshot_safe_directory(Path(output).parent)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_export_error_never_serializes_arbitrary_error_text (tools.tests.test_current_native.FailureScreenshotControls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 500, in test_export_error_never_serializes_arbitrary_error_text
+    report=self.collect(fail);self.assertEqual(report['status'],'DIAGNOSTIC_UNAVAILABLE')
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 426, in collect
+    native.collect_failure_screenshots(self.root,self.plan,self.receipt,self.output,deadline or time.monotonic()+100)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 647, in collect_failure_screenshots
+    screenshot_safe_directory(Path(output).parent)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_exporter_replaced_stage_directory_is_rejected_after_process_exit (tools.tests.test_current_native.FailureScreenshotControls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 681, in test_exporter_replaced_stage_directory_is_rejected_after_process_exit
+    report=self.collect(swapped);self.assertEqual(report['files'],[])
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 426, in collect
+    native.collect_failure_screenshots(self.root,self.plan,self.receipt,self.output,deadline or time.monotonic()+100)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 647, in collect_failure_screenshots
+    screenshot_safe_directory(Path(output).parent)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_foreign_receipt_plan_source_or_index_is_rejected_before_export (tools.tests.test_current_native.FailureScreenshotControls) (mutation='receipt')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 472, in test_foreign_receipt_plan_source_or_index_is_rejected_before_export
+    else:self.assertEqual(self.collect()['status'],'DIAGNOSTIC_UNAVAILABLE')
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 426, in collect
+    native.collect_failure_screenshots(self.root,self.plan,self.receipt,self.output,deadline or time.monotonic()+100)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 647, in collect_failure_screenshots
+    screenshot_safe_directory(Path(output).parent)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_foreign_receipt_plan_source_or_index_is_rejected_before_export (tools.tests.test_current_native.FailureScreenshotControls) (mutation='plan-hash')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 472, in test_foreign_receipt_plan_source_or_index_is_rejected_before_export
+    else:self.assertEqual(self.collect()['status'],'DIAGNOSTIC_UNAVAILABLE')
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 426, in collect
+    native.collect_failure_screenshots(self.root,self.plan,self.receipt,self.output,deadline or time.monotonic()+100)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 647, in collect_failure_screenshots
+    screenshot_safe_directory(Path(output).parent)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_foreign_receipt_plan_source_or_index_is_rejected_before_export (tools.tests.test_current_native.FailureScreenshotControls) (mutation='index')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 472, in test_foreign_receipt_plan_source_or_index_is_rejected_before_export
+    else:self.assertEqual(self.collect()['status'],'DIAGNOSTIC_UNAVAILABLE')
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 426, in collect
+    native.collect_failure_screenshots(self.root,self.plan,self.receipt,self.output,deadline or time.monotonic()+100)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 647, in collect_failure_screenshots
+    screenshot_safe_directory(Path(output).parent)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_foreign_selected_method_and_ambiguous_url_fail_closed (tools.tests.test_current_native.FailureScreenshotControls) (mutation='selected')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 481, in test_foreign_selected_method_and_ambiguous_url_fail_closed
+    self.assertEqual(self.collect()['status'],'DIAGNOSTIC_UNAVAILABLE');self.assertEqual(self.calls,[])
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 426, in collect
+    native.collect_failure_screenshots(self.root,self.plan,self.receipt,self.output,deadline or time.monotonic()+100)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 647, in collect_failure_screenshots
+    screenshot_safe_directory(Path(output).parent)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_foreign_selected_method_and_ambiguous_url_fail_closed (tools.tests.test_current_native.FailureScreenshotControls) (mutation='encoded-url')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 481, in test_foreign_selected_method_and_ambiguous_url_fail_closed
+    self.assertEqual(self.collect()['status'],'DIAGNOSTIC_UNAVAILABLE');self.assertEqual(self.calls,[])
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 426, in collect
+    native.collect_failure_screenshots(self.root,self.plan,self.receipt,self.output,deadline or time.monotonic()+100)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 647, in collect_failure_screenshots
+    screenshot_safe_directory(Path(output).parent)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_missing_bundle_never_calls_exporter (tools.tests.test_current_native.FailureScreenshotControls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 496, in test_missing_bundle_never_calls_exporter
+    self.assertEqual(self.collect()['status'],'DIAGNOSTIC_UNAVAILABLE');self.assertEqual(self.calls,[])
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 426, in collect
+    native.collect_failure_screenshots(self.root,self.plan,self.receipt,self.output,deadline or time.monotonic()+100)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 647, in collect_failure_screenshots
+    screenshot_safe_directory(Path(output).parent)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_passing_method_in_failed_shard_is_not_exported (tools.tests.test_current_native.FailureScreenshotControls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 456, in test_passing_method_in_failed_shard_is_not_exported
+    self.assertEqual(self.collect()['status'],'NO_ELIGIBLE_FAILED_FIXTURE');self.assertEqual(self.calls,[])
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 426, in collect
+    native.collect_failure_screenshots(self.root,self.plan,self.receipt,self.output,deadline or time.monotonic()+100)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 647, in collect_failure_screenshots
+    screenshot_safe_directory(Path(output).parent)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_real_exporter_is_reaped_after_diagnostic_interrupt (tools.tests.test_current_native.FailureScreenshotControls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 650, in test_real_exporter_is_reaped_after_diagnostic_interrupt
+    native.screenshot_probe_command([sys.executable,'-c','import time; time.sleep(20)'],self.root,time.monotonic()+4,stage,'/Applications/Xcode.app/Contents/Developer')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 545, in screenshot_probe_command
+    screenshot_safe_directory(stage)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_real_exporter_is_reaped_after_traversal_exception (tools.tests.test_current_native.FailureScreenshotControls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 638, in test_real_exporter_is_reaped_after_traversal_exception
+    native.screenshot_probe_command([sys.executable,'-c','import time; time.sleep(20)'],self.root,time.monotonic()+4,stage,'/Applications/Xcode.app/Contents/Developer')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 545, in screenshot_probe_command
+    screenshot_safe_directory(stage)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_successful_slow_export_cannot_publish_images_after_deadline (tools.tests.test_current_native.FailureScreenshotControls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 613, in test_successful_slow_export_cannot_publish_images_after_deadline
+    report=self.collect(exporter,deadline=now+60)
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 426, in collect
+    native.collect_failure_screenshots(self.root,self.plan,self.receipt,self.output,deadline or time.monotonic()+100)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 647, in collect_failure_screenshots
+    screenshot_safe_directory(Path(output).parent)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_unknown_help_capability_is_explicit_skip_without_export (tools.tests.test_current_native.FailureScreenshotControls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 485, in test_unknown_help_capability_is_explicit_skip_without_export
+    self.assertEqual(self.collect(unsupported)['status'],'UNSUPPORTED_TOOL_CAPABILITIES')
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 426, in collect
+    native.collect_failure_screenshots(self.root,self.plan,self.receipt,self.output,deadline or time.monotonic()+100)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 647, in collect_failure_screenshots
+    screenshot_safe_directory(Path(output).parent)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_unreviewed_or_changed_source_does_not_invoke_exporter (tools.tests.test_current_native.FailureScreenshotControls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 451, in test_unreviewed_or_changed_source_does_not_invoke_exporter
+    self.assertEqual(self.collect()['status'],'NO_ELIGIBLE_FAILED_FIXTURE');self.assertEqual(self.calls,[])
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 426, in collect
+    native.collect_failure_screenshots(self.root,self.plan,self.receipt,self.output,deadline or time.monotonic()+100)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 647, in collect_failure_screenshots
+    screenshot_safe_directory(Path(output).parent)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_wrong_attachment_name_video_or_unsupported_bytes_not_uploaded (tools.tests.test_current_native.FailureScreenshotControls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 532, in test_wrong_attachment_name_video_or_unsupported_bytes_not_uploaded
+    self.assertEqual(native.bounded_failure_images(folder,self.method,native.FAILURE_TOTAL_LIMIT,6),[])
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 601, in bounded_failure_images
+    stage = screenshot_safe_directory(stage)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_zero_budget_uses_no_subprocess_and_shared_window_stays_within_deadline (tools.tests.test_current_native.FailureScreenshotControls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 490, in test_zero_budget_uses_no_subprocess_and_shared_window_stays_within_deadline
+    self.assertEqual(self.collect(deadline=time.monotonic()-1)['status'],'NO_BUDGET');self.assertEqual(self.calls,[])
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 426, in collect
+    native.collect_failure_screenshots(self.root,self.plan,self.receipt,self.output,deadline or time.monotonic()+100)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 647, in collect_failure_screenshots
+    screenshot_safe_directory(Path(output).parent)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 533, in screenshot_safe_directory
+    require(not component.is_symlink() and component.is_dir(), 'Unsafe diagnostic directory')
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 30, in require
+    raise ValueError(message)
+ValueError: Unsafe diagnostic directory
+
+======================================================================
+ERROR: test_ui_build_uses_destination_active_architecture_once_and_preserves_checks (tools.tests.test_current_native.UIActiveArchitectureControls) (architecture='arm64')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 334, in test_ui_build_uses_destination_active_architecture_once_and_preserves_checks
+    products,run,restored=native.restore_ui(output,base/'worker',plan,actual)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 831, in restore_ui
+    stream.extractall(destination, filter='data')
+TypeError: extractall() got an unexpected keyword argument 'filter'
+
+======================================================================
+ERROR: test_ui_build_uses_destination_active_architecture_once_and_preserves_checks (tools.tests.test_current_native.UIActiveArchitectureControls) (architecture='x86_64')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 334, in test_ui_build_uses_destination_active_architecture_once_and_preserves_checks
+    products,run,restored=native.restore_ui(output,base/'worker',plan,actual)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 831, in restore_ui
+    stream.extractall(destination, filter='data')
+TypeError: extractall() got an unexpected keyword argument 'filter'
+
+======================================================================
+ERROR: test_ui_restore_rejects_archive_corruption_and_changed_file_with_updated_archive_hash (tools.tests.test_current_native.UIActiveArchitectureControls) (mutation='file')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 364, in test_ui_restore_rejects_archive_corruption_and_changed_file_with_updated_archive_hash
+    with self.assertRaisesRegex(ValueError,message):native.restore_ui(artifact,base/'worker',plan,actual)
+  File "<PUBLIC_REPO_WORKTREE>/tools/current_native.py", line 831, in restore_ui
+    stream.extractall(destination, filter='data')
+TypeError: extractall() got an unexpected keyword argument 'filter'
+
+======================================================================
+FAIL: test_partial_write_or_unexpected_upload_file_never_publishes (tools.tests.test_current_native.FailureScreenshotControls)
+----------------------------------------------------------------------
+ValueError: Unsafe diagnostic directory
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<PUBLIC_REPO_WORKTREE>/tools/tests/test_current_native.py", line 546, in test_partial_write_or_unexpected_upload_file_never_publishes
+    self.collect()
+AssertionError: "Unexpected upload" does not match "Unsafe diagnostic directory"
+
+----------------------------------------------------------------------
+Ran 89 tests in 0.543s
+
+FAILED (failures=1, errors=34)

@@ -1,0 +1,1275 @@
+{
+  "devices" : [
+    {
+      "architecture" : "arm64",
+      "deviceId" : "25316F87-058C-46CE-8825-617906638207",
+      "deviceName" : "Questify-iPhone17",
+      "modelName" : "iPhone 17",
+      "osBuildNumber" : "24A434",
+      "osVersion" : "27.0",
+      "platform" : "iOS Simulator"
+    }
+  ],
+  "testNodes" : [
+    {
+      "children" : [
+        {
+          "children" : [
+            {
+              "children" : [
+                {
+                  "duration" : "0.032s",
+                  "durationInSeconds" : 0.03170597553253174,
+                  "name" : "testRealGenerationCASAndConditionalDelete()",
+                  "nodeIdentifier" : "ContentDraftSystemStorageTests/testRealGenerationCASAndConditionalDelete()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ContentDraftSystemStorageTests/testRealGenerationCASAndConditionalDelete",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.011s",
+                  "durationInSeconds" : 0.010612964630126953,
+                  "name" : "testRealNonClassADirectoryRejectsEveryFileOperationWithoutWriting()",
+                  "nodeIdentifier" : "ContentDraftSystemStorageTests/testRealNonClassADirectoryRejectsEveryFileOperationWithoutWriting()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ContentDraftSystemStorageTests/testRealNonClassADirectoryRejectsEveryFileOperationWithoutWriting",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0021s",
+                  "durationInSeconds" : 0.0020960569381713867,
+                  "name" : "testRealSymlinkAncestorIsRejectedWithoutTouchingTarget()",
+                  "nodeIdentifier" : "ContentDraftSystemStorageTests/testRealSymlinkAncestorIsRejectedWithoutTouchingTarget()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ContentDraftSystemStorageTests/testRealSymlinkAncestorIsRejectedWithoutTouchingTarget",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0014s",
+                  "durationInSeconds" : 0.0013979673385620117,
+                  "name" : "testRealWeakExistingDirectoryIsRejectedWithoutPermissionRepair()",
+                  "nodeIdentifier" : "ContentDraftSystemStorageTests/testRealWeakExistingDirectoryIsRejectedWithoutPermissionRepair()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ContentDraftSystemStorageTests/testRealWeakExistingDirectoryIsRejectedWithoutPermissionRepair",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                }
+              ],
+              "name" : "ContentDraftSystemStorageTests",
+              "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ContentDraftSystemStorageTests",
+              "nodeType" : "Test Suite",
+              "result" : "Passed"
+            },
+            {
+              "children" : [
+                {
+                  "duration" : "0.0048s",
+                  "durationInSeconds" : 0.004845023155212402,
+                  "name" : "testFactoryRejectsMismatchedNamespaceAndRegionBeforeOSConstruction()",
+                  "nodeIdentifier" : "PlayRecoverySystemStorageTests/testFactoryRejectsMismatchedNamespaceAndRegionBeforeOSConstruction()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/PlayRecoverySystemStorageTests/testFactoryRejectsMismatchedNamespaceAndRegionBeforeOSConstruction",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.007s",
+                  "durationInSeconds" : 0.0069779157638549805,
+                  "name" : "testRealNonClassADirectoryRejectsRecoveryWithoutFilesOrKeychainWrites()",
+                  "nodeIdentifier" : "PlayRecoverySystemStorageTests/testRealNonClassADirectoryRejectsRecoveryWithoutFilesOrKeychainWrites()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/PlayRecoverySystemStorageTests/testRealNonClassADirectoryRejectsRecoveryWithoutFilesOrKeychainWrites",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                }
+              ],
+              "name" : "PlayRecoverySystemStorageTests",
+              "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/PlayRecoverySystemStorageTests",
+              "nodeType" : "Test Suite",
+              "result" : "Passed"
+            },
+            {
+              "children" : [
+                {
+                  "duration" : "0.0039s",
+                  "durationInSeconds" : 0.0039010047912597656,
+                  "name" : "testRealConditionalDeletePreservesWrongTagAndDeletesMatchingTag()",
+                  "nodeIdentifier" : "PrivateHomeSystemKeychainTests/testRealConditionalDeletePreservesWrongTagAndDeletesMatchingTag()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/PrivateHomeSystemKeychainTests/testRealConditionalDeletePreservesWrongTagAndDeletesMatchingTag",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0026s",
+                  "durationInSeconds" : 0.0026220083236694336,
+                  "name" : "testRealInsertDuplicateReadAndProtectionAttributes()",
+                  "nodeIdentifier" : "PrivateHomeSystemKeychainTests/testRealInsertDuplicateReadAndProtectionAttributes()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/PrivateHomeSystemKeychainTests/testRealInsertDuplicateReadAndProtectionAttributes",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0029s",
+                  "durationInSeconds" : 0.0029119253158569336,
+                  "name" : "testRealStaleTagCannotDeleteReplacementAtTheSameKey()",
+                  "nodeIdentifier" : "PrivateHomeSystemKeychainTests/testRealStaleTagCannotDeleteReplacementAtTheSameKey()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/PrivateHomeSystemKeychainTests/testRealStaleTagCannotDeleteReplacementAtTheSameKey",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0025s",
+                  "durationInSeconds" : 0.002485990524291992,
+                  "name" : "testSyntheticSecurityPrerequisitesReportNumericStatus()",
+                  "nodeIdentifier" : "PrivateHomeSystemKeychainTests/testSyntheticSecurityPrerequisitesReportNumericStatus()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/PrivateHomeSystemKeychainTests/testSyntheticSecurityPrerequisitesReportNumericStatus",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                }
+              ],
+              "name" : "PrivateHomeSystemKeychainTests",
+              "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/PrivateHomeSystemKeychainTests",
+              "nodeType" : "Test Suite",
+              "result" : "Passed"
+            },
+            {
+              "children" : [
+                {
+                  "duration" : "0.045s",
+                  "durationInSeconds" : 0.04473590850830078,
+                  "name" : "testCurrent401ExpiresButLate401AfterOwnerChangeCannot()",
+                  "nodeIdentifier" : "ProfileFavoriteTopicReadTests/testCurrent401ExpiresButLate401AfterOwnerChangeCannot()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileFavoriteTopicReadTests/testCurrent401ExpiresButLate401AfterOwnerChangeCannot",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0058s",
+                  "durationInSeconds" : 0.005837082862854004,
+                  "name" : "testCurrentConcreteBindingDoesNotReadOrPopSuccessor()",
+                  "nodeIdentifier" : "ProfileFavoriteTopicReadTests/testCurrentConcreteBindingDoesNotReadOrPopSuccessor()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileFavoriteTopicReadTests/testCurrentConcreteBindingDoesNotReadOrPopSuccessor",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0042s",
+                  "durationInSeconds" : 0.004214048385620117,
+                  "name" : "testDefaultNilDetailIsUnavailableDespiteListAndGlobalDetailApproval()",
+                  "nodeIdentifier" : "ProfileFavoriteTopicReadTests/testDefaultNilDetailIsUnavailableDespiteListAndGlobalDetailApproval()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileFavoriteTopicReadTests/testDefaultNilDetailIsUnavailableDespiteListAndGlobalDetailApproval",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.034s",
+                  "durationInSeconds" : 0.0338360071182251,
+                  "name" : "testExactTransportIdentityChangesRejectAllLateReplies()",
+                  "nodeIdentifier" : "ProfileFavoriteTopicReadTests/testExactTransportIdentityChangesRejectAllLateReplies()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileFavoriteTopicReadTests/testExactTransportIdentityChangesRejectAllLateReplies",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0039s",
+                  "durationInSeconds" : 0.003922939300537109,
+                  "name" : "testHiddenForegroundAndScopeChangesCannotReviveSelection()",
+                  "nodeIdentifier" : "ProfileFavoriteTopicReadTests/testHiddenForegroundAndScopeChangesCannotReviveSelection()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileFavoriteTopicReadTests/testHiddenForegroundAndScopeChangesCannotReviveSelection",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0039s",
+                  "durationInSeconds" : 0.003937959671020508,
+                  "name" : "testListSelectionNeedsSuccessfulCurrentLoadedIDAndScope()",
+                  "nodeIdentifier" : "ProfileFavoriteTopicReadTests/testListSelectionNeedsSuccessfulCurrentLoadedIDAndScope()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileFavoriteTopicReadTests/testListSelectionNeedsSuccessfulCurrentLoadedIDAndScope",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "children" : [
+                    {
+                      "name" : "XCTAssertGreaterThan failed: (\"0\") is not greater than (\"0\")",
+                      "nodeType" : "Failure Message",
+                      "sourceLocation" : {
+                        "filePath" : "<PUBLIC_REPO_WORKTREE>/Tests/AppUnitTests/ProfileFavoriteTopicReadTests.swift",
+                        "lineNumber" : 143
+                      }
+                    },
+                    {
+                      "name" : "XCTAssertGreaterThanOrEqual failed: (\"1\") is less than (\"2\")",
+                      "nodeType" : "Failure Message",
+                      "sourceLocation" : {
+                        "filePath" : "<PUBLIC_REPO_WORKTREE>/Tests/AppUnitTests/ProfileFavoriteTopicReadTests.swift",
+                        "lineNumber" : 147
+                      }
+                    }
+                  ],
+                  "duration" : "3秒",
+                  "durationInSeconds" : 3.139393925666809,
+                  "name" : "testNormalFullDetailAndChapterCoverReturnUseSameReaderUntilRootLeaves()",
+                  "nodeIdentifier" : "ProfileFavoriteTopicReadTests/testNormalFullDetailAndChapterCoverReturnUseSameReaderUntilRootLeaves()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileFavoriteTopicReadTests/testNormalFullDetailAndChapterCoverReturnUseSameReaderUntilRootLeaves",
+                  "nodeType" : "Test Case",
+                  "result" : "Failed"
+                },
+                {
+                  "duration" : "0.093s",
+                  "durationInSeconds" : 0.0934600830078125,
+                  "name" : "testNormalHostWithoutTopicApprovalDoesNotDispatchOrPretendLoaded()",
+                  "nodeIdentifier" : "ProfileFavoriteTopicReadTests/testNormalHostWithoutTopicApprovalDoesNotDispatchOrPretendLoaded()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileFavoriteTopicReadTests/testNormalHostWithoutTopicApprovalDoesNotDispatchOrPretendLoaded",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0076s",
+                  "durationInSeconds" : 0.007628083229064941,
+                  "name" : "testOriginalServiceDetailIncludesChaptersWithoutExtraCommentRead()",
+                  "nodeIdentifier" : "ProfileFavoriteTopicReadTests/testOriginalServiceDetailIncludesChaptersWithoutExtraCommentRead()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileFavoriteTopicReadTests/testOriginalServiceDetailIncludesChaptersWithoutExtraCommentRead",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0077s",
+                  "durationInSeconds" : 0.007706999778747559,
+                  "name" : "testPageFailureRetainsFirstReceiptButRefreshFailureInvalidatesIt()",
+                  "nodeIdentifier" : "ProfileFavoriteTopicReadTests/testPageFailureRetainsFirstReceiptButRefreshFailureInvalidatesIt()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileFavoriteTopicReadTests/testPageFailureRetainsFirstReceiptButRefreshFailureInvalidatesIt",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0041s",
+                  "durationInSeconds" : 0.004100918769836426,
+                  "name" : "testRetiredSelectionRejectsHeldReplyAndFutureReads()",
+                  "nodeIdentifier" : "ProfileFavoriteTopicReadTests/testRetiredSelectionRejectsHeldReplyAndFutureReads()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileFavoriteTopicReadTests/testRetiredSelectionRejectsHeldReplyAndFutureReads",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.012s",
+                  "durationInSeconds" : 0.011955022811889648,
+                  "name" : "testRevokedOrReplacedApprovalRejectsLateSuccessAnd401()",
+                  "nodeIdentifier" : "ProfileFavoriteTopicReadTests/testRevokedOrReplacedApprovalRejectsLateSuccessAnd401()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileFavoriteTopicReadTests/testRevokedOrReplacedApprovalRejectsLateSuccessAnd401",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0031s",
+                  "durationInSeconds" : 0.003059983253479004,
+                  "name" : "testScopedTransportCannotFallbackToGlobalTopicGrantOrOtherRoutes()",
+                  "nodeIdentifier" : "ProfileFavoriteTopicReadTests/testScopedTransportCannotFallbackToGlobalTopicGrantOrOtherRoutes()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileFavoriteTopicReadTests/testScopedTransportCannotFallbackToGlobalTopicGrantOrOtherRoutes",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0061s",
+                  "durationInSeconds" : 0.006083965301513672,
+                  "name" : "testServerDenialAndMalformedDetailRemainFailuresExplicitRetryCanRecover()",
+                  "nodeIdentifier" : "ProfileFavoriteTopicReadTests/testServerDenialAndMalformedDetailRemainFailuresExplicitRetryCanRecover()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileFavoriteTopicReadTests/testServerDenialAndMalformedDetailRemainFailuresExplicitRetryCanRecover",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0044s",
+                  "durationInSeconds" : 0.004424095153808594,
+                  "name" : "testUnscopedExistingTopicReadAndDefaultOverrideRemainCompatible()",
+                  "nodeIdentifier" : "ProfileFavoriteTopicReadTests/testUnscopedExistingTopicReadAndDefaultOverrideRemainCompatible()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileFavoriteTopicReadTests/testUnscopedExistingTopicReadAndDefaultOverrideRemainCompatible",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                }
+              ],
+              "name" : "ProfileFavoriteTopicReadTests",
+              "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileFavoriteTopicReadTests",
+              "nodeType" : "Test Suite",
+              "result" : "Failed"
+            },
+            {
+              "children" : [
+                {
+                  "duration" : "0.01s",
+                  "durationInSeconds" : 0.010149955749511719,
+                  "name" : "testAccountEpochRoleViewerAndDependencyChangesRejectCapturedRowsImmediately()",
+                  "nodeIdentifier" : "ProfileSettingsFavoritesTests/testAccountEpochRoleViewerAndDependencyChangesRejectCapturedRowsImmediately()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileSettingsFavoritesTests/testAccountEpochRoleViewerAndDependencyChangesRejectCapturedRowsImmediately",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0035s",
+                  "durationInSeconds" : 0.003467082977294922,
+                  "name" : "testApprovalRevocationRetiresCollectionAndSelection()",
+                  "nodeIdentifier" : "ProfileSettingsFavoritesTests/testApprovalRevocationRetiresCollectionAndSelection()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileSettingsFavoritesTests/testApprovalRevocationRetiresCollectionAndSelection",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0032s",
+                  "durationInSeconds" : 0.0032399892807006836,
+                  "name" : "testBackgroundRetiresDetailButPreservesCollectionForExplicitReturn()",
+                  "nodeIdentifier" : "ProfileSettingsFavoritesTests/testBackgroundRetiresDetailButPreservesCollectionForExplicitReturn()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileSettingsFavoritesTests/testBackgroundRetiresDetailButPreservesCollectionForExplicitReturn",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0034s",
+                  "durationInSeconds" : 0.0033750534057617188,
+                  "name" : "testClosingSettingsIsPermanentForRetainedOwnerAndCallbacks()",
+                  "nodeIdentifier" : "ProfileSettingsFavoritesTests/testClosingSettingsIsPermanentForRetainedOwnerAndCallbacks()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileSettingsFavoritesTests/testClosingSettingsIsPermanentForRetainedOwnerAndCallbacks",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0051s",
+                  "durationInSeconds" : 0.005079984664916992,
+                  "name" : "testDefaultNilApprovalOpensHonestUnavailableCollectionWithoutDispatch()",
+                  "nodeIdentifier" : "ProfileSettingsFavoritesTests/testDefaultNilApprovalOpensHonestUnavailableCollectionWithoutDispatch()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileSettingsFavoritesTests/testDefaultNilApprovalOpensHonestUnavailableCollectionWithoutDispatch",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0022s",
+                  "durationInSeconds" : 0.002213001251220703,
+                  "name" : "testEntryRequiresAuthenticatedMatchingAccount()",
+                  "nodeIdentifier" : "ProfileSettingsFavoritesTests/testEntryRequiresAuthenticatedMatchingAccount()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileSettingsFavoritesTests/testEntryRequiresAuthenticatedMatchingAccount",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0044s",
+                  "durationInSeconds" : 0.004351973533630371,
+                  "name" : "testHeldPostReplyAfterCollectionPopCannotReachNewRoute()",
+                  "nodeIdentifier" : "ProfileSettingsFavoritesTests/testHeldPostReplyAfterCollectionPopCannotReachNewRoute()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileSettingsFavoritesTests/testHeldPostReplyAfterCollectionPopCannotReachNewRoute",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0048s",
+                  "durationInSeconds" : 0.0048160552978515625,
+                  "name" : "testLogoutAndReauthenticationCannotReviveOldCollection()",
+                  "nodeIdentifier" : "ProfileSettingsFavoritesTests/testLogoutAndReauthenticationCannotReviveOldCollection()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileSettingsFavoritesTests/testLogoutAndReauthenticationCannotReviveOldCollection",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0036s",
+                  "durationInSeconds" : 0.003632068634033203,
+                  "name" : "testOldDismissalAndOldRowCannotDismissOrOpenSuccessor()",
+                  "nodeIdentifier" : "ProfileSettingsFavoritesTests/testOldDismissalAndOldRowCannotDismissOrOpenSuccessor()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileSettingsFavoritesTests/testOldDismissalAndOldRowCannotDismissOrOpenSuccessor",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0043s",
+                  "durationInSeconds" : 0.004254937171936035,
+                  "name" : "testOnlyAcceptedCollectionRowsCanOpenExistingDetailSelections()",
+                  "nodeIdentifier" : "ProfileSettingsFavoritesTests/testOnlyAcceptedCollectionRowsCanOpenExistingDetailSelections()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileSettingsFavoritesTests/testOnlyAcceptedCollectionRowsCanOpenExistingDetailSelections",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0056s",
+                  "durationInSeconds" : 0.005643010139465332,
+                  "name" : "testPopCollectionRetiresBothKindsOfNestedDetail()",
+                  "nodeIdentifier" : "ProfileSettingsFavoritesTests/testPopCollectionRetiresBothKindsOfNestedDetail()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileSettingsFavoritesTests/testPopCollectionRetiresBothKindsOfNestedDetail",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0022s",
+                  "durationInSeconds" : 0.0022269487380981445,
+                  "name" : "testRepeatedOpenDoesNotReplaceActiveCollection()",
+                  "nodeIdentifier" : "ProfileSettingsFavoritesTests/testRepeatedOpenDoesNotReplaceActiveCollection()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileSettingsFavoritesTests/testRepeatedOpenDoesNotReplaceActiveCollection",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "children" : [
+                    {
+                      "name" : "XCTAssertTrue failed",
+                      "nodeType" : "Failure Message",
+                      "sourceLocation" : {
+                        "filePath" : "<PUBLIC_REPO_WORKTREE>/Tests/AppUnitTests/ProfileSettingsFavoritesTests.swift",
+                        "lineNumber" : 240
+                      }
+                    },
+                    {
+                      "name" : "XCTUnwrap failed: expected non-nil value of type \"ProfileFavoritePostSelection\"",
+                      "nodeType" : "Failure Message",
+                      "sourceLocation" : {
+                        "filePath" : "<PUBLIC_REPO_WORKTREE>/Tests/AppUnitTests/ProfileSettingsFavoritesTests.swift",
+                        "lineNumber" : 241
+                      }
+                    }
+                  ],
+                  "duration" : "0.14s",
+                  "durationInSeconds" : 0.13844704627990723,
+                  "name" : "testSettingsCollectionUsesOriginalDetailAndKeepsOwnerWhenCovered()",
+                  "nodeIdentifier" : "ProfileSettingsFavoritesTests/testSettingsCollectionUsesOriginalDetailAndKeepsOwnerWhenCovered()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileSettingsFavoritesTests/testSettingsCollectionUsesOriginalDetailAndKeepsOwnerWhenCovered",
+                  "nodeType" : "Test Case",
+                  "result" : "Failed"
+                }
+              ],
+              "name" : "ProfileSettingsFavoritesTests",
+              "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProfileSettingsFavoritesTests",
+              "nodeType" : "Test Suite",
+              "result" : "Failed"
+            },
+            {
+              "children" : [
+                {
+                  "duration" : "0.052s",
+                  "durationInSeconds" : 0.051750898361206055,
+                  "name" : "testActualServiceFinalPreflightRejectsWriteOnlyABA_BEFORE_DurableDispatchMarker()",
+                  "nodeIdentifier" : "ProjectEditCompositionTests/testActualServiceFinalPreflightRejectsWriteOnlyABA_BEFORE_DurableDispatchMarker()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProjectEditCompositionTests/testActualServiceFinalPreflightRejectsWriteOnlyABA_BEFORE_DurableDispatchMarker",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.011s",
+                  "durationInSeconds" : 0.011052966117858887,
+                  "name" : "testBothCreateModesAndWhitelistUpdateSelectOnlyExistingExactPaths()",
+                  "nodeIdentifier" : "ProjectEditCompositionTests/testBothCreateModesAndWhitelistUpdateSelectOnlyExistingExactPaths()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProjectEditCompositionTests/testBothCreateModesAndWhitelistUpdateSelectOnlyExistingExactPaths",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0011s",
+                  "durationInSeconds" : 0.0011230707168579102,
+                  "name" : "testClonePreservesFreshProjectGrantAndCannotRetainRevokedPermission()",
+                  "nodeIdentifier" : "ProjectEditCompositionTests/testClonePreservesFreshProjectGrantAndCannotRetainRevokedPermission()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProjectEditCompositionTests/testClonePreservesFreshProjectGrantAndCannotRetainRevokedPermission",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0014s",
+                  "durationInSeconds" : 0.001405954360961914,
+                  "name" : "testCloneRejectsSuccessfulOldResponseAfterGrantGenerationABA()",
+                  "nodeIdentifier" : "ProjectEditCompositionTests/testCloneRejectsSuccessfulOldResponseAfterGrantGenerationABA()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProjectEditCompositionTests/testCloneRejectsSuccessfulOldResponseAfterGrantGenerationABA",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.027s",
+                  "durationInSeconds" : 0.026513099670410156,
+                  "name" : "testHeldNormalPreflightCannotContinueAfterWriteOnlyGrantABA()",
+                  "nodeIdentifier" : "ProjectEditCompositionTests/testHeldNormalPreflightCannotContinueAfterWriteOnlyGrantABA()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProjectEditCompositionTests/testHeldNormalPreflightCannotContinueAfterWriteOnlyGrantABA",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0086s",
+                  "durationInSeconds" : 0.0085829496383667,
+                  "name" : "testHeldOrdinaryPreflightLate401CannotLogOutReturnedRoleOrDispatchWrite()",
+                  "nodeIdentifier" : "ProjectEditCompositionTests/testHeldOrdinaryPreflightLate401CannotLogOutReturnedRoleOrDispatchWrite()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProjectEditCompositionTests/testHeldOrdinaryPreflightLate401CannotLogOutReturnedRoleOrDispatchWrite",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0034s",
+                  "durationInSeconds" : 0.0034160614013671875,
+                  "name" : "testMutationBoundaryStaysUnavailableThroughNestedChangesAndMissingOuterRevisionRejects()",
+                  "nodeIdentifier" : "ProjectEditCompositionTests/testMutationBoundaryStaysUnavailableThroughNestedChangesAndMissingOuterRevisionRejects()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProjectEditCompositionTests/testMutationBoundaryStaysUnavailableThroughNestedChangesAndMissingOuterRevisionRejects",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.02s",
+                  "durationInSeconds" : 0.019880056381225586,
+                  "name" : "testOldConfirmationCannotReviveAfterRoleABAAndStorageOwnerIsStable()",
+                  "nodeIdentifier" : "ProjectEditCompositionTests/testOldConfirmationCannotReviveAfterRoleABAAndStorageOwnerIsStable()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProjectEditCompositionTests/testOldConfirmationCannotReviveAfterRoleABAAndStorageOwnerIsStable",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.032s",
+                  "durationInSeconds" : 0.03165102005004883,
+                  "name" : "testOrdinaryFactoryCreatorSubmitThenReviewRequestUsesOriginalAcknowledgment()",
+                  "nodeIdentifier" : "ProjectEditCompositionTests/testOrdinaryFactoryCreatorSubmitThenReviewRequestUsesOriginalAcknowledgment()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProjectEditCompositionTests/testOrdinaryFactoryCreatorSubmitThenReviewRequestUsesOriginalAcknowledgment",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0043s",
+                  "durationInSeconds" : 0.004324913024902344,
+                  "name" : "testPersonalAndMerchantDetailDecodeBothServerModesWithoutBorrowingPublishingGrant()",
+                  "nodeIdentifier" : "ProjectEditCompositionTests/testPersonalAndMerchantDetailDecodeBothServerModesWithoutBorrowingPublishingGrant()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProjectEditCompositionTests/testPersonalAndMerchantDetailDecodeBothServerModesWithoutBorrowingPublishingGrant",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0079s",
+                  "durationInSeconds" : 0.007879972457885742,
+                  "name" : "testQueuedNormalConfirmationCannotCrossGrantABAWithIdenticalRoutes()",
+                  "nodeIdentifier" : "ProjectEditCompositionTests/testQueuedNormalConfirmationCannotCrossGrantABAWithIdenticalRoutes()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProjectEditCompositionTests/testQueuedNormalConfirmationCannotCrossGrantABAWithIdenticalRoutes",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.013s",
+                  "durationInSeconds" : 0.013473987579345703,
+                  "name" : "testReadOnlyAndDefaultFactoriesNeverSendCreatorWrite()",
+                  "nodeIdentifier" : "ProjectEditCompositionTests/testReadOnlyAndDefaultFactoriesNeverSendCreatorWrite()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProjectEditCompositionTests/testReadOnlyAndDefaultFactoriesNeverSendCreatorWrite",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0054s",
+                  "durationInSeconds" : 0.005380034446716309,
+                  "name" : "testSelectorRejectsUnknownFieldsDuplicateKeysAdjacentRoutesAndMalformedMultipart()",
+                  "nodeIdentifier" : "ProjectEditCompositionTests/testSelectorRejectsUnknownFieldsDuplicateKeysAdjacentRoutesAndMalformedMultipart()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProjectEditCompositionTests/testSelectorRejectsUnknownFieldsDuplicateKeysAdjacentRoutesAndMalformedMultipart",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.015s",
+                  "durationInSeconds" : 0.014560103416442871,
+                  "name" : "testUnknownCreatorSubmissionRemainsLockedAcrossReentryAndExactRetryIsNotInvented()",
+                  "nodeIdentifier" : "ProjectEditCompositionTests/testUnknownCreatorSubmissionRemainsLockedAcrossReentryAndExactRetryIsNotInvented()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProjectEditCompositionTests/testUnknownCreatorSubmissionRemainsLockedAcrossReentryAndExactRetryIsNotInvented",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                }
+              ],
+              "name" : "ProjectEditCompositionTests",
+              "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/ProjectEditCompositionTests",
+              "nodeType" : "Test Suite",
+              "result" : "Passed"
+            },
+            {
+              "children" : [
+                {
+                  "duration" : "0.0014s",
+                  "durationInSeconds" : 0.0014269351959228516,
+                  "name" : "testCancellationAndIdentityChangeBeforeForwardCauseZeroDispatch()",
+                  "nodeIdentifier" : "TemplateMetadataReadCompositionTests/testCancellationAndIdentityChangeBeforeForwardCauseZeroDispatch()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateMetadataReadCompositionTests/testCancellationAndIdentityChangeBeforeForwardCauseZeroDispatch",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0065s",
+                  "durationInSeconds" : 0.006521940231323242,
+                  "name" : "testCapturedSelectorRequestsRejectRoleABAAndCurrentUnauthorizedStillExpires()",
+                  "nodeIdentifier" : "TemplateMetadataReadCompositionTests/testCapturedSelectorRequestsRejectRoleABAAndCurrentUnauthorizedStillExpires()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateMetadataReadCompositionTests/testCapturedSelectorRequestsRejectRoleABAAndCurrentUnauthorizedStillExpires",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.011s",
+                  "durationInSeconds" : 0.011127948760986328,
+                  "name" : "testCurrentSignedInTokenAndEmptyMetadataDoNotChangeDraftOrEnableWriter()",
+                  "nodeIdentifier" : "TemplateMetadataReadCompositionTests/testCurrentSignedInTokenAndEmptyMetadataDoNotChangeDraftOrEnableWriter()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateMetadataReadCompositionTests/testCurrentSignedInTokenAndEmptyMetadataDoNotChangeDraftOrEnableWriter",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.007s",
+                  "durationInSeconds" : 0.007043004035949707,
+                  "name" : "testEveryIdentityChangeAndCancellationFenceLateSuccess401AndThrownFailure()",
+                  "nodeIdentifier" : "TemplateMetadataReadCompositionTests/testEveryIdentityChangeAndCancellationFenceLateSuccess401AndThrownFailure()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateMetadataReadCompositionTests/testEveryIdentityChangeAndCancellationFenceLateSuccess401AndThrownFailure",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0017s",
+                  "durationInSeconds" : 0.0017299652099609375,
+                  "name" : "testExtraDuplicateFilePartsFramingAndMixedEncodingsNeverDispatch()",
+                  "nodeIdentifier" : "TemplateMetadataReadCompositionTests/testExtraDuplicateFilePartsFramingAndMixedEncodingsNeverDispatch()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateMetadataReadCompositionTests/testExtraDuplicateFilePartsFramingAndMixedEncodingsNeverDispatch",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0016s",
+                  "durationInSeconds" : 0.0015630722045898438,
+                  "name" : "testHomeGrantDoesNotAdmitCanonicalOwnedTemplateReads()",
+                  "nodeIdentifier" : "TemplateMetadataReadCompositionTests/testHomeGrantDoesNotAdmitCanonicalOwnedTemplateReads()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateMetadataReadCompositionTests/testHomeGrantDoesNotAdmitCanonicalOwnedTemplateReads",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0013s",
+                  "durationInSeconds" : 0.0012919902801513672,
+                  "name" : "testMismatchedCredentialsMissingIdentityAndPartialIdentitiesNeverDispatch()",
+                  "nodeIdentifier" : "TemplateMetadataReadCompositionTests/testMismatchedCredentialsMissingIdentityAndPartialIdentitiesNeverDispatch()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateMetadataReadCompositionTests/testMismatchedCredentialsMissingIdentityAndPartialIdentitiesNeverDispatch",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0054s",
+                  "durationInSeconds" : 0.005406022071838379,
+                  "name" : "testNormalGuestSessionDispatchesExactlyBothDictionariesAndTypeFourCategories()",
+                  "nodeIdentifier" : "TemplateMetadataReadCompositionTests/testNormalGuestSessionDispatchesExactlyBothDictionariesAndTypeFourCategories()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateMetadataReadCompositionTests/testNormalGuestSessionDispatchesExactlyBothDictionariesAndTypeFourCategories",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0013s",
+                  "durationInSeconds" : 0.0012660026550292969,
+                  "name" : "testOnlyCanonicalDictionaryNamesAreAdmitted()",
+                  "nodeIdentifier" : "TemplateMetadataReadCompositionTests/testOnlyCanonicalDictionaryNamesAreAdmitted()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateMetadataReadCompositionTests/testOnlyCanonicalDictionaryNamesAreAdmitted",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0029s",
+                  "durationInSeconds" : 0.0029439926147460938,
+                  "name" : "testOriginPortPathEncodingQueryFragmentAndUnrelatedRoutesNeverDispatch()",
+                  "nodeIdentifier" : "TemplateMetadataReadCompositionTests/testOriginPortPathEncodingQueryFragmentAndUnrelatedRoutesNeverDispatch()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateMetadataReadCompositionTests/testOriginPortPathEncodingQueryFragmentAndUnrelatedRoutesNeverDispatch",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.016s",
+                  "durationInSeconds" : 0.015582919120788574,
+                  "name" : "testRealMetadataReadsAndSyntheticAuthoringDispatchHaveIndependentCounts()",
+                  "nodeIdentifier" : "TemplateMetadataReadCompositionTests/testRealMetadataReadsAndSyntheticAuthoringDispatchHaveIndependentCounts()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateMetadataReadCompositionTests/testRealMetadataReadsAndSyntheticAuthoringDispatchHaveIndependentCounts",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0097s",
+                  "durationInSeconds" : 0.009724020957946777,
+                  "name" : "testRealSessionAcceptedCategoryAndDictionary401ExpireOnlyAtAcceptedSheet()",
+                  "nodeIdentifier" : "TemplateMetadataReadCompositionTests/testRealSessionAcceptedCategoryAndDictionary401ExpireOnlyAtAcceptedSheet()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateMetadataReadCompositionTests/testRealSessionAcceptedCategoryAndDictionary401ExpireOnlyAtAcceptedSheet",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.023s",
+                  "durationInSeconds" : 0.02291405200958252,
+                  "name" : "testRealSessionSelectorCloseDiscardAndNewerSheetFenceCategoryAndDictionary401()",
+                  "nodeIdentifier" : "TemplateMetadataReadCompositionTests/testRealSessionSelectorCloseDiscardAndNewerSheetFenceCategoryAndDictionary401()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateMetadataReadCompositionTests/testRealSessionSelectorCloseDiscardAndNewerSheetFenceCategoryAndDictionary401",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0075s",
+                  "durationInSeconds" : 0.0075370073318481445,
+                  "name" : "testSessionRoleABARejectsLateMetadataWithoutExpiringReplacementAndFreshReadWorks()",
+                  "nodeIdentifier" : "TemplateMetadataReadCompositionTests/testSessionRoleABARejectsLateMetadataWithoutExpiringReplacementAndFreshReadWorks()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateMetadataReadCompositionTests/testSessionRoleABARejectsLateMetadataWithoutExpiringReplacementAndFreshReadWorks",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0026s",
+                  "durationInSeconds" : 0.0025980472564697266,
+                  "name" : "testUnconfiguredInactiveAndUnrelatedGrantsRejectBeforeUnderlyingDispatch()",
+                  "nodeIdentifier" : "TemplateMetadataReadCompositionTests/testUnconfiguredInactiveAndUnrelatedGrantsRejectBeforeUnderlyingDispatch()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateMetadataReadCompositionTests/testUnconfiguredInactiveAndUnrelatedGrantsRejectBeforeUnderlyingDispatch",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0024s",
+                  "durationInSeconds" : 0.0024110078811645508,
+                  "name" : "testWrongVerbsMissingBodiesStreamsAndNoncanonicalHeadersNeverDispatch()",
+                  "nodeIdentifier" : "TemplateMetadataReadCompositionTests/testWrongVerbsMissingBodiesStreamsAndNoncanonicalHeadersNeverDispatch()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateMetadataReadCompositionTests/testWrongVerbsMissingBodiesStreamsAndNoncanonicalHeadersNeverDispatch",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                }
+              ],
+              "name" : "TemplateMetadataReadCompositionTests",
+              "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateMetadataReadCompositionTests",
+              "nodeType" : "Test Suite",
+              "result" : "Passed"
+            },
+            {
+              "children" : [
+                {
+                  "duration" : "0.076s",
+                  "durationInSeconds" : 0.07596099376678467,
+                  "name" : "testCachedRefreshNeverSurvivesOwnerLeaseABAExpiryOrCancellation()",
+                  "nodeIdentifier" : "TemplateShelfReadCompositionTests/testCachedRefreshNeverSurvivesOwnerLeaseABAExpiryOrCancellation()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testCachedRefreshNeverSurvivesOwnerLeaseABAExpiryOrCancellation",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0032s",
+                  "durationInSeconds" : 0.0031549930572509766,
+                  "name" : "testCachedSnapshotPreparationClearsRevokedScopeBeforeAnotherRequest()",
+                  "nodeIdentifier" : "TemplateShelfReadCompositionTests/testCachedSnapshotPreparationClearsRevokedScopeBeforeAnotherRequest()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testCachedSnapshotPreparationClearsRevokedScopeBeforeAnotherRequest",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.011s",
+                  "durationInSeconds" : 0.010554075241088867,
+                  "name" : "testClonedTransportRejectsLateLeaseReplacementTokenRoleAndErrors()",
+                  "nodeIdentifier" : "TemplateShelfReadCompositionTests/testClonedTransportRejectsLateLeaseReplacementTokenRoleAndErrors()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testClonedTransportRejectsLateLeaseReplacementTokenRoleAndErrors",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0061s",
+                  "durationInSeconds" : 0.006055116653442383,
+                  "name" : "testCurrent401ExpiresOnlyCurrentOwner()",
+                  "nodeIdentifier" : "TemplateShelfReadCompositionTests/testCurrent401ExpiresOnlyCurrentOwner()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testCurrent401ExpiresOnlyCurrentOwner",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.004s",
+                  "durationInSeconds" : 0.004049897193908691,
+                  "name" : "testGuestDefaultNilRevokedReaderAndReplacementNeverAdoptLease()",
+                  "nodeIdentifier" : "TemplateShelfReadCompositionTests/testGuestDefaultNilRevokedReaderAndReplacementNeverAdoptLease()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testGuestDefaultNilRevokedReaderAndReplacementNeverAdoptLease",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.16s",
+                  "durationInSeconds" : 0.1574939489364624,
+                  "name" : "testLateShelfAndDetailSuccess401ErrorNeverApplyAcrossLifetimeChanges()",
+                  "nodeIdentifier" : "TemplateShelfReadCompositionTests/testLateShelfAndDetailSuccess401ErrorNeverApplyAcrossLifetimeChanges()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testLateShelfAndDetailSuccess401ErrorNeverApplyAcrossLifetimeChanges",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0091s",
+                  "durationInSeconds" : 0.0091400146484375,
+                  "name" : "testLoadedReadOnlyRefreshSnapshotSurvives503ThenReplacesAndClears()",
+                  "nodeIdentifier" : "TemplateShelfReadCompositionTests/testLoadedReadOnlyRefreshSnapshotSurvives503ThenReplacesAndClears()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testLoadedReadOnlyRefreshSnapshotSurvives503ThenReplacesAndClears",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0051s",
+                  "durationInSeconds" : 0.005092024803161621,
+                  "name" : "testNormalFactoryPagedShelfDetailAndEveryWriterRemainOff()",
+                  "nodeIdentifier" : "TemplateShelfReadCompositionTests/testNormalFactoryPagedShelfDetailAndEveryWriterRemainOff()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testNormalFactoryPagedShelfDetailAndEveryWriterRemainOff",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0036s",
+                  "durationInSeconds" : 0.0035979747772216797,
+                  "name" : "testOuterClonesOnlyAdmitExactReadsAndDenyAllAdjacentMutations()",
+                  "nodeIdentifier" : "TemplateShelfReadCompositionTests/testOuterClonesOnlyAdmitExactReadsAndDenyAllAdjacentMutations()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testOuterClonesOnlyAdmitExactReadsAndDenyAllAdjacentMutations",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.013s",
+                  "durationInSeconds" : 0.013488054275512695,
+                  "name" : "testOwnerConfigurationFactoryDoesNotAlterLocalDraftAndClearsOnLeaseChange()",
+                  "nodeIdentifier" : "TemplateShelfReadCompositionTests/testOwnerConfigurationFactoryDoesNotAlterLocalDraftAndClearsOnLeaseChange()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testOwnerConfigurationFactoryDoesNotAlterLocalDraftAndClearsOnLeaseChange",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.025s",
+                  "durationInSeconds" : 0.02453792095184326,
+                  "name" : "testSearchedPageElevenLegacyStoryRequiresFreshOwnedDetail()",
+                  "nodeIdentifier" : "TemplateShelfReadCompositionTests/testSearchedPageElevenLegacyStoryRequiresFreshOwnedDetail()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testSearchedPageElevenLegacyStoryRequiresFreshOwnedDetail",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0028s",
+                  "durationInSeconds" : 0.002830982208251953,
+                  "name" : "testShelfLeaseChangesPreserveUnsavedLocalEditorAndDormantAuthority()",
+                  "nodeIdentifier" : "TemplateShelfReadCompositionTests/testShelfLeaseChangesPreserveUnsavedLocalEditorAndDormantAuthority()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateShelfReadCompositionTests/testShelfLeaseChangesPreserveUnsavedLocalEditorAndDormantAuthority",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                }
+              ],
+              "name" : "TemplateShelfReadCompositionTests",
+              "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/TemplateShelfReadCompositionTests",
+              "nodeType" : "Test Suite",
+              "result" : "Passed"
+            },
+            {
+              "children" : [
+                {
+                  "duration" : "0.0087s",
+                  "durationInSeconds" : 0.008705973625183105,
+                  "name" : "testConfigurationABARevokesBeforeCallbackAndFencesLate401()",
+                  "nodeIdentifier" : "WorkshopCreatorConsentNormalFlowTests/testConfigurationABARevokesBeforeCallbackAndFencesLate401()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopCreatorConsentNormalFlowTests/testConfigurationABARevokesBeforeCallbackAndFencesLate401",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0023s",
+                  "durationInSeconds" : 0.002256035804748535,
+                  "name" : "testDefaultNormalLoginDoesNotGrantPreviewOrDeclaration()",
+                  "nodeIdentifier" : "WorkshopCreatorConsentNormalFlowTests/testDefaultNormalLoginDoesNotGrantPreviewOrDeclaration()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopCreatorConsentNormalFlowTests/testDefaultNormalLoginDoesNotGrantPreviewOrDeclaration",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.005s",
+                  "durationInSeconds" : 0.004984021186828613,
+                  "name" : "testGeneralTransportRejectsDeclarationButPreservesPreviewOnClone()",
+                  "nodeIdentifier" : "WorkshopCreatorConsentNormalFlowTests/testGeneralTransportRejectsDeclarationButPreservesPreviewOnClone()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopCreatorConsentNormalFlowTests/testGeneralTransportRejectsDeclarationButPreservesPreviewOnClone",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.076s",
+                  "durationInSeconds" : 0.0759279727935791,
+                  "name" : "testHostedNavigationBackAndFreshRowSelectionRetiresOldPresentation()",
+                  "nodeIdentifier" : "WorkshopCreatorConsentNormalFlowTests/testHostedNavigationBackAndFreshRowSelectionRetiresOldPresentation()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopCreatorConsentNormalFlowTests/testHostedNavigationBackAndFreshRowSelectionRetiresOldPresentation",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.025s",
+                  "durationInSeconds" : 0.02515101432800293,
+                  "name" : "testNormalPreviewExplicitThreeConfirmationsAndRecordedReceipt()",
+                  "nodeIdentifier" : "WorkshopCreatorConsentNormalFlowTests/testNormalPreviewExplicitThreeConfirmationsAndRecordedReceipt()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopCreatorConsentNormalFlowTests/testNormalPreviewExplicitThreeConfirmationsAndRecordedReceipt",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.003s",
+                  "durationInSeconds" : 0.0029889345169067383,
+                  "name" : "testNormalRoleABARejectsQueuedOldAction()",
+                  "nodeIdentifier" : "WorkshopCreatorConsentNormalFlowTests/testNormalRoleABARejectsQueuedOldAction()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopCreatorConsentNormalFlowTests/testNormalRoleABARejectsQueuedOldAction",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.013s",
+                  "durationInSeconds" : 0.013011932373046875,
+                  "name" : "testPlayerMerchantClubSelectorsReceiveConsistentFullContextAndRetainController()",
+                  "nodeIdentifier" : "WorkshopCreatorConsentNormalFlowTests/testPlayerMerchantClubSelectorsReceiveConsistentFullContextAndRetainController()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopCreatorConsentNormalFlowTests/testPlayerMerchantClubSelectorsReceiveConsistentFullContextAndRetainController",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0074s",
+                  "durationInSeconds" : 0.007380008697509766,
+                  "name" : "testReadGrantAndMissingTargetCannotDeclare()",
+                  "nodeIdentifier" : "WorkshopCreatorConsentNormalFlowTests/testReadGrantAndMissingTargetCannotDeclare()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopCreatorConsentNormalFlowTests/testReadGrantAndMissingTargetCannotDeclare",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                }
+              ],
+              "name" : "WorkshopCreatorConsentNormalFlowTests",
+              "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopCreatorConsentNormalFlowTests",
+              "nodeType" : "Test Suite",
+              "result" : "Passed"
+            },
+            {
+              "children" : [
+                {
+                  "duration" : "0.0088s",
+                  "durationInSeconds" : 0.008787989616394043,
+                  "name" : "testNormalAccountDefaultAndMetadataApprovalCannotConstructInstallController()",
+                  "nodeIdentifier" : "WorkshopPaidInstallNormalFlowTests/testNormalAccountDefaultAndMetadataApprovalCannotConstructInstallController()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidInstallNormalFlowTests/testNormalAccountDefaultAndMetadataApprovalCannotConstructInstallController",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0081s",
+                  "durationInSeconds" : 0.008069992065429688,
+                  "name" : "testNormalConfigurationABAInvalidatesBeforeChangeAndLate401DoesNotLogout()",
+                  "nodeIdentifier" : "WorkshopPaidInstallNormalFlowTests/testNormalConfigurationABAInvalidatesBeforeChangeAndLate401DoesNotLogout()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidInstallNormalFlowTests/testNormalConfigurationABAInvalidatesBeforeChangeAndLate401DoesNotLogout",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.015s",
+                  "durationInSeconds" : 0.01485598087310791,
+                  "name" : "testNormalControllerConfirmationReachesDedicatedTransportAndOnePrivateReceipt()",
+                  "nodeIdentifier" : "WorkshopPaidInstallNormalFlowTests/testNormalControllerConfirmationReachesDedicatedTransportAndOnePrivateReceipt()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidInstallNormalFlowTests/testNormalControllerConfirmationReachesDedicatedTransportAndOnePrivateReceipt",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.003s",
+                  "durationInSeconds" : 0.0030339956283569336,
+                  "name" : "testNormalRoleABAAndRootReplacementRevokeQueuedReadBeforeDispatch()",
+                  "nodeIdentifier" : "WorkshopPaidInstallNormalFlowTests/testNormalRoleABAAndRootReplacementRevokeQueuedReadBeforeDispatch()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidInstallNormalFlowTests/testNormalRoleABAAndRootReplacementRevokeQueuedReadBeforeDispatch",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.011s",
+                  "durationInSeconds" : 0.010676026344299316,
+                  "name" : "testNormalSignedInPlayerMerchantAndClubUseExactFullContextAndSameController()",
+                  "nodeIdentifier" : "WorkshopPaidInstallNormalFlowTests/testNormalSignedInPlayerMerchantAndClubUseExactFullContextAndSameController()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidInstallNormalFlowTests/testNormalSignedInPlayerMerchantAndClubUseExactFullContextAndSameController",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0029s",
+                  "durationInSeconds" : 0.0029020309448242188,
+                  "name" : "testNormalTransportNeverAcceptsSubmitThroughGeneralSendEvenWithInstallApproval()",
+                  "nodeIdentifier" : "WorkshopPaidInstallNormalFlowTests/testNormalTransportNeverAcceptsSubmitThroughGeneralSendEvenWithInstallApproval()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidInstallNormalFlowTests/testNormalTransportNeverAcceptsSubmitThroughGeneralSendEvenWithInstallApproval",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.1s",
+                  "durationInSeconds" : 0.1041339635848999,
+                  "name" : "testRealHostedInstallModalDismissAndReopenRetiresOldViewCallbacks()",
+                  "nodeIdentifier" : "WorkshopPaidInstallNormalFlowTests/testRealHostedInstallModalDismissAndReopenRetiresOldViewCallbacks()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidInstallNormalFlowTests/testRealHostedInstallModalDismissAndReopenRetiresOldViewCallbacks",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0034s",
+                  "durationInSeconds" : 0.00335693359375,
+                  "name" : "testTransportClonePreservesInstallSelectorAndLifetimeClosesBeforeForward()",
+                  "nodeIdentifier" : "WorkshopPaidInstallNormalFlowTests/testTransportClonePreservesInstallSelectorAndLifetimeClosesBeforeForward()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidInstallNormalFlowTests/testTransportClonePreservesInstallSelectorAndLifetimeClosesBeforeForward",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                }
+              ],
+              "name" : "WorkshopPaidInstallNormalFlowTests",
+              "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidInstallNormalFlowTests",
+              "nodeType" : "Test Suite",
+              "result" : "Passed"
+            },
+            {
+              "children" : [
+                {
+                  "duration" : "0.15s",
+                  "durationInSeconds" : 0.1502079963684082,
+                  "name" : "testActualHostedSheetOpensFromSharedEntryAndBackClearsBodyBeforeReopen()",
+                  "nodeIdentifier" : "WorkshopPaidInstalledTextNormalFlowTests/testActualHostedSheetOpensFromSharedEntryAndBackClearsBodyBeforeReopen()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidInstalledTextNormalFlowTests/testActualHostedSheetOpensFromSharedEntryAndBackClearsBodyBeforeReopen",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.016s",
+                  "durationInSeconds" : 0.016448020935058594,
+                  "name" : "testConfigurationABAInvalidatesBeforeChangeAndOld401CannotLogout()",
+                  "nodeIdentifier" : "WorkshopPaidInstalledTextNormalFlowTests/testConfigurationABAInvalidatesBeforeChangeAndOld401CannotLogout()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidInstalledTextNormalFlowTests/testConfigurationABAInvalidatesBeforeChangeAndOld401CannotLogout",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0049s",
+                  "durationInSeconds" : 0.004928946495056152,
+                  "name" : "testCurrentNormal401StillExpiresAuthenticatedSession()",
+                  "nodeIdentifier" : "WorkshopPaidInstalledTextNormalFlowTests/testCurrentNormal401StillExpiresAuthenticatedSession()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidInstalledTextNormalFlowTests/testCurrentNormal401StillExpiresAuthenticatedSession",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.019s",
+                  "durationInSeconds" : 0.018571972846984863,
+                  "name" : "testLiveInstallHistoryEntryCapturesActualReceiptAndClosedParentCannotReopenIt()",
+                  "nodeIdentifier" : "WorkshopPaidInstalledTextNormalFlowTests/testLiveInstallHistoryEntryCapturesActualReceiptAndClosedParentCannotReopenIt()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidInstalledTextNormalFlowTests/testLiveInstallHistoryEntryCapturesActualReceiptAndClosedParentCannotReopenIt",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0043s",
+                  "durationInSeconds" : 0.004310965538024902,
+                  "name" : "testNormalDefaultAndInstallApprovalCannotOpenProtectedBody()",
+                  "nodeIdentifier" : "WorkshopPaidInstalledTextNormalFlowTests/testNormalDefaultAndInstallApprovalCannotOpenProtectedBody()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidInstalledTextNormalFlowTests/testNormalDefaultAndInstallApprovalCannotOpenProtectedBody",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.016s",
+                  "durationInSeconds" : 0.01644599437713623,
+                  "name" : "testNormalPlayerMerchantClubSelectorsSeeConsistentFullCanonicalContext()",
+                  "nodeIdentifier" : "WorkshopPaidInstalledTextNormalFlowTests/testNormalPlayerMerchantClubSelectorsSeeConsistentFullCanonicalContext()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidInstalledTextNormalFlowTests/testNormalPlayerMerchantClubSelectorsSeeConsistentFullCanonicalContext",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0075s",
+                  "durationInSeconds" : 0.007523059844970703,
+                  "name" : "testNormalRoleABAAndRootReplacementClearProtectedDataAndQueuedOffers()",
+                  "nodeIdentifier" : "WorkshopPaidInstalledTextNormalFlowTests/testNormalRoleABAAndRootReplacementClearProtectedDataAndQueuedOffers()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidInstalledTextNormalFlowTests/testNormalRoleABAAndRootReplacementClearProtectedDataAndQueuedOffers",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0057s",
+                  "durationInSeconds" : 0.005671024322509766,
+                  "name" : "testTransportClonePreservesIndependentBodyApprovalAndRejectsWriteRoute()",
+                  "nodeIdentifier" : "WorkshopPaidInstalledTextNormalFlowTests/testTransportClonePreservesIndependentBodyApprovalAndRejectsWriteRoute()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidInstalledTextNormalFlowTests/testTransportClonePreservesIndependentBodyApprovalAndRejectsWriteRoute",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                }
+              ],
+              "name" : "WorkshopPaidInstalledTextNormalFlowTests",
+              "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidInstalledTextNormalFlowTests",
+              "nodeType" : "Test Suite",
+              "result" : "Passed"
+            },
+            {
+              "children" : [
+                {
+                  "duration" : "0.085s",
+                  "durationInSeconds" : 0.08547592163085938,
+                  "name" : "testActualNormalPlayerMerchantClubContextReviewAndDedicatedCreate()",
+                  "nodeIdentifier" : "WorkshopPaidProfessionalNormalFlowTests/testActualNormalPlayerMerchantClubContextReviewAndDedicatedCreate()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidProfessionalNormalFlowTests/testActualNormalPlayerMerchantClubContextReviewAndDedicatedCreate",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.022s",
+                  "durationInSeconds" : 0.021820068359375,
+                  "name" : "testConfigurationABARemovesOldBodyAndQueuedCreateBeforeChange()",
+                  "nodeIdentifier" : "WorkshopPaidProfessionalNormalFlowTests/testConfigurationABARemovesOldBodyAndQueuedCreateBeforeChange()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidProfessionalNormalFlowTests/testConfigurationABARemovesOldBodyAndQueuedCreateBeforeChange",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0032s",
+                  "durationInSeconds" : 0.0031789541244506836,
+                  "name" : "testDefaultFactoryIsUnavailableWithZeroProfessionalRequests()",
+                  "nodeIdentifier" : "WorkshopPaidProfessionalNormalFlowTests/testDefaultFactoryIsUnavailableWithZeroProfessionalRequests()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidProfessionalNormalFlowTests/testDefaultFactoryIsUnavailableWithZeroProfessionalRequests",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0025s",
+                  "durationInSeconds" : 0.0024619102478027344,
+                  "name" : "testGeneratedDetailCurrent401PreservesUnauthorizedHandling()",
+                  "nodeIdentifier" : "WorkshopPaidProfessionalNormalFlowTests/testGeneratedDetailCurrent401PreservesUnauthorizedHandling()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidProfessionalNormalFlowTests/testGeneratedDetailCurrent401PreservesUnauthorizedHandling",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.00032s",
+                  "durationInSeconds" : 0.0003199577331542969,
+                  "name" : "testGeneratedDetailEnvironmentIsNilByDefaultForStandaloneFixtures()",
+                  "nodeIdentifier" : "WorkshopPaidProfessionalNormalFlowTests/testGeneratedDetailEnvironmentIsNilByDefaultForStandaloneFixtures()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidProfessionalNormalFlowTests/testGeneratedDetailEnvironmentIsNilByDefaultForStandaloneFixtures",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0029s",
+                  "durationInSeconds" : 0.0028960704803466797,
+                  "name" : "testGeneratedDetailIndependentOwnerReadRejectsWrongOwnerAndRetries()",
+                  "nodeIdentifier" : "WorkshopPaidProfessionalNormalFlowTests/testGeneratedDetailIndependentOwnerReadRejectsWrongOwnerAndRetries()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidProfessionalNormalFlowTests/testGeneratedDetailIndependentOwnerReadRejectsWrongOwnerAndRetries",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0022s",
+                  "durationInSeconds" : 0.0021680593490600586,
+                  "name" : "testGeneratedDetailLate401AfterCloseDoesNotExpireCurrentOwner()",
+                  "nodeIdentifier" : "WorkshopPaidProfessionalNormalFlowTests/testGeneratedDetailLate401AfterCloseDoesNotExpireCurrentOwner()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidProfessionalNormalFlowTests/testGeneratedDetailLate401AfterCloseDoesNotExpireCurrentOwner",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.016s",
+                  "durationInSeconds" : 0.015776991844177246,
+                  "name" : "testGeneratedDetailRefreshSynchronouslyRetiresOldRevisionEvenForSameReceipt()",
+                  "nodeIdentifier" : "WorkshopPaidProfessionalNormalFlowTests/testGeneratedDetailRefreshSynchronouslyRetiresOldRevisionEvenForSameReceipt()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidProfessionalNormalFlowTests/testGeneratedDetailRefreshSynchronouslyRetiresOldRevisionEvenForSameReceipt",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0035s",
+                  "durationInSeconds" : 0.003503084182739258,
+                  "name" : "testGeneratedDetailVisitRetirementDoesNotRetireNewVisitOrReceipt()",
+                  "nodeIdentifier" : "WorkshopPaidProfessionalNormalFlowTests/testGeneratedDetailVisitRetirementDoesNotRetireNewVisitOrReceipt()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidProfessionalNormalFlowTests/testGeneratedDetailVisitRetirementDoesNotRetireNewVisitOrReceipt",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.012s",
+                  "durationInSeconds" : 0.012301921844482422,
+                  "name" : "testGeneratedReceiptConfigurationUsesSameOwnerReadAndRetiresOnRefresh()",
+                  "nodeIdentifier" : "WorkshopPaidProfessionalNormalFlowTests/testGeneratedReceiptConfigurationUsesSameOwnerReadAndRetiresOnRefresh()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidProfessionalNormalFlowTests/testGeneratedReceiptConfigurationUsesSameOwnerReadAndRetiresOnRefresh",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0022s",
+                  "durationInSeconds" : 0.0021840333938598633,
+                  "name" : "testGeneratedReceiptDoesNotGrantIndependentConfigurationRead()",
+                  "nodeIdentifier" : "WorkshopPaidProfessionalNormalFlowTests/testGeneratedReceiptDoesNotGrantIndependentConfigurationRead()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidProfessionalNormalFlowTests/testGeneratedReceiptDoesNotGrantIndependentConfigurationRead",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.011s",
+                  "durationInSeconds" : 0.010993003845214844,
+                  "name" : "testGeneratedReferenceRejectsConfigurationABA()",
+                  "nodeIdentifier" : "WorkshopPaidProfessionalNormalFlowTests/testGeneratedReferenceRejectsConfigurationABA()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidProfessionalNormalFlowTests/testGeneratedReferenceRejectsConfigurationABA",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.022s",
+                  "durationInSeconds" : 0.022485017776489258,
+                  "name" : "testGeneratedReferenceRejectsNonCreatedAndSupersededOperation()",
+                  "nodeIdentifier" : "WorkshopPaidProfessionalNormalFlowTests/testGeneratedReferenceRejectsNonCreatedAndSupersededOperation()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidProfessionalNormalFlowTests/testGeneratedReferenceRejectsNonCreatedAndSupersededOperation",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.011s",
+                  "durationInSeconds" : 0.01134192943572998,
+                  "name" : "testGeneratedReferenceRequiresCurrentCreatedReceiptWithoutWriteOrBodyGrant()",
+                  "nodeIdentifier" : "WorkshopPaidProfessionalNormalFlowTests/testGeneratedReferenceRequiresCurrentCreatedReceiptWithoutWriteOrBodyGrant()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidProfessionalNormalFlowTests/testGeneratedReferenceRequiresCurrentCreatedReceiptWithoutWriteOrBodyGrant",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.011s",
+                  "durationInSeconds" : 0.010725021362304688,
+                  "name" : "testHistoryRecoveryWorksWithoutBodyOrWriteApproval()",
+                  "nodeIdentifier" : "WorkshopPaidProfessionalNormalFlowTests/testHistoryRecoveryWorksWithoutBodyOrWriteApproval()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidProfessionalNormalFlowTests/testHistoryRecoveryWorksWithoutBodyOrWriteApproval",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.072s",
+                  "durationInSeconds" : 0.07199609279632568,
+                  "name" : "testHostedActualSheetCloseQueuedActionAndReopenKeepsFreshAppearance()",
+                  "nodeIdentifier" : "WorkshopPaidProfessionalNormalFlowTests/testHostedActualSheetCloseQueuedActionAndReopenKeepsFreshAppearance()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidProfessionalNormalFlowTests/testHostedActualSheetCloseQueuedActionAndReopenKeepsFreshAppearance",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.027s",
+                  "durationInSeconds" : 0.027333974838256836,
+                  "name" : "testNormalGenericTransportRejectsSubmitAndCancelEvenWithWriteGrant()",
+                  "nodeIdentifier" : "WorkshopPaidProfessionalNormalFlowTests/testNormalGenericTransportRejectsSubmitAndCancelEvenWithWriteGrant()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidProfessionalNormalFlowTests/testNormalGenericTransportRejectsSubmitAndCancelEvenWithWriteGrant",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.018s",
+                  "durationInSeconds" : 0.018342971801757812,
+                  "name" : "testNormalReadGrantDoesNotBorrowCreatePermission()",
+                  "nodeIdentifier" : "WorkshopPaidProfessionalNormalFlowTests/testNormalReadGrantDoesNotBorrowCreatePermission()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidProfessionalNormalFlowTests/testNormalReadGrantDoesNotBorrowCreatePermission",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                },
+                {
+                  "duration" : "0.0089s",
+                  "durationInSeconds" : 0.008889913558959961,
+                  "name" : "testSuspendedOldRead401CannotLogoutAfterPresentationDismissAndReopen()",
+                  "nodeIdentifier" : "WorkshopPaidProfessionalNormalFlowTests/testSuspendedOldRead401CannotLogoutAfterPresentationDismissAndReopen()",
+                  "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidProfessionalNormalFlowTests/testSuspendedOldRead401CannotLogoutAfterPresentationDismissAndReopen",
+                  "nodeType" : "Test Case",
+                  "result" : "Passed"
+                }
+              ],
+              "name" : "WorkshopPaidProfessionalNormalFlowTests",
+              "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests/WorkshopPaidProfessionalNormalFlowTests",
+              "nodeType" : "Test Suite",
+              "result" : "Passed"
+            }
+          ],
+          "name" : "QuestifyAppUnitTests",
+          "nodeIdentifierURL" : "test://com.apple.xcode/Questify/QuestifyAppUnitTests",
+          "nodeType" : "Unit test bundle",
+          "result" : "Failed"
+        }
+      ],
+      "name" : "QuestifyAppUnitTests",
+      "nodeType" : "Test Plan",
+      "result" : "Failed"
+    }
+  ],
+  "testPlanConfigurations" : [
+    {
+      "configurationId" : "1",
+      "configurationName" : "Test Scheme Action"
+    }
+  ]
+}

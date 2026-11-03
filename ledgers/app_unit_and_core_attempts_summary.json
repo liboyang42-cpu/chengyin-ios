@@ -1,0 +1,103 @@
+{
+  "01_core_tests_10841_methods.tsv": {
+    "total_executed": 10841,
+    "passed": 10841,
+    "failed": 0,
+    "failed_methods": []
+  },
+  "04_app_unit_attempt2_no_keychain_5602_methods.tsv": {
+    "total_executed": 5602,
+    "passed": 5561,
+    "failed": 41,
+    "failed_methods": [
+      "QuestifyAppUnitTests.ContentDraftSystemStorageTests/testRealGenerationCASAndConditionalDelete",
+      "QuestifyAppUnitTests.PlayRecoverySystemStorageTests/testRealNonClassADirectoryRejectsRecoveryWithoutFilesOrKeychainWrites",
+      "QuestifyAppUnitTests.PrivateHomeSystemKeychainTests/testRealConditionalDeletePreservesWrongTagAndDeletesMatchingTag",
+      "QuestifyAppUnitTests.PrivateHomeSystemKeychainTests/testRealInsertDuplicateReadAndProtectionAttributes",
+      "QuestifyAppUnitTests.PrivateHomeSystemKeychainTests/testRealStaleTagCannotDeleteReplacementAtTheSameKey",
+      "QuestifyAppUnitTests.PrivateHomeSystemKeychainTests/testSyntheticSecurityPrerequisitesReportNumericStatus",
+      "QuestifyAppUnitTests.ProfileFavoriteTopicReadTests/testNormalFullDetailAndChapterCoverReturnUseSameReaderUntilRootLeaves",
+      "QuestifyAppUnitTests.ProfileSettingsFavoritesTests/testSettingsCollectionUsesOriginalDetailAndKeepsOwnerWhenCovered",
+      "QuestifyAppUnitTests.ProjectEditCompositionTests/testHeldNormalPreflightCannotContinueAfterWriteOnlyGrantABA",
+      "QuestifyAppUnitTests.ProjectEditCompositionTests/testHeldOrdinaryPreflightLate401CannotLogOutReturnedRoleOrDispatchWrite",
+      "QuestifyAppUnitTests.ProjectEditCompositionTests/testOldConfirmationCannotReviveAfterRoleABAAndStorageOwnerIsStable",
+      "QuestifyAppUnitTests.ProjectEditCompositionTests/testOrdinaryFactoryCreatorSubmitThenReviewRequestUsesOriginalAcknowledgment",
+      "QuestifyAppUnitTests.ProjectEditCompositionTests/testQueuedNormalConfirmationCannotCrossGrantABAWithIdenticalRoutes",
+      "QuestifyAppUnitTests.ProjectEditCompositionTests/testReadOnlyAndDefaultFactoriesNeverSendCreatorWrite",
+      "QuestifyAppUnitTests.ProjectEditCompositionTests/testUnknownCreatorSubmissionRemainsLockedAcrossReentryAndExactRetryIsNotInvented",
+      "QuestifyAppUnitTests.TemplateMetadataReadCompositionTests/testRealSessionAcceptedCategoryAndDictionary401ExpireOnlyAtAcceptedSheet",
+      "QuestifyAppUnitTests.TemplateMetadataReadCompositionTests/testRealSessionSelectorCloseDiscardAndNewerSheetFenceCategoryAndDictionary401",
+      "QuestifyAppUnitTests.TemplateShelfReadCompositionTests/testOwnerConfigurationFactoryDoesNotAlterLocalDraftAndClearsOnLeaseChange",
+      "QuestifyAppUnitTests.TemplateShelfReadCompositionTests/testShelfLeaseChangesPreserveUnsavedLocalEditorAndDormantAuthority",
+      "QuestifyAppUnitTests.WorkshopCreatorConsentNormalFlowTests/testConfigurationABARevokesBeforeCallbackAndFencesLate401",
+      "QuestifyAppUnitTests.WorkshopCreatorConsentNormalFlowTests/testHostedNavigationBackAndFreshRowSelectionRetiresOldPresentation",
+      "QuestifyAppUnitTests.WorkshopCreatorConsentNormalFlowTests/testNormalPreviewExplicitThreeConfirmationsAndRecordedReceipt",
+      "QuestifyAppUnitTests.WorkshopCreatorConsentNormalFlowTests/testPlayerMerchantClubSelectorsReceiveConsistentFullContextAndRetainController",
+      "QuestifyAppUnitTests.WorkshopCreatorConsentNormalFlowTests/testReadGrantAndMissingTargetCannotDeclare",
+      "QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests/testNormalConfigurationABAInvalidatesBeforeChangeAndLate401DoesNotLogout",
+      "QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests/testNormalControllerConfirmationReachesDedicatedTransportAndOnePrivateReceipt",
+      "QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests/testNormalSignedInPlayerMerchantAndClubUseExactFullContextAndSameController",
+      "QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests/testRealHostedInstallModalDismissAndReopenRetiresOldViewCallbacks",
+      "QuestifyAppUnitTests.WorkshopPaidInstalledTextNormalFlowTests/testActualHostedSheetOpensFromSharedEntryAndBackClearsBodyBeforeReopen",
+      "QuestifyAppUnitTests.WorkshopPaidInstalledTextNormalFlowTests/testLiveInstallHistoryEntryCapturesActualReceiptAndClosedParentCannotReopenIt",
+      "QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests/testActualNormalPlayerMerchantClubContextReviewAndDedicatedCreate",
+      "QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests/testConfigurationABARemovesOldBodyAndQueuedCreateBeforeChange",
+      "QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests/testGeneratedDetailRefreshSynchronouslyRetiresOldRevisionEvenForSameReceipt",
+      "QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests/testGeneratedReceiptConfigurationUsesSameOwnerReadAndRetiresOnRefresh",
+      "QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests/testGeneratedReferenceRejectsConfigurationABA",
+      "QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests/testGeneratedReferenceRejectsNonCreatedAndSupersededOperation",
+      "QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests/testGeneratedReferenceRequiresCurrentCreatedReceiptWithoutWriteOrBodyGrant",
+      "QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests/testHistoryRecoveryWorksWithoutBodyOrWriteApproval",
+      "QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests/testHostedActualSheetCloseQueuedActionAndReopenKeepsFreshAppearance",
+      "QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests/testNormalReadGrantDoesNotBorrowCreatePermission",
+      "QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests/testSuspendedOldRead401CannotLogoutAfterPresentationDismissAndReopen"
+    ]
+  },
+  "05_app_unit_attempt3_keychain_12suites_123_methods.tsv": {
+    "total_executed": 123,
+    "passed": 121,
+    "failed": 2,
+    "failed_methods": [
+      "QuestifyAppUnitTests.ProfileFavoriteTopicReadTests/testNormalFullDetailAndChapterCoverReturnUseSameReaderUntilRootLeaves",
+      "QuestifyAppUnitTests.ProfileSettingsFavoritesTests/testSettingsCollectionUsesOriginalDetailAndKeepsOwnerWhenCovered"
+    ]
+  },
+  "15_app_unit_attempt4_full_keychain_host_5602_methods.tsv": {
+    "total_executed": 5602,
+    "passed": 5597,
+    "failed": 5,
+    "failed_methods": [
+      "QuestifyAppUnitTests.ProfileFavoriteDetailTests/testRealAuthorAndCommentAuthorChildNavigationReturnsToSameDetailReader",
+      "QuestifyAppUnitTests.ProfileFavoriteTopicReadTests/testNormalFullDetailAndChapterCoverReturnUseSameReaderUntilRootLeaves",
+      "QuestifyAppUnitTests.ProfileGuideReadTests/testOrdinaryConfiguredGuideLoadsOriginalListAndRefreshesWithoutWrites",
+      "QuestifyAppUnitTests.ProfileSettingsFavoritesTests/testSettingsCollectionUsesOriginalDetailAndKeepsOwnerWhenCovered",
+      "QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests/testRealHostedInstallModalDismissAndReopenRetiresOldViewCallbacks"
+    ]
+  },
+  "10_uitests_32_methods_ab2d3905.tsv": {
+    "total_executed": 32,
+    "passed": 13,
+    "failed": 19,
+    "failed_methods": [
+      "QuestifyUITests.IntegratedActivityPlayJourneyFlowTests/testActualPhoneHomeDetailManualMapPlayAndFreshOwnedOrderJourney",
+      "QuestifyUITests.IntegratedActivityPlayJourneyFlowTests/testNormalRootOwnedShelfPaginationAndDetailWithoutMutation",
+      "QuestifyUITests.IntegratedDeniedAcceptanceFlowTests/testConfiguredAuthenticationDoesNotGrantDetailMapPlayOrOwnedOrders",
+      "QuestifyUITests.IntegratedDeniedAcceptanceFlowTests/testNormalRootIMHistoryDefaultNilNeverDispatches",
+      "QuestifyUITests.IntegratedNativeAcceptanceFlowTests/testActualSettingsFavoritesNoGrantBackDoneAndRepeatedReopen",
+      "QuestifyUITests.IntegratedNativeAcceptanceFlowTests/testNormalRootIMHistoryNeverMarksReadOrSends",
+      "QuestifyUITests.IntegratedNativeAcceptanceFlowTests/testNormalRootOwnedConfigurationReadOnlyAndStoryReturn",
+      "QuestifyUITests.IntegratedNativeAcceptanceFlowTests/testNormalRootTeamReadOnlyJourney",
+      "QuestifyUITests.IntegratedNativeAcceptanceFlowTests/testPhoneCancelLogoutAccountSwitchAndColdLaunchDoNotReuseOwnerState",
+      "QuestifyUITests.IntegratedNativeAcceptanceFlowTests/testSettingsOffersPlayerApplicationsInMiniProgramOrderAndSignsOut",
+      "QuestifyUITests.SearchMapAlternativeListFlowTests/testAlternativeListBilingualMaximumTypeKeepsFullTitlesAndParentSelectionInSync",
+      "QuestifyUITests.SearchMapAlternativeListFlowTests/testAlternativeListCloseReopenAndEmptySnapshotNeverRetainOldRows",
+      "QuestifyUITests.SearchMapAlternativeListFlowTests/testAlternativeListRefreshRemovalAndDuplicateIDsCannotSelectAnotherPlace",
+      "QuestifyUITests.SearchMapFlowTests/testCityFilterCancelPreservesSelectionButApplyClearsIt",
+      "QuestifyUITests.SearchMapFlowTests/testCityListSelectionUsesSamePinAndPreservesExplicitMapGate",
+      "QuestifyUITests.SearchMapFlowTests/testFilterValidationCancelAndReopen",
+      "QuestifyUITests.SearchMapFlowTests/testGlobalCategoryApplyResetPreservesKeywordAndCancelPreservesResults",
+      "QuestifyUITests.SearchMapFlowTests/testGlobalCategoryChangeRejectsEarlierCompletionAndClearReturnsSuggestions",
+      "QuestifyUITests.SearchMapFlowTests/testManualAreaChangeClearsSelectionAndRequiresMapOptInAgain"
+    ]
+  }
+}

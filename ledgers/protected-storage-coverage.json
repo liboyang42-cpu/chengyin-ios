@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "commit": "ab2d3905ec0b0fb17b58ba6b53ec433d83164701",
+  "device_compile": "COMPILED_UNSIGNED_NOT_EXECUTED",
+  "device_execution": "NOT_RUN_DEVICE_REQUIRED",
+  "device_lock_enforcement": "NOT_RUN_DEVICE_REQUIRED",
+  "tests": [
+    {
+      "test": "QuestifyAppUnitTests/ContentDraftDeviceStorageAcceptanceTests/testSyntheticFilesystemPrerequisitesReportNumericStage",
+      "status": "NOT_RUN_DEVICE_REQUIRED"
+    },
+    {
+      "test": "QuestifyAppUnitTests/ContentDraftDeviceStorageAcceptanceTests/testSyntheticRegularFileClassAIndependentControl",
+      "status": "NOT_RUN_DEVICE_REQUIRED"
+    },
+    {
+      "test": "QuestifyAppUnitTests/ContentDraftDeviceStorageAcceptanceTests/testSyntheticFoundationClassAIndependentControl",
+      "status": "NOT_RUN_DEVICE_REQUIRED"
+    },
+    {
+      "test": "QuestifyAppUnitTests/ContentDraftDeviceStorageAcceptanceTests/testRealExclusiveCiphertextFileBoundedReadAndCleanup",
+      "status": "NOT_RUN_DEVICE_REQUIRED"
+    },
+    {
+      "test": "QuestifyAppUnitTests/ContentDraftDeviceStorageAcceptanceTests/testRealPresenceMarkerIsExclusivePermanentAndEmpty",
+      "status": "NOT_RUN_DEVICE_REQUIRED"
+    },
+    {
+      "test": "QuestifyAppUnitTests/PlayRecoveryDeviceStorageAcceptanceTests/testConcreteOSRelaunchCASAndNoPlaintextOrCredentialFiles",
+      "status": "NOT_RUN_DEVICE_REQUIRED"
+    },
+    {
+      "test": "QuestifyAppUnitTests/PlayRecoveryDeviceStorageAcceptanceTests/testMissingKeychainAfterWrittenPresenceFailsClosedWithoutReplacement",
+      "status": "NOT_RUN_DEVICE_REQUIRED"
+    },
+    {
+      "test": "QuestifyAppUnitTests/PlayRecoveryDeviceStorageAcceptanceTests/testPartialCiphertextAndForeignRoleNeverUnlockOSPending",
+      "status": "NOT_RUN_DEVICE_REQUIRED"
+    }
+  ],
+  "limits": "Simulator Keychain and non-Class-A rejection are separate checks. Neither those checks nor unsigned device compilation proves Class A success or device lock enforcement."
+}

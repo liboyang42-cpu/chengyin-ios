@@ -1,0 +1,411 @@
+{
+  "package": "gemini-public-verification-ab2d3905-20261103",
+  "base_sha": "ab2d3905ec0b0fb17b58ba6b53ec433d83164701",
+  "base_tree": "95d4c55b5fd6dd1a76e923c6c076da6c12e0e864",
+  "environment": {
+    "source_repo": "https://github.com/liboyang42-cpu/chengyin-ios",
+    "branch": "origin/codex/ios-main-integration-20261101",
+    "pr": 126,
+    "head_sha": "ab2d3905ec0b0fb17b58ba6b53ec433d83164701",
+    "parent_sha": "4b1bd1c88fd42177268e50ca58215c3fd79d86c2",
+    "root_tree": "95d4c55b5fd6dd1a76e923c6c076da6c12e0e864",
+    "dirty_count": 0,
+    "macos_sw_vers": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0\nBuildVersion:\t\t26A428",
+    "xcodebuild_version": "Xcode 27.1\nBuild version 27A9275",
+    "xcode_select_path": "/Applications/Xcode.app/Contents/Developer",
+    "swift_version": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0",
+    "iphonesimulator_sdk_version": "27.1",
+    "iphoneos_sdk_version": "27.1",
+    "architecture": "arm64",
+    "python3_version": "Python 3.9.6",
+    "simulators": [
+      {
+        "name": "Questify-iPhone17",
+        "udid": "25316F87-058C-46CE-8825-617906638207",
+        "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-27-0",
+        "state": "Booted"
+      },
+      {
+        "name": "Questify-iPhone17-Lane2",
+        "udid": "2337B386-AC5F-4417-B8B8-012A8DB888BD",
+        "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-27-0",
+        "state": "Booted"
+      }
+    ],
+    "redaction_policy": {
+      "replacements": {
+        "/Users/fanning/chengyin-ios-public-20261103": "<PUBLIC_REPO_WORKTREE>",
+        "/Users/fanning/chengyin-ios-handoff-20261027": "<ARTIFACTS_ROOT>",
+        "/Users/fanning": "<LOCAL_HOME>"
+      },
+      "preserves": "All compiler diagnostics, test suite/method names, assertions, durations, and exit codes are 100% unmodified."
+    }
+  },
+  "attempt_ledgers_summary": {
+    "01_core_tests_10841_methods.tsv": {
+      "total_executed": 10841,
+      "passed": 10841,
+      "failed": 0,
+      "failed_methods": []
+    },
+    "04_app_unit_attempt2_no_keychain_5602_methods.tsv": {
+      "total_executed": 5602,
+      "passed": 5561,
+      "failed": 41,
+      "failed_methods": [
+        "QuestifyAppUnitTests.ContentDraftSystemStorageTests/testRealGenerationCASAndConditionalDelete",
+        "QuestifyAppUnitTests.PlayRecoverySystemStorageTests/testRealNonClassADirectoryRejectsRecoveryWithoutFilesOrKeychainWrites",
+        "QuestifyAppUnitTests.PrivateHomeSystemKeychainTests/testRealConditionalDeletePreservesWrongTagAndDeletesMatchingTag",
+        "QuestifyAppUnitTests.PrivateHomeSystemKeychainTests/testRealInsertDuplicateReadAndProtectionAttributes",
+        "QuestifyAppUnitTests.PrivateHomeSystemKeychainTests/testRealStaleTagCannotDeleteReplacementAtTheSameKey",
+        "QuestifyAppUnitTests.PrivateHomeSystemKeychainTests/testSyntheticSecurityPrerequisitesReportNumericStatus",
+        "QuestifyAppUnitTests.ProfileFavoriteTopicReadTests/testNormalFullDetailAndChapterCoverReturnUseSameReaderUntilRootLeaves",
+        "QuestifyAppUnitTests.ProfileSettingsFavoritesTests/testSettingsCollectionUsesOriginalDetailAndKeepsOwnerWhenCovered",
+        "QuestifyAppUnitTests.ProjectEditCompositionTests/testHeldNormalPreflightCannotContinueAfterWriteOnlyGrantABA",
+        "QuestifyAppUnitTests.ProjectEditCompositionTests/testHeldOrdinaryPreflightLate401CannotLogOutReturnedRoleOrDispatchWrite",
+        "QuestifyAppUnitTests.ProjectEditCompositionTests/testOldConfirmationCannotReviveAfterRoleABAAndStorageOwnerIsStable",
+        "QuestifyAppUnitTests.ProjectEditCompositionTests/testOrdinaryFactoryCreatorSubmitThenReviewRequestUsesOriginalAcknowledgment",
+        "QuestifyAppUnitTests.ProjectEditCompositionTests/testQueuedNormalConfirmationCannotCrossGrantABAWithIdenticalRoutes",
+        "QuestifyAppUnitTests.ProjectEditCompositionTests/testReadOnlyAndDefaultFactoriesNeverSendCreatorWrite",
+        "QuestifyAppUnitTests.ProjectEditCompositionTests/testUnknownCreatorSubmissionRemainsLockedAcrossReentryAndExactRetryIsNotInvented",
+        "QuestifyAppUnitTests.TemplateMetadataReadCompositionTests/testRealSessionAcceptedCategoryAndDictionary401ExpireOnlyAtAcceptedSheet",
+        "QuestifyAppUnitTests.TemplateMetadataReadCompositionTests/testRealSessionSelectorCloseDiscardAndNewerSheetFenceCategoryAndDictionary401",
+        "QuestifyAppUnitTests.TemplateShelfReadCompositionTests/testOwnerConfigurationFactoryDoesNotAlterLocalDraftAndClearsOnLeaseChange",
+        "QuestifyAppUnitTests.TemplateShelfReadCompositionTests/testShelfLeaseChangesPreserveUnsavedLocalEditorAndDormantAuthority",
+        "QuestifyAppUnitTests.WorkshopCreatorConsentNormalFlowTests/testConfigurationABARevokesBeforeCallbackAndFencesLate401",
+        "QuestifyAppUnitTests.WorkshopCreatorConsentNormalFlowTests/testHostedNavigationBackAndFreshRowSelectionRetiresOldPresentation",
+        "QuestifyAppUnitTests.WorkshopCreatorConsentNormalFlowTests/testNormalPreviewExplicitThreeConfirmationsAndRecordedReceipt",
+        "QuestifyAppUnitTests.WorkshopCreatorConsentNormalFlowTests/testPlayerMerchantClubSelectorsReceiveConsistentFullContextAndRetainController",
+        "QuestifyAppUnitTests.WorkshopCreatorConsentNormalFlowTests/testReadGrantAndMissingTargetCannotDeclare",
+        "QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests/testNormalConfigurationABAInvalidatesBeforeChangeAndLate401DoesNotLogout",
+        "QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests/testNormalControllerConfirmationReachesDedicatedTransportAndOnePrivateReceipt",
+        "QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests/testNormalSignedInPlayerMerchantAndClubUseExactFullContextAndSameController",
+        "QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests/testRealHostedInstallModalDismissAndReopenRetiresOldViewCallbacks",
+        "QuestifyAppUnitTests.WorkshopPaidInstalledTextNormalFlowTests/testActualHostedSheetOpensFromSharedEntryAndBackClearsBodyBeforeReopen",
+        "QuestifyAppUnitTests.WorkshopPaidInstalledTextNormalFlowTests/testLiveInstallHistoryEntryCapturesActualReceiptAndClosedParentCannotReopenIt",
+        "QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests/testActualNormalPlayerMerchantClubContextReviewAndDedicatedCreate",
+        "QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests/testConfigurationABARemovesOldBodyAndQueuedCreateBeforeChange",
+        "QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests/testGeneratedDetailRefreshSynchronouslyRetiresOldRevisionEvenForSameReceipt",
+        "QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests/testGeneratedReceiptConfigurationUsesSameOwnerReadAndRetiresOnRefresh",
+        "QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests/testGeneratedReferenceRejectsConfigurationABA",
+        "QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests/testGeneratedReferenceRejectsNonCreatedAndSupersededOperation",
+        "QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests/testGeneratedReferenceRequiresCurrentCreatedReceiptWithoutWriteOrBodyGrant",
+        "QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests/testHistoryRecoveryWorksWithoutBodyOrWriteApproval",
+        "QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests/testHostedActualSheetCloseQueuedActionAndReopenKeepsFreshAppearance",
+        "QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests/testNormalReadGrantDoesNotBorrowCreatePermission",
+        "QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests/testSuspendedOldRead401CannotLogoutAfterPresentationDismissAndReopen"
+      ]
+    },
+    "05_app_unit_attempt3_keychain_12suites_123_methods.tsv": {
+      "total_executed": 123,
+      "passed": 121,
+      "failed": 2,
+      "failed_methods": [
+        "QuestifyAppUnitTests.ProfileFavoriteTopicReadTests/testNormalFullDetailAndChapterCoverReturnUseSameReaderUntilRootLeaves",
+        "QuestifyAppUnitTests.ProfileSettingsFavoritesTests/testSettingsCollectionUsesOriginalDetailAndKeepsOwnerWhenCovered"
+      ]
+    },
+    "15_app_unit_attempt4_full_keychain_host_5602_methods.tsv": {
+      "total_executed": 5602,
+      "passed": 5597,
+      "failed": 5,
+      "failed_methods": [
+        "QuestifyAppUnitTests.ProfileFavoriteDetailTests/testRealAuthorAndCommentAuthorChildNavigationReturnsToSameDetailReader",
+        "QuestifyAppUnitTests.ProfileFavoriteTopicReadTests/testNormalFullDetailAndChapterCoverReturnUseSameReaderUntilRootLeaves",
+        "QuestifyAppUnitTests.ProfileGuideReadTests/testOrdinaryConfiguredGuideLoadsOriginalListAndRefreshesWithoutWrites",
+        "QuestifyAppUnitTests.ProfileSettingsFavoritesTests/testSettingsCollectionUsesOriginalDetailAndKeepsOwnerWhenCovered",
+        "QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests/testRealHostedInstallModalDismissAndReopenRetiresOldViewCallbacks"
+      ]
+    },
+    "10_uitests_32_methods_ab2d3905.tsv": {
+      "total_executed": 32,
+      "passed": 13,
+      "failed": 19,
+      "failed_methods": [
+        "QuestifyUITests.IntegratedActivityPlayJourneyFlowTests/testActualPhoneHomeDetailManualMapPlayAndFreshOwnedOrderJourney",
+        "QuestifyUITests.IntegratedActivityPlayJourneyFlowTests/testNormalRootOwnedShelfPaginationAndDetailWithoutMutation",
+        "QuestifyUITests.IntegratedDeniedAcceptanceFlowTests/testConfiguredAuthenticationDoesNotGrantDetailMapPlayOrOwnedOrders",
+        "QuestifyUITests.IntegratedDeniedAcceptanceFlowTests/testNormalRootIMHistoryDefaultNilNeverDispatches",
+        "QuestifyUITests.IntegratedNativeAcceptanceFlowTests/testActualSettingsFavoritesNoGrantBackDoneAndRepeatedReopen",
+        "QuestifyUITests.IntegratedNativeAcceptanceFlowTests/testNormalRootIMHistoryNeverMarksReadOrSends",
+        "QuestifyUITests.IntegratedNativeAcceptanceFlowTests/testNormalRootOwnedConfigurationReadOnlyAndStoryReturn",
+        "QuestifyUITests.IntegratedNativeAcceptanceFlowTests/testNormalRootTeamReadOnlyJourney",
+        "QuestifyUITests.IntegratedNativeAcceptanceFlowTests/testPhoneCancelLogoutAccountSwitchAndColdLaunchDoNotReuseOwnerState",
+        "QuestifyUITests.IntegratedNativeAcceptanceFlowTests/testSettingsOffersPlayerApplicationsInMiniProgramOrderAndSignsOut",
+        "QuestifyUITests.SearchMapAlternativeListFlowTests/testAlternativeListBilingualMaximumTypeKeepsFullTitlesAndParentSelectionInSync",
+        "QuestifyUITests.SearchMapAlternativeListFlowTests/testAlternativeListCloseReopenAndEmptySnapshotNeverRetainOldRows",
+        "QuestifyUITests.SearchMapAlternativeListFlowTests/testAlternativeListRefreshRemovalAndDuplicateIDsCannotSelectAnotherPlace",
+        "QuestifyUITests.SearchMapFlowTests/testCityFilterCancelPreservesSelectionButApplyClearsIt",
+        "QuestifyUITests.SearchMapFlowTests/testCityListSelectionUsesSamePinAndPreservesExplicitMapGate",
+        "QuestifyUITests.SearchMapFlowTests/testFilterValidationCancelAndReopen",
+        "QuestifyUITests.SearchMapFlowTests/testGlobalCategoryApplyResetPreservesKeywordAndCancelPreservesResults",
+        "QuestifyUITests.SearchMapFlowTests/testGlobalCategoryChangeRejectsEarlierCompletionAndClearReturnsSuggestions",
+        "QuestifyUITests.SearchMapFlowTests/testManualAreaChangeClearsSelectionAndRequiresMapOptInAgain"
+      ]
+    }
+  },
+  "files": [
+    {
+      "path": "README.md",
+      "redacted_bytes": 3195,
+      "redacted_sha256": "5302f77de01000a734af4e4053856d96bd0f7f2999584d106811999ec00ba681",
+      "git_blob_sha1": "27d838a8fe4244774fc157dbb9c9ae29b7a31931"
+    },
+    {
+      "path": "environment/toolchain_and_host.json",
+      "redacted_bytes": 1609,
+      "redacted_sha256": "ff5c546f1f281ef86a31309f0a99a00b9c5faa114073b05953b03111f6ef2645",
+      "git_blob_sha1": "5c311b06553068c44e18916d5a13d0088b4c8054"
+    },
+    {
+      "path": "ledgers/01_core_tests_10841_methods.tsv",
+      "redacted_bytes": 1211181,
+      "redacted_sha256": "a4999d5fd0ce764cdda7718da52df50d550f2f28d971456fe1dabd5b5539790a",
+      "git_blob_sha1": "25064c014cd34980c833f6e2678400fc3605ac1d"
+    },
+    {
+      "path": "ledgers/04_app_unit_attempt2_no_keychain_5602_methods.tsv",
+      "redacted_bytes": 699696,
+      "redacted_sha256": "921633c793a6a8ea7871d77b1a3bc93ab017dc89653dae1c7a86c8b02b824732",
+      "git_blob_sha1": "a3514bc31f9751e4148d0073e3732e99ea9b626c"
+    },
+    {
+      "path": "ledgers/05_app_unit_attempt3_keychain_12suites_123_methods.tsv",
+      "redacted_bytes": 16353,
+      "redacted_sha256": "f99276404dadc4cd0ddddc6049ab14a31eaf5880c15b949aff21ad848b407523",
+      "git_blob_sha1": "0e176ec3c4abc5c3bb40609ecbe380365b0c4d22"
+    },
+    {
+      "path": "ledgers/10_uitests_32_methods_ab2d3905.tsv",
+      "redacted_bytes": 3602,
+      "redacted_sha256": "984a8bebbfa0dc5da918991bd9de68c092f2b968f8432da8b746e4b14315dfab",
+      "git_blob_sha1": "2612f0a79b6f8ca75869e1f2b91f849264bdcb70"
+    },
+    {
+      "path": "ledgers/15_app_unit_attempt4_full_keychain_host_5602_methods.tsv",
+      "redacted_bytes": 699695,
+      "redacted_sha256": "cb8b8cbdc59e64cab690ae677b0097ea9863fb5bd67b2e86508a348fc2272239",
+      "git_blob_sha1": "8b9ba53b7a8b796ef4b102f7e80fc677afedc944"
+    },
+    {
+      "path": "ledgers/app_unit_and_core_attempts_summary.json",
+      "redacted_bytes": 9191,
+      "redacted_sha256": "481bd9bca893fb2f474acd1ab326dfaf79bf5ba750e7ff739db92290e5fa8c4d",
+      "git_blob_sha1": "a537a522df8902f221c84d6b022f0139e54376c5"
+    },
+    {
+      "path": "ledgers/protected-storage-coverage.json",
+      "redacted_bytes": 1946,
+      "redacted_sha256": "fb85a45f43bb41bc9e4dffe24714a561841bbee93ef9c8ccc32e0beb5db8dc4b",
+      "git_blob_sha1": "63df35523412960420e2c5e84aac32056a8d2732"
+    },
+    {
+      "path": "ledgers/protected-storage-summary.md",
+      "redacted_bytes": 1539,
+      "redacted_sha256": "d08f6ff21223af8868408f865ce012ec5c7d26b124ab752532b2be598024f09d",
+      "git_blob_sha1": "f5d8b66963f4b15e65e3a69957acea50c775a647"
+    },
+    {
+      "path": "ledgers/simulated-entitlements.plist",
+      "redacted_bytes": 390,
+      "redacted_sha256": "6ae1e25d335b2122da9465ce94ae069a102b6f082b5519374e39a7d48faf1701",
+      "git_blob_sha1": "791afd2071e4c745580bc6cb36b49c64da623660"
+    },
+    {
+      "path": "ledgers/uitests_all_objc_selectors.txt",
+      "redacted_bytes": 123167,
+      "redacted_sha256": "40d753f3d51baea97bcfae418f394a49dd2ab897f805f4b6a99b2cd9f7a50833",
+      "git_blob_sha1": "133ca5abf7bf27a4c39dee5830891b8db99093df"
+    },
+    {
+      "path": "logs/00_tooling_unittests.log",
+      "redacted_bytes": 49857,
+      "redacted_sha256": "4365af97bad71deab2c6ebcffd1e409939ee7fe3b324d56d403d28c7522343b0",
+      "git_blob_sha1": "81927caa2f33dc0b29ec03078ef2c80d3e964ecd",
+      "raw_local_bytes": 52839,
+      "raw_local_sha256": "49440c7480aa8e763011effc0eee9cf4cc7b26fdaf489d11b2b13c1e0df89cc4"
+    },
+    {
+      "path": "logs/01_swift_test_core.log",
+      "redacted_bytes": 1443610,
+      "redacted_sha256": "cd006b7920322a5f12e1e7bd72353d0bf2ab1b042d05a2fd98038dde91d3e21b",
+      "git_blob_sha1": "c5e652793afdb91b04d913ceb91f036f2272b2cb",
+      "raw_local_bytes": 1446403,
+      "raw_local_sha256": "df5b78363bbe0dafa7cc45fd95ff4f417d9a1eb0eca6a99bb5b291770e257408"
+    },
+    {
+      "path": "logs/02_app_unit_tests.log",
+      "redacted_bytes": 33162,
+      "redacted_sha256": "6c6b9b24bdb10ca89e7c6dd29554d5eee3271a242e8aba77fef52a38a9f7ce4e",
+      "git_blob_sha1": "8a664b7ef9a827528f5ca3684651878aeabf6300",
+      "raw_local_bytes": 37880,
+      "raw_local_sha256": "e00e7255e0155d408aec655e8712cd09232d6cc2aca8f8b0f8b4383088bfbdcc"
+    },
+    {
+      "path": "logs/03_questify_bft.log",
+      "redacted_bytes": 1683520,
+      "redacted_sha256": "90546d58e44f01452cd13031274de8ef3c0962c9538d93e98b1042c81ca57629",
+      "git_blob_sha1": "607d4f00eee81d71ae63a64488d689f8eee27e86",
+      "raw_local_bytes": 1935674,
+      "raw_local_sha256": "0dc3338b6984678dbf9cfe025c81a088ad2215c587bafe103e01ea565e9af565"
+    },
+    {
+      "path": "logs/04_app_unit_tests_17.log",
+      "redacted_bytes": 2279228,
+      "redacted_sha256": "bce953dda02fad24d7ac66433b442a31599310d3ef567b855d4dcfd48811643d",
+      "git_blob_sha1": "65170854511bf04f6dac725b5d6288dfe1d830c1",
+      "raw_local_bytes": 2327514,
+      "raw_local_sha256": "5b206f73e7fc13b5d0d205957ea9f64d3fa1a99b1cc717100fce9414e47d689b"
+    },
+    {
+      "path": "logs/05_app_unit_keychain_12suites.log",
+      "redacted_bytes": 48467,
+      "redacted_sha256": "900824cbea29254e7d1e4d714dcac0644b2655e0d76a4560a1d77b3baf331787",
+      "git_blob_sha1": "3a040ad72cb70411c100b2b8345b50334c438340",
+      "raw_local_bytes": 48663,
+      "raw_local_sha256": "e905a51fc8fd373eb6976c4c893bbf21b1318de527b41893ba5eb987b427fbe3"
+    },
+    {
+      "path": "logs/05_app_unit_relink.log",
+      "redacted_bytes": 62024,
+      "redacted_sha256": "f907554bdfb017617078d52572886ece5a05a8232b6ad45f290c6fc7bb49c5e2",
+      "git_blob_sha1": "01a80b24ee05145e82f63ea4ff91fc725b58e48a",
+      "raw_local_bytes": 70501,
+      "raw_local_sha256": "88fc349930e3e5134792338281d842a028d2761ee1cba65592096c3ed7419737"
+    },
+    {
+      "path": "logs/06_release_cn_build.log",
+      "redacted_bytes": 72422,
+      "redacted_sha256": "e2a27d89b99ee541ab281e9336f539bb9aea0339ef7d9feb3a7ff758ec323cb0",
+      "git_blob_sha1": "acd97b6b3355c7f6959248e26b14afd03a1cce30",
+      "raw_local_bytes": 83363,
+      "raw_local_sha256": "42f77418b8afd90e3f46c1d5b02c7fcef99f40ceaea5a03d75e6283ce5463969"
+    },
+    {
+      "path": "logs/07_release_us_build.log",
+      "redacted_bytes": 73043,
+      "redacted_sha256": "1ff75f246208d112245054009929c5d5baac3ed6b0b06bc59a3cea3840a68779",
+      "git_blob_sha1": "01b1a6578c3ec0d434b6a75064d26066626b0cf2",
+      "raw_local_bytes": 84103,
+      "raw_local_sha256": "c4ff8c1b37c0009b0f29f81f9032301f0883c30858388d32bfb67bd5988accc9"
+    },
+    {
+      "path": "logs/08_release_cn_device_build.log",
+      "redacted_bytes": 1555181,
+      "redacted_sha256": "4a61b85a6db3f7aea85b5022a9ff729e09d229636230d74306db387ef30b1654",
+      "git_blob_sha1": "cb1bb22fa7ff8ead983178b68a8b60386d72d828",
+      "raw_local_bytes": 1786377,
+      "raw_local_sha256": "984bb9c378e494e68dc5fd90f8960267f5f37c3332f76cf84e478b761579eadd"
+    },
+    {
+      "path": "logs/09_release_us_device_build.log",
+      "redacted_bytes": 1555270,
+      "redacted_sha256": "76ee123fcccd144b0ac31e5accfb9ff1dc62bb5c23e518d407b63c3acb5c7e6f",
+      "git_blob_sha1": "6a94644dcdfdab8bec620b9448d7c577261a27b8",
+      "raw_local_bytes": 1786466,
+      "raw_local_sha256": "36ec38878f6690b88366d82c2b2842ae0b284e6ac45ad383a770742be976f793"
+    },
+    {
+      "path": "logs/10_uitests_32_provenance.log",
+      "redacted_bytes": 215750,
+      "redacted_sha256": "736d93d531729723abebddb8b2b86754efa4edf0c58bc8a706e0fb600e9fcc60",
+      "git_blob_sha1": "981300fc9e39351cfe8955a1f3c378cb05fa3fd3",
+      "raw_local_bytes": 216261,
+      "raw_local_sha256": "5711840755f4331edfdc3cd81154e4d62202e06374e91a4999d4ffcffec09960"
+    },
+    {
+      "path": "logs/11_device_app_unit_bft.log",
+      "redacted_bytes": 1879980,
+      "redacted_sha256": "3ff6a9e10bcacb27e608a79e84291e8685913a9d03348f312de8d888828f5152",
+      "git_blob_sha1": "973e8aa9b49138c0cf6243d5fe47792348530997",
+      "raw_local_bytes": 2149571,
+      "raw_local_sha256": "84972a881fc31937312c737a9abc591dbd220577b8246ec012fc59a83ee27bc3"
+    },
+    {
+      "path": "logs/12_tools_check_scripts.log",
+      "redacted_bytes": 19897,
+      "redacted_sha256": "6f8c5ff800d7a22c63beb7618bf277551687255ada96bec742f99d9a064bf23e",
+      "git_blob_sha1": "2ad00d651c83226cfc36b2d7daee4f4c4b3eff9e",
+      "raw_local_bytes": 20611,
+      "raw_local_sha256": "20a8a61240dde1966842807601f87a7b4c102e790891b6f2d7df97ebad01a7d6"
+    },
+    {
+      "path": "logs/13_test_export_current_ui_audit.log",
+      "redacted_bytes": 1414,
+      "redacted_sha256": "0dd94a0596bc33f9228e1f167e1cd7bc85dcb7e9630c88242be931ac76c5bd62",
+      "git_blob_sha1": "f1d00ecb32f4426ef0c00b34f7eb06596a34bab9",
+      "raw_local_bytes": 1414,
+      "raw_local_sha256": "0dd94a0596bc33f9228e1f167e1cd7bc85dcb7e9630c88242be931ac76c5bd62"
+    },
+    {
+      "path": "logs/14_tooling_unittests_canonical_tmpdir.log",
+      "redacted_bytes": 16351,
+      "redacted_sha256": "fff0adbd3667e91fb2b90f52f47845ae52934556bfa28a57fc2622be8fc9b006",
+      "git_blob_sha1": "7baa3058ae1f174c9959f2e5d9a341839ba3eaec",
+      "raw_local_bytes": 16519,
+      "raw_local_sha256": "57e4185c42881d846244e71a30c01fa8d5be363cef5322de7c6c10ad32691553"
+    },
+    {
+      "path": "logs/15_app_unit_full_keychain_host.log",
+      "redacted_bytes": 2097832,
+      "redacted_sha256": "f9a1f2a766a5e9dc006bd79158c0dac3e02207a3640913d1c1ccb706e5fa9727",
+      "git_blob_sha1": "d6a8bd2f333973cd7fb720871f86c3ee467c89e7",
+      "raw_local_bytes": 2098532,
+      "raw_local_sha256": "46ddd8f0f52e7906867eea927e6d5a1c6ad8a22a0f8dc2634b9e742374d0d0d7"
+    },
+    {
+      "path": "xcresult_exports/AppUnitTests-Attempt1-DefaultTarget12_1-summary.json",
+      "redacted_bytes": 474,
+      "redacted_sha256": "33b2f53c3637609098315ff0742c53fde5eab1ac9a77f560634ff8a404d622d2",
+      "git_blob_sha1": "a2864b90370a3b9c304cd49d48bed0d821fc7c22"
+    },
+    {
+      "path": "xcresult_exports/AppUnitTests-Attempt1-DefaultTarget12_1-tests.json",
+      "redacted_bytes": 360,
+      "redacted_sha256": "0f22727924d5710e7fdf6e5618afd3c5fef211b648a66820b499693186582869",
+      "git_blob_sha1": "8f6883038ecccc30bb10c4b493ad5c2b4048605a"
+    },
+    {
+      "path": "xcresult_exports/AppUnitTests-Attempt3-Keychain12Suites-summary.json",
+      "redacted_bytes": 2336,
+      "redacted_sha256": "b57f211cdb5401d4192c06362a822c7c41e0ba91409c87a4e88061125c089918",
+      "git_blob_sha1": "c43bd6953d3d98942732926a0af46ee1e0eead0b"
+    },
+    {
+      "path": "xcresult_exports/AppUnitTests-Attempt3-Keychain12Suites-tests.json",
+      "redacted_bytes": 87089,
+      "redacted_sha256": "edc4db42429368e6f1b6b10f94b35b6b52c45206f36085d3e0a52b12a284663e",
+      "git_blob_sha1": "786b9f01612e166a0908214a4e002f97a270f1f3"
+    },
+    {
+      "path": "xcresult_exports/AppUnitTests-Attempt4-FullKeychainHost-summary.json",
+      "redacted_bytes": 9823,
+      "redacted_sha256": "3dbda814af1ce3e73b0fa2ef9627f5451a9de10c3b55b75fa9b4ac479801ed3c",
+      "git_blob_sha1": "b285a47fd57cbaae7dd7b29e8b1b7aad9cd7aad0"
+    },
+    {
+      "path": "xcresult_exports/AppUnitTests-Attempt4-FullKeychainHost-tests.json",
+      "redacted_bytes": 3754278,
+      "redacted_sha256": "add5e41252fd8b0b94b26a7e2bfbf3adcf66b5f0589a6577ed185784b32af18f",
+      "git_blob_sha1": "e9731f9525f4fea2520d30cc3e4bba8d938fb766"
+    },
+    {
+      "path": "xcresult_exports/UITests-32Provenance-summary.json",
+      "redacted_bytes": 23307,
+      "redacted_sha256": "174c7f4079a89bd146cf3ad8adf301cd005cead6a2e2250be462c17739e3646f",
+      "git_blob_sha1": "a24114c8e726170225dcff82f841315c8032528c"
+    },
+    {
+      "path": "xcresult_exports/UITests-32Provenance-tests.json",
+      "redacted_bytes": 42632,
+      "redacted_sha256": "d942edd9655e63ea330e8aabe22abf35781d4d47d2abd84d287a994b87875745",
+      "git_blob_sha1": "aca78bee39b55dcd92851f0d4be6a0ce3da1eee0"
+    },
+    {
+      "path": "xcresult_exports/UITests-32Provenance-welcome-ax-hierarchy.txt",
+      "redacted_bytes": 4619,
+      "redacted_sha256": "c0350e41d199f66ce8c175f2abb81d56a10547bfe0ff1e525000674e8fe7b922",
+      "git_blob_sha1": "f9c556ee848511f8bb9a73dfe2c21f206992095e"
+    }
+  ]
+}
