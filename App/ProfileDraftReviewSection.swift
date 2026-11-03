@@ -13,8 +13,18 @@ struct ProfileDraftReviewSection: View {
                 ForEach(summary.changes) { change in
                     VStack(alignment: .leading, spacing: 8) {
                         Text(LocalizedStringKey(title(change.field))).font(.headline)
-                        LabeledContent { value(change.before) } label: { Text("profile.reviewRestore.before") }
-                        LabeledContent { value(change.after) } label: { Text("profile.reviewRestore.after") }
+                        VStack(alignment: .leading, spacing: Theme.Space.s1) {
+                            Text("profile.reviewRestore.before").font(.caption).foregroundStyle(.secondary)
+                            value(change.before).lineLimit(nil).fixedSize(horizontal: false, vertical: true)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityElement(children: .combine)
+                        VStack(alignment: .leading, spacing: Theme.Space.s1) {
+                            Text("profile.reviewRestore.after").font(.caption).foregroundStyle(.secondary)
+                            value(change.after).lineLimit(nil).fixedSize(horizontal: false, vertical: true)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityElement(children: .combine)
                     }.accessibilityIdentifier("profile.reviewRestore.change.\(change.id)")
                 }
                 Text("profile.reviewRestore.exactTextHint").font(.footnote).foregroundStyle(.secondary)
