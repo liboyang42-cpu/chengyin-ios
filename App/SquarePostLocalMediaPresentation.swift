@@ -171,10 +171,11 @@ enum SquarePostLocalMediaPresentationState: Equatable {
     private var chinese: Bool { locale.language.languageCode?.identifier == "zh" }
     private func text(_ chinese: String, _ english: String) -> String { self.chinese ? chinese : english }
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Theme.Space.s2) {
             if let thumbnail = model.thumbnail {
                 Button { model.openPreview() } label: {
-                    Image(uiImage: thumbnail).resizable().scaledToFit().frame(maxHeight: 160)
+                    Image(uiImage: thumbnail).resizable().scaledToFit().frame(maxWidth: .infinity, maxHeight: 160)
+                        .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.md))
                 }
                 .accessibilityLabel(text("预览已选图片", "Preview selected image"))
                 .accessibilityIdentifier("squarePostLocalMedia.preview")
@@ -183,18 +184,19 @@ enum SquarePostLocalMediaPresentationState: Equatable {
             case .loading:
                 ProgressView(text("正在读取所选图片", "Reading selected image"))
                 Button(text("取消读取", "Cancel loading")) { model.cancelInspection() }
+                    .frame(minHeight: 44).buttonStyle(.bordered)
                     .accessibilityIdentifier("squarePostLocalMedia.cancel")
             case .videoUnavailable:
-                Label(text("视频暂不可用", "Video unavailable"), systemImage: "video.slash")
+                Label(text("视频暂不可用", "Video unavailable"), systemImage: "video.slash").font(.headline)
                 Text(text("视频的上传、解码和大小/时长规则尚未接通。未读取视频文件，也未上传。可以移除后选择图片。",
                           "Video upload, decoding, and size/duration rules are not connected. No video file was read or uploaded. Remove it to choose an image."))
                     .font(.caption).accessibilityIdentifier("squarePostLocalMedia.videoUnavailable")
             case .imagePreview:
                 Text(text("仅本地图片预览，尚未上传", "Local image preview; not uploaded"))
                     .font(.caption)
-            case .cancelled: Text(text("已取消选择或读取", "Selection or loading cancelled"))
-            case .failed: Text(text("无法读取或不支持此媒体。请选择 JPEG 或 PNG 图片，或移除此选择。", "This media could not be read or is unsupported. Choose a JPEG or PNG image, or remove this selection."))
-            case .expired: Text(text("上次选择已失效，请重新选择", "Previous selection expired. Choose again."))
+            case .cancelled: Text(text("已取消选择或读取", "Selection or loading cancelled")).font(.footnote).foregroundStyle(.secondary)
+            case .failed: Text(text("无法读取或不支持此媒体。请选择 JPEG 或 PNG 图片，或移除此选择。", "This media could not be read or is unsupported. Choose a JPEG or PNG image, or remove this selection.")).modifier(SquareFlowNoticeStyle(tone: .critical))
+            case .expired: Text(text("上次选择已失效，请重新选择", "Previous selection expired. Choose again.")).modifier(SquareFlowNoticeStyle(tone: .attention))
             case .empty, .choosing: EmptyView()
             }
             if model.hasSelection {
@@ -203,6 +205,7 @@ enum SquarePostLocalMediaPresentationState: Equatable {
                     .font(.caption).accessibilityIdentifier("squarePostLocalMedia.pendingBoundary")
             }
         }
+        .fixedSize(horizontal: false, vertical: true)
         .accessibilityIdentifier("squarePostLocalMedia.state")
         .sheet(isPresented: Binding(get: { model.previewRequest != nil }, set: { if !$0 { model.closePreview() } })) {
             if let request = model.previewRequest {
