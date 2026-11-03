@@ -14,18 +14,18 @@ import SwiftUI
     private var fallbackNeeded: Bool { !coordinator.grants.textAllowed || coordinator.failure != nil }
     var body: some View {
         if let state = ShopNPCScriptedGuidePresentation.state(source: source, coordinator: coordinator) {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 16) {
                 if fallbackNeeded { Text("shopNPCGuide.fallback").font(.footnote).foregroundStyle(.secondary) }
                 DisclosureGroup("shopNPCGuide.title", isExpanded: $expanded) {
                     VStack(alignment: .leading, spacing: 12) {
                         switch state {
                         case .available(let guide):
                             Text("shopNPCGuide.source").font(.caption).foregroundStyle(.secondary)
-                            if let rules = guide.rules { Text(verbatim: rules).textSelection(.enabled).accessibilityIdentifier("shopNPCGuide.rules") }
+                            if let rules = guide.rules { Text(verbatim: rules).font(.body).lineSpacing(4).textSelection(.enabled).accessibilityIdentifier("shopNPCGuide.rules") }
                             else { Text("shopNPCGuide.noRules").accessibilityIdentifier("shopNPCGuide.noRules") }
                             if let materials = guide.materials {
                                 Text("shopNPCGuide.materials").font(.headline)
-                                Text(verbatim: materials).textSelection(.enabled).accessibilityIdentifier("shopNPCGuide.materials")
+                                Text(verbatim: materials).font(.body).lineSpacing(4).textSelection(.enabled).accessibilityIdentifier("shopNPCGuide.materials")
                             }
                             Text("shopNPCGuide.noProgress").font(.footnote).foregroundStyle(.secondary)
                         case .unavailable: Text("shopNPCGuide.unavailable").accessibilityIdentifier("shopNPCGuide.unavailable")
