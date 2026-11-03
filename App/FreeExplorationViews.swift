@@ -15,7 +15,8 @@ import SwiftUI
                 if let description = snapshot.result.topicDescription { Text(verbatim: description) }
                 Text("playFree.choiceHint")
                 if let done = presentation.redeemed, let total = presentation.total {
-                    Text("playFree.redeemed.count \(done) \(total)").accessibilityIdentifier("playFree.redeemed.count")
+                    Label { Text("playFree.redeemed.count \(done) \(total)").monospacedDigit() } icon: { Image(systemName: "checkmark.seal") }
+                        .font(.subheadline.weight(.medium)).accessibilityIdentifier("playFree.redeemed.count")
                 }
                 if let expiry = snapshot.result.expiresAt { LabeledContent("play.expiresAt") { Text(verbatim: expiry) } }
                 if let note = snapshot.result.timeNote { Text(verbatim: note).font(.footnote) }

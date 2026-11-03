@@ -17,7 +17,8 @@ import SwiftUI
         NavigationStack {
             Form {
                 Section {
-                    Text(verbatim: model.flow.topic.name).font(.headline)
+                    Text(verbatim: model.flow.topic.name).font(.title3.weight(.semibold))
+                        .fixedSize(horizontal: false, vertical: true)
                     TopicPrice(value: model.flow.topic.selfPlayPrice, label: "topic.selfPlayPrice")
                     Text("contextSelfPlay.validity")
                     Text("contextSelfPlay.paymentNotice").font(.caption)
@@ -27,7 +28,7 @@ import SwiftUI
                         TextField("contextSelfPlay.name", text: Binding(get: { model.flow.realName }, set: { model.flow.realName = $0; model.flow.changed() }))
                             .textContentType(.name).accessibilityIdentifier("contextSelfPlay.name")
                         TextField("contextSelfPlay.phone", text: Binding(get: { model.flow.phone }, set: { model.flow.phone = $0; model.flow.changed() }))
-                            .keyboardType(.phonePad).textContentType(.telephoneNumber).accessibilityIdentifier("contextSelfPlay.phone")
+                            .keyboardType(.phonePad).textContentType(.telephoneNumber).autocorrectionDisabled().accessibilityIdentifier("contextSelfPlay.phone")
                     }.disabled(!model.flow.canEdit)
                     Section {
                         if let document = model.flow.document { Link("contextSelfPlay.noticeLink", destination: document.officialURL) }
@@ -59,7 +60,8 @@ import SwiftUI
             .sheet(item: Binding(get: { model.flow.review }, set: { if $0 == nil { model.flow.cancelReview() } })) { review in
                 NavigationStack {
                     Form {
-                        Text(verbatim: model.flow.topic.name)
+                        Text(verbatim: model.flow.topic.name).font(.title3.weight(.semibold))
+                            .fixedSize(horizontal: false, vertical: true)
                         TopicPrice(value: review.price, label: "topic.selfPlayPrice")
                         Text(verbatim: review.intent.realName); Text(verbatim: review.intent.phone)
                         Text("contextSelfPlay.consentReview"); Text("contextSelfPlay.paymentNotice")
@@ -68,6 +70,7 @@ import SwiftUI
                         Button("action.cancel", role: .cancel) { model.flow.cancelReview() }
                     }.navigationTitle("contextSelfPlay.review")
                 }
+                .presentationDragIndicator(.visible)
             }
             .sheet(item: Binding(get: { model.flow.paymentReview }, set: { if $0 == nil { model.flow.cancelPaymentReview() } })) { review in
                 TopicSelfPlayPaymentReviewSheet(review: review, confirm: { consent in Task { await model.flow.confirmExistingPayment(review, consented: consent) } }, cancel: model.flow.cancelPaymentReview)
@@ -84,7 +87,8 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             Form {
-                Text(verbatim: topic.name)
+                Text(verbatim: topic.name).font(.title3.weight(.semibold))
+                    .fixedSize(horizontal: false, vertical: true)
                 TopicPrice(value: topic.selfPlayPrice, label: "topic.selfPlayPrice")
                 Text("contextSelfPlay.validity")
                 Text("contextSelfPlay.unavailable")
