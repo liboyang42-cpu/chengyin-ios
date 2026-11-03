@@ -49,7 +49,8 @@ import SwiftUI
                             field(String(localized: LocalizedStringResource("approvedRelease.rules", defaultValue: "Rule instructions", locale: locale)), node.ruleInstructions, identifier("chapter.\(ci).block.\(bi).rules"))
                         }
                     } else {
-                        Text(verbatim: block.content ?? "").accessibilityIdentifier(identifier("chapter.\(ci).block.\(bi).text"))
+                        Text(verbatim: block.content ?? "").fixedSize(horizontal: false, vertical: true)
+                            .textSelection(.enabled).accessibilityIdentifier(identifier("chapter.\(ci).block.\(bi).text"))
                     }
                 }
             }
@@ -58,8 +59,9 @@ import SwiftUI
     private func field(_ title: String, _ value: String?, _ identifier: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(verbatim: title).font(.caption).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
             Text(verbatim: value ?? String(localized: LocalizedStringResource("approvedRelease.missing", defaultValue: "Not supplied", locale: locale)))
-                .textSelection(.enabled).accessibilityIdentifier(identifier)
+                .textSelection(.enabled).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier(identifier)
         }
     }
 }
