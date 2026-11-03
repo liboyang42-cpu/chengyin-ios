@@ -164,8 +164,10 @@ import SwiftUI
         ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
             let id = row[identity]?.string ?? ""
             Button { if multiple { if selected.contains(id) { selected.remove(id) } else { selected.insert(id) } } else { selected = [id] } } label: {
-                HStack { Text(verbatim: row[label]?.string ?? ""); Spacer(); if selected.contains(id) { Image(systemName: "checkmark") } }
+                HStack { Text(verbatim: row[label]?.string ?? "").fixedSize(horizontal: false, vertical: true); Spacer(); if selected.contains(id) { Image(systemName: "checkmark").accessibilityHidden(true) } }
+                    .frame(minHeight: 44).contentShape(Rectangle())
             }
+            .accessibilityAddTraits(selected.contains(id) ? .isSelected : [])
         }
     }
     private func samplePicker(_ count: Int) -> some View {

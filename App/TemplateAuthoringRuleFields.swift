@@ -28,10 +28,11 @@ import SwiftUI
                                     .accessibilityIdentifier("templateRules.remove.\(index)")
                                     .accessibilityLabel(Text("templateRules.removeNumber \(index + 1)"))
                             }
-                        }
+                        }.font(.subheadline.weight(.semibold))
                         TextField("templateRules.prompt", text: model.ruleStep(row.id), axis: .vertical)
                             .id(InputIdentity(rowID: row.id, rejectionRevision: model.ruleInputRevisions[row.id]))
                             .lineLimit(1...6)
+                            .textFieldStyle(.roundedBorder)
                             .accessibilityIdentifier("templateRules.input.\(index)")
                             .accessibilityLabel(Text("templateRules.stepNumber \(index + 1)"))
                     }
