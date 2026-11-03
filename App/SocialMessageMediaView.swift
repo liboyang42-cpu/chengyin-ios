@@ -14,7 +14,7 @@ import ImageIO
     private var media: SocialMessageMedia? { try? .init(message: message) }
     var body: some View {
         ScrollView([.horizontal, .vertical]) {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: Theme.Space.s4) {
                 if !isMessageCurrent() || reader.identity != expectedIdentity { SocialIssueView(error: APIError.unauthorized) }
                 else if let media {
                     if reader.isOfflineExample { Text("social.offline").font(.caption) }
@@ -23,20 +23,21 @@ import ImageIO
                             .accessibilityLabel("social.media.image").accessibilityIdentifier("social.media.loaded")
                     } else {
                         Label("social.media.image", systemImage: "photo").font(.title)
-                        if !reader.isConfigured { Text("social.media.disabled") }
+                        if !reader.isConfigured { Text("social.media.disabled").modifier(SquareFlowNoticeStyle()) }
                         else {
                             Text("social.media.purpose").font(.footnote)
                             // Display only origin, never leak signed query parameters.
-                            Text(verbatim: SocialMessageMediaService.origin(media.url) ?? "").font(.caption)
+                            Text(verbatim: SocialMessageMediaService.origin(media.url) ?? "").font(.caption.monospaced()).fixedSize(horizontal: false, vertical: true)
                             Button(LocalizedStringKey(requested ? "action.retry" : "social.media.load")) { Task { await load(media) } }
                                 .disabled(loading).accessibilityIdentifier("social.media.load")
                         }
                         if loading { ProgressView("social.loading") }
-                        if error != nil { Text("social.media.failed").accessibilityIdentifier("social.media.failed") }
+                        if error != nil { Text("social.media.failed").modifier(SquareFlowNoticeStyle(tone: .critical)).accessibilityIdentifier("social.media.failed") }
                     }
-                } else { Text("social.media.invalid") }
+                } else { Text("social.media.invalid").modifier(SquareFlowNoticeStyle(tone: .attention)) }
             }.padding()
         }
+        .modifier(SquareFlowSurfaceStyle())
         .appNavigationTitle("social.media.title").privacySensitive()
         .onChange(of: isMessageCurrent()) { _, _ in clear() }
         .onChange(of: reader.identity) { _, _ in clear() }
