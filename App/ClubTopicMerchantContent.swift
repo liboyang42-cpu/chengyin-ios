@@ -25,12 +25,12 @@ import SwiftUI
                                                snapshotGeneration: snapshotGeneration, readGeneration: readGeneration, access: access) {
         case .stale: EmptyView()
         case .failed(let failure):
-            Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.topicMerchants.invalid")
+            Text(LocalizedStringKey(failure.localizationKey)).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("club.topicMerchants.invalid")
         case .ready(let list):
             Section("club.topicMerchants.title") {
                 Text("club.topicMerchants.contactBoundary").font(.footnote).foregroundStyle(.secondary)
                 if list.rows.isEmpty {
-                    Text("club.topicMerchants.empty").accessibilityIdentifier("club.topicMerchants.empty")
+                    Text("club.topicMerchants.empty").fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("club.topicMerchants.empty")
                 }
                 ForEach(list.rows) { row in
                     HStack(alignment: .top, spacing: 12) {
