@@ -32,7 +32,7 @@ import SwiftUI
                 }.accessibilityIdentifier("sensorDraft.type")
                 ForEach(value.kind?.parameters ?? [], id: \.rawValue) { parameter in
                     VStack(alignment: .leading) {
-                        Text(LocalizedStringKey(parameter.labelKey))
+                        Text(LocalizedStringKey(parameter.labelKey)).font(.subheadline.weight(.semibold))
                         TextField(LocalizedStringKey(parameter.labelKey), text: Binding(get: { value.input(parameter) }, set: { model.setSensorInput(parameter, $0) }))
                             .focused($focusedParameter, equals: parameter.rawValue)
                             .keyboardType(.numberPad).accessibilityIdentifier("sensorDraft.input." + parameter.rawValue)

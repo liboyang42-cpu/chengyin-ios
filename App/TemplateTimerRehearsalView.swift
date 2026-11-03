@@ -141,15 +141,17 @@ typealias TemplateTimerCancellation = @MainActor () -> Void
                 }
                 Section {
                     if state.kind == .countdown {
-                        Text(verbatim: countdown(state.remainingSeconds)).font(.largeTitle.monospacedDigit())
-                            .accessibilityIdentifier("templateTimer.countdown")
+                        TemplateTimerRehearsalReading(value: countdown(state.remainingSeconds), identifier: "templateTimer.countdown")
                         ProgressView(value: state.progress)
-                        if state.phase == .finished { Text(verbatim: state.doneText).accessibilityIdentifier("templateTimer.doneText") }
+                        if state.phase == .finished {
+                            Text(verbatim: state.doneText).fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("templateTimer.doneText")
+                        }
                     } else if state.isMasked {
-                        Text("templateTimer.hidden").font(.largeTitle).accessibilityIdentifier("templateTimer.masked")
+                        Text("templateTimer.hidden").font(.largeTitle)
+                            .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("templateTimer.masked")
                     } else {
-                        Text(verbatim: seconds(state.elapsedMs / 1000)).font(.largeTitle.monospacedDigit())
-                            .accessibilityIdentifier("templateTimer.stopwatch")
+                        TemplateTimerRehearsalReading(value: seconds(state.elapsedMs / 1000), identifier: "templateTimer.stopwatch")
                     }
                     if state.phase == .paused { Text("templateTimer.paused") }
                     if let reason = state.abortReason {
@@ -200,6 +202,24 @@ typealias TemplateTimerCancellation = @MainActor () -> Void
     }
     private func seconds(_ value: Double) -> String { String(format: "%.2f", value) }
     private func countdown(_ value: Int) -> String { String(format: "%02d:%02d", value / 60, value % 60) }
+}
+
+/// Keep one complete numeric value at the user's text size. The containing Form
+/// still owns vertical scrolling; only a wide accessibility readout scrolls sideways.
+private struct TemplateTimerRehearsalReading: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    let value: String
+    let identifier: String
+    private var reading: some View {
+        Text(verbatim: value).font(.largeTitle.monospacedDigit())
+            .accessibilityIdentifier(identifier)
+    }
+    var body: some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            ScrollView(.horizontal) { reading.fixedSize() }
+                .fixedSize(horizontal: false, vertical: true)
+        } else { reading }
+    }
 }
 
 // This editor changes local configuration only. It never runs a gameplay timer.

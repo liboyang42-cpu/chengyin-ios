@@ -95,6 +95,7 @@ import SwiftUI
                     TemplateAuthoringField("question" + letter.rawValue, text: editor.text(letter),
                         accessibilityID: "templateChoiceRows.text." + letter.rawValue)
                     ForEach(TemplateChoiceOptionMedia.Kind.allCases) { kind in
+                        Text(LocalizedStringKey(kind.labelKey)).font(.subheadline.weight(.semibold))
                         TextField(LocalizedStringKey(kind.labelKey), text: editor.attachment(letter, kind))
                             .textInputAutocapitalization(.never).autocorrectionDisabled()
                             .disabled(!model.draft.choiceOptionMedia.isSupported)
