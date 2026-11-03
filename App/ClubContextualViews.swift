@@ -18,18 +18,18 @@ struct ClubOperatingRulesView: View {
         ("cancel", ["whole"])]
     var body: some View {
         List {
-            Text("context.rules.notice").font(.footnote).foregroundStyle(.secondary)
+            Text("context.rules.notice").clubStatus("info.circle")
             ForEach(sections, id: \.0) { section in
                 Section(LocalizedStringKey("context.rules." + section.0)) {
                     ForEach(section.1, id: \.self) { row in
-                        VStack(alignment: .leading, spacing: 6) {
+                        VStack(alignment: .leading, spacing: Theme.Space.s2) {
                             Text(LocalizedStringKey("context.rules." + section.0 + "." + row + ".title")).font(.headline)
                             Text(LocalizedStringKey("context.rules." + section.0 + "." + row + ".body"))
-                        }.fixedSize(horizontal: false, vertical: true)
+                        }.fixedSize(horizontal: false, vertical: true).padding(.vertical, Theme.Space.s2)
                     }
                 }
             }
-        }.navigationTitle("context.rules.title").accessibilityIdentifier("club.context.rules")
+        }.clubPageSurface().navigationTitle("context.rules.title").accessibilityIdentifier("club.context.rules")
     }
 }
 
@@ -62,19 +62,19 @@ struct ClubOperatingRulesView: View {
                 if let serverDate { LabeledContent("context.ops.serverTime", value: serverDate) }
             }
             if owner?.service.isConfigured != true { Text("context.ops.disabled") }
-            if state == .unknown { Text("context.ops.unknown") }
+            if state == .unknown { Text("context.ops.unknown").clubStatus("clock", emphasized: true) }
             if state == .acknowledged { Text("context.ops.acknowledged") }
-            if state == .rejected { Text("context.ops.rejected") }
-            if readFailed { Text("context.ops.readFailed") }
+            if state == .rejected { Text("context.ops.rejected").clubStatus("exclamationmark.circle") }
+            if readFailed { Text("context.ops.readFailed").clubStatus("arrow.clockwise") }
             if busy { ProgressView() }
-            Button("context.review.preview") {
+            Button {
                 review = try? ClubOpsTimeRequest(activityID: activityID, startDate: ClubOpsTimeRequest.submissionTime(date))
                 captured = owner?.service.session
-            }.disabled(busy || state == .unknown || ClubOpsTimeRequest.date(original) == nil)
+            } label: { ClubControlLabel("context.review.preview") }.disabled(busy || state == .unknown || ClubOpsTimeRequest.date(original) == nil)
             if owner?.service.isConfigured == true {
-                Button("context.ops.readback") { Task { await readback() } }.disabled(busy)
+                Button { Task { await readback() } } label: { ClubControlLabel("context.ops.readback") }.disabled(busy)
             }
-        }.navigationTitle("context.ops.title")
+        }.clubPageSurface().navigationTitle("context.ops.title")
             .confirmationDialog("context.ops.confirm", isPresented: Binding(get: { review != nil }, set: { if !$0 { review = nil; captured = nil } })) {
                 Button("context.ops.save") { Task { await save() } }.disabled(owner?.canSave != true)
                 Button("action.cancel", role: .cancel) { review = nil; captured = nil }
