@@ -294,6 +294,10 @@ import Observation
                         ForEach(Array(provider.advisoryNotices.enumerated()), id: \.offset) { _, notice in Text(verbatim: notice) }
                     }
                 }
+            } else {
+                ContentUnavailableView("walking.error.unavailable", systemImage: "figure.walk",
+                    description: Text("walking.safety"))
+                    .accessibilityIdentifier("walking.steps.unavailable")
             }
             Section {
                 Text("walking.safety")

@@ -398,6 +398,7 @@ import SwiftUI
             ContentUnavailableView(LocalizedStringKey(mapLayers.shows(.activities) && pagination.nextPage != nil ? "mapPagination.noMatchesYet" : "searchMap.empty"), systemImage: "mappin.slash")
         }
         if mapLayers.shows(.activities) {
+            Text("searchMap.kind.activity").font(.headline).accessibilityAddTraits(.isHeader)
             let missingCoordinateCount = pagination.rows.filter { !$0.hasValidCoordinates }.count
             if missingCoordinateCount > 0 {
                 LabeledContent("searchMap.listOnly") { Text(missingCoordinateCount, format: .number) }.font(.footnote)
@@ -411,6 +412,7 @@ import SwiftUI
             activityPaginationControls
         }
         if mapLayers.shows(.cityPlaces) {
+            Text("searchMap.cityNodes").font(.headline).accessibilityAddTraits(.isHeader)
             ForEach(value.nodes) { row in
                 Button { openLayerCity(row, rendered: renderedContext) } label: {
                     QuestifyImageEntityCard(imageSource: reader.isOfflineExample ? nil : row.imageURL, title: row.name, subtitle: row.templateTitle ?? row.merchantName, fallbackTitle: "searchMap.untitled", fallbackSymbol: "mappin", minimumHeight: 230) {
@@ -491,7 +493,7 @@ import SwiftUI
     }
     private func nearbyDetail(_ node: RoamRouteNode, area: RoamSearchArea) -> some View {
         List {
-            Text(verbatim: node.addressName).font(.title2.bold())
+            Text(verbatim: node.addressName).font(.title3.weight(.semibold))
             if let address = node.address { Text(verbatim: address) }
             if let topicID = node.topicId, topicID > 0 {
                 NavigationLink { destination(.topic(topicID)) } label: { Text("searchMap.relatedTopic") }
