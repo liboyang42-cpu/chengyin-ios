@@ -130,7 +130,9 @@ import SwiftUI
                     if owner.canVote {
                         Button { selectedOption = option.id } label: {
                             Label(LocalizedStringKey(selectedOption == option.id ? "poll.selected" : "poll.choose"), systemImage: selectedOption == option.id ? "largecircle.fill.circle" : "circle")
-                        }.accessibilityIdentifier("poll.choose.\(option.id)")
+                        }.frame(minHeight: 44)
+                        .accessibilityAddTraits(selectedOption == option.id ? .isSelected : [])
+                        .accessibilityIdentifier("poll.choose.\(option.id)")
                     }
                 }
             }
