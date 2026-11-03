@@ -41,7 +41,7 @@ import SwiftUI
                 Text(LocalizedStringKey("privateHome.phase." + model.phase.rawValue)).accessibilityIdentifier("privateHome.phase")
                 if let home = model.home {
                     Text(LocalizedStringKey(home.status == .active ? "privateHome.active" : "privateHome.empty"))
-                    if let label = home.label { Text(verbatim: label).privacySensitive() }
+                    if let label = home.label { Text(verbatim: label).font(.title3.weight(.semibold)).fixedSize(horizontal: false, vertical: true).privacySensitive() }
                 }
                 if let decision = model.decision { Text(LocalizedStringKey("privateHome.decision." + decision.rawValue)) }
                 if model.issue != nil { Text("privateHome.issue").accessibilityIdentifier("privateHome.issue") }

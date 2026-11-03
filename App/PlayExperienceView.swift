@@ -447,8 +447,8 @@ struct PlayExperienceIssueView: View {
     var body: some View {
         VStack(alignment: .leading) {
             if case .rejected(let code, let message) = issue {
-                Text("playx.rejected").font(.headline)
-                Text(verbatim: message ?? String(code))
+                Label("playx.rejected", systemImage: "exclamationmark.circle").font(.headline)
+                Text(verbatim: message ?? String(code)).fixedSize(horizontal: false, vertical: true)
             } else { Text(LocalizedStringKey(issue == .disabled ? "playx.disabled" : issue == .staleSession ? "playx.session.changed" : issue == .unsupported ? "playx.unsupported" : "playx.error")) }
         }.foregroundStyle(.secondary).accessibilityIdentifier("playx.issue")
     }
