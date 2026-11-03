@@ -194,32 +194,44 @@ import CryptoKit
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         NavigationStack {
-            VStack(spacing: 12) {
-                if scenePhase == .active, session.isCurrent {
-                    TabView(selection: Binding(get: { session.index }, set: { _ = session.select($0) })) {
-                        ForEach(0..<session.count, id: \.self) { position in
-                            Group {
-                                if position == session.index, let url = session.currentURL {
-                                    MerchantReviewPhotoImage(session: session, url: url, position: position, generation: session.imageGeneration)
-                                        .id(session.imageGeneration)
-                                } else { Color.clear }
-                            }.tag(position)
+            GeometryReader { geometry in
+                Group {
+                    if dynamicTypeSize.isAccessibilitySize || geometry.size.height < 500 {
+                        ScrollView(.vertical) {
+                            galleryContent(previewHeight: max(dynamicTypeSize.isAccessibilitySize ? 280 : 180, geometry.size.height * 0.45))
                         }
-                    }.tabViewStyle(.page(indexDisplayMode: .never))
-                    if dynamicTypeSize.isAccessibilitySize { VStack(spacing: 8) { navigationControls } }
-                    else { HStack { navigationControls } }
-                    Group {
-                        if dynamicTypeSize.isAccessibilitySize { VStack(spacing: 8) { zoomControls } }
-                        else { HStack { zoomControls } }
-                    }.buttonStyle(.bordered)
-                    Text("merchant.reviewPhotos.zoomHint").font(.footnote).foregroundStyle(.secondary)
-                } else { ContentUnavailableView("merchant.reviewPhotos.unavailable", systemImage: "photo") }
-            }.padding().navigationTitle("merchant.business.imagesAvailable").navigationBarTitleDisplayMode(.inline)
+                    } else { galleryContent(previewHeight: nil) }
+                }.frame(maxWidth: .infinity, maxHeight: .infinity)
+            }.padding().merchantM02Page().navigationTitle("merchant.business.imagesAvailable").navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { session.retire(); close() } } }
         }.privacySensitive()
             .onDisappear { session.retire() }
             .onChange(of: scenePhase) { _, value in if value != .active { session.retire(); close() } }
             .onChange(of: owner.revision) { _, _ in if !session.isCurrent { session.retire(); close() } }
+    }
+    private func galleryContent(previewHeight: CGFloat?) -> some View {
+        VStack(spacing: 12) {
+            if scenePhase == .active, session.isCurrent {
+                TabView(selection: Binding(get: { session.index }, set: { _ = session.select($0) })) {
+                    ForEach(0..<session.count, id: \.self) { position in
+                        Group {
+                            if position == session.index, let url = session.currentURL {
+                                MerchantReviewPhotoImage(session: session, url: url, position: position, generation: session.imageGeneration)
+                                    .id(session.imageGeneration)
+                            } else { Color.clear }
+                        }.tag(position)
+                    }
+                }.tabViewStyle(.page(indexDisplayMode: .never))
+                    .frame(height: previewHeight)
+                if dynamicTypeSize.isAccessibilitySize { VStack(spacing: 8) { navigationControls } }
+                else { HStack { navigationControls } }
+                Group {
+                    if dynamicTypeSize.isAccessibilitySize { VStack(spacing: 8) { zoomControls } }
+                    else { HStack { zoomControls } }
+                }.buttonStyle(.bordered)
+                Text("merchant.reviewPhotos.zoomHint").font(.footnote).foregroundStyle(.secondary)
+            } else { ContentUnavailableView("merchant.reviewPhotos.unavailable", systemImage: "photo") }
+        }
     }
     @ViewBuilder private var zoomControls: some View {
         Button("merchant.reviewPhotos.zoomOut") { _ = session.setZoom(session.zoom - 0.5) }
@@ -268,7 +280,9 @@ import CryptoKit
                     case .failure:
                         VStack {
                             Label("merchant.business.imageUnavailable", systemImage: "photo.badge.exclamationmark")
+                                .fixedSize(horizontal: false, vertical: true)
                             Button("action.retry") { session.retryImage(generation, at: position) }
+                                .buttonStyle(.bordered).controlSize(.large).frame(minHeight: 44)
                                 .accessibilityIdentifier("merchant.reviewPhotos.retry")
                         }
                     default: ProgressView("square.imageLoading")

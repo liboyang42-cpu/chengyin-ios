@@ -83,7 +83,7 @@ import SwiftUI
                         LabeledContent("merchant.publicHome.reviewID", value: String(id))
                         LabeledContent("merchant.publicHome.version", value: String(version))
                     }
-                    Text(verbatim: content)
+                    Text(verbatim: content).fixedSize(horizontal: false, vertical: true)
                     Text(review.command.isCreate ? "merchant.publicHome.createConsequence" : "merchant.publicHome.reportConsequence")
                     Button("merchant.publicHome.confirm") { Task { await model.confirm(review) } }.disabled(state.busy).accessibilityIdentifier("merchant.publicHome.confirm")
                     Button("merchant.publicHome.cancel", role: .cancel) { model.cancel() }.disabled(state.busy)

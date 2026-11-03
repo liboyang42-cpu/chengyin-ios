@@ -19,8 +19,12 @@ import SwiftUI
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             if let url = featured.imageURL {
-                if let image { image(url).accessibilityLabel(Text("merchant.publicHome.featured.image")) }
-                else { Label("merchant.publicHome.featured.image", systemImage: "photo").foregroundStyle(.secondary) }
+                Group {
+                    if let image { image(url) }
+                    else { Label("merchant.publicHome.featured.image", systemImage: "photo").foregroundStyle(.secondary) }
+                }
+                .aspectRatio(16.0 / 9.0, contentMode: .fit).frame(maxWidth: .infinity).clipped()
+                .accessibilityLabel(Text("merchant.publicHome.featured.image"))
             }
             Label(LocalizedStringKey(featured.kind == .activity ? "merchant.publicHome.featured.activity" : "merchant.publicHome.featured.coupon"),
                   systemImage: featured.kind == .activity ? "calendar" : "ticket")

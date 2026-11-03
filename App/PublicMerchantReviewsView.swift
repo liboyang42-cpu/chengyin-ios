@@ -62,8 +62,15 @@ import SwiftUI
                     }
                     ForEach(visibleItems, id: \.offset) { _, item in
                         Section {
-                            Group { if let name = item.authorNickname, !name.isEmpty { Text(verbatim: name) } else { Text("merchant.publicHome.player") } }
-                                .font(.headline)
+                            HStack(alignment: .top, spacing: Theme.Space.s3) {
+                                Group {
+                                    if let first = item.authorNickname?.first { Text(String(first)).font(.title3.weight(.semibold)) }
+                                    else { Image(systemName: "person.fill").foregroundStyle(.secondary) }
+                                }.frame(width: 44, height: 44)
+                                    .background(Theme.Color.bgRaised(in: .merchant), in: Circle()).accessibilityHidden(true)
+                                Group { if let name = item.authorNickname, !name.isEmpty { Text(verbatim: name) } else { Text("merchant.publicHome.player") } }
+                                    .font(.headline).fixedSize(horizontal: false, vertical: true)
+                            }
                                 // Keep the review ID on its heading, not on the Section: List
                                 // section identifiers can override the nested Report action ID.
                                 .accessibilityIdentifier("merchant.publicHome.review.\(item.id)")
@@ -88,12 +95,13 @@ import SwiftUI
                     }
                 }
                 if let failure {
-                    Text(LocalizedStringKey(failure.localizationKey))
+                    MerchantM02Notice(message: Text(LocalizedStringKey(failure.localizationKey)), symbol: "exclamationmark.circle", isError: true)
                     Button("merchant.publicHome.retry") { Task { await load(page: failedPage) } }.disabled(loading).accessibilityIdentifier("merchant.publicHome.retry")
                 }
                 if loading { ProgressView("merchant.publicHome.loading") }
             }
         }
+        .merchantM02Page()
         .navigationTitle("merchant.publicHome.reviews")
         .task(id: key) { await load(page: 1) }
         // Pushing the editor must not delete the NavigationLink that owns it.
