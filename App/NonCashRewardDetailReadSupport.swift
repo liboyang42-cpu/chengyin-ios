@@ -121,8 +121,8 @@ struct NonCashRewardReadFactsView: View {
     }
     private func sourceValue(_ label: String, value: String, id: String) -> some View {
         LabeledContent(LocalizedStringKey(label)) {
-            Text(verbatim: value).accessibilityIdentifier(id)
-        }.accessibilityElement(children: .contain)
+            Text(verbatim: value).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier(id)
+        }.font(Theme.Font.body).padding(.vertical, Theme.Space.s1).accessibilityElement(children: .contain)
     }
     private func fact(_ availability: NonCashRewardDetailProjection.FactAvailability, id: String) -> some View {
         switch availability {
