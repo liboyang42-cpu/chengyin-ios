@@ -150,7 +150,7 @@ import Combine
                     Task { if await owner.execute(claim) { submitted() } }
                 } label: { Text(verbatim: localized(isUpload ? "upload" : "submit")) }
                     .accessibilityIdentifier("playerEvidence.review.confirm")
-            } else { Text(verbatim: localized("expired")) }
+            } else { Text(verbatim: localized("expired")).fixedSize(horizontal: false, vertical: true) }
             Button { owner.cancel(offered) } label: { Text(verbatim: localized("cancel")) }
                 .accessibilityIdentifier("playerEvidence.review.cancel")
         } header: { Text(verbatim: localized("title")) }
