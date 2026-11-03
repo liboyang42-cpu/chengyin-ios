@@ -1,0 +1,64 @@
+{
+  "addendum_timestamp": "2026-11-04T01:43:30+08:00",
+  "in_response_to": [
+    "https://github.com/liboyang42-cpu/chengyin-app/issues/575#issuecomment-6610122971",
+    "https://github.com/liboyang42-cpu/chengyin-app/issues/575#issuecomment-6610193370",
+    "https://github.com/liboyang42-cpu/chengyin-app/issues/575#issuecomment-6610982710"
+  ],
+  "1_contract_checks_48th_skip_proof": {
+    "why_digest_differed_from_raw": "logs/16_contract_checks_digest.log (6,058 lines, 18,621,671 bytes) was generated in commit 25cf3e0 by a digest script that filtered the progress section to lines containing \" ... \" (plus traceback blocks). Because unittest setUpClass skips call result.addSkip() directly without calling result.startTest(), unittest emitted the standalone line \"skipped 'NOT_RUN: explicit CURRENT backend source root not supplied'\" WITHOUT \" ... \", which the digest filter omitted. The complete, unfiltered 18,038-line redacted log is now published at logs/16_contract_checks_unittest_full.log.",
+    "full_log_path": "logs/16_contract_checks_unittest_full.log",
+    "full_log_bytes": 19608008,
+    "full_log_lines": 18038,
+    "full_log_sha256": "f72159b87e8d1068c02bbbcfb68037f93e874f6d0ecbee87696b7b9effa45ae8",
+    "exact_line_1943_to_1945_in_full_log": {
+      "1943": "test_merchant_project_workspace_entry (unittest.loader._FailedTest) ... ERROR",
+      "1944": "skipped 'NOT_RUN: explicit CURRENT backend source root not supplied'",
+      "1945": "test_chat_has_readback_request_identity_and_durable_unknown_lock (test_merchant_public_production.MerchantPublicFactoryContractTests) ... ok"
+    },
+    "exact_source_of_48th_skip": {
+      "file": "Tests/ContractChecks/test_merchant_public_production.py",
+      "line": 70,
+      "code": "raise unittest.SkipTest('NOT_RUN: explicit CURRENT backend source root not supplied')"
+    }
+  },
+  "2_compiler_and_sdk_version_in_existing_logs_and_boundary": {
+    "clarification": "In logs/03_questify_bft.log and logs/02_app_unit_tests.log, xcodebuild logged the clang/swiftc invocations with -isysroot .../iPhoneSimulator27.1.sdk and the diagnostic \"The range of supported deployment target versions is 15.0 to 27.1.x\", and logs/01_swift_test_core.log line 12079 logged \"Testing Library Version: 2084 / Target Platform: arm64e-apple-macos14.0\", while UITests-32Provenance.xcresult recorded osVersion=27.0, osBuildNumber=24A434. The verbatim stdout of swiftc --version / xcodebuild -version was captured by environment/toolchain_and_host.json rather than echoed inline in logs/03_questify_bft.log.",
+    "source_immutability_boundary": "Proven by existing artifacts: .git/logs/HEAD and stat -x .git/HEAD show HEAD remained at ab2d3905ec0b0fb17b58ba6b53ec433d83164701 since 2026-11-03 21:44:22 +0800 (before Run 00), and current_ci.py check proves all 6,615 files currently match tree 1256f3ff67514b04cd783b5e72b843de55fc6f53. Unproven boundary (explicitly acknowledged per dot's rule): because per-run pre/post working-tree file hashes were not logged before/after each individual run 00..16, reflog + post-run check alone cannot cryptographically exclude transient uncommitted working-tree edits during runs 00..16."
+  },
+  "3_xcresult_hashes_and_appunit_test_counts_alignment": {
+    "why_comment_sha_differed_from_inventory_json": "The true SHA-256 hashes of the four /tmp/*.xcresult.tar.gz archives are the exact values recorded in reconciliation_20261103/xcresult_bundles_inventory.json. The four hashes in the markdown table of #issuecomment-6609454588 were erroneously typed in the comment body instead of copied from xcresult_bundles_inventory.json.",
+    "authoritative_xcresult_tar_gz_hashes_from_inventory_json": [
+      {
+        "bundle_name": "UITests-32Provenance.xcresult",
+        "lossless_tar_gz_bytes": 161070909,
+        "lossless_tar_gz_sha256": "f1d5cb73319473ad6e4daed795a5fd4efea7f65d213f7810e731433edd2fbc96",
+        "corresponding_run_and_log": "Run 10 (logs/10_uitests_32_provenance.log): 32 tests (13 PASSED / 19 FAILED)"
+      },
+      {
+        "bundle_name": "AppUnitTests.xcresult",
+        "lossless_tar_gz_bytes": 17506,
+        "lossless_tar_gz_sha256": "431a9ea9b082000d898bd16e4c19cf53cc7e974e71379b2692f940cac1242977",
+        "corresponding_run_and_log": "Run 02 (logs/02_app_unit_tests.log): build failed on GLTFKit2 12.1 deployment target (0 tests executed)"
+      },
+      {
+        "bundle_name": "AppUnitTests-Keychain12.xcresult",
+        "lossless_tar_gz_bytes": 46837406,
+        "lossless_tar_gz_sha256": "8792181a7e643059ab602a79d2abaece9c604b45cc1ef7f5386d456bdf31979a",
+        "corresponding_run_and_log": "Run 05 (logs/05_app_unit_keychain_12suites.log): 123 test methods across 12 Keychain-related suites (121 PASSED / 2 FAILED)"
+      },
+      {
+        "bundle_name": "AppUnitTests-FullKeychainHost.xcresult",
+        "lossless_tar_gz_bytes": 54647948,
+        "lossless_tar_gz_sha256": "8dff64592b041b8ed47516844306e90521495151dd3c96fea82f9fbffd5aa4b3",
+        "corresponding_run_and_log": "Run 15 (logs/15_app_unit_full_keychain_host.log): 5,602 test methods across full QuestifyAppUnitTests suite (5,597 PASSED / 5 FAILED)"
+      }
+    ],
+    "appunit_counts_correction": {
+      "explanation": "In #issuecomment-6609454588, prose mistakenly cited 1,222P/5F and 102/102. The true method counts in the published logs and ledgers are:",
+      "Run_04_logs_04_app_unit_tests_17_log": "5,602 total methods (5,561 PASSED / 41 FAILED)",
+      "Run_05_logs_05_app_unit_keychain_12suites_log": "123 total methods (121 PASSED / 2 FAILED)",
+      "Run_15_logs_15_app_unit_full_keychain_host_log": "5,602 total methods (5,597 PASSED / 5 FAILED)"
+    }
+  }
+}
