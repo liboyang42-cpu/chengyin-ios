@@ -22,7 +22,10 @@ struct ClubOperationsReviewView: View {
             Section {
                 Text(LocalizedStringKey(canSubmit ? (isExample ? "club.ops.fixtureOnly" : "club.ops.confirmLiveHint") : "club.ops.writeGated"))
                 if canSubmit {
-                    Button(LocalizedStringKey(isExample ? "club.ops.confirmFixture" : "club.ops.confirmLive")) { submitted = true; onConfirm() }
+                    Button { submitted = true; onConfirm() } label: {
+                        Text(LocalizedStringKey(isExample ? "club.ops.confirmFixture" : "club.ops.confirmLive"))
+                            .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
+                    }
                         .disabled(submitted).accessibilityIdentifier("club.ops.confirm")
                 }
             }
