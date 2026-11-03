@@ -1,0 +1,142 @@
+{
+  "baseline_commit": "ab2d3905ec0b0fb17b58ba6b53ec433d83164701",
+  "baseline_clean": true,
+  "modified_files_count": 12,
+  "modified_files": [
+    {
+      "path": "App/ProfileSettingsFavoritesRoute.swift",
+      "pre_bytes": 9558,
+      "pre_git_blob_sha1": "c8077dafddb2538f464dfcb1ef11ceb57ef1c3cc",
+      "pre_sha256": "2c0419a057f52092bb72792cef8d7d4b5c7ca2aa8426d430a24dd8825e0013b9",
+      "post_bytes": 9766,
+      "post_git_blob_sha1": "25b3f71cdee55bef6eec354290c998e56ff872a2",
+      "post_sha256": "7af222695a6a95255bd9746d2fc4ba701146ba1e85b6455eb6ce1858451e40a0"
+    },
+    {
+      "path": "Tests/AppUITests/FailureScreenshot.swift",
+      "pre_bytes": 9889,
+      "pre_git_blob_sha1": "3b97ffdc0457cb312814ff2d90388b779881aed6",
+      "pre_sha256": "de77234123e191ff61e8b6678c22f7c118899fa475f3d55f7179881291bf616e",
+      "post_bytes": 10078,
+      "post_git_blob_sha1": "75128db28576b7dd3209685e12e444528b6ca3c2",
+      "post_sha256": "c4867b36db9b1a8a8be3db69e6c45b127c61c7c8cf4789690384a57c3b319ffa"
+    },
+    {
+      "path": "Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift",
+      "pre_bytes": 19682,
+      "pre_git_blob_sha1": "b2e97e01f9ee12b7b1ac6d5086833ebeb56717b2",
+      "pre_sha256": "eae58f531bdba1c66e1bd8715afec747e312333f2ae562035b8047abb149783e",
+      "post_bytes": 19694,
+      "post_git_blob_sha1": "1da85ca02359ae610bbe536a054411432cb80e56",
+      "post_sha256": "1b036bbce78ac9901dac64bc5fc454b8799266c396290df24e4d919734dd03ed"
+    },
+    {
+      "path": "Tests/AppUITests/IntegratedDeniedAcceptanceFlowTests.swift",
+      "pre_bytes": 15989,
+      "pre_git_blob_sha1": "623b59b78c4fa994ff61096daa41ef3b18e4f166",
+      "pre_sha256": "59e5adf2a2090599645eefdd0f49223747adebeb24840fbcdf105574125798d0",
+      "post_bytes": 16006,
+      "post_git_blob_sha1": "c87cbdebf60b39fecfe78597f14a686724c34575",
+      "post_sha256": "2d6531a8808cdfe9b9421da47665d6861368ca44ac9569cae9719ea892d5558e"
+    },
+    {
+      "path": "Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift",
+      "pre_bytes": 27523,
+      "pre_git_blob_sha1": "341ed6cbfa700f99f0eea7df3bf23860b8058e26",
+      "pre_sha256": "e8c0224a7121c4bc81cfd525e3e5565d4eb0c2d212fefe1162fab8aa00007e29",
+      "post_bytes": 27058,
+      "post_git_blob_sha1": "a426f9f337941d7d038bc95e3c6f283024d499d8",
+      "post_sha256": "82e08b3a4d1eb31aa25c5806eb50cc2da26c03f60ee4c39811acaf7354402fa8"
+    },
+    {
+      "path": "Tests/AppUITests/SearchMapFlowTests.swift",
+      "pre_bytes": 16515,
+      "pre_git_blob_sha1": "ead8fb21e58fc47b6f525d6e992f5810f2bd17e0",
+      "pre_sha256": "528f216b8052e7a3a15e80adc9066bfe40ce71de3470322f514d86c40f71dc36",
+      "post_bytes": 16598,
+      "post_git_blob_sha1": "040b199b17fd936a2961a5efcb8fba409c99e5ee",
+      "post_sha256": "9c4869e0e3fa3b3af26f24e208ff04446479ea437c4221212c3b2e78202d8739"
+    },
+    {
+      "path": "Tests/AppUnitTests/ProfileFavoriteDetailTests.swift",
+      "pre_bytes": 17975,
+      "pre_git_blob_sha1": "be2d6a9c99679193a8145d5668a25e49d6de20b3",
+      "pre_sha256": "5c473dd1419bea54a2c040eebd71f43a4ee8bdabdc830a088bb857594f43877e",
+      "post_bytes": 18226,
+      "post_git_blob_sha1": "b8e8ba32e3950a0bef1cd7e619c4dd36cb195f4e",
+      "post_sha256": "4febbc59000acf44a41723ac934d62aaf94c4885c73282ff97f2c2e6829dd77f"
+    },
+    {
+      "path": "Tests/AppUnitTests/ProfileFavoriteTopicReadTests.swift",
+      "pre_bytes": 19716,
+      "pre_git_blob_sha1": "2496d2a24b33de95e59987f3a2fb47e04e8996c9",
+      "pre_sha256": "a36b5f0e489a3730c2292f04774231bb37a0a037f2abfb5b7e4c38819d1dea3d",
+      "post_bytes": 19931,
+      "post_git_blob_sha1": "b55e42124f3a12b54dee90035bcd230f0c28a155",
+      "post_sha256": "945bdca84cbe0096dc0dd6306790c177edea8bff85008de9ae18bbc22c2f4181"
+    },
+    {
+      "path": "Tests/AppUnitTests/ProfileGuideReadTests.swift",
+      "pre_bytes": 19575,
+      "pre_git_blob_sha1": "ca24a5dbc214f5c9359e82e2314af549e076b4f6",
+      "pre_sha256": "c998e16f04621bf0dda4da56594ae1b38a52605e159cbf4bd9ea4b7b3938c456",
+      "post_bytes": 20445,
+      "post_git_blob_sha1": "3a4866e01bdb11f211dae9e87728d1dd5645d0f5",
+      "post_sha256": "be70eb4aa6aa5429f2674542c09be213bde0a71958e5bac9eb595f16e9f2feda"
+    },
+    {
+      "path": "Tests/AppUnitTests/ProfileSettingsFavoritesTests.swift",
+      "pre_bytes": 16915,
+      "pre_git_blob_sha1": "e2a7461f9ce1822b950cb4c2c752aea1496e0b67",
+      "pre_sha256": "3245c921f272225eba72a2bb128079711185a73fbf216a0929db3f47cc1f7d54",
+      "post_bytes": 17113,
+      "post_git_blob_sha1": "dbb4ef40a54e04b067f6292da97338dd2673a82e",
+      "post_sha256": "35da069bb573b59ca56fe59b91277da30ff70b3ab5a24fb702fe1af864df8bbd"
+    },
+    {
+      "path": "Tests/AppUnitTests/WorkshopPaidInstallNormalFlowTests.swift",
+      "pre_bytes": 14075,
+      "pre_git_blob_sha1": "210b0fc94391810dc0f2f64b59d707e9215e2c1d",
+      "pre_sha256": "cfe4ad08facb1bf37582046bccedbb2de135bea6579ff9264fbcb50ebb8f7809",
+      "post_bytes": 14151,
+      "post_git_blob_sha1": "a5096aa62cb98ce04087d3dc617722a0025c1032",
+      "post_sha256": "2d38fd3a87246c509a5cdccfaf0c6758f686024f90fe3edeb4ddc37c07344fc3"
+    },
+    {
+      "path": "Vendor/GLTFKit2/GLTFKit2.xcodeproj/project.pbxproj",
+      "pre_bytes": 23188,
+      "pre_git_blob_sha1": "f8ac472100e0fb7ce91d6dfff66e7e81e6c5e2e0",
+      "pre_sha256": "30b4ca5ada1cec58ee2ac11e9514691e54d2eeba5d3985f4935111de1b55bf00",
+      "post_bytes": 23188,
+      "post_git_blob_sha1": "58b29a55a98a86b2651fd6027da58b74d46bd251",
+      "post_sha256": "331e3021a54e1e400dec64f2154f46fbac404b87ba7311381f48dab6f6cba3cc"
+    }
+  ],
+  "artifacts": {
+    "remediation/remediation_patch_v2.diff": {
+      "bytes": 21508,
+      "git_blob_sha1": "41b913b302151660fb697924104af0202a507c4f",
+      "sha256": "a0a31fca0040ed720b7110fa023dbac75ff8f2bddeb82cef2795bb58154ec8d8"
+    },
+    "remediation/remediation_patch_v2_non_vendor_11files.diff": {
+      "bytes": 20587,
+      "git_blob_sha1": "6b89b7f583d38ec8415bace0d3affe0b21f3f35e",
+      "sha256": "711255b583fe6a5981fe36246b85cf229d24137b846006932d5f2db33b800259"
+    },
+    "remediation/vendor_gltfkit2_deployment_target.diff": {
+      "bytes": 921,
+      "git_blob_sha1": "bd2f8cab882f85a1b280666dfe28442515235a80",
+      "sha256": "84b066a9bb5ee92856ee43907b747bdb4f992727b99afb0773781472bc1430c1"
+    },
+    "remediation/unit_tests_5_suites_69_v2_passed.log": {
+      "bytes": 108083,
+      "git_blob_sha1": "85b515341009e9edf2e104a5eedbeb78f2a042af",
+      "sha256": "c7075c90e3205c049f1dbbea6e4c53b1a456d5742c60bf52fe90c8e3516bab03"
+    },
+    "remediation/unit_tests_v2_pre_post_snapshot.json": {
+      "bytes": 5788,
+      "git_blob_sha1": "de99ca19c67ec8c77ea3a2ca9608311657e38bdd",
+      "sha256": "8c1a946de83dafcc32d999a85d1c98332a06eeef059e425d200f2fcc188058b0"
+    }
+  }
+}

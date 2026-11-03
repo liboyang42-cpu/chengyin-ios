@@ -1,0 +1,73 @@
+{
+  "command": "xcodebuild test -project Questify.xcodeproj -scheme QuestifyAppUnitTests -destination platform=iOS Simulator,id=25316F87-058C-46CE-8825-617906638207 -derivedDataPath <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104 ARCHS=arm64 ONLY_ACTIVE_ARCH=YES -only-testing:QuestifyAppUnitTests/ProfileFavoriteDetailTests -only-testing:QuestifyAppUnitTests/ProfileFavoriteTopicReadTests -only-testing:QuestifyAppUnitTests/ProfileGuideReadTests -only-testing:QuestifyAppUnitTests/ProfileSettingsFavoritesTests -only-testing:QuestifyAppUnitTests/WorkshopPaidInstallNormalFlowTests",
+  "exit_code": 0,
+  "pre_equals_post": true,
+  "pre": {
+    "head": "ab2d3905ec0b0fb17b58ba6b53ec433d83164701",
+    "dirty_count": 12,
+    "status": [
+      " M App/ProfileSettingsFavoritesRoute.swift",
+      " M Tests/AppUITests/FailureScreenshot.swift",
+      " M Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift",
+      " M Tests/AppUITests/IntegratedDeniedAcceptanceFlowTests.swift",
+      " M Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift",
+      " M Tests/AppUITests/SearchMapFlowTests.swift",
+      " M Tests/AppUnitTests/ProfileFavoriteDetailTests.swift",
+      " M Tests/AppUnitTests/ProfileFavoriteTopicReadTests.swift",
+      " M Tests/AppUnitTests/ProfileGuideReadTests.swift",
+      " M Tests/AppUnitTests/ProfileSettingsFavoritesTests.swift",
+      " M Tests/AppUnitTests/WorkshopPaidInstallNormalFlowTests.swift",
+      " M Vendor/GLTFKit2/GLTFKit2.xcodeproj/project.pbxproj"
+    ],
+    "modified_sha256": {
+      "App/ProfileSettingsFavoritesRoute.swift": "7af222695a6a95255bd9746d2fc4ba701146ba1e85b6455eb6ce1858451e40a0",
+      "Tests/AppUITests/FailureScreenshot.swift": "c4867b36db9b1a8a8be3db69e6c45b127c61c7c8cf4789690384a57c3b319ffa",
+      "Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift": "1b036bbce78ac9901dac64bc5fc454b8799266c396290df24e4d919734dd03ed",
+      "Tests/AppUITests/IntegratedDeniedAcceptanceFlowTests.swift": "2d6531a8808cdfe9b9421da47665d6861368ca44ac9569cae9719ea892d5558e",
+      "Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift": "82e08b3a4d1eb31aa25c5806eb50cc2da26c03f60ee4c39811acaf7354402fa8",
+      "Tests/AppUITests/SearchMapFlowTests.swift": "9c4869e0e3fa3b3af26f24e208ff04446479ea437c4221212c3b2e78202d8739",
+      "Tests/AppUnitTests/ProfileFavoriteDetailTests.swift": "4febbc59000acf44a41723ac934d62aaf94c4885c73282ff97f2c2e6829dd77f",
+      "Tests/AppUnitTests/ProfileFavoriteTopicReadTests.swift": "945bdca84cbe0096dc0dd6306790c177edea8bff85008de9ae18bbc22c2f4181",
+      "Tests/AppUnitTests/ProfileGuideReadTests.swift": "be70eb4aa6aa5429f2674542c09be213bde0a71958e5bac9eb595f16e9f2feda",
+      "Tests/AppUnitTests/ProfileSettingsFavoritesTests.swift": "35da069bb573b59ca56fe59b91277da30ff70b3ab5a24fb702fe1af864df8bbd",
+      "Tests/AppUnitTests/WorkshopPaidInstallNormalFlowTests.swift": "2d38fd3a87246c509a5cdccfaf0c6758f686024f90fe3edeb4ddc37c07344fc3",
+      "Vendor/GLTFKit2/GLTFKit2.xcodeproj/project.pbxproj": "331e3021a54e1e400dec64f2154f46fbac404b87ba7311381f48dab6f6cba3cc"
+    }
+  },
+  "post": {
+    "head": "ab2d3905ec0b0fb17b58ba6b53ec433d83164701",
+    "dirty_count": 12,
+    "status": [
+      " M App/ProfileSettingsFavoritesRoute.swift",
+      " M Tests/AppUITests/FailureScreenshot.swift",
+      " M Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift",
+      " M Tests/AppUITests/IntegratedDeniedAcceptanceFlowTests.swift",
+      " M Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift",
+      " M Tests/AppUITests/SearchMapFlowTests.swift",
+      " M Tests/AppUnitTests/ProfileFavoriteDetailTests.swift",
+      " M Tests/AppUnitTests/ProfileFavoriteTopicReadTests.swift",
+      " M Tests/AppUnitTests/ProfileGuideReadTests.swift",
+      " M Tests/AppUnitTests/ProfileSettingsFavoritesTests.swift",
+      " M Tests/AppUnitTests/WorkshopPaidInstallNormalFlowTests.swift",
+      " M Vendor/GLTFKit2/GLTFKit2.xcodeproj/project.pbxproj"
+    ],
+    "modified_sha256": {
+      "App/ProfileSettingsFavoritesRoute.swift": "7af222695a6a95255bd9746d2fc4ba701146ba1e85b6455eb6ce1858451e40a0",
+      "Tests/AppUITests/FailureScreenshot.swift": "c4867b36db9b1a8a8be3db69e6c45b127c61c7c8cf4789690384a57c3b319ffa",
+      "Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift": "1b036bbce78ac9901dac64bc5fc454b8799266c396290df24e4d919734dd03ed",
+      "Tests/AppUITests/IntegratedDeniedAcceptanceFlowTests.swift": "2d6531a8808cdfe9b9421da47665d6861368ca44ac9569cae9719ea892d5558e",
+      "Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift": "82e08b3a4d1eb31aa25c5806eb50cc2da26c03f60ee4c39811acaf7354402fa8",
+      "Tests/AppUITests/SearchMapFlowTests.swift": "9c4869e0e3fa3b3af26f24e208ff04446479ea437c4221212c3b2e78202d8739",
+      "Tests/AppUnitTests/ProfileFavoriteDetailTests.swift": "4febbc59000acf44a41723ac934d62aaf94c4885c73282ff97f2c2e6829dd77f",
+      "Tests/AppUnitTests/ProfileFavoriteTopicReadTests.swift": "945bdca84cbe0096dc0dd6306790c177edea8bff85008de9ae18bbc22c2f4181",
+      "Tests/AppUnitTests/ProfileGuideReadTests.swift": "be70eb4aa6aa5429f2674542c09be213bde0a71958e5bac9eb595f16e9f2feda",
+      "Tests/AppUnitTests/ProfileSettingsFavoritesTests.swift": "35da069bb573b59ca56fe59b91277da30ff70b3ab5a24fb702fe1af864df8bbd",
+      "Tests/AppUnitTests/WorkshopPaidInstallNormalFlowTests.swift": "2d38fd3a87246c509a5cdccfaf0c6758f686024f90fe3edeb4ddc37c07344fc3",
+      "Vendor/GLTFKit2/GLTFKit2.xcodeproj/project.pbxproj": "331e3021a54e1e400dec64f2154f46fbac404b87ba7311381f48dab6f6cba3cc"
+    }
+  },
+  "log_bytes": 119529,
+  "log_sha256": "cbca4a672816874745f793f93fab179f12c8ce3111e5507582df40132500d1ba",
+  "sanitized_log_bytes": 108083,
+  "sanitized_log_sha256": "c7075c90e3205c049f1dbbea6e4c53b1a456d5742c60bf52fe90c8e3516bab03"
+}
