@@ -142,6 +142,15 @@
         "QuestifyUITests.SearchMapFlowTests/testGlobalCategoryChangeRejectsEarlierCompletionAndClearReturnsSuggestions",
         "QuestifyUITests.SearchMapFlowTests/testManualAreaChangeClearsSelectionAndRequiresMapOptInAgain"
       ]
+    },
+    "16_contract_checks_5347_methods.tsv": {
+      "total_executed": 5332,
+      "passed": 4926,
+      "failed": 273,
+      "error": 86,
+      "skipped": 47,
+      "raw_full_log_bytes": 19628273,
+      "raw_full_log_sha256": "46725cde3eeb438fbda09294eacce2271b3db53b61d2d43b334029f37a43e34c"
     }
   },
   "files": [
@@ -186,6 +195,12 @@
       "redacted_bytes": 699695,
       "redacted_sha256": "cb8b8cbdc59e64cab690ae677b0097ea9863fb5bd67b2e86508a348fc2272239",
       "git_blob_sha1": "8b9ba53b7a8b796ef4b102f7e80fc677afedc944"
+    },
+    {
+      "path": "ledgers/16_contract_checks_5347_methods.tsv",
+      "redacted_bytes": 650991,
+      "redacted_sha256": "a1688f14402dd857ce42a44c07cde2b0c0e5fc53e18b67c3017be338f3c00d80",
+      "git_blob_sha1": "b23a7eb67742c8e8824ed08b8bf2ee446839eb91"
     },
     {
       "path": "ledgers/app_unit_and_core_attempts_summary.json",
@@ -354,6 +369,12 @@
       "raw_local_sha256": "46ddd8f0f52e7906867eea927e6d5a1c6ad8a22a0f8dc2634b9e742374d0d0d7"
     },
     {
+      "path": "logs/16_contract_checks_digest.log",
+      "redacted_bytes": 18621671,
+      "redacted_sha256": "66d450fc1fae16216e2a77b8bd6e963faac31d52e756e5911a8a9a0524b2215d",
+      "git_blob_sha1": "754caca0ab9e74e65ed289c60dbe0d81844e4a1d"
+    },
+    {
       "path": "xcresult_exports/AppUnitTests-Attempt1-DefaultTarget12_1-summary.json",
       "redacted_bytes": 474,
       "redacted_sha256": "33b2f53c3637609098315ff0742c53fde5eab1ac9a77f560634ff8a404d622d2",
@@ -407,5 +428,21 @@
       "redacted_sha256": "c0350e41d199f66ce8c175f2abb81d56a10547bfe0ff1e525000674e8fe7b922",
       "git_blob_sha1": "f9c556ee848511f8bb9a73dfe2c21f206992095e"
     }
-  ]
+  ],
+  "excluded_unreceived_ui_increments": {
+    "notice_comment": "https://github.com/liboyang42-cpu/chengyin-app/issues/575#issuecomment-6606357513",
+    "excluded_slices": [
+      "P02",
+      "T01",
+      "G07",
+      "M01",
+      "M07",
+      "M02",
+      "CL02"
+    ],
+    "reported_total_bytes": 21282,
+    "reported_exclusive_files": 11,
+    "status": "NOT_RECEIVED_EXCLUDED_FROM_VERIFIED_SCOPE",
+    "note": "Remote public branches P02/T01/M02/CL02 remain at earlier heads; G07/M01/M07 have no codex/ui-public-20261103-* branch. Old 25 branches are NOT treated as representing the latest full UI."
+  }
 }
