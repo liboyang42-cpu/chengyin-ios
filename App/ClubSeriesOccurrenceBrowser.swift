@@ -262,7 +262,7 @@ import UIKit
             if expanded {
                 Text("club.occurrences.scopeNote").font(.footnote).foregroundStyle(.secondary)
                 if model.loading { ProgressView("club.loading").accessibilityIdentifier("club.occurrences.loading") }
-                if let failure = model.failure { Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.occurrences.error") }
+                if let failure = model.failure { Text(LocalizedStringKey(failure.localizationKey)).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("club.occurrences.error") }
                 if let value = model.accepted(expected, access: access), sourceIsCurrent() {
                     if value.rows.isEmpty { Text("clubOpsEvent.occurrences.empty", tableName: "ClubOpsEvent").accessibilityIdentifier("club.occurrences.empty") }
                     ForEach(value.rows) { row in
@@ -279,7 +279,9 @@ import UIKit
                                 Button("club.occurrences.openEvent") { host.open(route, source: source, current: currentSource(), access: access, active: active()) }
                                     .accessibilityIdentifier("club.occurrences.event.\(row.activityID ?? 0)")
                             }
-                        }.accessibilityIdentifier("club.occurrences.row.\(row.id)")
+                        }.frame(maxWidth: .infinity, alignment: .leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("club.occurrences.row.\(row.id)")
                         Divider()
                     }
                 }
