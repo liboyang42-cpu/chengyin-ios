@@ -52,14 +52,15 @@ import SwiftUI
                     } header: { packageText("limits") }
                     Section {
                         PackageValueRow(key: "bindingCount", value: String(info.requiredBindingCount))
-                        packageText("manifestUnavailable").fixedSize(horizontal: false, vertical: true)
-                        packageText("editorUnavailable").fixedSize(horizontal: false, vertical: true)
+                        WorkshopLibraryNotice(text: packageText("manifestUnavailable"), symbol: "doc")
+                        WorkshopLibraryNotice(text: packageText("editorUnavailable"), symbol: "lock")
                     } header: { packageText("nextSteps") }
                 }
             }
         }
         }
         .modifier(PackageNavigationTitle())
+        .privacySensitive()
         // Package item identity changes only on a real new navigation occurrence.
         .onAppear {
             guard navigation.isCurrentPackageVisit(route) else { return }
