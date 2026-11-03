@@ -165,7 +165,14 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
                 fact("termsVersion", body.termsVersion); fact("termsHash", body.termsHash)
                 ForEach(WorkshopPaidInstalledTextFields.names, id: \.self) { name in
                     if let value = body.sourceFields[name] {
-                        DisclosureGroup { Text(verbatim: value).fixedSize(horizontal: false, vertical: true) } label: {
+                        DisclosureGroup {
+                            if value.isEmpty {
+                                Text(locale.language.languageCode?.identifier == "zh" ? "本次快照中此字段为空。" : "This field is empty in this snapshot.")
+                                    .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                            } else {
+                                Text(verbatim: value).fixedSize(horizontal: false, vertical: true)
+                            }
+                        } label: {
                             Text(LocalizedStringKey("workshopPaidInstalledText.field." + name), tableName: "WorkshopPaidInstalledText")
                         }
                     }

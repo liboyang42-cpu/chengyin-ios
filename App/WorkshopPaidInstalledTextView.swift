@@ -71,7 +71,12 @@ typealias WorkshopPaidInstalledTextControllerFactory = @MainActor (WorkshopPaidI
                         ForEach(WorkshopPaidInstalledTextFields.names, id: \.self) { name in
                             if let value = fields[name] {
                                 DisclosureGroup {
-                                    Text(verbatim: value).fixedSize(horizontal: false, vertical: true)
+                                    if value.isEmpty {
+                                        Text(locale.language.languageCode?.identifier == "zh" ? "本次快照中此字段为空。" : "This field is empty in this snapshot.")
+                                            .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                                    } else {
+                                        Text(verbatim: value).fixedSize(horizontal: false, vertical: true)
+                                    }
                                 } label: { paidText("field." + name) }
                             }
                         }
