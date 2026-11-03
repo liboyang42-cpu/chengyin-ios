@@ -73,9 +73,10 @@ import SwiftUI
                             HStack {
                                 VStack(alignment: .leading) { Text(verbatim: target.moduleId); Text(verbatim: target.versionId).font(.caption) }
                                 Spacer()
-                                if controller.selected?.id == target.id { Image(systemName: "checkmark.circle.fill") }
+                                if controller.selected?.id == target.id { Image(systemName: "checkmark.circle.fill").accessibilityHidden(true) }
                             }
-                        }.disabled(controller.phase != .reviewing).accessibilityIdentifier("workshopCreator.target.\(target.id.uuidString)")
+                        }.accessibilityAddTraits(controller.selected?.id == target.id ? .isSelected : [])
+                        .disabled(controller.phase != .reviewing).accessibilityIdentifier("workshopCreator.target.\(target.id.uuidString)")
                     }
                 }
                 if let target = controller.selected {
