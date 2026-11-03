@@ -144,9 +144,9 @@ extension EnvironmentValues {
                 if current {
                     switch controller.state {
                     case .idle, .loading: ProgressView { Text("projectCategoryPicker.loading", tableName: "ProjectCategoryPicker") }
-                    case .empty: Text("projectCategoryPicker.empty", tableName: "ProjectCategoryPicker")
+                    case .empty: Label { Text("projectCategoryPicker.empty", tableName: "ProjectCategoryPicker") } icon: { Image(systemName: "tag") }.foregroundStyle(.secondary)
                     case .failed:
-                        Text("projectCategoryPicker.failed", tableName: "ProjectCategoryPicker")
+                        Label { Text("projectCategoryPicker.failed", tableName: "ProjectCategoryPicker") } icon: { Image(systemName: "exclamationmark.triangle") }
                         Button("action.retry") { Task { await controller.load(original) } }
                     case .unavailable: Text("projectCategoryPicker.unavailable", tableName: "ProjectCategoryPicker")
                     case .loaded: EmptyView()
@@ -158,11 +158,13 @@ extension EnvironmentValues {
                     ForEach(controller.categories) { category in
                         Button { controller.toggle(category.id, in: original) } label: {
                             HStack {
-                                Text(verbatim: category.name.isEmpty ? String(category.id) : category.name)
+                                Text(verbatim: category.name.isEmpty ? String(category.id) : category.name).foregroundStyle(.primary).fixedSize(horizontal: false, vertical: true)
                                 Spacer()
                                 if controller.selection.selectedIDs.contains(category.id) { Image(systemName: "checkmark") }
                             }
-                        }.disabled(!canSave).accessibilityIdentifier("projectCategoryPicker.option." + String(category.id))
+                        }.disabled(!canSave).frame(minHeight: 44)
+                            .accessibilityAddTraits(controller.selection.selectedIDs.contains(category.id) ? [.isSelected] : [])
+                            .accessibilityIdentifier("projectCategoryPicker.option." + String(category.id))
                     }
                     let visible = Set(controller.categories.map(\.id))
                     let retained = controller.retainedIDs.filter { !visible.contains($0) }
@@ -180,6 +182,8 @@ extension EnvironmentValues {
                         .disabled(!canSave).accessibilityIdentifier("projectCategoryPicker.save")
                 } else { Text("projectStarter.stale") }
             }
+            .listStyle(.insetGrouped).environment(\.defaultMinListRowHeight, 44)
+            .navigationBarTitleDisplayMode(.inline)
             .navigationTitle(Text("projectCategoryPicker.title", tableName: "ProjectCategoryPicker"))
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { controller.close(original) } } }
         }

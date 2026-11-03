@@ -107,7 +107,7 @@ import SwiftUI
                     }
                 }
             }
-            .navigationTitle(Text("projectTeamConfiguration.title", tableName: "ProjectTeamConfiguration"))
+            .navigationBarTitleDisplayMode(.inline).navigationTitle(Text("projectTeamConfiguration.title", tableName: "ProjectTeamConfiguration"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button { controller.close(original) } label: { text("cancel") } }
                 ToolbarItem(placement: .confirmationAction) { Button { _ = controller.apply(original) } label: { text("apply") }

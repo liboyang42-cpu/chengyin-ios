@@ -119,7 +119,7 @@ import SwiftUI
                         .accessibilityIdentifier("projectRouteMapping.confirm")
                 }
             }
-            .navigationTitle(Text("projectRouteMapping.title", tableName: "ProjectNodeRouteMapping"))
+            .navigationBarTitleDisplayMode(.inline).navigationTitle(Text("projectRouteMapping.title", tableName: "ProjectNodeRouteMapping"))
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { controller.close(original) } } }
         }
     }
