@@ -1,0 +1,161 @@
+{
+  "log_file": "logs/16_contract_checks_unittest.log",
+  "unittest_footer": "Ran 5347 tests in 109.274s / FAILED (failures=282, errors=99, skipped=48)",
+  "method_level_5347_counts": {
+    "total_startTest_methods": 5347,
+    "PASSED": 4934,
+    "FAILED": 277,
+    "ERROR": 89,
+    "SKIPPED": 47
+  },
+  "result_counter_reconciliation": {
+    "failures_282": {
+      "failed_test_methods": 277,
+      "extra_subTest_failure_records": 5,
+      "breakdown": [
+        "test_global_search_category_recovery.GlobalSearchCategoryRecoveryContracts.test_reviewed_helper_sheet_services_and_remote_explorer_are_pinned: 4 failed subTests (+3 extra records)",
+        "test_profile_read_failure_remote_admission.StaticObservabilityCombinedAdmission.test_static_preimages_and_self_preimage_are_bound_by_whole_r5_contract: 3 failed subTests (+2 extra records)"
+      ],
+      "total_failures_counter": 282
+    },
+    "errors_99": {
+      "errored_test_methods": 89,
+      "extra_subTest_error_records": 10,
+      "breakdown": [
+        "test_project_editor_readiness.ProjectEditorReadinessContracts.test_exact_inverse_preserves_all_original_assertions_and_helpers: 6 errored subTests (+5 extra records)",
+        "test_project_editor_readiness.ProjectEditorReadinessContracts.test_shared_helpers_environment_workflow_and_budget_history_are_unchanged: 6 errored subTests (+5 extra records)"
+      ],
+      "total_errors_counter": 99
+    },
+    "skipped_48": {
+      "skipped_test_methods": 47,
+      "extra_setUpClass_skip_records": 1,
+      "breakdown": [
+        "Line 1944: skipped 'NOT_RUN: explicit CURRENT backend source root not supplied' emitted by setUpClass (increments result.skipped without calling startTest)"
+      ],
+      "total_skipped_counter": 48
+    }
+  },
+  "missed_15_methods_in_original_5332_tsv": [
+    {
+      "index": 311,
+      "class": "test_c11_ops_support_projections.C11OpsSupportProjectionContracts",
+      "method": "test_original_event_route_is_not_an_info_approval",
+      "status": "FAILED",
+      "subtest_records": 1,
+      "reason_missed_by_single_line_regex": "multiline_docstring_header"
+    },
+    {
+      "index": 1157,
+      "class": "test_global_search_category_recovery.GlobalSearchCategoryRecoveryContracts",
+      "method": "test_reviewed_helper_sheet_services_and_remote_explorer_are_pinned",
+      "status": "FAILED",
+      "subtest_records": 4,
+      "reason_missed_by_single_line_regex": "subTest_failed_no_newline (4 subTest records)"
+    },
+    {
+      "index": 1158,
+      "class": "test_global_search_category_recovery.GlobalSearchCategoryRecoveryContracts",
+      "method": "test_search_map_apply_history_and_query_side_effect_mutants_are_rejected",
+      "status": "PASSED",
+      "subtest_records": 0,
+      "reason_missed_by_single_line_regex": "concatenated_after_preceding_subTest_no_newline"
+    },
+    {
+      "index": 2742,
+      "class": "test_play_route_map.PlayRouteMapContracts",
+      "method": "test_accessibility_and_bilingual_disclaimer",
+      "status": "ERROR",
+      "subtest_records": 1,
+      "reason_missed_by_single_line_regex": "subTest_error_no_newline (1 subTest records)"
+    },
+    {
+      "index": 2743,
+      "class": "test_play_route_map.PlayRouteMapContracts",
+      "method": "test_coordinates_are_checked_and_gaps_not_joined",
+      "status": "PASSED",
+      "subtest_records": 0,
+      "reason_missed_by_single_line_regex": "concatenated_after_preceding_subTest_no_newline"
+    },
+    {
+      "index": 2807,
+      "class": "test_playkit_glb_security.PlayKitGLBSecurityChecks",
+      "method": "test_no_unverified_binary_or_floating_dependency",
+      "status": "PASSED",
+      "subtest_records": 0,
+      "reason_missed_by_single_line_regex": "multiline_stdout_before_ok"
+    },
+    {
+      "index": 2876,
+      "class": "test_production_signing_evidence_contract.SigningEvidenceContract",
+      "method": "test_cli_exit_codes",
+      "status": "PASSED",
+      "subtest_records": 0,
+      "reason_missed_by_single_line_regex": "multiline_stdout_before_ok"
+    },
+    {
+      "index": 3232,
+      "class": "profile_read_failure_raw.ProfileReadFailureContracts",
+      "method": "test_all_raw_byte_drift_controls_fail_both_gates",
+      "status": "FAILED",
+      "subtest_records": 1,
+      "reason_missed_by_single_line_regex": "subTest_failed_no_newline (1 subTest records)"
+    },
+    {
+      "index": 3233,
+      "class": "profile_read_failure_raw.ProfileReadFailureContracts",
+      "method": "test_complete_original_xctest_bytes_remain_before_append",
+      "status": "PASSED",
+      "subtest_records": 0,
+      "reason_missed_by_single_line_regex": "concatenated_after_preceding_subTest_no_newline"
+    },
+    {
+      "index": 3550,
+      "class": "test_project_editor_readiness.ProjectEditorReadinessContracts",
+      "method": "test_exact_inverse_preserves_all_original_assertions_and_helpers",
+      "status": "ERROR",
+      "subtest_records": 6,
+      "reason_missed_by_single_line_regex": "subTest_error_no_newline (6 subTest records)"
+    },
+    {
+      "index": 3551,
+      "class": "test_project_editor_readiness.ProjectEditorReadinessContracts",
+      "method": "test_gesture_endpoints_stay_inside_short_form_viewport",
+      "status": "PASSED",
+      "subtest_records": 0,
+      "reason_missed_by_single_line_regex": "concatenated_after_preceding_subTest_no_newline"
+    },
+    {
+      "index": 3554,
+      "class": "test_project_editor_readiness.ProjectEditorReadinessContracts",
+      "method": "test_shared_helpers_environment_workflow_and_budget_history_are_unchanged",
+      "status": "ERROR",
+      "subtest_records": 6,
+      "reason_missed_by_single_line_regex": "subTest_error_no_newline (6 subTest records)"
+    },
+    {
+      "index": 3555,
+      "class": "test_project_initial_attributes.InitialAttributesContracts",
+      "method": "test_actual_controller_regressions_include_stale_actions",
+      "status": "PASSED",
+      "subtest_records": 0,
+      "reason_missed_by_single_line_regex": "concatenated_after_preceding_subTest_no_newline"
+    },
+    {
+      "index": 3690,
+      "class": "test_project_submission_compiler_boundaries.ProjectSubmissionCompilerBoundaries",
+      "method": "test_source_checks_reject_weakened_boundaries_and_stale_callbacks",
+      "status": "FAILED",
+      "subtest_records": 1,
+      "reason_missed_by_single_line_regex": "subTest_failed_no_newline (1 subTest records)"
+    },
+    {
+      "index": 3691,
+      "class": "test_project_team_configuration.TeamConfigurationContracts",
+      "method": "test_actual_core_regressions_target_payload_and_readback",
+      "status": "PASSED",
+      "subtest_records": 0,
+      "reason_missed_by_single_line_regex": "concatenated_after_preceding_subTest_no_newline"
+    }
+  ]
+}

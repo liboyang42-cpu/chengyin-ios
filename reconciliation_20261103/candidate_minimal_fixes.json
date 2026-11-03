@@ -1,0 +1,38 @@
+{
+  "working_tree_status": "CLEAN_UNMODIFIED (dirty = 0 on ab2d3905ec0b0fb17b58ba6b53ec433d83164701)",
+  "note": "These candidate minimal diffs are documented for audit reference only; the working checkout remains 100% clean at ab2d3905ec0b0fb17b58ba6b53ec433d83164701 with zero modified files.",
+  "candidates": [
+    {
+      "file": "Vendor/GLTFKit2/GLTFKit2.xcodeproj/project.pbxproj",
+      "before_sha256": "30b4ca5ada1cec58ee2ac11e9514691e54d2eeba5d3985f4935111de1b55bf00",
+      "after_sha256": "331e3021a54e1e400dec64f2154f46fbac404b87ba7311381f48dab6f6cba3cc",
+      "reason": "Raise GLTFKit2 subproject deployment target from 12.1 to 17.0 so Xcode 27.1 (supported range 15.0..27.1.x) builds the standalone QuestifyAppUnitTests scheme without requiring IPHONEOS_DEPLOYMENT_TARGET=17.0 override",
+      "reproduction_and_verification_command": "xcodebuild test -project Questify.xcodeproj -scheme QuestifyAppUnitTests -destination 'platform=iOS Simulator,id=<SIMULATOR_UDID>'",
+      "unified_diff": "--- a/Vendor/GLTFKit2/GLTFKit2.xcodeproj/project.pbxproj\n+++ b/Vendor/GLTFKit2/GLTFKit2.xcodeproj/project.pbxproj\n@@ -314,7 +314,7 @@\n \t\t\t\tGCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;\n \t\t\t\tGCC_WARN_UNUSED_FUNCTION = YES;\n \t\t\t\tGCC_WARN_UNUSED_VARIABLE = YES;\n-\t\t\t\tIPHONEOS_DEPLOYMENT_TARGET = 12.1;\n+\t\t\t\tIPHONEOS_DEPLOYMENT_TARGET = 17.0;\n \t\t\t\tMACOSX_DEPLOYMENT_TARGET = 11.0;\n \t\t\t\tMTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;\n \t\t\t\tMTL_FAST_MATH = YES;\n@@ -376,7 +376,7 @@\n \t\t\t\tGCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;\n \t\t\t\tGCC_WARN_UNUSED_FUNCTION = YES;\n \t\t\t\tGCC_WARN_UNUSED_VARIABLE = YES;\n-\t\t\t\tIPHONEOS_DEPLOYMENT_TARGET = 12.1;\n+\t\t\t\tIPHONEOS_DEPLOYMENT_TARGET = 17.0;\n \t\t\t\tMACOSX_DEPLOYMENT_TARGET = 11.0;\n \t\t\t\tMTL_ENABLE_DEBUG_INFO = NO;\n \t\t\t\tMTL_FAST_MATH = YES;\n"
+    },
+    {
+      "file": "tools/current_native.py",
+      "before_sha256": "fcd7761c47a0556045c735c77260298f6167fbccfe91c48ee70b93ee5feb3218",
+      "after_sha256": "b06ea1df51cecc0d1bce3ca5839a7389a6e7fc79ca5646badf1a1a83c73cfed2",
+      "reason": "Guard tarfile.extractall(filter='data') on Python < 3.11.4 (Xcode/macOS system /usr/bin/python3 is 3.9.6 where tarfile.data_filter does not exist)",
+      "reproduction_and_verification_command": "TMPDIR=$(cd $(mktemp -d) && pwd -P) python3 -m unittest discover -s tools/tests -p 'test_*.py' -v",
+      "unified_diff": "--- a/tools/current_native.py\n+++ b/tools/current_native.py\n@@ -828,7 +828,7 @@\n         for member in stream.getmembers():\n             p = Path(member.name)\n             require(not p.is_absolute() and '..' not in p.parts and p.parts and p.parts[0] == 'Products', 'Archive path escape')\n-        stream.extractall(destination, filter='data')\n+        stream.extractall(destination, **(dict(filter='data') if hasattr(tarfile, 'data_filter') else {}))\n     products = destination / 'Products'\n     require(split404_ledger(products) == receipt['product_ledger'], 'Restored build file ledger differs')\n     run = select_xctestrun(products, 'QuestifyUITests')\n"
+    },
+    {
+      "file": "Tests/AppUnitTests/ProfileSettingsFavoritesTests.swift",
+      "before_sha256": "3245c921f272225eba72a2bb128079711185a73fbf216a0929db3f47cc1f7d54",
+      "after_sha256": "f7f97f70b3a72f95a23a0fb69ebbd96ab1192d128927cd89dab6220ac5f9268d",
+      "reason": "Await MainActor completion of ProfileFavoritesReader.favoritePosts decoding post 101 into acceptedPosts before asserting owner.openPost(...) in testSettingsCollectionUsesOriginalDetailAndKeepsOwnerWhenCovered",
+      "reproduction_and_verification_command": "xcodebuild test-without-building -project Questify.xcodeproj -scheme Questify -destination 'platform=iOS Simulator,id=<SIMULATOR_UDID>' -only-testing:QuestifyAppUnitTests/ProfileSettingsFavoritesTests/testSettingsCollectionUsesOriginalDetailAndKeepsOwnerWhenCovered",
+      "unified_diff": "--- a/Tests/AppUnitTests/ProfileSettingsFavoritesTests.swift\n+++ b/Tests/AppUnitTests/ProfileSettingsFavoritesTests.swift\n@@ -237,7 +237,12 @@\n         let route = try XCTUnwrap(owner.route)\n         for _ in 0..<100 where !h.wire.paths.contains(\"list\") { try await Task.sleep(for: .milliseconds(20)) }\n         XCTAssertTrue(h.wire.paths.contains(\"list\"))\n-        XCTAssertTrue(owner.openPost(.init(id: 101, generation: .legacySquare), from: route, current: .current(h.session)))\n+        var opened = false\n+        for _ in 0..<100 where !opened {\n+            opened = owner.openPost(.init(id: 101, generation: .legacySquare), from: route, current: .current(h.session))\n+            if !opened { try await Task.sleep(for: .milliseconds(20)) }\n+        }\n+        XCTAssertTrue(opened)\n         let selection = try XCTUnwrap(owner.posts.selection)\n         for _ in 0..<100 where !h.wire.paths.contains(\"info\") { try await Task.sleep(for: .milliseconds(20)) }\n         XCTAssertTrue(h.wire.paths.contains(\"info\")); XCTAssertTrue(selection.isCurrent)\n"
+    },
+    {
+      "file": "Tests/AppUnitTests/WorkshopPaidInstallNormalFlowTests.swift",
+      "before_sha256": "cfe4ad08facb1bf37582046bccedbb2de135bea6579ff9264fbcb50ebb8f7809",
+      "after_sha256": "99b33032f3211665b1b34c1b23cc126cffc1d73b38f561f4c63c36f61022f147",
+      "reason": "Advance CFRunLoop via Task.sleep after presenter.dismiss(animated:false) so UIHostingController.viewDidDisappear delivers SwiftUI .onDisappear -> controller.close(appearance) under full-suite runloop load",
+      "reproduction_and_verification_command": "xcodebuild test-without-building -project Questify.xcodeproj -scheme Questify -destination 'platform=iOS Simulator,id=<SIMULATOR_UDID>' -only-testing:QuestifyAppUnitTests/WorkshopPaidInstallNormalFlowTests/testRealHostedInstallModalDismissAndReopenRetiresOldViewCallbacks",
+      "unified_diff": "--- a/Tests/AppUnitTests/WorkshopPaidInstallNormalFlowTests.swift\n+++ b/Tests/AppUnitTests/WorkshopPaidInstallNormalFlowTests.swift\n@@ -93,7 +93,7 @@\n         let window=UIWindow(frame:UIScreen.main.bounds),presenter=UIViewController();window.rootViewController=presenter;window.makeKeyAndVisible();defer{window.isHidden=true}\n         let host=UIHostingController(rootView:WorkshopPaidInstallView(controller:c,appearance:old,onClose:{}));presenter.present(host,animated:false)\n         for _ in 0..<1000{if c.phase == .ready{break};await Task.yield()};XCTAssertEqual(c.phase,.ready)\n-        presenter.dismiss(animated:false);for _ in 0..<1000{if c.phase == .idle{break};await Task.yield()};XCTAssertEqual(c.phase,.idle)\n+        presenter.dismiss(animated:false);for _ in 0..<100 where c.phase != .idle{try await Task.sleep(for:.milliseconds(10))};XCTAssertEqual(c.phase,.idle)\n         let fresh=WorkshopPaidInstallAppearance();await (try XCTUnwrap(c.appear(fresh)))();c.close(old);XCTAssertNil(c.appear(old));XCTAssertEqual(c.phase,.ready)\n     }\n     func testNormalTransportNeverAcceptsSubmitThroughGeneralSendEvenWithInstallApproval()async throws{\n"
+    }
+  ]
+}

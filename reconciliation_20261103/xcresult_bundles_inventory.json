@@ -1,0 +1,180 @@
+{
+  "xcshot_verification_note": "UITests-32Provenance.xcresult is a finalized .xcresult bundle from Run 10 on fixed SHA ab2d3905ec0b0fb17b58ba6b53ec433d83164701 (32 provenance UI tests: 13 PASSED, 19 FAILED). It contains 19 failure-state PNG screenshots (synthetic fixtures only, 0 credentials/PII/live payloads), all 19 of which are exported losslessly in reconciliation_20261103/xcresult_32provenance_attachments/. It does NOT contain full-app passing UI acceptance screenshots or screenshots from the 25 codex/ui-public-20261103-* branches.",
+  "bundles": [
+    {
+      "bundle_name": "UITests-32Provenance.xcresult",
+      "lossless_tar_gz_bytes": 161070909,
+      "lossless_tar_gz_sha256": "f1d5cb73319473ad6e4daed795a5fd4efea7f65d213f7810e731433edd2fbc96",
+      "screenshot_png_count": 19,
+      "contains_credentials_or_live_data": false,
+      "contains_unredacted_local_host_paths_in_sqlite_and_cas": true,
+      "sqlite_local_path_occurrences": 20,
+      "public_repo_delivery_status": "19 lossless PNG failure-state screenshots + redacted attachment manifest exported to reconciliation_20261103/xcresult_32provenance_attachments/; raw .xcresult binary database held locally per safety rule because database.sqlite3 and content-addressed CAS blobs embed unredacted local host paths and simulator UDIDs (and UITests-32Provenance.xcresult.tar.gz is 161,070,909 bytes > GitHub 100 MB single-file limit)."
+    },
+    {
+      "bundle_name": "AppUnitTests.xcresult",
+      "lossless_tar_gz_bytes": 17506,
+      "lossless_tar_gz_sha256": "431a9ea9b082000d898bd16e4c19cf53cc7e974e71379b2692f940cac1242977",
+      "screenshot_png_count": 0,
+      "contains_credentials_or_live_data": false,
+      "contains_unredacted_local_host_paths_in_sqlite_and_cas": true,
+      "sqlite_local_path_occurrences": 2,
+      "public_repo_delivery_status": "Unit test bundle only (0 UI screenshots); redacted log and TSV ledger already published."
+    },
+    {
+      "bundle_name": "AppUnitTests-Keychain12.xcresult",
+      "lossless_tar_gz_bytes": 46837406,
+      "lossless_tar_gz_sha256": "8792181a7e643059ab602a79d2abaece9c604b45cc1ef7f5386d456bdf31979a",
+      "screenshot_png_count": 0,
+      "contains_credentials_or_live_data": false,
+      "contains_unredacted_local_host_paths_in_sqlite_and_cas": true,
+      "sqlite_local_path_occurrences": 5,
+      "public_repo_delivery_status": "Unit test bundle only (0 UI screenshots); redacted log and TSV ledger already published."
+    },
+    {
+      "bundle_name": "AppUnitTests-FullKeychainHost.xcresult",
+      "lossless_tar_gz_bytes": 54647948,
+      "lossless_tar_gz_sha256": "8dff64592b041b8ed47516844306e90521495151dd3c96fea82f9fbffd5aa4b3",
+      "screenshot_png_count": 0,
+      "contains_credentials_or_live_data": false,
+      "contains_unredacted_local_host_paths_in_sqlite_and_cas": true,
+      "sqlite_local_path_occurrences": 29,
+      "public_repo_delivery_status": "Unit test bundle only (0 UI screenshots); redacted log and TSV ledger already published."
+    }
+  ],
+  "exported_png_screenshots": [
+    {
+      "testIdentifier": "IntegratedActivityPlayJourneyFlowTests/testActualPhoneHomeDetailManualMapPlayAndFreshOwnedOrderJourney()",
+      "exportedFileName": "B4E306AD-63F3-4F50-B0CE-995E07F82003.png",
+      "suggestedHumanReadableName": "Failure state – -[IntegratedActivityPlayJourneyFlowTests testActualPhoneHomeDetailManualMapPlayAndFreshOwnedOrderJourney]_0_3E896D6C-F958-43FA-A4A6-444144F2C492.png",
+      "byte_size": 252767,
+      "sha256": "1d1aafbb33aefe654c3001682d54ca809911dd609c07e12578018943d0d51455"
+    },
+    {
+      "testIdentifier": "IntegratedActivityPlayJourneyFlowTests/testNormalRootOwnedShelfPaginationAndDetailWithoutMutation()",
+      "exportedFileName": "9829EF9E-C4F0-4C7A-8FAB-B21308BF10CC.png",
+      "suggestedHumanReadableName": "Failure state – -[IntegratedActivityPlayJourneyFlowTests testNormalRootOwnedShelfPaginationAndDetailWithoutMutation]_0_60B25D57-A6AC-480D-B3F1-DFC3F1CB406E.png",
+      "byte_size": 252767,
+      "sha256": "1d1aafbb33aefe654c3001682d54ca809911dd609c07e12578018943d0d51455"
+    },
+    {
+      "testIdentifier": "IntegratedDeniedAcceptanceFlowTests/testConfiguredAuthenticationDoesNotGrantDetailMapPlayOrOwnedOrders()",
+      "exportedFileName": "4D6D9E6A-ED0F-4288-B391-6CA8F469B6FA.png",
+      "suggestedHumanReadableName": "Failure state – -[IntegratedDeniedAcceptanceFlowTests testConfiguredAuthenticationDoesNotGrantDetailMapPlayOrOwnedOrders]_0_04999D6D-A6DF-4533-B07F-52AA4C387534.png",
+      "byte_size": 252767,
+      "sha256": "1d1aafbb33aefe654c3001682d54ca809911dd609c07e12578018943d0d51455"
+    },
+    {
+      "testIdentifier": "IntegratedDeniedAcceptanceFlowTests/testNormalRootIMHistoryDefaultNilNeverDispatches()",
+      "exportedFileName": "B695CCC0-FC75-4071-86C7-DF65712C77A4.png",
+      "suggestedHumanReadableName": "Failure state – -[IntegratedDeniedAcceptanceFlowTests testNormalRootIMHistoryDefaultNilNeverDispatches]_0_F891293C-A7EE-4A18-AB84-F9F6B7AA0F39.png",
+      "byte_size": 252767,
+      "sha256": "1d1aafbb33aefe654c3001682d54ca809911dd609c07e12578018943d0d51455"
+    },
+    {
+      "testIdentifier": "IntegratedNativeAcceptanceFlowTests/testActualSettingsFavoritesNoGrantBackDoneAndRepeatedReopen()",
+      "exportedFileName": "B0D74A9D-19C9-4F51-A6C0-5DA84927946D.png",
+      "suggestedHumanReadableName": "Failure state – -[IntegratedNativeAcceptanceFlowTests testActualSettingsFavoritesNoGrantBackDoneAndRepeatedReopen]_0_FACCC5ED-7366-4FD4-9FD7-A4E29B0BAFD5.png",
+      "byte_size": 252767,
+      "sha256": "1d1aafbb33aefe654c3001682d54ca809911dd609c07e12578018943d0d51455"
+    },
+    {
+      "testIdentifier": "IntegratedNativeAcceptanceFlowTests/testNormalRootIMHistoryNeverMarksReadOrSends()",
+      "exportedFileName": "A5EF8190-95E0-41CE-95EB-D59E29B67FD2.png",
+      "suggestedHumanReadableName": "Failure state – -[IntegratedNativeAcceptanceFlowTests testNormalRootIMHistoryNeverMarksReadOrSends]_0_AD8B2CAE-6FA6-448A-A1D6-A7B94B22F3CB.png",
+      "byte_size": 252767,
+      "sha256": "1d1aafbb33aefe654c3001682d54ca809911dd609c07e12578018943d0d51455"
+    },
+    {
+      "testIdentifier": "IntegratedNativeAcceptanceFlowTests/testNormalRootOwnedConfigurationReadOnlyAndStoryReturn()",
+      "exportedFileName": "793FD525-0CC8-4F5D-B1A2-C5615BEF0836.png",
+      "suggestedHumanReadableName": "Failure state – -[IntegratedNativeAcceptanceFlowTests testNormalRootOwnedConfigurationReadOnlyAndStoryReturn]_0_2679AA52-CD7D-423A-92C8-F619A9F98EE5.png",
+      "byte_size": 253131,
+      "sha256": "9aad78a61e42cd88973ecb2d4931d8340fef625a93a3496d4b786efec193eed4"
+    },
+    {
+      "testIdentifier": "IntegratedNativeAcceptanceFlowTests/testNormalRootTeamReadOnlyJourney()",
+      "exportedFileName": "957ECA50-B1D4-410F-ADE0-E2894DEF0DDC.png",
+      "suggestedHumanReadableName": "Failure state – -[IntegratedNativeAcceptanceFlowTests testNormalRootTeamReadOnlyJourney]_0_A4FCF155-1CC7-4767-83B7-648337486069.png",
+      "byte_size": 253131,
+      "sha256": "9aad78a61e42cd88973ecb2d4931d8340fef625a93a3496d4b786efec193eed4"
+    },
+    {
+      "testIdentifier": "IntegratedNativeAcceptanceFlowTests/testPhoneCancelLogoutAccountSwitchAndColdLaunchDoNotReuseOwnerState()",
+      "exportedFileName": "AAED899B-1ACE-4CDF-AFF5-8E129B9B4CB1.png",
+      "suggestedHumanReadableName": "Failure state – -[IntegratedNativeAcceptanceFlowTests testPhoneCancelLogoutAccountSwitchAndColdLaunchDoNotReuseOwnerState]_0_90F3B67D-758C-4CD3-A0F3-C4BBC14ED2E1.png",
+      "byte_size": 253131,
+      "sha256": "9aad78a61e42cd88973ecb2d4931d8340fef625a93a3496d4b786efec193eed4"
+    },
+    {
+      "testIdentifier": "IntegratedNativeAcceptanceFlowTests/testSettingsOffersPlayerApplicationsInMiniProgramOrderAndSignsOut()",
+      "exportedFileName": "643E04E5-734E-4933-A279-0724E5ACAD15.png",
+      "suggestedHumanReadableName": "Failure state – -[IntegratedNativeAcceptanceFlowTests testSettingsOffersPlayerApplicationsInMiniProgramOrderAndSignsOut]_0_47205FEC-955F-4E62-B781-90BE0D58FB82.png",
+      "byte_size": 253131,
+      "sha256": "9aad78a61e42cd88973ecb2d4931d8340fef625a93a3496d4b786efec193eed4"
+    },
+    {
+      "testIdentifier": "SearchMapAlternativeListFlowTests/testAlternativeListBilingualMaximumTypeKeepsFullTitlesAndParentSelectionInSync()",
+      "exportedFileName": "6C36AD5B-D4F1-4756-9E60-36EEAD75675F.png",
+      "suggestedHumanReadableName": "Failure state – -[SearchMapAlternativeListFlowTests testAlternativeListBilingualMaximumTypeKeepsFullTitlesAndParentSelectionInSync]_0_25CAC426-4615-449A-919E-5F5557B902C9.png",
+      "byte_size": 202598,
+      "sha256": "ebb75756ae5ea7285cc9c003bd98dcdc23c6a789834ee678da8b63efbf4cffb8"
+    },
+    {
+      "testIdentifier": "SearchMapAlternativeListFlowTests/testAlternativeListCloseReopenAndEmptySnapshotNeverRetainOldRows()",
+      "exportedFileName": "181D820A-59B3-44FA-90EC-1389452F8203.png",
+      "suggestedHumanReadableName": "Failure state – -[SearchMapAlternativeListFlowTests testAlternativeListCloseReopenAndEmptySnapshotNeverRetainOldRows]_0_7AE67805-7E7B-4357-A993-8B914F54FA0D.png",
+      "byte_size": 148877,
+      "sha256": "f4fe21977801b20cea56ac77bf2a6bb458ca6eddb5eb5f688944943401f759f8"
+    },
+    {
+      "testIdentifier": "SearchMapAlternativeListFlowTests/testAlternativeListRefreshRemovalAndDuplicateIDsCannotSelectAnotherPlace()",
+      "exportedFileName": "55F6AAE4-C1DE-4C95-B8BE-A458617893A4.png",
+      "suggestedHumanReadableName": "Failure state – -[SearchMapAlternativeListFlowTests testAlternativeListRefreshRemovalAndDuplicateIDsCannotSelectAnotherPlace]_0_85001C5F-1B36-4FED-A199-B315A542141C.png",
+      "byte_size": 146450,
+      "sha256": "4412c8cf06f9d153bb69885de7eb42d32df9532e854d7a7d51a763da7be48cac"
+    },
+    {
+      "testIdentifier": "SearchMapFlowTests/testCityFilterCancelPreservesSelectionButApplyClearsIt()",
+      "exportedFileName": "7BE2C204-C794-4DCA-93BD-B7890E6690E6.png",
+      "suggestedHumanReadableName": "Failure state – -[SearchMapFlowTests testCityFilterCancelPreservesSelectionButApplyClearsIt]_0_22E2046A-57DA-4C79-950A-6D838B7D9EBD.png",
+      "byte_size": 430213,
+      "sha256": "d58563ed28e539fb9dbb86d75030098ac042ecd24e1425a1deed93433e2babf1"
+    },
+    {
+      "testIdentifier": "SearchMapFlowTests/testCityListSelectionUsesSamePinAndPreservesExplicitMapGate()",
+      "exportedFileName": "78010E41-62DD-4AE4-A12C-6A9D53F64069.png",
+      "suggestedHumanReadableName": "Failure state – -[SearchMapFlowTests testCityListSelectionUsesSamePinAndPreservesExplicitMapGate]_0_0306DDF7-65DD-4DD9-9720-606813052923.png",
+      "byte_size": 428617,
+      "sha256": "3a0d57fc594e2f345781397a4fe6ef44eb1fc53a84bb68804c8627648e6fd03d"
+    },
+    {
+      "testIdentifier": "SearchMapFlowTests/testFilterValidationCancelAndReopen()",
+      "exportedFileName": "5BEE3189-192C-4B79-9022-F1BB25CB21D2.png",
+      "suggestedHumanReadableName": "Failure state – -[SearchMapFlowTests testFilterValidationCancelAndReopen]_0_AE0876A2-04F2-4A6B-B651-DA24EEF830A9.png",
+      "byte_size": 189985,
+      "sha256": "f304130a78f4cd5385195a88bdf0e83c379cddb1501593df9501fb859f6702e6"
+    },
+    {
+      "testIdentifier": "SearchMapFlowTests/testGlobalCategoryApplyResetPreservesKeywordAndCancelPreservesResults()",
+      "exportedFileName": "5D4F0C90-4CB3-48C3-9E53-B8840C0CA33B.png",
+      "suggestedHumanReadableName": "Failure state – -[SearchMapFlowTests testGlobalCategoryApplyResetPreservesKeywordAndCancelPreservesResults]_0_FC446A55-E08F-4FB1-BF15-1A256674A01B.png",
+      "byte_size": 216695,
+      "sha256": "7ba2f15e7fcae53d8671645925c1836f8a07ec48474adb5c63a47dbadfe907ae"
+    },
+    {
+      "testIdentifier": "SearchMapFlowTests/testGlobalCategoryChangeRejectsEarlierCompletionAndClearReturnsSuggestions()",
+      "exportedFileName": "0CD4BD66-AA48-4FA4-880A-A389E41DBC34.png",
+      "suggestedHumanReadableName": "Failure state – -[SearchMapFlowTests testGlobalCategoryChangeRejectsEarlierCompletionAndClearReturnsSuggestions]_0_65B4A297-1EB4-4767-86F9-3DEC3E191AC8.png",
+      "byte_size": 187461,
+      "sha256": "503bdf1d7402dc0e2ffb464489fc13f0505bcc624d93afda871d8efb10501ae2"
+    },
+    {
+      "testIdentifier": "SearchMapFlowTests/testManualAreaChangeClearsSelectionAndRequiresMapOptInAgain()",
+      "exportedFileName": "B2919E2A-548D-4CD0-AB50-63951D6F97C0.png",
+      "suggestedHumanReadableName": "Failure state – -[SearchMapFlowTests testManualAreaChangeClearsSelectionAndRequiresMapOptInAgain]_0_96560FB1-E29E-4E1B-9688-F4AF1B9EE8A2.png",
+      "byte_size": 487283,
+      "sha256": "bc6f365bf95e587e88da19adfe06e3c27f2b83e17fa8b136f9a4aec4a1040149"
+    }
+  ]
+}

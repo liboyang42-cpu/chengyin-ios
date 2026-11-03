@@ -1,0 +1,306 @@
+[
+  {
+    "testIdentifier": "IntegratedActivityPlayJourneyFlowTests/testActualPhoneHomeDetailManualMapPlayAndFreshOwnedOrderJourney()",
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "25316F87-058C-46CE-8825-617906638207",
+        "deviceName": "Questify-iPhone17",
+        "exportedFileName": "B4E306AD-63F3-4F50-B0CE-995E07F82003.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Failure state – -[IntegratedActivityPlayJourneyFlowTests testActualPhoneHomeDetailManualMapPlayAndFreshOwnedOrderJourney]_0_3E896D6C-F958-43FA-A4A6-444144F2C492.png",
+        "timestamp": 1793715263.338,
+        "sha256": "1d1aafbb33aefe654c3001682d54ca809911dd609c07e12578018943d0d51455",
+        "byte_size": 252767
+      }
+    ]
+  },
+  {
+    "testIdentifier": "IntegratedActivityPlayJourneyFlowTests/testNormalRootOwnedShelfPaginationAndDetailWithoutMutation()",
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "25316F87-058C-46CE-8825-617906638207",
+        "deviceName": "Questify-iPhone17",
+        "exportedFileName": "9829EF9E-C4F0-4C7A-8FAB-B21308BF10CC.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Failure state – -[IntegratedActivityPlayJourneyFlowTests testNormalRootOwnedShelfPaginationAndDetailWithoutMutation]_0_60B25D57-A6AC-480D-B3F1-DFC3F1CB406E.png",
+        "timestamp": 1793715268.881,
+        "sha256": "1d1aafbb33aefe654c3001682d54ca809911dd609c07e12578018943d0d51455",
+        "byte_size": 252767
+      }
+    ]
+  },
+  {
+    "testIdentifier": "IntegratedDeniedAcceptanceFlowTests/testConfiguredAuthenticationDoesNotGrantDetailMapPlayOrOwnedOrders()",
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "25316F87-058C-46CE-8825-617906638207",
+        "deviceName": "Questify-iPhone17",
+        "exportedFileName": "4D6D9E6A-ED0F-4288-B391-6CA8F469B6FA.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Failure state – -[IntegratedDeniedAcceptanceFlowTests testConfiguredAuthenticationDoesNotGrantDetailMapPlayOrOwnedOrders]_0_04999D6D-A6DF-4533-B07F-52AA4C387534.png",
+        "timestamp": 1793715274.689,
+        "sha256": "1d1aafbb33aefe654c3001682d54ca809911dd609c07e12578018943d0d51455",
+        "byte_size": 252767
+      }
+    ]
+  },
+  {
+    "testIdentifier": "IntegratedDeniedAcceptanceFlowTests/testNormalRootIMHistoryDefaultNilNeverDispatches()",
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "25316F87-058C-46CE-8825-617906638207",
+        "deviceName": "Questify-iPhone17",
+        "exportedFileName": "B695CCC0-FC75-4071-86C7-DF65712C77A4.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Failure state – -[IntegratedDeniedAcceptanceFlowTests testNormalRootIMHistoryDefaultNilNeverDispatches]_0_F891293C-A7EE-4A18-AB84-F9F6B7AA0F39.png",
+        "timestamp": 1793715280.512,
+        "sha256": "1d1aafbb33aefe654c3001682d54ca809911dd609c07e12578018943d0d51455",
+        "byte_size": 252767
+      }
+    ]
+  },
+  {
+    "testIdentifier": "IntegratedNativeAcceptanceFlowTests/testActualSettingsFavoritesNoGrantBackDoneAndRepeatedReopen()",
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "25316F87-058C-46CE-8825-617906638207",
+        "deviceName": "Questify-iPhone17",
+        "exportedFileName": "B0D74A9D-19C9-4F51-A6C0-5DA84927946D.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Failure state – -[IntegratedNativeAcceptanceFlowTests testActualSettingsFavoritesNoGrantBackDoneAndRepeatedReopen]_0_FACCC5ED-7366-4FD4-9FD7-A4E29B0BAFD5.png",
+        "timestamp": 1793715286.987,
+        "sha256": "1d1aafbb33aefe654c3001682d54ca809911dd609c07e12578018943d0d51455",
+        "byte_size": 252767
+      }
+    ]
+  },
+  {
+    "testIdentifier": "IntegratedNativeAcceptanceFlowTests/testNormalRootIMHistoryNeverMarksReadOrSends()",
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "25316F87-058C-46CE-8825-617906638207",
+        "deviceName": "Questify-iPhone17",
+        "exportedFileName": "A5EF8190-95E0-41CE-95EB-D59E29B67FD2.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Failure state – -[IntegratedNativeAcceptanceFlowTests testNormalRootIMHistoryNeverMarksReadOrSends]_0_AD8B2CAE-6FA6-448A-A1D6-A7B94B22F3CB.png",
+        "timestamp": 1793715293.56,
+        "sha256": "1d1aafbb33aefe654c3001682d54ca809911dd609c07e12578018943d0d51455",
+        "byte_size": 252767
+      }
+    ]
+  },
+  {
+    "testIdentifier": "IntegratedNativeAcceptanceFlowTests/testNormalRootOwnedConfigurationReadOnlyAndStoryReturn()",
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "25316F87-058C-46CE-8825-617906638207",
+        "deviceName": "Questify-iPhone17",
+        "exportedFileName": "793FD525-0CC8-4F5D-B1A2-C5615BEF0836.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Failure state – -[IntegratedNativeAcceptanceFlowTests testNormalRootOwnedConfigurationReadOnlyAndStoryReturn]_0_2679AA52-CD7D-423A-92C8-F619A9F98EE5.png",
+        "timestamp": 1793715300.577,
+        "sha256": "9aad78a61e42cd88973ecb2d4931d8340fef625a93a3496d4b786efec193eed4",
+        "byte_size": 253131
+      }
+    ]
+  },
+  {
+    "testIdentifier": "IntegratedNativeAcceptanceFlowTests/testNormalRootTeamReadOnlyJourney()",
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "25316F87-058C-46CE-8825-617906638207",
+        "deviceName": "Questify-iPhone17",
+        "exportedFileName": "957ECA50-B1D4-410F-ADE0-E2894DEF0DDC.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Failure state – -[IntegratedNativeAcceptanceFlowTests testNormalRootTeamReadOnlyJourney]_0_A4FCF155-1CC7-4767-83B7-648337486069.png",
+        "timestamp": 1793715307.834,
+        "sha256": "9aad78a61e42cd88973ecb2d4931d8340fef625a93a3496d4b786efec193eed4",
+        "byte_size": 253131
+      }
+    ]
+  },
+  {
+    "testIdentifier": "IntegratedNativeAcceptanceFlowTests/testPhoneCancelLogoutAccountSwitchAndColdLaunchDoNotReuseOwnerState()",
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "25316F87-058C-46CE-8825-617906638207",
+        "deviceName": "Questify-iPhone17",
+        "exportedFileName": "AAED899B-1ACE-4CDF-AFF5-8E129B9B4CB1.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Failure state – -[IntegratedNativeAcceptanceFlowTests testPhoneCancelLogoutAccountSwitchAndColdLaunchDoNotReuseOwnerState]_0_90F3B67D-758C-4CD3-A0F3-C4BBC14ED2E1.png",
+        "timestamp": 1793715314.369,
+        "sha256": "9aad78a61e42cd88973ecb2d4931d8340fef625a93a3496d4b786efec193eed4",
+        "byte_size": 253131
+      }
+    ]
+  },
+  {
+    "testIdentifier": "IntegratedNativeAcceptanceFlowTests/testSettingsOffersPlayerApplicationsInMiniProgramOrderAndSignsOut()",
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "25316F87-058C-46CE-8825-617906638207",
+        "deviceName": "Questify-iPhone17",
+        "exportedFileName": "643E04E5-734E-4933-A279-0724E5ACAD15.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Failure state – -[IntegratedNativeAcceptanceFlowTests testSettingsOffersPlayerApplicationsInMiniProgramOrderAndSignsOut]_0_47205FEC-955F-4E62-B781-90BE0D58FB82.png",
+        "timestamp": 1793715325.557,
+        "sha256": "9aad78a61e42cd88973ecb2d4931d8340fef625a93a3496d4b786efec193eed4",
+        "byte_size": 253131
+      }
+    ]
+  },
+  {
+    "testIdentifier": "SearchMapAlternativeListFlowTests/testAlternativeListBilingualMaximumTypeKeepsFullTitlesAndParentSelectionInSync()",
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "25316F87-058C-46CE-8825-617906638207",
+        "deviceName": "Questify-iPhone17",
+        "exportedFileName": "6C36AD5B-D4F1-4756-9E60-36EEAD75675F.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Failure state – -[SearchMapAlternativeListFlowTests testAlternativeListBilingualMaximumTypeKeepsFullTitlesAndParentSelectionInSync]_0_25CAC426-4615-449A-919E-5F5557B902C9.png",
+        "timestamp": 1793715349.421,
+        "sha256": "ebb75756ae5ea7285cc9c003bd98dcdc23c6a789834ee678da8b63efbf4cffb8",
+        "byte_size": 202598
+      }
+    ]
+  },
+  {
+    "testIdentifier": "SearchMapAlternativeListFlowTests/testAlternativeListCloseReopenAndEmptySnapshotNeverRetainOldRows()",
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "25316F87-058C-46CE-8825-617906638207",
+        "deviceName": "Questify-iPhone17",
+        "exportedFileName": "181D820A-59B3-44FA-90EC-1389452F8203.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Failure state – -[SearchMapAlternativeListFlowTests testAlternativeListCloseReopenAndEmptySnapshotNeverRetainOldRows]_0_7AE67805-7E7B-4357-A993-8B914F54FA0D.png",
+        "timestamp": 1793715369.903,
+        "sha256": "f4fe21977801b20cea56ac77bf2a6bb458ca6eddb5eb5f688944943401f759f8",
+        "byte_size": 148877
+      }
+    ]
+  },
+  {
+    "testIdentifier": "SearchMapAlternativeListFlowTests/testAlternativeListRefreshRemovalAndDuplicateIDsCannotSelectAnotherPlace()",
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "25316F87-058C-46CE-8825-617906638207",
+        "deviceName": "Questify-iPhone17",
+        "exportedFileName": "55F6AAE4-C1DE-4C95-B8BE-A458617893A4.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Failure state – -[SearchMapAlternativeListFlowTests testAlternativeListRefreshRemovalAndDuplicateIDsCannotSelectAnotherPlace]_0_85001C5F-1B36-4FED-A199-B315A542141C.png",
+        "timestamp": 1793715390.748,
+        "sha256": "4412c8cf06f9d153bb69885de7eb42d32df9532e854d7a7d51a763da7be48cac",
+        "byte_size": 146450
+      }
+    ]
+  },
+  {
+    "testIdentifier": "SearchMapFlowTests/testCityFilterCancelPreservesSelectionButApplyClearsIt()",
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "25316F87-058C-46CE-8825-617906638207",
+        "deviceName": "Questify-iPhone17",
+        "exportedFileName": "7BE2C204-C794-4DCA-93BD-B7890E6690E6.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Failure state – -[SearchMapFlowTests testCityFilterCancelPreservesSelectionButApplyClearsIt]_0_22E2046A-57DA-4C79-950A-6D838B7D9EBD.png",
+        "timestamp": 1793715418.019,
+        "sha256": "d58563ed28e539fb9dbb86d75030098ac042ecd24e1425a1deed93433e2babf1",
+        "byte_size": 430213
+      }
+    ]
+  },
+  {
+    "testIdentifier": "SearchMapFlowTests/testCityListSelectionUsesSamePinAndPreservesExplicitMapGate()",
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "25316F87-058C-46CE-8825-617906638207",
+        "deviceName": "Questify-iPhone17",
+        "exportedFileName": "78010E41-62DD-4AE4-A12C-6A9D53F64069.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Failure state – -[SearchMapFlowTests testCityListSelectionUsesSamePinAndPreservesExplicitMapGate]_0_0306DDF7-65DD-4DD9-9720-606813052923.png",
+        "timestamp": 1793715435.906,
+        "sha256": "3a0d57fc594e2f345781397a4fe6ef44eb1fc53a84bb68804c8627648e6fd03d",
+        "byte_size": 428617
+      }
+    ]
+  },
+  {
+    "testIdentifier": "SearchMapFlowTests/testFilterValidationCancelAndReopen()",
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "25316F87-058C-46CE-8825-617906638207",
+        "deviceName": "Questify-iPhone17",
+        "exportedFileName": "5BEE3189-192C-4B79-9022-F1BB25CB21D2.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Failure state – -[SearchMapFlowTests testFilterValidationCancelAndReopen]_0_AE0876A2-04F2-4A6B-B651-DA24EEF830A9.png",
+        "timestamp": 1793715509.867,
+        "sha256": "f304130a78f4cd5385195a88bdf0e83c379cddb1501593df9501fb859f6702e6",
+        "byte_size": 189985
+      }
+    ]
+  },
+  {
+    "testIdentifier": "SearchMapFlowTests/testGlobalCategoryApplyResetPreservesKeywordAndCancelPreservesResults()",
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "25316F87-058C-46CE-8825-617906638207",
+        "deviceName": "Questify-iPhone17",
+        "exportedFileName": "5D4F0C90-4CB3-48C3-9E53-B8840C0CA33B.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Failure state – -[SearchMapFlowTests testGlobalCategoryApplyResetPreservesKeywordAndCancelPreservesResults]_0_FC446A55-E08F-4FB1-BF15-1A256674A01B.png",
+        "timestamp": 1793715524.446,
+        "sha256": "7ba2f15e7fcae53d8671645925c1836f8a07ec48474adb5c63a47dbadfe907ae",
+        "byte_size": 216695
+      }
+    ]
+  },
+  {
+    "testIdentifier": "SearchMapFlowTests/testGlobalCategoryChangeRejectsEarlierCompletionAndClearReturnsSuggestions()",
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "25316F87-058C-46CE-8825-617906638207",
+        "deviceName": "Questify-iPhone17",
+        "exportedFileName": "0CD4BD66-AA48-4FA4-880A-A389E41DBC34.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Failure state – -[SearchMapFlowTests testGlobalCategoryChangeRejectsEarlierCompletionAndClearReturnsSuggestions]_0_65B4A297-1EB4-4767-86F9-3DEC3E191AC8.png",
+        "timestamp": 1793715537.075,
+        "sha256": "503bdf1d7402dc0e2ffb464489fc13f0505bcc624d93afda871d8efb10501ae2",
+        "byte_size": 187461
+      }
+    ]
+  },
+  {
+    "testIdentifier": "SearchMapFlowTests/testManualAreaChangeClearsSelectionAndRequiresMapOptInAgain()",
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "25316F87-058C-46CE-8825-617906638207",
+        "deviceName": "Questify-iPhone17",
+        "exportedFileName": "B2919E2A-548D-4CD0-AB50-63951D6F97C0.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Failure state – -[SearchMapFlowTests testManualAreaChangeClearsSelectionAndRequiresMapOptInAgain]_0_96560FB1-E29E-4E1B-9688-F4AF1B9EE8A2.png",
+        "timestamp": 1793715566.576,
+        "sha256": "bc6f365bf95e587e88da19adfe06e3c27f2b83e17fa8b136f9a4aec4a1040149",
+        "byte_size": 487283
+      }
+    ]
+  }
+]
