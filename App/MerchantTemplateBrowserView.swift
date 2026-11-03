@@ -93,25 +93,32 @@ import SwiftUI
     var body: some View {
         let permit = model.permit, editor = model.editor, readID = model.readID
         ScrollView {
-            LazyVStack(spacing: 18) {
+            LazyVStack(alignment: .leading, spacing: Theme.Space.s5) {
                 MerchantOperationsBoundary(isExample: reader.isOfflineExample)
-                if !reader.isConfigured { Text("auth.notConfigured") }
-                else if !reader.isAuthenticated { Text("merchant.operations.signedOut") }
+                if !reader.isConfigured { merchantCreationNotice(Text("auth.notConfigured"), systemImage: "exclamationmark.triangle", attention: true) }
+                else if !reader.isAuthenticated { merchantCreationNotice(Text("merchant.operations.signedOut"), systemImage: "lock") }
                 else if browser.isCurrent {
                     if let issue = browser.issue {
                         MerchantOperationsIssueView(issue: issue)
                         if browser.loaded { Text("merchant.templateBrowser.retained").font(.footnote) }
-                        Button("merchant.templateBrowser.retryRefresh") { Task { await model.refresh(permit) } }
+                        Button { Task { await model.refresh(permit) } } label: {
+                            Text("merchant.templateBrowser.retryRefresh").font(Theme.Font.button)
+                                .frame(maxWidth: .infinity, minHeight: 44)
+                                .contentShape(Rectangle())
+                        }.buttonStyle(.bordered)
                             .disabled(browser.isRefreshing).accessibilityIdentifier("merchant.templateBrowser.retryRefresh")
                     }
                     if browser.loaded {
-                        Button("merchant.operations.newTemplate") { model.open(nil, permit: permit) }.disabled(!browser.canOpen).accessibilityIdentifier("merchant.operations.newTemplate")
+                        Button { model.open(nil, permit: permit) } label: {
+                            Label("merchant.operations.newTemplate", systemImage: "plus")
+                                .font(Theme.Font.button).frame(maxWidth: .infinity, minHeight: 44)
+                        }.buttonStyle(.borderedProminent).disabled(!browser.canOpen).accessibilityIdentifier("merchant.operations.newTemplate")
                         if let total = browser.total {
                             Text("merchant.templateBrowser.count \(browser.rows.count) \(total)")
-                                .font(.footnote).accessibilityIdentifier("merchant.templateBrowser.count")
+                                .font(Theme.Font.label).foregroundStyle(.secondary).accessibilityIdentifier("merchant.templateBrowser.count")
                         } else {
                             Text("merchant.templateBrowser.loadedCount \(browser.rows.count)")
-                                .font(.footnote).accessibilityIdentifier("merchant.templateBrowser.count")
+                                .font(Theme.Font.label).foregroundStyle(.secondary).accessibilityIdentifier("merchant.templateBrowser.count")
                         }
                         if browser.rows.isEmpty {
                             ContentUnavailableView("merchant.operations.empty", systemImage: "square.grid.2x2", description: Text("merchant.templateBrowser.emptyHint"))
@@ -119,12 +126,9 @@ import SwiftUI
                         }
                         ForEach(browser.rows) { row in
                             Button { model.open(row.id, permit: permit) } label: {
-                                QuestifyImageEntityCard(imageSource: reader.isOfflineExample ? nil : row.imgUrl, title: row.title, subtitle: row.description,
-                                    fallbackTitle: "merchant.operations.untitled", minimumHeight: 230, progressiveBlur: .cover,
-                                    artworkIdentity: .init(owner: reader.scope.uuidString, content: "merchant-template:\(row.id)", version: String(model.revision))) {
-                                    Text(LocalizedStringKey(status(row.status)))
-                                    if let method = row.validationMethod.flatMap(MerchantTemplateMethod.init(rawValue:)) { Text(LocalizedStringKey(method.titleKey)) }
-                                }
+                                MerchantTemplateBrowserCard(row: row, imageSource: reader.isOfflineExample ? nil : row.imgUrl,
+                                    statusKey: status(row.status),
+                                    artworkIdentity: .init(owner: reader.scope.uuidString, content: "merchant-template:\(row.id)", version: String(model.revision)))
                             }.buttonStyle(.plain).disabled(!browser.canOpen)
                                 .accessibilityIdentifier("merchant.operations.template.\(row.id)")
                         }
@@ -134,8 +138,9 @@ import SwiftUI
                 if reader.isConfigured && reader.isAuthenticated && (browser.isRefreshing || !browser.isCurrent) {
                     ProgressView("merchant.templateBrowser.refreshing").accessibilityIdentifier("merchant.templateBrowser.loading")
                 }
-            }.padding()
+            }.padding(.horizontal, Theme.Space.pageX).padding(.vertical, Theme.Space.s4)
         }
+        .merchantCreationSurface()
         .appNavigationTitle("merchant.operations.templates")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -163,10 +168,18 @@ import SwiftUI
         } else if let issue = browser.loadMoreIssue {
             MerchantOperationsIssueView(issue: issue)
             Text("merchant.templateBrowser.moreFailed").font(.footnote)
-            Button("merchant.templateBrowser.retryMore") { Task { await model.more(permit) } }
+            Button { Task { await model.more(permit) } } label: {
+                Text("merchant.templateBrowser.retryMore").font(Theme.Font.button)
+                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .contentShape(Rectangle())
+            }.buttonStyle(.bordered)
                 .disabled(!browser.canLoadMore).accessibilityIdentifier("merchant.templateBrowser.retryMore")
         } else if browser.hasMore {
-            Button("merchant.templateBrowser.more") { Task { await model.more(permit) } }
+            Button { Task { await model.more(permit) } } label: {
+                Text("merchant.templateBrowser.more").font(Theme.Font.button)
+                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .contentShape(Rectangle())
+            }.buttonStyle(.bordered)
                 .disabled(!browser.canLoadMore).accessibilityIdentifier("merchant.templateBrowser.more")
         } else if !browser.rows.isEmpty {
             Text("merchant.templateBrowser.end").font(.footnote).foregroundStyle(.secondary)
@@ -176,5 +189,66 @@ import SwiftUI
     private func status(_ value: Int?) -> String {
         switch value { case 0: return "merchant.operations.template.unpublished"; case 1: return "merchant.operations.template.published"
         case 2: return "merchant.operations.review.pending"; default: return "merchant.operations.review.unknown" }
+    }
+}
+
+/// The reference places editable content below the cover; long text never sits over artwork.
+private struct MerchantTemplateBrowserCard: View {
+    let row: MerchantTemplateRecord
+    let imageSource: String?
+    let statusKey: String
+    let artworkIdentity: QuestifyProgressiveBlurIdentity
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Theme.Color.bgRaised(in: .merchant)
+                // Current mini .item-pic is 512rpx; preserve its 256pt content height.
+                .frame(height: 256)
+                .overlay {
+                    GeometryReader { geometry in
+                        if let url = QuestifyCardArtwork.safeURL(imageSource),
+                           let origin = ObjectCardMediaPolicy.origin(url.absoluteString) {
+                            QuestifyProgressiveBlurArtwork(url: url, identity: artworkIdentity,
+                                reader: ObjectCardBoundedImageLoader(policy: .init(approvedOrigins: [origin])),
+                                parameters: .cover, placeholder: { coverPlaceholder })
+                                .frame(width: geometry.size.width, height: geometry.size.height).clipped()
+                        } else { coverPlaceholder.frame(width: geometry.size.width, height: geometry.size.height) }
+                    }
+                }.clipShape(RoundedRectangle(cornerRadius: Theme.Radius.sm)).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: Theme.Space.s3) {
+                HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s3) {
+                    if row.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        Text("merchant.operations.untitled").font(Theme.Font.sectionTitle)
+                    } else { Text(verbatim: row.title).font(Theme.Font.sectionTitle) }
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.forward").font(Theme.Font.label).foregroundStyle(.secondary).accessibilityHidden(true)
+                }
+                if let description = row.description, !description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Text(verbatim: description).font(Theme.Font.body).foregroundStyle(.secondary)
+                }
+                Divider()
+                Text(LocalizedStringKey(statusKey)).font(Theme.Font.label).fontWeight(.semibold)
+                    .padding(.horizontal, Theme.Space.s2).padding(.vertical, Theme.Space.s1)
+                    .background(Theme.Color.bgRaised(in: .merchant), in: RoundedRectangle(cornerRadius: Theme.Radius.sm))
+                if let method = row.validationMethod.flatMap(MerchantTemplateMethod.init(rawValue:)) {
+                    Text(LocalizedStringKey(method.titleKey)).font(Theme.Font.label).foregroundStyle(.secondary)
+                }
+            }
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.vertical, Theme.Space.s3).frame(maxWidth: .infinity, alignment: .leading)
+            Divider()
+        }
+        .foregroundStyle(Theme.Color.textPrimary(in: .merchant))
+        .background(Theme.Color.bgPage(in: .merchant))
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+    }
+    private var coverPlaceholder: some View {
+        Group {
+            if let initial = row.title.trimmingCharacters(in: .whitespacesAndNewlines).first {
+                Text(verbatim: String(initial)).font(Theme.Font.pageTitle)
+            } else { Image(systemName: "photo").font(Theme.Font.pageTitle) }
+        }.foregroundStyle(Theme.Color.textSecondary(in: .merchant))
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Theme.Color.bgRaised(in: .merchant))
     }
 }
