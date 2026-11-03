@@ -62,6 +62,7 @@ import SwiftUI
                 }
             }
         }
+        .merchantM02Page()
         .navigationTitle("couponManagement.title")
         .task(id: sessionKey) {
             model.synchronize(); creating = false
@@ -141,6 +142,7 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
             } else if model.working { ProgressView("couponManagement.loading") }
             else { Text("couponManagement.unavailable") }
         }
+        .merchantM02Page()
         .navigationTitle("couponManagement.detail")
         .toolbar { Button("couponManagement.refresh") { model.run { await model.core.load() } }.disabled(model.working) }
         .task { await model.core.load(); model.revision += 1 }
@@ -188,6 +190,8 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
         }
         .environment(\.timeZone, CouponValidityTime.timeZone)
         .environment(\.calendar, CouponValidityTime.calendar)
+        .merchantM02Page()
+        .scrollDismissesKeyboard(.interactively)
         .navigationTitle("couponManagement.create")
         .interactiveDismissDisabled(model.core.draft.dirty || model.working)
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("couponManagement.cancel") { if model.core.draft.dirty { discard = true } else { dismiss() } }.disabled(model.working) } }

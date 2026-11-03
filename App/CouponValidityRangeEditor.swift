@@ -91,9 +91,11 @@ struct CouponValidityRangeContext: Equatable {
                 }
             }.disabled(!model.active)
             if let issue = model.issue ?? model.selection.blocker {
-                Text(LocalizedStringKey(issue)).foregroundStyle(.secondary).accessibilityIdentifier("couponManagement.range.issue")
+                MerchantM02Notice(message: Text(LocalizedStringKey(issue)), symbol: "exclamationmark.circle", isError: true)
+                    .accessibilityIdentifier("couponManagement.range.issue")
             }
         }
+        .merchantM02Page()
         .environment(\.timeZone, CouponValidityTime.timeZone)
         .environment(\.calendar, CouponValidityTime.calendar)
         .navigationTitle("couponManagement.range.title")

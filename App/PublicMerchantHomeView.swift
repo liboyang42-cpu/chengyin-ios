@@ -116,7 +116,7 @@ import SwiftUI
                 ForEach(Array(value.galleryItems.enumerated()), id: \.offset) { _, item in media(item, label: "merchant.publicHome.photo") }
             }.accessibilityIdentifier("merchant.publicHome.gallery")
         }
-        if !value.tagItems.isEmpty { Section("merchant.publicHome.tags") { Text(value.tagItems.joined(separator: " · ")) } }
+        if !value.tagItems.isEmpty { Section("merchant.publicHome.tags") { Text(value.tagItems.joined(separator: " · ")).fixedSize(horizontal: false, vertical: true) } }
         if value.hasCooperation {
             Section("merchant.publicHome.cooperation") {
                 if let capacity = value.capacity, capacity > 0 { LabeledContent("merchant.publicHome.capacity", value: String(capacity)) }
@@ -156,7 +156,7 @@ import SwiftUI
               context.ownerProfile != nil, let home, let target else { return false }
         return selection.matches(home: home, target: target, scope: context.reader.scope, snapshot: snapshotID)
     }
-    @ViewBuilder private func field(_ value: String?) -> some View { if let value, !value.isEmpty { Text(verbatim: value).textSelection(.enabled) } }
+    @ViewBuilder private func field(_ value: String?) -> some View { if let value, !value.isEmpty { Text(verbatim: value).textSelection(.enabled).fixedSize(horizontal: false, vertical: true) } }
     @ViewBuilder private func labeled(_ value: String?, label: LocalizedStringKey) -> some View {
         if let value, !value.isEmpty { LabeledContent(label, value: value) }
     }
