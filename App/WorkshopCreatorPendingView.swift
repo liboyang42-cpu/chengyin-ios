@@ -27,7 +27,7 @@ import SwiftUI
                     }
                     if let receipt = controller.declarationReceipt {
                         Section(creatorString("workshopPending.priorDeclaration")) {
-                            Text(creatorString("workshopPending.priorDeclarationScope"))
+                            Text(creatorString("workshopPending.priorDeclarationScope")).fixedSize(horizontal: false, vertical: true)
                             LabeledContent(creatorString("workshopCreator.package"), value: receipt.consentReference.moduleId)
                             LabeledContent(creatorString("workshopCreator.version"), value: receipt.consentReference.versionId)
                             LabeledContent(creatorString("workshopCreator.record"), value: receipt.consentReference.consentId)
@@ -35,25 +35,25 @@ import SwiftUI
                         }.accessibilityIdentifier("workshopPending.declarationReceipt")
                     } else if let requestId = controller.declarationRequestId {
                         Section(creatorString("workshopPending.priorDeclaration")) {
-                            Text(verbatim: requestId).textSelection(.enabled)
-                            Text(creatorString("workshopCreator.unknown"))
+                            Text(verbatim: requestId).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                            Text(creatorString("workshopCreator.unknown")).fixedSize(horizontal: false, vertical: true)
                         }
                     }
                     if controller.phase == .loading || controller.phase == .submitting { ProgressView(creatorString("workshopCreator.loading")) }
                     if let issue = controller.issue { Text(creatorString(issueKey(issue))).accessibilityIdentifier("workshopPending.issue") }
                     if let pending = controller.pending {
                         Section(creatorString("workshopPending.saved")) {
-                            Text(verbatim: pending.requestId).textSelection(.enabled)
+                            Text(verbatim: pending.requestId).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                             Text(creatorString("workshopPending.recovery"))
                             // The exact saved text remains reviewable; edits cannot replace this attempt.
-                            Text(verbatim: pending.termsDocument).textSelection(.enabled)
+                            Text(verbatim: pending.termsDocument).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                             Button(creatorString("workshopPending.retry")) { run(controller.offerRetry(appearance)) }
                                 .disabled(!controller.canRetry).accessibilityIdentifier("workshopPending.retry")
                         }
                     }
                     if let receipt = controller.receipt {
                         Section(creatorString("workshopPending.recorded")) {
-                            Text(verbatim: receipt.targetId).textSelection(.enabled)
+                            Text(verbatim: receipt.targetId).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                             Text(creatorString("workshopPending.historic"))
                             Button(creatorString("workshopPending.another")) { run(controller.offerAnotherProposal(appearance)) }
                                 .disabled(controller.phase == .submitting || controller.phase == .loading)
@@ -66,11 +66,11 @@ import SwiftUI
                                 if let value = preview.textFields[name] {
                                     VStack(alignment: .leading) {
                                         Text(creatorString("workshopCreator.field." + name)).font(.caption)
-                                        Text(verbatim: value).textSelection(.enabled)
+                                        Text(verbatim: value).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                                     }
                                 }
                             }
-                            Text(verbatim: preview.packageContentHash).font(.caption).textSelection(.enabled)
+                            Text(verbatim: preview.packageContentHash).font(.caption).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                         }
                         if !preview.omittedPlanningMetadata.isEmpty {
                             Section(creatorString("workshopCreator.omitted")) {
@@ -86,9 +86,9 @@ import SwiftUI
                                     run(controller.offerReview(item, appearance))
                                 } label: {
                                     VStack(alignment: .leading) {
-                                        Text(verbatim: item.versionId)
-                                        Text(verbatim: item.termsDocumentHash).font(.caption)
-                                        Text(verbatim: item.expiresAt).font(.caption)
+                                        Text(verbatim: item.versionId).fixedSize(horizontal: false, vertical: true)
+                                        Text(verbatim: item.termsDocumentHash).font(.caption).fixedSize(horizontal: false, vertical: true)
+                                        Text(verbatim: item.expiresAt).font(.caption).fixedSize(horizontal: false, vertical: true)
                                     }
                                 }.disabled(controller.phase != .editing)
                                     .accessibilityIdentifier("workshopPending.target." + item.targetId)
@@ -133,7 +133,7 @@ import SwiftUI
             Text(creatorString("workshopPending.expiryHelp")).font(.footnote)
         }.disabled(controller.phase != .editing)
         Section(creatorString("workshopPending.required")) {
-            Text(creatorString("workshopPending.fixedRestrictions"))
+            Text(creatorString("workshopPending.fixedRestrictions")).fixedSize(horizontal: false, vertical: true)
             Text(creatorString("workshopPending.reviewRequired")).foregroundStyle(.secondary)
             Button(creatorString("workshopPending.author")) { run(controller.offerAuthor(appearance)) }
                 .disabled(!controller.canSubmit).accessibilityIdentifier("workshopPending.author")
