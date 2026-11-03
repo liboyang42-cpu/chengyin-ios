@@ -18,6 +18,7 @@ struct TopicReviewsContent: View {
                         }
                     }
                 }
+                Divider()
                 LabeledContent("topic.reviews.total") {
                     if let count = reviews.commentCount {
                         Text(count, format: .number)
@@ -41,6 +42,7 @@ struct TopicReviewsContent: View {
                         .foregroundStyle(.secondary)
                 }
             }
+            .font(.body)
             .fixedSize(horizontal: false, vertical: true)
             .questifyCardSurface()
             .questifyCardListRow()
@@ -76,7 +78,7 @@ private struct TopicReviewCard: View {
                         .accessibilityIdentifier("topic.reviews.ratingUnknown.\(index)")
                 }
             }
-            .font(.subheadline)
+            .font(.subheadline).foregroundStyle(.secondary)
             .accessibilityIdentifier("topic.reviews.rating.\(index)")
             Group {
                 if let contents = review.contents { Text(verbatim: contents) }
