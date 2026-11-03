@@ -59,7 +59,7 @@ struct MessagingEmptyView: View {
     var body: some View {
         ContentUnavailableView {
             Label { Text(title).accessibilityIdentifier(identifier) } icon: { Image(systemName: "bubble.left.and.bubble.right") }
-        } description: { Text(hint) }
+        } description: { Text(hint).fixedSize(horizontal: false, vertical: true) }
     }
 }
 

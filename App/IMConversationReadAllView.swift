@@ -117,6 +117,7 @@ struct IMConversationReadAllButtonToken: Equatable {
                     }
                 } else { Text("messaging.signInHint") }
             }
+            .environment(\.defaultMinListRowHeight, 44)
             .navigationTitle(Text("im.readAll.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

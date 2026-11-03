@@ -149,7 +149,8 @@ struct MessagingMessageDetailView: View {
                         }
                     }
                     Section { Text("messaging.snapshotHint").font(.footnote).foregroundStyle(.secondary) }
-                }.accessibilityIdentifier("messaging.message.detail")
+                }.environment(\.defaultMinListRowHeight, 44)
+                .accessibilityIdentifier("messaging.message.detail")
             } else {
                 MessagingIssueView(issue: .init(APIError.unauthorized), identifier: "messaging.message.signedOut", retry: {})
             }
