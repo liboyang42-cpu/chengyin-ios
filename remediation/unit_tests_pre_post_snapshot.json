@@ -1,0 +1,185 @@
+{
+  "pre": {
+    "head": "ab2d3905ec0b0fb17b58ba6b53ec433d83164701",
+    "tree": "1256f3ff67514b04cd783b5e72b843de55fc6f53",
+    "dirty_count": 12,
+    "dirty_files": {
+      "App/ProfileSettingsFavoritesRoute.swift": {
+        "status": "M",
+        "before_bytes": 9558,
+        "before_sha256": "2c0419a057f52092bb72792cef8d7d4b5c7ca2aa8426d430a24dd8825e0013b9",
+        "after_bytes": 9766,
+        "after_sha256": "7af222695a6a95255bd9746d2fc4ba701146ba1e85b6455eb6ce1858451e40a0"
+      },
+      "Tests/AppUITests/FailureScreenshot.swift": {
+        "status": "M",
+        "before_bytes": 9889,
+        "before_sha256": "de77234123e191ff61e8b6678c22f7c118899fa475f3d55f7179881291bf616e",
+        "after_bytes": 10279,
+        "after_sha256": "4d620a23b3d3fedc3509016625f2b02da046cfbc0cfb070de6120598e76d684f"
+      },
+      "Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift": {
+        "status": "M",
+        "before_bytes": 19682,
+        "before_sha256": "eae58f531bdba1c66e1bd8715afec747e312333f2ae562035b8047abb149783e",
+        "after_bytes": 19694,
+        "after_sha256": "1b036bbce78ac9901dac64bc5fc454b8799266c396290df24e4d919734dd03ed"
+      },
+      "Tests/AppUITests/IntegratedDeniedAcceptanceFlowTests.swift": {
+        "status": "M",
+        "before_bytes": 15989,
+        "before_sha256": "59e5adf2a2090599645eefdd0f49223747adebeb24840fbcdf105574125798d0",
+        "after_bytes": 16006,
+        "after_sha256": "2d6531a8808cdfe9b9421da47665d6861368ca44ac9569cae9719ea892d5558e"
+      },
+      "Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift": {
+        "status": "M",
+        "before_bytes": 27523,
+        "before_sha256": "e8c0224a7121c4bc81cfd525e3e5565d4eb0c2d212fefe1162fab8aa00007e29",
+        "after_bytes": 27058,
+        "after_sha256": "82e08b3a4d1eb31aa25c5806eb50cc2da26c03f60ee4c39811acaf7354402fa8"
+      },
+      "Tests/AppUITests/SearchMapFlowTests.swift": {
+        "status": "M",
+        "before_bytes": 16515,
+        "before_sha256": "528f216b8052e7a3a15e80adc9066bfe40ce71de3470322f514d86c40f71dc36",
+        "after_bytes": 16598,
+        "after_sha256": "9c4869e0e3fa3b3af26f24e208ff04446479ea437c4221212c3b2e78202d8739"
+      },
+      "Tests/AppUnitTests/ProfileFavoriteDetailTests.swift": {
+        "status": "M",
+        "before_bytes": 17975,
+        "before_sha256": "5c473dd1419bea54a2c040eebd71f43a4ee8bdabdc830a088bb857594f43877e",
+        "after_bytes": 18226,
+        "after_sha256": "4febbc59000acf44a41723ac934d62aaf94c4885c73282ff97f2c2e6829dd77f"
+      },
+      "Tests/AppUnitTests/ProfileFavoriteTopicReadTests.swift": {
+        "status": "M",
+        "before_bytes": 19716,
+        "before_sha256": "a36b5f0e489a3730c2292f04774231bb37a0a037f2abfb5b7e4c38819d1dea3d",
+        "after_bytes": 19931,
+        "after_sha256": "945bdca84cbe0096dc0dd6306790c177edea8bff85008de9ae18bbc22c2f4181"
+      },
+      "Tests/AppUnitTests/ProfileGuideReadTests.swift": {
+        "status": "M",
+        "before_bytes": 19575,
+        "before_sha256": "c998e16f04621bf0dda4da56594ae1b38a52605e159cbf4bd9ea4b7b3938c456",
+        "after_bytes": 19599,
+        "after_sha256": "6c525a3864c2436ff07dc6233c40b7a5978853612232e496c2a93bfda6abccb6"
+      },
+      "Tests/AppUnitTests/ProfileSettingsFavoritesTests.swift": {
+        "status": "M",
+        "before_bytes": 16915,
+        "before_sha256": "3245c921f272225eba72a2bb128079711185a73fbf216a0929db3f47cc1f7d54",
+        "after_bytes": 17113,
+        "after_sha256": "35da069bb573b59ca56fe59b91277da30ff70b3ab5a24fb702fe1af864df8bbd"
+      },
+      "Tests/AppUnitTests/WorkshopPaidInstallNormalFlowTests.swift": {
+        "status": "M",
+        "before_bytes": 14075,
+        "before_sha256": "cfe4ad08facb1bf37582046bccedbb2de135bea6579ff9264fbcb50ebb8f7809",
+        "after_bytes": 14151,
+        "after_sha256": "2d38fd3a87246c509a5cdccfaf0c6758f686024f90fe3edeb4ddc37c07344fc3"
+      },
+      "Vendor/GLTFKit2/GLTFKit2.xcodeproj/project.pbxproj": {
+        "status": "M",
+        "before_bytes": 23188,
+        "before_sha256": "30b4ca5ada1cec58ee2ac11e9514691e54d2eeba5d3985f4935111de1b55bf00",
+        "after_bytes": 23188,
+        "after_sha256": "331e3021a54e1e400dec64f2154f46fbac404b87ba7311381f48dab6f6cba3cc"
+      }
+    }
+  },
+  "post": {
+    "head": "ab2d3905ec0b0fb17b58ba6b53ec433d83164701",
+    "tree": "1256f3ff67514b04cd783b5e72b843de55fc6f53",
+    "dirty_count": 12,
+    "dirty_files": {
+      "App/ProfileSettingsFavoritesRoute.swift": {
+        "status": "M",
+        "before_bytes": 9558,
+        "before_sha256": "2c0419a057f52092bb72792cef8d7d4b5c7ca2aa8426d430a24dd8825e0013b9",
+        "after_bytes": 9766,
+        "after_sha256": "7af222695a6a95255bd9746d2fc4ba701146ba1e85b6455eb6ce1858451e40a0"
+      },
+      "Tests/AppUITests/FailureScreenshot.swift": {
+        "status": "M",
+        "before_bytes": 9889,
+        "before_sha256": "de77234123e191ff61e8b6678c22f7c118899fa475f3d55f7179881291bf616e",
+        "after_bytes": 10279,
+        "after_sha256": "4d620a23b3d3fedc3509016625f2b02da046cfbc0cfb070de6120598e76d684f"
+      },
+      "Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift": {
+        "status": "M",
+        "before_bytes": 19682,
+        "before_sha256": "eae58f531bdba1c66e1bd8715afec747e312333f2ae562035b8047abb149783e",
+        "after_bytes": 19694,
+        "after_sha256": "1b036bbce78ac9901dac64bc5fc454b8799266c396290df24e4d919734dd03ed"
+      },
+      "Tests/AppUITests/IntegratedDeniedAcceptanceFlowTests.swift": {
+        "status": "M",
+        "before_bytes": 15989,
+        "before_sha256": "59e5adf2a2090599645eefdd0f49223747adebeb24840fbcdf105574125798d0",
+        "after_bytes": 16006,
+        "after_sha256": "2d6531a8808cdfe9b9421da47665d6861368ca44ac9569cae9719ea892d5558e"
+      },
+      "Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift": {
+        "status": "M",
+        "before_bytes": 27523,
+        "before_sha256": "e8c0224a7121c4bc81cfd525e3e5565d4eb0c2d212fefe1162fab8aa00007e29",
+        "after_bytes": 27058,
+        "after_sha256": "82e08b3a4d1eb31aa25c5806eb50cc2da26c03f60ee4c39811acaf7354402fa8"
+      },
+      "Tests/AppUITests/SearchMapFlowTests.swift": {
+        "status": "M",
+        "before_bytes": 16515,
+        "before_sha256": "528f216b8052e7a3a15e80adc9066bfe40ce71de3470322f514d86c40f71dc36",
+        "after_bytes": 16598,
+        "after_sha256": "9c4869e0e3fa3b3af26f24e208ff04446479ea437c4221212c3b2e78202d8739"
+      },
+      "Tests/AppUnitTests/ProfileFavoriteDetailTests.swift": {
+        "status": "M",
+        "before_bytes": 17975,
+        "before_sha256": "5c473dd1419bea54a2c040eebd71f43a4ee8bdabdc830a088bb857594f43877e",
+        "after_bytes": 18226,
+        "after_sha256": "4febbc59000acf44a41723ac934d62aaf94c4885c73282ff97f2c2e6829dd77f"
+      },
+      "Tests/AppUnitTests/ProfileFavoriteTopicReadTests.swift": {
+        "status": "M",
+        "before_bytes": 19716,
+        "before_sha256": "a36b5f0e489a3730c2292f04774231bb37a0a037f2abfb5b7e4c38819d1dea3d",
+        "after_bytes": 19931,
+        "after_sha256": "945bdca84cbe0096dc0dd6306790c177edea8bff85008de9ae18bbc22c2f4181"
+      },
+      "Tests/AppUnitTests/ProfileGuideReadTests.swift": {
+        "status": "M",
+        "before_bytes": 19575,
+        "before_sha256": "c998e16f04621bf0dda4da56594ae1b38a52605e159cbf4bd9ea4b7b3938c456",
+        "after_bytes": 19599,
+        "after_sha256": "6c525a3864c2436ff07dc6233c40b7a5978853612232e496c2a93bfda6abccb6"
+      },
+      "Tests/AppUnitTests/ProfileSettingsFavoritesTests.swift": {
+        "status": "M",
+        "before_bytes": 16915,
+        "before_sha256": "3245c921f272225eba72a2bb128079711185a73fbf216a0929db3f47cc1f7d54",
+        "after_bytes": 17113,
+        "after_sha256": "35da069bb573b59ca56fe59b91277da30ff70b3ab5a24fb702fe1af864df8bbd"
+      },
+      "Tests/AppUnitTests/WorkshopPaidInstallNormalFlowTests.swift": {
+        "status": "M",
+        "before_bytes": 14075,
+        "before_sha256": "cfe4ad08facb1bf37582046bccedbb2de135bea6579ff9264fbcb50ebb8f7809",
+        "after_bytes": 14151,
+        "after_sha256": "2d38fd3a87246c509a5cdccfaf0c6758f686024f90fe3edeb4ddc37c07344fc3"
+      },
+      "Vendor/GLTFKit2/GLTFKit2.xcodeproj/project.pbxproj": {
+        "status": "M",
+        "before_bytes": 23188,
+        "before_sha256": "30b4ca5ada1cec58ee2ac11e9514691e54d2eeba5d3985f4935111de1b55bf00",
+        "after_bytes": 23188,
+        "after_sha256": "331e3021a54e1e400dec64f2154f46fbac404b87ba7311381f48dab6f6cba3cc"
+      }
+    }
+  },
+  "exit_code": 0
+}

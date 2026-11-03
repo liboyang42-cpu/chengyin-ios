@@ -1,0 +1,547 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test -project <WORKTREE_ROOT>/Questify.xcodeproj -scheme QuestifyAppUnitTests -destination "platform=iOS Simulator,id=25316F87-058C-46CE-8825-617906638207" -derivedDataPath <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104 ARCHS=arm64 ONLY_ACTIVE_ARCH=YES "-only-testing:QuestifyAppUnitTests/ProfileFavoriteDetailTests" "-only-testing:QuestifyAppUnitTests/ProfileFavoriteTopicReadTests" "-only-testing:QuestifyAppUnitTests/ProfileGuideReadTests" "-only-testing:QuestifyAppUnitTests/ProfileSettingsFavoritesTests" "-only-testing:QuestifyAppUnitTests/WorkshopPaidInstallNormalFlowTests"
+
+Build settings from command line:
+    ARCHS = arm64
+    ONLY_ACTIVE_ARCH = YES
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (3 targets)
+    Target 'QuestifyAppUnitTests' in project 'Questify'
+        ➜ Explicit dependency on target 'Questify' in project 'Questify'
+    Target 'Questify' in project 'Questify'
+        ➜ Explicit dependency on target 'GLTFKit2' in project 'GLTFKit2'
+    Target 'GLTFKit2' in project 'GLTFKit2' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/AccountCompliance.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk -x objective-c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ActivityCoverAuthoring.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk -x objective-c++ -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ActivityEditing.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ActivityTemplateSelection.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ApprovedMerchantReviewSources.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/AuthEntry.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/CityFairness.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/CityGame.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ClubHostApplicationMaterials.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ClubNotificationAudience.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ClubOpsCustomer.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ClubOpsEvent.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ClubOpsGovernance.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ClubOpsJoinNotify.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ClubSeriesSchedule.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/CreatorAIPrompts.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/CreatorExitGuard.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/CreatorIntroExamples.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/CreatorPublishResult.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/CreatorSavedResult.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/InfoPlist.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/Localizable.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/MapCoreEntry.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/MapPublicLayers.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/MemberProfile.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/MerchantAICommerce.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/MerchantCityNode.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/MerchantCoopCenter.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/MerchantGameNode.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/MerchantLedgerSettlement.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/MerchantOps.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/MerchantReviewAndCustomerDetail.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/MerchantSettlementOverview.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/MyProjectActivityEditor.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/NPCChatLogDeletion.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/OpsSafety.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/PlayAnswerReview.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/PlayBranchHistory.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/PlayPlayerActionReview.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/PlayStoreDay.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/PlayTaskOutcome.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/PlayTimedDisplayLocalization.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/PlayerTaskEvidenceReview.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProfileSettingsFavorites.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectAlbumImageAuthor.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectAlbumPhotoOrder.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectAlbumPhotoRemoval.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectCategoryPicker.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectChapterAudio.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectCityStoryNodeRemoval.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectDraftNodeOverview.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectDraftStoryPreview.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectEditDatePicker.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectEditExitGuard.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectEditorAudioPreview.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectEndingConditionPicker.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectInitialAttributes.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectInitialState.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectMerchantDraft.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectNodeBusinessHours.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectNodeDuration.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectNodeGameplayRemoval.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectNodeImageAuthor.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectNodePhotoRemoval.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectNodePlacePicker.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectNodeRouteMapping.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectNodeTemplateCreation.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectNodeTemplateSelection.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectPendingNodeRemoval.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectRichStoryInsertion.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectStoryTextField.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectStoryTextInsertion.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectStoryVariableInsertion.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectTeamConfiguration.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/ProjectThoughtDefinitions.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/PublisherIdentityRegistration.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/StoreCharacter.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/TemplateConfiguredRehearsal.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/TemplateLocalCategoryRemoval.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/TemplatePreferenceRemoval.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/TemplateProfileOverride.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/TemplateReasoningRehearsal.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/TemplateSensorRehearsal.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/TicketPendingOrder.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/WalletEarningsOverview.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/WalletNumberLocalization.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/WorkshopCreatorConsent.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/WorkshopCreatorPending.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/WorkshopOwned.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/WorkshopPaidInstall.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/WorkshopPaidInstalledText.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/WorkshopPaidProfessional.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <WORKTREE_ROOT>/Resources/WorkshopPurchased.xcstrings
+
+Build description signature: d5b26e36b2e9c31a3489b4d51ad98ef1
+Build description path: <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/XCBuildData/d5b26e36b2e9c31a3489b4d51ad98ef1.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/SDKStatCaches.noindex/iphonesimulator27.1-24A94232-35d3147121984ba087c28d913653d626.sdkstatcache
+    cd <WORKTREE_ROOT>/Questify.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk -o <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/SDKStatCaches.noindex/iphonesimulator27.1-24A94232-35d3147121984ba087c28d913653d626.sdkstatcache
+
+MkDir <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <WORKTREE_ROOT>
+    /bin/mkdir -p <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest
+
+ProcessInfoPlistFile <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/GLTFKit2.framework/Info.plist <WORKTREE_ROOT>/Vendor/GLTFKit2/GLTFKit2/Info.plist (in target 'GLTFKit2' from project 'GLTFKit2')
+    cd <WORKTREE_ROOT>/Vendor/GLTFKit2
+    builtin-infoPlistUtility <WORKTREE_ROOT>/Vendor/GLTFKit2/GLTFKit2/Info.plist -producttype com.apple.product-type.framework -expandbuildsettings -format binary -platform iphonesimulator -o <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/GLTFKit2.framework/Info.plist
+
+MkDir <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns (in target 'Questify' from project 'Questify')
+    cd <WORKTREE_ROOT>
+    /bin/mkdir -p <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns
+
+VerifyModule <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/GLTFKit2.framework (in target 'GLTFKit2' from project 'GLTFKit2')
+    cd <WORKTREE_ROOT>/Vendor/GLTFKit2
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/modules-verifier <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/GLTFKit2.framework --clang /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang --diagnostic-filename-map <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/GLTFKit2.build/Debug-iphonesimulator/GLTFKit2.build/GLTFKit2-diagnostic-filename-map.json --sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk --intermediates-directory <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/GLTFKit2.build/Debug-iphonesimulator/GLTFKit2.build/VerifyModule --target arm64-apple-ios17.0-simulator --language objective-c --language objective-c++ --standard gnu17 --standard c++11
+
+ProcessInfoPlistFile <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/Info.plist <WORKTREE_ROOT>/Config/Info.plist (in target 'Questify' from project 'Questify')
+    cd <WORKTREE_ROOT>
+    builtin-infoPlistUtility <WORKTREE_ROOT>/Config/Info.plist -producttype com.apple.product-type.application -genpkginfo <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -scanforprivacyfile <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/Frameworks/GLTFKit2.framework -o <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/Info.plist
+
+CopySwiftLibs <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app (in target 'Questify' from project 'Questify')
+    cd <WORKTREE_ROOT>
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/Questify.debug.dylib --scan-folder <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/Frameworks --scan-folder <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns --scan-folder <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/SystemExtensions --scan-folder <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/Extensions --scan-folder <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/GLTFKit2.framework --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ProcessInfoPlistFile <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest/Info.plist <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/empty-QuestifyAppUnitTests.plist (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <WORKTREE_ROOT>
+    builtin-infoPlistUtility <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/empty-QuestifyAppUnitTests.plist -producttype com.apple.product-type.bundle.unit-test -expandbuildsettings -format binary -platform iphonesimulator -o <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest/Info.plist
+
+Ld <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest/QuestifyAppUnitTests normal (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <WORKTREE_ROOT>
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -bundle -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk -Os -Xlinker -no_warn_duplicate_libraries -L<ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L<ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F<ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F<ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk/Developer/Library/Frameworks -filelist <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests.LinkFileList -Xlinker -rpath -Xlinker /usr/lib/swift -Xlinker -rpath -Xlinker @loader_path/Frameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -dead_strip -bundle_loader <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/Questify -Xlinker -object_path_lto -Xlinker <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests_lto.o -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests.swiftmodule -Xlinker -needed_framework -Xlinker XCTest -framework XCTest -Xlinker -needed-lXCTestSwiftSupport -lXCTestSwiftSupport <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/Questify.debug.dylib -Xlinker -no_adhoc_codesign -o <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest/QuestifyAppUnitTests
+
+ExtractAppIntentsMetadata (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <WORKTREE_ROOT>
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name QuestifyAppUnitTests --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk --xcode-version 27A9275 --platform-family iOS --deployment-target 17.0 --bundle-identifier invalid.example.questify.ios.appunittests --output <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest --target-triple arm64-apple-ios17.0-simulator --binary-file <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest/QuestifyAppUnitTests --dependency-file <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests_dependency_info.dat --stringsdata-file <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests.SwiftFileList --metadata-file-list <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests.DependencyMetadataFileList --static-metadata-file-list <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests.DependencyStaticMetadataFileList --swift-const-vals-list <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --no-app-shortcuts-localization
+2026-11-04 02:48:46.091 appintentsmetadataprocessor[93378:92470655] Starting appintentsmetadataprocessor export
+2026-11-04 02:48:46.093 appintentsmetadataprocessor[93378:92470655] warning: Metadata extraction skipped, no AppIntents.framework dependency found
+
+CopySwiftLibs <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <WORKTREE_ROOT>
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest/QuestifyAppUnitTests --scan-folder <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest/Frameworks --scan-folder <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest/PlugIns --scan-folder <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest/SystemExtensions --scan-folder <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+AppIntentsSSUTraining (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <WORKTREE_ROOT>
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsnltrainingprocessor --infoplist-path <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest/Info.plist --temp-dir-path <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/ssu --bundle-id invalid.example.questify.ios.appunittests --product-path <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest --extracted-metadata-path <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest/Metadata.appintents --metadata-file-list <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests.DependencyMetadataFileList --source-file <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest/Info.plist --archive-ssu-assets
+2026-11-04 02:48:46.116 appintentsnltrainingprocessor[93401:92470689] Parsing options for appintentsnltrainingprocessor
+2026-11-04 02:48:46.116 appintentsnltrainingprocessor[93401:92470689] Starting AppIntents SSU YAML Generation
+2026-11-04 02:48:46.116 appintentsnltrainingprocessor[93401:92470689] No AppShortcuts found - Skipping.
+
+GenerateDSYMFile <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest.dSYM <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest/QuestifyAppUnitTests (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <WORKTREE_ROOT>
+    export PATH\=/Applications/Xcode.app/Contents/SharedFrameworks/SwiftBuild.framework/Versions/A/PlugIns/SWBBuildService.bundle/Contents/PlugIns/SWBUniversalPlatformPlugin.bundle/Contents/Frameworks/SWBUniversalPlatform.framework/Resources:/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin:/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/local/bin:/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/libexec:/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/usr/bin:/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/usr/local/bin:/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin:/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/local/bin:/Applications/Xcode.app/Contents/Developer/usr/bin:/Applications/Xcode.app/Contents/Developer/usr/local/bin:<USER_HOME>/.qoder-cn/entry:<USER_HOME>/.gemini/antigravity-cli/bin:/opt/homebrew/opt/openjdk@17/bin:<USER_HOME>/.maestro/bin:<USER_HOME>/.local/bin:<USER_HOME>/sdks/google-cloud-sdk/bin:/opt/homebrew/bin:<USER_HOME>/flutter/bin:<USER_HOME>/.node/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/dsymutil <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest/QuestifyAppUnitTests -o <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest.dSYM
+
+CodeSign <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <WORKTREE_ROOT>
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest
+
+RegisterExecutionPolicyException <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <WORKTREE_ROOT>
+    builtin-RegisterExecutionPolicyException <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest
+
+Touch <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <WORKTREE_ROOT>
+    /usr/bin/touch -c <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest
+
+CodeSign <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/Questify.debug.dylib (in target 'Questify' from project 'Questify')
+    cd <WORKTREE_ROOT>
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/Questify.debug.dylib
+<ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/Questify.debug.dylib: replacing existing signature
+
+CodeSign <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/__preview.dylib (in target 'Questify' from project 'Questify')
+    cd <WORKTREE_ROOT>
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/__preview.dylib
+<ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app/__preview.dylib: replacing existing signature
+
+CodeSign <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app (in target 'Questify' from project 'Questify')
+    cd <WORKTREE_ROOT>
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app
+<ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app: replacing existing signature
+
+Validate <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app (in target 'Questify' from project 'Questify')
+    cd <WORKTREE_ROOT>
+    builtin-validationUtility <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Products/Debug-iphonesimulator/Questify.app -shallow-bundle -infoplist-subpath Info.plist
+
+PruneExplicitPrecompiledModules <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/SDKExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules <ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+2026-11-04 02:48:48.457 xcodebuild[90461:92465898] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 02:48:52.342905+0800 Questify[96357:92475402] [XPCErrors] non-launching port is incompatible with service identifier "com.apple.PointerUI.pointeruid.default-service"
+2026-11-04 02:48:52.344002+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+2026-11-04 02:48:52.344934+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+Test Suite 'Selected tests' started at 2026-11-04 02:48:52.391.
+Test Suite 'QuestifyAppUnitTests.xctest' started at 2026-11-04 02:48:52.392.
+Test Suite 'ProfileFavoriteDetailTests' started at 2026-11-04 02:48:52.392.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testConcreteBindingRejectsOldGetterAndPopAfterReplacement]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testConcreteBindingRejectsOldGetterAndPopAfterReplacement]' passed (0.073 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testConcurrentScreenReadsSharePendingDetailAndCommentsWaitForSuccess]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testConcurrentScreenReadsSharePendingDetailAndCommentsWaitForSuccess]' passed (0.016 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testExplicitSelectedDetailThenCommentsUseOnlyOriginalReadShapes]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testExplicitSelectedDetailThenCommentsUseOnlyOriginalReadShapes]' passed (0.007 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testHiddenRootCannotReopenOnForegroundWithoutRealAppearance]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testHiddenRootCannotReopenOnForegroundWithoutRealAppearance]' passed (0.005 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testHiddenSelectionRejectsPending401WithoutExpiringCurrentSession]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testHiddenSelectionRejectsPending401WithoutExpiringCurrentSession]' passed (0.013 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testListApprovalCannotOpenDetailAndDetailCannotReadTheList]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testListApprovalCannotOpenDetailAndDetailCannotReadTheList]' passed (0.008 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testMalformedOrCrossTargetCommentsAreNotEmptySuccess]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testMalformedOrCrossTargetCommentsAreNotEmptySuccess]' passed (0.012 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testNormalDestinationBackgroundRetiresWithoutAnotherRead]' started.
+2026-11-04 02:48:52.654773+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testNormalDestinationBackgroundRetiresWithoutAnotherRead]' passed (0.162 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testNormalStableDestinationActuallyLoadsDetailAndCommentsThenRetires]' started.
+2026-11-04 02:48:52.691629+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+2026-11-04 02:48:52.717376+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testNormalStableDestinationActuallyLoadsDetailAndCommentsThenRetires]' passed (0.049 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testOldSelectedPageCannotReadAfterAccountSwitch]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testOldSelectedPageCannotReadAfterAccountSwitch]' passed (0.013 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testOtherIDGenerationFeedAndRawUnselectedTransportCannotDispatch]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testOtherIDGenerationFeedAndRawUnselectedTransportCannotDispatch]' passed (0.007 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testRealAuthorAndCommentAuthorChildNavigationReturnsToSameDetailReader]' started.
+2026-11-04 02:48:52.885491+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+2026-11-04 02:48:53.082736+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+2026-11-04 02:48:53.083209+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+2026-11-04 02:48:53.115336+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+2026-11-04 02:48:53.183004+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+2026-11-04 02:48:53.265639+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+2026-11-04 02:48:53.266137+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+2026-11-04 02:48:53.351556+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testRealAuthorAndCommentAuthorChildNavigationReturnsToSameDetailReader]' passed (0.606 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testRetiredAAndItsLateCloseNeverAffectFreshBSelection]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testRetiredAAndItsLateCloseNeverAffectFreshBSelection]' passed (0.009 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testSameOwnerDetailApprovalRevocationRejectsLateReplyAndCannotBorrowReplacement]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testSameOwnerDetailApprovalRevocationRejectsLateReplyAndCannotBorrowReplacement]' passed (0.008 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testScopeChangeRetiresOldRouteAndOldPopCannotTouchNewOwner]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testScopeChangeRetiresOldRouteAndOldPopCannotTouchNewOwner]' passed (0.005 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testUnavailableDetailNeverTriggersCommentsAndExplicitRetryCanRecover]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testUnavailableDetailNeverTriggersCommentsAndExplicitRetryCanRecover]' passed (0.006 seconds).
+Test Suite 'ProfileFavoriteDetailTests' passed at 2026-11-04 02:48:53.395.
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.997 (1.003) seconds
+Test Suite 'ProfileFavoriteTopicReadTests' started at 2026-11-04 02:48:53.395.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testCurrent401ExpiresButLate401AfterOwnerChangeCannot]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testCurrent401ExpiresButLate401AfterOwnerChangeCannot]' passed (0.012 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testCurrentConcreteBindingDoesNotReadOrPopSuccessor]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testCurrentConcreteBindingDoesNotReadOrPopSuccessor]' passed (0.005 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testDefaultNilDetailIsUnavailableDespiteListAndGlobalDetailApproval]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testDefaultNilDetailIsUnavailableDespiteListAndGlobalDetailApproval]' passed (0.004 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testExactTransportIdentityChangesRejectAllLateReplies]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testExactTransportIdentityChangesRejectAllLateReplies]' passed (0.037 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testHiddenForegroundAndScopeChangesCannotReviveSelection]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testHiddenForegroundAndScopeChangesCannotReviveSelection]' passed (0.004 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testListSelectionNeedsSuccessfulCurrentLoadedIDAndScope]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testListSelectionNeedsSuccessfulCurrentLoadedIDAndScope]' passed (0.004 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testNormalFullDetailAndChapterCoverReturnUseSameReaderUntilRootLeaves]' started.
+2026-11-04 02:48:53.549893+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+2026-11-04 02:48:53.716836+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+2026-11-04 02:48:53.769417+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+2026-11-04 02:48:54.249079+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+2026-11-04 02:48:54.249156+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+2026-11-04 02:48:54.280369+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testNormalFullDetailAndChapterCoverReturnUseSameReaderUntilRootLeaves]' passed (0.837 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testNormalHostWithoutTopicApprovalDoesNotDispatchOrPretendLoaded]' started.
+2026-11-04 02:48:54.349090+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testNormalHostWithoutTopicApprovalDoesNotDispatchOrPretendLoaded]' passed (0.050 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testOriginalServiceDetailIncludesChaptersWithoutExtraCommentRead]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testOriginalServiceDetailIncludesChaptersWithoutExtraCommentRead]' passed (0.006 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testPageFailureRetainsFirstReceiptButRefreshFailureInvalidatesIt]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testPageFailureRetainsFirstReceiptButRefreshFailureInvalidatesIt]' passed (0.009 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testRetiredSelectionRejectsHeldReplyAndFutureReads]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testRetiredSelectionRejectsHeldReplyAndFutureReads]' passed (0.008 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testRevokedOrReplacedApprovalRejectsLateSuccessAnd401]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testRevokedOrReplacedApprovalRejectsLateSuccessAnd401]' passed (0.020 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testScopedTransportCannotFallbackToGlobalTopicGrantOrOtherRoutes]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testScopedTransportCannotFallbackToGlobalTopicGrantOrOtherRoutes]' passed (0.005 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testServerDenialAndMalformedDetailRemainFailuresExplicitRetryCanRecover]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testServerDenialAndMalformedDetailRemainFailuresExplicitRetryCanRecover]' passed (0.009 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testUnscopedExistingTopicReadAndDefaultOverrideRemainCompatible]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testUnscopedExistingTopicReadAndDefaultOverrideRemainCompatible]' passed (0.005 seconds).
+Test Suite 'ProfileFavoriteTopicReadTests' passed at 2026-11-04 02:48:54.413.
+	 Executed 15 tests, with 0 failures (0 unexpected) in 1.014 (1.018) seconds
+Test Suite 'ProfileGuideReadTests' started at 2026-11-04 02:48:54.413.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testActualArticleDestinationReadsOriginalViewAndRetiresOnRealRemoval]' started.
+2026-11-04 02:48:54.465854+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+2026-11-04 02:48:54.499048+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testActualArticleDestinationReadsOriginalViewAndRetiresOnRealRemoval]' passed (0.103 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testApprovalReplacementRevocationAndAccountChangeRejectLateArticleResponses]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testApprovalReplacementRevocationAndAccountChangeRejectLateArticleResponses]' passed (0.023 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testCurrent401ExpiresAndTaskCancellationDoesNot]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testCurrent401ExpiresAndTaskCancellationDoesNot]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testEmptyErrorRemovedAndExplicitRetryAreDistinct]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testEmptyErrorRemovedAndExplicitRetryAreDistinct]' passed (0.005 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testHiddenListAndBackgroundArticleRetireHeldResultsWithoutExpiringCurrentOwner]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testHiddenListAndBackgroundArticleRetireHeldResultsWithoutExpiringCurrentOwner]' passed (0.006 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testListCoverKeepsArticleReceiptAndHiddenForegroundCannotRead]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testListCoverKeepsArticleReceiptAndHiddenForegroundCannotRead]' passed (0.006 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testNormalOriginalListToExplicitArticleOnlyUsesTwoOriginalRequests]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testNormalOriginalListToExplicitArticleOnlyUsesTwoOriginalRequests]' passed (0.004 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testOldArticleCloseCannotRetireNewSelection]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testOldArticleCloseCannotRetireNewSelection]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testOldSettingsCallbacksCannotRouteOrConsumeNewPresentation]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testOldSettingsCallbacksCannotRouteOrConsumeNewPresentation]' passed (0.000 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testOnlyExactAcceptedRowCanCreateArticleAndRefreshRetiresOldSourceEvenSameID]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testOnlyExactAcceptedRowCanCreateArticleAndRefreshRetiresOldSourceEvenSameID]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testOrdinaryConfiguredGuideLoadsOriginalListAndRefreshesWithoutWrites]' started.
+2026-11-04 02:48:54.731657+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+2026-11-04 02:48:54.756403+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testOrdinaryConfiguredGuideLoadsOriginalListAndRefreshesWithoutWrites]' passed (0.236 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testOrdinaryGuideHostKeepsStaticModesAndDefaultNilDoesNoRead]' started.
+2026-11-04 02:48:54.845279+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testOrdinaryGuideHostKeepsStaticModesAndDefaultNilDoesNoRead]' passed (0.038 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testSettingsGuideConstructionKeepsExistingIndependentGrantClosed]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testSettingsGuideConstructionKeepsExistingIndependentGrantClosed]' passed (0.010 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testSettingsGuideModeRunsOnlyAfterDismissAndOnlyOnce]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testSettingsGuideModeRunsOnlyAfterDismissAndOnlyOnce]' passed (0.000 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testSignedOutAndDefaultNilNeverDispatchGuideRequests]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testSignedOutAndDefaultNilNeverDispatchGuideRequests]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testTransportEpochViewerTokenAndRoleChangesRejectLateResponses]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testTransportEpochViewerTokenAndRoleChangesRejectLateResponses]' passed (0.009 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testTransportSelectedIDAndPurposeCannotFallbackOrBorrowOtherRoutes]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testTransportSelectedIDAndPurposeCannotFallbackOrBorrowOtherRoutes]' passed (0.003 seconds).
+Test Suite 'ProfileGuideReadTests' passed at 2026-11-04 02:48:54.873.
+	 Executed 17 tests, with 0 failures (0 unexpected) in 0.457 (0.460) seconds
+Test Suite 'ProfileSettingsFavoritesTests' started at 2026-11-04 02:48:54.873.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testAccountEpochRoleViewerAndDependencyChangesRejectCapturedRowsImmediately]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testAccountEpochRoleViewerAndDependencyChangesRejectCapturedRowsImmediately]' passed (0.008 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testApprovalRevocationRetiresCollectionAndSelection]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testApprovalRevocationRetiresCollectionAndSelection]' passed (0.004 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testBackgroundRetiresDetailButPreservesCollectionForExplicitReturn]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testBackgroundRetiresDetailButPreservesCollectionForExplicitReturn]' passed (0.004 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testClosingSettingsIsPermanentForRetainedOwnerAndCallbacks]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testClosingSettingsIsPermanentForRetainedOwnerAndCallbacks]' passed (0.004 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testDefaultNilApprovalOpensHonestUnavailableCollectionWithoutDispatch]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testDefaultNilApprovalOpensHonestUnavailableCollectionWithoutDispatch]' passed (0.006 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testEntryRequiresAuthenticatedMatchingAccount]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testEntryRequiresAuthenticatedMatchingAccount]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testHeldPostReplyAfterCollectionPopCannotReachNewRoute]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testHeldPostReplyAfterCollectionPopCannotReachNewRoute]' passed (0.005 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testLogoutAndReauthenticationCannotReviveOldCollection]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testLogoutAndReauthenticationCannotReviveOldCollection]' passed (0.005 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testOldDismissalAndOldRowCannotDismissOrOpenSuccessor]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testOldDismissalAndOldRowCannotDismissOrOpenSuccessor]' passed (0.004 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testOnlyAcceptedCollectionRowsCanOpenExistingDetailSelections]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testOnlyAcceptedCollectionRowsCanOpenExistingDetailSelections]' passed (0.005 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testPopCollectionRetiresBothKindsOfNestedDetail]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testPopCollectionRetiresBothKindsOfNestedDetail]' passed (0.007 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testRepeatedOpenDoesNotReplaceActiveCollection]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testRepeatedOpenDoesNotReplaceActiveCollection]' passed (0.002 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testSettingsCollectionUsesOriginalDetailAndKeepsOwnerWhenCovered]' started.
+2026-11-04 02:48:55.007541+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+2026-11-04 02:48:55.043229+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+2026-11-04 02:48:55.110549+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testSettingsCollectionUsesOriginalDetailAndKeepsOwnerWhenCovered]' passed (0.304 seconds).
+Test Suite 'ProfileSettingsFavoritesTests' passed at 2026-11-04 02:48:55.236.
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.360 (0.362) seconds
+Test Suite 'WorkshopPaidInstallNormalFlowTests' started at 2026-11-04 02:48:55.236.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testNormalAccountDefaultAndMetadataApprovalCannotConstructInstallController]' started.
+2026-11-04 02:48:55.242587+0800 Questify[96357:92475402] [Snapshotting] Snapshotting a view (0x135765a40, _UIParallaxTransitionCardView) that is not in a visible window requires afterScreenUpdates:YES.
+2026-11-04 02:48:55.243160+0800 Questify[96357:92475402] Unbalanced calls to begin/end appearance transitions for <_TtGC7SwiftUI32NavigationStackHostingControllerVS_7AnyView_: 0x1356b9900>.
+2026-11-04 02:48:55.246187+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testNormalAccountDefaultAndMetadataApprovalCannotConstructInstallController]' passed (0.036 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testNormalConfigurationABAInvalidatesBeforeChangeAndLate401DoesNotLogout]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testNormalConfigurationABAInvalidatesBeforeChangeAndLate401DoesNotLogout]' passed (0.035 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testNormalControllerConfirmationReachesDedicatedTransportAndOnePrivateReceipt]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testNormalControllerConfirmationReachesDedicatedTransportAndOnePrivateReceipt]' passed (0.019 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testNormalRoleABAAndRootReplacementRevokeQueuedReadBeforeDispatch]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testNormalRoleABAAndRootReplacementRevokeQueuedReadBeforeDispatch]' passed (0.004 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testNormalSignedInPlayerMerchantAndClubUseExactFullContextAndSameController]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testNormalSignedInPlayerMerchantAndClubUseExactFullContextAndSameController]' passed (0.013 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testNormalTransportNeverAcceptsSubmitThroughGeneralSendEvenWithInstallApproval]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testNormalTransportNeverAcceptsSubmitThroughGeneralSendEvenWithInstallApproval]' passed (0.004 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testRealHostedInstallModalDismissAndReopenRetiresOldViewCallbacks]' started.
+2026-11-04 02:48:55.430983+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+2026-11-04 02:48:55.431109+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+2026-11-04 02:48:55.431151+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+2026-11-04 02:48:55.665743+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+2026-11-04 02:48:55.665833+0800 Questify[96357:92475402] [API] cannot add handler to 0 from 0 - dropping
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testRealHostedInstallModalDismissAndReopenRetiresOldViewCallbacks]' passed (0.551 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testTransportClonePreservesInstallSelectorAndLifetimeClosesBeforeForward]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testTransportClonePreservesInstallSelectorAndLifetimeClosesBeforeForward]' passed (0.004 seconds).
+Test Suite 'WorkshopPaidInstallNormalFlowTests' passed at 2026-11-04 02:48:55.904.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.666 (0.668) seconds
+Test Suite 'QuestifyAppUnitTests.xctest' passed at 2026-11-04 02:48:55.904.
+	 Executed 69 tests, with 0 failures (0 unexpected) in 3.494 (3.512) seconds
+Test Suite 'Selected tests' passed at 2026-11-04 02:48:55.904.
+	 Executed 69 tests, with 0 failures (0 unexpected) in 3.494 (3.513) seconds
+2026-11-04 02:48:55.921 xcodebuild[90461:92465898] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 02:48:55.922 xcodebuild[90461:92465898] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 02:48:55.922 xcodebuild[90461:92465898] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 02:48:56.195 xcodebuild[90461:92465898] [MT] IDETestOperationsObserverDebug: 7.794 elapsed -- Testing started completed.
+2026-11-04 02:48:56.195 xcodebuild[90461:92465898] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-11-04 02:48:56.195 xcodebuild[90461:92465898] [MT] IDETestOperationsObserverDebug: 7.794 sec, +7.794 sec -- end
+
+Test session results, code coverage, and logs:
+	<ARTIFACTS_ROOT>/DerivedData-final-audit-20261104/Logs/Test/Test-QuestifyAppUnitTests-2026.11.04_02-48-40-+0800.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

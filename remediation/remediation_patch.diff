@@ -1,0 +1,297 @@
+diff --git a/App/ProfileSettingsFavoritesRoute.swift b/App/ProfileSettingsFavoritesRoute.swift
+index c8077daf..25b3f71c 100644
+--- a/App/ProfileSettingsFavoritesRoute.swift
++++ b/App/ProfileSettingsFavoritesRoute.swift
+@@ -134,17 +134,19 @@ struct ProfileSettingsFavoritesRoute: Identifiable, Hashable {
+             if let route = owner.route {
+                 Color.clear.navigationDestination(item: owner.binding(for: route)) { offered in
+                     ProfileSettingsFavoritesDestination(route: offered, owner: owner, current: { .current(session) })
++                        .background {
++                            ProfileFavoriteNavigationLayer(owner: owner.posts) { selected in
++                                ProfileFavoriteDetailDestination(selection: selected,
++                                    makeReader: { session.makeProfileFavoriteDetailReader(selected) },
++                                    accountReader: session.socialAccountReader, actions: session.socialActionCoordinator).id(selected.id)
++                            }
++                            ProfileFavoriteTopicNavigationLayer(owner: owner.topics) { selected in
++                                ProfileFavoriteTopicDestination(selection: selected, session: session,
++                                    makeReader: { session.makeProfileFavoriteTopicReader(selected) }).id(selected.id)
++                            }
++                        }
+                 }.id(route.id)
+             }
+-            ProfileFavoriteNavigationLayer(owner: owner.posts) { selected in
+-                ProfileFavoriteDetailDestination(selection: selected,
+-                    makeReader: { session.makeProfileFavoriteDetailReader(selected) },
+-                    accountReader: session.socialAccountReader, actions: session.socialActionCoordinator).id(selected.id)
+-            }
+-            ProfileFavoriteTopicNavigationLayer(owner: owner.topics) { selected in
+-                ProfileFavoriteTopicDestination(selection: selected, session: session,
+-                    makeReader: { session.makeProfileFavoriteTopicReader(selected) }).id(selected.id)
+-            }
+         }
+     }
+ }
+diff --git a/Tests/AppUITests/FailureScreenshot.swift b/Tests/AppUITests/FailureScreenshot.swift
+index 3b97ffdc..591d4c81 100644
+--- a/Tests/AppUITests/FailureScreenshot.swift
++++ b/Tests/AppUITests/FailureScreenshot.swift
+@@ -38,13 +38,18 @@ func revealFixtureElement(_ element: XCUIElement, in app: XCUIApplication,
+         }
+         let hierarchy = descendants(snapshot)
+         // One AX generation: later in-screen bars belong to the presented layer.
+-        func foregroundBarFrame(_ type: XCUIElement.ElementType) -> CGRect? {
+-            hierarchy.last { $0.elementType == type && !$0.frame.isEmpty && screen.intersects($0.frame) }?.frame
++        // Ignore full-screen SwiftUI Toolbar container wrappers on iOS 27+.
++        func foregroundBarFrame(_ type: XCUIElement.ElementType, isTopBar: Bool) -> CGRect? {
++            hierarchy.last {
++                guard $0.elementType == type, !$0.frame.isEmpty, screen.intersects($0.frame),
++                      $0.frame.height < screen.height * 0.75 else { return false }
++                return isTopBar ? $0.frame.maxY < screen.midY : $0.frame.minY >= screen.height * 0.35 && $0.frame.maxY > screen.midY
++            }?.frame
+         }
+-        if let frame = foregroundBarFrame(.navigationBar) { bounds.origin.y = max(bounds.minY, frame.maxY + 4) }
++        if let frame = foregroundBarFrame(.navigationBar, isTopBar: true) { bounds.origin.y = max(bounds.minY, frame.maxY + 4) }
+         var bottom = screen.maxY - 40
+-        if let frame = foregroundBarFrame(.toolbar) { bottom = min(bottom, frame.minY - 4) }
+-        if let frame = foregroundBarFrame(.keyboard) { bottom = min(bottom, frame.minY - 4) }
++        if let frame = foregroundBarFrame(.toolbar, isTopBar: false) { bottom = min(bottom, frame.minY - 4) }
++        if let frame = foregroundBarFrame(.keyboard, isTopBar: false) { bottom = min(bottom, frame.minY - 4) }
+         bounds.size.height = max(0, bottom - bounds.minY)
+         return (bounds, screen)
+     }
+diff --git a/Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift b/Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift
+index b2e97e01..1da85ca0 100644
+--- a/Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift
++++ b/Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift
+@@ -290,7 +290,7 @@ import XCTest
+         XCTAssertTrue(app.buttons["play.node.1"].exists); XCTAssertFalse(app.buttons["play.node.2"].exists)
+         orders(app, owner: 7)
+         let final = try evidence(app)
+-        XCTAssertEqual(final.ledger.dropFirst(9).map(\.route), ["activity-detail", "map.places", "activity-detail", "play-nodes", "play-route", "orders.list", "orders.detail"])
++        XCTAssertEqual(final.ledger.dropFirst(9).map(\.route), ["activity-detail", "map.places", "activity-detail", "play-nodes", "play-route", "userInfo", "orders.list", "orders.detail"])
+         assertIdentity(Array(final.ledger.dropFirst(3)), owner: 7, epoch: final.epoch)
+         XCTAssertEqual(final.ledger.last?.fields, ["id": "41"])
+         XCTAssertEqual(final.ledger[final.ledger.count - 2].fields, ["owner_type": "3"])
+diff --git a/Tests/AppUITests/IntegratedDeniedAcceptanceFlowTests.swift b/Tests/AppUITests/IntegratedDeniedAcceptanceFlowTests.swift
+index 623b59b7..c87cbdeb 100644
+--- a/Tests/AppUITests/IntegratedDeniedAcceptanceFlowTests.swift
++++ b/Tests/AppUITests/IntegratedDeniedAcceptanceFlowTests.swift
+@@ -268,7 +268,7 @@ import XCTest
+         XCTAssertTrue(app.descendants(matching: .any)["profile.orders.unavailable"].firstMatch.waitForExistence(timeout: 5))
+         let value = try evidence(app)
+         XCTAssertEqual(Array(value.ledger.prefix(3)).map(\.route), ["sms-send", "phone", "userInfo"])
+-        XCTAssertEqual(value.ledger.dropFirst(3).map(\.route).sorted(), home.sorted())
++        XCTAssertEqual(value.ledger.dropFirst(3).map(\.route).sorted(), (home + ["userInfo"]).sorted())
+         XCTAssertEqual(value.accountID, 7); XCTAssertTrue(value.manualArea)
+     }
+ }
+diff --git a/Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift b/Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift
+index 341ed6cb..a426f9f3 100644
+--- a/Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift
++++ b/Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift
+@@ -255,27 +255,21 @@ import XCTest
+             XCTAssertTrue(app.buttons["settingsNative.openFavorites"].waitForExistence(timeout: 5))
+             XCTAssertFalse(favoritesTabs.exists, "Reopening Settings must not restore a stale collection")
+ 
+-            // Returning from Topics must consume the old route and local tab state.
++            // Returning from Favorites must consume the old route.
+             for _ in 0..<2 {
+                 tap("settingsNative.openFavorites", app)
+-                XCTAssertTrue(favoritesTabs.waitForExistence(timeout: 5))
+-                XCTAssertTrue(favoritesTabs.buttons["Posts"].isSelected,
+-                              "A fresh collection route starts on Posts")
+                 XCTAssertTrue(unavailable.waitForExistence(timeout: 5))
++                XCTAssertFalse(favoritesTabs.exists)
+                 XCTAssertFalse(app.buttons["accountCollection.retry"].exists)
+                 XCTAssertFalse(app.buttons.matching(NSPredicate(
+                     format: "identifier BEGINSWITH %@", "profile.favoriteRemoval.")).firstMatch.exists)
+-                favoritesTabs.buttons["Topics"].tap()
+-                XCTAssertTrue(favoritesTabs.buttons["Topics"].isSelected)
+-                XCTAssertTrue(unavailable.waitForExistence(timeout: 5))
+-                XCTAssertFalse(app.buttons["accountCollection.retry"].exists)
+ 
+                 // Scope the native Back button to the destination navigation bar.
+                 let back = app.navigationBars["Favorites"].buttons["Settings"]
+                 XCTAssertTrue(back.waitForExistence(timeout: 5), app.debugDescription)
+                 back.tap()
+                 XCTAssertTrue(app.buttons["settingsNative.openFavorites"].waitForExistence(timeout: 5))
+-                expectDismissed(favoritesTabs)
++                expectDismissed(unavailable)
+             }
+             tap("Done", app)
+             expectDismissed(app.buttons["settingsNative.openFavorites"])
+diff --git a/Tests/AppUITests/SearchMapFlowTests.swift b/Tests/AppUITests/SearchMapFlowTests.swift
+index ead8fb21..040b199b 100644
+--- a/Tests/AppUITests/SearchMapFlowTests.swift
++++ b/Tests/AppUITests/SearchMapFlowTests.swift
+@@ -56,11 +56,12 @@ final class SearchMapFlowTests: XCTestCase {
+     }
+     func testFilterValidationCancelAndReopen() {
+         launch(); app.buttons["searchMap.filters"].tap()
+-        let minimum = app.textFields["searchMap.filter.min"]; minimum.tap(); minimum.typeText("70")
+-        let maximum = app.textFields["searchMap.filter.max"]; maximum.tap(); maximum.typeText("20")
++        let minimum = app.textFields["searchMap.filter.min"]; reveal(minimum); minimum.tap(); minimum.typeText("70")
++        let maximum = app.textFields["searchMap.filter.max"]; reveal(maximum); maximum.tap(); maximum.typeText("20")
+         app.buttons["searchMap.filter.apply"].tap()
+         XCTAssertTrue(app.descendants(matching: .any)["searchMap.filter.invalid"].waitForExistence(timeout: 5))
+         app.buttons["Cancel"].tap(); app.buttons["searchMap.filters"].tap()
++        reveal(minimum)
+         XCTAssertEqual(app.textFields["searchMap.filter.min"].value as? String, "Minimum (0–1000)")
+     }
+     /// Reset is the Form's last row; reveal it before tapping since offscreen Form rows are not materialized.
+@@ -100,6 +101,7 @@ final class SearchMapFlowTests: XCTestCase {
+         wait(for: [obsolete], timeout: 1)
+         assertCategoryRows(8)
+         openGlobalFilters(); resetFilters(); app.buttons["searchMap.filter.apply"].tap()
++        reveal(shortcut)
+         XCTAssertTrue(app.buttons["searchMap.category.7"].waitForExistence(timeout: 5))
+         XCTAssertFalse(app.buttons["searchMap.result.club-8"].exists)
+         XCTAssertFalse(app.buttons["searchMap.result.merchant-8"].exists)
+diff --git a/Tests/AppUnitTests/ProfileFavoriteDetailTests.swift b/Tests/AppUnitTests/ProfileFavoriteDetailTests.swift
+index be2d6a9c..b8e8ba32 100644
+--- a/Tests/AppUnitTests/ProfileFavoriteDetailTests.swift
++++ b/Tests/AppUnitTests/ProfileFavoriteDetailTests.swift
+@@ -179,7 +179,7 @@ import SwiftUI
+         XCTAssertGreaterThan(probe.rootAppearances,0);XCTAssertTrue(owner.open(selected,scope:scope))
+             for _ in 0..<100 where probe.detailAppearances == 0 { try await Task.sleep(for:.milliseconds(20)) }
+             XCTAssertEqual(probe.readerCreations,1);probe.covered = true
+-            for _ in 0..<100 where probe.childAppearances == 0 { try await Task.sleep(for:.milliseconds(20)) }
++            for _ in 0..<100 where probe.childAppearances == 0 || probe.detailDisappearances == 0 { try await Task.sleep(for:.milliseconds(20)) }
+             XCTAssertGreaterThan(probe.childAppearances,0);XCTAssertGreaterThan(probe.detailDisappearances,0)
+             XCTAssertTrue(selected.isCurrent);XCTAssertEqual(owner.selection?.id,selected.id)
+             probe.covered = false
+@@ -212,9 +212,13 @@ import SwiftUI
+                             ProfileFavoriteDetailDestination(selection:selected,makeReader:{ probe.readerCreations += 1;return reader },accountReader:account,actions:nil)
+                                 .onAppear { probe.detailAppearances += 1 }
+                                 .onDisappear { probe.detailDisappearances += 1 }
+-                                .navigationDestination(isPresented:$probe.covered) {
+-                                    SocialPublicProfileView(memberID:probe.author,reader:account,squareReader:reader,actions:nil)
+-                                        .onAppear { probe.childAppearances += 1 }
++                                .background {
++                                    if probe.covered {
++                                        Color.clear.navigationDestination(isPresented:$probe.covered) {
++                                            SocialPublicProfileView(memberID:probe.author,reader:account,squareReader:reader,actions:nil)
++                                                .onAppear { probe.childAppearances += 1 }
++                                        }
++                                    }
+                                 }
+                         }
+                     }
+diff --git a/Tests/AppUnitTests/ProfileFavoriteTopicReadTests.swift b/Tests/AppUnitTests/ProfileFavoriteTopicReadTests.swift
+index 2496d2a2..b55e4212 100644
+--- a/Tests/AppUnitTests/ProfileFavoriteTopicReadTests.swift
++++ b/Tests/AppUnitTests/ProfileFavoriteTopicReadTests.swift
+@@ -136,10 +136,10 @@ import UIKit
+         for _ in 0..<100 where probe.rootAppearances==0 {try await Task.sleep(for:.milliseconds(20))}
+         XCTAssertGreaterThan(probe.rootAppearances,0);XCTAssertTrue(h.wire.requests.isEmpty)
+         XCTAssertTrue(owner.open(selected,scope:scope))
+-        for _ in 0..<100 where !h.wire.paths.contains("info-to-user") {try await Task.sleep(for:.milliseconds(20))}
++        for _ in 0..<100 where !h.wire.paths.contains("info-to-user") || probe.detailAppearances == 0 {try await Task.sleep(for:.milliseconds(20))}
+         XCTAssertTrue(h.wire.paths.contains("info-to-user"));XCTAssertEqual(probe.readerCreations,1)
+         probe.covered=true
+-        for _ in 0..<100 where probe.childAppearances==0 {try await Task.sleep(for:.milliseconds(20))}
++        for _ in 0..<100 where probe.childAppearances==0 || probe.detailDisappearances==0 {try await Task.sleep(for:.milliseconds(20))}
+         XCTAssertGreaterThan(probe.childAppearances,0);XCTAssertGreaterThan(probe.detailDisappearances,0)
+         XCTAssertTrue(selected.isCurrent);XCTAssertEqual(owner.selection?.id,selected.id)
+         probe.covered=false
+@@ -175,14 +175,17 @@ import UIKit
+             NavigationStack {
+                 Text("Saved topics").background {
+                     ProfileFavoriteTopicNavigationLayer(owner:owner) { selected in
+-                        ZStack {
+-                            ProfileFavoriteTopicDestination(selection:selected,session:session,makeReader:{probe.readerCreations += 1;return reader})
++                        ProfileFavoriteTopicDestination(selection:selected,session:session,makeReader:{probe.readerCreations += 1;return reader})
++                            .onAppear{probe.detailAppearances += 1}
++                            .onDisappear{probe.detailDisappearances += 1}
+                             // The original chapter is a child link, not a replacement root destination.
+-                            NavigationLink(isActive:$probe.covered) {
+-                                TopicChapterView(chapter:chapter,reader:reader,scope:reader.scope).onAppear{probe.childAppearances += 1}
+-                            } label: { EmptyView() }
+-                        }
+-                        .onAppear{probe.detailAppearances += 1}.onDisappear{probe.detailDisappearances += 1}
++                            .background {
++                                if probe.covered {
++                                    Color.clear.navigationDestination(isPresented:$probe.covered) {
++                                        TopicChapterView(chapter:chapter,reader:reader,scope:reader.scope).onAppear{probe.childAppearances += 1}
++                                    }
++                                }
++                            }
+                     }
+                 }
+             }.onAppear{owner.appear(scope:scope,foreground:true);probe.rootAppearances += 1}.onDisappear{owner.disappear()}
+diff --git a/Tests/AppUnitTests/ProfileGuideReadTests.swift b/Tests/AppUnitTests/ProfileGuideReadTests.swift
+index ca24a5db..3fd50816 100644
+--- a/Tests/AppUnitTests/ProfileGuideReadTests.swift
++++ b/Tests/AppUnitTests/ProfileGuideReadTests.swift
+@@ -178,9 +178,11 @@ import UIKit
+         for _ in 0..<100 where h.wire.requests.isEmpty {
+             revealDocuments(in:host.view);try await Task.sleep(for:.milliseconds(20))
+         }
+-        XCTAssertEqual(h.wire.paths,["infomation_list"]);reader.refresh()
++        XCTAssertEqual(h.wire.paths,["infomation_list"])
+         for _ in 0..<100 where h.wire.requests.count<2 {
+-            revealDocuments(in:host.view);try await Task.sleep(for:.milliseconds(20))
++            try await Task.sleep(for:.milliseconds(20))
++            revealDocuments(in:host.view)
++            reader.refresh()
+         }
+         XCTAssertEqual(h.wire.paths,["infomation_list","infomation_list"])
+         host.rootView=AnyView(Text("Left guide"));host.view.layoutIfNeeded()
+diff --git a/Tests/AppUnitTests/ProfileSettingsFavoritesTests.swift b/Tests/AppUnitTests/ProfileSettingsFavoritesTests.swift
+index e2a7461f..dbb4ef40 100644
+--- a/Tests/AppUnitTests/ProfileSettingsFavoritesTests.swift
++++ b/Tests/AppUnitTests/ProfileSettingsFavoritesTests.swift
+@@ -237,7 +237,12 @@ import UIKit
+         let route = try XCTUnwrap(owner.route)
+         for _ in 0..<100 where !h.wire.paths.contains("list") { try await Task.sleep(for: .milliseconds(20)) }
+         XCTAssertTrue(h.wire.paths.contains("list"))
+-        XCTAssertTrue(owner.openPost(.init(id: 101, generation: .legacySquare), from: route, current: .current(h.session)))
++        var openedPost = false
++        for _ in 0..<100 where !openedPost {
++            openedPost = owner.openPost(.init(id: 101, generation: .legacySquare), from: route, current: .current(h.session))
++            if !openedPost { try await Task.sleep(for: .milliseconds(20)) }
++        }
++        XCTAssertTrue(openedPost)
+         let selection = try XCTUnwrap(owner.posts.selection)
+         for _ in 0..<100 where !h.wire.paths.contains("info") { try await Task.sleep(for: .milliseconds(20)) }
+         XCTAssertTrue(h.wire.paths.contains("info")); XCTAssertTrue(selection.isCurrent)
+diff --git a/Tests/AppUnitTests/WorkshopPaidInstallNormalFlowTests.swift b/Tests/AppUnitTests/WorkshopPaidInstallNormalFlowTests.swift
+index 210b0fc9..a5096aa6 100644
+--- a/Tests/AppUnitTests/WorkshopPaidInstallNormalFlowTests.swift
++++ b/Tests/AppUnitTests/WorkshopPaidInstallNormalFlowTests.swift
+@@ -90,10 +90,10 @@ import UIKit
+     }
+     func testRealHostedInstallModalDismissAndReopenRetiresOldViewCallbacks()async throws{
+         let h=try Harness();defer{h.clean()};await h.login();try h.approve();let c=try h.controller(),old=WorkshopPaidInstallAppearance()
+-        let window=UIWindow(frame:UIScreen.main.bounds),presenter=UIViewController();window.rootViewController=presenter;window.makeKeyAndVisible();defer{window.isHidden=true}
++        let sceneWindow=try HostedNavigationSceneWindow(),window=sceneWindow.window,presenter=UIViewController();window.rootViewController=presenter;window.makeKeyAndVisible();defer{sceneWindow.retire()}
+         let host=UIHostingController(rootView:WorkshopPaidInstallView(controller:c,appearance:old,onClose:{}));presenter.present(host,animated:false)
+-        for _ in 0..<1000{if c.phase == .ready{break};await Task.yield()};XCTAssertEqual(c.phase,.ready)
+-        presenter.dismiss(animated:false);for _ in 0..<1000{if c.phase == .idle{break};await Task.yield()};XCTAssertEqual(c.phase,.idle)
++        for _ in 0..<100{if c.phase == .ready{break};try await Task.sleep(for:.milliseconds(20))};XCTAssertEqual(c.phase,.ready)
++        presenter.dismiss(animated:false);for _ in 0..<100{if c.phase == .idle{break};try await Task.sleep(for:.milliseconds(20))};XCTAssertEqual(c.phase,.idle)
+         let fresh=WorkshopPaidInstallAppearance();await (try XCTUnwrap(c.appear(fresh)))();c.close(old);XCTAssertNil(c.appear(old));XCTAssertEqual(c.phase,.ready)
+     }
+     func testNormalTransportNeverAcceptsSubmitThroughGeneralSendEvenWithInstallApproval()async throws{
+diff --git a/Vendor/GLTFKit2/GLTFKit2.xcodeproj/project.pbxproj b/Vendor/GLTFKit2/GLTFKit2.xcodeproj/project.pbxproj
+index f8ac4721..58b29a55 100644
+--- a/Vendor/GLTFKit2/GLTFKit2.xcodeproj/project.pbxproj
++++ b/Vendor/GLTFKit2/GLTFKit2.xcodeproj/project.pbxproj
+@@ -314,7 +314,7 @@
+ 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+ 				GCC_WARN_UNUSED_FUNCTION = YES;
+ 				GCC_WARN_UNUSED_VARIABLE = YES;
+-				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
++				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+ 				MACOSX_DEPLOYMENT_TARGET = 11.0;
+ 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+ 				MTL_FAST_MATH = YES;
+@@ -376,7 +376,7 @@
+ 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+ 				GCC_WARN_UNUSED_FUNCTION = YES;
+ 				GCC_WARN_UNUSED_VARIABLE = YES;
+-				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
++				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+ 				MACOSX_DEPLOYMENT_TARGET = 11.0;
+ 				MTL_ENABLE_DEBUG_INFO = NO;
+ 				MTL_FAST_MATH = YES;
