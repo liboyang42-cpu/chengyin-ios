@@ -4,3 +4,11 @@ QUESTIFY_MARKET = US
 INFOPLIST_KEY_QuestifyMarket = $(QUESTIFY_MARKET)
 // US auth contracts/provider verification remain pending; never reuse the CN backend implicitly.
 QUESTIFY_API_BASE_URL =
+QUESTIFY_SESSION_REALM =
+
+// Per-market deployment inputs must not inherit another market's endpoint or realm.
+#include? "Local.UnitedStates.xcconfig"
+// This profile owns its market even if a local file contains a stale market value.
+QUESTIFY_MARKET = US
+// A market-only profile must not claim a deployment environment inherited from Local.
+QUESTIFY_DEPLOYMENT_ENVIRONMENT = unconfigured

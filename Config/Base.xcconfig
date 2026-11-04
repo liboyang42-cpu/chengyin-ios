@@ -21,6 +21,10 @@ INFOPLIST_KEY_QuestifyMarket = $(QUESTIFY_MARKET)
 QUESTIFY_API_BASE_URL =
 INFOPLIST_KEY_QuestifyAPIBaseURL = $(QUESTIFY_API_BASE_URL)
 
+// Informational build identity only; it cannot issue a runtime capability.
+QUESTIFY_DEPLOYMENT_ENVIRONMENT = unconfigured
+INFOPLIST_KEY_QuestifyDeploymentEnvironment = $(QUESTIFY_DEPLOYMENT_ENVIRONMENT)
+
 INFOPLIST_KEY_NSCameraUsageDescription = Use the camera to scan QR codes or take aftercare evidence photos when you choose.
 
 // Explicit deployment identity for isolated local session persistence; no default realm.
