@@ -380,11 +380,7 @@ import SwiftUI
                 NativeRpgEnvironmentAuthorEntry(model: model)
                 NativeRpgGrowthAuthorEntrySection(model: model)
                 NativeRpgPassiveRulesAuthorEntry(model: model)
-                ProjectEditPendingSection(model: model, controller: pending)
-                ProjectDraftStoryPreviewEntry(model: model)
-                chapterStructure(opening: opening).id("project-issue-anchor-chapters")
-                ProjectTeamConfigurationEntry(model: model)
-                ProjectClubLeadFields(model: model).id("project-issue-anchor-clubLead")
+                // Mini-program order: topic details, then mode and tickets, then chapters.
                 Section("projectEdit.tickets") {
                     ForEach(model.draft.tickets) { ticket in
                         NavigationLink { ProjectEditTicketView(model: model, ticketID: ticket.id) } label: {
@@ -394,6 +390,11 @@ import SwiftUI
                     Button("projectEdit.addTicket", systemImage: "plus") { model.draft.tickets.append(.init()) }
                         .disabled(!model.fullEdit).accessibilityIdentifier("projectEdit.addTicket")
                 }
+                ProjectEditPendingSection(model: model, controller: pending)
+                ProjectDraftStoryPreviewEntry(model: model)
+                chapterStructure(opening: opening).id("project-issue-anchor-chapters")
+                ProjectTeamConfigurationEntry(model: model)
+                ProjectClubLeadFields(model: model).id("project-issue-anchor-clubLead")
                 ProjectEditCompletionRulesForm(rules: model.completionRules, city: model.draft.product == .city, fullEdit: model.fullEdit, totalNodes: model.draft.chapters.reduce(0) { $0 + $1.nodes.count }).id("project-issue-anchor-completionRules")
                 PublishingTopicRewardsForm(rewards: model.rewards, fullEdit: model.fullEdit).id("project-issue-anchor-topicRewards")
                 Section("projectEdit.visibility") {
