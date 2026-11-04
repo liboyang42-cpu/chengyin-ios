@@ -29,6 +29,19 @@ Data files, next to this plan:
 
 **The core problem:** most features have a client but no working path. Porting routes alone won't enable them, because the app also ships with no address, no capabilities and nil dependencies. A feature counts only when the whole path works.
 
+## 1A. Merge status, checked 2026-11-04
+
+`integration/launch-20261204` is the one complete base. Work from it only.
+
+| Source | State |
+|---|---|
+| 75 open iOS PRs | All commits are already in this base. They don't need merging; L1 closes them after M1, with a comment naming the base. Their review state doesn't carry over |
+| 25 `codex/ui-public-20261103-*` branches | Now included. They were marked "not built", and relied on shared helpers that were never published; those helpers were written fresh in `App/QuestifyMotionComponents.swift`. App + Core typecheck: 0 errors. **No screen has been run** |
+| `screenshot/codex-ui-20261103`, `work/native-73e-file-transfer`, `evidence/gemini-*` | Left out on purpose: pilot test changes, old transfer files, evidence |
+| Backend: 70 open hengyin PRs | Not merged. L7 ports what is needed; #398 is not merged whole |
+
+**Being in the base doesn't prove a feature works.** Earlier merges were never verified by a complete CI pass. Treat every merged feature as unverified until its journey in section 6 passes. If a conflict resolution lost behaviour, restore it from the source branch.
+
 ## 2. Definition of done
 
 A feature is done only when all of these are true:
@@ -86,6 +99,8 @@ Other lanes put the change they need in `docs/app-composition/<lane>.diff`, and 
 CI details: `native-ios.yml` only runs on listed push branches or manual dispatch. Use `gh workflow run native-ios.yml --ref <branch> -f mode=related` on lanes and full mode on integration only. Repeated pushes cancel the running job on that ref. `Tests/ContractChecks` pins aren't run by CI: don't update them during the build; L3 handles them as a batch.
 
 ### UI boundary
+New issues found by anyone: Claude updates this plan on GitHub first, then assigns the work on the coordination thread.
+
 Claude owns all SwiftUI visual layout and copy. Codex lanes own `Core/`, services, adapters, wiring, state and tests. If a new screen is needed, build the data and flow with a plain native `List` or `Form` in a new file, then file it on the UI issue. Don't restyle existing screens.
 
 ### Hard limits
@@ -318,7 +333,7 @@ Regression for all: backgrounding, restart mid-flow, lost network, expired login
 
 ## 7. Claude's UI lane
 
-Direction: the mini-program for structure and flows, Mobbin for reference, native SwiftUI for components, Revolut for overall style. No unnecessary secondary labels; the layout explains. Where the mini-program's UI is wrong, fix it rather than copy it. **Merchant is light and player is dark.** This stays.
+Rules: `docs/launch/ui-spec.md`. The mini-program is the main reference, rendered with native SwiftUI; Mobbin and Revolut guide polish only. UI runs as cloud lanes U1 to U9, on `claude/ui-u<n>-*` branches. No unnecessary secondary labels; the layout explains. Where the mini-program's UI is wrong, fix it rather than copy it. **Merchant is light and player is dark.** This stays.
 
 The native tabs already match the mini-program.
 
