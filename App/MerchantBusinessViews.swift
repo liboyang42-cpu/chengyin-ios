@@ -447,6 +447,9 @@ import SwiftUI
                 }
             }
             if state.isLocked { Text("merchant.business.unknownResult").accessibilityIdentifier("merchant.business.locked") }
+            if case .reviews = query, let snapshot = state.snapshot, state.isCurrent, !state.isBusy, state.failureKey == nil {
+                MerchantReviewReplyRecoverySection(reader: reader, journal: journal, access: snapshot.access)
+            }
             if MerchantBusinessViewModel.resultRefreshQuery(query) != nil, let recoveryID = model.teamRecoveryID {
                 Section {
                     Text("merchant.business.stale")

@@ -1,0 +1,47 @@
+--- a/Questify.xcodeproj/project.pbxproj
++++ b/Questify.xcodeproj/project.pbxproj
+@@ -5,6 +5,26 @@
+ 	};
+ 	"objectVersion" = 56;
+ 	"objects" = {
++		"9F161F53C24F825AD95375F0" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/MerchantReviewReplyRecovery.swift";
++			"sourceTree" = "<group>";
++		};
++		"F8AF4CEC98B36A7A96DB1A4B" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "9F161F53C24F825AD95375F0";
++		};
++		"0F25A7079A75DEE7F6E81B9B" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "App/MerchantReviewReplyRecoveryView.swift";
++			"sourceTree" = "<group>";
++		};
++		"B04EB7E8C085ECD81606A561" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "0F25A7079A75DEE7F6E81B9B";
++		};
+ 		"A0E1AC5AE6C071EFC60003E8" = {
+ 			"isa" = "PBXFileReference";
+ 			"lastKnownFileType" = "sourcecode.swift";
+@@ -27528,6 +27548,8 @@
+ 		"19F479106CE8C3BA8C106518" = {
+ 			"isa" = "PBXGroup";
+ 			"children" = (
++				"9F161F53C24F825AD95375F0",
++				"0F25A7079A75DEE7F6E81B9B",
+ 				"A0E1AC5AE6C071EFC60003E8",
+ 				"3F7E5626DE63C029124AD3DC",
+ 				"7500BD0AA0CA4A19A50FC5B5",
+@@ -31114,6 +31136,8 @@
+ 			"isa" = "PBXSourcesBuildPhase";
+ 			"buildActionMask" = 2147483647;
+ 			"files" = (
++				"F8AF4CEC98B36A7A96DB1A4B",
++				"B04EB7E8C085ECD81606A561",
+ 				"9A6EA9163C60EE4CD2900EBE",
+ 				"16A1D6DA2DE9A336E5653026",
+ 				"0445F8C1C85158ACB6E70E4C",
