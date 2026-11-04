@@ -30,29 +30,17 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         ClubReadScreen(reader: reader, accessibilityPrefix: "club.home", onSignIn: onSignIn,
                        load: { try await reader.clubHome() }) { home in
             List {
-                Section {
-                    if let community {
-                        NavigationLink { ClubCommunityFeedView(context: community, identity: reader.clubIdentity) } label: { Label("club.community.feed", systemImage: "text.bubble") }
-                    }
-                    if let governance = management?.governance {
-                        ClubGovernanceHomeEntries(feedContext: .init(viewerRevision: management?.viewerRevision ?? governance.viewerRevision,
-                            readerIdentity: ObjectIdentifier(reader), destination: { id in
-                                AnyView(ClubDetailView(id: id, reader: reader, onSignIn: onSignIn))
-                            }), identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator)
-                    }
-                    if !discoveryScope.isMerchantViewer, let operations = management?.operations {
-                        Text("club.tab.createPrompt").font(.footnote).foregroundStyle(.secondary)
-                        ClubOperationsEntryButton(target: .create, identity: reader.clubIdentity, access: operations.access, coordinator: operations.coordinator, hostApplication: management?.governance)
-                    }
-                    NavigationLink {
-                        ClubDirectoryView(reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community)
-                    } label: { Label("club.directory", systemImage: "magnifyingglass") }
-                        .accessibilityIdentifier("club.openDirectory")
-                    if !discoveryScope.isMerchantViewer {
-                        NavigationLink {
-                            ClubOwnedView(reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community)
-                        } label: { Label("club.owned", systemImage: "person.crop.circle") }
-                            .accessibilityIdentifier("club.openOwned")
+                // Mini-program club tab: 「创建你自己的俱乐部」 stays pinned above the list; merchants never see it.
+                if !discoveryScope.isMerchantViewer, let operations = management?.operations {
+                    Section {
+                        HStack(spacing: Theme.Space.s3) {
+                            Text("club.tab.createPrompt").font(Theme.Font.body)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Spacer(minLength: Theme.Space.s2)
+                            ClubOperationsEntryButton(target: .create, identity: reader.clubIdentity, access: operations.access, coordinator: operations.coordinator, hostApplication: management?.governance)
+                                .buttonStyle(.questifyPrimary)
+                                .fixedSize()
+                        }
                     }
                 }
                 if ClubTabPresentation.isEmpty(home, nearby: locality.nearby(home.nearby, in: discoveryScope), merchant: discoveryScope.isMerchantViewer) {
@@ -65,6 +53,27 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                 clubSection("club.nearby", rows: locality.nearby(home.nearby, in: discoveryScope),
                             empty: discoveryScope.isMerchantViewer && locality.phase(in: discoveryScope) == .ready
                                 ? "club.locality.empty" : "club.emptyNearby", identifier: "club.home.nearby")
+                Section {
+                    if let community {
+                        NavigationLink { ClubCommunityFeedView(context: community, identity: reader.clubIdentity) } label: { Label("club.community.feed", systemImage: "text.bubble") }
+                    }
+                    if let governance = management?.governance {
+                        ClubGovernanceHomeEntries(feedContext: .init(viewerRevision: management?.viewerRevision ?? governance.viewerRevision,
+                            readerIdentity: ObjectIdentifier(reader), destination: { id in
+                                AnyView(ClubDetailView(id: id, reader: reader, onSignIn: onSignIn))
+                            }), identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator)
+                    }
+                    NavigationLink {
+                        ClubDirectoryView(reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community)
+                    } label: { Label("club.directory", systemImage: "magnifyingglass") }
+                        .accessibilityIdentifier("club.openDirectory")
+                    if !discoveryScope.isMerchantViewer {
+                        NavigationLink {
+                            ClubOwnedView(reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community)
+                        } label: { Label("club.owned", systemImage: "person.crop.circle") }
+                            .accessibilityIdentifier("club.openOwned")
+                    }
+                }
                 Section("club.events") {
                     if home.events.isEmpty {
                         Text("club.emptyEvents").foregroundStyle(.secondary).accessibilityIdentifier("club.home.events.empty")

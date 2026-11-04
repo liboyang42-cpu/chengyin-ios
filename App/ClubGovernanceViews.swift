@@ -1538,7 +1538,6 @@ struct ClubGovernanceEventView: View {
                         playContent(chapter)
                     }
                 }
-                Section { Text("club.gov.storyProjection").font(.footnote).foregroundStyle(.secondary) }
             } else {
                 Text("club.story.sourceUnavailable").accessibilityIdentifier("club.story.sourceUnavailable")
             }

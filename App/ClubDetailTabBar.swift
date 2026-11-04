@@ -1,25 +1,23 @@
 import SwiftUI
 
-/// Mini-program `cy-tabs.club-view-tabs`: 帖子 / 活动 / 概览 (+ 管理 when allowed).
+/// Mini-program `cy-tabs.club-view-tabs`: 帖子 / 活动 / 概览 (+ 管理 when allowed), as a native segmented picker.
 struct ClubDetailTabBar: View {
     let tabs: [ClubDetailTab]
     let selection: ClubDetailTab
     let select: (ClubDetailTab) -> Void
     var body: some View {
         Section {
-            HStack(spacing: 8) {
+            Picker("club.detail", selection: Binding(get: { selection }, set: { select($0) })) {
                 ForEach(tabs) { tab in
-                    Button { select(tab) } label: {
-                        Text(tab.titleKey)
-                            .font(.subheadline.weight(tab == selection ? .semibold : .regular))
-                            .frame(maxWidth: .infinity, minHeight: 32)
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(tab == selection ? .accentColor : .secondary)
-                    .accessibilityAddTraits(tab == selection ? .isSelected : [])
-                    .accessibilityIdentifier("club.detail.tab." + tab.rawValue)
+                    Text(tab.titleKey)
+                        .accessibilityIdentifier("club.detail.tab." + tab.rawValue)
+                        .tag(tab)
                 }
             }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+            .listRowBackground(Color.clear)
         }
     }
 }

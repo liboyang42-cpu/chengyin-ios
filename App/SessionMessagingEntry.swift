@@ -32,17 +32,17 @@ import SwiftUI
     }
 }
 
-/// Mini-program pages/talent/list nav 站内消息 icon with the `unread-total` dot.
+/// Mini-program pages/talent/list nav 站内消息 bell at the top-left (P-13) with the `unread-total` dot.
 /// Only for a signed-in account; the badge stays hidden unless its read is granted.
 @MainActor struct SessionMessagingToolbarEntry: ViewModifier {
     @ObservedObject var session: AppSession
     func body(content: Content) -> some View {
         content.toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .topBarLeading) {
                 if session.account != nil {
                     NavigationLink { SessionMessagingHome(session: session) } label: {
                         HStack(spacing: 2) {
-                            Image(systemName: "bubble.left.and.bubble.right")
+                            Image(systemName: "bell")
                             IMUnreadEntryBadge(reader: session.imUnreadTotalReader)
                         }
                         .accessibilityElement(children: .combine)

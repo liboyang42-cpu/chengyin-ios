@@ -44,7 +44,7 @@ import SwiftUI
                 }.pickerStyle(.segmented).accessibilityIdentifier("nearby.section")
                 if tab == 0 {
                     contextControls
-                    NearbyTeamHeaderBar(loaded: coordinator.context != nil, count: coordinator.teams.count, mode: $viewMode)
+                    NearbyTeamCountLine(loaded: coordinator.context != nil, count: coordinator.teams.count)
                     if model.running { ProgressView("nearby.loading") }
                     if let issue = NearbyLoadIssue(messageKey: coordinator.messageKey), !model.running {
                         NearbyLoadIssueCard(issue: issue, onSignIn: onSignIn) { Task { await refresh() } }
@@ -72,6 +72,9 @@ import SwiftUI
                     .disabled(model.running || !coordinator.authenticated).accessibilityIdentifier("nearby.refresh")
             }.padding()
         }.appNavigationTitle("nearby.title")
+            .toolbar {
+                if tab == 0 { ToolbarItem(placement: .topBarTrailing) { NearbyTeamViewModePicker(mode: $viewMode) } }
+            }
             .sheet(item: model.review) { review in NearbyTeamReviewView(model: model, snapshot: review) }
             .task {
                 coordinator.resume()

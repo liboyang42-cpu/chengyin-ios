@@ -17,6 +17,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     @State private var managementNeedsRefresh = false
     @State private var managementRevision: UInt64 = 0
     @State private var detailGeneration: UInt64 = 0
+    @Environment(\.locale) private var locale
     var body: some View {
         ClubReadScreen(reader: reader, accessibilityPrefix: "club.detail", refreshRevision: managementRevision, onSignIn: onSignIn,
                        load: {
@@ -35,10 +36,20 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             let tabs = ClubDetailTabPolicy(club: club, grant: manageGrant)
             let tab = tabs.resolve(selectedTab ?? tabs.initialTab(requested: requestedTab))
             List {
+                // Mini-program profile block: name, then one meta line 「类型 · N 名成员」.
                 Section {
-                    ClubName(value: club.name).font(.title2.bold()).accessibilityIdentifier("club.detail.name")
+                    VStack(spacing: Theme.Space.s1) {
+                        ClubName(value: club.name).font(Theme.Font.pageTitle).multilineTextAlignment(.center)
+                            .accessibilityIdentifier("club.detail.name")
+                        Text(verbatim: headerMeta(club)).font(Theme.Font.label).foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, Theme.Space.s3)
+                    .listRowBackground(Color.clear)
+                }
+                Section {
                     ClubOptionalRow(title: "club.style", value: club.style)
-                    LabeledContent("club.members") { Text(club.memberCount, format: .number) }
                     if club.isOwner { Label("club.role.creator", systemImage: "person.crop.circle.badge.checkmark") }
                     else if club.isJoined { Label("club.membership.joined", systemImage: "checkmark.circle") }
                     else if club.joinPending { Label("club.membership.pending", systemImage: "clock") }
@@ -157,7 +168,6 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                             Text("club.detail.leaderboard.unavailable").foregroundStyle(.secondary).accessibilityIdentifier("club.detail.leaderboard.unavailable")
                         } else {
                             Text("club.detail.leaderboard.locked").accessibilityIdentifier("club.detail.leaderboard.locked")
-                            Text("club.detail.leaderboard.lockedHint").font(.footnote).foregroundStyle(.secondary)
                         }
                     }
                     Section("club.detail.governanceHelp.title") {
@@ -178,6 +188,13 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 managementRevision &+= 1
             }
             .onChange(of: reader.clubIdentity) { _, _ in actionDetail = nil; actionIdentity = nil; manageGrant = nil; selectedTab = nil }
+    }
+
+    private func headerMeta(_ club: ClubRecord) -> String {
+        let type = (club.clubType ?? club.clubTypes)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let count = ClubMemberCountLocalization.text(club.memberCount, locale: locale)
+        guard let type, !type.isEmpty else { return count }
+        return type + " · " + count
     }
 
     /// `/api/club/access/me` only widens the manage tab; a failed or foreign read revokes
