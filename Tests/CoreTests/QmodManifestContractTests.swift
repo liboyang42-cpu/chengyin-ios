@@ -18,6 +18,46 @@ final class QmodManifestContractTests: XCTestCase {
     }
     private let limits = QmodLimitProfile.reviewProposalV1
 
+    func testDuplicateManifestKeysAreRejectedBeforeFoundationSelectsAValue() throws {
+        let valid = try XCTUnwrap(String(data: manifest(), encoding: .utf8))
+        for inserted in [#""kind":"questify.h5","#,
+                         #""ki\u006ed":"questify.h5","#,
+                         #""approved":false,"approved":true,"#] {
+            let bytes = Data(("{" + inserted + valid.dropFirst()).utf8)
+            XCTAssertThrowsError(try QmodManifest(data: bytes, limits: limits)) {
+                XCTAssertEqual($0 as? QmodManifestIssue, .malformed)
+            }
+        }
+    }
+
+    func testJSONDuplicateCheckDecodesKeysAndKeepsObjectScopesSeparate() throws {
+        for text in [#"{"a":1,"\u0061":2}"#,
+                     #"{"nested":[{"answer":1,"answer":2}]}"#,
+                     #"{"😀":1,"\ud83d\ude00":2}"#] {
+            XCTAssertThrowsError(try QmodJSONInspection.validate(Data(text.utf8))) {
+                XCTAssertEqual($0 as? QmodJSONInspection.Failure, .duplicateKey)
+            }
+        }
+        for text in [#"[{"same":1},{"same":2}]"#,
+                     #"{"quoted":"\"key\":1,\"key\":2","n":-1.25e+3,"b":true,"a":[false,null]}"#,
+                     #"{"a":{},"b":[],"c":"反斜杠\\与中文"}"#] {
+            XCTAssertNoThrow(try QmodJSONInspection.validate(Data(text.utf8)))
+        }
+    }
+
+    func testJSONSyntaxAndRecursionStopBeforeDecoding() {
+        for text in [#"{"a":1,}"#, #"[1,]"#, #"{"a":01}"#, #"{"a":1e}"#,
+                     #"{"a":+1}"#, #"{"a":"\q"}"#, #"{"a":"\ud800"}"#,
+                     #"{"a":true false}"#, "{}{}", "", "[", "{\"a\":\"\n\"}"] {
+            XCTAssertThrowsError(try QmodJSONInspection.validate(Data(text.utf8)), text)
+        }
+        XCTAssertThrowsError(try QmodJSONInspection.validate(Data([123, 34, 255, 34, 58, 48, 125])))
+        let nested = String(repeating: "[", count: 66) + "0" + String(repeating: "]", count: 66)
+        XCTAssertThrowsError(try QmodJSONInspection.validate(Data(nested.utf8))) {
+            XCTAssertEqual($0 as? QmodJSONInspection.Failure, .depthExceeded)
+        }
+    }
+
     func testValidManifestParsesAndProposalProfileIsLabelled() throws {
         let value = try QmodManifest(data: manifest(), limits: limits)
         XCTAssertEqual(value.packageId, "bookshop.mystery"); XCTAssertEqual(value.dependencies.count, 1); XCTAssertEqual(value.files.count, 4)

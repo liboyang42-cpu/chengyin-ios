@@ -1,9 +1,75 @@
 import XCTest
+import CryptoKit
 @testable import QuestifyCore
 
 final class QmodArchiveInspectionTests: XCTestCase {
     private let limits = QmodLimitProfile.reviewProposalV1
     private let expansion = QmodExpansionGuard.localProcessStop
+
+    func testMatchingDigestsCannotHideDuplicateJSONKeysInAnyJSONEntry() throws {
+        for path in ["manifest.json", "content.json", "en.json", "zh-Hans.json"] {
+            let bytes = try jsonPackage(replacing: path, with: Data(#"{"answer":1,"\u0061nswer":2}"#.utf8))
+            let report = QmodArchiveInspection.inspect(package: bytes, limits: limits, expansionGuard: expansion, packageLabel: "duplicate-json.zip")
+            XCTAssertEqual(report.outcome, .failedLocalChecks)
+            XCTAssertTrue(report.issues.contains {
+                $0.path == path && $0.code == .corrupt(detail: "json-duplicateKey") && $0.entryIndex != nil
+            }, path)
+            XCTAssertFalse(report.fileSummaries.contains { $0.path == path }, path)
+            XCTAssertFalse(report.issues.contains { if case .digestMismatch = $0.code { return true }; return false })
+            assertLocalOnly(report)
+        }
+    }
+
+    func testMalformedJSONWithCorrectHashesIsRejectedAndSelectionCanRecover() throws {
+        var session = QmodArchiveInspectionSession()
+        for text in [#"{"nodes":[],}"#, #"{"a":01}"#, #"{"a":"\q"}"#] {
+            session.select(bytes: try jsonPackage(replacing: "content.json", with: Data(text.utf8)), label: "bad.zip", limits: limits, expansionGuard: expansion)
+            XCTAssertEqual(session.report?.outcome, .failedLocalChecks)
+            XCTAssertTrue(session.report?.issues.contains {
+                $0.path == "content.json" && $0.code == .corrupt(detail: "json-malformed")
+            } ?? false)
+            session.recheck()
+            XCTAssertEqual(session.report?.outcome, .failedLocalChecks)
+        }
+        session.replace(bytes: try fixture("ok-stored.zip"), label: "fixed.zip", limits: limits, expansionGuard: expansion)
+        XCTAssertEqual(session.report?.outcome, .passedLocalChecks)
+        XCTAssertEqual(session.report?.packageLabel, "fixed.zip")
+        session.cancel()
+        XCTAssertNil(session.report)
+    }
+
+    // Produce a stored archive whose manifest hashes match the hostile payload.
+    // A fingerprint failure must not be the reason these tests reject JSON.
+    private func jsonPackage(replacing path: String, with payload: Data) throws -> Data {
+        var files = [("content.json", Data(#"{"nodes":[]}"#.utf8)),
+                     ("en.json", Data(#"{"title":"local"}"#.utf8)),
+                     ("zh-Hans.json", Data(#"{"title":"本机"}"#.utf8))]
+        if let i = files.firstIndex(where: { $0.0 == path }) { files[i].1 = payload }
+        let root: [String: Any] = [
+            "formatVersion": "1.0", "kind": "questify.mod", "packageId": "bookshop.mystery", "packageVersion": "1.0.0",
+            "entrypoint": "content.json", "locales": ["en", "zh-Hans"],
+            "runtime": ["minHostVersion": "1.0.0", "capabilities": []] as [String: Any],
+            "files": files.map { ["path": $0.0, "bytes": $0.1.count, "sha256": SHA256.hash(data: $0.1).map { String(format: "%02x", $0) }.joined()] },
+            "rightsDeclaration": ["declared": true], "monetizationDeclaration": "NONE"
+        ]
+        files.insert(("manifest.json", path == "manifest.json" ? payload : try JSONSerialization.data(withJSONObject: root)), at: 0)
+        var archive = Data(), central = Data()
+        func word(_ value: UInt32, _ width: Int = 4) -> Data {
+            Data((0..<width).map { UInt8(truncatingIfNeeded: value >> ($0 * 8)) })
+        }
+        for (name, data) in files {
+            let nameBytes = Data(name.utf8), offset = UInt32(archive.count)
+            let crc = try XCTUnwrap(QmodCRC32.checksum(data)), size = UInt32(data.count)
+            archive += word(0x04034b50) + word(20, 2) + word(0, 2) + word(0, 2) + word(0) + word(crc) + word(size) + word(size)
+            archive += word(UInt32(nameBytes.count), 2) + word(0, 2) + nameBytes + data
+            central += word(0x02014b50) + word(20, 2) + word(20, 2) + word(0, 2) + word(0, 2) + word(0) + word(crc) + word(size) + word(size)
+            central += word(UInt32(nameBytes.count), 2) + word(0, 2) + word(0, 2) + word(0, 2) + word(0, 2) + word(0) + word(offset) + nameBytes
+        }
+        let start = UInt32(archive.count)
+        archive += central
+        archive += word(0x06054b50) + word(0, 2) + word(0, 2) + word(UInt32(files.count), 2) + word(UInt32(files.count), 2) + word(UInt32(central.count)) + word(start) + word(0, 2)
+        return archive
+    }
 
     private func fixture(_ name: String) throws -> Data {
         let url = URL(fileURLWithPath: #filePath)
@@ -24,7 +90,7 @@ final class QmodArchiveInspectionTests: XCTestCase {
         XCTAssertFalse(report.acceptedH5, file: file, line: line)
         XCTAssertFalse(report.uploaded, file: file, line: line)
         XCTAssertEqual(report.serverSubmission, .notAttempted, file: file, line: line)
-        XCTAssertEqual(report.duplicateJSONKeys, .notDetectedServerCheck, file: file, line: line)
+        XCTAssertEqual(report.duplicateJSONKeys, .rejectedLocallyServerCheckRequired, file: file, line: line)
         XCTAssertTrue(report.serverDenialText.contains("未提交服务器"), file: file, line: line)
         XCTAssertTrue(report.serverDenialText.contains("UploadModDraft"), file: file, line: line)
         XCTAssertTrue(report.serverDenialText.contains("ValidateModPackage"), file: file, line: line)
