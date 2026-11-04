@@ -969,6 +969,9 @@ struct SessionMerchantRootContainerView: View {
                     predictionReader: session.merchantPredictionReader
                 )
                 .environment(\.merchantPredictionWorkbenchEntry, { AnyView(SessionMerchantPredictionEntry(session: session)) })
+                // Same scan-to-redeem destination the Mine tab provides, so the workbench scan entry
+                // opens verification instead of the code preview fallback.
+                .environment(\.nativeVerificationDestination, { AnyView(SessionNativeVerificationView()) })
                 .environment(\.merchantAccessObserver, MerchantAccessObservationHook(
                     begin: {
                         coordinator.beginAccessObservation(
