@@ -166,13 +166,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server status"
+            "value": "Status"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端状态"
+            "value": "状态"
           }
         }
       }
@@ -326,13 +326,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Submitting may revoke all sessions. Sign in again to check or cancel a pending application. The server determines eligibility and the execution date."
+            "value": "Submitting may sign you out on all devices. Sign in again to check or cancel a pending application. Eligibility and the deletion date are confirmed by Questify."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "提交后可能吊销所有会话。请重新登录查询或撤销在途申请。注销资格和执行时间以服务端为准。"
+            "value": "提交后可能会在所有设备上退出登录。请重新登录查询或撤销处理中的申请。注销资格和执行时间以城瘾确认为准。"
           }
         }
       }
@@ -374,13 +374,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "An application is pending. The date and blockers above come from the server."
+            "value": "An application is pending. See the date and items above."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "申请正在处理中。以上日期及阻断项由服务端提供。"
+            "value": "申请正在处理中，日期及待处理事项见上方。"
           }
         }
       }
@@ -454,13 +454,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Revoke server consent, then stop tracking and clear local map privacy agreement. A failed local step can be resumed."
+            "value": "Withdraw your consent, then stop location tracking and clear the map privacy agreement on this device. If a step fails, you can continue it later."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "先撤回服务端授权，再停止定位并清除本地地图隐私同意。失败的本地步骤可以继续。"
+            "value": "先撤回授权，再停止定位并清除本机的地图隐私同意。某一步失败时可稍后继续。"
           }
         }
       }
@@ -486,13 +486,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preferences change only after the server confirms this merchant and channel."
+            "value": "Your preferences update once we confirm this merchant and channel."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅在服务端确认对应商家及渠道后更新偏好。"
+            "value": "确认对应商家及渠道后，偏好设置才会更新。"
           }
         }
       }
@@ -550,13 +550,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This action is not enabled for this environment."
+            "value": "This action isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前环境未启用此操作。"
+            "value": "此操作暂不可用"
           }
         }
       }

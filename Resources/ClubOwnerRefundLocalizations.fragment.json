@@ -214,13 +214,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You can review the request. Sending refunds is disabled in this native build."
+            "value": "You can review the request. Sending refunds isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "可核对请求。当前原生版本的退款提交功能尚未启用。"
+            "value": "可查看请求，退款提交暂不可用。"
           }
         }
       }
@@ -1062,13 +1062,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server message (not confirmation)"
+            "value": "Message (not a confirmation)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端消息（不代表结果确认）"
+            "value": "提示信息（不代表处理结果）"
           }
         }
       }

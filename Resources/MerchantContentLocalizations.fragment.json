@@ -132,13 +132,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The server says you already registered"
+          "value": "You've already registered"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端确认您已报名"
+          "value": "你已报名"
         }
       }
     }
@@ -340,13 +340,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The server rechecks current supply. Missing, duplicate or expired supply does not count as a completed review."
+          "value": "We'll recheck current supply. Missing, duplicate or expired supply doesn't count as a completed review."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端将重新核对当前供给；供给不足、重复或过期时不视为复核完成。"
+          "value": "我们将重新核对当前供给；供给不足、重复或过期时不视为复核完成。"
         }
       }
     }
@@ -564,13 +564,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Live actions are disabled. Edits and reviews remain local; test requests use an injected offline transport only."
+          "value": "Live actions aren't available right now. Your edits stay on this device."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "真实操作未启用。编辑和确认均保留在本地；测试请求仅使用注入的离线传输。"
+          "value": "操作暂不可用，编辑内容仅保存在本机。"
         }
       }
     }
@@ -676,13 +676,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Server-provided fallback plan"
+          "value": "Backup plan"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端提供的备援预案"
+          "value": "备用方案"
         }
       }
     }

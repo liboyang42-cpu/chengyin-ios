@@ -134,13 +134,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This feature is not enabled in this build."
+            "value": "This feature isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前版本尚未启用此功能。"
+            "value": "此功能暂不可用"
           }
         }
       }

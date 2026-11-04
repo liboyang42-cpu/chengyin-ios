@@ -183,13 +183,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server start date"
+            "value": "Start date"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端开始日期"
+            "value": "开始日期"
           }
         }
       }
@@ -199,13 +199,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server end date"
+            "value": "End date"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端结束日期"
+            "value": "结束日期"
           }
         }
       }

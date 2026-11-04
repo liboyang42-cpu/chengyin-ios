@@ -602,13 +602,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This service has not been configured"
+            "value": "This feature isn't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此服务尚未配置"
+            "value": "此功能暂不可用"
           }
         }
       }
@@ -653,13 +653,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server response is incomplete. Refresh to check again"
+            "value": "Some information is missing. Refresh to check again"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端回执不完整，请刷新重查"
+            "value": "部分信息缺失，请刷新重试"
           }
         }
       }
@@ -755,13 +755,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server rejected this request"
+            "value": "This request couldn't be completed"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端拒绝了此请求"
+            "value": "请求未能完成"
           }
         }
       }
@@ -1027,13 +1027,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Live group-code issuance, refresh, redemption and saving require separate provider acceptance"
+            "value": "Issuing, refreshing, redeeming and saving group codes isn't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "真实团码签发、刷新、核销与保存需要单独完成服务验收"
+            "value": "团码签发、刷新、核销与保存暂不可用"
           }
         }
       }
@@ -1214,13 +1214,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This is the public chapter and gameplay projection. Answers use a separate permission-checked request"
+            "value": "This shows the public chapters and gameplay. Answers are only shown to people with permission"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此处展示公开章节与玩法，答案通过独立权限校验接口获取"
+            "value": "此处展示公开章节与玩法，答案仅对有权限的人可见"
           }
         }
       }
@@ -1367,13 +1367,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Local draft and immutable review"
+            "value": "Draft and final review"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本地草稿与固定审核内容"
+            "value": "草稿与最终确认"
           }
         }
       }
@@ -1486,13 +1486,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The receipt below is the server acknowledgment. Delivery, refunds and settlement are separate results"
+            "value": "Your request has been received. Delivery, refunds and settlement are handled separately"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "以下是服务端受理回执，送达、退款及结算是独立结果"
+            "value": "请求已受理，送达、退款及结算将分别处理"
           }
         }
       }

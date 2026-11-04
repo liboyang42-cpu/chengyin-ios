@@ -70,13 +70,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Could not refresh. Showing the previous snapshot."
+            "value": "Couldn't refresh. Showing the previous information."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂未更新，当前展示上次内容。"
+            "value": "暂未更新，当前显示上次的内容。"
           }
         }
       }

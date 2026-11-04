@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fairness read is off"
+            "value": "Fairness data isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "公平性读取未开启"
+            "value": "公平性数据暂不可用"
           }
         }
       }

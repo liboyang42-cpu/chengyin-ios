@@ -54,13 +54,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The cooling-off deadline is Beijing time and is decided by the server."
+            "value": "The cooling-off deadline is in Beijing time and is set by Questify."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "冷静期截止按北京时间计算，以服务端为准。"
+            "value": "冷静期截止时间按北京时间计算，以城瘾确认为准。"
           }
         }
       }
@@ -262,13 +262,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your choice is saved on this device. The consent record has not been sent to the server yet."
+            "value": "Your choice is saved on this device but hasn't been submitted yet."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你的选择已保存在本机，同意记录尚未提交到服务端。"
+            "value": "你的选择已保存在本机，但尚未提交。"
           }
         }
       }

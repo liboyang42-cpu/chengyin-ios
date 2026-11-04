@@ -71,13 +71,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Club posts are unavailable in this build."
+            "value": "Club posts aren't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前版本暂不可查看俱乐部帖子"
+            "value": "俱乐部帖子暂不可用"
           }
         }
       }
@@ -87,13 +87,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Club events are unavailable in this build."
+            "value": "Club events aren't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前版本暂不可查看俱乐部活动"
+            "value": "俱乐部活动暂不可用"
           }
         }
       }
@@ -151,13 +151,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The contribution board is unavailable in this build."
+            "value": "The contribution board isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前版本暂不可查看贡献榜"
+            "value": "贡献榜暂不可用"
           }
         }
       }

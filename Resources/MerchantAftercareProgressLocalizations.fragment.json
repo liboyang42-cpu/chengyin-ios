@@ -196,13 +196,13 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "仅显示服务端记录的申请、商家回应与转平台事实。记录时间按手机时区显示，包含完整日期与UTC偏移；不推算到账时间。"
+          "value": "仅显示已记录的申请、商家回应与转交平台记录。时间按手机时区显示完整日期，不预估到账时间。"
         }
       },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Recorded requests, merchant responses and platform handovers only. Record times follow your phone’s time zone, with full dates and UTC offsets. No arrival time is estimated."
+          "value": "Shows recorded requests, merchant responses and handovers to the platform only. Times are shown in your phone's time zone with full dates. Arrival times are not estimated."
         }
       }
     }
@@ -308,13 +308,13 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "订单退款政策快照"
+          "value": "订单退款政策"
         }
       },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Order refund policy snapshot"
+          "value": "Order refund policy"
         }
       }
     }

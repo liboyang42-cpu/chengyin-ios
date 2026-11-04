@@ -24,13 +24,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Audit snapshot SHA-256"
+            "value": "Review content check code"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "审核快照 SHA-256"
+            "value": "审核内容校验码"
           }
         }
       }
@@ -194,13 +194,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Full manifest SHA-256"
+            "value": "Content check code"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "完整清单 SHA-256"
+            "value": "内容校验码"
           }
         }
       }
@@ -381,13 +381,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Answer values and private guide text remain server-side. The hashes bind the full captured content, including fields omitted from this readable summary."
+            "value": "Answers and private guide text stay private. The check codes cover all content, including fields not shown in this summary."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "答案内容和私有指引保留在服务端。哈希绑定完整的捕获内容，也包括本摘要未展示的字段。"
+            "value": "答案和私有指引不会公开。校验码涵盖全部内容，包括本摘要未显示的字段。"
           }
         }
       }
@@ -415,13 +415,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Template snapshot SHA-256"
+            "value": "Template check code"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "模板快照 SHA-256"
+            "value": "模板校验码"
           }
         }
       }

@@ -3779,13 +3779,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Local content rehearsal is available. Only the server can confirm real completion."
+          "value": "You can try out the content here. Real completions are confirmed during actual play."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "可在本地预演内容；真实通关仍由服务端确认。"
+          "value": "可在此试玩内容，真实通关以实际游玩为准。"
         }
       }
     }
@@ -3796,13 +3796,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Authoring is available. Live steps require server-decrypted WeChat exercise data; native device counts are not accepted as proof here."
+          "value": "You can set this up here. Live step counts come from WeChat Run; phone step counts aren't accepted."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "可以配置。真实计步需要服务端解密微信运动数据，此处不把原生设备计数当作凭证。"
+          "value": "可以在此配置。实际步数以微信运动数据为准，不采用手机自带计步。"
         }
       }
     }
@@ -3847,13 +3847,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Inspect content and stages locally. Actual availability, daily selection and unlock times use the server clock."
+          "value": "You can check content and stages here. Actual opening, daily selection and unlock times follow the live schedule."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "可本地查看内容和阶段；真实开放、每日选择和解锁时间由服务端时钟决定。"
+          "value": "可在此查看内容和阶段，实际开放、每日选择和解锁时间以正式安排为准。"
         }
       }
     }
@@ -3864,13 +3864,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Inspect this configuration locally. Team assignment, rankings, records and state changes require the server."
+          "value": "You can check this setup here. Team assignment, rankings, records and status changes happen during actual play."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "可本地检查配置。真实队伍分配、排行、记录和状态变化需要服务端。"
+          "value": "可在此检查设置，队伍分配、排行、记录和状态变化以实际游玩为准。"
         }
       }
     }

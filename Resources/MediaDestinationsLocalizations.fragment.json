@@ -118,13 +118,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photo loading is not enabled"
+            "value": "Photos can't be loaded right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "图片加载尚未启用"
+            "value": "图片暂不可用"
           }
         }
       }
@@ -198,13 +198,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Camera, location and check-in are not enabled for this deployment"
+            "value": "Camera, location and check-in aren't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此环境尚未启用相机、定位与打卡提交"
+            "value": "相机、定位与打卡暂不可用"
           }
         }
       }
@@ -486,13 +486,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Camera and photo upload are not enabled for this deployment"
+            "value": "Camera and photo upload aren't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此环境尚未启用相机和照片上传"
+            "value": "相机和照片上传暂不可用"
           }
         }
       }

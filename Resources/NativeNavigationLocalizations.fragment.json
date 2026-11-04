@@ -585,13 +585,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only a current server-issued code can be shown. Showing it does not confirm redemption."
+            "value": "Only a valid current code can be shown. Showing it doesn't mean it has been redeemed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅展示当前服务端签发的有效凭证。出示码不代表核销成功。"
+            "value": "仅显示当前有效的券码。出示券码不代表已核销。"
           }
         }
       }
@@ -874,13 +874,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Coupon code issuance is not enabled in this build. No request was sent."
+            "value": "Coupon codes aren't available right now. No request was sent."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此版本尚未启用券码签发，未发送申请。"
+            "value": "券码暂不可用，未发送申请。"
           }
         }
       }

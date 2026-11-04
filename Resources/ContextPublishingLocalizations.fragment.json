@@ -823,13 +823,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The order is retained. Native payment is not configured; check the order or ticket wallet."
+            "value": "Your order has been kept. Payment isn't available right now; check your orders or ticket wallet."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "订单已保留，原生支付尚未配置。请查看订单或票夹。"
+            "value": "订单已保留，支付暂不可用。请查看订单或票夹。"
           }
         }
       }

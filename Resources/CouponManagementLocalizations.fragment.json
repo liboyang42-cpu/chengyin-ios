@@ -5,13 +5,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Coupon management is not configured"
+          "value": "Coupon management isn't available right now"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "优惠券管理尚未配置"
+          "value": "优惠券管理暂不可用"
         }
       }
     }
@@ -141,13 +141,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The server returned a message"
+          "value": "There's a message for you"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端返回了提示"
+          "value": "有一条提示"
         }
       }
     }
@@ -498,13 +498,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Live publication and stopping distribution are disabled in this build."
+          "value": "Publishing and stopping coupon distribution aren't available right now."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "此版本未开放真实发布和停发"
+          "value": "优惠券发布和停发暂不可用"
         }
       }
     }
@@ -634,13 +634,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Dates are display information. The server confirms eligibility and status."
+          "value": "Dates are for reference only. Eligibility and status are confirmed by Questify."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "日期仅供展示，资格和状态由服务端确认"
+          "value": "日期仅供参考，资格和状态以城瘾确认为准"
         }
       }
     }

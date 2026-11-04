@@ -58,13 +58,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose the saved shop confirmation for each merchant draft. The server will check the current content, shop facts and ownership before preparing your review request."
+            "value": "Choose the saved shop confirmation for each merchant draft. We'll check the current content, shop details and ownership before preparing your review request."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "为每份商家草稿选择已保存的店内事实确认。准备审核请求前，服务端会重新核验当前内容、店内事实及权属。"
+            "value": "为每份商家草稿选择已保存的店内信息确认。准备审核请求前，我们会重新核对当前内容、店内信息及归属。"
           }
         }
       }

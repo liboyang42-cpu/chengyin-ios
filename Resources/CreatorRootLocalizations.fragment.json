@@ -56,13 +56,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Server default (easy)"
+          "value": "Default (easy)"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端默认（简单）"
+          "value": "默认（简单）"
         }
       }
     }
@@ -192,13 +192,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Author and review both role views here. Real assignment and which view a player receives are server-owned; native player rendering is not verified by this preview."
+          "value": "Edit and check both role views here. Which role and view each player gets is decided during actual play."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "创作者可在此编辑和检查两个角色视角。真实分配及玩家能看到的内容由服务端决定；此预览不代表原生玩家端已验证。"
+          "value": "可在此编辑和检查两个角色视角，玩家实际分到的角色和视角以实际游玩为准。"
         }
       }
     }
@@ -651,13 +651,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Example session snapshot"
+          "value": "Example session"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "示例局配置快照"
+          "value": "示例对局"
         }
       }
     }
@@ -702,13 +702,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The values shown are a local example. Actual sessions apply the server rule once at start."
+          "value": "These are example values. In a real session the rules are applied once at the start."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "显示的是本地示例值。真实局由服务端在开局时一次性应用规则。"
+          "value": "以上为示例数值，真实对局会在开局时统一应用规则。"
         }
       }
     }
@@ -719,13 +719,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "A deterministic creator example uses 12, or 12 and 7. Live rolls and success must come from the server; this is not a gameplay receipt."
+          "value": "This example uses a roll of 12, or 12 and 7. Real rolls and results are decided during actual play."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "固定创作者示例使用 12，或 12 与 7。真实骰点与成功结果必须来自服务端，此处不是游玩回执。"
+          "value": "此示例使用 12，或 12 与 7。真实骰点和结果以实际游玩为准。"
         }
       }
     }

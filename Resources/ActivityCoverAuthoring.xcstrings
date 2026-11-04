@@ -177,13 +177,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Activity cover photo selection or upload is not configured. You can keep editing the draft."
+            "value": "Choosing or uploading a cover photo isn't available right now. You can keep editing the draft."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "活动封面选图或上传尚未配置，仍可继续编辑草稿。"
+            "value": "封面选图和上传暂不可用，仍可继续编辑草稿。"
           }
         }
       }

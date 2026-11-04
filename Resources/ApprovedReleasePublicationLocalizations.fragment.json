@@ -7,13 +7,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server returned an immutable release ID for this captured manifest."
+            "value": "Your release has been created and can no longer be changed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已为本次捕获的清单返回不可变发布版本 ID。"
+            "value": "发布版本已创建，之后无法再修改。"
           }
         }
       }
@@ -75,13 +75,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Create this immutable release"
+            "value": "Create this release"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "创建此不可变发布版本"
+            "value": "创建此发布版本"
           }
         }
       }
@@ -228,13 +228,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review immutable release"
+            "value": "Review release"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "审核不可变发布版本"
+            "value": "确认发布版本"
           }
         }
       }
