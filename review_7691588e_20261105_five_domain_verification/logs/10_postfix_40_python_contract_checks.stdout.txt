@@ -1,0 +1,365 @@
+BASE_COMMIT=7691588efe5f66c32af5001ebcb6bd3b3de49d05+postfix
+PARENT_COMMIT=ab2d3905ec0b0fb17b58ba6b53ec433d83164701
+TOTAL_PYTHON_FILES=40
+
+=== [01/40] PYTHONPATH=tools python3 Tests/AppUnitTests/NativeChannelProgressUIJourneyStaticChecks.py | EXIT=0 | STATUS=PASS ===
+PASS: 4 restored UI leaves; route/input/late-context/lifecycle, latest intent, privacy confirmation and retained-feature source assertions; 18 authored Swift regressions.
+NOT RUN: Swift compilation, XCTest and simulator/device UI. Python assertions do not establish Apple execution or release readiness.
+
+=== [02/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_b03_readonly_ui_closeout.py | EXIT=0 | STATUS=PASS ===
+........
+----------------------------------------------------------------------
+Ran 8 tests in 0.001s
+
+OK
+
+=== [03/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_growth_anonymous_contract.py | EXIT=0 | STATUS=PASS ===
+.........
+----------------------------------------------------------------------
+Ran 9 tests in 0.001s
+
+OK
+
+=== [04/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_growth_background_scope.py | EXIT=0 | STATUS=PASS ===
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.000s
+
+OK
+
+=== [05/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_growth_normal_contract_selection.py | EXIT=0 | STATUS=PASS ===
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.001s
+
+OK
+
+=== [06/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_growth_normal_entry.py | EXIT=0 | STATUS=PASS ===
+........
+----------------------------------------------------------------------
+Ran 8 tests in 0.001s
+
+OK
+
+=== [07/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_growth_preflight_lifecycle.py | EXIT=0 | STATUS=PASS ===
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.000s
+
+OK
+
+=== [08/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_growth_route_modes.py | EXIT=0 | STATUS=PASS ===
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.000s
+
+OK
+
+=== [09/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_growth_unranked_projection.py | EXIT=0 | STATUS=PASS ===
+.......
+----------------------------------------------------------------------
+Ran 7 tests in 0.001s
+
+OK
+
+=== [10/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_i03_notification_blacklist_closeout.py | EXIT=0 | STATUS=PASS ===
+............
+----------------------------------------------------------------------
+Ran 12 tests in 0.002s
+
+OK
+
+=== [11/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_native_channel_appeal_localization.py | EXIT=0 | STATUS=PASS ===
+........
+----------------------------------------------------------------------
+Ran 8 tests in 0.003s
+
+OK
+
+=== [12/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_native_channel_notification_presentation.py | EXIT=0 | STATUS=PASS ===
+..........
+----------------------------------------------------------------------
+Ran 10 tests in 0.003s
+
+OK
+
+=== [13/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_native_webhook_runtime_retirement.py | EXIT=0 | STATUS=PASS ===
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.000s
+
+OK
+
+=== [14/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_p02_editor_presentation_closeout.py | EXIT=0 | STATUS=PASS ===
+................
+----------------------------------------------------------------------
+Ran 16 tests in 0.041s
+
+OK
+
+=== [15/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_p02_three_leaf_closeout.py | EXIT=0 | STATUS=PASS ===
+.........
+----------------------------------------------------------------------
+Ran 9 tests in 0.021s
+
+OK
+
+=== [16/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_p04_publication_presentation_closeout.py | EXIT=0 | STATUS=PASS ===
+............
+----------------------------------------------------------------------
+Ran 12 tests in 2.576s
+
+OK
+
+=== [17/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_play_operating_summary_lifecycle.py | EXIT=0 | STATUS=PASS ===
+............
+----------------------------------------------------------------------
+Ran 12 tests in 0.021s
+
+OK
+
+=== [18/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_play_tag_revocation_recovery.py | EXIT=0 | STATUS=PASS ===
+............
+----------------------------------------------------------------------
+Ran 12 tests in 0.001s
+
+OK
+
+=== [19/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_profile_draft_review_layout.py | EXIT=0 | STATUS=PASS ===
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.000s
+
+OK
+
+=== [20/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_restored_management_boundaries.py | EXIT=0 | STATUS=PASS ===
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.000s
+
+OK
+
+=== [21/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_restored_management_core_sources.py | EXIT=0 | STATUS=PASS ===
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.001s
+
+OK
+
+=== [22/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_wallet_income_analysis_closure.py | EXIT=0 | STATUS=PASS ===
+..........
+----------------------------------------------------------------------
+Ran 10 tests in 0.001s
+
+OK
+
+=== [23/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_workshop_paid_lifecycle_closure.py | EXIT=0 | STATUS=PASS ===
+............
+----------------------------------------------------------------------
+Ran 12 tests in 0.001s
+
+OK
+
+=== [24/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_workshop_paid_professional.py | EXIT=0 | STATUS=PASS ===
+
+=== [25/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_workshop_paid_reentry_closure.py | EXIT=0 | STATUS=PASS ===
+..........
+----------------------------------------------------------------------
+Ran 10 tests in 0.001s
+
+OK
+
+=== [26/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_workshop_protected_text_lifecycle.py | EXIT=0 | STATUS=PASS ===
+............
+----------------------------------------------------------------------
+Ran 12 tests in 0.326s
+
+OK
+
+=== [27/40] PYTHONPATH=tools python3 Tests/ContractChecks/test_x01_existing_entry_ui_closeout.py | EXIT=0 | STATUS=PASS ===
+........
+----------------------------------------------------------------------
+Ran 8 tests in 0.001s
+
+OK
+
+=== [28/40] PYTHONPATH=tools python3 scripts/check_personal_location_share_recovery_presentation.py | EXIT=0 | STATUS=PASS ===
+SOURCE/CATALOG ONLY — Swift, XCTest, App, visual/VoiceOver, OS location and HTTP are NOT_RUN.
+test_all_referenced_dedicated_keys_are_bilingual (__main__.RecoveryPresentationSourceChecks) ... ok
+test_current_reads_have_independent_loading_and_failure (__main__.RecoveryPresentationSourceChecks) ... ok
+test_dynamic_suffixes_are_translated_not_exact_match_fallback (__main__.RecoveryPresentationSourceChecks) ... ok
+test_explicit_final_confirmation_and_disappear_retirement_remain (__main__.RecoveryPresentationSourceChecks) ... ok
+test_journal_evidence_is_observable_and_separate (__main__.RecoveryPresentationSourceChecks) ... ok
+test_native_safe_area_dynamic_type_and_navigation_are_retained (__main__.RecoveryPresentationSourceChecks) ... ok
+test_new_create_and_confirmation_locks_are_retained (__main__.RecoveryPresentationSourceChecks) ... ok
+test_only_verified_empty_journal_gets_empty_copy (__main__.RecoveryPresentationSourceChecks) ... ok
+test_original_98_catalog_entries_are_unchanged (__main__.RecoveryPresentationSourceChecks) ... ok
+test_parameterized_http_rejection_has_catalog_entry (__main__.RecoveryPresentationSourceChecks) ... ok
+test_read_only_restore_keeps_original_stop_projection (__main__.RecoveryPresentationSourceChecks) ... ok
+test_recovery_warning_is_not_the_overwritable_global_message (__main__.RecoveryPresentationSourceChecks) ... ok
+test_static_statuses_use_existing_37_keys (__main__.RecoveryPresentationSourceChecks) ... ok
+test_stop_persists_before_original_key_revoke (__main__.RecoveryPresentationSourceChecks) ... ok
+test_unavailable_and_profile_entry_use_dedicated_catalog (__main__.RecoveryPresentationSourceChecks) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.002s
+
+OK
+
+=== [29/40] PYTHONPATH=tools python3 tools/check_native_channel_progress_final_forward.py | EXIT=0 | STATUS=PASS ===
+PASS: typed composed final-forward fence, independent operation/path/receipt approval, exact request policy, normal App factory, and 12 authored regressions.
+Static verification only. Swift/XCTest and Apple runtime execution remain NOT_RUN when no compiler is available.
+
+=== [30/40] PYTHONPATH=tools python3 tools/check_native_channel_progress_restoration.py | EXIT=0 | STATUS=PASS ===
+PASS: 6 restored Core leaves, 33 unique Progress declarations, 3 byte-identical donor test files, 14 authored boundary regressions.
+PASS: Static authority/context/operation/fence/privacy/journal/read-only route checks. Swift/XCTest execution is not implied.
+
+=== [31/40] PYTHONPATH=tools python3 tools/check_personal_location_share.py | EXIT=1 | STATUS=NOT_RUN ===
+test_auth_status_is_terminal_only_for_its_identity_and_lease (__main__.SourceChecks) ... ok
+test_confirmation_ticket_is_frozen_bound_and_synchronously_consumed (__main__.SourceChecks) ... ok
+test_confirmed_seconds_and_server_span_bound_local_deadline (__main__.SourceChecks) ... ok
+test_core_location_is_isolated_and_never_expands_to_background (__main__.SourceChecks) ... ok
+test_default_capabilities_are_nil (__main__.SourceChecks) ... ok
+test_journal_whitelist_and_original_key_order (__main__.SourceChecks) ... ok
+test_localization_resource_is_valid_and_used (__main__.SourceChecks) ... ok
+test_normal_entry_is_not_fixture_only (__main__.SourceChecks) ... ok
+test_policy_has_no_seed_or_distance_fallback (__main__.SourceChecks) ... ok
+test_purpose_strings_are_consistent_without_background_keys (__main__.SourceChecks) ... ok
+test_read_approval_precedes_transport_and_response_is_rechecked (__main__.SourceChecks) ... ok
+test_real_driver_is_grant_bound_and_first_prompt_is_explicit (__main__.SourceChecks) ... ok
+test_receiver_and_lifecycle_are_fail_closed (__main__.SourceChecks) ... ok
+test_replaced_receiver_tasks_cannot_mutate_new_read_even_on_error (__main__.SourceChecks) ... ok
+test_bad_json_auth_status_still_retires_only_current_identity (__main__.SyntheticProtocolChecks) ... ok
+test_context_changes_during_create_keep_original_key_but_never_start (__main__.SyntheticProtocolChecks) ... ok
+test_delayed_response_cannot_extend_monotonic_lease (__main__.SyntheticProtocolChecks) ... ok
+test_duration_id_does_not_authorize_longer_numeric_span (__main__.SyntheticProtocolChecks) ... ok
+test_invalidation_beats_late_snapshot (__main__.SyntheticProtocolChecks) ... ok
+test_old_dialog_never_consumes_replacement_context (__main__.SyntheticProtocolChecks) ... ok
+test_retired_success_and_503_are_identified_before_task_cancellation (__main__.SyntheticProtocolChecks) ... ok
+test_same_publication_lease_replacement_read_protects_receiver_from_old_error (__main__.SyntheticProtocolChecks) ... ok
+test_service_unavailable_or_bad_json_never_changes_unknown_create_key (__main__.SyntheticProtocolChecks) ... ok
+test_stop_a_start_b_retires_old_auth_without_touching_b (__main__.SyntheticProtocolChecks) ... ok
+test_stop_before_create_tombstone_is_terminal (__main__.SyntheticProtocolChecks) ... ok
+test_transport_throw_still_crosses_retired_request_fence (__main__.SyntheticProtocolChecks) ... ok
+test_unknown_does_not_authorize_new_key (__main__.SyntheticProtocolChecks) ... ok
+
+----------------------------------------------------------------------
+Ran 27 tests in 0.011s
+
+OK
+Traceback (most recent call last):
+  File "$WORKSPACE/tools/check_personal_location_share.py", line 286, in syntax
+    from tree_sitter import Language, Parser
+ModuleNotFoundError: No module named 'tree_sitter'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "$WORKSPACE/tools/check_personal_location_share.py", line 317, in <module>
+    syntax()
+  File "$WORKSPACE/tools/check_personal_location_share.py", line 288, in syntax
+    except ImportError as e: raise RuntimeError('Tree-sitter unavailable. Set PYTHONPATH to an installed parser; do not claim Swift compilation.') from e
+RuntimeError: Tree-sitter unavailable. Set PYTHONPATH to an installed parser; do not claim Swift compilation.
+
+=== [32/40] PYTHONPATH=tools python3 tools/check_personal_location_share_terminal_stop_recovery.py | EXIT=0 | STATUS=PASS ===
+SOURCE ONLY: Swift/XCTest/App NOT_RUN.
+test_cleanup_only_after_validated_terminal_and_successful_durable_remove (__main__.TerminalStopSourceRegression) ... ok
+test_explicit_recovery_gates_are_not_bypassed (__main__.TerminalStopSourceRegression) ... ok
+test_original_receipt_identity_and_unknown_guards_preserved (__main__.TerminalStopSourceRegression) ... ok
+test_readback_still_fenced_against_stale_account_or_generation (__main__.TerminalStopSourceRegression) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.000s
+
+OK
+
+=== [33/40] PYTHONPATH=tools python3 tools/check_play_player_journal_composition.py --root . | EXIT=0 | STATUS=PASS ===
+{
+  "root": "$WORKSPACE",
+  "AppSession_sha256": "30544ab74faf208aca7fdd01fe47ced3368fd62aa35c37e8b886fd47728f06c1",
+  "checks": {
+    "valid_activity_only": true,
+    "reject_committing_session": true,
+    "recognized_actual_role": true,
+    "captured_real_owner": true,
+    "captured_viewer": true,
+    "viewer_qualified_cache": true,
+    "one_retained_coordinator": true,
+    "existing_journal_composition": true,
+    "explicit_captured_session": true,
+    "permanent_old_viewer_fence": true,
+    "existing_secure_storage": true,
+    "no_direct_nil_journal_constructor": true,
+    "no_default_player_callback": true,
+    "dormant_service_unchanged": true,
+    "no_capability_expansion": true,
+    "no_memory_fallback": true,
+    "failed_construction_returns_nil": true,
+    "retain_only_constructed_model": true
+  },
+  "pass": 18,
+  "fail": 0,
+  "Swift_App": "NOT_RUN"
+}
+
+=== [34/40] PYTHONPATH=tools python3 tools/check_scaffold.py | EXIT=0 | STATUS=PASS ===
+PASS structural checks: 3450 Swift source files, 12252 bilingual keys, references, scheme, read-only expected project equivalence
+SCOPE: this script does not run Swift/Xcode, previews, simulator/device, accessibility or live backend checks; see separate evidence
+
+=== [35/40] PYTHONPATH=tools python3 tools/check_team_channel_entry.py | EXIT=0 | STATUS=PASS ===
+.........
+----------------------------------------------------------------------
+Ran 9 tests in 0.001s
+
+OK
+
+=== [36/40] PYTHONPATH=tools python3 tools/generate_project.py --check | EXIT=0 | STATUS=PASS ===
+Generated Questify.xcodeproj: 2598 native sources, 119 catalogs
+Included 584 app-unit sources in the separate QuestifyAppUnitTests scheme
+
+=== [37/40] PYTHONPATH=tools python3 tools/personal_location_share_source_contracts.py | EXIT=0 | STATUS=PASS ===
+
+=== [38/40] PYTHONPATH=tools python3 tools/test_personal_location_share_checker_parser.py | EXIT=0 | STATUS=PASS ===
+Actual SourceChecks methods + in-memory mutation fixtures. Source-only; NOT Swift or UI execution.
+test_conditional_stop_rejected (__main__.CheckerParserControls) ... ok
+test_continuation_before_stop_rejected (__main__.CheckerParserControls) ... ok
+test_deferred_stop_rejected (__main__.CheckerParserControls) ... ok
+test_delegate_before_stop_rejected (__main__.CheckerParserControls) ... ok
+test_disclosure_not_satisfied_by_another_surface (__main__.CheckerParserControls) ... ok
+test_disconnected_mapped_output_rejected (__main__.CheckerParserControls) ... ok
+test_disconnected_status_rendering_rejected (__main__.CheckerParserControls) ... ok
+test_missing_background_reset_rejected (__main__.CheckerParserControls) ... ok
+test_missing_callback_retirement_rejected (__main__.CheckerParserControls) ... ok
+test_missing_confirmation_disclosure_rejected (__main__.CheckerParserControls) ... ok
+test_missing_delegate_clear_rejected (__main__.CheckerParserControls) ... ok
+test_missing_host_unavailable_surface_rejected (__main__.CheckerParserControls) ... ok
+test_missing_status_mapping_not_satisfied_by_comment (__main__.CheckerParserControls) ... ok
+test_missing_stop_cannot_be_satisfied_by_comment (__main__.CheckerParserControls) ... ok
+test_missing_translation_rejected (__main__.CheckerParserControls) ... ok
+test_original_permission_guard_still_rejected (__main__.CheckerParserControls) ... ok
+test_original_synthetic_fix_guard_still_rejected (__main__.CheckerParserControls) ... ok
+test_positive_current_source_passes_both_original_methods (__main__.CheckerParserControls) ... ok
+test_positive_equivalent_stop_whitespace_and_comments (__main__.CheckerParserControls) ... ok
+test_unknown_status_must_not_be_success (__main__.CheckerParserControls) ... ok
+test_wrong_resource_table_rejected (__main__.CheckerParserControls) ... ok
+
+----------------------------------------------------------------------
+Ran 21 tests in 0.034s
+
+OK
+
+=== [39/40] PYTHONPATH=tools python3 tools/tests/test_check_scaffold_bound_issue_tables.py | EXIT=0 | STATUS=PASS ===
+...................
+----------------------------------------------------------------------
+Ran 19 tests in 0.011s
+
+OK
+
+=== [40/40] PYTHONPATH=tools python3 tools/tests/test_check_scaffold_resource_tables.py | EXIT=0 | STATUS=PASS ===
+...........................
+----------------------------------------------------------------------
+Ran 27 tests in 0.134s
+
+OK
+
+SUMMARY: TOTAL=40 PASS=39 FAIL=0 NOT_RUN=1

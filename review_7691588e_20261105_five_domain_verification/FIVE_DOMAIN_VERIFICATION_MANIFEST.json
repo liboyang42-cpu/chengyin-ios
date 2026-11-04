@@ -1,0 +1,161 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-11-05T04:45:00+08:00",
+  "review_snapshot_commit": "7691588efe5f66c32af5001ebcb6bd3b3de49d05",
+  "review_snapshot_tree": "f381e903f87ea5bec76565ec295d35644ad66454",
+  "baseline_parent_commit": "ab2d3905ec0b0fb17b58ba6b53ec433d83164701",
+  "baseline_parent_tree": "1256f3ff67514b04cd783b5e72b843de55fc6f53",
+  "summary": {
+    "python_contract_checks_unmodified": {
+      "total": 40,
+      "pass": 38,
+      "fail": 1,
+      "not_run": 1
+    },
+    "python_contract_checks_postfix": {
+      "total": 40,
+      "pass": 39,
+      "fail": 0,
+      "not_run": 1
+    },
+    "questify_core_tests_98_changed_classes_unmodified": {
+      "status": "FAIL_COMPILE",
+      "exit_code": 1
+    },
+    "questify_core_tests_98_changed_classes_postfix": {
+      "status": "PASS",
+      "classes": 98,
+      "files": 95,
+      "executed": 1139,
+      "passed": 1139,
+      "failed": 0,
+      "exit_code": 0
+    },
+    "questify_app_unit_tests_57_changed_classes_unmodified": {
+      "status": "FAIL",
+      "classes": 57,
+      "files": 54,
+      "executed": 447,
+      "passed": 444,
+      "failed": 3,
+      "exit_code": 65
+    },
+    "questify_app_unit_tests_57_changed_classes_postfix": {
+      "status": "PASS",
+      "classes": 57,
+      "files": 54,
+      "executed": 447,
+      "passed": 447,
+      "failed": 0,
+      "exit_code": 0
+    },
+    "questify_app_unit_tests_full_target_postfix": {
+      "status": "PASS_99_77_PCT",
+      "classes": 710,
+      "files": 584,
+      "executed": 6038,
+      "passed": 6024,
+      "failed": 14
+    },
+    "questify_ui_tests_five_domains_postfix": {
+      "status": "PASS",
+      "suites": 7,
+      "executed": 23,
+      "passed": 23,
+      "failed": 0,
+      "exit_code": 0
+    }
+  },
+  "artifacts": [
+    {
+      "relative_path": "logs/09_unmodified_40_python_contract_checks.stdout.txt",
+      "bytes": 32066,
+      "sha256": "7859975d71460014a32cdf893ec15cdb6c40aec28c11e77d4617344a853951e6"
+    },
+    {
+      "relative_path": "logs/10_postfix_40_python_contract_checks.stdout.txt",
+      "bytes": 17737,
+      "sha256": "dbcad7064045e0945713d46ebff8309b8550b0646d08a29f7e364499ec3d0675"
+    },
+    {
+      "relative_path": "logs/11_coretests_98_classes_unmodified.stdout.txt",
+      "bytes": 153296,
+      "sha256": "8a6fab698c04a59d5fd2b6195c49390e88c77237a85928c9a6d4f094e7b3abcd"
+    },
+    {
+      "relative_path": "logs/12_coretests_98_classes_postfix.stdout.txt",
+      "bytes": 355426,
+      "sha256": "754d0040fd858ab789d1667931eefc6536d97a7266c8b4fbc438bbe63e33e0aa"
+    },
+    {
+      "relative_path": "logs/13_appunit_57_classes_unmodified.stdout.txt",
+      "bytes": 195303,
+      "sha256": "0825fb031712ea91b617dffddcad8b9ac0925db4082313c5efc88549018a68d0"
+    },
+    {
+      "relative_path": "logs/14_appunit_57_classes_postfix.stdout.txt",
+      "bytes": 240921,
+      "sha256": "fb1cd8270e89d1cb95c6cc535724ffc13261e34236760d58fbf1da278a6359a5"
+    },
+    {
+      "relative_path": "logs/15_appunit_full_6038_tests_postfix.stdout.txt",
+      "bytes": 3088103,
+      "sha256": "2bbcc2ce13a10c78f98c41fdac0b437449f89cf686333d429e1718141d9d5c94"
+    },
+    {
+      "relative_path": "logs/16_uitests_five_domains_23_of_23_pass.stdout.txt",
+      "bytes": 589093,
+      "sha256": "fd6986729fd33264374d2b3d7c1cdbbb512e5ae2fb5122dbb481c089ff47ab12"
+    },
+    {
+      "relative_path": "patches/runtime_and_ui_fixes_7691588e.patch",
+      "bytes": 88370,
+      "sha256": "b9f65c730235618ff95a9a173d2721cb5bdddeb0b454d0fa6340c1d0b868979e"
+    },
+    {
+      "relative_path": "screenshots/domain1_player_profile_draft_review_restore.png",
+      "bytes": 452947,
+      "sha256": "f8b769a499b9118a793bf3c2d1cd3c385836475e807a7c5a0c9eca951f91a958"
+    },
+    {
+      "relative_path": "screenshots/domain1_player_profile_draft_review_xxxl_en.png",
+      "bytes": 390145,
+      "sha256": "c89b90d8c17c0e3221663681ccd346eee140c902decbe5b0bf504e3c5e78eed6"
+    },
+    {
+      "relative_path": "screenshots/domain1_player_profile_draft_review_xxxl_zh.png",
+      "bytes": 416065,
+      "sha256": "ae011fb5410b60ee9c684546af0dca03960466358f6412e8b34204a0ce8a7aa1"
+    },
+    {
+      "relative_path": "screenshots/domain2_merchant_npc_chat_flow.png",
+      "bytes": 99427,
+      "sha256": "f13801fc15e0c0598a76003710a814118a5d0667d584cbaa054d82212cf9288d"
+    },
+    {
+      "relative_path": "screenshots/domain2_merchant_ops_marketing_home.png",
+      "bytes": 36045,
+      "sha256": "6deef7caf3b318fa33afe7d0b0b28af25eaf31e1003dcaf5565ebcd28c2cfcfb"
+    },
+    {
+      "relative_path": "screenshots/domain3_club_detail_tabs_before_scroll_fix.png",
+      "bytes": 217195,
+      "sha256": "6fc56d956d0d9ef27630f71fca62f32c4629c073876eb10918475830a919f238"
+    },
+    {
+      "relative_path": "screenshots/domain4_game_story_template_upload_editor.png",
+      "bytes": 350400,
+      "sha256": "b903ac3f2c2a5d093ebf69a2c73ae422d4041fa3fb25d141ae0f15168b33f04a"
+    },
+    {
+      "relative_path": "screenshots/domain4_workshop_creator_pending_review.png",
+      "bytes": 291422,
+      "sha256": "40ff9d0c4484f28d682957e4475380f949dd56bda758f98c358658189412e125"
+    },
+    {
+      "relative_path": "screenshots/domain5_monopoly_city_board_game_flow.png",
+      "bytes": 200848,
+      "sha256": "de278779575f77ed2d69056be3c8ac4e1fd6c407325d281188d310b2d970ab0e"
+    }
+  ]
+}
