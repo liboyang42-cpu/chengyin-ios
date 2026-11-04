@@ -1,7 +1,7 @@
 name: Current native checks
 on:
   push:
-    branches: [main, integration/wave2-20261019, codex/ios-main-integration-20261101]
+    branches: [main, integration/launch-20261204, integration/wave2-20261019, codex/ios-main-integration-20261101]
   workflow_dispatch:
     inputs:
       mode:
