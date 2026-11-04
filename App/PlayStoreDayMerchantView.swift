@@ -108,7 +108,7 @@ import SwiftUI
             Color.secondary.opacity(0.12)
             if let url {
                 AsyncImage(url: url) { image in image.resizable().scaledToFill() } placeholder: { Image(systemName: "mappin.circle").font(.largeTitle) }
-            } else { Image(systemName: "mappin.circle").font(.system(size: 44)).foregroundStyle(.secondary) }
+            } else { Image(systemName: "mappin.circle").font(.largeTitle).foregroundStyle(.secondary) }
         }
         .frame(maxWidth: .infinity).frame(height: 180).clipShape(RoundedRectangle(cornerRadius: 20)).accessibilityHidden(true)
     }

@@ -245,10 +245,9 @@ import SwiftUI
             if loading && page == nil { Section { ProgressView("roam.tools.recap.loading") } }
             if let page {
                 Section {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(page.counts.routes, format: .number).font(.system(size: 56, weight: .bold)).monospacedDigit()
-                        Text("roam.tools.recap.routesDone").foregroundStyle(.secondary)
-                    }.accessibilityElement(children: .combine).accessibilityIdentifier("roam.tools.recap.routes")
+                    QuestifyHeroValue(value: Text(page.counts.routes, format: .number).monospacedDigit(),
+                                      caption: Text("roam.tools.recap.routesDone"))
+                        .accessibilityElement(children: .combine).accessibilityIdentifier("roam.tools.recap.routes")
                     LabeledContent("roam.tools.recap.kind.places") { Text(page.counts.places, format: .number) }
                         .accessibilityIdentifier("roam.tools.recap.places")
                     LabeledContent("roam.tools.recap.kind.stamps") { Text(page.counts.stamps, format: .number) }

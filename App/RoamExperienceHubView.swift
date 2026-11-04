@@ -42,7 +42,7 @@ import SwiftUI
         List {
             Section {
                 VStack(alignment: .leading, spacing: 12) {
-                    Image(systemName: "figure.walk.circle.fill").font(.system(size: 48)).foregroundStyle(.tint).accessibilityHidden(true)
+                    Image(systemName: "figure.walk.circle.fill").font(.largeTitle).imageScale(.large).foregroundStyle(.tint).accessibilityHidden(true)
                     Text("roam.experience.subtitle").font(.title3).bold()
                     RoamExperienceNotice(offline: reader.isOfflineExample)
                 }.padding(.vertical, 8)
