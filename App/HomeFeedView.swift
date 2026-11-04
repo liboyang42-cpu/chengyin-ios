@@ -7,6 +7,7 @@ import SwiftUI
     /// Supply only from verified backend configuration, never language/device locale.
     var sourceTimeZone: TimeZone? = nil
     var viewerNickname: String? = nil
+    var viewerAvatar: String? = nil
     var selectedCity: String? = nil
     var showsHeroBanners: Bool = false
     var continuationCards: [HomeIndexParityPresentation.ContinuationCard] = []
@@ -36,7 +37,7 @@ import SwiftUI
                     if reader.isOfflineExample { Text("homeFeed.example").font(.caption) }
                     if model.loading { ProgressView("homeFeed.loading") }
                     if showsHeroBanners || viewerNickname != nil || selectedCity != nil || onActionBanner != nil {
-                        HomeHeroHeaderSectionView(nickname: viewerNickname, selectedCity: selectedCity) { banner in
+                        HomeHeroHeaderSectionView(nickname: viewerNickname, selectedCity: selectedCity, avatarSource: viewerAvatar) { banner in
                             if banner.id == "activity_list" { kind = .activities }
                             onActionBanner?(banner)
                         }
@@ -110,32 +111,47 @@ import SwiftUI
         let permit = model.permit(reader)
         if model.bannerFailed { retry("homeFeed.bannersError", id: "banners") { model.schedule(.banners, reader: reader, permit: permit) } }
         if !model.banners.isEmpty {
+            // Mirrors the mini-program hero swiper: full-width covers, paged, no captions.
             Section {
-                ForEach(Array(model.banners.enumerated()), id: \.offset) { _, banner in
-                    if let destination = banner.destination {
-                        Button {
-                            guard model.canOpen(reader) else { return }
-                            switch destination { case .activity(let id): onDestination(.activity(id)); case .topic(let id): onDestination(.topic(id)) }
-                        } label: {
-                            VStack(alignment: .leading, spacing: 12) {
-                                if let url = QuestifyCardArtwork.safeURL(banner.picUrl) { QuestifyCardArtwork(url: url) }
-                                Label("homeFeed.openFeatured", systemImage: "arrow.up.right")
-                                    .font(.headline).foregroundStyle(.primary)
-                            }.questifyCardSurface()
+                TabView {
+                    ForEach(Array(model.banners.enumerated()), id: \.offset) { _, banner in
+                        if let destination = banner.destination {
+                            Button {
+                                guard model.canOpen(reader) else { return }
+                                switch destination { case .activity(let id): onDestination(.activity(id)); case .topic(let id): onDestination(.topic(id)) }
+                            } label: {
+                                bannerArtwork(banner)
+                            }
+                            .buttonStyle(QuestifyCardButtonStyle())
+                            .accessibilityLabel(Text("homeFeed.openFeatured"))
+                        } else {
+                            bannerArtwork(banner)
                         }
-                        .buttonStyle(QuestifyCardButtonStyle())
-                        .questifyCardListRow()
-                    } else if let url = QuestifyCardArtwork.safeURL(banner.picUrl) {
-                        QuestifyCardArtwork(url: url).questifyCardSurface().questifyCardListRow()
                     }
                 }
+                .tabViewStyle(.page(indexDisplayMode: model.banners.count > 1 ? .always : .never))
+                .frame(height: 196)
+                .questifyCardListRow()
             } header: { Text("homeFeed.featured") }
         }
+    }
+    private func bannerArtwork(_ banner: DiscoveryBanner) -> some View {
+        Group {
+            if let url = QuestifyCardArtwork.safeURL(banner.picUrl) {
+                QuestifyCardArtwork(url: url, height: 196)
+            } else {
+                // A clean placeholder with no text when the banner has no usable cover.
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Color(uiColor: .tertiarySystemFill))
+                    .frame(height: 196)
+                    .accessibilityHidden(true)
+            }
+        }
+        .padding(.bottom, model.banners.count > 1 ? 24 : 0)
     }
     @ViewBuilder private func feedSection(_ section: HomeFeedSection) -> some View {
         let permit = model.permit(reader)
         Section {
-            if section == .nearby { Text("homeFeed.noLocation").font(.caption).foregroundStyle(.secondary) }
             if model.failedSections.contains(section) {
                 retry("homeFeed.loadError", id: section.rawValue) { model.schedule(.section(section), reader: reader, permit: permit) }
             } else if let items = model.sections[section] {
@@ -188,48 +204,19 @@ struct HomeFeedCard: View {
     private var startDateText: String {
         HomeFeedDate.display(item.startDate, locale: locale, sourceTimeZone: sourceTimeZone, displayTimeZone: timeZone)
     }
-    private var typeTitle: LocalizedStringKey {
-        switch item { case .activity: return "homeFeed.activities"; case .topic: return "homeFeed.topics" }
-    }
     private var typeSymbol: String {
         switch item { case .activity: return "figure.walk"; case .topic: return "map" }
     }
-    @ViewBuilder var body: some View {
-        if case .topic = item { imageTopicCard }
-        else { standardCard }
-    }
-    private var imageTopicCard:some View {
-        QuestifyImageEntityCard(imageSource:item.imageURL,title:item.name,subtitle:item.introduction,fallbackSymbol:"map") {
+    /// Mini-program `v2-fcard` + `v2-status`: the cover carries the title, then price, time and place.
+    var body: some View {
+        QuestifyImageEntityCard(imageSource: safeImageSource, title: item.name, fallbackSymbol: typeSymbol,
+                                minimumHeight: dynamicTypeSize.isAccessibilitySize ? 300 : 280) {
             if case .topic(let topic) = item { TopicTotalStops(count: topic.locationCount, identifier: "homeFeed.totalStops.\(topic.id)") }
-            if item.isBeta { Text("homeFeed.beta").font(.caption.weight(.semibold)) }
-            QuestifyImageEntityMetadata(label:"homeFeed.date",value:startDateText,systemImage:"calendar")
-            QuestifyImageEntityMetadata(label:"homeFeed.place",value:item.place ?? "—",systemImage:"mappin")
-            priceBlock(showCurrencyWhenUnknown: true)
-        }
-    }
-    private var standardCard:some View {
-        VStack(alignment: .leading, spacing: 14) {
-            if let url = QuestifyCardArtwork.safeURL(item.imageURL) {
-                QuestifyCardArtwork(url: url, height: dynamicTypeSize.isAccessibilitySize ? 132 : 164)
-            }
-            VStack(alignment: .leading, spacing: 10) {
-                Label(typeTitle, systemImage: typeSymbol)
-                    .font(.caption.weight(.semibold)).foregroundStyle(QuestifyPalette.accent)
-                if item.name.isEmpty { Text("homeFeed.untitled").font(.title3.weight(.semibold)) }
-                else { Text(verbatim: item.name).font(.title3.weight(.semibold)) }
-                VStack(alignment: .leading, spacing: 7) {
-                    QuestifyMetadataLine(label: "homeFeed.date", value: startDateText, systemImage: "calendar")
-                    QuestifyMetadataLine(label: "homeFeed.place", value: item.place ?? "—", systemImage: "mappin.and.ellipse")
-                }
-                if let description = item.introduction, !description.isEmpty {
-                    Text(verbatim: description).font(.subheadline).foregroundStyle(.secondary)
-                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 3)
-                }
-            }
-            Divider()
+            QuestifyImageEntityMetadata(label: "homeFeed.date", value: startDateText, systemImage: "calendar")
+            QuestifyImageEntityMetadata(label: "homeFeed.place", value: item.place ?? "—", systemImage: "mappin")
             let layout = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10)) : AnyLayout(HStackLayout(alignment: .bottom, spacing: 12))
             layout {
-                priceBlock(showCurrencyWhenUnknown: false)
+                priceBlock(showCurrencyWhenUnknown: isTopic)
                 if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
                 VStack(alignment: .leading, spacing: 6) {
                     if item.isBeta { QuestifyStatusBadge(title: "homeFeed.beta", systemImage: "flask") }
@@ -237,9 +224,15 @@ struct HomeFeedCard: View {
                 }
             }
         }
-        .foregroundStyle(.primary)
-        .fixedSize(horizontal: false, vertical: true)
-        .questifyCardSurface()
+    }
+    /// Only a safe https cover reaches the card; anything else shows the clean placeholder.
+    private var safeImageSource: String? {
+        if let url = QuestifyCardArtwork.safeURL(item.imageURL) { return url.absoluteString }
+        return nil
+    }
+    private var isTopic: Bool {
+        if case .topic = item { return true }
+        return false
     }
     private func priceBlock(showCurrencyWhenUnknown: Bool) -> some View {
         let from = appLocalized("homeFeed.priceFrom", locale: locale)
