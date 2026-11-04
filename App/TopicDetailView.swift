@@ -22,6 +22,7 @@ struct TopicDetailView: View {
     @State private var loads = SignedInContentDetailLoadOwner()
     @Environment(\.topicPricingDestination) private var pricingDestination
     @State private var showsPricing = false
+    @State private var section: TopicXcxTab = .details
     private struct Key: Hashable { let id: Int; let scope: UUID; let configured: Bool }
     private var key: Key { Key(id: id, scope: reader.scope, configured: reader.isConfigured) }
     var body: some View {
@@ -50,14 +51,23 @@ struct TopicDetailView: View {
         ScrollViewReader { proxy in
         List {
             Section {
-                if reader.isOfflineExample { Text("topic.offlineExample").font(.caption) }
-                TopicXcxHero(topic: value)
                 let covers = value.images.isEmpty ? (value.imageURL.map { [$0] } ?? []) : Array(value.images.prefix(9))
-                if covers.isEmpty { Text("topicXcx.coverHint").font(.caption).foregroundStyle(.secondary) }
-                else { NativeMediaGalleryEntry(sources: covers, scope: key.scope, titleKey: "media.destination.squareImages", compact: true) }
+                if covers.isEmpty {
+                    // No cover: a clean surface with no text.
+                    RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(uiColor: .tertiarySystemFill))
+                        .frame(height: 180).accessibilityHidden(true)
+                } else { NativeMediaGalleryEntry(sources: covers, scope: key.scope, titleKey: "media.destination.squareImages", compact: true) }
+                TopicXcxHero(topic: value)
                 Text(verbatim: value.name).font(.title2.bold())
                 TopicXcxStatBar(cells: TopicXcxFacts.statBar(value))
-                TopicXcxTabs(proxy: proxy)
+                // Mini-program 详情 / 故事 / 路线 tabs as a native segmented control; it jumps to that part of the page.
+                Picker("topicXcx.tabs", selection: $section) {
+                    ForEach(TopicXcxTab.allCases) { tab in Text(tab.titleKey).tag(tab) }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .accessibilityIdentifier("topic.tabs")
+                .onChange(of: section) { _, tab in withAnimation { proxy.scrollTo(tab.anchor, anchor: .top) } }
                 TopicTotalStops(count: value.locationCount, identifier: "topic.totalStops")
                 if value.betaFlag == 1 {
                     // Source topic-beta block: badge plus feedback note.
@@ -69,8 +79,6 @@ struct TopicDetailView: View {
                 if let subtitle = value.subtitle { Text(verbatim: subtitle) }
                 if let introduction = value.introduction { Text(verbatim: introduction).textSelection(.enabled) }
                 if let audio = value.audioURL, !audio.isEmpty { PlatformAudioHost(rawURL: audio, scope: reader.scope, makeModel: makeAudio) }
-                if let club = value.clubName { Text(verbatim: club) }
-                if !value.categoryNames.isEmpty { Text(verbatim: value.categoryNames.joined(separator: " · ")) }
                 if let start = value.startDate { LabeledContent("topic.start", value: start) }
                 if let end = value.endDate { LabeledContent("topic.end", value: end) }
                 if let count = value.merchantCount { LabeledContent("topic.merchants", value: String(count)) }
@@ -121,7 +129,6 @@ struct TopicDetailView: View {
                     Button("contextSelfPlay.title") { showingSelfPlay = true }
                         .disabled(!value.canOfferPurchase).accessibilityIdentifier("contextSelfPlay.open")
                 }
-                Text("topic.readOnly").font(.footnote).foregroundStyle(.secondary)
             }
             if value.showStoryPaywall {
                 Section("topic.lockedStory") {
@@ -189,7 +196,7 @@ struct TopicDetailView: View {
             }
         }
         .refreshable { await loads.run { await load() } }
-        .safeAreaInset(edge: .bottom) {
+        .questifyBottomAction {
             TopicXcxActionBar(topic: value, openSessions: { if !showingSessionSelection { showingSessionSelection = true } },
                               openSelfPlay: { showingSelfPlay = true },
                               openPricing: pricingDestination == nil ? nil : { showsPricing = true })
@@ -271,7 +278,6 @@ struct TopicChapterView: View {
                             }
                         }
                     }
-                    Section { Text("topic.readOnly").font(.footnote) }
                 }
             }
         }.appNavigationTitle("topic.chapter").navigationBarTitleDisplayMode(.inline)

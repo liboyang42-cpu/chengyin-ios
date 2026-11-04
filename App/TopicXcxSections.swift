@@ -8,18 +8,6 @@ enum TopicXcxTab: Int, CaseIterable, Identifiable {
     var anchor: String { "topicXcx.anchor.\(rawValue)" }
 }
 
-/// Source in-page tabs; here they scroll to the matching section so every existing row stays reachable.
-struct TopicXcxTabs: View {
-    let proxy: ScrollViewProxy
-    @State private var selection: TopicXcxTab = .details
-    var body: some View {
-        Picker("topicXcx.tabs", selection: $selection) {
-            ForEach(TopicXcxTab.allCases) { tab in Text(tab.titleKey).tag(tab) }
-        }.pickerStyle(.segmented).accessibilityIdentifier("topic.tabs")
-            .onChange(of: selection) { _, tab in withAnimation { proxy.scrollTo(tab.anchor, anchor: .top) } }
-    }
-}
-
 struct TopicXcxHero: View {
     let topic: TopicDetail
     var body: some View {
@@ -142,7 +130,7 @@ struct TopicXcxActionBar: View {
                         .disabled(topic.merchantClosed)
                 }
             }.accessibilityIdentifier("topic.actionBar")
-        }.padding(.horizontal).padding(.vertical, 8).background(.bar)
+        }
     }
 }
 
