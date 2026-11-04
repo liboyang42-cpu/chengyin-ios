@@ -1,0 +1,162 @@
+# L5 orient handoff; apply only through L1 on iOS base 0a56746aca42158dda20c821a1d50f089f0d5ae8.
+# Shared files were not edited by this lane. Core tests are discovered by the existing Package.swift.
+# No runtime/deployment/endpoint approval is enabled here; existing factory.transport enforces exact paths.
+# UI owner: normal product_type=1 play entry calls orientSession(topicID:activityID:productType:).
+# Resume uses the actual route-state sessionId. leave() preserves clock/pending; abandon requires confirmation.
+# UI supplies an explicit stable client operation key once per confirmed action and retains it while pending.
+# prepare/start obtain safety facts; show server rule version before passing acknowledgedConfigVersion.
+# After the existing route advance bridge, observeFinish reads FINISHED, score and team ranking.
+# Dynamic /task/{realTaskId}/result and /scoring/session/{realSessionId}[/settle] require separate exact grants.
+# Freeze: hengyin 58f4cc429b0d0e3035ccdf1bd4a9c3dfd76eb9a4, controllers + service implementations.
+# Frozen mini-program has no orient lifecycle or score page caller. Inspected later source c6eac3b only as a difference:
+# c6eac3b adds /session/current, /task/alternative/receipt, score leaderboard and keyed SYNC; NOT used here.
+# At the freeze prepare requires an already-created route session, rejects game:* team instances, and starts no clock.
+# No /finish, /resume, /current, standalone RPG or city-board fallback. Server route advance alone establishes FINISHED.
+# Sixteen implemented player endpoints: session GET, prepare/start/abandon/task-result/receipt;
+# orient safety/check, team lobby/detail/ranking, task state/alternative submit, scoring session/sync/settle/receipt.
+# Lifecycle/scoring writes are form parameters; safety and alternative submit use JSON (Spring Map conversion).
+# Alternatives use SCAN/PHOTO/QUIZ and original user evidence only. No GPS/camera/upload side effects.
+# Frozen alternative recovery is explicit replay of the exact retained body/key; task-state alone is not an attempt receipt.
+# Frozen SYNC has no request key or receipt; low-level syncScore requires authoritative score read on unknown outcome.
+# Missing receipt remains pending. Prepare recovery needs an actual sessionId from route-state; none is invented.
+# Settlement is separate from finish; points/XP and negative score adjustments are never computed by the client.
+# Validation: Swift 6.0.3 Linux, isolated target containing the four new production files and unchanged
+# APIConfiguration/AuthRequestBuilder/AuthService/Account from the fixed iOS base; 35 XCTest cases pass.
+# This is executed contract/recovery coverage with synthetic transports, not a whole Core/iOS/App/device/live backend run.
+# Full Core requires Apple CryptoKit/Combine/Security. Native build, UI entry, real login/session and backend flags remain unverified.
+# Parent upload restriction: no PR/CI/merge/production/auth/credential changes; no public status comments after the restriction.
+--- a/App/AppSession.swift
++++ b/App/AppSession.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import CryptoKit
+ import Combine
+ import SwiftUI
+ 
+@@ -2305,6 +2306,54 @@
+         return RuntimeDependencyFactory(api: api, configuration: runtimeDependencies.configuration,
+             transport: runtimeHTTPTransport,
+             current: { [weak self] in self?.currentRuntimeDependencyContext })
++    }
++    // Orient lifecycle grants remain explicit endpoint approvals in the existing factory.
++    // Dynamic score/task paths must also be approved for real server-issued IDs.
++    private var retainedOrientSessions: [String: OrientSessionCoordinator] = [:]
++    func orientSession(topicID: Int, activityID: Int, productType: Int) -> OrientSessionCoordinator? {
++        guard !committingAuthenticatedSession,
++              let scope = try? OrientSessionScope(topicID: topicID, activityID: activityID, productType: productType),
++              let api = regionalConfiguration?.apiConfiguration, let storageScope,
++              let captured = currentRuntimeDependencyContext,
++              let factory = runtimeDependencyFactory, let approved = factory.accepted,
++              approved.play.contains(.reads),
++              let owner = try? OrientSessionRecoveryOwner(namespace: storageScope.service,
++                  accountID: captured.session.accountID, role: captured.role),
++              let identity = try? OrientSessionIdentity(owner: owner, epoch: captured.session.epoch,
++                  token: captured.session.token) else { return nil }
++        let required: Set<String> = ["api/play/orient/session", "api/play/orient/session/prepare",
++            "api/play/orient/session/start", "api/play/orient/session/abandon", "api/play/orient/session/receipt",
++            "api/orient/safety/check", "api/orient/team/lobby", "api/orient/team/ranking"]
++        guard required.isSubset(of: approved.endpoints.paths) else { return nil }
++        let viewer = compositionViewerRevision
++        let key = playRuntimeKey(.topic(topicID), suffix: "orient:\(activityID):\(viewer):\(approved.endpoints.paths.sorted().joined(separator: "|"))")
++        if let retained = retainedOrientSessions[key] { return retained }
++        let current: () -> OrientSessionIdentity? = { [weak self] in
++            guard let self, self.compositionViewerRevision == viewer,
++                  self.currentRuntimeDependencyContext == captured,
++                  self.runtimeDependencyFactory?.accepted?.endpoints.paths == approved.endpoints.paths else { return nil }
++            return identity
++        }
++        do {
++            let support = try FileManager.default.url(for: .applicationSupportDirectory,
++                in: .userDomainMask, appropriateFor: nil, create: true)
++            let namespaceDigest = SHA256.hash(data: Data(owner.namespace.utf8))
++                .map { String(format: "%02x", $0) }.joined()
++            let slot = support.appendingPathComponent("OrientSessions", isDirectory: true)
++                .appendingPathComponent(namespaceDigest, isDirectory: true)
++                .appendingPathComponent(String(owner.accountID), isDirectory: true)
++                .appendingPathComponent(owner.role, isDirectory: true)
++                .appendingPathComponent("\(topicID)-\(activityID).json")
++            let recovery = try OrientSessionFileRecovery(fileURL: slot)
++            let coordinator = try OrientSessionCoordinator(scope: scope,
++                service: OrientSessionService(configuration: api, transport: factory.transport),
++                recovery: recovery, currentIdentity: current, onUnauthorized: { [weak self] lease in
++                    guard current() == lease else { return }
++                    self?.expireIfMatching(error: APIError.unauthorized, stamp: lease.epoch, credential: lease.token)
++                })
++            retainedOrientSessions[key] = coordinator
++            return coordinator
++        } catch { return nil }
+     }
+     private var currentPlayRuntimeSession: PlayExperienceSession? {
+         guard let account, let token, let namespace = storageScope?.service else { return nil }
+
+--- a/Questify.xcodeproj/project.pbxproj
++++ b/Questify.xcodeproj/project.pbxproj
+@@ -5,6 +5,46 @@
+ 	};
+ 	"objectVersion" = 56;
+ 	"objects" = {
++		"238803F900848A1EC5EBB85A" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/OrientSessionContracts.swift";
++			"sourceTree" = "<group>";
++		};
++		"59CAD4757E117185138E683B" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "238803F900848A1EC5EBB85A";
++		};
++		"5DE1772C75609AD06850C59F" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/OrientSessionCoordinator.swift";
++			"sourceTree" = "<group>";
++		};
++		"F1F0A0663004139FFBE679B7" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "5DE1772C75609AD06850C59F";
++		};
++		"0CEE604AA4ED9E24CD961C4F" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/OrientSessionRecovery.swift";
++			"sourceTree" = "<group>";
++		};
++		"A80DD3A7E7B19B22FA74C665" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "0CEE604AA4ED9E24CD961C4F";
++		};
++		"A5133F51975559ECE4787F9B" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/OrientSessionService.swift";
++			"sourceTree" = "<group>";
++		};
++		"78280BB23A5017F3B0E4C311" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "A5133F51975559ECE4787F9B";
++		};
+ 		"A0E1AC5AE6C071EFC60003E8" = {
+ 			"isa" = "PBXFileReference";
+ 			"lastKnownFileType" = "sourcecode.swift";
+@@ -27528,6 +27568,10 @@
+ 		"19F479106CE8C3BA8C106518" = {
+ 			"isa" = "PBXGroup";
+ 			"children" = (
++				"238803F900848A1EC5EBB85A",
++				"5DE1772C75609AD06850C59F",
++				"0CEE604AA4ED9E24CD961C4F",
++				"A5133F51975559ECE4787F9B",
+ 				"A0E1AC5AE6C071EFC60003E8",
+ 				"3F7E5626DE63C029124AD3DC",
+ 				"7500BD0AA0CA4A19A50FC5B5",
+@@ -31114,6 +31158,10 @@
+ 			"isa" = "PBXSourcesBuildPhase";
+ 			"buildActionMask" = 2147483647;
+ 			"files" = (
++				"59CAD4757E117185138E683B",
++				"F1F0A0663004139FFBE679B7",
++				"A80DD3A7E7B19B22FA74C665",
++				"78280BB23A5017F3B0E4C311",
+ 				"9A6EA9163C60EE4CD2900EBE",
+ 				"16A1D6DA2DE9A336E5653026",
+ 				"0445F8C1C85158ACB6E70E4C",
