@@ -1,0 +1,43 @@
+{
+  "ios_base": "eec839502b11f1119a6ede212c768bb3f2de4f29",
+  "backend_contract": "58f4cc429b0d0e3035ccdf1bd4a9c3dfd76eb9a4",
+  "branch": "codex/l9-original-recovery-20261104",
+  "acceptance": "PARTIAL_NOT_ACCEPTED",
+  "tests": {
+    "linux_swift": "6.2.1",
+    "focused_methods": 41,
+    "failures": 0,
+    "baseline_methods": 12,
+    "baseline_failing_assertions": 27
+  },
+  "files": {
+    "Core/NativeFriendFlow.swift": {
+      "bytes": 26727,
+      "sha256": "adf7d7ae30ce68259f6a1af8bc62e8725bd179e4c94abbd67b21d5a62768977b"
+    },
+    "Core/NativePushAttemptRead.swift": {
+      "bytes": 8672,
+      "sha256": "478f50cd2f2aa7cf935d48ceb7e372617f10ebcf9ef3f34d9e9848b942d66f71"
+    },
+    "Core/NativeWebhookHTTPService.swift": {
+      "bytes": 23746,
+      "sha256": "8417055c9e18fdc1141d266e0014ce30c9f21f7bf7060e6f60560bcfc192ead6"
+    },
+    "Tests/CoreTests/NativeFriendOriginalReplayBoundaryTests.swift": {
+      "bytes": 4789,
+      "sha256": "b186ab9878d2fedcbd36d20408153b3cb8606c323e93069e9c26cd87c3c2f8e9"
+    },
+    "Tests/CoreTests/NativePushAttemptReadBoundaryTests.swift": {
+      "bytes": 3811,
+      "sha256": "27f82d137a90d89453868b13f3784f4d6d2664f3ee6ba50c496268f05a454f6a"
+    },
+    "Tests/CoreTests/NativeWebhookResponseBoundaryTests.swift": {
+      "bytes": 3879,
+      "sha256": "801b1132aa20f7640bfc1452a897666c01346e9daebcccd1e7584937e554db96"
+    },
+    "tools/l9_offline_checks.py": {
+      "bytes": 6040,
+      "sha256": "87d9bfaea488cb8166a1aca40147fe8ed5908baf9081023e4dd91dc938e30928"
+    }
+  }
+}
