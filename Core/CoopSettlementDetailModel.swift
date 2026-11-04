@@ -50,11 +50,16 @@ public struct CoopSettlementDetailModel: Equatable {
     public let timeline: [Line]
     public var tone: Tone { status.tone(perspective) }
 
-    /// Validates every row of the source payload, then selects the first row matching `id`.
+    /// Validates the complete payload and unique source identities before selection.
     public static func resolve(source: CoopFlowSettlement.Source, data: CoopFlowJSON, id: Int) throws -> CoopSettlementDetailModel {
         guard id > 0 else { throw CoopFlowFailure.invalid("settlement") }
         guard case .object = data, let rows = data[source == .finance ? "topics" : "settlements"].rows else { throw CoopFlowFailure.malformed }
-        for row in rows { guard source == .finance ? validHost(row) : validMerchant(row) else { throw CoopFlowFailure.malformed } }
+        var identities = Set<Int>()
+        for row in rows {
+            guard source == .finance ? validHost(row) : validMerchant(row) else { throw CoopFlowFailure.malformed }
+            guard let identity = row[source == .finance ? "topicId" : "id"].integer,
+                  identities.insert(identity).inserted else { throw CoopFlowFailure.ambiguous }
+        }
         guard let row = rows.first(where: { $0[source == .finance ? "topicId" : "id"].integer == id }) else { throw CoopFlowFailure.unavailable }
         return source == .finance ? host(row, id: id) : merchant(row, id: id)
     }
@@ -163,4 +168,81 @@ public struct CoopSettlementDetailModel: Equatable {
 
 private extension Decimal {
     var rounded0: Decimal { var input = self, output = Decimal(); NSDecimalRound(&output, &input, 0, .plain); return output }
+}
+
+/// Credential-free port for a settlement read. Scope must rotate when the host's
+/// reader, endpoint or exact authenticated session changes, and be nil when signed out.
+@MainActor public protocol CoopSettlementJourneyReading: AnyObject {
+    var scope: UUID? { get }
+    func data(source: CoopFlowSettlement.Source) async throws -> CoopFlowJSON
+}
+
+/// Complete read lifecycle for both settlement perspectives. No mutation, money
+/// calculation, persisted private response, or automatic financial retry lives here.
+@MainActor public final class CoopSettlementReadJourney {
+    public enum Issue: Equatable {
+        case failed(String?), missingRecord, permission(String?)
+    }
+    private struct Binding: Equatable {
+        let readerID: ObjectIdentifier
+        let scope: UUID
+        let source: CoopFlowSettlement.Source
+        let id: Int
+    }
+    private var generation = UUID()
+    private var loaded: Binding?
+    private var value: CoopSettlementDetailModel?
+    private var failure: Issue?
+    public private(set) var isLoading = false
+    public init() {}
+    public func detail(reader: any CoopSettlementJourneyReading, source: CoopFlowSettlement.Source, id: Int) -> CoopSettlementDetailModel? {
+        guard matches(reader, source: source, id: id) else { return nil }; return value
+    }
+    public func issue(reader: any CoopSettlementJourneyReading, source: CoopFlowSettlement.Source, id: Int) -> Issue? {
+        guard matches(reader, source: source, id: id) else { return nil }; return failure
+    }
+    public func invalidate() {
+        generation = UUID(); loaded = nil; value = nil; failure = nil; isLoading = false
+    }
+    private func matches(_ reader: any CoopSettlementJourneyReading, source: CoopFlowSettlement.Source, id: Int) -> Bool {
+        guard let loaded, let scope = reader.scope else { return false }
+        return loaded == Binding(readerID: ObjectIdentifier(reader), scope: scope, source: source, id: id)
+    }
+    public func load(reader: any CoopSettlementJourneyReading, source: CoopFlowSettlement.Source, id: Int) async {
+        guard id > 0, let scope = reader.scope else { invalidate(); return }
+        let binding = Binding(readerID: ObjectIdentifier(reader), scope: scope, source: source, id: id)
+        if loaded != binding { value = nil }
+        loaded = binding; failure = nil; isLoading = true
+        let ticket = UUID(); generation = ticket
+        defer { if generation == ticket { isLoading = false } }
+        func current() -> Bool {
+            generation == ticket && reader.scope == scope && !Task.isCancelled
+        }
+        func discardIfOwned() {
+            if generation == ticket { loaded = nil; value = nil; failure = nil }
+        }
+        do {
+            try Task.checkCancellation()
+            let payload = try await reader.data(source: source)
+            guard current() else { discardIfOwned(); return }
+            let resolved = try CoopSettlementDetailModel.resolve(source: source, data: payload, id: id)
+            guard current() else { discardIfOwned(); return }
+            value = resolved
+        } catch {
+            guard current() else { discardIfOwned(); return }
+            let message: String?
+            if case CoopFlowFailure.server(_, let text)? = error as? CoopFlowFailure, let text, !text.isEmpty { message = text }
+            else { message = nil }
+            if CoopSettlementDetailModel.isPermission(error) || error as? APIError == .notConfigured {
+                value = nil; failure = .permission(message)
+            } else if error as? CoopFlowFailure == .unavailable {
+                value = nil; failure = .missingRecord
+            } else {
+                // An ambiguous identity or invalid response cannot keep financial
+                // data on screen. Only transient failures keep an explicitly stale detail.
+                if error as? CoopFlowFailure == .ambiguous || error as? CoopFlowFailure == .malformed { value = nil }
+                failure = .failed(message)
+            }
+        }
+    }
 }
