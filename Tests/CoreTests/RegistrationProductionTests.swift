@@ -35,10 +35,10 @@ private final class RegistrationProductionWire: HTTPTransport {
     private let configuration = try! APIConfiguration(baseURL: URL(string: "https://api.example.com/prod-api")!)
     private var legal: String { #"{"code":200,"data":{"docType":"activity_host_data_sharing","docVersion":"fixture-v1","scene":"activity_signup","eventType":"AGREE"}}"# }
     private var quote: String { #"{"code":200,"data":{"payAmount":0,"quoteSign":"fixture-quote"}}"# }
-    private func grant(paths: Set<String>? = nil, account: Int = 1, market: RegionalMarket = .china, storefront: String = "CHN") throws -> RegistrationProductionApproval {
+    private func grant(paths: Set<String>? = nil, account: Int = 1, market: RegionalMarket = .china, storefront: String = "CHN", ticketIDs: Set<Int> = [11]) throws -> RegistrationProductionApproval {
         try .init(endpoint: .init(baseURL: configuration.baseURL, namespace: "fixture-namespace", accountID: account,
                                  paths: paths ?? RegistrationProductionApproval.registrationPaths.union(RegistrationProductionApproval.waitlistPaths)),
-                  identity: identity, market: market, storefront: storefront, product: .physicalActivity, activityID: 7, ticketIDs: [11],
+                  identity: identity, market: market, storefront: storefront, product: .physicalActivity, activityID: 7, ticketIDs: ticketIDs,
                   consentVersion: "fixture-v1", noticeURL: URL(string: "https://legal.example.com/signup-v1")!, expiresAt: fixedNow.addingTimeInterval(3600))
     }
     private func session(identity: ProfileReadIdentity? = nil, namespace: String = "fixture-namespace", storefront: String = "CHN") throws -> RegistrationProductionSession {
@@ -252,6 +252,156 @@ private final class RegistrationProductionWire: HTTPTransport {
         XCTAssertTrue(journal.records.isEmpty)
         XCTAssertEqual(wire.requests.filter { $0.url!.path.hasSuffix("waitlist/status") }.count, 2)
         XCTAssertFalse(wire.requests.contains { $0.url!.path.hasSuffix("registration/create") })
+    }
+
+    func testLateCreateReceiptSurvivesAccountReplacementWithoutPublishingToNewAccount() async throws {
+        let wire = RegistrationProductionWire(), journal = RegistrationProductionJournal()
+        let original = try session()
+        var current: RegistrationProductionSession? = original
+        installReadHandler(wire)
+        let handler = wire.handler
+        wire.handler = { request in
+            if request.url!.path.hasSuffix("registration/create") { current = nil }
+            return try handler(request)
+        }
+        let approval = try grant()
+        let service = RegistrationProductionService(configuration: configuration, approval: approval, transport: wire,
+            journal: journal, current: { current }, now: { self.fixedNow })
+        let intent = try await makeIntent(service)
+        do { _ = try await service.create(intent, token: "fixture-token"); XCTFail("Session changed") } catch {}
+        XCTAssertEqual(journal.records.values.first?.acknowledgedSteps, 41)
+        current = try session(identity: .init(accountID: 2, epoch: 9))
+        XCTAssertThrowsError(try service.creationLock(.init(activityID: 7, ticketID: 11)))
+        current = original
+        let restored = RegistrationProductionService(configuration: configuration, approval: approval, transport: wire,
+            journal: journal, current: { current }, now: { self.fixedNow })
+        let snapshot = try await restored.readRetainedStatus(.init(activityID: 7, ticketID: 11))
+        XCTAssertEqual(snapshot.registrationID, 41)
+        XCTAssertEqual(wire.requests.filter { $0.url!.path.hasSuffix("registration/create") }.count, 1)
+    }
+
+    func testCancellationAfterResponseRetainsReceiptButDoesNotReturnSuccess() async throws {
+        let wire = RegistrationProductionWire(), journal = RegistrationProductionJournal(), current = try session()
+        installReadHandler(wire)
+        let handler = wire.handler
+        wire.handler = { request in
+            if request.url!.path.hasSuffix("registration/create") { withUnsafeCurrentTask { $0?.cancel() } }
+            return try handler(request)
+        }
+        let service = RegistrationProductionService(configuration: configuration, approval: try grant(), transport: wire,
+            journal: journal, current: { current }, now: { self.fixedNow })
+        let intent = try await makeIntent(service)
+        let task = Task { @MainActor in
+            do { _ = try await service.create(intent, token: "fixture-token"); XCTFail("Cancelled caller") }
+            catch { XCTAssertTrue(error is CancellationError) }
+        }
+        await task.value
+        XCTAssertEqual(try service.creationLock(.init(activityID: 7, ticketID: 11)), .pending(registrationID: 41))
+        let snapshot = try await service.readRetainedStatus(.init(activityID: 7, ticketID: 11))
+        XCTAssertEqual(snapshot.registrationID, 41)
+    }
+
+    func testMalformedCreateResponseCannotInventRecoverableID() async throws {
+        let wire = RegistrationProductionWire(), journal = RegistrationProductionJournal(), current = try session()
+        installReadHandler(wire)
+        let handler = wire.handler
+        wire.handler = { request in
+            request.url!.path.hasSuffix("registration/create") ? #"{"code":200,"data":{"registrationId":0}}"# : try handler(request)
+        }
+        let service = RegistrationProductionService(configuration: configuration, approval: try grant(), transport: wire,
+            journal: journal, current: { current }, now: { self.fixedNow })
+        let intent = try await makeIntent(service)
+        do { _ = try await service.create(intent, token: "fixture-token"); XCTFail("Malformed receipt") } catch {}
+        XCTAssertEqual(try service.creationLock(.init(activityID: 7, ticketID: 11)), .pending(registrationID: nil))
+    }
+
+    func testLateReceiptCannotOverwriteReplacedJournalRecord() async throws {
+        let wire = RegistrationProductionWire(), journal = RegistrationProductionJournal(), current = try session()
+        installReadHandler(wire)
+        let handler = wire.handler
+        wire.handler = { request in
+            if request.url!.path.hasSuffix("registration/create"), let record = journal.records.values.first {
+                journal.records[record.ownerKey + record.targetKey] = OperationPendingRecord(ownerKey: record.ownerKey, targetKey: record.targetKey)
+            }
+            return try handler(request)
+        }
+        let service = RegistrationProductionService(configuration: configuration, approval: try grant(), transport: wire,
+            journal: journal, current: { current }, now: { self.fixedNow })
+        let intent = try await makeIntent(service)
+        do { _ = try await service.create(intent, token: "fixture-token"); XCTFail("Replaced record") } catch {}
+        XCTAssertEqual(journal.records.values.first?.acknowledgedSteps, 0)
+    }
+
+    func testOrdinaryRegistrationFlowRestoresNonDefaultTicketFromNewDiskJournal() async throws {
+        let suite = "registration-recovery-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let wire = RegistrationProductionWire(), current = try session()
+        let approval = try grant(ticketIDs: [11, 12])
+        installReadHandler(wire)
+        let service = RegistrationProductionService(configuration: configuration, approval: approval, transport: wire,
+            journal: OperationDefaultsJournal(defaults: defaults), current: { current }, now: { self.fixedNow })
+        let activity = try JSONDecoder().decode(ActivityDetail.self, from: Data(#"{"id":7,"name":"Fixture activity","omsTicketList":[{"id":11,"name":"First","remainingInventory":3},{"id":12,"name":"Second","remainingInventory":3}]}"#.utf8))
+        let coordinator = RegistrationCoordinator(service: service)
+        try coordinator.setAccount(id: 1, token: "fixture-token")
+        var readbackID: Int?
+        let flow = RegistrationUIFlow(activity: activity, coordinator: coordinator, currentIdentity: { current.identity },
+            quoteEnabled: true, creationPolicy: .approved(approval), waitlistService: service,
+            now: { self.fixedNow }, onReadback: { readbackID = $0.registrationID })
+        flow.open()
+        XCTAssertTrue(flow.selectTicket(id: 12))
+        flow.setName("Fixture Person"); flow.setPhone("13800000000"); flow.setConsent(true)
+        await flow.requestQuote()
+        XCTAssertTrue(flow.prepareConfirmation())
+        await flow.confirmAndReadBack()
+        XCTAssertEqual(readbackID, 41)
+        flow.leave()
+        // Simulate a fresh host, service and storage adapter, plus a catalog which no
+        // longer lists the pending ticket. No registration create is replayed.
+        let restored = RegistrationProductionService(configuration: configuration, approval: approval, transport: wire,
+            journal: OperationDefaultsJournal(defaults: defaults), current: { current }, now: { self.fixedNow })
+        let nextCoordinator = RegistrationCoordinator(service: restored)
+        try nextCoordinator.setAccount(id: 1, token: "fixture-token")
+        let refreshedActivity = try JSONDecoder().decode(ActivityDetail.self, from: Data(#"{"id":7,"name":"Fixture activity","omsTicketList":[{"id":11,"name":"First","remainingInventory":3}]}"#.utf8))
+        let next = RegistrationUIFlow(activity: refreshedActivity, coordinator: nextCoordinator, currentIdentity: { current.identity },
+            quoteEnabled: true, creationPolicy: .approved(approval), waitlistService: restored, now: { self.fixedNow })
+        next.open()
+        XCTAssertEqual(next.selectedTicketID, 12)
+        XCTAssertEqual(next.durableCreation, .pending(registrationID: 41))
+        XCTAssertFalse(next.canEdit)
+        await next.readDurableStatus()
+        XCTAssertEqual(next.durableStatus?.registrationID, 41)
+        XCTAssertEqual(wire.requests.filter { $0.url!.path.hasSuffix("registration/create") }.count, 1)
+        XCTAssertFalse(wire.requests.contains { $0.url!.path.contains("registration/pay") })
+    }
+
+    func testCancelledFormCanExplicitlyReadRetainedReceiptWithoutRestartOrReplay() async throws {
+        let wire = RegistrationProductionWire(), journal = RegistrationProductionJournal(), current = try session()
+        let approval = try grant()
+        installReadHandler(wire)
+        let handler = wire.handler
+        wire.handler = { request in
+            if request.url!.path.hasSuffix("registration/create") { withUnsafeCurrentTask { $0?.cancel() } }
+            return try handler(request)
+        }
+        let service = RegistrationProductionService(configuration: configuration, approval: approval, transport: wire,
+            journal: journal, current: { current }, now: { self.fixedNow })
+        let coordinator = RegistrationCoordinator(service: service)
+        try coordinator.setAccount(id: 1, token: "fixture-token")
+        let activity = try JSONDecoder().decode(ActivityDetail.self, from: Data(#"{"id":7,"name":"Fixture activity","omsTicketList":[{"id":11,"name":"First","remainingInventory":3}]}"#.utf8))
+        let flow = RegistrationUIFlow(activity: activity, coordinator: coordinator, currentIdentity: { current.identity },
+            quoteEnabled: true, creationPolicy: .approved(approval), waitlistService: service, now: { self.fixedNow })
+        flow.open(); flow.setName("Fixture Person"); flow.setPhone("13800000000"); flow.setConsent(true)
+        await flow.requestQuote()
+        XCTAssertTrue(flow.prepareConfirmation())
+        await Task { @MainActor in await flow.confirmAndReadBack() }.value
+        guard case .outcomeUnknown = flow.creationState else { return XCTFail("Cancelled form stays unknown") }
+        XCTAssertTrue(flow.canReadStatus)
+        XCTAssertFalse(flow.canEdit)
+        await flow.readKnownStatus()
+        guard case .received(let snapshot) = flow.readbackState else { return XCTFail("Read original receipt") }
+        XCTAssertEqual(snapshot.registrationID, 41)
+        XCTAssertEqual(wire.requests.filter { $0.url!.path.hasSuffix("registration/create") }.count, 1)
     }
 
 }

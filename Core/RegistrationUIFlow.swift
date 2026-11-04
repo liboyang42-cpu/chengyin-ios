@@ -122,10 +122,19 @@ public final class RegistrationUIFlow {
         hasCurrentSession && coordinator.selection == expectedSelection ? coordinator.quoteState : .idle
     }
     public var creationState: RegistrationCreationState { hasCurrentSession ? coordinator.creationState : .idle }
-    public var readbackState: RegistrationReadbackState { hasCurrentSession ? coordinator.readbackState : .idle }
+    public var readbackState: RegistrationReadbackState {
+        guard hasCurrentSession else { return .idle }
+        if let snapshot = durableStatus { return .received(snapshot) }
+        if case .pending(let id?) = durableCreation {
+            if isReadingStatus { return .loading(registrationID: id) }
+            if durableStatusFailed { return .unavailable(registrationID: id, issue: .other) }
+        }
+        return coordinator.readbackState
+    }
     public var canReadStatus: Bool {
         guard hasCurrentSession, !isReadingStatus else { return false }
         if case .responseReceived = creationState { return true }
+        if case .outcomeUnknown = creationState, case .pending(let id?) = durableCreation { return id > 0 }
         return false
     }
     /// A current, scoped waitlist offer has a separate authoritative expiry. It must not
@@ -159,6 +168,7 @@ public final class RegistrationUIFlow {
             selectedTicketID = intent.selection.ticketID; usePoints = intent.selection.usePoints
         } else {
             selectedTicketID = activity.tickets.first?.id; usePoints = false
+            restorePendingTicket()
             applySelection()
         }
         refreshCreationLock()
@@ -275,10 +285,15 @@ public final class RegistrationUIFlow {
         confirmation = nil; isSubmitting = true; changed()
         _ = await coordinator.confirm(review.draft.details(waitlistOffer: review.selection.waitlistOffer))
         guard matches(stamp, identity) else { return }
+        refreshCreationLock()
         isSubmitting = false; changed()
     }
     public func readKnownStatus() async {
         guard canReadStatus else { return }
+        if case .outcomeUnknown = creationState {
+            await readDurableStatus()
+            return
+        }
         let stamp = generation, identity = openedIdentity
         isReadingStatus = true; changed()
         let action = await coordinator.readKnownStatus()
@@ -299,6 +314,26 @@ public final class RegistrationUIFlow {
         guard case .approved = creationPolicy, let service = waitlistService as? any RegistrationPendingServing, let scope = waitlistScope else { durableCreation = .none; return }
         do { durableCreation = try service.creationLock(scope) }
         catch { durableCreation = .pending(registrationID: nil) }
+    }
+    /// A reconstructed sheet must find a pending non-default ticket before quoting.
+    /// Check only the existing activity grant, including tickets absent from a refreshed
+    /// catalog. Recovery retains the original target and never dispatches a create.
+    private func restorePendingTicket() {
+        guard case .approved(let approval) = creationPolicy,
+              let service = waitlistService as? any RegistrationPendingServing else { return }
+        for ticketID in approval.ticketIDs.sorted() {
+            do {
+                let scope = try RegistrationWaitlistScope(activityID: activity.summary.id, ticketID: ticketID)
+                if case .pending = try service.creationLock(scope) {
+                    selectedTicketID = ticketID
+                    return
+                }
+            } catch {
+                // A corrupt/unreadable lock cannot permit a new default-ticket create.
+                selectedTicketID = ticketID
+                return
+            }
+        }
     }
     public func readDurableStatus() async {
         guard hasCurrentSession, !isReadingStatus, case .pending(let id) = durableCreation, id != nil,

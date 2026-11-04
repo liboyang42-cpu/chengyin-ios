@@ -101,8 +101,9 @@ public enum RegistrationDurableCreation: Equatable { case none, pending(registra
         guard let ticketID = selection.ticketID else { throw APIError.invalidRequest }
         return try .init(activityID: selection.ownerID, ticketID: ticketID)
     }
-    private func check(_ scope: RegistrationWaitlistScope, path: String, token: String? = nil) throws -> RegistrationProductionSession {
-        try Task.checkCancellation()
+    private func check(_ scope: RegistrationWaitlistScope, path: String, token: String? = nil,
+                       checkCancellation: Bool = true) throws -> RegistrationProductionSession {
+        if checkCancellation { try Task.checkCancellation() }
         guard let session = current(), session.identity == approval.identity,
               session.namespace == approval.endpoint.namespace, session.market == approval.market,
               session.storefront == approval.storefront, token == nil || token == session.token,
@@ -199,14 +200,24 @@ public enum RegistrationDurableCreation: Equatable { case none, pending(registra
         var pending = OperationPendingRecord(ownerKey: ownerKey, targetKey: target)
         try journal.write(pending)
         lastQuote = nil
-        let result = try await registration.create(intent, token: token)
+        let result = try await registration.create(intent, token: token) { result in
+            // The request was sent under this immutable owner/target. Retain its ID even
+            // when the UI account changed while awaiting the response; never expose it
+            // to that new account. Do not replace a different or missing journal record.
+            guard try self.journal.pending(ownerKey: pending.ownerKey, targetKey: pending.targetKey) == pending else {
+                throw APIError.invalidRequest
+            }
+            pending.acknowledgedSteps = result.registrationID
+            try self.journal.write(pending)
+        }
         try fence(session, scope: scope, path: path)
-        pending.acknowledgedSteps = result.registrationID; try journal.write(pending)
         // Keep the lock even on a valid response. It is not evidence of completed payment.
         return result
     }
     public func creationLock(_ scope: RegistrationWaitlistScope) throws -> RegistrationDurableCreation {
-        _ = try check(scope, path: "api/registration/create")
+        // Local observation after a cancelled create must still reveal a retained ID.
+        // All identity/deployment/grant checks remain in force; no request is sent.
+        _ = try check(scope, path: "api/registration/create", checkCancellation: false)
         guard let record = try journal.pending(ownerKey: ownerKey, targetKey: "create|\(scope.activityID)|\(scope.ticketID)") else { return .none }
         return .pending(registrationID: record.acknowledgedSteps > 0 ? record.acknowledgedSteps : nil)
     }

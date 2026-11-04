@@ -61,6 +61,14 @@ public struct RegistrationService {
         return try await execute(request)
     }
 
+    /// Persist a validated receipt under the dispatching owner before cancellation or
+    /// session fencing hides it from the caller. This callback never authorizes a retry.
+    func create(_ intent: RegistrationCreateIntent, token: String,
+                retainReceipt: @escaping @MainActor (RegistrationCreateResult) throws -> Void) async throws -> RegistrationCreateResult {
+        let request = try jsonRequest("api/registration/create", value: intent, token: token)
+        return try await execute(request, retainReceipt: retainReceipt)
+    }
+
     /// One explicit read for a known registration ID. This cannot reconcile an unknown ID
     /// after a create timeout; no lookup-by-requestId contract has been established here.
     public func readStatus(registrationID: Int, token: String) async throws -> RegistrationStatusSnapshot {
@@ -91,16 +99,18 @@ public struct RegistrationService {
         return request
     }
 
-    private func execute<Value: Decodable>(_ request: URLRequest) async throws -> Value {
+    private func execute<Value: Decodable>(_ request: URLRequest,
+                                          retainReceipt: (@MainActor (Value) throws -> Void)? = nil) async throws -> Value {
         try Task.checkCancellation()
         let (data, status) = try await transport.send(request)
-        try Task.checkCancellation()
+        if retainReceipt == nil { try Task.checkCancellation() }
         guard (200..<300).contains(status) else {
             let envelope = try? JSONDecoder().decode(HTTPFailureEnvelope.self, from: data)
             throw RegistrationHTTPFailure(statusCode: status, response: envelope?.failure)
         }
+        let value: Value
         do {
-            return try JSONDecoder().decode(RegistrationResponse<Value>.self, from: data).data
+            value = try JSONDecoder().decode(RegistrationResponse<Value>.self, from: data).data
         } catch let failure as RegistrationResponseFailure {
             throw failure
         } catch let error as APIError {
@@ -108,6 +118,9 @@ public struct RegistrationService {
         } catch {
             throw APIError.malformedResponse
         }
+        try await retainReceipt?(value)
+        try Task.checkCancellation()
+        return value
     }
 
     /// Do not attempt to decode success data from a non-2xx response or discard its

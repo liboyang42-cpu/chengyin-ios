@@ -556,6 +556,10 @@ private struct RegistrationOperationSections: View {
                 Text("registration.form.outcomeUnknownHint")
                     .accessibilityIdentifier("registration.form.outcomeUnknown")
                 Text("registration.form.retainedIntentHint").font(.caption).foregroundStyle(.secondary)
+                if flow.canReadStatus {
+                    Button("registration.form.readStatus") { Task { await flow.readKnownStatus() } }
+                        .accessibilityIdentifier("registration.form.readStatus")
+                }
                 if let orderReader { RegistrationUncertainOrdersCheck(flow: flow, reader: orderReader) }
             }
         case .responseReceived(_, let result):
