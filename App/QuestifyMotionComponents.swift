@@ -193,3 +193,82 @@ extension View {
         }
     }
 }
+
+// MARK: - Shared notices and rows
+
+/// One-line state message with a leading symbol.
+private struct QuestifyNotice<Message: View>: View {
+    let symbol: String
+    var tint: Color = .secondary
+    @ViewBuilder let message: Message
+
+    var body: some View {
+        Label { message.fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: symbol).foregroundStyle(tint) }
+            .font(Theme.Font.body)
+    }
+}
+
+extension View {
+    func clubStatus(_ symbol: String, emphasized: Bool = false) -> some View {
+        QuestifyNotice(symbol: symbol, tint: emphasized ? .orange : .secondary) { self }
+    }
+    func clubPageSurface() -> some View { self }
+    func merchantM02Page() -> some View { self }
+}
+
+struct ClubControlLabel: View {
+    let title: LocalizedStringKey
+    init(_ title: LocalizedStringKey) { self.title = title }
+    var body: some View { Text(title).frame(maxWidth: .infinity) }
+}
+
+struct MerchantM02Notice: View {
+    let message: Text
+    let symbol: String
+    var isError = false
+    var body: some View {
+        QuestifyNotice(symbol: symbol, tint: isError ? .red : .secondary) { message.foregroundStyle(isError ? Color.red : Color.primary) }
+    }
+}
+
+struct WorkshopLibraryNotice: View {
+    let text: Text
+    let symbol: String
+    var body: some View { QuestifyNotice(symbol: symbol) { text } }
+}
+
+struct WorkshopLibraryState: View {
+    let label: Text
+    let raw: String
+    var body: some View { label.font(Theme.Font.label).foregroundStyle(.secondary) }
+}
+
+struct SquareFlowNoticeStyle: ViewModifier {
+    enum Tone { case neutral, attention, critical }
+    var tone = Tone.neutral
+    func body(content: Content) -> some View {
+        content
+            .font(Theme.Font.label)
+            .foregroundStyle(tone == .critical ? Color.red : tone == .attention ? Color.orange : Color.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+struct SquareFlowSurfaceStyle: ViewModifier {
+    func body(content: Content) -> some View { content }
+}
+
+struct MerchantJourneyFactRow<Value: View>: View {
+    let title: LocalizedStringKey
+    @ViewBuilder let value: Value
+    init(_ title: LocalizedStringKey, @ViewBuilder value: () -> Value) {
+        self.title = title
+        self.value = value()
+    }
+    var body: some View { LabeledContent { value } label: { Text(title) } }
+}
+
+struct MerchantJourneyFormAppearance: ViewModifier {
+    func body(content: Content) -> some View { content }
+}
+
