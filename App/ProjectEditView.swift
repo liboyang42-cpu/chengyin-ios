@@ -396,7 +396,6 @@ import SwiftUI
                 Section("projectEdit.visibility") {
                     Toggle("projectEdit.publishToCreative", isOn: $model.draft.publishToCreative)
                         .disabled(!model.fullEdit || model.coordinator.snapshot?.topicID != nil)
-                    Text("projectEdit.advancedPreserved").foregroundStyle(.secondary)
                 }
                 if !model.coordinator.issues.isEmpty {
                     Section("projectEdit.fixBeforeReview") {

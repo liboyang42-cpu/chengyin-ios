@@ -69,7 +69,6 @@ import SwiftUI
 struct TemplateSensorDraftPreviewContent: View {
     let draft: TemplateSensorDraft
     var body: some View {
-        Text("sensorDraft.scope").foregroundStyle(.secondary)
         if !draft.canEdit { Text("sensorDraft.preserved").accessibilityIdentifier("sensorDraft.preview.preserved") }
         else if let kind = draft.kind {
             Text(LocalizedStringKey(kind.labelKey))

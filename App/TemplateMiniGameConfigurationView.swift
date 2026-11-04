@@ -128,7 +128,6 @@ import SwiftUI
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                Text("playkitAuthor.previewBoundary").font(.callout)
                 if let segment, let kind = PlayKitScreenKind(rawValue: game.section) {
                     if game.isReasoning {
                         if let prompt = segment["prompt"].text { Text(verbatim: prompt).font(.title2.bold()) }

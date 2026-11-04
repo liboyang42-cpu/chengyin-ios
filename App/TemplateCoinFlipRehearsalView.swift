@@ -91,7 +91,6 @@ import Combine
     var body: some View {
         Form {
             Section {
-                Text("templateCoin.localOnly").font(.callout)
                 if controller.mode == .sourceExample { Text("templateCoin.exampleOnly").font(.footnote) }
             }
             if let state = controller.visibleState {

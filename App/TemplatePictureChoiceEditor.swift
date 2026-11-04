@@ -75,7 +75,6 @@ import Combine
     var body: some View {
         Form {
             Section {
-                Text("templatePictures.instructions").font(.callout)
                 if editor.needsReload {
                     Text("templatePictures.changed").font(.caption)
                     Button("templatePictures.reload") { editor.reload() }.disabled(!editor.canReload).accessibilityIdentifier("creator.pictures.reload")

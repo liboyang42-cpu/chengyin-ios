@@ -23,7 +23,6 @@ import SwiftUI
         Group {
             if editable {
                 Text("templateAuthor.preference.editorTitle").font(.headline)
-                Text("templateAuthor.localConfigurationOnly").foregroundStyle(.secondary)
                 TextEditor(text: .init(get: { raw }, set: { value in
                     guard editable else { return }
                     invalidate()

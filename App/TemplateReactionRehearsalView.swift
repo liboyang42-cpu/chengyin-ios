@@ -116,7 +116,6 @@ import Combine
     var body: some View {
         Form {
             Section {
-                Text("templateReaction.localOnly").font(.callout)
                 if controller.mode == .sourceExample { Text("templateReaction.exampleOnly").font(.footnote) }
             }
             if let state = controller.visibleState {

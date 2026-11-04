@@ -28,7 +28,6 @@ import SwiftUI
     var body: some View {
         List {
             Section {
-                Text("templateAuthor.mineScope").foregroundStyle(.secondary)
                 readStateCopy
                 TextField("templateAuthor.shelf.keyword", text: $keyword)
                     .submitLabel(.search)

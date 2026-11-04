@@ -82,7 +82,6 @@ import Combine
     var body: some View {
         Form {
             Section {
-                Text("templatePrediction.scope").font(.callout)
                 if editor.needsReload {
                     Text("templatePrediction.changed").font(.caption)
                     Button("templatePrediction.reload") { editor.reload() }.disabled(!editor.canReload)

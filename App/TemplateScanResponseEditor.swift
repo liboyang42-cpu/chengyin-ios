@@ -119,7 +119,6 @@ import Combine
     var body: some View {
         Form {
             Section {
-                Text("templateScan.instructions").font(.callout)
                 if editor.needsReload {
                     Text("templateScan.changed").font(.caption)
                     Button("templateScan.reload") { editor.reload() }.disabled(!editor.canReload)

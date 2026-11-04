@@ -146,7 +146,6 @@ import Combine
                 List {
                     Text(draft.name); Text(draft.description); Text(draft.start + " → " + draft.end)
                     Text("\(draft.tickets.count) " + appLocalized("publishModes.ticket", locale: locale))
-                    Text("publishModes.reviewNotice").foregroundStyle(.secondary)
                     let snapshot = review
                     Button("publishModes.confirm") { if let snapshot { Task { await submit(snapshot) } } }
                         .disabled(snapshot == nil || busy || service?.mutationsConfigured != true)

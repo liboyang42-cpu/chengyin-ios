@@ -81,7 +81,6 @@ import Combine
         let presented = editor.currentReview
         Form {
             Section {
-                Text("templateModules.instructions").font(.callout)
                 if editor.needsReload {
                     Text("templateModules.changed").font(.caption)
                     Button("templateModules.reload") { editor.reload() }.disabled(!editor.canReload)

@@ -93,9 +93,6 @@ import Combine
     }
     var body: some View {
         Form {
-            Section {
-                Text("templateProfileOverride.scope").font(.callout)
-            }
             if let config = controller.visibleConfiguration {
                 Section("templateProfileOverride.question") {
                     Text(verbatim: config.questionLabel); Text(verbatim: config.questionKey).font(.caption)

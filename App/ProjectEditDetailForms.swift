@@ -497,7 +497,6 @@ import SwiftUI
                 if model.draft.product == .city {
                     ProjectTicketMeetingPointFields(model: model, ticketID: ticketID)
                 }
-                Text("projectEdit.ticketScopeHint").foregroundStyle(.secondary)
             }.id("project-issue-anchor-ticketSchedule")
         }.modifier(ProjectEditIssueInitialScroll(anchor: initialIssueAnchor)).disabled(!model.fullEdit).appNavigationTitle("projectEdit.ticketDetails")
             .navigationBarTitleDisplayMode(.inline).scrollDismissesKeyboard(.interactively)
