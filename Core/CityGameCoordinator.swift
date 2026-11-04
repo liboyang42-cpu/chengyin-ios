@@ -34,6 +34,7 @@ public struct CityGameReview: Equatable, Sendable {
     public let read: CityReadSnapshot
     private var pending = CityPendingAction()
     private var stream: CityDeltaStream?
+    private var snapshotWatermark: CityGameSnapshot?
     private let service: (any CityGameServing)?
     private let capabilities: ReformWorldCapabilities
     private let memberId: String
@@ -85,7 +86,7 @@ public struct CityGameReview: Equatable, Sendable {
     /// paused or blocked by the safety overlay; neutral goals stay offered at zero points.
     public func actions(for property: CityPropertyState) -> [CityActionKind] {
         guard phase == .ready, boardNotice == nil, let snapshot, snapshot.roundSeq != nil, hasActionBudget,
-              property.status.acceptsNewActions else { return [] }
+              snapshot.contains(property), property.status.acceptsNewActions else { return [] }
         switch property.role {
         case .neutral: return [.acceptTask]
         case .operable:
@@ -103,13 +104,13 @@ public struct CityGameReview: Equatable, Sendable {
     /// A service may be accepted only when its fee is published and the property is open.
     public func canAcceptService(_ service: CityServiceOffer, on property: CityPropertyState) -> Bool {
         guard phase == .ready, boardNotice == nil, snapshot?.roundSeq != nil, hasActionBudget, property.status.acceptsNewActions,
-              !property.heldByMyTeam, property.status != .available else { return false }
+              !property.heldByMyTeam, property.status != .available, snapshot?.offers(service, on: property) == true else { return false }
         return service.memberPointsFee != nil
     }
 
     /// Logout, account/role/token change or leaving the board invalidates every reference.
     public func invalidate() {
-        generation = UUID(); snapshot = nil; review = nil; stream = nil; notice = nil; lastOutcome = nil
+        generation = UUID(); snapshot = nil; snapshotWatermark = nil; review = nil; stream = nil; notice = nil; lastOutcome = nil
         pending = CityPendingAction(); phase = .invalidated
     }
 
@@ -126,9 +127,9 @@ public struct CityGameReview: Equatable, Sendable {
         phase = .loading
         do {
             let value = try await service.snapshot(for: read)
-            try value.validate(against: read)
+            try value.validate(against: read, previous: snapshotWatermark)
             guard ticket == generation, gate() else { return }
-            snapshot = value
+            snapshot = value; snapshotWatermark = value
             let cursor = try CityStreamCursor(boardId: value.boardId, seasonId: value.seasonId, rulesReleaseId: value.rules.rulesReleaseId,
                                               boardVersion: value.boardVersion, sequence: value.sequence)
             if stream == nil { stream = CityDeltaStream(cursor: cursor) } else { stream?.reset(to: cursor) }

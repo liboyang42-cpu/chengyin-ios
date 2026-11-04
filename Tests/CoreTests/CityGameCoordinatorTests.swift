@@ -53,8 +53,8 @@ import XCTest
                           protectedUntilMillis: protectedUntil, services: services, challenge: nil, taskAttemptKept: false)
     }
     private func snapshot(lifecycle: CityBoardLifecycle = .open, points: Int64? = 5, actions: Int? = 2, limit: Int? = 2,
-                          properties: [CityPropertyState]? = nil, round: Int64? = 1) -> CityGameSnapshot {
-        CityGameSnapshot(contract: "CITY_GAME_SNAPSHOT_V1", scope: "CITY", boardId: "b1", seasonId: "s1", boardVersion: 4, sequence: 9,
+                          properties: [CityPropertyState]? = nil, round: Int64? = 1, version: Int64 = 4, sequence: Int64 = 9) -> CityGameSnapshot {
+        CityGameSnapshot(contract: "CITY_GAME_SNAPSHOT_V1", scope: "CITY", boardId: "b1", seasonId: "s1", boardVersion: version, sequence: sequence,
                          lifecycle: lifecycle, roundSeq: round,
                          rules: CityRulesSummary(rulesReleaseId: "rr1", ruleVersion: "synthetic", validFromMillis: 1, validUntilMillis: nil,
                                                  actionsRemaining: actions, actionsPerRound: actions == nil ? nil : 3, holdingLimit: limit),
@@ -320,6 +320,41 @@ import XCTest
         await reopened.retryExact()
         XCTAssertEqual(service.submitted, [original, original])
         XCTAssertEqual(reopened.lastOutcome, .applied(version: 8))
+    }
+
+
+    func testActionSelectionMustComeFromCurrentServerSnapshot() async throws {
+        let service = Service(snapshot()), game = model(service)
+        await game.load()
+        let foreign = property("another-property", role: .neutral)
+        XCTAssertTrue(game.actions(for: foreign).isEmpty)
+        await game.prepare(.acceptTask, property: foreign)
+        XCTAssertEqual(game.phase, .ready)
+        XCTAssertNil(game.review)
+        let offer = CityServiceOffer(serviceId: "published", title: "Service", memberPointsFee: 1)
+        let held = property(status: .held, services: [offer])
+        service.snapshotValue = snapshot(properties: [held])
+        await game.load()
+        let invented = CityServiceOffer(serviceId: "unpublished", title: "Service", memberPointsFee: 1)
+        XCTAssertFalse(game.canAcceptService(invented, on: held))
+        XCTAssertTrue(game.canAcceptService(offer, on: held))
+        XCTAssertTrue(service.submitted.isEmpty)
+    }
+
+    func testSnapshotWatermarkSurvivesRejectedReload() async throws {
+        let service = Service(snapshot(version: 6, sequence: 10)), game = model(service)
+        await game.load()
+        XCTAssertEqual(game.snapshot?.boardVersion, 6)
+        service.snapshotValue = snapshot(version: 5, sequence: 9)
+        await game.load()
+        XCTAssertEqual(game.phase, .unavailable)
+        XCTAssertNil(game.snapshot)
+        await game.load() // failure must not reset the watermark and accept the same regression
+        XCTAssertEqual(game.phase, .unavailable)
+        service.snapshotValue = snapshot(version: 7, sequence: 11)
+        await game.load()
+        XCTAssertEqual(game.phase, .ready)
+        XCTAssertEqual(game.snapshot?.boardVersion, 7)
     }
 
 }

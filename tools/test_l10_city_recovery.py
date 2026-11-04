@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """Run focused Swift XCTest on Linux; no network service or Apple build is exercised.
 
-Copies production city/action sources and the actual coordinator test file unchanged.
+Copies the selected production city/action sources and XCTest file unchanged.
+The projection suite does not import the Observation coordinator; the recovery suite
+compiles and tests that coordinator when the host supports its Observation runtime.
 Extracts read DTOs, their two validators, and market/language enums unchanged from
 larger files to avoid importing the unrelated app runtime. No fake implementation
 replaces city logic. SWIFT_EXECUTABLE may identify an installed Swift toolchain.
 """
 import os
+import argparse
 from pathlib import Path
 import shutil
 import subprocess
@@ -27,6 +30,9 @@ def declaration(source, signature):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--suite', choices=['recovery', 'projection'], default='recovery')
+    suite = parser.parse_args().suite
     swift = os.environ.get('SWIFT_EXECUTABLE', 'swift')
     with tempfile.TemporaryDirectory(prefix='l10-city-') as tmp:
         root = Path(tmp)
@@ -41,8 +47,10 @@ let package = Package(name: "QuestifyCore", targets: [
     .testTarget(name: "QuestifyCoreTests", dependencies: ["QuestifyCore"])
 ])
 ''')
-        for name in ['CityActionContract', 'CityActionRecoveryJournal', 'CityGameCoordinator',
-                     'CityGameBoardProjection', 'CityDeltaStream', 'ReformWorldCapabilities']:
+        sources = ['CityActionContract', 'CityGameBoardProjection', 'CityDeltaStream', 'ReformWorldCapabilities']
+        if suite == 'recovery':
+            sources += ['CityActionRecoveryJournal', 'CityGameCoordinator']
+        for name in sources:
             shutil.copyfile(ROOT / 'Core' / (name + '.swift'), core / (name + '.swift'))
         read = (ROOT / 'Core/CityPlayerReading.swift').read_text()
         dtos = 'import Foundation\n'
@@ -57,7 +65,8 @@ let package = Package(name: "QuestifyCore", targets: [
         dtos += declaration((ROOT / 'Core/RegionalConfiguration.swift').read_text(), 'public enum RegionalMarket:')
         dtos += declaration((ROOT / 'Core/AppPreferences.swift').read_text(), 'public enum AppLanguage:')
         (core / 'ExtractedCityReadDeclarations.swift').write_text(dtos)
-        shutil.copyfile(ROOT / 'Tests/CoreTests/CityGameCoordinatorTests.swift', tests / 'CityGameCoordinatorTests.swift')
+        test_name = 'CityGameCoordinatorTests.swift' if suite == 'recovery' else 'CityGameProjectionTests.swift'
+        shutil.copyfile(ROOT / 'Tests/CoreTests' / test_name, tests / test_name)
         env = dict(os.environ, CLANG_MODULE_CACHE_PATH=str(root / 'clang-cache'), XDG_CACHE_HOME=str(root / 'cache'))
         subprocess.run([swift, 'test', '--package-path', tmp, '--scratch-path', str(root / '.build'),
                         '--cache-path', str(root / 'cache'), '--config-path', str(root / 'config'),
