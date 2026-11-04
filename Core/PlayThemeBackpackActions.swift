@@ -96,9 +96,11 @@ public struct PlayThemeBackpackActionFacts: Equatable {
               let used = raw["used"].integer, used >= 0,
               let capacity = raw["capacity"].integer, capacity >= 0,
               raw["contents"].array != nil, raw["pending"].object != nil else { throw PlayExperienceError.malformed }
+        // This is untrusted response scope, not proof that the captured owner changed.
+        // Reject a mismatched projection without retiring the original unresolved action.
         switch scope {
-        case .activity(let id): guard id == activity else { throw PlayExperienceError.staleSession }
-        case .topic(let id): guard id == topicID, activity == 0 else { throw PlayExperienceError.staleSession }
+        case .activity(let id): guard id == activity else { throw PlayExperienceError.malformed }
+        case .topic(let id): guard id == topicID, activity == 0 else { throw PlayExperienceError.malformed }
         }
         self.raw = raw; self.sessionID = run; self.version = version; self.topicID = topicID
         activityID = activity; self.status = status; backpack = try .init(raw)

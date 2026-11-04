@@ -266,4 +266,42 @@ import FoundationNetworking
         XCTAssertTrue(posts(h).isEmpty)
     }
 
+    func testReturnedActivityMismatchIsMalformedNotAnOwnerChange() async throws {
+        for (scope, activity) in [(PlaySessionScope.topic(7), 9), (.activity(9), 10)] {
+            XCTAssertThrowsError(try PlayThemeBackpackActionFacts(wire(raw(activity: activity)), scope: scope, topicID: 7)) { error in
+                XCTAssertEqual(error as? PlayExperienceError, .malformed)
+            }
+        }
+    }
+    func testWrongActivityReceiptKeepsOriginalIntentUntilExactReplay() async throws {
+        let h = try harness(); await h.actions.refresh(); try h.actions.begin(.use, contentID: "tea")
+        let reviewed = try XCTUnwrap(h.actions.review)
+        h.http.responses["/api/play/theme/action"] = response(raw(version: 4, activity: 9))
+        await h.actions.confirm()
+        XCTAssertEqual(h.actions.phase, .unknown); XCTAssertTrue(h.actions.isCurrent)
+        XCTAssertNil(h.actions.lastConfirmedOperation)
+        let pending = try await h.store.read()
+        XCTAssertEqual(pending?.value.state, .unknown)
+        XCTAssertEqual(pending?.value.intent, reviewed)
+        XCTAssertEqual(posts(h).count, 1); XCTAssertEqual(posts(h)[0].httpBody, reviewed.body)
+        h.http.responses["/api/play/theme/action"] = response(raw(version: 4))
+        await h.actions.recover()
+        XCTAssertEqual(posts(h).count, 2); XCTAssertEqual(posts(h)[1].httpBody, reviewed.body)
+        XCTAssertEqual(h.actions.phase, .ready); XCTAssertEqual(h.actions.lastConfirmedOperation, .use)
+        let final = try await h.store.read(); XCTAssertNil(final)
+    }
+    func testWrongActivityReadCannotRetireOwnerOrClearPendingIntent() async throws {
+        let h = try harness(); try await loseReply(h)
+        let original = try await h.store.read()
+        h.http.responses["/api/play/theme/state"] = response(raw(version: 20, activity: 9))
+        await h.actions.refresh()
+        XCTAssertEqual(h.actions.phase, .unknown); XCTAssertTrue(h.actions.isCurrent)
+        XCTAssertTrue(h.actions.canRecover); XCTAssertFalse(h.actions.canStart)
+        XCTAssertNil(h.actions.lastConfirmedOperation); XCTAssertEqual(posts(h).count, 1)
+        let preserved = try await h.store.read(); XCTAssertEqual(preserved, original)
+        h.http.responses["/api/play/theme/state"] = response(raw(version: 20))
+        await h.actions.refresh()
+        XCTAssertEqual(h.actions.phase, .unknown); XCTAssertEqual(posts(h).count, 1)
+        let afterRead = try await h.store.read(); XCTAssertEqual(afterRead, original)
+    }
 }
