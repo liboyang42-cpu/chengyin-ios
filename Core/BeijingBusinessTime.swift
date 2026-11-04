@@ -14,64 +14,27 @@ public enum BeijingServerTime: Equatable {
 
     public static var beijing: TimeZone { TimeZone(identifier: "Asia/Shanghai")! }
 
-    private static let bareFormats: [(pattern: String, format: String)] = [
-        (#"^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$"#, "yyyy-MM-dd HH:mm:ss"),
-        (#"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$"#, "yyyy-MM-dd'T'HH:mm:ss"),
-        (#"^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$"#, "yyyy-MM-dd HH:mm")
-    ]
-
     public init(_ raw: String?) {
-        guard let raw else { self = .unknown; return }
-        let value = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        if Self.matches(value, #"^[0-9]{4}-[0-9]{2}-[0-9]{2}$"#) {
-            let formatter = Self.formatter("yyyy-MM-dd", Self.beijing)
-            guard let date = formatter.date(from: value), formatter.string(from: date) == value else { self = .unknown; return }
-            self = .calendarDay(value); return
+        switch MarketBusinessTime(raw, businessTimeZoneID: "Asia/Shanghai") {
+        case .calendarDay(let day): self = .calendarDay(day)
+        case .instant(let date): self = .instant(date)
+        case .unknown: self = .unknown
         }
-        for candidate in Self.bareFormats where Self.matches(value, candidate.pattern) {
-            let formatter = Self.formatter(candidate.format, Self.beijing)
-            // Round-trip rejects impossible dates such as 02-30 or 24:00 instead of rolling them over.
-            guard let date = formatter.date(from: value), formatter.string(from: date) == value else { self = .unknown; return }
-            self = .instant(date); return
-        }
-        if Self.matches(value, #"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,3})?(Z|[+-][0-9]{2}:[0-9]{2})$"#) {
-            let iso = ISO8601DateFormatter()
-            iso.formatOptions = value.contains(".") ? [.withInternetDateTime, .withFractionalSeconds] : [.withInternetDateTime]
-            guard let date = iso.date(from: value) else { self = .unknown; return }
-            self = .instant(date); return
-        }
-        self = .unknown
     }
 
-    /// Display in the phone's zone. When that zone's offset differs from Beijing at
-    /// this instant, the Beijing wall time is returned too so a deadline stays legible.
     public func display(phoneTimeZone: TimeZone) -> BeijingTimeDisplay? {
+        let value: MarketBusinessTime
         switch self {
-        case .calendarDay(let day): return BeijingTimeDisplay(phone: day, beijing: nil, phoneZoneAbbreviation: nil)
-        case .instant(let date):
-            let phone = Self.formatter("yyyy-MM-dd HH:mm", phoneTimeZone).string(from: date)
-            let differs = phoneTimeZone.secondsFromGMT(for: date) != Self.beijing.secondsFromGMT(for: date)
-            let beijing = differs ? Self.formatter("yyyy-MM-dd HH:mm", Self.beijing).string(from: date) : nil
-            return BeijingTimeDisplay(phone: phone, beijing: beijing, phoneZoneAbbreviation: differs ? Self.offsetLabel(phoneTimeZone, date) : nil)
-        case .unknown: return nil
+        case .calendarDay(let day): value = .calendarDay(day)
+        case .instant(let date): value = .instant(date)
+        case .unknown: value = .unknown
         }
+        guard let display = value.display(businessTimeZoneID: "Asia/Shanghai", phoneTimeZone: phoneTimeZone) else { return nil }
+        return BeijingTimeDisplay(phone: display.phone, beijing: display.business, phoneZoneAbbreviation: display.phoneOffset)
     }
 
     static func offsetLabel(_ zone: TimeZone, _ date: Date) -> String {
-        let seconds = zone.secondsFromGMT(for: date)
-        let sign = seconds < 0 ? "-" : "+"
-        let hours = abs(seconds) / 3600, minutes = abs(seconds) % 3600 / 60
-        return minutes == 0 ? "GMT\(sign)\(hours)" : String(format: "GMT%@%d:%02d", sign, hours, minutes)
-    }
-    private static func matches(_ value: String, _ pattern: String) -> Bool {
-        value.range(of: pattern, options: .regularExpression) != nil
-    }
-    private static func formatter(_ format: String, _ zone: TimeZone) -> DateFormatter {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.timeZone = zone; formatter.dateFormat = format; formatter.isLenient = false
-        return formatter
+        MarketBusinessTime.offsetLabel(zone, date)
     }
 }
 
