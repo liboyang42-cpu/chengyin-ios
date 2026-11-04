@@ -71,7 +71,7 @@ import SwiftUI
         .appNavigationTitle("growth.board.title")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button(action: reload) label: { Label("growth.refresh", systemImage: "arrow.clockwise") }
+                Button(action: reload) { Label("growth.refresh", systemImage: "arrow.clockwise") }
                     .disabled(model.isLoading || !reader.isAuthenticated || !reader.isConfigured)
                     .accessibilityIdentifier("growth.board.refresh")
             }

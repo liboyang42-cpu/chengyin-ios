@@ -1721,7 +1721,7 @@ final class AppSession: ObservableObject {
             self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
         })
     }
-    private var currentRuntimeDependencyContext: RuntimeDependencyContext? {
+    var currentRuntimeDependencyContext: RuntimeDependencyContext? {
         guard !committingAuthenticatedSession, let regionalConfiguration, let api = regionalConfiguration.apiConfiguration,
               let session = currentPlayRuntimeSession, let account else { return nil }
         return RuntimeDependencyContext(market: regionalConfiguration.market, baseURL: api.baseURL,
@@ -3526,12 +3526,12 @@ final class AppSession: ObservableObject {
                   ContentDraftContextFence.matches(captured, current) else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
         })
-    func makeProfilePublicInfoReader(memberID: Int) -> ProfilePublicInfoReader? {
+    func makeProfilePublicInfoReader(memberID: Int, isCurrent: @escaping () -> Bool = { true }) -> ProfilePublicInfoReader? {
         guard let context = currentRuntimeDependencyContext else { return nil }
         let viewer = compositionViewerRevision
         guard let target = try? ProfilePublicInfoTarget(memberID: memberID, context: context, viewerRevision: viewer,
             current: { [weak self] in
-                guard let self, let current = self.currentRuntimeDependencyContext else { return false }
+                guard isCurrent(), let self, let current = self.currentRuntimeDependencyContext else { return false }
                 return self.compositionViewerRevision == viewer && ContentDraftContextFence.matches(context, current)
             }) else { return nil }
         return ProfilePublicInfoReader(target: target, configuration: regionalConfiguration?.apiConfiguration,

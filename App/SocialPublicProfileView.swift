@@ -16,6 +16,7 @@ import SwiftUI
     var selfEditAccess: ProfileSelfEditAccess? = nil
     var selfEditDiagnostics: (@MainActor (ProfileSelfEditTicket?, ProfileSelfEditTicket, ProfileSelfEditContext?) -> String)? = nil
     var localCoverOwner: ProfileLocalCoverOwner? = nil
+    var showsStartChat = true
     var isCurrent: @MainActor () -> Bool = { true }
     @Environment(\.dismiss) private var dismiss
     private enum Tab: String, CaseIterable { case posts, achievements, about, projects, orders }
@@ -117,7 +118,9 @@ import SwiftUI
                         }
                         if let actions, actions.identity.accountID != profile.id {
                             NavigationLink { SocialActionEditorView(purpose: .toggleFollow, target: .member(profile.id), coordinator: actions) } label: { Text("social.editor.toggleFollow") }
-                            NavigationLink { SocialActionEditorView(purpose: .startChat, target: .member(profile.id), coordinator: actions) } label: { Text("social.editor.startChat") }
+                            if showsStartChat {
+                                NavigationLink { SocialActionEditorView(purpose: .startChat, target: .member(profile.id), coordinator: actions) } label: { Text("social.editor.startChat") }
+                            }
                         }
                         if profile.id == memberID, let accountID = reader.identity.accountID,
                            accountID != memberID, memberID > 0, isCurrent() {

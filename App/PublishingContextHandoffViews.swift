@@ -84,7 +84,7 @@ struct QuickPublishingInterestPicker: View {
 /// tokens keep light/dark and increased contrast behavior; no global token edits.
 struct QuickPublishingCanvas: View {
     @Environment(\.themeDomain) private var domain
-    @Environment(\.accessibilityContrast) private var contrast
+    @Environment(\.colorSchemeContrast) private var contrast
     var body: some View {
         GeometryReader { geometry in
             ZStack {
