@@ -1,0 +1,543 @@
+{
+  "batch_id": "screenshot_audit_batch2_wanted_28",
+  "source_definition": "tools/export_current_ui_audit.py WANTED (28 screenshot names across 23 UI test methods)",
+  "execution_provenance": {
+    "execution_host": "local_macos_simulator (not GitHub Actions CI)",
+    "xcode_version": "Xcode 27.1 (Build version 27A9275, per screenshot_pilot_batch1_g05_m04_cl02/logs/toolchain-xcode.stdout)",
+    "simulator_device": "Questify-iPhone17 (iPhone 17, UDID 25316F87-058C-46CE-8825-617906638207, iOS 27.0 / 24A434, per screenshot_audit_batch2_wanted_28/summary.json)",
+    "worktree_commit": "ac6f18a35cdc63c1a20b54a9596671c76549567c",
+    "worktree_tree": "22857935d8859593ecb8cb49d736b902d7b7a3e6",
+    "base_code_commit": "f141abf0835150e2e2adfb2174352c280206a7fc",
+    "base_code_tree": "57a62ae420135a23089f8195e15ec8195947dc91",
+    "attempt2_commit": "4e49521a7dcf08b8df9f11a9313b78a9a95d7f93",
+    "attempt2_tree": "a7ff3b194cdcfe86ba72a2665c75c80ca8b25b40",
+    "methods_targeted": 23,
+    "methods_started": 23,
+    "methods_passed": 22,
+    "methods_failed": 1,
+    "post_capture_failure_method": {
+      "test_identifier": "AccessibilityPresentationFlowTests/testRouteMapChineseDarkLargeTextMarksPreviewedPinAndKeepsEquivalentList()",
+      "screenshot_captured_at_line": 57,
+      "screenshot_name": "Route map Chinese dark accessibility3 reduced-motion previewed pin – synthetic fixture",
+      "screenshot_exported": true,
+      "failure_at_line": 59,
+      "root_cause": "At line 59, revealFixtureElement(row, in: app, maximumSwipes: 20) drags vertically from startY=0.77 (y=673pt), which lands inside the 240pt-tall interactive Map (playRoute.map, frame y=560.3..800.3pt) and pans the map instead of scrolling the CollectionView (playRoute.screen)."
+    }
+  },
+  "screenshots_wanted": 28,
+  "screenshots_exported": 28,
+  "screenshots_missing": 0,
+  "total_png_bytes": 7188546,
+  "visual_audit_summary": {
+    "total_inspected": 28,
+    "pass_count": 18,
+    "issue_found_count": 10
+  },
+  "items": [
+    {
+      "index": 1,
+      "wanted_name": "Home feed initial content – synthetic fixture",
+      "test_identifier": "QuestifyUITests/HomeFeedFlowTests/testTypedDestinationsAndPriceCurrencyDisclosure",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/0-0-f97994c73ddfa250d48d2fc8a930f41028a8a8ea2fffef147623d8f7fe8e795a.png",
+      "original_attachment_filename": "Home feed initial content – synthetic fixture_0_41979179-E394-476A-ADF2-3AE9CE038D6B.png",
+      "bytes": 214817,
+      "sha256": "f97994c73ddfa250d48d2fc8a930f41028a8a8ea2fffef147623d8f7fe8e795a",
+      "git_blob_sha": "75084c887d2f35705b301e89fe9fb5bf788d0181",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "ISSUE_FOUND",
+      "visual_audit_severity": "P2_UI_OVERLAP",
+      "visual_audit_finding": "Bottom floating .searchable pill ('Search routes and activities') overlaps the bottom of the dark hero card ('Sample neighborhood route'), partially covering 'Currency not provided' and the 'Activity highlights' section header."
+    },
+    {
+      "index": 2,
+      "wanted_name": "Home feed known empty state – synthetic fixture",
+      "test_identifier": "QuestifyUITests/HomeFeedFlowTests/testEmptyStateIsNotAnError",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/1-0-2d252f858b11545fcc52364030a79788e782f896a772fab3d01b2d383508ce88.png",
+      "original_attachment_filename": "Home feed known empty state – synthetic fixture_0_718CC5DA-4360-4859-883C-7D5B060C55DB.png",
+      "bytes": 188736,
+      "sha256": "2d252f858b11545fcc52364030a79788e782f896a772fab3d01b2d383508ce88",
+      "git_blob_sha": "3373d663098b63ce90c95307a71ff98834c192eb",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "ISSUE_FOUND",
+      "visual_audit_severity": "P2_UI_OVERLAP",
+      "visual_audit_finding": "Bottom floating .searchable pill ('Search routes and activities') overlaps the 'Category / All categories' picker row inside the Explore card at the bottom of the viewport."
+    },
+    {
+      "index": 3,
+      "wanted_name": "Home feed page failure before retry – synthetic fixture",
+      "test_identifier": "QuestifyUITests/HomeFeedFlowTests/testPageFailureRetriesAndDuplicateFullPageStillPaginates",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/2-0-ae05813fb7816e31ca71ce2d723607186492827e2ee14491964dba5057fdc449.png",
+      "original_attachment_filename": "Home feed page failure before retry – synthetic fixture_0_FD1BA7A8-9141-43B0-841D-1F328A8A3AD2.png",
+      "bytes": 356850,
+      "sha256": "ae05813fb7816e31ca71ce2d723607186492827e2ee14491964dba5057fdc449",
+      "git_blob_sha": "300a322874df17ed5ce7740fdf7614dfdbdc5b7f",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "PASS",
+      "visual_audit_severity": "NONE",
+      "visual_audit_finding": "Error card ('Couldn't load the home feed' + 'Try again' button) and top fixture banner render cleanly without overlap."
+    },
+    {
+      "index": 4,
+      "wanted_name": "Activity detail ticket information – synthetic fixture",
+      "test_identifier": "QuestifyUITests/ActivityFlowTests/testNullableTicketValuesStayUnknownAndDetailCannotBook",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/3-0-fa936bb1927c3d5dc1aff75071e13e058ff19ff6647cbadbc981561eb205497f.png",
+      "original_attachment_filename": "Activity detail ticket information – synthetic fixture_0_5CEC4104-D1F5-4A45-9167-23722785AFA8.png",
+      "bytes": 203633,
+      "sha256": "fa936bb1927c3d5dc1aff75071e13e058ff19ff6647cbadbc981561eb205497f",
+      "git_blob_sha": "f5036d592b861e97766933ec3e647d6a22a8e441",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "PASS",
+      "visual_audit_severity": "NONE",
+      "visual_audit_finding": "Activity details, schedule/location card, and 'Tickets & registration' section ('Free RSVP / Free / Remaining: 8') render cleanly."
+    },
+    {
+      "index": 5,
+      "wanted_name": "Ticket wallet initial content – synthetic fixture",
+      "test_identifier": "QuestifyUITests/TicketWalletFlowTests/testWalletDetailEntitlementsBackAndReopenNeverOffersCodeOrPayment",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/4-1-3bbd4c7e0f8342ef9c557204864bf0917835c16b1b89a2bade2a23c30b4662cf.png",
+      "original_attachment_filename": "Ticket wallet initial content – synthetic fixture_0_54CD6DB5-E8BA-44D0-BACC-277F041CF0F3.png",
+      "bytes": 221876,
+      "sha256": "3bbd4c7e0f8342ef9c557204864bf0917835c16b1b89a2bade2a23c30b4662cf",
+      "git_blob_sha": "6d6143f4930c22b73f2da0947ee6369c40b7311f",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "PASS",
+      "visual_audit_severity": "NONE",
+      "visual_audit_finding": "Ticket wallet list ('Ready to use', 'Verification code ready: 8842', 'Show code at check-in') renders cleanly."
+    },
+    {
+      "index": 6,
+      "wanted_name": "Ticket detail entitlements – synthetic fixture",
+      "test_identifier": "QuestifyUITests/TicketWalletFlowTests/testWalletDetailEntitlementsBackAndReopenNeverOffersCodeOrPayment",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/4-0-a0fe3937849ce91e7fbee30e22ee65f765991e3609e44d68dac055c07437b41c.png",
+      "original_attachment_filename": "Ticket detail entitlements – synthetic fixture_0_2CD972FC-6FA3-49AB-8E8B-B073CDFE1278.png",
+      "bytes": 218557,
+      "sha256": "a0fe3937849ce91e7fbee30e22ee65f765991e3609e44d68dac055c07437b41c",
+      "git_blob_sha": "d56f19cda7a4a56cd1bfa3da360cf212a067178b",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "PASS",
+      "visual_audit_severity": "NONE",
+      "visual_audit_finding": "Ticket details ('Check-in code 8842', 'Included items', 'Entry check-in / Usable: 1 / Total: 1 / Remaining: 1') render cleanly."
+    },
+    {
+      "index": 7,
+      "wanted_name": "Home Chinese dark accessibility3 reduced-motion – synthetic fixture",
+      "test_identifier": "QuestifyUITests/AccessibilityPresentationFlowTests/testHomeChineseDarkLargeTextRemainsNavigable",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/5-0-a92dd631a3741d945eee8ae0f9f554fada52637d9dd10b253929762af41a694e.png",
+      "original_attachment_filename": "Home Chinese dark accessibility3 reduced-motion – synthetic fixture_0_E4834E16-ECE4-4AA9-9D98-1CC5DAF035C0.png",
+      "bytes": 237142,
+      "sha256": "a92dd631a3741d945eee8ae0f9f554fada52637d9dd10b253929762af41a694e",
+      "git_blob_sha": "e0b31a9dd675bd7186056bcdb5763fe7be3e64cd",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "ISSUE_FOUND",
+      "visual_audit_severity": "P1_A11Y_OVERLAP",
+      "visual_audit_finding": "At accessibility3 large text in dark mode, the bottom floating search pill ('搜索路线和活动') directly collides with 'Synthetic route' and '路线总站点' inside the hero card."
+    },
+    {
+      "index": 8,
+      "wanted_name": "Ticket wallet Chinese dark accessibility3 reduced-motion – synthetic fixture",
+      "test_identifier": "QuestifyUITests/AccessibilityPresentationFlowTests/testTicketWalletChineseDarkLargeTextKeepsDetailEntry",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/6-1-759caa9a57af8cf01b2f1a739ac1e3fa2d4bbab94fa740c9752c2f632d2c5d75.png",
+      "original_attachment_filename": "Ticket wallet Chinese dark accessibility3 reduced-motion – synthetic fixture_0_26EBB672-0BB5-4475-9D66-3A401604CD09.png",
+      "bytes": 217602,
+      "sha256": "759caa9a57af8cf01b2f1a739ac1e3fa2d4bbab94fa740c9752c2f632d2c5d75",
+      "git_blob_sha": "3ed07b7f884f19507e7795d3d6825f011b88b53c",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "PASS",
+      "visual_audit_severity": "NONE",
+      "visual_audit_finding": "Chinese dark mode accessibility3 ticket wallet cards wrap multi-line text cleanly with no truncation or overlap."
+    },
+    {
+      "index": 9,
+      "wanted_name": "Ticket detail Chinese dark accessibility3 reduced-motion – synthetic fixture",
+      "test_identifier": "QuestifyUITests/AccessibilityPresentationFlowTests/testTicketWalletChineseDarkLargeTextKeepsDetailEntry",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/6-0-7ea16a031f8eb26f67b8203153704125ff11a45c399d67be12e701f2004a39db.png",
+      "original_attachment_filename": "Ticket detail Chinese dark accessibility3 reduced-motion – synthetic fixture_0_107E9D3B-150D-4FA4-A9CA-A02EABE7CC6A.png",
+      "bytes": 222803,
+      "sha256": "7ea16a031f8eb26f67b8203153704125ff11a45c399d67be12e701f2004a39db",
+      "git_blob_sha": "082938ae3bd71fcac8ed0c09175b050021faf57a",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "PASS",
+      "visual_audit_severity": "NONE",
+      "visual_audit_finding": "Chinese dark mode accessibility3 ticket detail check-in code ('8842') and status cards wrap cleanly."
+    },
+    {
+      "index": 10,
+      "wanted_name": "IM long draft with keyboard visible – synthetic fixture",
+      "test_identifier": "QuestifyUITests/ReferenceChatTaskFlowTests/testMessageKeyboardKeepsSendActionReachable",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/7-1-abcfb4af50563c82bb16a332e0a42eda5c2f0bf360d75c5a8274db92f2c338db.png",
+      "original_attachment_filename": "IM long draft with keyboard visible – synthetic fixture_0_F08C51FD-C98D-4C28-8173-C70D93AC9E6A.png",
+      "bytes": 302215,
+      "sha256": "abcfb4af50563c82bb16a332e0a42eda5c2f0bf360d75c5a8274db92f2c338db",
+      "git_blob_sha": "31b56a2995e6f085f55df8312cb5bbf31a91d5da",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "ISSUE_FOUND",
+      "visual_audit_severity": "P2_UI_OVERLAP",
+      "visual_audit_finding": "When the software keyboard is visible on iOS 27.0, the floating keyboard accessory 'Done' pill overlaps the bottom half of the 'Send' button on the right side of the composer."
+    },
+    {
+      "index": 11,
+      "wanted_name": "IM long draft and pinned composer – synthetic fixture",
+      "test_identifier": "QuestifyUITests/ReferenceChatTaskFlowTests/testMessageKeyboardKeepsSendActionReachable",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/7-0-d68dc4b08b64aa30de6b2d38db1f8b1abcc9e02995832be0699d064ab4f46886.png",
+      "original_attachment_filename": "IM long draft and pinned composer – synthetic fixture_0_235C649C-9A80-47D5-A6B2-5D390A2DDFC9.png",
+      "bytes": 247303,
+      "sha256": "d68dc4b08b64aa30de6b2d38db1f8b1abcc9e02995832be0699d064ab4f46886",
+      "git_blob_sha": "483a54fdd6b815d572c498c2b2f900eedced0b9f",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "PASS",
+      "visual_audit_severity": "NONE",
+      "visual_audit_finding": "Pinned message composer expands cleanly to 6 lines for the long synthetic draft while keeping conversation messages scrollable above."
+    },
+    {
+      "index": 12,
+      "wanted_name": "IM earlier history retained after detail return – synthetic fixture",
+      "test_identifier": "QuestifyUITests/ReferenceChatTaskFlowTests/testMessageEarlierPageAndDetailReturnRetainHistory",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/8-0-265349c9a37b564e2d492a90bc94efee5b6a4ecf7de975dbf16e2c4aab388fa6.png",
+      "original_attachment_filename": "IM earlier history retained after detail return – synthetic fixture_0_C6367EEB-46C0-4E7F-8574-F093EBB339EB.png",
+      "bytes": 238907,
+      "sha256": "265349c9a37b564e2d492a90bc94efee5b6a4ecf7de975dbf16e2c4aab388fa6",
+      "git_blob_sha": "80ea2e2ed59fa311393c2b5d629fb3b1056659f9",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "PASS",
+      "visual_audit_severity": "NONE",
+      "visual_audit_finding": "Earlier history status banner ('Earlier messages already loaded (2 in view).') and message bubbles render cleanly."
+    },
+    {
+      "index": 13,
+      "wanted_name": "Merchant reapply native form",
+      "test_identifier": "QuestifyUITests/MerchantOnboardingFlowTests/testRejectedBackfillNeedsConfirmationAndReadsPendingState",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/9-3-103e545bf9e73f29c578b298f4b65b8ddf961a476163b907ca2fc629b3f39c0d.png",
+      "original_attachment_filename": "Merchant reapply native form_0_3C71BE8E-F860-4245-8F50-E27DBE75DDC8.png",
+      "bytes": 207753,
+      "sha256": "103e545bf9e73f29c578b298f4b65b8ddf961a476163b907ca2fc629b3f39c0d",
+      "git_blob_sha": "da18feba98a088b1668ea87309e49988bcd316ad",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "PASS",
+      "visual_audit_severity": "NONE",
+      "visual_audit_finding": "Inline validation error ('Enter an 11-digit mainland mobile number or a valid email address.') and form fields render cleanly."
+    },
+    {
+      "index": 14,
+      "wanted_name": "Merchant native confirmation before Cancel",
+      "test_identifier": "QuestifyUITests/MerchantOnboardingFlowTests/testRejectedBackfillNeedsConfirmationAndReadsPendingState",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/9-2-3173f34e471d80b1da8ba28d027dbcaf0af42b423f0a4549f0f42bba476e45a9.png",
+      "original_attachment_filename": "Merchant native confirmation before Cancel_0_F4228381-45B9-4AA8-83CF-DB8F262366AF.png",
+      "bytes": 583763,
+      "sha256": "3173f34e471d80b1da8ba28d027dbcaf0af42b423f0a4549f0f42bba476e45a9",
+      "git_blob_sha": "2bb67871a8e8e67b48db79e6bb188557b6dc7de2",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "PASS",
+      "visual_audit_severity": "NONE",
+      "visual_audit_finding": "System confirmation alert ('Submit merchant application?', 'Review Submission', 'Cancel') renders cleanly over the form."
+    },
+    {
+      "index": 15,
+      "wanted_name": "Merchant application acknowledged with pending server status",
+      "test_identifier": "QuestifyUITests/MerchantOnboardingFlowTests/testRejectedBackfillNeedsConfirmationAndReadsPendingState",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/9-0-192f1e75e13f13e2ebaea6197e2fe5db09eed90aff0fa38c52fceb392d4b76fb.png",
+      "original_attachment_filename": "Merchant application acknowledged with pending server status_0_A235DCFA-5248-4EB1-927D-38712092C45B.png",
+      "bytes": 288886,
+      "sha256": "192f1e75e13f13e2ebaea6197e2fe5db09eed90aff0fa38c52fceb392d4b76fb",
+      "git_blob_sha": "d2121e97d7e1af94ecf7d2e59a2742ab1d6bdc76",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "PASS",
+      "visual_audit_severity": "NONE",
+      "visual_audit_finding": "Submitted status card ('Submitted · Under review', 'Application #7001', 'Submitted merchant values') renders cleanly."
+    },
+    {
+      "index": 16,
+      "wanted_name": "Media fullscreen English light reopened – synthetic fixture",
+      "test_identifier": "QuestifyUITests/NativePresentationPatternFlowTests/testGalleryEnglishPagesClosesAndReopensAtSelectedImage",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/10-0-ff8e195638beae2b7d745140a65526a4918d8d78e4e4d13858ffe246b895e9c9.png",
+      "original_attachment_filename": "Media fullscreen English light reopened – synthetic fixture_0_160744E8-2AC7-4554-9814-515BA49FA951.png",
+      "bytes": 82549,
+      "sha256": "ff8e195638beae2b7d745140a65526a4918d8d78e4e4d13858ffe246b895e9c9",
+      "git_blob_sha": "629fc3e3dd810cad033f7b6e013c9f7557a197bd",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "PASS",
+      "visual_audit_severity": "NONE",
+      "visual_audit_finding": "Fullscreen media viewer header, image preview card ('Evening Jazz Jam Poster'), and metadata footer render cleanly."
+    },
+    {
+      "index": 17,
+      "wanted_name": "Media fullscreen Chinese accessibility5 dark reduced-motion – synthetic fixture",
+      "test_identifier": "QuestifyUITests/NativePresentationPatternFlowTests/testGalleryChineseMaximumTextDarkReducedMotionKeepsPagingAndClose",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/11-0-298b6b7cf8bb8954b438d186cef442fb1f798ff36bf3a5b5206b4aa7d8388834.png",
+      "original_attachment_filename": "Media fullscreen Chinese accessibility5 dark reduced-motion – synthetic fixture_0_E7AA302D-EF5E-4D80-96C8-5ACA73A816BA.png",
+      "bytes": 71868,
+      "sha256": "298b6b7cf8bb8954b438d186cef442fb1f798ff36bf3a5b5206b4aa7d8388834",
+      "git_blob_sha": "2b72b65acf414085348c5ecdef5ccbf8d84fc107",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "PASS",
+      "visual_audit_severity": "NONE",
+      "visual_audit_finding": "Chinese dark mode accessibility5 fullscreen media viewer ('媒体预览', '关闭', '1 / 2') wraps cleanly without clipping."
+    },
+    {
+      "index": 18,
+      "wanted_name": "Social draft preserved after nested review and cancel – synthetic fixture",
+      "test_identifier": "QuestifyUITests/SocialAccountFlowTests/testDraftSurvivesNestedReviewAndCancelThenDiscardReopensEmpty",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/12-0-3190bdba1014277c9a2db24bcecc85fd66249bc1c144be32c9e01c3802847d15.png",
+      "original_attachment_filename": "Social draft preserved after nested review and cancel – synthetic fixture_0_3017814C-0745-4838-A9BA-11EB8229399D.png",
+      "bytes": 129822,
+      "sha256": "3190bdba1014277c9a2db24bcecc85fd66249bc1c144be32c9e01c3802847d15",
+      "git_blob_sha": "28180b49de9aafe294ca3b6ba056d3b1c75f0243",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "PASS",
+      "visual_audit_severity": "NONE",
+      "visual_audit_finding": "Social post composer preserves multi-line title/body draft and attached media items ('Selected media (2/9)') after closing fullscreen preview."
+    },
+    {
+      "index": 19,
+      "wanted_name": "Chinese social draft large text dark mode after keyboard dismissal – synthetic fixture",
+      "test_identifier": "QuestifyUITests/SocialAccountFlowTests/testChineseLargeTextDraftCancelKeepsTextAndKeyboardDismisses",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/13-0-8b54baee90de279a609379e5427a9c3dc55b6f09e1c6ddebd0adc313dc1e9abf.png",
+      "original_attachment_filename": "Chinese social draft large text dark mode after keyboard dismissal – synthetic fixture_0_B040F75E-E347-4AC9-AA05-96AB421A79A6.png",
+      "bytes": 122163,
+      "sha256": "8b54baee90de279a609379e5427a9c3dc55b6f09e1c6ddebd0adc313dc1e9abf",
+      "git_blob_sha": "30a9b2dcc1e6823eee764c90f71dadf2828d78d9",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "PASS",
+      "visual_audit_severity": "NONE",
+      "visual_audit_finding": "Chinese dark mode accessibility3 social composer ('发布动态', '本地草稿（未发布）') renders cleanly."
+    },
+    {
+      "index": 20,
+      "wanted_name": "Settings legal missing accessibility5 zh-Hans – synthetic fixture",
+      "test_identifier": "QuestifyUITests/NativeSettingsReuseFlowTests/testMaximumTextLegalMissingStateBackAndReopenInBothLanguages",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/14-0-36cb615a3472fef13c333a0112d13544cfaf675ceec775e2e30d467afac51ba9.png",
+      "original_attachment_filename": "Settings legal missing accessibility5 zh-Hans – synthetic fixture_0_8B05BC94-709A-4DBB-9C74-4A42F708F63D.png",
+      "bytes": 234411,
+      "sha256": "36cb615a3472fef13c333a0112d13544cfaf675ceec775e2e30d467afac51ba9",
+      "git_blob_sha": "974d206289a9faf7a498791c3a808ca287b94419",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "PASS",
+      "visual_audit_severity": "NONE",
+      "visual_audit_finding": "Chinese accessibility5 settings legal missing-URL state ('隐私政策', '当前版本暂未配置此链接。') wraps cleanly across multiple lines."
+    },
+    {
+      "index": 21,
+      "wanted_name": "Route overview current and inspected stop remain separate – synthetic fixture",
+      "test_identifier": "QuestifyUITests/PlayRouteMapCameraFlowTests/testOverviewCurrentAndOtherStopPreviewFormCompleteInspectionJourney",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/15-0-fd0c1578b8b2a5bdc3f585a188445eb209fe8c7b9366075b5ce370562fd5534b.png",
+      "original_attachment_filename": "Route overview current and inspected stop remain separate – synthetic fixture_0_E1B3A465-B632-4400-97B8-80D0E8A658EA.png",
+      "bytes": 411744,
+      "sha256": "fd0c1578b8b2a5bdc3f585a188445eb209fe8c7b9366075b5ce370562fd5534b",
+      "git_blob_sha": "1f4a28e0e0802babdc224b8c29290de5427ed8af",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "ISSUE_FOUND",
+      "visual_audit_severity": "P2_UI_OVERLAP_AND_SCROLL_POSITION",
+      "visual_audit_finding": "Floating fixture button ('Synthetic route controls') overlaps the bottom of the Map and pin #1 badge; additionally, at screenshot capture time the scroll position shows map controls and the map rather than keeping both 'Current stop' and 'Inspected stop' summary cards in the visible viewport."
+    },
+    {
+      "index": 22,
+      "wanted_name": "Route map Chinese dark accessibility3 reduced-motion previewed pin – synthetic fixture",
+      "test_identifier": "QuestifyUITests/AccessibilityPresentationFlowTests/testRouteMapChineseDarkLargeTextMarksPreviewedPinAndKeepsEquivalentList",
+      "test_status": "Failed (after screenshot capture at line 57; failed at line 59 map-drag)",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/16-41-af0151e2246f69bee0e0b9d86749ad5135a65c4bb899ad339b58b62c6d5cbfa2.png",
+      "original_attachment_filename": "Route map Chinese dark accessibility3 reduced-motion previewed pin – synthetic fixture_0_DE69FCEB-B3FD-43DC-A931-01E8E31FA2D8.png",
+      "bytes": 604617,
+      "sha256": "af0151e2246f69bee0e0b9d86749ad5135a65c4bb899ad339b58b62c6d5cbfa2",
+      "git_blob_sha": "42c5ebc66266d2e45b4dc22ac865996f9ebceb97",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "ISSUE_FOUND",
+      "visual_audit_severity": "P1_TEST_AND_UI_MAP_INTERCEPT",
+      "visual_audit_finding": "Screenshot is captured cleanly at line 57 showing previewed pin #1 on the dark map, with 'Synthetic route controls' overlapping the map bottom edge. Immediately after capture, line 59 (revealFixtureElement for playRoute.stop.700) fails because playRoute.map (y=560..800pt) intercepts vertical swipe-up gestures starting at startY=0.77 (y=673pt), panning the map instead of scrolling the CollectionView."
+    },
+    {
+      "index": 23,
+      "wanted_name": "Order detail – synthetic data",
+      "test_identifier": "QuestifyUITests/ModuleFlowTests/testProfileOrderReadbackAndBack",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/17-0-2073e80da42272552e345fb3fd5680fe7f2cc845d477a848618312468fdec205.png",
+      "original_attachment_filename": "Order detail – synthetic data_0_06070D1F-8008-46BC-B1C0-B927E0179C8D.png",
+      "bytes": 211206,
+      "sha256": "2073e80da42272552e345fb3fd5680fe7f2cc845d477a848618312468fdec205",
+      "git_blob_sha": "55540c0f98c4ceb696bebcaaaf25e2ea10731937",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "ISSUE_FOUND",
+      "visual_audit_severity": "P2_EMPTY_LIST_ROW",
+      "visual_audit_finding": "Inside the 'Order details' card, between 'Order number: FIXTURE-901' and 'Registration status: Awaiting payment', there is an empty/blank list row (~44pt tall) with top and bottom cell separators."
+    },
+    {
+      "index": 24,
+      "wanted_name": "Chinese maximum-text route navigation – synthetic fixture",
+      "test_identifier": "QuestifyUITests/PlayRouteMapContinuationFlowTests/testChineseMaximumTextUsesFullListAndExplicitRouteDisclaimer",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/18-0-4054d149d12ca01f9a4b88f9cb7d65816dacbd34754c135e73c632b146508a99.png",
+      "original_attachment_filename": "Chinese maximum-text route navigation – synthetic fixture_0_3462AD7B-7A4A-4183-94D4-23A5E18069C7.png",
+      "bytes": 201385,
+      "sha256": "4054d149d12ca01f9a4b88f9cb7d65816dacbd34754c135e73c632b146508a99",
+      "git_blob_sha": "14face7f18f2483810c7c0c715b5f760bae3f639",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "ISSUE_FOUND",
+      "visual_audit_severity": "P1_A11Y_OVERLAP",
+      "visual_audit_finding": "At accessibility5 maximum text size, the floating fixture button ('Synthetic route controls') directly overlaps the large 'Synthetic current stop' heading text at the bottom of the screen, and the top yellow fixture banner text collapses to only the flask icon."
+    },
+    {
+      "index": 25,
+      "wanted_name": "Normal read fallback retains free-exploration store UI – synthetic fixture",
+      "test_identifier": "QuestifyUITests/PlayExperienceFlowTests/testOrdinaryReadFallbackUsesFreeStoreCardsAndNoOrientationAnswerForm",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/19-0-699aba84091519cca02cb9dffc2d5735ccfb0fce24cd144bcafe471ca2b518c7.png",
+      "original_attachment_filename": "Normal read fallback retains free-exploration store UI – synthetic fixture_0_B9EFC3EC-B1E6-4CCC-88A4-EC2AB615F957.png",
+      "bytes": 220799,
+      "sha256": "699aba84091519cca02cb9dffc2d5735ccfb0fce24cd144bcafe471ca2b518c7",
+      "git_blob_sha": "c6d06ba3e38d5370e20e821afa2476590ad93889",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "PASS",
+      "visual_audit_severity": "NONE",
+      "visual_audit_finding": "Store visit screen ('Synthetic shop', 'Photo proof recorded', 'Three on-site steps', 'On-site reference') renders cleanly."
+    },
+    {
+      "index": 26,
+      "wanted_name": "Synthetic My Rewards normal account journey – synthetic fixture",
+      "test_identifier": "QuestifyUITests/NonCashRewardFlowTests/testNormalAccountRewardDetailCloseReopenAndBack",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/20-0-31580e103a3e218c79b8b9fcca23cfc687a2204b5fddf8755f0a526624429264.png",
+      "original_attachment_filename": "Synthetic My Rewards normal account journey – synthetic fixture_0_0B858695-CB50-42B7-B226-DB156B808B30.png",
+      "bytes": 391478,
+      "sha256": "31580e103a3e218c79b8b9fcca23cfc687a2204b5fddf8755f0a526624429264",
+      "git_blob_sha": "0c778b8aa5993969710496b1b74fd0c353bb0706",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "ISSUE_FOUND",
+      "visual_audit_severity": "P2_TAB_BAR_OVERLAP",
+      "visual_audit_finding": "When navigating to 'My rewards' from the normal root TabView, the bottom floating tab bar and 'Synthetic normal-root acceptance' caption overlap the 4th reward card ('Voided / DEMO · 实物奖励 / Physical reward')."
+    },
+    {
+      "index": 27,
+      "wanted_name": "Owned template card with known zero duration – synthetic fixture",
+      "test_identifier": "QuestifyUITests/TemplateOwnShelfFlowTests/testOwnedCardShowsZeroDurationAndNoMarketplacePublishButton",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/21-0-61de9d44c378431c5aae67f037235415d060608b1e35c88ed57c8022264313af.png",
+      "original_attachment_filename": "Owned template card with known zero duration – synthetic fixture_0_D6C272AB-17ED-4AF6-8B19-1EFAD79CDD84.png",
+      "bytes": 299004,
+      "sha256": "61de9d44c378431c5aae67f037235415d060608b1e35c88ed57c8022264313af",
+      "git_blob_sha": "a883a719e0631d41d498104f9ac6d07fdb35aac4",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "PASS",
+      "visual_audit_severity": "NONE",
+      "visual_audit_finding": "Owned template card ('Synthetic interaction', 'Template ID 901', '0 min', 'Not marked as in template library', 'Review adding to library', 'Review template deletion') renders clearly."
+    },
+    {
+      "index": 28,
+      "wanted_name": "Owned template deletion review danger copy – synthetic fixture",
+      "test_identifier": "QuestifyUITests/TemplateOwnShelfFlowTests/testDeleteReviewShowsSourceDangerCopyAndCancelDoesNotSubmit",
+      "test_status": "Passed",
+      "exported_file": "screenshot_audit_batch2_wanted_28/images/22-0-ba9206abb3d1b6f5c0fb9f36d8ced73a2ff4133bd791b4c3713196b42da03fe0.png",
+      "original_attachment_filename": "Owned template deletion review danger copy – synthetic fixture_0_EE192FA5-F85C-47A8-A2DE-0923B64C6DC3.png",
+      "bytes": 256657,
+      "sha256": "ba9206abb3d1b6f5c0fb9f36d8ced73a2ff4133bd791b4c3713196b42da03fe0",
+      "git_blob_sha": "8002d9e71e080ec5b47cda5c1568e197e09fd133",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "visual_audit_verdict": "ISSUE_FOUND",
+      "visual_audit_severity": "P2_DESTRUCTIVE_CTA_STYLING_AND_FOOTER_CLIP",
+      "visual_audit_finding": "In the deletion review sheet ('Review submission'), the destructive action row 'Delete play' (nodePlay.confirmButton) is styled as plain black body text indistinguishable from static informational rows, and the bottom footer notice is vertically clipped at the bottom edge."
+    }
+  ],
+  "manifest_version": "v2_per_issuecomment_6623905393"
+}
