@@ -186,11 +186,6 @@ struct MessagingHistoryView: View {
                     MessagingConversationName(conversation: conversation).font(.headline).lineLimit(1)
                 } else { Text("messaging.history.title") }
             }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("messaging.refresh", systemImage: "arrow.clockwise") { Task { await reload() } }
-                    .disabled(isLoading || isLoadingEarlier || !reader.isConfigured || reader.identity == nil || issue?.isTerminal == true)
-                    .accessibilityIdentifier("messaging.history.refresh")
-            }
         }
         .sheet(item: $safety) { presentation in
             IMSafetyReviewView(owner: presentation.owner) { action in
@@ -213,8 +208,7 @@ struct MessagingHistoryView: View {
     }
     private var transcript: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 16) {
-                if sender == nil && !replyPolicy.isSystemNotice { Text("messaging.readOnly").font(.footnote).foregroundStyle(.secondary) }
+            LazyVStack(alignment: .leading, spacing: 12) {
                 if history.hasMore {
                     if isLoadingEarlier {
                         ProgressView("messaging.loadingEarlier").accessibilityIdentifier("messaging.history.loadingEarlier")
@@ -315,12 +309,27 @@ private struct MessagingBubble: View {
     let message: MessagingMessage
     let conversation: MessagingConversation?
     let accountID: Int
+    @ScaledMetric(relativeTo: .caption) private var avatarSize: CGFloat = 28
     private var isOwn: Bool { message.senderID == accountID && accountID > 0 }
+    /// Groups show a small avatar and the sender name; one-to-one chats do not repeat them.
+    private var isGroup: Bool { conversation?.kind == .group }
     var body: some View {
-        ChatMessageBubble(isOwn: isOwn, timestamp: message.createdAt) {
-            MessagingSenderName(message: message, conversation: conversation, accountID: accountID)
-        } content: {
-            MessagingMessageContent(message: message)
+        HStack(alignment: .top, spacing: 8) {
+            if isGroup && !isOwn {
+                Image(systemName: "person.fill")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(width: avatarSize, height: avatarSize)
+                    .background(Circle().fill(Color(uiColor: .tertiarySystemFill)))
+                    .accessibilityHidden(true)
+            }
+            ChatMessageBubble(isOwn: isOwn, timestamp: message.createdAt) {
+                if isGroup && !isOwn {
+                    MessagingSenderName(message: message, conversation: conversation, accountID: accountID)
+                }
+            } content: {
+                MessagingMessageContent(message: message)
+            }
         }
         .accessibilityElement(children: .combine)
         .accessibilityHint(Text("messaging.openDetail"))
