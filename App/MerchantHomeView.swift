@@ -41,7 +41,6 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                             if let name = identity.merchantName, !name.isEmpty { Text(name).font(.headline) }
                             Text(LocalizedStringKey(identity.application?.titleKey ?? "merchant.access.inactive"))
                                 .accessibilityIdentifier("merchant.access.inactive")
-                            Text("merchant.access.inactiveHint").foregroundStyle(.secondary)
                         }
                         if let openApplication {
                             Button("merchant.onboarding.openApplication", action: openApplication)
