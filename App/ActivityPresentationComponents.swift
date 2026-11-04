@@ -41,6 +41,12 @@ struct ActivityDetailHeader: View {
         VStack(alignment:.leading,spacing:16) {
             if let url=QuestifyCardArtwork.safeURL(summary.imageURL) {
                 QuestifyCardArtwork(url:url,height:dynamicTypeSize.isAccessibilitySize ? 180 : 240)
+            } else {
+                // No cover: a clean surface with no text.
+                RoundedRectangle(cornerRadius:14,style:.continuous)
+                    .fill(Color(uiColor:.tertiarySystemFill))
+                    .frame(height:160)
+                    .accessibilityHidden(true)
             }
             ActivityName(name:summary.name)
                 .font(.title.weight(.bold))
