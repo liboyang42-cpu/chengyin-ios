@@ -35,19 +35,31 @@ public struct NativeChannelMessageSnapshot: Decodable, Equatable {
         if status == 0 {
             let rawKind = try c.decode(Int.self, forKey: .msgType)
             kind = NativeChannelMessageKind(rawValue: rawKind) ?? .unknown
+            legacy["msgType"] = rawKind
+            // An unknown kind is an opaque placeholder. None of its payload or
+            // action metadata belongs to a schema this client understands. In
+            // particular, future mention/flag shapes must not break the whole
+            // history page or give an unknown row a sender/action identity.
+            guard kind != .unknown else {
+                senderType = nil; senderID = nil; content = nil; extraJSON = nil
+                reply = nil; editedAt = nil; pinned = nil; mentions = nil; mentionEveryone = nil
+                message = try JSONDecoder().decode(MessagingMessage.self,
+                    from: JSONSerialization.data(withJSONObject: legacy))
+                return
+            }
             // sender 0 is the real system producer, never a user identity.
             let rawSender = try c.decodeIfPresent(String.self, forKey: .senderId)
             guard rawSender == nil || rawSender == "0" || rawSender.flatMap(NativeChannelMessageID.init(rawValue:)) != nil else { throw APIError.malformedResponse }
             senderID = rawSender.flatMap(NativeChannelMessageID.init(rawValue:))
             senderType = try c.decodeIfPresent(Int.self, forKey: .senderType)
-            content = kind == .unknown ? nil : try c.decodeIfPresent(String.self, forKey: .content)
-            extraJSON = kind == .unknown ? nil : try c.decodeIfPresent(String.self, forKey: .extraJson)
-            reply = kind == .unknown ? nil : try c.decodeIfPresent(NativeChannelMessageQuote.self, forKey: .replyTo)
+            content = try c.decodeIfPresent(String.self, forKey: .content)
+            extraJSON = try c.decodeIfPresent(String.self, forKey: .extraJson)
+            reply = try c.decodeIfPresent(NativeChannelMessageQuote.self, forKey: .replyTo)
             editedAt = try c.decodeIfPresent(String.self, forKey: .edited_at)
             pinned = try c.decodeIfPresent(NativeChannelMessageFlag.self, forKey: .pinned)?.value
             mentions = try c.decodeIfPresent([NativeChannelMessageMention].self, forKey: .mentions)
             mentionEveryone = try c.decodeIfPresent(NativeChannelMessageFlag.self, forKey: .mention_everyone)?.value
-            legacy["msgType"] = rawKind; legacy["senderId"] = rawSender.flatMap(Int.init)
+            legacy["senderId"] = rawSender.flatMap(Int.init)
             legacy["content"] = content; legacy["extraJson"] = extraJSON
             legacy["senderName"] = try c.decodeIfPresent(String.self, forKey: .senderName)
             legacy["senderAvatar"] = try c.decodeIfPresent(String.self, forKey: .senderAvatar)
@@ -151,6 +163,17 @@ public struct NativeChannelMessageProjection {
         guard syncContract == "VISIBLE_ORDER_PLUS_MUTATIONS_V1", legacyCacheAction == "RELOAD_ON_RESUME",
               NativeChannelMessageCursor.valid(mutationCursor), snapshots.allSatisfy({ $0.conversationID == binding.conversationID }),
               Set(snapshots.map(\.id)).count == snapshots.count else { throw APIError.malformedResponse }
+        // A history request may have started before a newer mutation read.
+        // Reject its old snapshot atomically, keeping the version/withheld fence
+        // that hides recalled or edited content until a current read arrives.
+        if expectedBinding == binding {
+            guard let incomingCursor = Int64(mutationCursor),
+                  let currentCursor = self.mutationCursor.flatMap(Int64.init),
+                  incomingCursor >= currentCursor,
+                  snapshots.allSatisfy({ $0.version >= versions[$0.id, default: 0] }) else {
+                throw APIError.malformedResponse
+            }
+        }
         expectedBinding = binding; self.mutationCursor = mutationCursor; versions = Dictionary(uniqueKeysWithValues: snapshots.map { ($0.id, $0.version) })
         withheld = Set(snapshots.filter { $0.status != 0 }.map(\.id))
     }
