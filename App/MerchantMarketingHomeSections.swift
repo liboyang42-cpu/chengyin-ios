@@ -64,19 +64,27 @@ import SwiftUI
     }
     @ViewBuilder private var hero: some View {
         Section {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.hero.label %lld", MerchantMarketingHome.windowDays)).font(.footnote)
-                Text(verbatim: home.heroValue).font(.largeTitle.bold()).accessibilityIdentifier("merchantOps.marketing.hero.value")
-                if home.analytics == nil {
-                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.analytics.unavailable")).font(.footnote).foregroundStyle(.secondary)
-                } else {
-                    switch home.heroSubtitle {
-                    case .noSignup: Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.hero.noSignup")).font(.footnote)
-                    case .noVerification: Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.hero.noVerification")).font(.footnote)
-                    case .verified(let count): Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.hero.verified %@", count)).font(.footnote)
+            VStack(spacing: Theme.Space.s1) {
+                Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.hero.label %lld", MerchantMarketingHome.windowDays))
+                    .font(.subheadline).foregroundStyle(.secondary)
+                QuestifyHeroValue(value: Text(verbatim: home.heroValue))
+                    .accessibilityIdentifier("merchantOps.marketing.hero.value")
+                Group {
+                    if home.analytics == nil {
+                        Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.analytics.unavailable")).foregroundStyle(.secondary)
+                    } else {
+                        switch home.heroSubtitle {
+                        case .noSignup: Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.hero.noSignup"))
+                        case .noVerification: Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.hero.noVerification"))
+                        case .verified(let count): Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.hero.verified %@", count))
+                        }
                     }
                 }
-            }.accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.marketing.hero")
+                .font(.footnote).multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.top, Theme.Space.s4)
+            .accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.marketing.hero")
             if home.analytics == nil {
                 Button(MerchantOpsCopy.text("merchantOps.marketing.analytics.retry"), action: onRetry).accessibilityIdentifier("merchantOps.marketing.analytics.retry")
             }

@@ -44,7 +44,6 @@ import SwiftUI
     var body: some View {
         List {
             Section {
-                Text("merchantMarketing.dormant").font(.footnote).foregroundStyle(.secondary)
                 Picker("merchantMarketing.section", selection: $selected) {
                     ForEach(MerchantMarketingCoordinator.Surface.allCases) { item in Text(LocalizedStringKey(item.titleKey)).tag(item) }
                 }.accessibilityIdentifier("merchantMarketing.sectionPicker")
@@ -149,7 +148,6 @@ import SwiftUI
                           loadedRecommendationOrigin == origin else { return }
                     onSuggestion(.cooperationCenter(origin))
                 }.accessibilityIdentifier("merchant.insightCooperationCenter.open")
-                Text("merchant.insightCooperationCenter.boundary").font(.footnote).foregroundStyle(.secondary)
             }
         }
         Section("merchantMarketing.recommendedPartners") {
