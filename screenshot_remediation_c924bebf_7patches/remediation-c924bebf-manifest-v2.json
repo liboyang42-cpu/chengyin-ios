@@ -1,0 +1,787 @@
+{
+  "schema": "chengyin-ios.ui-screenshot-remediation-c924bebf-manifest.v2",
+  "supersedes": "screenshot_remediation_c924bebf_7patches/remediation-c924bebf-manifest.json",
+  "in_response_to": "https://github.com/liboyang42-cpu/chengyin-app/issues/575#issuecomment-6625719721",
+  "batch": "Post-Fix Verification of 7 Owner Fix Patches (G05, M04, CL02, D01, S01, B01, T02) from #issuecomment-6624585230",
+  "candidate_commit": "c924bebf4d23c8abc99d9925cc8240352a641c46",
+  "candidate_tree": "8c503bf6cdd0884c6c95bc7fe620da95b418c5f9",
+  "parent_pilot_commit": "ac6f18a35cdc63c1a20b54a9596671c76549567c",
+  "baseline_commit": "ab2d3905ec0b0fb17b58ba6b53ec433d83164701",
+  "worktree_dirty_files_count": 0,
+  "toolchain": {
+    "xcodebuild_version_cmd": "xcodebuild -version",
+    "xcodebuild_version_output": "Xcode 27.1\nBuild version 27A9275",
+    "swift_version_cmd": "xcrun swift -version",
+    "swift_version_output": "swift-driver version: 1.168.6 Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0",
+    "sdk_name": "iphonesimulator27.1",
+    "sdk_version_cmd": "xcrun --sdk iphonesimulator --show-sdk-version",
+    "sdk_version_output": "27.1",
+    "sdk_build_version_cmd": "xcrun --sdk iphonesimulator --show-sdk-build-version",
+    "sdk_build_version_output": "24A94232",
+    "sdk_path_cmd": "xcrun --sdk iphonesimulator --show-sdk-path",
+    "sdk_path_output": "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk",
+    "note_on_v1_manifest_toolchain_typo": "In v1 `remediation-c924bebf-manifest.json` and `batch3b-manifest.json`, the packaging script had a hardcoded string (`Swift 6.3` / `24B74`) instead of invoking `xcrun swift -version` and `xcrun --sdk iphonesimulator --show-sdk-build-version`. As shown in `pilot-manifest.json` and `logs/remediation_c924bebf_build_for_testing.stdout.txt`, the actual compiler and SDK used by `Xcode 27.1 (27A9275)` are `Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)` and `iphonesimulator27.1 (24A94232)`."
+  },
+  "simulator": {
+    "name": "Questify-iPhone17",
+    "device_type": "iPhone 17",
+    "udid": "25316F87-058C-46CE-8825-617906638207",
+    "runtime": "iOS 27.0 (24A434)"
+  },
+  "build_and_test_artifacts": {
+    "build_stdout": {
+      "repo_path": "screenshot_remediation_c924bebf_7patches/logs/remediation_c924bebf_build_for_testing.stdout.txt",
+      "bytes": 1665046,
+      "sha256": "8d0a6f7b2d68eb6561852487257d3aace113db86e39c730b5cd7a5efa10d257a",
+      "git_blob_sha": "e7d11f4ac34f673cbb27683b82e3317e6b725471"
+    },
+    "xctestrun_plist": {
+      "repo_path": "screenshot_remediation_c924bebf_7patches/logs/remediation_c924bebf_xctestrun_product.plist.txt",
+      "bytes": 5218,
+      "sha256": "d90ec167a514b820a478061c87b3fbbf796a7ab5c4f2144bd03338a48f024d65",
+      "git_blob_sha": "135be69e2873a079653fe1e30bee7a2800f08897"
+    },
+    "test_stdout": {
+      "repo_path": "screenshot_remediation_c924bebf_7patches/logs/remediation_c924bebf_15_methods_test.stdout.txt",
+      "bytes": 121146,
+      "sha256": "7cdb834dd1b267d14e683ea2dd9482fe2b982e3537fe18cb0c4bc4147edeefc6",
+      "git_blob_sha": "01c27cacb60e39d9b383414ea49018be5727a3bf"
+    },
+    "xcresult_tar_gz": {
+      "repo_path": "screenshot_remediation_c924bebf_7patches/remediation_c924bebf_15_methods_ui.xcresult.tar.gz",
+      "bytes": 10102030,
+      "sha256": "e061032db215fcca410426dd4d7b5c80bc341eedb592a4d947f9c2528585b06d",
+      "git_blob_sha": "acdba52d23aa51b43e9f0ee9bcd8db6953908f51"
+    },
+    "source_identity_snapshot": {
+      "repo_path": "screenshot_remediation_c924bebf_7patches/source_identity_and_toolchain_snapshot_c924bebf.json",
+      "bytes": 13951,
+      "sha256": "8af7d334cdb83ad4b2706d6ff8ea93fe7fd2534588c7423415b5fbfdb1f908a8",
+      "git_blob_sha": "0d070529a4f005b4e7ea9539debd0383b16402ae"
+    }
+  },
+  "test_execution": {
+    "methods_targeted": 15,
+    "methods_started": 15,
+    "methods_passed": 15,
+    "methods_failed": 0,
+    "screenshots_exported": 27,
+    "total_png_bytes": 7202547,
+    "visual_verdict_counts": {
+      "PASS": 23,
+      "PASS_WITH_MINOR_SCROLL_NOTE": 4
+    },
+    "m04_extra_probe": {
+      "test_identifier": "QuestifyUITests/MerchantRegistrationAvailabilityFlowTests/testGroupReviewCancelAndExistingSaveReadBackServerValues",
+      "status": "RAW_LOG_OVERWRITTEN_NOT_PRESERVED",
+      "explanation": "In the intermediate run (step 1869 / task-1871 at ~15:35+08:00), `test-without-building` wrote to the same `remediation-c924bebf-audit/test.stdout` and `remediation-c924bebf-audit/ui.xcresult` paths that were subsequently `shutil.rmtree`d and overwritten by the 15-method run (step 1920 / task-1921 at 15:42+08:00). Therefore, the raw `test.stdout` and `ui.xcresult` from that intermediate probe were not preserved and cannot be independently verified from archived raw files (`未保留 / 无法核实`). Per instruction, no re-run was performed and no `maximumSwipes: 10` modification was executed."
+    }
+  },
+  "screenshots": [
+    {
+      "index": 1,
+      "test_identifier": "AccessibilityPresentationFlowTests/testHomeChineseDarkLargeTextRemainsNavigable()",
+      "attachment_name": "Home Chinese dark accessibility3 reduced-motion – synthetic fixture_0_7F6F4320-45A4-469E-AD22-08D50A21E66B.png",
+      "exported_file": "0-0-c63b05d838d9d60b66e4b2ca3bf49bca8263bfd2d13dd6a827c18a39c1052f3d.png",
+      "original_filename": "EECEDBCB-4366-43A1-8CC2-CA1C7F38E78D.png",
+      "bytes": 225113,
+      "sha256": "c63b05d838d9d60b66e4b2ca3bf49bca8263bfd2d13dd6a827c18a39c1052f3d",
+      "git_blob_sha": "8dcaf29cdae677b1ec19b9c4ec8e747cde2d5b10",
+      "dimensions": "1206x2622",
+      "slice": "D01",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/0-0-c63b05d838d9d60b66e4b2ca3bf49bca8263bfd2d13dd6a827c18a39c1052f3d.png",
+      "visual_audit_verdict": "PASS",
+      "visual_audit_notes": "Verified Fixed (`D01` `App/HomeFeedView.swift` after blob `05fb5ad98134a621d1f9b00490799461edc77768`): Inline synthetic fixture buttons removed from `Home` Form and replaced with compact `离线示例 · 合成内容` row; `推荐路线` and `Sample neighborhood route` card are immediately visible in Chinese `accessibility3` dark mode.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/HomeFeedView.swift",
+          "baseline_ab2d3905_blob": "c6839bfc4b8e4f54f42a7315d7a7add06726741e",
+          "parent_ac6f18a3_blob": "c6839bfc4b8e4f54f42a7315d7a7add06726741e",
+          "after_c924bebf_blob": "05fb5ad98134a621d1f9b00490799461edc77768"
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "test_identifier": "ClubGovernanceFlowTests/testCaptureCL02RolePickerWithoutPreparing()",
+      "attachment_name": "CL02 role picker staged selection viewport before review – synthetic fixture_0_FF9D4921-9FCD-48FD-9D3B-AF997F046F72.png",
+      "exported_file": "1-0-f9b325d4ad654ba45730d38ccd57ad28fd0642106ee55df261ab469706eaf6aa.png",
+      "original_filename": "F7B83BF3-1A55-4319-9E78-674B165CCF09.png",
+      "bytes": 273251,
+      "sha256": "f9b325d4ad654ba45730d38ccd57ad28fd0642106ee55df261ab469706eaf6aa",
+      "git_blob_sha": "d3ee308e214298973b9778c134377eb833903210",
+      "dimensions": "1206x2622",
+      "slice": "CL02",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/1-0-f9b325d4ad654ba45730d38ccd57ad28fd0642106ee55df261ab469706eaf6aa.png",
+      "visual_audit_verdict": "PASS",
+      "visual_audit_notes": "Verified Fixed (`CL02` `App/ClubRoleAssignmentPicker.swift` after blob `3f5bab17dc322b9d72c17be02f25c38343f93792`): Top `Context` header overlap under `Assign a fixed role` navigation bar resolved; `Topic ID 91` and staged selection (`Fixture member`, `Check-in`, `Review exact changes`) render cleanly.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/ClubProfileChoiceEditor.swift",
+          "baseline_ab2d3905_blob": "3c8aed56680249925ee79bb639dafe13965beb78",
+          "parent_ac6f18a3_blob": "3032bf2705476861af055215737059a94dcfc98c",
+          "after_c924bebf_blob": "2ac8c61f4f375b4f402b0b428a1b557be787b2d2"
+        },
+        {
+          "path": "App/ClubRoleAssignmentPicker.swift",
+          "baseline_ab2d3905_blob": "16a70dc37cea647a765a2d6ced2ae7ebbd6e3bbf",
+          "parent_ac6f18a3_blob": "3d24afd4d2365f41d3fb681204d5b07ab29563e3",
+          "after_c924bebf_blob": "3f5bab17dc322b9d72c17be02f25c38343f93792"
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "test_identifier": "ClubGovernanceFlowTests/testCaptureCL02RolePickerWithoutPreparing()",
+      "attachment_name": "CL02 role picker expanded existing event role options – synthetic fixture_0_FD46CA48-A0AF-4C2C-81D4-2CF031FCB53B.png",
+      "exported_file": "1-1-c6cffc16a786bd3fb9133bb727ab1e45a5bfee25fcfb580ba714cfde0075d744.png",
+      "original_filename": "2BD58EEA-8276-4CB6-BDAB-2D46D5102236.png",
+      "bytes": 285655,
+      "sha256": "c6cffc16a786bd3fb9133bb727ab1e45a5bfee25fcfb580ba714cfde0075d744",
+      "git_blob_sha": "3b1efbd99947039df0620984a5ccfdb9ddca5d41",
+      "dimensions": "1206x2622",
+      "slice": "CL02",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/1-1-c6cffc16a786bd3fb9133bb727ab1e45a5bfee25fcfb580ba714cfde0075d744.png",
+      "visual_audit_verdict": "PASS",
+      "visual_audit_notes": "Verified Fixed (`CL02` `App/ClubRoleAssignmentPicker.swift` after blob `3f5bab17dc322b9d72c17be02f25c38343f93792`): Expanded role options (`Check-in` / `Cancel`) and top `Topic ID 91` row render cleanly without navigation bar collision.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/ClubProfileChoiceEditor.swift",
+          "baseline_ab2d3905_blob": "3c8aed56680249925ee79bb639dafe13965beb78",
+          "parent_ac6f18a3_blob": "3032bf2705476861af055215737059a94dcfc98c",
+          "after_c924bebf_blob": "2ac8c61f4f375b4f402b0b428a1b557be787b2d2"
+        },
+        {
+          "path": "App/ClubRoleAssignmentPicker.swift",
+          "baseline_ab2d3905_blob": "16a70dc37cea647a765a2d6ced2ae7ebbd6e3bbf",
+          "parent_ac6f18a3_blob": "3d24afd4d2365f41d3fb681204d5b07ab29563e3",
+          "after_c924bebf_blob": "3f5bab17dc322b9d72c17be02f25c38343f93792"
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "test_identifier": "ClubGovernanceFlowTests/testCaptureCL02RolePickerWithoutPreparing()",
+      "attachment_name": "CL02 role picker expanded existing member options – synthetic fixture_0_6E4F6F76-C3A5-4992-BCCB-CD87966C49AA.png",
+      "exported_file": "1-2-6f266b65905bbc21aaad626fb5effe33d46fc285b7cf185752865781a5caffcd.png",
+      "original_filename": "74A41EA2-C1BB-41CB-88D6-6F619F8E3B73.png",
+      "bytes": 272395,
+      "sha256": "6f266b65905bbc21aaad626fb5effe33d46fc285b7cf185752865781a5caffcd",
+      "git_blob_sha": "c68ff2d4f959102fbe2b22f15f32d4c874541fed",
+      "dimensions": "1206x2622",
+      "slice": "CL02",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/1-2-6f266b65905bbc21aaad626fb5effe33d46fc285b7cf185752865781a5caffcd.png",
+      "visual_audit_verdict": "PASS",
+      "visual_audit_notes": "Verified Fixed (`CL02` `App/ClubRoleAssignmentPicker.swift` after blob `3f5bab17dc322b9d72c17be02f25c38343f93792`): Expanded member options (`Fixture member / Member 704`) and top `Topic ID 91` row render cleanly without navigation bar collision.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/ClubProfileChoiceEditor.swift",
+          "baseline_ab2d3905_blob": "3c8aed56680249925ee79bb639dafe13965beb78",
+          "parent_ac6f18a3_blob": "3032bf2705476861af055215737059a94dcfc98c",
+          "after_c924bebf_blob": "2ac8c61f4f375b4f402b0b428a1b557be787b2d2"
+        },
+        {
+          "path": "App/ClubRoleAssignmentPicker.swift",
+          "baseline_ab2d3905_blob": "16a70dc37cea647a765a2d6ced2ae7ebbd6e3bbf",
+          "parent_ac6f18a3_blob": "3d24afd4d2365f41d3fb681204d5b07ab29563e3",
+          "after_c924bebf_blob": "3f5bab17dc322b9d72c17be02f25c38343f93792"
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "test_identifier": "ClubGovernanceFlowTests/testCaptureCL02RolePickerWithoutPreparing()",
+      "attachment_name": "CL02 role picker current collapsed values – synthetic fixture_0_AFB20B37-5045-4FA3-B474-9AE0C1D1A775.png",
+      "exported_file": "1-3-d508c716e2ecbf2ed5934346d228ca2124bf4e05454088ffb2830eca2389895f.png",
+      "original_filename": "34AF0873-6342-45AC-B0BC-063F36478A06.png",
+      "bytes": 269800,
+      "sha256": "d508c716e2ecbf2ed5934346d228ca2124bf4e05454088ffb2830eca2389895f",
+      "git_blob_sha": "bd67bbb14a17767f4e39a82ed79af7337771285a",
+      "dimensions": "1206x2622",
+      "slice": "CL02",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/1-3-d508c716e2ecbf2ed5934346d228ca2124bf4e05454088ffb2830eca2389895f.png",
+      "visual_audit_verdict": "PASS",
+      "visual_audit_notes": "Verified Fixed (`CL02` `App/ClubRoleAssignmentPicker.swift` after blob `3f5bab17dc322b9d72c17be02f25c38343f93792`): Initial collapsed state of `Assign a fixed role` renders cleanly from `Topic ID 91` down to `Review exact changes`.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/ClubProfileChoiceEditor.swift",
+          "baseline_ab2d3905_blob": "3c8aed56680249925ee79bb639dafe13965beb78",
+          "parent_ac6f18a3_blob": "3032bf2705476861af055215737059a94dcfc98c",
+          "after_c924bebf_blob": "2ac8c61f4f375b4f402b0b428a1b557be787b2d2"
+        },
+        {
+          "path": "App/ClubRoleAssignmentPicker.swift",
+          "baseline_ab2d3905_blob": "16a70dc37cea647a765a2d6ced2ae7ebbd6e3bbf",
+          "parent_ac6f18a3_blob": "3d24afd4d2365f41d3fb681204d5b07ab29563e3",
+          "after_c924bebf_blob": "3f5bab17dc322b9d72c17be02f25c38343f93792"
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "test_identifier": "ClubProfileScopeFlowTests/testCaptureCL02DirectionsSheetWithoutApplying()",
+      "attachment_name": "CL02 directions sheet current fixture selection – synthetic fixture_0_532539E9-6165-400B-88E5-54E23C29997F.png",
+      "exported_file": "2-0-a62a5d1576624712db0efb13e0c31d19c8a717ba705a5be4fe75d548ea98fec3.png",
+      "original_filename": "1B93D6BF-B1A6-4888-9789-33C971CDCEAF.png",
+      "bytes": 244923,
+      "sha256": "a62a5d1576624712db0efb13e0c31d19c8a717ba705a5be4fe75d548ea98fec3",
+      "git_blob_sha": "6985836151b03ccf935941b610b4f6131b6ca8bd",
+      "dimensions": "1206x2622",
+      "slice": "CL02",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/2-0-a62a5d1576624712db0efb13e0c31d19c8a717ba705a5be4fe75d548ea98fec3.png",
+      "visual_audit_verdict": "PASS",
+      "visual_audit_notes": "Verified Fixed (`CL02` `App/ClubProfileChoiceEditor.swift` after blob `2ac8c61f4f375b4f402b0b428a1b557be787b2d2`): Duplicate navigation bar title removed; toolbar shows `Cancel` / `Apply` above a single bold in-card heading `Choose activity preferences`.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/ClubProfileChoiceEditor.swift",
+          "baseline_ab2d3905_blob": "3c8aed56680249925ee79bb639dafe13965beb78",
+          "parent_ac6f18a3_blob": "3032bf2705476861af055215737059a94dcfc98c",
+          "after_c924bebf_blob": "2ac8c61f4f375b4f402b0b428a1b557be787b2d2"
+        },
+        {
+          "path": "App/ClubRoleAssignmentPicker.swift",
+          "baseline_ab2d3905_blob": "16a70dc37cea647a765a2d6ced2ae7ebbd6e3bbf",
+          "parent_ac6f18a3_blob": "3d24afd4d2365f41d3fb681204d5b07ab29563e3",
+          "after_c924bebf_blob": "3f5bab17dc322b9d72c17be02f25c38343f93792"
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "test_identifier": "ClubProfileScopeFlowTests/testCaptureCL02ProfileReviewWithoutSubmitting()",
+      "attachment_name": "CL02 profile review target and edited display values before confirm – synthetic fixture_0_01E26E63-3CCA-4C90-8079-37EFE4BE8125.png",
+      "exported_file": "3-0-e2e8e48c58850ffff5a8122603c3c2d19666be797a8e0993c7fc8da5b58c54ba.png",
+      "original_filename": "2528FFCE-F60F-4612-94CD-D077EA01838C.png",
+      "bytes": 216239,
+      "sha256": "e2e8e48c58850ffff5a8122603c3c2d19666be797a8e0993c7fc8da5b58c54ba",
+      "git_blob_sha": "c35ca458348a4101eaa56868d4d13389f6efd83f",
+      "dimensions": "1206x2622",
+      "slice": "CL02",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/3-0-e2e8e48c58850ffff5a8122603c3c2d19666be797a8e0993c7fc8da5b58c54ba.png",
+      "visual_audit_verdict": "PASS",
+      "visual_audit_notes": "Verified Fixed (`CL02` `App/ClubProfileChoiceEditor.swift` after blob `2ac8c61f4f375b4f402b0b428a1b557be787b2d2`): `Review changes` sheet (`Review target: Fixture club (#81)`, `Club profile: Fixture club edited`) renders cleanly without header overlap.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/ClubProfileChoiceEditor.swift",
+          "baseline_ab2d3905_blob": "3c8aed56680249925ee79bb639dafe13965beb78",
+          "parent_ac6f18a3_blob": "3032bf2705476861af055215737059a94dcfc98c",
+          "after_c924bebf_blob": "2ac8c61f4f375b4f402b0b428a1b557be787b2d2"
+        },
+        {
+          "path": "App/ClubRoleAssignmentPicker.swift",
+          "baseline_ab2d3905_blob": "16a70dc37cea647a765a2d6ced2ae7ebbd6e3bbf",
+          "parent_ac6f18a3_blob": "3d24afd4d2365f41d3fb681204d5b07ab29563e3",
+          "after_c924bebf_blob": "3f5bab17dc322b9d72c17be02f25c38343f93792"
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "test_identifier": "ClubProfileScopeFlowTests/testCaptureCL02TypeChoiceSheetWithoutApplying()",
+      "attachment_name": "CL02 type choice sheet current fixture selection – synthetic fixture_0_A00C5022-3506-4D93-BA84-506FDDB76CE7.png",
+      "exported_file": "4-0-c7585853b9380fd41a1deb821c9fb0f89fbde344e250dcb8d6b6b7e072fa801b.png",
+      "original_filename": "0D931CCE-48DB-4DBA-B06D-EB5792BAB2E4.png",
+      "bytes": 162650,
+      "sha256": "c7585853b9380fd41a1deb821c9fb0f89fbde344e250dcb8d6b6b7e072fa801b",
+      "git_blob_sha": "4079e550ceca637ff0096b42ae0d993122d1cae8",
+      "dimensions": "1206x2622",
+      "slice": "CL02",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/4-0-c7585853b9380fd41a1deb821c9fb0f89fbde344e250dcb8d6b6b7e072fa801b.png",
+      "visual_audit_verdict": "PASS",
+      "visual_audit_notes": "Verified Fixed (`CL02` `App/ClubProfileChoiceEditor.swift` after blob `2ac8c61f4f375b4f402b0b428a1b557be787b2d2`): Duplicate navigation bar title removed; toolbar shows `Cancel` / `Apply` above a single bold in-card heading `Choose club category`.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/ClubProfileChoiceEditor.swift",
+          "baseline_ab2d3905_blob": "3c8aed56680249925ee79bb639dafe13965beb78",
+          "parent_ac6f18a3_blob": "3032bf2705476861af055215737059a94dcfc98c",
+          "after_c924bebf_blob": "2ac8c61f4f375b4f402b0b428a1b557be787b2d2"
+        },
+        {
+          "path": "App/ClubRoleAssignmentPicker.swift",
+          "baseline_ab2d3905_blob": "16a70dc37cea647a765a2d6ced2ae7ebbd6e3bbf",
+          "parent_ac6f18a3_blob": "3d24afd4d2365f41d3fb681204d5b07ab29563e3",
+          "after_c924bebf_blob": "3f5bab17dc322b9d72c17be02f25c38343f93792"
+        }
+      ]
+    },
+    {
+      "index": 9,
+      "test_identifier": "HomeFeedFlowTests/testEmptyStateIsNotAnError()",
+      "attachment_name": "Home feed known empty state – synthetic fixture_0_0E8A0F67-0E97-4F23-9B41-1110FD4FC001.png",
+      "exported_file": "5-0-48b6faf737ec74cc22b8a26a39cc3655a43af133ece6e2437363af7d2822e8e4.png",
+      "original_filename": "D0017652-2CE2-4D69-8C7F-D9BADAC1E000.png",
+      "bytes": 186162,
+      "sha256": "48b6faf737ec74cc22b8a26a39cc3655a43af133ece6e2437363af7d2822e8e4",
+      "git_blob_sha": "664165197f62375b7ceeef275cbc8b55385123e5",
+      "dimensions": "1206x2622",
+      "slice": "D01",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/5-0-48b6faf737ec74cc22b8a26a39cc3655a43af133ece6e2437363af7d2822e8e4.png",
+      "visual_audit_verdict": "PASS",
+      "visual_audit_notes": "Verified Fixed (`D01` `App/HomeFeedView.swift` after blob `05fb5ad98134a621d1f9b00490799461edc77768`): Inline fixture buttons replaced by `Offline examples · synthetic content`; all 4 sections (`Recommended routes`, `Activity highlights`, `Coming soon`, `Explore`) fit cleanly in the initial viewport.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/HomeFeedView.swift",
+          "baseline_ab2d3905_blob": "c6839bfc4b8e4f54f42a7315d7a7add06726741e",
+          "parent_ac6f18a3_blob": "c6839bfc4b8e4f54f42a7315d7a7add06726741e",
+          "after_c924bebf_blob": "05fb5ad98134a621d1f9b00490799461edc77768"
+        }
+      ]
+    },
+    {
+      "index": 10,
+      "test_identifier": "HomeFeedFlowTests/testPageFailureRetriesAndDuplicateFullPageStillPaginates()",
+      "attachment_name": "Home feed page failure before retry – synthetic fixture_0_5EEB433D-7240-4EB6-AD6F-03393A590565.png",
+      "exported_file": "6-0-a3b0a40a51d288677d84b27978c1236c04920b35cb43362d955524b216bc6b06.png",
+      "original_filename": "EC1A103B-DB17-451F-8475-A4F14AA5167C.png",
+      "bytes": 430553,
+      "sha256": "a3b0a40a51d288677d84b27978c1236c04920b35cb43362d955524b216bc6b06",
+      "git_blob_sha": "6717c7199bec211f625c9c825fdcd57d77b2764d",
+      "dimensions": "1206x2622",
+      "slice": "D01",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/6-0-a3b0a40a51d288677d84b27978c1236c04920b35cb43362d955524b216bc6b06.png",
+      "visual_audit_verdict": "PASS",
+      "visual_audit_notes": "Verified Fixed (`D01` `App/HomeFeedView.swift` after blob `05fb5ad98134a621d1f9b00490799461edc77768`): `Coming soon` (`Sample riverside walk`) and `Explore` (`Couldn't load this section` / `Retry`) render cleanly.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/HomeFeedView.swift",
+          "baseline_ab2d3905_blob": "c6839bfc4b8e4f54f42a7315d7a7add06726741e",
+          "parent_ac6f18a3_blob": "c6839bfc4b8e4f54f42a7315d7a7add06726741e",
+          "after_c924bebf_blob": "05fb5ad98134a621d1f9b00490799461edc77768"
+        }
+      ]
+    },
+    {
+      "index": 11,
+      "test_identifier": "HomeFeedFlowTests/testTypedDestinationsAndPriceCurrencyDisclosure()",
+      "attachment_name": "Home feed initial content – synthetic fixture_0_0C73CD01-9D6D-4575-95DD-F6F7DCB16D7B.png",
+      "exported_file": "7-0-4ac7ce0960fa6818ae6d6c8b2714ec200a49b98abe61683c6b35e6b16f7df821.png",
+      "original_filename": "AE820092-B36D-4D47-A122-133EE2BBFE0D.png",
+      "bytes": 199367,
+      "sha256": "4ac7ce0960fa6818ae6d6c8b2714ec200a49b98abe61683c6b35e6b16f7df821",
+      "git_blob_sha": "17711da6c59431aa74a3491d255922ef01535002",
+      "dimensions": "1206x2622",
+      "slice": "D01",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/7-0-4ac7ce0960fa6818ae6d6c8b2714ec200a49b98abe61683c6b35e6b16f7df821.png",
+      "visual_audit_verdict": "PASS",
+      "visual_audit_notes": "Verified Fixed (`D01` `App/HomeFeedView.swift` after blob `05fb5ad98134a621d1f9b00490799461edc77768`): Full `Sample neighborhood route` card (`12.50 / Starting price / Currency not provided`) is visible in initial viewport.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/HomeFeedView.swift",
+          "baseline_ab2d3905_blob": "c6839bfc4b8e4f54f42a7315d7a7add06726741e",
+          "parent_ac6f18a3_blob": "c6839bfc4b8e4f54f42a7315d7a7add06726741e",
+          "after_c924bebf_blob": "05fb5ad98134a621d1f9b00490799461edc77768"
+        }
+      ]
+    },
+    {
+      "index": 12,
+      "test_identifier": "MerchantRegistrationAvailabilityFlowTests/testCancelAndRestorePreserveOriginalUnrecognizedSource()",
+      "attachment_name": "M04 offline merchant availability pending draft – synthetic fixture_0_DCA01B8C-1B1F-4D32-825A-A68F6B8BEB7B.png",
+      "exported_file": "8-0-84428ba6c92dcde49cb30683c237617febdf9c4ba7be862015daf087095b0426.png",
+      "original_filename": "5762A596-B923-4648-90CF-94C5D0063C2E.png",
+      "bytes": 328285,
+      "sha256": "84428ba6c92dcde49cb30683c237617febdf9c4ba7be862015daf087095b0426",
+      "git_blob_sha": "abd757b32490ad604f81e699ea3e72e2a1d7baa4",
+      "dimensions": "1206x2622",
+      "slice": "M04",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/8-0-84428ba6c92dcde49cb30683c237617febdf9c4ba7be862015daf087095b0426.png",
+      "visual_audit_verdict": "PASS",
+      "visual_audit_notes": "Verified Fixed (`M04` `App/MerchantRegistrationAvailabilityPicker.swift` after blob `ac36998a9d2f63cc30b9178f6d0a94c6b8e99da7` + `Tests/AppUITests/MerchantRegistrationAvailabilityFlowTests.swift` after blob `0a0e571f8b185d98fa2ef5cec0a79d2b56a7479e`): Full `Registration availability` card (`Saved first day: source civil time`, `New first day: 2026-11-04`, `New daily hours: 09:00-18:00`, `Restore saved availability`) is cleanly visible.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/MerchantRegistrationAvailabilityPicker.swift",
+          "baseline_ab2d3905_blob": "26b77749df20d08493f5fdc80487f15b42cb8939",
+          "parent_ac6f18a3_blob": "d1bb6f98444a147a420159fc6767df1130691ee5",
+          "after_c924bebf_blob": "ac36998a9d2f63cc30b9178f6d0a94c6b8e99da7"
+        },
+        {
+          "path": "Tests/AppUITests/MerchantRegistrationAvailabilityFlowTests.swift",
+          "baseline_ab2d3905_blob": "4487b33a0b943cdac92ddb512c910b84d77da89d",
+          "parent_ac6f18a3_blob": "c1cc00c794b48bd35fe26738bffe7ef4d0effa6e",
+          "after_c924bebf_blob": "0a0e571f8b185d98fa2ef5cec0a79d2b56a7479e"
+        }
+      ]
+    },
+    {
+      "index": 13,
+      "test_identifier": "MerchantRegistrationAvailabilityFlowTests/testCancelAndRestorePreserveOriginalUnrecognizedSource()",
+      "attachment_name": "M04 offline merchant availability hours – synthetic fixture_0_2DB8AD06-C3A8-44A6-9823-E17AA3C9C373.png",
+      "exported_file": "8-1-0a34149c02b4d6272ac12be2dcc1df899457e4ed69843db73f434bf894f9d67a.png",
+      "original_filename": "69F2AA5A-F6DD-43AE-8519-39606788F072.png",
+      "bytes": 224010,
+      "sha256": "0a34149c02b4d6272ac12be2dcc1df899457e4ed69843db73f434bf894f9d67a",
+      "git_blob_sha": "09aa854e69f7f72dfda0697fb395f27abc2bb04d",
+      "dimensions": "1206x2622",
+      "slice": "M04",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/8-1-0a34149c02b4d6272ac12be2dcc1df899457e4ed69843db73f434bf894f9d67a.png",
+      "visual_audit_verdict": "PASS_WITH_MINOR_SCROLL_NOTE",
+      "visual_audit_notes": "Verified Improved (`M04` `App/MerchantRegistrationAvailabilityPicker.swift` after blob `ac36998a9d2f63cc30b9178f6d0a94c6b8e99da7`): Duplicate navigation title removed (`Cancel` / `Apply to draft` above `Choose dates and daily hours`); when scrolled down to reveal `Daily end time` and bottom note, the sticky heading `Choose dates and daily hours` overlaps the top card's last line.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/MerchantRegistrationAvailabilityPicker.swift",
+          "baseline_ab2d3905_blob": "26b77749df20d08493f5fdc80487f15b42cb8939",
+          "parent_ac6f18a3_blob": "d1bb6f98444a147a420159fc6767df1130691ee5",
+          "after_c924bebf_blob": "ac36998a9d2f63cc30b9178f6d0a94c6b8e99da7"
+        },
+        {
+          "path": "Tests/AppUITests/MerchantRegistrationAvailabilityFlowTests.swift",
+          "baseline_ab2d3905_blob": "4487b33a0b943cdac92ddb512c910b84d77da89d",
+          "parent_ac6f18a3_blob": "c1cc00c794b48bd35fe26738bffe7ef4d0effa6e",
+          "after_c924bebf_blob": "0a0e571f8b185d98fa2ef5cec0a79d2b56a7479e"
+        }
+      ]
+    },
+    {
+      "index": 14,
+      "test_identifier": "MerchantRegistrationAvailabilityFlowTests/testCancelAndRestorePreserveOriginalUnrecognizedSource()",
+      "attachment_name": "M04 offline merchant availability dates – synthetic fixture_0_E4AC870D-1A00-4E84-AA5C-3649C7FB20E9.png",
+      "exported_file": "8-2-15e1a18e95254674b162fecc28c306a338e394bbdd91448e7aac513b2871bba0.png",
+      "original_filename": "890A4212-C1B6-4A0C-AE17-86A5B92D731C.png",
+      "bytes": 228070,
+      "sha256": "15e1a18e95254674b162fecc28c306a338e394bbdd91448e7aac513b2871bba0",
+      "git_blob_sha": "a4217bbba61ab466ce459f56deba287efb06a495",
+      "dimensions": "1206x2622",
+      "slice": "M04",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/8-2-15e1a18e95254674b162fecc28c306a338e394bbdd91448e7aac513b2871bba0.png",
+      "visual_audit_verdict": "PASS",
+      "visual_audit_notes": "Verified Fixed (`M04` `App/MerchantRegistrationAvailabilityPicker.swift` after blob `ac36998a9d2f63cc30b9178f6d0a94c6b8e99da7`): Duplicate navigation title removed; top instruction card, `Inclusive date range`, `Daily start time`, and `Daily end time` render cleanly without overlap.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/MerchantRegistrationAvailabilityPicker.swift",
+          "baseline_ab2d3905_blob": "26b77749df20d08493f5fdc80487f15b42cb8939",
+          "parent_ac6f18a3_blob": "d1bb6f98444a147a420159fc6767df1130691ee5",
+          "after_c924bebf_blob": "ac36998a9d2f63cc30b9178f6d0a94c6b8e99da7"
+        },
+        {
+          "path": "Tests/AppUITests/MerchantRegistrationAvailabilityFlowTests.swift",
+          "baseline_ab2d3905_blob": "4487b33a0b943cdac92ddb512c910b84d77da89d",
+          "parent_ac6f18a3_blob": "c1cc00c794b48bd35fe26738bffe7ef4d0effa6e",
+          "after_c924bebf_blob": "0a0e571f8b185d98fa2ef5cec0a79d2b56a7479e"
+        }
+      ]
+    },
+    {
+      "index": 15,
+      "test_identifier": "MerchantRegistrationAvailabilityFlowTests/testCancelAndRestorePreserveOriginalUnrecognizedSource()",
+      "attachment_name": "M04 offline merchant availability source – synthetic fixture_0_48EB5A19-EB9E-4318-8A0F-204FADEDE846.png",
+      "exported_file": "8-3-82d345ec87be87a4b1a6327ab58aa5af6a42ef58ad532fad7c8bc2d8b9ba781b.png",
+      "original_filename": "1F193A70-7ECC-4BDE-BC57-889DF7D638B5.png",
+      "bytes": 335486,
+      "sha256": "82d345ec87be87a4b1a6327ab58aa5af6a42ef58ad532fad7c8bc2d8b9ba781b",
+      "git_blob_sha": "bf33618a4eb34cf1763764bf90b22614a7b087f8",
+      "dimensions": "1206x2622",
+      "slice": "M04",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/8-3-82d345ec87be87a4b1a6327ab58aa5af6a42ef58ad532fad7c8bc2d8b9ba781b.png",
+      "visual_audit_verdict": "PASS",
+      "visual_audit_notes": "Verified Fixed (`M04` `App/MerchantRegistrationAvailabilityPicker.swift` after blob `ac36998a9d2f63cc30b9178f6d0a94c6b8e99da7` + `Tests/AppUITests/MerchantRegistrationAvailabilityFlowTests.swift` after blob `0a0e571f8b185d98fa2ef5cec0a79d2b56a7479e`): Full `Registration availability` source card (`Saved first day: source civil time`, `Choose dates and daily hours`, `Review frozen request`) is cleanly visible.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/MerchantRegistrationAvailabilityPicker.swift",
+          "baseline_ab2d3905_blob": "26b77749df20d08493f5fdc80487f15b42cb8939",
+          "parent_ac6f18a3_blob": "d1bb6f98444a147a420159fc6767df1130691ee5",
+          "after_c924bebf_blob": "ac36998a9d2f63cc30b9178f6d0a94c6b8e99da7"
+        },
+        {
+          "path": "Tests/AppUITests/MerchantRegistrationAvailabilityFlowTests.swift",
+          "baseline_ab2d3905_blob": "4487b33a0b943cdac92ddb512c910b84d77da89d",
+          "parent_ac6f18a3_blob": "c1cc00c794b48bd35fe26738bffe7ef4d0effa6e",
+          "after_c924bebf_blob": "0a0e571f8b185d98fa2ef5cec0a79d2b56a7479e"
+        }
+      ]
+    },
+    {
+      "index": 16,
+      "test_identifier": "ModuleFlowTests/testProfileOrderReadbackAndBack()",
+      "attachment_name": "Order detail – synthetic data_0_E42E7141-5D93-452D-99D9-33656DE8CBEC.png",
+      "exported_file": "9-0-44b2801db721588793b6d99396d951a25c18cb2f73a1078bee19435b2070b2af.png",
+      "original_filename": "C182C35B-6626-4F19-8DBF-97DB4FD3583F.png",
+      "bytes": 224486,
+      "sha256": "44b2801db721588793b6d99396d951a25c18cb2f73a1078bee19435b2070b2af",
+      "git_blob_sha": "a8efce3f03a57069bf90b155344669e87bbe2e62",
+      "dimensions": "1206x2622",
+      "slice": "B01",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/9-0-44b2801db721588793b6d99396d951a25c18cb2f73a1078bee19435b2070b2af.png",
+      "visual_audit_verdict": "PASS",
+      "visual_audit_notes": "Verified Fixed (`B01` `App/ProfileOrderNumberCopySection.swift` after blob `97e987947176cd6d7aa2a870d869f8c55277be8d` + `App/ProfileOrdersView.swift` after blob `7c9b5f2d9119c85b7e33c0438ec125118d3b4c9d`): `Order details` is now captured from the top with `Not paid yet` (`Awaiting payment`), `Activity or route: Fixture city walk`, `Order number: FIXTURE-901`, `Amount due: 12.5`, and `Schedule and location` completely visible and unobstructed.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/ProfileOrderNumberCopySection.swift",
+          "baseline_ab2d3905_blob": "4b080c78deb70e33b9121b439a8f576a2bb2de3e",
+          "parent_ac6f18a3_blob": "4b080c78deb70e33b9121b439a8f576a2bb2de3e",
+          "after_c924bebf_blob": "97e987947176cd6d7aa2a870d869f8c55277be8d"
+        },
+        {
+          "path": "App/ProfileOrdersView.swift",
+          "baseline_ab2d3905_blob": "3dd785f704cb93c01bae042b6fa75f4041acddd3",
+          "parent_ac6f18a3_blob": "3dd785f704cb93c01bae042b6fa75f4041acddd3",
+          "after_c924bebf_blob": "7c9b5f2d9119c85b7e33c0438ec125118d3b4c9d"
+        }
+      ]
+    },
+    {
+      "index": 17,
+      "test_identifier": "ReferenceChatTaskFlowTests/testMessageEarlierPageAndDetailReturnRetainHistory()",
+      "attachment_name": "IM earlier history retained after detail return – synthetic fixture_0_0B2C7134-B60F-40C0-8C20-EBA4F9F817F0.png",
+      "exported_file": "10-0-b645435495d30e44230793cad232686c8c05c22fe687c9c045380121dfdbecfd.png",
+      "original_filename": "50F9DC4B-96D7-4B9D-B851-D0E452BBFB65.png",
+      "bytes": 242691,
+      "sha256": "b645435495d30e44230793cad232686c8c05c22fe687c9c045380121dfdbecfd",
+      "git_blob_sha": "c477bc2fa5c3918f8f1c355fe118df1dec280fbe",
+      "dimensions": "1206x2622",
+      "slice": "S01",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/10-0-b645435495d30e44230793cad232686c8c05c22fe687c9c045380121dfdbecfd.png",
+      "visual_audit_verdict": "PASS",
+      "visual_audit_notes": "Verified Fixed (`S01` `App/MessageActionComposer.swift` after blob `964d7f1f95f6c6579d7f89cfd826993140bdf27d`): Top synthetic fixture buttons removed from scroll content; `Read-only view` header and earlier message bubbles render cleanly from the top.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/MessageActionComposer.swift",
+          "baseline_ab2d3905_blob": "9f6a165ffcca151d17a93f5d9330caf7f0760ee1",
+          "parent_ac6f18a3_blob": "9f6a165ffcca151d17a93f5d9330caf7f0760ee1",
+          "after_c924bebf_blob": "964d7f1f95f6c6579d7f89cfd826993140bdf27d"
+        }
+      ]
+    },
+    {
+      "index": 18,
+      "test_identifier": "ReferenceChatTaskFlowTests/testMessageKeyboardKeepsSendActionReachable()",
+      "attachment_name": "IM long draft and pinned composer – synthetic fixture_0_38164264-3D6D-4687-8515-5F6155BBFEEE.png",
+      "exported_file": "11-0-a197c44102a7ea2ef5aa076cb106a2d5d9729f08607fbefd8a75729b14fa80f8.png",
+      "original_filename": "34636688-46E1-40D3-A3BA-7EB32557B2F6.png",
+      "bytes": 250113,
+      "sha256": "a197c44102a7ea2ef5aa076cb106a2d5d9729f08607fbefd8a75729b14fa80f8",
+      "git_blob_sha": "a459d6224989e17094ddd0dc7b7c066a6bed319d",
+      "dimensions": "1206x2622",
+      "slice": "S01",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/11-0-a197c44102a7ea2ef5aa076cb106a2d5d9729f08607fbefd8a75729b14fa80f8.png",
+      "visual_audit_verdict": "PASS",
+      "visual_audit_notes": "Verified Fixed (`S01` `App/MessageActionComposer.swift` after blob `964d7f1f95f6c6579d7f89cfd826993140bdf27d`): Synthetic fixture rows removed from `Member` chat scroll content; message bubble and pinned multiline composer (`Send`) render cleanly.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/MessageActionComposer.swift",
+          "baseline_ab2d3905_blob": "9f6a165ffcca151d17a93f5d9330caf7f0760ee1",
+          "parent_ac6f18a3_blob": "9f6a165ffcca151d17a93f5d9330caf7f0760ee1",
+          "after_c924bebf_blob": "964d7f1f95f6c6579d7f89cfd826993140bdf27d"
+        }
+      ]
+    },
+    {
+      "index": 19,
+      "test_identifier": "ReferenceChatTaskFlowTests/testMessageKeyboardKeepsSendActionReachable()",
+      "attachment_name": "IM long draft with keyboard visible – synthetic fixture_0_D4233F82-5A1C-4E6C-A90C-602BB667D2F5.png",
+      "exported_file": "11-1-c31329e5c291c65418258052e373a9def2dd19736bf100bf8a2cbd83e597d109.png",
+      "original_filename": "720192D7-A594-4786-B2EF-431D81F59C64.png",
+      "bytes": 333597,
+      "sha256": "c31329e5c291c65418258052e373a9def2dd19736bf100bf8a2cbd83e597d109",
+      "git_blob_sha": "5d5ea6065a135e61031275143961c3981c54309c",
+      "dimensions": "1206x2622",
+      "slice": "S01",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/11-1-c31329e5c291c65418258052e373a9def2dd19736bf100bf8a2cbd83e597d109.png",
+      "visual_audit_verdict": "PASS",
+      "visual_audit_notes": "Verified Fixed (`S01` `App/MessageActionComposer.swift` after blob `964d7f1f95f6c6579d7f89cfd826993140bdf27d`): Synthetic fixture rows removed; with keyboard open (`Typed reply stays ready to send`), `Send` and `Done` remain reachable above the keyboard.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/MessageActionComposer.swift",
+          "baseline_ab2d3905_blob": "9f6a165ffcca151d17a93f5d9330caf7f0760ee1",
+          "parent_ac6f18a3_blob": "9f6a165ffcca151d17a93f5d9330caf7f0760ee1",
+          "after_c924bebf_blob": "964d7f1f95f6c6579d7f89cfd826993140bdf27d"
+        }
+      ]
+    },
+    {
+      "index": 20,
+      "test_identifier": "TeamFlowTests/testCreatePrivateTeamReviewCancelPreservesForm()",
+      "attachment_name": "G05 create review reopened – synthetic fixture_0_FC60D8B7-E678-44D1-962C-9EB46D896CB6.png",
+      "exported_file": "12-0-ab41afaa9b3623f8fa484315dd5c9b95ac71f073449916b8c7c7493a3082dd24.png",
+      "original_filename": "8E8D65DC-50AB-4647-89EF-4EB22E1D18BA.png",
+      "bytes": 187110,
+      "sha256": "ab41afaa9b3623f8fa484315dd5c9b95ac71f073449916b8c7c7493a3082dd24",
+      "git_blob_sha": "43c106961017178923c61fe937e11c7dc6e424fa",
+      "dimensions": "1206x2622",
+      "slice": "G05",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/12-0-ab41afaa9b3623f8fa484315dd5c9b95ac71f073449916b8c7c7493a3082dd24.png",
+      "visual_audit_verdict": "PASS",
+      "visual_audit_notes": "Verified Fixed (`G05` `App/TeamComponents.swift` after blob `36f2fc3982bc8f7016cf62db3060ed1ea3f3a182`): `Create team` review sheet (`Visibility: Invite only`, `Target size: 4`) renders cleanly.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/TeamComponents.swift",
+          "baseline_ab2d3905_blob": "7d4ae7f6605f41c6cd2a66f262f8a854b2e791c4",
+          "parent_ac6f18a3_blob": "7d4ae7f6605f41c6cd2a66f262f8a854b2e791c4",
+          "after_c924bebf_blob": "36f2fc3982bc8f7016cf62db3060ed1ea3f3a182"
+        }
+      ]
+    },
+    {
+      "index": 21,
+      "test_identifier": "TeamFlowTests/testCreatePrivateTeamReviewCancelPreservesForm()",
+      "attachment_name": "Team create review target before one tap – synthetic fixture_0_C2831B5C-ECA0-4EEE-B596-D879994AB367.png",
+      "exported_file": "12-1-f998b51f4e7cb71a522eb2bdfe63df9109e0de59218e90dbfb0fcaae5f222767.png",
+      "original_filename": "6CDF1A1F-C66C-46CC-9E42-CCCAD5BAB9A1.png",
+      "bytes": 375054,
+      "sha256": "f998b51f4e7cb71a522eb2bdfe63df9109e0de59218e90dbfb0fcaae5f222767",
+      "git_blob_sha": "52538ee0edf85b331400fac1fbddc1003d5d9af6",
+      "dimensions": "1206x2622",
+      "slice": "G05",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/12-1-f998b51f4e7cb71a522eb2bdfe63df9109e0de59218e90dbfb0fcaae5f222767.png",
+      "visual_audit_verdict": "PASS_WITH_MINOR_SCROLL_NOTE",
+      "visual_audit_notes": "Verified Fixed (`G05` `App/TeamComponents.swift` after blob `36f2fc3982bc8f7016cf62db3060ed1ea3f3a182`): After canceling review, `Visibility: Invite only (code required)` and `Target size: 4` remain preserved; when scrolled down, the top `Team name` field scrolls partially under the sticky `Start a team` header.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/TeamComponents.swift",
+          "baseline_ab2d3905_blob": "7d4ae7f6605f41c6cd2a66f262f8a854b2e791c4",
+          "parent_ac6f18a3_blob": "7d4ae7f6605f41c6cd2a66f262f8a854b2e791c4",
+          "after_c924bebf_blob": "36f2fc3982bc8f7016cf62db3060ed1ea3f3a182"
+        }
+      ]
+    },
+    {
+      "index": 22,
+      "test_identifier": "TeamFlowTests/testCreatePrivateTeamReviewCancelPreservesForm()",
+      "attachment_name": "G05 create activity title after cancel – synthetic fixture_0_84D423DE-9AD2-4E7E-81D6-0E779A2729C3.png",
+      "exported_file": "12-2-f998b51f4e7cb71a522eb2bdfe63df9109e0de59218e90dbfb0fcaae5f222767.png",
+      "original_filename": "2D6B0B0C-18A9-4E46-ABA8-5C37916F7B06.png",
+      "bytes": 375054,
+      "sha256": "f998b51f4e7cb71a522eb2bdfe63df9109e0de59218e90dbfb0fcaae5f222767",
+      "git_blob_sha": "52538ee0edf85b331400fac1fbddc1003d5d9af6",
+      "dimensions": "1206x2622",
+      "slice": "G05",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/12-2-f998b51f4e7cb71a522eb2bdfe63df9109e0de59218e90dbfb0fcaae5f222767.png",
+      "visual_audit_verdict": "PASS",
+      "visual_audit_notes": "Verified Fixed (`G05` `App/TeamComponents.swift` after blob `36f2fc3982bc8f7016cf62db3060ed1ea3f3a182`): `Choose team visibility` sheet (`Public team` vs. `Invite only (code required)` selected) renders cleanly with no duplicate title.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/TeamComponents.swift",
+          "baseline_ab2d3905_blob": "7d4ae7f6605f41c6cd2a66f262f8a854b2e791c4",
+          "parent_ac6f18a3_blob": "7d4ae7f6605f41c6cd2a66f262f8a854b2e791c4",
+          "after_c924bebf_blob": "36f2fc3982bc8f7016cf62db3060ed1ea3f3a182"
+        }
+      ]
+    },
+    {
+      "index": 23,
+      "test_identifier": "TeamFlowTests/testCreatePrivateTeamReviewCancelPreservesForm()",
+      "attachment_name": "G05 create review first presentation – synthetic fixture_0_D6D97C74-29B5-4B05-A9B9-7D8BA1293C45.png",
+      "exported_file": "12-3-14ddf9c77c576e1f87795fb4ec2720432a963d4411e3029b77c3f199c3a40b35.png",
+      "original_filename": "DF01955A-F0F1-4E29-BC5A-104C999C44FC.png",
+      "bytes": 186471,
+      "sha256": "14ddf9c77c576e1f87795fb4ec2720432a963d4411e3029b77c3f199c3a40b35",
+      "git_blob_sha": "1105c3599081f36f70ddcc6561db2737a87df1bb",
+      "dimensions": "1206x2622",
+      "slice": "G05",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/12-3-14ddf9c77c576e1f87795fb4ec2720432a963d4411e3029b77c3f199c3a40b35.png",
+      "visual_audit_verdict": "PASS_WITH_MINOR_SCROLL_NOTE",
+      "visual_audit_notes": "Verified Fixed (`G05` `App/TeamComponents.swift` after blob `36f2fc3982bc8f7016cf62db3060ed1ea3f3a182`): `Choose target size` (`4 members`) applied; when scrolled down, the top of `Start a team` is scrolled past the sticky header.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/TeamComponents.swift",
+          "baseline_ab2d3905_blob": "7d4ae7f6605f41c6cd2a66f262f8a854b2e791c4",
+          "parent_ac6f18a3_blob": "7d4ae7f6605f41c6cd2a66f262f8a854b2e791c4",
+          "after_c924bebf_blob": "36f2fc3982bc8f7016cf62db3060ed1ea3f3a182"
+        }
+      ]
+    },
+    {
+      "index": 24,
+      "test_identifier": "TeamFlowTests/testCreatePrivateTeamReviewCancelPreservesForm()",
+      "attachment_name": "Team create review target before one tap – synthetic fixture_0_5F6F8BFE-E95C-4CD5-A181-1C577843CB18.png",
+      "exported_file": "12-4-2790ea70b6973fef2703b5ce420ea76a75016596447530ad9a51900a210e3b4c.png",
+      "original_filename": "1F59E33C-61CC-43C7-9C32-FD2F384501BA.png",
+      "bytes": 375366,
+      "sha256": "2790ea70b6973fef2703b5ce420ea76a75016596447530ad9a51900a210e3b4c",
+      "git_blob_sha": "f33ffa194b748e69b426e177f4ec058ba6f7ba9b",
+      "dimensions": "1206x2622",
+      "slice": "G05",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/12-4-2790ea70b6973fef2703b5ce420ea76a75016596447530ad9a51900a210e3b4c.png",
+      "visual_audit_verdict": "PASS",
+      "visual_audit_notes": "Verified Fixed (`G05` `App/TeamComponents.swift` after blob `36f2fc3982bc8f7016cf62db3060ed1ea3f3a182`): `Choose target size` sheet (`2` / `3` / `4` / `5` / `6 members`) renders cleanly with no duplicate title.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/TeamComponents.swift",
+          "baseline_ab2d3905_blob": "7d4ae7f6605f41c6cd2a66f262f8a854b2e791c4",
+          "parent_ac6f18a3_blob": "7d4ae7f6605f41c6cd2a66f262f8a854b2e791c4",
+          "after_c924bebf_blob": "36f2fc3982bc8f7016cf62db3060ed1ea3f3a182"
+        }
+      ]
+    },
+    {
+      "index": 25,
+      "test_identifier": "TeamFlowTests/testCreatePrivateTeamReviewCancelPreservesForm()",
+      "attachment_name": "G05 create activity title initial – synthetic fixture_0_1622ADE7-E1CD-420F-B9F9-FF10163241D7.png",
+      "exported_file": "12-5-c238fc2aa43f7ba2e0c5593405fc3d15594081181786db060d6a0cde6a8535d7.png",
+      "original_filename": "76DDC0CF-1399-4A41-8664-4EF89FD8683B.png",
+      "bytes": 212113,
+      "sha256": "c238fc2aa43f7ba2e0c5593405fc3d15594081181786db060d6a0cde6a8535d7",
+      "git_blob_sha": "8bac68e4dd9f971ee2ccd2857df831d1957b82a3",
+      "dimensions": "1206x2622",
+      "slice": "G05",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/12-5-c238fc2aa43f7ba2e0c5593405fc3d15594081181786db060d6a0cde6a8535d7.png",
+      "visual_audit_verdict": "PASS_WITH_MINOR_SCROLL_NOTE",
+      "visual_audit_notes": "Verified Fixed (`G05` `App/TeamComponents.swift` after blob `36f2fc3982bc8f7016cf62db3060ed1ea3f3a182`): `Review before creating` button enabled at bottom of `Start a team`; top `Team name` field is scrolled above the fold.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/TeamComponents.swift",
+          "baseline_ab2d3905_blob": "7d4ae7f6605f41c6cd2a66f262f8a854b2e791c4",
+          "parent_ac6f18a3_blob": "7d4ae7f6605f41c6cd2a66f262f8a854b2e791c4",
+          "after_c924bebf_blob": "36f2fc3982bc8f7016cf62db3060ed1ea3f3a182"
+        }
+      ]
+    },
+    {
+      "index": 26,
+      "test_identifier": "TemplateOwnShelfFlowTests/testDeleteReviewShowsSourceDangerCopyAndCancelDoesNotSubmit()",
+      "attachment_name": "Owned template deletion review danger copy – synthetic fixture_0_5F370FDC-43ED-4530-AD42-7C1C7FF3A803.png",
+      "exported_file": "13-0-c0c868a1e1483a3fb1e1e57bcca04f1d126625f3f0392a274043b2f33ecb2462.png",
+      "original_filename": "6B59904D-0CF7-4267-A386-6C17BE83A51E.png",
+      "bytes": 257729,
+      "sha256": "c0c868a1e1483a3fb1e1e57bcca04f1d126625f3f0392a274043b2f33ecb2462",
+      "git_blob_sha": "e8a4d31203bc46ba1795e78639ad7db7bffa581f",
+      "dimensions": "1206x2622",
+      "slice": "T02",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/13-0-c0c868a1e1483a3fb1e1e57bcca04f1d126625f3f0392a274043b2f33ecb2462.png",
+      "visual_audit_verdict": "PASS",
+      "visual_audit_notes": "Verified Fixed (`T02` `App/TemplateAuthoringMineView.swift` after blob `6cfd84f775680ff08233cb02d20ed8c50d645602` + `App/TemplateOwnShelfCardSection.swift` after blob `251697242cdb838af11b94446f8b55a9faaa44c5`): `Delete template` confirmation sheet renders cleanly with full warning copy (`Deleting removes this owned template after server confirmation`), `Keep template`, and destructive `Delete template`.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/TemplateAuthoringMineView.swift",
+          "baseline_ab2d3905_blob": "75087810b25e6f143b9167df58a23c244811fd0b",
+          "parent_ac6f18a3_blob": "75087810b25e6f143b9167df58a23c244811fd0b",
+          "after_c924bebf_blob": "6cfd84f775680ff08233cb02d20ed8c50d645602"
+        },
+        {
+          "path": "App/TemplateOwnShelfCardSection.swift",
+          "baseline_ab2d3905_blob": "5f38ddcfffc2b4ebb330224093f25253745123e5",
+          "parent_ac6f18a3_blob": "5f38ddcfffc2b4ebb330224093f25253745123e5",
+          "after_c924bebf_blob": "251697242cdb838af11b94446f8b55a9faaa44c5"
+        }
+      ]
+    },
+    {
+      "index": 27,
+      "test_identifier": "TemplateOwnShelfFlowTests/testOwnedCardShowsZeroDurationAndNoMarketplacePublishButton()",
+      "attachment_name": "Owned template card with known zero duration – synthetic fixture_0_D0F087FE-49FE-4AEB-A8A8-8D5FDACF64A6.png",
+      "exported_file": "14-0-2bfd539287488bbcb71d6bc3be823237d42192d05395d75a3c5180fb3e44c8f8.png",
+      "original_filename": "4C067388-5300-4E5B-870B-269C796274CD.png",
+      "bytes": 300804,
+      "sha256": "2bfd539287488bbcb71d6bc3be823237d42192d05395d75a3c5180fb3e44c8f8",
+      "git_blob_sha": "36f3e0174aa4523b18f076cba1c6774d423aa3ee",
+      "dimensions": "1206x2622",
+      "slice": "T02",
+      "repo_relative_path": "screenshot_remediation_c924bebf_7patches/images/14-0-2bfd539287488bbcb71d6bc3be823237d42192d05395d75a3c5180fb3e44c8f8.png",
+      "visual_audit_verdict": "PASS",
+      "visual_audit_notes": "Verified Fixed (`T02` `App/TemplateAuthoringMineView.swift` after blob `6cfd84f775680ff08233cb02d20ed8c50d645602` + `App/TemplateOwnShelfCardSection.swift` after blob `251697242cdb838af11b94446f8b55a9faaa44c5`): Top synthetic fixture rows removed from `My templates` scroll content; `Fixture owned template` (`Published`, `Estimated time: 0 min`, `Marketplace: Already in marketplace`, `Open template`, `Edit`, `Remove from marketplace`, `Delete`) fits cleanly in the initial viewport.",
+      "actual_modified_files_in_c924bebf": [
+        {
+          "path": "App/TemplateAuthoringMineView.swift",
+          "baseline_ab2d3905_blob": "75087810b25e6f143b9167df58a23c244811fd0b",
+          "parent_ac6f18a3_blob": "75087810b25e6f143b9167df58a23c244811fd0b",
+          "after_c924bebf_blob": "6cfd84f775680ff08233cb02d20ed8c50d645602"
+        },
+        {
+          "path": "App/TemplateOwnShelfCardSection.swift",
+          "baseline_ab2d3905_blob": "5f38ddcfffc2b4ebb330224093f25253745123e5",
+          "parent_ac6f18a3_blob": "5f38ddcfffc2b4ebb330224093f25253745123e5",
+          "after_c924bebf_blob": "251697242cdb838af11b94446f8b55a9faaa44c5"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,188 @@
+{
+  "schema": "chengyin-ios.remediation-c924bebf-source-identity-and-toolchain.v1",
+  "generated_at_utc": "2026-11-04T08:06:00Z",
+  "in_response_to": "https://github.com/liboyang42-cpu/chengyin-app/issues/575#issuecomment-6625719721",
+  "worktree_identity": {
+    "head_commit": "c924bebf4d23c8abc99d9925cc8240352a641c46",
+    "root_tree": "8c503bf6cdd0884c6c95bc7fe620da95b418c5f9",
+    "parent_commit": "ac6f18a35cdc63c1a20b54a9596671c76549567c",
+    "parent_root_tree": "22857935d8859593ecb8cb49d736b902d7b7a3e6",
+    "baseline_commit": "ab2d3905ec0b0fb17b58ba6b53ec433d83164701",
+    "baseline_root_tree": "bb90be2d7fd1bd81ba59792a9739c2559662bc42",
+    "git_status_short": "",
+    "dirty_files_count": 0,
+    "untracked_files_count": 0,
+    "exact_modified_files_vs_parent_count": 11
+  },
+  "actual_11_modified_files_in_c924bebf": [
+    {
+      "slice": "G05",
+      "path": "App/TeamComponents.swift",
+      "baseline_ab2d3905_blob": "7d4ae7f6605f41c6cd2a66f262f8a854b2e791c4",
+      "parent_ac6f18a3_blob": "7d4ae7f6605f41c6cd2a66f262f8a854b2e791c4",
+      "after_c924bebf_blob": "36f2fc3982bc8f7016cf62db3060ed1ea3f3a182"
+    },
+    {
+      "slice": "M04",
+      "path": "App/MerchantRegistrationAvailabilityPicker.swift",
+      "baseline_ab2d3905_blob": "26b77749df20d08493f5fdc80487f15b42cb8939",
+      "parent_ac6f18a3_blob": "d1bb6f98444a147a420159fc6767df1130691ee5",
+      "after_c924bebf_blob": "ac36998a9d2f63cc30b9178f6d0a94c6b8e99da7"
+    },
+    {
+      "slice": "M04",
+      "path": "Tests/AppUITests/MerchantRegistrationAvailabilityFlowTests.swift",
+      "baseline_ab2d3905_blob": "4487b33a0b943cdac92ddb512c910b84d77da89d",
+      "parent_ac6f18a3_blob": "c1cc00c794b48bd35fe26738bffe7ef4d0effa6e",
+      "after_c924bebf_blob": "0a0e571f8b185d98fa2ef5cec0a79d2b56a7479e"
+    },
+    {
+      "slice": "CL02",
+      "path": "App/ClubProfileChoiceEditor.swift",
+      "baseline_ab2d3905_blob": "3c8aed56680249925ee79bb639dafe13965beb78",
+      "parent_ac6f18a3_blob": "3032bf2705476861af055215737059a94dcfc98c",
+      "after_c924bebf_blob": "2ac8c61f4f375b4f402b0b428a1b557be787b2d2"
+    },
+    {
+      "slice": "CL02",
+      "path": "App/ClubRoleAssignmentPicker.swift",
+      "baseline_ab2d3905_blob": "16a70dc37cea647a765a2d6ced2ae7ebbd6e3bbf",
+      "parent_ac6f18a3_blob": "3d24afd4d2365f41d3fb681204d5b07ab29563e3",
+      "after_c924bebf_blob": "3f5bab17dc322b9d72c17be02f25c38343f93792"
+    },
+    {
+      "slice": "D01",
+      "path": "App/HomeFeedView.swift",
+      "baseline_ab2d3905_blob": "c6839bfc4b8e4f54f42a7315d7a7add06726741e",
+      "parent_ac6f18a3_blob": "c6839bfc4b8e4f54f42a7315d7a7add06726741e",
+      "after_c924bebf_blob": "05fb5ad98134a621d1f9b00490799461edc77768"
+    },
+    {
+      "slice": "S01",
+      "path": "App/MessageActionComposer.swift",
+      "baseline_ab2d3905_blob": "9f6a165ffcca151d17a93f5d9330caf7f0760ee1",
+      "parent_ac6f18a3_blob": "9f6a165ffcca151d17a93f5d9330caf7f0760ee1",
+      "after_c924bebf_blob": "964d7f1f95f6c6579d7f89cfd826993140bdf27d"
+    },
+    {
+      "slice": "B01",
+      "path": "App/ProfileOrderNumberCopySection.swift",
+      "baseline_ab2d3905_blob": "4b080c78deb70e33b9121b439a8f576a2bb2de3e",
+      "parent_ac6f18a3_blob": "4b080c78deb70e33b9121b439a8f576a2bb2de3e",
+      "after_c924bebf_blob": "97e987947176cd6d7aa2a870d869f8c55277be8d"
+    },
+    {
+      "slice": "B01",
+      "path": "App/ProfileOrdersView.swift",
+      "baseline_ab2d3905_blob": "3dd785f704cb93c01bae042b6fa75f4041acddd3",
+      "parent_ac6f18a3_blob": "3dd785f704cb93c01bae042b6fa75f4041acddd3",
+      "after_c924bebf_blob": "7c9b5f2d9119c85b7e33c0438ec125118d3b4c9d"
+    },
+    {
+      "slice": "T02",
+      "path": "App/TemplateAuthoringMineView.swift",
+      "baseline_ab2d3905_blob": "75087810b25e6f143b9167df58a23c244811fd0b",
+      "parent_ac6f18a3_blob": "75087810b25e6f143b9167df58a23c244811fd0b",
+      "after_c924bebf_blob": "6cfd84f775680ff08233cb02d20ed8c50d645602"
+    },
+    {
+      "slice": "T02",
+      "path": "App/TemplateOwnShelfCardSection.swift",
+      "baseline_ab2d3905_blob": "5f38ddcfffc2b4ebb330224093f25253745123e5",
+      "parent_ac6f18a3_blob": "5f38ddcfffc2b4ebb330224093f25253745123e5",
+      "after_c924bebf_blob": "251697242cdb838af11b94446f8b55a9faaa44c5"
+    }
+  ],
+  "narrative_attribution_clarification": {
+    "was_tested_worktree_identical_to_signed_c924bebf": true,
+    "why_v1_notes_contained_different_paths_and_short_hashes": "In step 1971 when generating `remediation-c924bebf-manifest.json` and the #issuecomment-6625565892 table, the `verdicts` dictionary in the packaging script had hand-typed placeholder file names (`App/HomeFeedModuleView.swift`, `App/ClubProfileScopeView.swift`, `App/ClubGovernanceView.swift`, `App/ReferenceChatTaskView.swift`, `App/OrderModuleViews.swift`, `App/TemplateOwnShelfView.swift`, `App/TeamModuleView.swift`, `App/MerchantContentView.swift`) and unverified 8-character short prefixes instead of programmatically reading `seven_owner_patches_ack_6624585230.json` or `git diff --raw ac6f18a3 c924bebf`. None of those non-existent `*ModuleView.swift` paths exist in the repository tree (`8c503bf6cdd0884c6c95bc7fe620da95b418c5f9`). The actual worktree compiled at 2026-11-04T15:32:07+08:00 and tested at 2026-11-04T15:42:29+08:00 was cleanly checked out at `c924bebf4d23c8abc99d9925cc8240352a641c46` (`tree = 8c503bf6cdd0884c6c95bc7fe620da95b418c5f9`, `dirty = 0`) with the exact 11 `after_c924bebf_blob` hashes listed above.",
+    "unchanged_test_and_host_files_in_c924bebf_tree": {
+      "Tests/AppUITests/TeamFlowTests.swift": "af1d2d5da9066800b2aa1a759191a82e5b894f75",
+      "Tests/AppUITests/ClubProfileScopeFlowTests.swift": "36b25bf28a9f71e4d3d77bb76066b73d9b52b90e",
+      "Tests/AppUITests/ClubGovernanceFlowTests.swift": "3b05b496a5f827d56cef72f2a5d1ccdc5d1e8023",
+      "Tests/AppUITests/HomeFeedFlowTests.swift": "96052ff62c5f34a321581fec88275ac1595ab60c",
+      "Tests/AppUITests/AccessibilityPresentationFlowTests.swift": "ed3f311349bd76a6c10615897b119467a9e91977",
+      "Tests/AppUITests/ReferenceChatTaskFlowTests.swift": "c779bf6922de0ee6b5a6b4a849cf06edd0ea1848",
+      "Tests/AppUITests/ModuleFlowTests.swift": "15d98b9374e22b2c1c0cb287fa03b3d629c4d55e",
+      "Tests/AppUITests/TemplateOwnShelfFlowTests.swift": "8d90a41b73e7f519f1bd13b22d620b47ac515a7d",
+      "App/MerchantContentViews.swift": "0419a3a0909917f54e20cac862a942fe6f6d4a39"
+    }
+  },
+  "toolchain_bound_to_build": {
+    "xcodebuild_version_cmd": "xcodebuild -version",
+    "xcodebuild_version_output": "Xcode 27.1\nBuild version 27A9275",
+    "swift_version_cmd": "xcrun swift -version",
+    "swift_version_output": "swift-driver version: 1.168.6 Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0",
+    "sdk_name": "iphonesimulator27.1",
+    "sdk_version_cmd": "xcrun --sdk iphonesimulator --show-sdk-version",
+    "sdk_version_output": "27.1",
+    "sdk_build_version_cmd": "xcrun --sdk iphonesimulator --show-sdk-build-version",
+    "sdk_build_version_output": "24A94232",
+    "sdk_path_cmd": "xcrun --sdk iphonesimulator --show-sdk-path",
+    "sdk_path_output": "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk",
+    "note_on_v1_manifest_toolchain_typo": "In v1 `remediation-c924bebf-manifest.json` and `batch3b-manifest.json`, the packaging script had a hardcoded string (`Swift 6.3` / `24B74`) instead of invoking `xcrun swift -version` and `xcrun --sdk iphonesimulator --show-sdk-build-version`. As shown in `pilot-manifest.json` and `logs/remediation_c924bebf_build_for_testing.stdout.txt`, the actual compiler and SDK used by `Xcode 27.1 (27A9275)` are `Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)` and `iphonesimulator27.1 (24A94232)`."
+  },
+  "build_and_test_execution_provenance": {
+    "build_for_testing": {
+      "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project Questify.xcodeproj -scheme Questify -configuration Debug -sdk iphonesimulator -destination \"platform=iOS Simulator,id=25316F87-058C-46CE-8825-617906638207\" -destination-timeout 60 -derivedDataPath <RUNNER_TEMP>/remediation-c924bebf-derived-data CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES build-for-testing",
+      "exit_code": 0,
+      "terminal_marker": "** TEST BUILD SUCCEEDED **",
+      "raw_stdout_bytes_before_path_redaction": 2148253,
+      "raw_stdout_lines": 15727,
+      "raw_stdout_mtime_epoch": 1793777527.9034982,
+      "raw_stdout_mtime_iso8601": "2026-11-04T15:32:07.903+08:00 (2026-11-04T07:32:07.903Z)",
+      "sanitized_log_repo_path": "screenshot_remediation_c924bebf_7patches/logs/remediation_c924bebf_build_for_testing.stdout.txt",
+      "bytes": 1665046,
+      "sha256": "8d0a6f7b2d68eb6561852487257d3aace113db86e39c730b5cd7a5efa10d257a",
+      "git_blob_sha": "e7d11f4ac34f673cbb27683b82e3317e6b725471",
+      "generated_xctestrun_product": {
+        "filename": "Questify_iphonesimulator27.1-arm64.xctestrun",
+        "mtime_epoch": 1793777527.8322816,
+        "mtime_iso8601": "2026-11-04T15:32:07.832+08:00 (2026-11-04T07:32:07.832Z)",
+        "sanitized_plist_repo_path": "screenshot_remediation_c924bebf_7patches/logs/remediation_c924bebf_xctestrun_product.plist.txt",
+        "bytes": 5218,
+        "sha256": "d90ec167a514b820a478061c87b3fbbf796a7ab5c4f2144bd03338a48f024d65",
+        "git_blob_sha": "135be69e2873a079653fe1e30bee7a2800f08897"
+      }
+    },
+    "test_without_building_15_methods": {
+      "command": "xcodebuild test-without-building -xctestrun <RUNNER_TEMP>/remediation-c924bebf-derived-data/Build/Products/Questify_iphonesimulator27.1-arm64.xctestrun -destination \"platform=iOS Simulator,id=25316F87-058C-46CE-8825-617906638207\" -resultBundlePath <RUNNER_TEMP>/remediation-c924bebf-audit/ui.xcresult -parallel-testing-enabled NO -only-testing:QuestifyUITests/TeamFlowTests/testCreatePrivateTeamReviewCancelPreservesForm -only-testing:QuestifyUITests/MerchantRegistrationAvailabilityFlowTests/testCancelAndRestorePreserveOriginalUnrecognizedSource -only-testing:QuestifyUITests/ClubProfileScopeFlowTests/testCaptureCL02TypeChoiceSheetWithoutApplying -only-testing:QuestifyUITests/ClubProfileScopeFlowTests/testCaptureCL02DirectionsSheetWithoutApplying -only-testing:QuestifyUITests/ClubProfileScopeFlowTests/testCaptureCL02ProfileReviewWithoutSubmitting -only-testing:QuestifyUITests/ClubGovernanceFlowTests/testCaptureCL02RolePickerWithoutPreparing -only-testing:QuestifyUITests/HomeFeedFlowTests/testTypedDestinationsAndPriceCurrencyDisclosure -only-testing:QuestifyUITests/HomeFeedFlowTests/testEmptyStateIsNotAnError -only-testing:QuestifyUITests/HomeFeedFlowTests/testPageFailureRetriesAndDuplicateFullPageStillPaginates -only-testing:QuestifyUITests/AccessibilityPresentationFlowTests/testHomeChineseDarkLargeTextRemainsNavigable -only-testing:QuestifyUITests/ReferenceChatTaskFlowTests/testMessageKeyboardKeepsSendActionReachable -only-testing:QuestifyUITests/ReferenceChatTaskFlowTests/testMessageEarlierPageAndDetailReturnRetainHistory -only-testing:QuestifyUITests/ModuleFlowTests/testProfileOrderReadbackAndBack -only-testing:QuestifyUITests/TemplateOwnShelfFlowTests/testOwnedCardShowsZeroDurationAndNoMarketplacePublishButton -only-testing:QuestifyUITests/TemplateOwnShelfFlowTests/testDeleteReviewShowsSourceDangerCopyAndCancelDoesNotSubmit",
+      "exit_code": 0,
+      "methods_targeted": 15,
+      "methods_passed": 15,
+      "methods_failed": 0,
+      "raw_stdout_bytes_before_path_redaction": 121378,
+      "raw_stdout_mtime_epoch": 1793778149.0024664,
+      "raw_stdout_mtime_iso8601": "2026-11-04T15:42:29.002+08:00 (2026-11-04T07:42:29.002Z)",
+      "sanitized_log_repo_path": "screenshot_remediation_c924bebf_7patches/logs/remediation_c924bebf_15_methods_test.stdout.txt",
+      "bytes": 121146,
+      "sha256": "7cdb834dd1b267d14e683ea2dd9482fe2b982e3537fe18cb0c4bc4147edeefc6",
+      "git_blob_sha": "01c27cacb60e39d9b383414ea49018be5727a3bf",
+      "xcresult_bundle": {
+        "raw_bundle_mtime_epoch": 1793778168.4091642,
+        "raw_bundle_mtime_iso8601": "2026-11-04T15:42:48.409+08:00 (2026-11-04T07:42:48.409Z)",
+        "archive_repo_path": "screenshot_remediation_c924bebf_7patches/remediation_c924bebf_15_methods_ui.xcresult.tar.gz",
+        "bytes": 10102030,
+        "sha256": "e061032db215fcca410426dd4d7b5c80bc341eedb592a4d947f9c2528585b06d",
+        "git_blob_sha": "acdba52d23aa51b43e9f0ee9bcd8db6953908f51",
+        "summary_json": {
+          "repo_path": "screenshot_remediation_c924bebf_7patches/summary.json",
+          "bytes": 728,
+          "sha256": "35332adff8292b1313cdc2c0cfc6f6515895b8040dc23e843dcde782923a01ae",
+          "git_blob_sha": "d510ad2c28dbbfb596ac29a90fa515e053303f3e"
+        },
+        "tests_json": {
+          "repo_path": "screenshot_remediation_c924bebf_7patches/tests.json",
+          "bytes": 8124,
+          "sha256": "b1bcec635647038808aea4842390c81dfa6ff727cf0d0f31fc6b8585252a843e",
+          "git_blob_sha": "b25b4034f1735273f8c3ee35f6c9cff10e2c06ae"
+        }
+      }
+    },
+    "m04_extra_probe_status": {
+      "test_identifier": "QuestifyUITests/MerchantRegistrationAvailabilityFlowTests/testGroupReviewCancelAndExistingSaveReadBackServerValues",
+      "status": "RAW_LOG_OVERWRITTEN_NOT_PRESERVED",
+      "explanation": "In the intermediate run (step 1869 / task-1871 at ~15:35+08:00), `test-without-building` wrote to the same `remediation-c924bebf-audit/test.stdout` and `remediation-c924bebf-audit/ui.xcresult` paths that were subsequently `shutil.rmtree`d and overwritten by the 15-method run (step 1920 / task-1921 at 15:42+08:00). Therefore, the raw `test.stdout` and `ui.xcresult` from that intermediate probe were not preserved and cannot be independently verified from archived raw files (`未保留 / 无法核实`). Per instruction, no re-run was performed and no `maximumSwipes: 10` modification was executed."
+    }
+  }
+}
