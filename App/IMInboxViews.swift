@@ -75,20 +75,26 @@ struct IMUnreadBadge: View {
     }
 }
 
-/// Source conversation row: avatar (bell for system), name, 官方 tag (type 3),
-/// mute mark, time, preview line and unread badge. No remote avatar is loaded.
+/// Source conversation row: 56pt round avatar (bell for system), bold name,
+/// 官方 tag (type 3), mute mark, time top-right, preview line and unread badge
+/// bottom-right. Messaging never loads remote avatars, so the avatar is a clean
+/// symbol placeholder.
 struct IMInboxRow: View {
     let conversation: MessagingConversation
+    @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 56
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
             Image(systemName: symbol)
-                .font(.title2).frame(width: 40, height: 40)
+                .font(.title2)
                 .foregroundStyle(.secondary)
-                .background(Circle().fill(Color.secondary.opacity(0.12)))
+                .frame(width: avatarSize, height: avatarSize)
+                .background(Circle().fill(Color(uiColor: .tertiarySystemFill)))
+                .clipShape(Circle())
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
-                    MessagingConversationName(conversation: conversation).font(.headline).lineLimit(1)
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    MessagingConversationName(conversation: conversation)
+                        .font(.body.weight(.semibold)).lineLimit(1)
                     if conversation.kind == .merchant {
                         Text("im.inbox.officialTag").font(.caption2.weight(.semibold))
                             .padding(.horizontal, 5).padding(.vertical, 1)
@@ -101,23 +107,25 @@ struct IMInboxRow: View {
                             .accessibilityLabel(Text("im.inbox.mutedLabel"))
                     }
                     Spacer(minLength: 4)
-                    IMInboxTimeLabel(raw: conversation.lastMessageAt).font(.caption).foregroundStyle(.secondary)
+                    IMInboxTimeLabel(raw: conversation.lastMessageAt)
+                        .font(.footnote).monospacedDigit().foregroundStyle(.secondary)
+                        .layoutPriority(1)
                 }
-                HStack {
+                HStack(alignment: .center, spacing: 6) {
                     MessagingPreview(conversation: conversation).font(.subheadline).lineLimit(1)
                     Spacer(minLength: 4)
                     IMUnreadBadge(count: conversation.unread, muted: conversation.muted == true)
                 }
             }
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
     }
     private var symbol: String {
         switch conversation.kind {
         case .system: return "bell.fill"
         case .group: return "person.3.fill"
-        default: return "person.crop.circle.fill"
+        default: return "person.fill"
         }
     }
 }

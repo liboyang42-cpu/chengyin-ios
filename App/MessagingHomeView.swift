@@ -17,6 +17,7 @@ struct MessagingHomeView: View {
             if let predictionEntry { predictionEntry().padding(.horizontal) }
             MessagingConversationListView(reader:reader,mediaReader:mediaReader,senderForConversation:senderForConversation,expanded:expanded,squareDestination:squareDestination).id(identity)
         }.appNavigationTitle("messaging.title")
+        .navigationBarTitleDisplayMode(.large)
     }
 }
 
@@ -60,28 +61,29 @@ private struct MessagingConversationListView: View {
                     emptyState(title: "messaging.noMatches", hint: "messaging.searchHint", identifier: "messaging.list.noMatches")
                 } else {
                     List {
-                        Section {
-                            ForEach(Array(rows.prefix(displayLimit))) { conversation in
-                                NavigationLink {
-                                    MessagingHistoryView(conversationID:conversation.id,conversation:conversation,reader:reader,sender:senderForConversation?(conversation.id),mediaReader:mediaReader,expanded:expanded,
-                                        directory: messagingHistoryDirectoryRequest(reader: reader, conversation: conversation),
-                                        onConversationMutationAccepted: conversationInvalidation(for: conversation.id))
-                                } label: { IMInboxRow(conversation: conversation) }
-                                .accessibilityIdentifier("messaging.conversation.\(conversation.id)")
-                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                    rowActions(for: conversation)
+                        let visible = Array(rows.prefix(displayLimit))
+                        if tab == .group {
+                            // Channels grouped by the space the server names in bizKey.
+                            ForEach(channelSections(visible), id: \.id) { section in
+                                Section {
+                                    ForEach(section.rows) { conversation in conversationRow(conversation) }
+                                } header: {
+                                    if let title = section.title { Text(title, tableName: "NativeChannel") }
                                 }
-                                .contextMenu { rowActions(for: conversation) }
                             }
-                            if displayLimit < rows.count {
-                                Button("messaging.moreConversations") { displayLimit += 30 }
-                                    .accessibilityIdentifier("messaging.list.more")
+                        } else {
+                            Section {
+                                ForEach(visible) { conversation in conversationRow(conversation) }
+                            } header: {
+                                IMInboxTabLabel(tab: tab, badge: 0)
                             }
-                        } footer: {
-                            Text(LocalizedStringKey(expanded == nil ? "messaging.readOnly" : "im.row.listHint"))
+                        }
+                        if displayLimit < rows.count {
+                            Button("messaging.moreConversations") { displayLimit += 30 }
+                                .accessibilityIdentifier("messaging.list.more")
                         }
                     }
-                    .listStyle(.plain)
+                    .listStyle(.insetGrouped)
                 }
             }
             .toolbar {
@@ -142,6 +144,36 @@ private struct MessagingConversationListView: View {
         .onChange(of: query) { _, _ in displayLimit = 30 }
         .onChange(of: selectedTab) { _, _ in displayLimit = 30 }
     }
+    @ViewBuilder private func conversationRow(_ conversation: MessagingConversation) -> some View {
+        NavigationLink {
+            MessagingHistoryView(conversationID:conversation.id,conversation:conversation,reader:reader,sender:senderForConversation?(conversation.id),mediaReader:mediaReader,expanded:expanded,
+                directory: messagingHistoryDirectoryRequest(reader: reader, conversation: conversation),
+                onConversationMutationAccepted: conversationInvalidation(for: conversation.id))
+        } label: { IMInboxRow(conversation: conversation) }
+        .accessibilityIdentifier("messaging.conversation.\(conversation.id)")
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            rowActions(for: conversation)
+        }
+        .contextMenu { rowActions(for: conversation) }
+    }
+    private struct ChannelSection { let id: String; let title: LocalizedStringKey?; let rows: [MessagingConversation] }
+    /// Presentation grouping only: club, team, then hangout spaces in server order;
+    /// rows without a recognised space key stay in a final untitled section.
+    private func channelSections(_ rows: [MessagingConversation]) -> [ChannelSection] {
+        let spaces = NativeChannelSpace.project(rows)
+        var placed = Set<Int>()
+        var sections: [ChannelSection] = []
+        let kinds: [(NativeChannelSpace.Kind, LocalizedStringKey)] = [(.club, "channel.kind.club"), (.team, "channel.kind.team"), (.hangout, "channel.kind.hangout")]
+        for (kind, title) in kinds {
+            let members = spaces.filter { $0.kind == kind }.flatMap(\.channels)
+            guard !members.isEmpty else { continue }
+            members.forEach { placed.insert($0.id) }
+            sections.append(ChannelSection(id: kind.rawValue, title: title, rows: rows.filter { row in members.contains { $0.id == row.id } }))
+        }
+        let rest = rows.filter { !placed.contains($0.id) }
+        if !rest.isEmpty { sections.append(ChannelSection(id: "other", title: nil, rows: rest)) }
+        return sections
+    }
     private func currentTab(_ summary: IMInboxSummary) -> IMInboxTab {
         if let selectedTab, summary.visibleTabs.contains(selectedTab) { return selectedTab }
         return summary.initialTab
@@ -157,7 +189,7 @@ private struct MessagingConversationListView: View {
         case .system:
             emptyState(title: "im.inbox.emptySystem", hint: "im.inbox.emptySystemHint", identifier: "messaging.list.empty", tab: tab)
         case .group:
-            emptyState(title: "im.inbox.emptyGroup", hint: "messaging.emptyHint", identifier: "messaging.list.empty", tab: tab)
+            emptyState(title: "im.inbox.emptyGroup", hint: "im.inbox.emptyGroupHint", identifier: "messaging.list.empty", tab: tab)
         }
     }
     @ViewBuilder private func emptyState(title: LocalizedStringKey, hint: LocalizedStringKey, identifier: String, tab: IMInboxTab? = nil) -> some View {

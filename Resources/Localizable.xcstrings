@@ -180715,6 +180715,22 @@
         }
       }
     },
+    "im.inbox.emptyGroupHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Channels come from the themes, clubs and teams you join."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "频道来自你加入的主题、俱乐部和队伍。"
+          }
+        }
+      }
+    },
     "im.inbox.emptySquare": {
       "localizations": {
         "en": {
