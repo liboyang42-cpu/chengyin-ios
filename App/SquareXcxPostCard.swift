@@ -66,7 +66,7 @@ struct SquareXcxPostCard: View {
             if showsMedia, let cover = facts.playCover {
                 NativeMediaGalleryEntry(sources: [cover], scope: mediaScope, titleKey: "media.destination.squareImages", compact: true)
             }
-        }.padding(10).background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.1)))
+        }.padding(10).background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color(uiColor: .tertiarySystemFill)))
             .accessibilityElement(children: .contain).accessibilityIdentifier("square.card.play")
     }
     private var counters: some View {
@@ -139,7 +139,7 @@ struct SquareXcxRelativeTime: View {
                 Text("square.xcx.upcoming.participants").font(.caption2).foregroundStyle(.secondary)
             }
         }.padding(12).frame(minWidth: 260, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 14).fill(Color.secondary.opacity(0.12)))
+            .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(uiColor: .secondarySystemGroupedBackground)))
     }
     private func load() async {
         let scope = reader.scope
