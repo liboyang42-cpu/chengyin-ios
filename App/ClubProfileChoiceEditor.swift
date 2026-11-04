@@ -57,8 +57,8 @@ import SwiftUI
         }.disabled(!available).accessibilityIdentifier("club.profileChoice.open." + kind.rawValue)
     }
     @ViewBuilder private func choiceLabel(_ value: String, catalog: [String]) -> some View {
-        if catalog.contains(value) { Text(LocalizedStringKey("club.ops.value." + value)).font(.subheadline) }
-        else { Text(verbatim: value).font(.subheadline) }
+        if catalog.contains(value) { Text(LocalizedStringKey("club.ops.value." + value)).font(.subheadline).fixedSize(horizontal: false, vertical: true) }
+        else { Text(verbatim: value).font(.subheadline).fixedSize(horizontal: false, vertical: true) }
     }
 }
 
@@ -110,19 +110,25 @@ import SwiftUI
             if draft.kind == .type {
                 ForEach(ClubOperationsCatalog.types, id: \.self) { value in
                     Button { guard isCurrent() else { return }; _ = draft.selectType(value); failed = false } label: {
-                        HStack { Text(LocalizedStringKey("club.ops.value." + value)); Spacer(); if draft.type == value { Image(systemName: "checkmark") } }
+                        HStack {
+                            Text(LocalizedStringKey("club.ops.value." + value)).fixedSize(horizontal: false, vertical: true)
+                            Spacer()
+                            if draft.type == value { Image(systemName: "checkmark").accessibilityHidden(true) }
+                        }.frame(minHeight: 44).contentShape(Rectangle())
                     }.accessibilityAddTraits(draft.type == value ? .isSelected : [])
                 }
-                if !draft.type.isEmpty, !ClubOperationsCatalog.types.contains(draft.type) { Text(verbatim: draft.type) }
+                if !draft.type.isEmpty, !ClubOperationsCatalog.types.contains(draft.type) { Text(verbatim: draft.type).fixedSize(horizontal: false, vertical: true) }
             } else {
-                Text("club.ops.directionsHint").font(.footnote)
+                Text("club.ops.directionsHint").font(.footnote).fixedSize(horizontal: false, vertical: true)
                 ForEach(ClubOperationsCatalog.directions, id: \.self) { value in
-                    Toggle(LocalizedStringKey("club.ops.value." + value), isOn: Binding(get: { draft.directions.contains(value) }, set: { enabled in
+                    Toggle(isOn: Binding(get: { draft.directions.contains(value) }, set: { enabled in
                         guard isCurrent(), enabled != draft.directions.contains(value) else { return }
                         _ = draft.toggleDirection(value); failed = false
-                    })).disabled(!draft.directions.contains(value) && draft.directions.count >= 3)
+                    })) {
+                        Text(LocalizedStringKey("club.ops.value." + value)).fixedSize(horizontal: false, vertical: true)
+                    }.disabled(!draft.directions.contains(value) && draft.directions.count >= 3)
                 }
-                ForEach(draft.directions.filter { !ClubOperationsCatalog.directions.contains($0) }, id: \.self) { Text(verbatim: $0) }
+                ForEach(draft.directions.filter { !ClubOperationsCatalog.directions.contains($0) }, id: \.self) { Text(verbatim: $0).fixedSize(horizontal: false, vertical: true) }
             }
             if failed || !draft.isValid { Text("club.profileChoice.unavailable").accessibilityIdentifier("club.profileChoice.failure") }
         }

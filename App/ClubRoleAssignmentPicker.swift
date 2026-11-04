@@ -106,7 +106,9 @@ import SwiftUI
             } else { Text("club.rolePicker.clubScope").font(.footnote) }
             if model.loading || permit == nil { ProgressView("club.loading").accessibilityIdentifier("club.rolePicker.loading") }
             if permit != nil, let failure = model.failure {
-                Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.rolePicker.error")
+                Label { Text(LocalizedStringKey(failure.localizationKey)).fixedSize(horizontal: false, vertical: true) } icon: {
+                    Image(systemName: failure == .forbidden ? "lock.shield" : "exclamationmark.triangle").accessibilityHidden(true)
+                }.accessibilityIdentifier("club.rolePicker.error")
             }
             if let options = model.accepted(expected, access: access), let permit {
                 let readID = model.snapshotID
@@ -122,16 +124,21 @@ import SwiftUI
                                 HStack {
                                     memberName(member)
                                     Spacer()
-                                    if memberID == String(member.id) { Image(systemName: "checkmark").accessibilityLabel("club.rolePicker.selected") }
-                                }.contentShape(Rectangle())
-                            }.accessibilityIdentifier("club.rolePicker.member.\(member.id)")
+                                    if memberID == String(member.id) { Image(systemName: "checkmark").accessibilityHidden(true) }
+                                }.frame(minHeight: 44).contentShape(Rectangle())
+                            }.accessibilityAddTraits(memberID == String(member.id) ? .isSelected : [])
+                                .accessibilityIdentifier("club.rolePicker.member.\(member.id)")
                         }
-                        Button("action.cancel") { expanded = nil }.accessibilityIdentifier("club.rolePicker.cancelMember")
+                        Button { expanded = nil } label: {
+                            Text("action.cancel").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
+                        }.accessibilityIdentifier("club.rolePicker.cancelMember")
                     } label: {
-                        LabeledContent("club.rolePicker.member") {
+                        VStack(alignment: .leading) {
+                            Text("club.rolePicker.member").font(.caption).foregroundStyle(.secondary)
                             if let selected = options.members.first(where: { String($0.id) == memberID }) { memberName(selected) }
                             else { Text("club.rolePicker.unselected") }
-                        }
+                        }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                            .fixedSize(horizontal: false, vertical: true).accessibilityElement(children: .combine)
                     }.accessibilityIdentifier("club.rolePicker.openMembers")
                     DisclosureGroup(isExpanded: Binding(get: { expanded == .role }, set: { expanded = $0 ? .role : nil })) {
                         ForEach(options.roles) { role in
@@ -141,28 +148,36 @@ import SwiftUI
                             } label: {
                                 VStack(alignment: .leading, spacing: 4) {
                                     HStack {
-                                        Text(verbatim: role.name)
+                                        Text(verbatim: role.name).fixedSize(horizontal: false, vertical: true)
                                         Spacer()
-                                        if roleCode == role.code { Image(systemName: "checkmark").accessibilityLabel("club.rolePicker.selected") }
+                                        if roleCode == role.code { Image(systemName: "checkmark").accessibilityHidden(true) }
                                     }
                                     Text(LocalizedStringKey(role.summaryKey)).font(.footnote).foregroundStyle(.secondary)
-                                }.contentShape(Rectangle())
-                            }.accessibilityIdentifier("club.rolePicker.role.\(role.code)")
+                                }.frame(minHeight: 44).contentShape(Rectangle())
+                            }.accessibilityAddTraits(roleCode == role.code ? .isSelected : [])
+                                .accessibilityIdentifier("club.rolePicker.role.\(role.code)")
                         }
-                        Button("action.cancel") { expanded = nil }.accessibilityIdentifier("club.rolePicker.cancelRole")
+                        Button { expanded = nil } label: {
+                            Text("action.cancel").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
+                        }.accessibilityIdentifier("club.rolePicker.cancelRole")
                     } label: {
-                        LabeledContent("club.rolePicker.role") {
-                            if let selected = options.roles.first(where: { $0.code == roleCode }) { Text(verbatim: selected.name) }
+                        VStack(alignment: .leading) {
+                            Text("club.rolePicker.role").font(.caption).foregroundStyle(.secondary)
+                            if let selected = options.roles.first(where: { $0.code == roleCode }) { Text(verbatim: selected.name).font(.headline) }
                             else { Text("club.rolePicker.unselected") }
-                        }
+                        }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                            .fixedSize(horizontal: false, vertical: true).accessibilityElement(children: .combine)
                     }.accessibilityIdentifier("club.rolePicker.openRoles")
                 }
             }
             if model.failure != .forbidden {
-                Button(LocalizedStringKey(model.failure == nil ? "club.gov.refresh" : "action.retry")) {
+                Button {
                     guard canEdit(), let permit else { return }
                     expanded = nil
                     Task { await model.load(permit, access: access) }
+                } label: {
+                    Text(LocalizedStringKey(model.failure == nil ? "club.gov.refresh" : "action.retry"))
+                        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
                 }.disabled(model.loading || permit == nil).accessibilityIdentifier("club.rolePicker.reload")
             }
         }
@@ -171,7 +186,7 @@ import SwiftUI
     }
     private func memberName(_ member: ClubRoleAssignableMember) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            if let name = member.nickname { Text(verbatim: name) }
+            if let name = member.nickname { Text(verbatim: name).fixedSize(horizontal: false, vertical: true) }
             Text("club.memberNumber \(member.id)").font(.caption).foregroundStyle(.secondary)
         }
     }

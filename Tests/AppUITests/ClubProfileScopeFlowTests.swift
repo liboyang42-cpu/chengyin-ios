@@ -123,4 +123,42 @@ final class ClubProfileScopeFlowTests: XCTestCase {
         }
         tap("club.ops.cancelReview"); count(0)
     }
+
+    // Capture the real owned sheets through the registered offline operations host.
+    // Each method launches independently and never presses Apply or Confirm.
+    func testCaptureCL02TypeChoiceSheetWithoutApplying() {
+        launch(); tap("club.ops.openManage"); count(0)
+        tap("club.profileChoice.open.type")
+        let apply = element("club.profileChoice.apply")
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in apply.exists && apply.isHittable }, object: app)
+        guard XCTWaiter.wait(for: [ready], timeout: 5) == .completed else {
+            XCTFail("CL02 type editor did not present. " + app.debugDescription); return
+        }
+        attachFixtureScreenshot(self, app: app, name: "CL02 type choice sheet current fixture selection")
+    }
+    func testCaptureCL02DirectionsSheetWithoutApplying() {
+        launch(); tap("club.ops.openManage"); count(0)
+        tap("club.profileChoice.open.directions")
+        let apply = element("club.profileChoice.apply")
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in apply.exists && apply.isHittable }, object: app)
+        guard XCTWaiter.wait(for: [ready], timeout: 5) == .completed else {
+            XCTFail("CL02 directions editor did not present. " + app.debugDescription); return
+        }
+        XCTAssertTrue(app.switches.firstMatch.exists, app.debugDescription)
+        attachFixtureScreenshot(self, app: app, name: "CL02 directions sheet current fixture selection")
+    }
+    func testCaptureCL02ProfileReviewWithoutSubmitting() {
+        launch(); tap("club.ops.openManage"); count(0)
+        let name = element("club.ops.field.name")
+        XCTAssertTrue(name.waitForExistence(timeout: 5)); name.tap(); name.typeText(" edited")
+        tap("club.ops.reviewProfile")
+        let review = element("club.ops.reviewSheet")
+        guard review.waitForExistence(timeout: 5), revealFixtureElement(review, in: app) else {
+            XCTFail("CL02 profile review did not present. " + app.debugDescription); return
+        }
+        let edited = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", " edited")).firstMatch
+        XCTAssertTrue(edited.waitForExistence(timeout: 5), app.debugDescription)
+        attachFixtureScreenshot(self, app: app, name: "CL02 profile review target and edited display values before confirm")
+        tap("club.ops.cancelReview"); count(0)
+    }
 }

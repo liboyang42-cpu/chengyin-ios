@@ -12,7 +12,10 @@ struct ClubOperationsReviewView: View {
             Section {
                 Text("club.ops.reviewTarget").font(.headline).accessibilityIdentifier("club.ops.reviewSheet")
                 if let club = review.snapshot.profile?.club {
-                    LabeledContent("club.ops.club") { Text(verbatim: "\(club.name) (#\(club.id))") }
+                    VStack(alignment: .leading) {
+                        Text("club.ops.club").font(.caption).foregroundStyle(.secondary)
+                        Text(verbatim: "\(club.name) (#\(club.id))").fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+                    }.accessibilityElement(children: .combine)
                 } else { Text("club.ops.newClub") }
                 if let account = review.identity.accountID {
                     LabeledContent("club.ops.account") { Text(verbatim: "#\(account)") }
@@ -22,7 +25,10 @@ struct ClubOperationsReviewView: View {
             Section {
                 Text(LocalizedStringKey(canSubmit ? (isExample ? "club.ops.fixtureOnly" : "club.ops.confirmLiveHint") : "club.ops.writeGated"))
                 if canSubmit {
-                    Button(LocalizedStringKey(isExample ? "club.ops.confirmFixture" : "club.ops.confirmLive")) { submitted = true; onConfirm() }
+                    Button { submitted = true; onConfirm() } label: {
+                        Text(LocalizedStringKey(isExample ? "club.ops.confirmFixture" : "club.ops.confirmLive"))
+                            .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
+                    }
                         .disabled(submitted).accessibilityIdentifier("club.ops.confirm")
                 }
             }
@@ -47,7 +53,10 @@ struct ClubOperationsReviewView: View {
         case .memberRole(let id, let admin, _):
             Section("club.ops.memberRoles") {
                 let name = review.snapshot.members.first { $0.id == id }?.trimmedNickname ?? "#\(id)"
-                LabeledContent("club.ops.member") { Text(verbatim: "\(name) (#\(id))") }
+                VStack(alignment: .leading) {
+                    Text("club.ops.member").font(.caption).foregroundStyle(.secondary)
+                    Text(verbatim: "\(name) (#\(id))").fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+                }.accessibilityElement(children: .combine)
                 Text(admin ? "club.ops.makeAdmin" : "club.ops.removeAdmin")
                 Text("club.ops.roleConsequences")
             }
@@ -77,6 +86,10 @@ struct ClubOperationsReviewView: View {
         else { Text(verbatim: value) }
     }
     private func row(_ key: String, _ value: String) -> some View {
-        LabeledContent(LocalizedStringKey("club.ops." + key)) { Text(verbatim: value.trimmingCharacters(in: .whitespacesAndNewlines)).textSelection(.enabled) }
+        VStack(alignment: .leading) {
+            Text(LocalizedStringKey("club.ops." + key)).font(.caption).foregroundStyle(.secondary)
+            Text(verbatim: value.trimmingCharacters(in: .whitespacesAndNewlines))
+                .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+        }.accessibilityElement(children: .combine)
     }
 }

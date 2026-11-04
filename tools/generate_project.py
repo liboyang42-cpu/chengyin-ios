@@ -6,7 +6,7 @@ def ident(name): return hashlib.sha256(name.encode()).hexdigest()[:24].upper()
 objects = {}
 def obj(object_key, **fields):
     key = ident(object_key); objects[key] = fields; return key
-sources = sorted([*ROOT.glob('App/*.swift'), *ROOT.glob('App/*.m'), *ROOT.glob('Core/*.swift')])
+sources = sorted([*ROOT.glob('App/*.swift'), *ROOT.glob('App/Theme/*.swift'), *ROOT.glob('App/*.m'), *ROOT.glob('Core/*.swift')])
 ui_source_paths = sorted(ROOT.glob('Tests/AppUITests/*.swift'))
 unit_source_paths = sorted(ROOT.glob('Tests/AppUnitTests/**/*.swift'))
 

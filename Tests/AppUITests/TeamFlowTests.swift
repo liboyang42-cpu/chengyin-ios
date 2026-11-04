@@ -150,6 +150,17 @@ final class TeamFlowTests: XCTestCase {
     }
     func testCreatePrivateTeamReviewCancelPreservesForm() {
         launch(destination: "create")
+        func captureCreationTitle(_ name: String) -> Bool {
+            let title = app.staticTexts["Synthetic harbor activity"]
+            guard title.waitForExistence(timeout: 5),
+                  revealFixtureElement(title, in: app, towardTop: true, requiresHittable: false) else {
+                attachFixtureScreenshot(self, app: app, name: "G05 create title missing or clipped")
+                XCTFail(app.debugDescription); return false
+            }
+            attachFixtureScreenshot(self, app: app, name: name)
+            return true
+        }
+        guard captureCreationTitle("G05 create activity title initial") else { return }
         let toggle = app.switches["team.create.inviteOnly"]; reveal(toggle)
         let nativeSwitch = toggle.switches.firstMatch
         if nativeSwitch.exists { nativeSwitch.tap() }
@@ -174,14 +185,17 @@ final class TeamFlowTests: XCTestCase {
         let cancel = app.buttons["team.review.cancel"]
         XCTAssertTrue(revealFixtureElement(cancel, in: app), app.debugDescription)
         XCTAssertTrue(cancel.isEnabled, app.debugDescription); XCTAssertTrue(cancel.isHittable, app.debugDescription)
+        attachFixtureScreenshot(self, app: app, name: "G05 create review first presentation")
         cancel.tap()
         let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: reviewBar)
         XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed, app.debugDescription)
         XCTAssertEqual(toggle.value as? String, "1")
+        guard captureCreationTitle("G05 create activity title after cancel") else { return }
         guard openCreationReview() else { return }
         let confirm = app.buttons["team.review.confirm"]
         XCTAssertTrue(revealFixtureElement(confirm, in: app), app.debugDescription)
         XCTAssertTrue(confirm.isEnabled, app.debugDescription); XCTAssertTrue(confirm.isHittable, app.debugDescription)
+        attachFixtureScreenshot(self, app: app, name: "G05 create review reopened")
         confirm.tap()
         assertSimulationCompleted()
     }

@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "status": "READY",
+  "base_public_sha": "ab2d3905ec0b0fb17b58ba6b53ec433d83164701",
+  "owners": [
+    {
+      "owner": "G05",
+      "status": "READY",
+      "source_blobs": {
+        "Tests/AppUITests/TeamFlowTests.swift": "af1d2d5da9066800b2aa1a759191a82e5b894f75"
+      },
+      "capture_patch_sha256": "8ec51a4d62f1dda4c4c2b9f599ed667de97e2de69c8d613239914e12ab3cb479",
+      "methods": [
+        {
+          "method": "QuestifyUITests/TeamFlowTests/testCreatePrivateTeamReviewCancelPreservesForm",
+          "attachments": [
+            {
+              "name": "G05 create activity title initial – synthetic fixture",
+              "count": 1
+            },
+            {
+              "name": "Team create review target before one tap – synthetic fixture",
+              "count": 2
+            },
+            {
+              "name": "G05 create review first presentation – synthetic fixture",
+              "count": 1
+            },
+            {
+              "name": "G05 create activity title after cancel – synthetic fixture",
+              "count": 1
+            },
+            {
+              "name": "G05 create review reopened – synthetic fixture",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "owner": "M04",
+      "status": "READY",
+      "source_blobs": {
+        "Tests/AppUITests/MerchantRegistrationAvailabilityFlowTests.swift": "7dafd0901d16f30a5d1cd0750078b6e2c6c0c1fb",
+        "App/MerchantContentFixtureScenarioView.swift": "316a4b1e03326d79551af4ab6c4dae3addec2143"
+      },
+      "capture_patch_sha256": "da230c589c5296234e9b5daa7e7e1b607aaabbdab08820a0697c47c300a2b3f1",
+      "methods": [
+        {
+          "method": "QuestifyUITests/MerchantRegistrationAvailabilityFlowTests/testCancelAndRestorePreserveOriginalUnrecognizedSource",
+          "attachments": [
+            {
+              "name": "M04 offline merchant availability source – synthetic fixture",
+              "count": 1
+            },
+            {
+              "name": "M04 offline merchant availability dates – synthetic fixture",
+              "count": 1
+            },
+            {
+              "name": "M04 offline merchant availability hours – synthetic fixture",
+              "count": 1
+            },
+            {
+              "name": "M04 offline merchant availability pending draft – synthetic fixture",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "owner": "CL02",
+      "status": "READY",
+      "source_blobs": {
+        "Tests/AppUITests/ClubProfileScopeFlowTests.swift": "baba504ee90500b55d7a7a226c938435f4facea5",
+        "Tests/AppUITests/ClubGovernanceFlowTests.swift": "a37b9895cadb9fe980d85d2f4c4e84a3f657c87e"
+      },
+      "capture_patch_sha256": "7de91e6e1ebd28ac1d0c364ddf30216a08f8ef6e19ebd81a6e25a8ff2ee82db6",
+      "methods": [
+        {
+          "method": "QuestifyUITests/ClubProfileScopeFlowTests/testCaptureCL02TypeChoiceSheetWithoutApplying",
+          "attachments": [
+            {
+              "name": "CL02 type choice sheet current fixture selection – synthetic fixture",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "method": "QuestifyUITests/ClubProfileScopeFlowTests/testCaptureCL02DirectionsSheetWithoutApplying",
+          "attachments": [
+            {
+              "name": "CL02 directions sheet current fixture selection – synthetic fixture",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "method": "QuestifyUITests/ClubProfileScopeFlowTests/testCaptureCL02ProfileReviewWithoutSubmitting",
+          "attachments": [
+            {
+              "name": "CL02 profile review target and edited display values before confirm – synthetic fixture",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "method": "QuestifyUITests/ClubGovernanceFlowTests/testCaptureCL02RolePickerWithoutPreparing",
+          "attachments": [
+            {
+              "name": "CL02 role picker current collapsed values – synthetic fixture",
+              "count": 1
+            },
+            {
+              "name": "CL02 role picker expanded existing member options – synthetic fixture",
+              "count": 1
+            },
+            {
+              "name": "CL02 role picker expanded existing event role options – synthetic fixture",
+              "count": 1
+            },
+            {
+              "name": "CL02 role picker staged selection viewport before review – synthetic fixture",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "common_source_blobs": {
+    "Tests/AppUITests/FailureScreenshot.swift": "3b97ffdc0457cb312814ff2d90388b779881aed6",
+    "Questify.xcodeproj/xcshareddata/xcschemes/Questify.xcscheme": "d3ea23cfd60c38791f30ed9880c55fa032388a2b"
+  }
+}

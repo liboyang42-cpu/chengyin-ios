@@ -156,4 +156,38 @@ final class ClubGovernanceFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["club.gov.confirm"].exists)
         attachFixtureScreenshot(self, app: app, name: "Club notification rejects missing content")
     }
+
+    // Existing synthetic role/member reads only; never prepare or confirm an assignment.
+    func testCaptureCL02RolePickerWithoutPreparing() {
+        let app = launch()
+        guard app.staticTexts["club.gov.synthetic"].waitForExistence(timeout: 5) else {
+            XCTFail("Registered synthetic governance host did not mount. " + app.debugDescription); return
+        }
+        guard open("roles", app: app) else { return }
+        tap("club.gov.action.assignRole", app: app)
+        let members = app.buttons["club.rolePicker.openMembers"]
+        let roles = app.buttons["club.rolePicker.openRoles"]
+        guard members.waitForExistence(timeout: 5), roles.waitForExistence(timeout: 5) else {
+            XCTFail("CL02 assignment picker has no accepted fixture options. " + app.debugDescription); return
+        }
+        reveal(members, app: app)
+        attachFixtureScreenshot(self, app: app, name: "CL02 role picker current collapsed values")
+        tap("club.rolePicker.openMembers", app: app)
+        let member = app.buttons["club.rolePicker.member.704"]
+        guard member.waitForExistence(timeout: 5), revealFixtureElement(member, in: app), member.isEnabled else {
+            XCTFail("Existing synthetic member 704 is unavailable. " + app.debugDescription); return
+        }
+        attachFixtureScreenshot(self, app: app, name: "CL02 role picker expanded existing member options")
+        member.tap()
+        tap("club.rolePicker.openRoles", app: app)
+        let role = app.buttons["club.rolePicker.role.EVENT_CHECKIN"]
+        guard role.waitForExistence(timeout: 5), revealFixtureElement(role, in: app), role.isEnabled else {
+            XCTFail("Existing synthetic event role is unavailable. " + app.debugDescription); return
+        }
+        attachFixtureScreenshot(self, app: app, name: "CL02 role picker expanded existing event role options")
+        role.tap()
+        reveal(members, app: app)
+        XCTAssertFalse(app.buttons["club.gov.confirm"].exists, app.debugDescription)
+        attachFixtureScreenshot(self, app: app, name: "CL02 role picker staged selection viewport before review")
+    }
 }

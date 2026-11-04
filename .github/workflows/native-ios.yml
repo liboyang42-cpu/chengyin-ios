@@ -1,21 +1,27 @@
 name: Current native checks
 on:
   push:
-    branches: [main, integration/wave2-20261019, codex/ios-main-integration-20261101]
+    branches: [main, integration/wave2-20261019, codex/ios-main-integration-20261101, screenshot/codex-ui-20261103]
   workflow_dispatch:
     inputs:
       mode:
         description: Current related groups and smoke, or full current regression
         type: choice
-        options: [related, full]
+        options: [related, full, screenshot-pilot]
         default: related
+      pilot_sha:
+        description: Exact reviewed source and workflow SHA for the bounded owner capture pilot only
+        required: false
+        type: string
+        default: ""
 permissions:
   contents: read
 concurrency:
   group: native-current-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref_name != 'screenshot/codex-ui-20261103' }}
 jobs:
   controls:
+    if: ${{ inputs.mode != 'screenshot-pilot' && github.ref_name != 'screenshot/codex-ui-20261103' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     outputs:
@@ -63,6 +69,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
   secrets:
+    if: ${{ inputs.mode != 'screenshot-pilot' && github.ref_name != 'screenshot/codex-ui-20261103' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -107,6 +114,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 1
   native:
+    if: ${{ inputs.mode != 'screenshot-pilot' && github.ref_name != 'screenshot/codex-ui-20261103' }}
     needs: [controls]
     runs-on: macos-26
     timeout-minutes: 45
@@ -146,6 +154,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
   ui_build:
+    if: ${{ inputs.mode != 'screenshot-pilot' && github.ref_name != 'screenshot/codex-ui-20261103' }}
     needs: [controls]
     outputs:
       ui_build_artifact: ${{ steps.ui_build_upload.outputs.artifact-id }}
@@ -203,7 +212,7 @@ jobs:
           retention-days: 1
   ui:
     needs: [controls, ui_build]
-    if: ${{ always() && needs.controls.result == 'success' && needs.ui_build.result == 'success' && needs.ui_build.outputs.ui_build_artifact != '' }}
+    if: ${{ always() && inputs.mode != 'screenshot-pilot' && github.ref_name != 'screenshot/codex-ui-20261103' && needs.controls.result == 'success' && needs.ui_build.result == 'success' && needs.ui_build.outputs.ui_build_artifact != '' }}
     runs-on: macos-26
     timeout-minutes: 45
     strategy:
@@ -265,7 +274,7 @@ jobs:
           retention-days: 1
   platforms:
     needs: [controls, ui_build]
-    if: ${{ needs.controls.result == 'success' && needs.controls.outputs.scope == 'full-current-regression' && needs.ui_build.result == 'success' && needs.ui_build.outputs.ui_build_artifact != '' }}
+    if: ${{ inputs.mode != 'screenshot-pilot' && github.ref_name != 'screenshot/codex-ui-20261103' && needs.controls.result == 'success' && needs.controls.outputs.scope == 'full-current-regression' && needs.ui_build.result == 'success' && needs.ui_build.outputs.ui_build_artifact != '' }}
     runs-on: macos-26
     timeout-minutes: ${{ matrix.minutes }}
     strategy:
@@ -327,7 +336,7 @@ jobs:
         run: python3 -B tools/current_ci.py check && git diff --exit-code
   current-checks:
     needs: [controls, secrets, native, ui_build, ui, platforms]
-    if: always()
+    if: ${{ always() && inputs.mode != 'screenshot-pilot' && github.ref_name != 'screenshot/codex-ui-20261103' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     env:
@@ -349,3 +358,54 @@ jobs:
           merge-multiple: false
       - name: Reparse actual results and require the complete selected union
         run: python3 -B tools/current_native.py aggregate --plan "$RUNNER_TEMP/current-plan/plan.json" --artifacts "$RUNNER_TEMP/current-results" --output "$RUNNER_TEMP/current-receipt.json"
+  screenshot_pilot:
+    if: >-
+      ${{ github.repository == 'liboyang42-cpu/chengyin-ios' &&
+          github.ref == 'refs/heads/screenshot/codex-ui-20261103' &&
+          github.event.repository.private == false && github.run_attempt == '1' &&
+          ((github.event_name == 'workflow_dispatch' && inputs.mode == 'screenshot-pilot') ||
+           (github.event_name == 'push' && github.event.created == false &&
+            github.event.deleted == false && github.event.forced == false &&
+            github.event.before == 'ab2d3905ec0b0fb17b58ba6b53ec433d83164701' &&
+            github.event.after == github.sha && github.event.head_commit.id == github.sha &&
+            github.event.head_commit.message == 'UI-PILOT-ONCE: 20261103-g05-m04-cl02')) }}
+    runs-on: macos-26
+    timeout-minutes: 35
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      PILOT_EXPECTED_SHA: ${{ github.event_name == 'push' && github.event.after || inputs.pilot_sha }}
+      PILOT_MODE: ${{ inputs.mode }}
+      PILOT_PUSH_REF: ${{ github.event.ref }}
+      PILOT_PUSH_CREATED: ${{ github.event.created }}
+      PILOT_PUSH_DELETED: ${{ github.event.deleted }}
+      PILOT_PUSH_FORCED: ${{ github.event.forced }}
+      PILOT_PUSH_BEFORE: ${{ github.event.before }}
+      PILOT_PUSH_AFTER: ${{ github.event.after }}
+      PILOT_PUSH_HEAD_SHA: ${{ github.event.head_commit.id }}
+      PILOT_PUSH_HEAD_MESSAGE: ${{ github.event.head_commit.message }}
+      PILOT_REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
+    steps:
+      - name: Record pilot job-entry clock
+        run: python3 -c 'import os,time,pathlib; pathlib.Path(os.environ["RUNNER_TEMP"],"pilot-start").write_text(str(time.monotonic()))'
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Validate the bounded pilot controls
+        run: python3 -B -m unittest -v tools.tests.test_current_ui_pilot
+      - name: Build once and capture the exact owner fixture manifest
+        run: python3 -B tools/current_ui_pilot.py --expected-sha "$PILOT_EXPECTED_SHA" --start-file "$RUNNER_TEMP/pilot-start" --output "$RUNNER_TEMP/current-ui-pilot"
+      - name: Preserve original pilot images and source-bound results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: screenshot-pilot-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/current-ui-pilot/pilot-manifest.json
+            ${{ runner.temp }}/current-ui-pilot/pilot-manifest.sha256
+            ${{ runner.temp }}/current-ui-pilot/images/*.png
+            ${{ runner.temp }}/current-ui-pilot/export-*/manifest.json
+            ${{ runner.temp }}/current-ui-pilot/*.stdout
+            ${{ runner.temp }}/current-ui-pilot/pilot.xcresult.tar.gz
+          if-no-files-found: error
+          retention-days: 1

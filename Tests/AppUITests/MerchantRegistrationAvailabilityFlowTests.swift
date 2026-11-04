@@ -45,12 +45,25 @@ final class MerchantRegistrationAvailabilityFlowTests: XCTestCase {
         return app
     }
     func testCancelAndRestorePreserveOriginalUnrecognizedSource() {
-        let app = open(); tap("merchant.registrationAvailability.open", app)
+        let app = open()
+        let context = app.staticTexts["merchant.content.fixture.context"]
+        XCTAssertTrue(context.waitForExistence(timeout: 4))
+        XCTAssertEqual(context.value as? String, "merchant:light")
+        attachFixtureScreenshot(self, app: app, name: "M04 offline merchant availability source")
+        tap("merchant.registrationAvailability.open", app)
+        let startDay = app.descendants(matching: .any)["merchant.registrationAvailability.startDay"].firstMatch
+        XCTAssertTrue(startDay.waitForExistence(timeout: 4))
+        XCTAssertTrue(revealFixtureElement(startDay, in: app, requiresHittable: false))
+        attachFixtureScreenshot(self, app: app, name: "M04 offline merchant availability dates")
+        let endMinute = app.descendants(matching: .any)["merchant.registrationAvailability.endMinute"].firstMatch
+        XCTAssertTrue(revealFixtureElement(endMinute, in: app, requiresHittable: false))
+        attachFixtureScreenshot(self, app: app, name: "M04 offline merchant availability hours")
         XCTAssertTrue(app.buttons["merchant.registrationAvailability.apply"].waitForExistence(timeout: 4))
         tap("merchant.registrationAvailability.cancel", app)
         XCTAssertFalse(app.buttons["merchant.registrationAvailability.restore"].exists)
         tap("merchant.registrationAvailability.open", app); tap("merchant.registrationAvailability.apply", app)
         XCTAssertTrue(revealFixtureElement(app.descendants(matching: .any)["merchant.registrationAvailability.newDaily"].firstMatch, in: app, requiresHittable: false))
+        attachFixtureScreenshot(self, app: app, name: "M04 offline merchant availability pending draft")
         tap("merchant.registrationAvailability.restore", app)
         XCTAssertFalse(app.buttons["merchant.registrationAvailability.restore"].exists)
         // Restore was reached below the source rows; reveal the actual source value above it.
