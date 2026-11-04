@@ -20,19 +20,27 @@ public struct NativeChannelMessageContextPage: Decodable {
               anchor_id==requested,anchor.id==requested,anchor.status==0,
               older.list.count<=20,newer.list.count<=20,Set(rows.map(\.id)).count==rows.count,
               rows.allSatisfy({$0.conversationID==binding.conversationID}),
-              [older.next_cursor,newer.next_cursor,newer.next_after].compactMap({$0}).allSatisfy(NativeChannelMessageCursor.valid) else { throw APIError.malformedResponse }
+              [older.next_cursor,older.next_after,newer.next_cursor,newer.next_after].compactMap({$0}).allSatisfy(NativeChannelMessageCursor.valid),
+              !older.has_more || navigable(older.next_cursor,from:requested),
+              !newer.has_more || navigable(newer.next_after,from:requested) else { throw APIError.malformedResponse }
+    }
+    private func navigable(_ cursor:String?,from anchor:NativeChannelMessageID)->Bool {
+        guard let cursor,let id=NativeChannelMessageID(rawValue:cursor) else{return false}
+        return id != anchor
     }
 }
 @MainActor @Observable public final class NativeChannelMessageContext {
-    public private(set) var page:NativeChannelMessageContextPage?
+    private var currentPage:NativeChannelMessageContextPage?
+    public var page:NativeChannelMessageContextPage? {isCurrent ? currentPage:nil}
     public private(set) var selected:NativeChannelMessageID
     public private(set) var loading=false
     public private(set) var failed=false
     private let client:any NativeChannelMessageAccess
     private let expected:MessagingReadIdentity?
+    private let expectedBinding:NativeChannelMessageBinding
     private var generation=0
-    public init(client:any NativeChannelMessageAccess,selected:NativeChannelMessageID){self.client=client;self.selected=selected;expected=client.identity}
-    public var isCurrent:Bool {expected != nil && client.identity==expected && client.allows(.context)}
+    public init(client:any NativeChannelMessageAccess,selected:NativeChannelMessageID){self.client=client;self.selected=selected;expected=client.identity;expectedBinding=client.binding}
+    public var isCurrent:Bool {expected != nil && client.identity==expected && client.binding==expectedBinding && client.allows(.context)}
     public func containsCurrent(_ snapshot:NativeChannelMessageSnapshot)->Bool {
         guard isCurrent,let page else{return false}
         return (page.older.list+[page.anchor]+page.newer.list).contains(snapshot)
@@ -53,16 +61,19 @@ public struct NativeChannelMessageContextPage: Decodable {
     private func readOriginal(replacing:Bool) async {
         guard !Task.isCancelled else{return}
         generation+=1;let run=generation;let target=selected
-        if replacing {page=nil};failed=false;loading=true
-        defer{if generation==run{loading=false}}
-        guard isCurrent else {page=nil;loading=false;return}
+        if replacing {currentPage=nil};failed=false;loading=true
+        defer{if generation==run{
+            loading=false
+            if !isCurrent || Task.isCancelled {currentPage=nil}
+        }}
+        guard isCurrent else {currentPage=nil;return}
         do {
             let result=try await client.context(messageID:target)
             guard generation==run,isCurrent,!Task.isCancelled else{return}
-            try result.verify(binding:client.binding,anchor:target);page=result
-        }catch{if generation==run {page=nil;failed=true}}
+            try result.verify(binding:expectedBinding,anchor:target);currentPage=result
+        }catch{if generation==run {currentPage=nil;failed=isCurrent && !Task.isCancelled}}
     }
-    public func retire(){generation+=1;page=nil;loading=false;failed=false}
+    public func retire(){generation+=1;currentPage=nil;loading=false;failed=false}
 }
 
 /// An independent current-source observation AFTER the original same-UUID receipt.
@@ -91,11 +102,11 @@ public struct NativeChannelMessageEditRecallObservation: Equatable {
     public var observation: NativeChannelMessageEditRecallObservation? {
         guard sameIdentity, client.allows(.receipt), let value else { return nil }
         // Revocation must hide even the previously observed version immediately.
-        return client.allows(.context) ? value : observation(state: .accessClosed)
+        return canRefresh ? value : observation(state: .accessClosed)
     }
     public var canRefresh: Bool {
         sameIdentity && client.allows(.receipt) && client.allows(.context)
-            && value != nil && binding?.sameTarget(as: client.binding) == true
+            && value != nil && binding == client.binding
     }
 
     /// Called only by the existing coordinator after it verifies and settles its original journal.
