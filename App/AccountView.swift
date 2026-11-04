@@ -128,7 +128,7 @@ import SwiftUI
                     Button { showsCooperation=true } label: { Label("cooperation.title",systemImage:"person.2") }
                         .accessibilityIdentifier("account.cooperation")
                     NavigationLink { SessionMerchantOverviewView(session: session) } label: {
-                        Label(locale.language.languageCode?.identifier == "zh" ? "商家只读概览" : "Merchant overview (read-only)", systemImage: "chart.bar.doc.horizontal")
+                        Label("account.merchantOverview.title", systemImage: "chart.bar.doc.horizontal")
                     }.accessibilityIdentifier("account.merchantOverview")
                     NavigationLink { SessionMerchantProjectBrowseView(session: session) } label: {
                         Label("merchant.projects", systemImage: "calendar")
