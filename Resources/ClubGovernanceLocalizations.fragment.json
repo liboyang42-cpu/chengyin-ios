@@ -1299,13 +1299,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A campaign receipt does not mean every message was delivered"
+            "value": "Sent does not mean every message was delivered"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "任务回执不代表每条通知均已送达"
+            "value": "已发送不代表每条通知均已送达"
           }
         }
       }
