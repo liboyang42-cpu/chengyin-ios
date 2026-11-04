@@ -5,6 +5,7 @@ import SwiftUI
 struct ProfileAccountLinks: View {
     let reader: any ProfileReading
     var ordersDestination: (@MainActor () -> AnyView)? = nil
+    var participantReader: (any ProfileReading)? = nil
     var participantCoordinator: ParticipantMutationCoordinator? = nil
     var orderLifecycleCoordinator: OrderLifecycleCoordinator? = nil
     var mediaScope: UUID = UUID()
@@ -17,7 +18,7 @@ struct ProfileAccountLinks: View {
             } label: {
                 Label("profile.orders.title", systemImage: "list.bullet.rectangle")
             }.accessibilityIdentifier("profile.open.orders")
-            NavigationLink { ProfileParticipantsView(reader:reader,coordinator:participantCoordinator) } label: {
+            NavigationLink { ProfileParticipantsView(reader:participantReader ?? reader,coordinator:participantCoordinator) } label: {
                 Label("profile.participants.title", systemImage: "person.2")
             }.accessibilityIdentifier("profile.open.participants")
             NavigationLink { ObjectBadgeWallView(reader: reader) } label: {

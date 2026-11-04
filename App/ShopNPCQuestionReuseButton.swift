@@ -36,7 +36,7 @@ import SwiftUI
             if let text = model.select(messageID: messageID, draft: draft, enabled: enabled) { draft = text }
             else { showReplacement = model.pending != nil }
         }
-        .buttonStyle(.bordered).frame(minHeight: 44)
+        .buttonStyle(.bordered).controlSize(.large).frame(minHeight: 44)
         .disabled(!enabled || !coordinator.canReuseQuestion(messageID: messageID))
         .accessibilityHint("shopNPCQuestionReuse.localOnly")
         .accessibilityIdentifier("shopNPCQuestionReuse.edit." + messageID.uuidString)

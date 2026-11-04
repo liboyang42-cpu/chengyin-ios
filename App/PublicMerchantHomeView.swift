@@ -6,6 +6,8 @@ import SwiftUI
     var publicReviews: ((PublicMerchantReviewTarget) -> AnyView)?
     var featured: PublicMerchantFeaturedContext?
     var ownerProfile: PublicMerchantOwnerProfileContext?
+    var gamePlayerDestination: ((PublicMerchantRowID, AnyView?) -> AnyView)?
+    var gameFactsDestination: ((PublicMerchantRowID) -> AnyView)?
     var shopNpcChat = false
     // Correct future consumer: MerchantNpcApi /api/ai/npc/merchant-chat with merchant row ID.
     // Never route this public merchant card into play-node ShopNpc /shop-chat.
@@ -26,6 +28,14 @@ import SwiftUI
     @State private var snapshotID = UUID()
     @State private var featuredSelection: PublicMerchantFeaturedSelection?
     @State private var ownerSelection: PublicMerchantOwnerProfileSelection?
+    @State private var gameFactsSelection: MerchantGameFactsSelection?
+    private var gameFactsBinding: Binding<MerchantGameFactsSelection?> {
+        let captured = gameFactsSelection?.id
+        return Binding(get: { gameFactsSelection }, set: { next in
+            guard next == nil, let captured, gameFactsSelection?.id == captured else { return }
+            gameFactsSelection = nil
+        })
+    }
     private var ownerBinding: Binding<PublicMerchantOwnerProfileSelection?> {
         let captured = ownerSelection?.id
         return Binding(get: { ownerSelection }, set: { next in
@@ -58,7 +68,12 @@ import SwiftUI
                     .id(selection.id)
             } else { Text("merchant.publicHome.unavailable") }
         }
-        .onChange(of: key) { _, _ in featuredSelection = nil; ownerSelection = nil }
+        .navigationDestination(item: gameFactsBinding) { selection in
+            if isCurrentGameFacts(selection), let destination = context.gameFactsDestination {
+                destination(selection.row).id(selection.id)
+            } else { Text("merchant.publicHome.unavailable") }
+        }
+        .onChange(of: key) { _, _ in featuredSelection = nil; ownerSelection = nil; gameFactsSelection = nil }
         .onChange(of: context.featured?.scope) { _, _ in featuredSelection = nil }
         // Preserve the link backing a pushed reviews screen; key fencing still hides stale data.
         .onDisappear { generation += 1; loading = false }
@@ -97,6 +112,21 @@ import SwiftUI
         if let review = value.reviewTarget, let destination = context.publicReviews {
             NavigationLink { destination(review) } label: { Label("merchant.publicHome.reviews", systemImage: "star.bubble") }
                 .accessibilityIdentifier("merchant.publicHome.reviews")
+        }
+        // Original receipts remain reachable even if the current NPC card was removed.
+        if context.gameFactsDestination != nil, let target,
+           let selection = MerchantGameFactsSelection(home: value, target: target,
+               scope: context.reader.scope, snapshot: snapshotID), canOpenGameFacts(selection) {
+            Section {
+                Button {
+                    guard gameFactsSelection == nil, canOpenGameFacts(selection) else { return }
+                    gameFactsSelection = selection
+                } label: {
+                    Label {
+                        Text(verbatim: locale.identifier.hasPrefix("zh") ? "店内内容与原回复" : "Store content and original reply")
+                    } icon: { Image(systemName: "doc.text.magnifyingglass") }
+                }.accessibilityIdentifier("merchant.publicHome.gameFacts")
+            }
         }
         if value.hasNPCIdentity, let npc = value.npc {
             Section("merchant.publicHome.npc") {
@@ -148,6 +178,14 @@ import SwiftUI
         return selection.isCurrent(home: home, target: target, homeScope: context.reader.scope,
                                    destinationScope: destination.scope, snapshotID: snapshotID)
     }
+    private func isCurrentGameFacts(_ selection: MerchantGameFactsSelection) -> Bool {
+        gameFactsSelection?.id == selection.id && canOpenGameFacts(selection)
+    }
+    private func canOpenGameFacts(_ selection: MerchantGameFactsSelection) -> Bool {
+        guard !loading, failure == nil, loadedKey == key, context.reader.isConfigured,
+              context.gameFactsDestination != nil, let home, let target else { return false }
+        return selection.matches(home: home, target: target, scope: context.reader.scope, snapshot: snapshotID)
+    }
     private func isCurrentOwner(_ selection: PublicMerchantOwnerProfileSelection) -> Bool {
         ownerSelection?.id == selection.id && canOpenOwner(selection)
     }
@@ -170,7 +208,7 @@ import SwiftUI
         generation += 1
         let ticket = generation; let snapshot = key
         home = nil; failure = nil; loadedKey = nil; loading = true
-        snapshotID = UUID(); featuredSelection = nil; ownerSelection = nil
+        snapshotID = UUID(); featuredSelection = nil; ownerSelection = nil; gameFactsSelection = nil
         guard let target else { loading = false; failure = .invalid; loadedKey = snapshot; return }
         guard context.reader.isConfigured else { loading = false; failure = .notConfigured; loadedKey = snapshot; return }
         do {

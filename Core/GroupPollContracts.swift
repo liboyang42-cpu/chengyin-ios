@@ -12,6 +12,24 @@ public struct GroupPollReference: Equatable, Hashable {
     }
     public init?(message: MessagingMessage) {
         struct Card: Decodable { let pollId: Int }
+        // A server-owned type9 result points to the original type4 card, never to itself.
+        // Result GET still verifies the original creator/conversation/message tuple and current audience.
+        if message.isPayloadVisible, message.type == 9, message.senderID == 0 {
+            struct ResultCard: Decodable {
+                let source: String
+                let pollId: Int
+                let originalMessageId: Int
+                let creatorMemberId: Int
+            }
+            guard let raw = message.extraJSON?.data(using: .utf8), raw.count <= 2048,
+                  let card = try? JSONDecoder().decode(ResultCard.self, from: raw),
+                  card.source == "original-poll-result-v1", card.pollId > 0,
+                  card.originalMessageId > 0, card.originalMessageId != message.id,
+                  card.creatorMemberId > 0 else { return nil }
+            pollID = card.pollId; conversationID = message.conversationID
+            messageID = card.originalMessageId; creatorID = card.creatorMemberId
+            return
+        }
         guard message.isPayloadVisible, message.type == 4, let creator = message.senderID, creator > 0,
               let raw = message.extraJSON?.data(using: .utf8), raw.count <= 1024,
               let card = try? JSONDecoder().decode(Card.self, from: raw), card.pollId > 0 else { return nil }
@@ -30,7 +48,7 @@ public extension MessagingConversation {
         return String(id) == parts[1]
     }
 }
-public struct GroupPollDraft: Equatable, Encodable {
+public struct GroupPollDraft: Equatable, Codable {
     public let conversationId: Int
     public let clientPollKey: String
     public let question: String

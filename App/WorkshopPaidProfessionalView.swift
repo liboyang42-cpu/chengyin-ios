@@ -33,6 +33,7 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
     @Environment(\.workshopGeneratedTemplateReaderFactory) private var makeGeneratedTemplateReader
     @Environment(\.scenePhase) private var scenePhase
     @State private var ownedTask: Task<Void, Never>?
+    @State private var isVisible = false
     @State private var generatedDetail: WorkshopGeneratedDetailSelection?
     @State private var modeConfirmed = false
     @State private var cancelConfirmed = false
@@ -52,19 +53,23 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
                 if let issue = controller.issue {
                     Section { professionalText(issue == .disabled ? "notConfigured" : issue == .storageUnavailable || issue == .pendingConflict ? "storageBlocked" : "unavailable") }
                 }
-                switch controller.phase {
-                case .idle: EmptyView()
-                case .invalidated: professionalText("sessionChanged")
-                case .loading: ProgressView { professionalText("loading") }
-                case .submitting:
-                    ProgressView { professionalText("submitting") }
-                    professionalText("unknownNote")
-                case .history: history(displayed)
-                case .targets: targets(displayed)
-                case .review: review(displayed)
-                case .operation: operation(displayed)
-                case .unavailable:
-                    Button { schedule(controller.offerRecovery(displayed)) } label: { professionalText("retry") }
+                if scenePhase != .active {
+                    professionalText("loading")
+                } else {
+                    switch controller.phase {
+                    case .idle: EmptyView()
+                    case .invalidated: professionalText("sessionChanged")
+                    case .loading: ProgressView { professionalText("loading") }
+                    case .submitting:
+                        ProgressView { professionalText("submitting") }
+                        professionalText("unknownNote")
+                    case .history: history(displayed)
+                    case .targets: targets(displayed)
+                    case .review: review(displayed)
+                    case .operation: operation(displayed)
+                    case .unavailable:
+                        Button { schedule(controller.offerRecovery(displayed)) } label: { professionalText("retry") }
+                    }
                 }
             }
             .privacySensitive()
@@ -74,11 +79,16 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
                     .accessibilityIdentifier("workshopPaidProfessional.close")
             } }
         }
+        .disabled(scenePhase != .active)
         .sheet(item: generatedPresentation) { selection in
             WorkshopGeneratedDetailSheet(selection: selection, controller: controller, appearance: displayed)
         }
         .onChange(of: scenePhase) { _, phase in
-            if phase != .active { generatedDetail?.retire(); generatedDetail = nil }
+            if phase != .active {
+                generatedDetail?.retire(); generatedDetail = nil
+                modeConfirmed = false; cancelConfirmed = false
+                controller.suspend(displayed); ownedTask?.cancel(); ownedTask = nil
+            } else if isVisible { schedule(controller.resume(displayed)) }
         }
         .onChange(of: controller.generatedDetailRevision) { _, _ in
             generatedDetail?.retire(); generatedDetail = nil
@@ -89,8 +99,13 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
         .onChange(of: controller.phase) { _, phase in
             if phase != .operation { generatedDetail?.retire(); generatedDetail = nil }
         }
-        .onAppear { schedule(controller.appear(displayed)) }
-        .onDisappear { generatedDetail?.retire(); generatedDetail = nil; controller.close(displayed); ownedTask?.cancel() }
+        .onAppear {
+            isVisible = true
+            let action = controller.appear(displayed)
+            if scenePhase == .active { schedule(action) }
+            else { controller.suspend(displayed) }
+        }
+        .onDisappear { isVisible = false; generatedDetail?.retire(); generatedDetail = nil; controller.close(displayed); ownedTask?.cancel() }
         .onChange(of: controller.selectedTarget?.ownerModeFingerprint) { _, _ in modeConfirmed = false }
         .onChange(of: controller.command?.requestId) { _, _ in cancelConfirmed = false }
     }
@@ -108,7 +123,7 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
                 }.accessibilityIdentifier("workshopPaidProfessional.history." + record.command.requestId)
             }
             if controller.nextOperationCursor != nil {
-                Button { schedule(controller.offerMoreOperations(displayed)) } label: { professionalText("moreHistory") }
+                Button { schedule(controller.offerMoreOperations(displayed)) } label: { professionalText(controller.issue == nil ? "moreHistory" : "retry") }
             }
         } header: { professionalText("history") }
         Section {
@@ -131,7 +146,7 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
                     .accessibilityIdentifier("workshopPaidProfessional.target.\(target.topicId)")
             }
             if controller.nextTargetCursor != nil {
-                Button { schedule(controller.offerMoreTargets(displayed)) } label: { professionalText("moreTargets") }
+                Button { schedule(controller.offerMoreTargets(displayed)) } label: { professionalText(controller.issue == nil ? "moreTargets" : "retry") }
             }
             professionalText("targetScope").font(.footnote)
             Button { schedule(controller.offerRecovery(displayed)) } label: { professionalText("cancelReview") }
@@ -208,7 +223,7 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
             .fixedSize(horizontal: false, vertical: true)
     }
     private func schedule(_ action: WorkshopPaidProfessionalController.Action?) {
-        guard let action else { return }; ownedTask?.cancel(); ownedTask = Task { await action() }
+        guard isVisible, scenePhase == .active, let action else { return }; ownedTask?.cancel(); ownedTask = Task { await action() }
     }
 }
 private func professionalLabel(_ key: String, locale: Locale) -> String {

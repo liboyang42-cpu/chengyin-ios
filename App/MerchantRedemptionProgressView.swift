@@ -12,7 +12,7 @@ struct MerchantRedemptionProgressView: View {
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(LocalizedStringKey("merchant.redemptionProgress.step." + step.id))
-                        Text(LocalizedStringKey("merchant.settlementProgress.stepState." + step.state.rawValue)).font(.caption)
+                        Text(LocalizedStringKey("merchant.settlementProgress.stepState." + step.state.rawValue)).font(.caption).foregroundStyle(.secondary)
                         if let raw = step.timestamp { MerchantSettlementTimestampText(raw: raw).font(.caption).foregroundStyle(.secondary) }
                     }
                 }.fixedSize(horizontal: false, vertical: true)

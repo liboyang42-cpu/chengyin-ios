@@ -227,6 +227,7 @@ final class AppSessionContainer: ObservableObject {
 /// Only the normal root starts account restoration.
 @MainActor
 struct SessionRootView: View {
+    @Environment(\.scenePhase) private var personalShareScenePhase
     @ObservedObject var session: AppSession
     @StateObject private var merchantRootCoordinator = MerchantRootModeCoordinator()
     @State private var browsingAsGuest=false
@@ -284,6 +285,7 @@ struct SessionRootView: View {
             if session.account != nil { RetainedImagePresenterHost(host: session.retainedImagePickerHost).frame(width: 0, height: 0) }
         }
         .environmentObject(session)
+        .modifier(NativeOriginalUnreadBadgeLifecycle(session: session))
         .environment(\.merchantLedgerInboxDestination, { AnyView(SessionMerchantLedgerInboxView(session: session, source: $0)) })
         .environment(\.merchantCityNodeHubDestination, { AnyView(session.merchantCityNodeHub()) })
         .environment(\.merchantGameNodeDestination, { $1.view(service: $0) })
@@ -292,6 +294,10 @@ struct SessionRootView: View {
                   templateAssistFactory: { session.merchantTemplateAssistFlow(coordinator: $0) })
         })
         .environment(\.merchantCustomerContactFactory, { session.merchantCustomerContactFlow($0, sourceIsCurrent: $1) })
+        .environment(\.personalLocationShareHost, session.personalLocationShareHost)
+        .onChange(of: personalShareScenePhase, initial: true) { _, phase in
+            session.personalLocationShareHost.sceneChanged(phase)
+        }
         .environment(\.projectCategoryReader, session)
             .environment(\.projectNodePlaceReader, session.searchMapReader)
         .environment(\.projectChapterAudioPlayback, session.platformConsumers.audioFactory)

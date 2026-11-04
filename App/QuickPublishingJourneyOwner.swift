@@ -152,13 +152,14 @@ import UIKit
     @ObservedObject var owner: QuickPublishingJourneyOwner
     let original: QuickPublishingJourneyOwner.Presentation
     let placeSearch: (any PublishingPlaceSearching)?
+    var initialIdea = ""
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
             .sheet(item: owner.presentationBinding(original)) { shown in
                 if owner.isCurrent(shown) {
                     switch shown.kind {
                     case .ai:
-                        PublishingAIDraftSheet(client: shown.client, product: shown.product) { value in _ = owner.adopt(value, from: shown) }
+                        PublishingAIDraftSheet(client: shown.client, product: shown.product, initialIdea: initialIdea) { value in _ = owner.adopt(value, from: shown) }
                     case .place:
                         PublishingPlacePicker(provider: placeSearch) { value in _ = owner.confirm(value, from: shown) }
                     }

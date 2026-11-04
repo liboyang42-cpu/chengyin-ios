@@ -1,0 +1,550 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "friendRemoval.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove friend"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除好友"
+          }
+        }
+      }
+    },
+    "friendRemoval.recoveryEntry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recover a removal result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复移除结果"
+          }
+        }
+      }
+    },
+    "friendRemoval.impact": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This removes your friendship from both friend lists and clears both sides’ friend remarks, group membership and stars."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将从双方好友列表移除这段关系，并清除双方对此好友的备注、分组归属和星标。"
+          }
+        }
+      }
+    },
+    "friendRemoval.noBlockOrChatDelete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This does not block them, delete chats or refuse existing non-friend conversations."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不会拉黑对方、删除聊天记录或拒绝已有非好友会话。"
+          }
+        }
+      }
+    },
+    "friendRemoval.readd": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To become friends again, use the existing friend-request process. Old friend metadata will not return."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新成为好友须走原有申请流程，旧备注、分组归属和星标不会恢复。"
+          }
+        }
+      }
+    },
+    "friendRemoval.closed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Removal access is currently closed. Saved requests are kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除权限暂未开放，已保存的原请求仍保留。"
+          }
+        }
+      }
+    },
+    "friendRemoval.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original result is not confirmed. A missing friend row does not prove success. Do not send another removal."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求结果尚未确认。好友行消失不代表移除成功，请勿重复发起。"
+          }
+        }
+      }
+    },
+    "friendRemoval.recover": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read original receipt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取原请求回执"
+          }
+        }
+      }
+    },
+    "friendRemoval.settle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finalize original request…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "终结原请求…"
+          }
+        }
+      }
+    },
+    "friendRemoval.noPending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No saved removal request for this account."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此账号没有待恢复的移除请求。"
+          }
+        }
+      }
+    },
+    "friendRemoval.confirmImpact": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm removal of the person and relationship version shown above?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认移除上方所示对象及这段关系版本？"
+          }
+        }
+      }
+    },
+    "friendRemoval.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm removal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认移除"
+          }
+        }
+      }
+    },
+    "friendRemoval.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel without removing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消，不执行移除"
+          }
+        }
+      }
+    },
+    "friendRemoval.review": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review removal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看移除确认"
+          }
+        }
+      }
+    },
+    "friendRemoval.applied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original removal was applied."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原移除请求已执行。"
+          }
+        }
+      }
+    },
+    "friendRemoval.rejected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original request ended without removing this relationship."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求已结束，未执行此关系移除。"
+          }
+        }
+      }
+    },
+    "friendRemoval.historical": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is the original receipt, not a claim about the current relationship."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是原请求回执，不代表当前好友状态。"
+          }
+        }
+      }
+    },
+    "friendRemoval.currentFriend": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Currently friends"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前是好友"
+          }
+        }
+      }
+    },
+    "friendRemoval.currentNotFriend": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Currently not friends"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前不是好友"
+          }
+        }
+      }
+    },
+    "friendRemoval.currentTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current relationship"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前关系"
+          }
+        }
+      }
+    },
+    "friendRemoval.settleTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finalize this original request?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "终结此原请求？"
+          }
+        }
+      }
+    },
+    "friendRemoval.settleConfirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finalize the original request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认终结原请求"
+          }
+        }
+      }
+    },
+    "friendRemoval.keepPending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep waiting"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留待确认"
+          }
+        }
+      }
+    },
+    "friendRemoval.settleImpact": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is a write, not a status check. If removal already ran, its receipt is kept. Otherwise this original key is closed without removal, preventing a delayed removal."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是写操作，不是查询。若移除已执行，将保留原回执；否则以未移除终结原 key，阻止迟到移除。"
+          }
+        }
+      }
+    },
+    "friendRemoval.storageFailure": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original request could not be stored safely. No new removal was sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法安全保存原请求，未发起新的移除。"
+          }
+        }
+      }
+    },
+    "friendRemoval.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This relationship changed. Return to the friends list and refresh before a new confirmation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这段关系已变化，请返回刷新好友列表后重新确认。"
+          }
+        }
+      }
+    },
+    "friendRemoval.readFailure": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not verify this relationship. No removal was sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法核实这段关系，未发起移除。"
+          }
+        }
+      }
+    },
+    "friendRemoval.notSent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The removal was not sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除尚未发送。"
+          }
+        }
+      }
+    },
+    "friendRemoval.currentUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original result confirmed; current relationship could not be read."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求结果已确认，当前关系暂无法读取。"
+          }
+        }
+      }
+    },
+    "friendRemoval.journalReadFailure": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This original result is confirmed, but other saved requests could not be checked."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此原请求结果已确认，但暂无法检查其他已保存请求。"
+          }
+        }
+      }
+    },
+    "friendRemoval.retryOriginal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue original removal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续原删除请求"
+          }
+        }
+      }
+    },
+    "friendRemoval.retryTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue removal for the original version?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续执行原版本的删除？"
+          }
+        }
+      }
+    },
+    "friendRemoval.retryConfirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check result, then retry the original request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先查询，再按原请求重试"
+          }
+        }
+      }
+    },
+    "friendRemoval.retryImpact": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the displayed original request and friendship version will be retried, never a newer friendship. An unknown outcome keeps the original request saved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只重试这里显示的原请求和原好友版本，不会改用新的好友关系。结果不明时仍保留原请求。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

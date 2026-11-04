@@ -4,7 +4,601 @@ import SwiftUI
 
 @MainActor
 final class AppSession: ObservableObject {
-    @Published private(set) var account: Account? { willSet { if account?.id != newValue?.id || account?.effectiveRole.data(using: .utf8) != newValue?.effectiveRole.data(using: .utf8) { invalidateWorkshopReadBindings() }; invalidateOwnerDraftBrowser(); if account?.id != newValue?.id || account?.effectiveRole != newValue?.effectiveRole { invalidateShopNPCConversations(); merchantNPCSessionOwner.invalidate() }; if account?.id != newValue?.id { platformConsumers.invalidate() } } didSet { _ = runtimeDependencies; synchronizeAccountMarketingEntry(); _ = searchMapReader.scope } }
+    private weak var retainedNativeWebhookManagement: NativeWebhookCoordinator?
+    private var nativeWebhookConfigurationGeneration: UInt64 = 0
+    func makeNativeChannelModerationFlow(channels: any NativeChannelManagementIntegrationContextProviding,
+                                         captured: NativeChannelManagementIntegrationContext) -> NativeChannelModerationFlow? {
+        guard let storageScope else { return nil }
+        let features: Set<BusinessRuntimeFeature> = [.imChannelModerationRead, .imChannelModerationWrite, .imChannelModerationReceipt]
+        guard let (factory, gate) = channelHostRuntimeFactory(features, current: { channels.contextIsCurrent(captured) }) else { return nil }
+        let issued = factory.routes(features)
+        guard !issued.isEmpty else { return nil }
+        let context = factory.captured, viewer = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard gate.isCurrent, let self else { return false }
+            return self.compositionViewerRevision == viewer && self.currentRuntimeDependencyContext == context
+        }
+        return try? NativeChannelModerationFlow(captured: captured, channels: channels, context: context,
+            transport: factory.client(features), storage: ProjectEditSecureStorage(scope: storageScope), current: current,
+            permits: { method, path in current() && issued.contains(where: { $0.method == method && $0.path == path }) },
+            unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+
+    func makeNativeChannelPersonalStateFlow(channels: any NativeChannelManagementIntegrationContextProviding,
+                                         captured: NativeChannelManagementIntegrationContext) -> NativeChannelPersonalStateFlow? {
+        guard let storageScope else { return nil }
+        let features: Set<BusinessRuntimeFeature> = [.imChannelPersonalStateRead, .imChannelPersonalStateWrite, .imChannelPersonalStateReceipt]
+        guard let (factory, gate) = channelHostRuntimeFactory(features, current: { channels.contextIsCurrent(captured) }) else { return nil }
+        let issued = factory.routes(features)
+        guard !issued.isEmpty else { return nil }
+        let context = factory.captured, viewer = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard gate.isCurrent, let self else { return false }
+            return self.compositionViewerRevision == viewer && self.currentRuntimeDependencyContext == context
+        }
+        return try? NativeChannelPersonalStateFlow(captured: captured, channels: channels, context: context,
+            transport: factory.client(features), storage: ProjectEditSecureStorage(scope: storageScope), current: current,
+            permits: { method, path in current() && issued.contains(where: { $0.method == method && $0.path == path }) },
+            unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+
+    func makeNativeChannelRoleFlow(channels: any NativeChannelManagementIntegrationContextProviding,
+                                         captured: NativeChannelManagementIntegrationContext) -> NativeChannelRoleFlow? {
+        guard let storageScope else { return nil }
+        let features: Set<BusinessRuntimeFeature> = [.imChannelRoleRead, .imChannelRoleWrite, .imChannelRoleReceipt, .imChannelRoleMemberRead]
+        guard let (factory, gate) = channelHostRuntimeFactory(features, current: { channels.contextIsCurrent(captured) }) else { return nil }
+        let issued = factory.routes(features)
+        guard !issued.isEmpty else { return nil }
+        let context = factory.captured, viewer = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard gate.isCurrent, let self else { return false }
+            return self.compositionViewerRevision == viewer && self.currentRuntimeDependencyContext == context
+        }
+        return try? NativeChannelRoleFlow(captured: captured, channels: channels, context: context,
+            transport: factory.client(features), storage: ProjectEditSecureStorage(scope: storageScope), current: current,
+            permits: { method, path in current() && issued.contains(where: { $0.method == method && $0.path == path }) },
+            unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+
+    func makeNativeChannelAuditFlow(channels: any NativeChannelManagementIntegrationContextProviding,
+                                    captured: NativeChannelManagementIntegrationContext) -> NativeChannelAuditFlow? {
+        let features: Set<BusinessRuntimeFeature> = [.imChannelAuditRead]
+        guard let (factory, gate) = channelHostRuntimeFactory(features, current: { channels.contextIsCurrent(captured) }) else { return nil }
+        guard factory.routes(features).contains(where: { $0.method == "GET" && $0.path == "api/im/audit-log" }) else { return nil }
+        let context = factory.captured, viewer = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard gate.isCurrent, let self else { return false }
+            return self.compositionViewerRevision == viewer && self.currentRuntimeDependencyContext == context
+        }
+        return try? NativeChannelAuditFlow(captured: captured, channels: channels, context: context,
+            transport: factory.client(features), current: current, unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+
+    func makeNativeChannelLifecycleAuditFlow(channels: any NativeChannelManagementIntegrationContextProviding,
+                                    captured: NativeChannelManagementIntegrationContext) -> NativeChannelAuditFlow? {
+        let features: Set<BusinessRuntimeFeature> = [.imChannelLifecycleAuditRead]
+        guard let (factory, gate) = channelHostRuntimeFactory(features, current: { channels.contextIsCurrent(captured) }) else { return nil }
+        guard factory.routes(features).contains(where: { $0.method == "GET" && $0.path == "api/channels/\(captured.channelID.rawValue)/op-log" }) else { return nil }
+        let context = factory.captured, viewer = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard gate.isCurrent, let self else { return false }
+            return self.compositionViewerRevision == viewer && self.currentRuntimeDependencyContext == context
+        }
+        return try? NativeChannelAuditFlow(captured: captured, channels: channels, context: context,
+            transport: factory.client(features), current: current, unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            }, source: .lifecycle)
+    }
+
+    func makeNativeChannelManagementFlow(scope: NativeChannelManagementScope) -> NativeChannelManagementCoordinator? {
+        guard let context = currentRuntimeDependencyContext,
+              let configuration = regionalConfiguration?.apiConfiguration, storageScope != nil else { return nil }
+        let viewer = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewer else { return nil }
+            return self.currentRuntimeDependencyContext
+        }
+        let selected: () -> NativeChannelManagementApproval? = { [weak self] in
+            guard let self, current() != nil else { return nil }
+            return self.composition.nativeChannelManagementApproval(context, viewer, scope)
+        }
+        guard let dispatcher = compositionTransport.makeNativeChannelManagementDispatcher(context: context,
+            scope: scope, viewerRevision: viewer, currentRuntime: current,
+            currentViewer: { [weak self] in self?.compositionViewerRevision ?? UInt64.max },
+            selectedApproval: selected) else { return nil }
+        return NativeChannelManagementBinding.make(context: context, viewerRevision: viewer, scope: scope,
+            configuration: configuration, transport: dispatcher, storage: ProjectEditSecureStorage(scope: storageScope),
+            current: current, viewer: { [weak self] in self?.compositionViewerRevision ?? UInt64.max },
+            selectedApproval: selected, onUnauthorized: { [weak self] expected in
+                guard let self, current() == context, expected == context else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+
+    func nativeWebhookManagementDestination(for scope: NativeChannelManagementScope)
+        -> (@MainActor (NativeWebhookScope) throws -> NativeWebhookCoordinator)? {
+        guard scope.guildKind == 1, let captured = currentRuntimeDependencyContext else { return nil }
+        if let configuration = composition.sessionDependencies(captured).nativeWebhookConfiguration {
+            guard configuration.allowsOwner(scope.guildID.rawValue, context: captured) else { return nil }
+        } else if composition.nativeWebhookRuntimeFactory == nil { return nil }
+        let viewer = compositionViewerRevision
+        let configurationGeneration = nativeWebhookConfigurationGeneration
+        return { [weak self] selected in
+            guard let self, self.compositionViewerRevision == viewer, self.nativeWebhookConfigurationGeneration == configurationGeneration,
+                  self.currentRuntimeDependencyContext == captured,
+                  selected.ownerID.rawValue == scope.guildID.rawValue else {
+                throw NativeWebhookClientError.sourceUnavailable("WEBHOOK_REAL_CHANNEL_MANAGEMENT_CONTEXT_UNAVAILABLE")
+            }
+            return try self.makeNativeWebhookManagement(scope: selected)
+        }
+    }
+
+    func makeNativeWebhookManagement(scope: NativeWebhookScope) throws -> NativeWebhookCoordinator {
+        retainedNativeWebhookManagement?.invalidate()
+        guard let captured = currentRuntimeDependencyContext else {
+            throw NativeWebhookClientError.sourceUnavailable("WEBHOOK_NATIVE_SCOPE_RBAC_FACTORY_UNAVAILABLE")
+        }
+        let viewer = compositionViewerRevision
+        let configurationGeneration = nativeWebhookConfigurationGeneration
+        let visit = NativeWebhookRuntimeVisit()
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, visit.isCurrent, self.compositionViewerRevision == viewer,
+                  self.nativeWebhookConfigurationGeneration == configurationGeneration else { return nil }
+            return self.currentRuntimeDependencyContext
+        }
+        let factory: any NativeWebhookRuntimeFactory
+        if let configuration = composition.sessionDependencies(captured).nativeWebhookConfiguration {
+            guard let approval = configuration.approval(for: captured, scope: scope) else {
+                throw NativeWebhookClientError.sourceUnavailable("WEBHOOK_REVIEWED_ENDPOINT_APPROVAL_UNAVAILABLE")
+            }
+            guard let dispatcher = compositionTransport.makeNativeWebhookFinalForwardTransport(
+                context: captured, scope: scope, issued: approval, currentRuntime: current,
+                currentApproval: { [weak self] in
+                    guard let live = self?.composition.sessionDependencies(captured).nativeWebhookConfiguration,
+                          live == configuration else { return nil }
+                    return live.approval(for: captured, scope: scope)
+                }, stillCurrent: { visit.isCurrent }) else {
+                throw NativeWebhookClientError.sourceUnavailable("WEBHOOK_REVIEWED_ENDPOINT_APPROVAL_UNAVAILABLE")
+            }
+            factory = NativeWebhookNormalRuntime.make(configuration: configuration,
+                currentConfiguration: { [weak self] in self?.composition.sessionDependencies(captured).nativeWebhookConfiguration },
+                current: current, transport: dispatcher,
+                onUnauthorized: { [weak self] expected in
+                    guard let self, visit.isCurrent, self.compositionViewerRevision == viewer, self.nativeWebhookConfigurationGeneration == configurationGeneration,
+                          self.currentRuntimeDependencyContext == captured, expected == captured else { return }
+                    self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch,
+                        credential: captured.session.token)
+                })
+        } else if let supplied = composition.nativeWebhookRuntimeFactory { factory = supplied }
+        else { throw NativeWebhookClientError.sourceUnavailable("WEBHOOK_NATIVE_SCOPE_RBAC_FACTORY_UNAVAILABLE") }
+        let coordinator = try factory.make(captured: captured, scope: scope,
+            current: current, journal: composition.storage.operationJournal(),
+            onUnauthorized: { [weak self] expected in
+                guard let self, visit.isCurrent, self.compositionViewerRevision == viewer, self.nativeWebhookConfigurationGeneration == configurationGeneration,
+                      self.currentRuntimeDependencyContext == captured, expected == captured else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch,
+                    credential: captured.session.token)
+            })
+        guard visit.bind(coordinator) else {
+            coordinator.invalidate()
+            throw NativeWebhookClientError.scopeChanged
+        }
+        retainedNativeWebhookManagement = coordinator
+        return coordinator
+    }
+
+    func makeNativeFriendChannelInviteFlow(mode: NativeFriendChannelInviteMode,
+                                          sourceCurrent: @escaping () -> Bool = { true }) -> NativeFriendChannelInviteFlow? {
+        guard mode.valid, sourceCurrent(), let context = currentRuntimeDependencyContext,
+              let approval = composition.nativeFriendChannelInviteApproval(context, mode), approval.mode == mode else { return nil }
+        let viewerRevision = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard let self else { return false }
+            return sourceCurrent() && self.compositionViewerRevision == viewerRevision && self.currentRuntimeDependencyContext == context &&
+                self.composition.nativeFriendChannelInviteApproval(context, mode) == approval && Date() < approval.expiresAt
+        }
+        let ownerKey = (try? JSONSerialization.data(withJSONObject: [context.baseURL.absoluteString,
+            context.session.namespace, String(context.session.accountID)]).base64EncodedString()) ?? ""
+        guard !ownerKey.isEmpty else { return nil }
+        let journal = storageScope.map { NativeFriendChannelInviteJournal(storage: ProjectEditSecureStorage(scope: $0), ownerKey: ownerKey) }
+        guard let service = try? NativeFriendChannelInviteService(context: context, approval: approval,
+            transport: NativeFriendDispatchTransport { [weak self] request in
+                guard let self, current() else { throw NativeFriendFailure.notSent }
+                return try await self.compositionTransport.sendNativeFriendChannelInvite(request, context: context, approval: approval, stillApproved: current)
+            }, current: current, unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            }) else { return nil }
+        return NativeFriendChannelInviteFlow(service: service, journal: journal)
+    }
+
+    func makeNativeFriendChannelInviteFlow(channels: any NativeChannelManagementIntegrationContextProviding,
+                                          captured: NativeChannelManagementIntegrationContext) -> NativeFriendChannelInviteFlow? {
+        guard let context = currentRuntimeDependencyContext, let channel = Int64(captured.channelID.rawValue),
+              captured.identity.owner.accountID == context.session.accountID, ["CLUB", "TEAM"].contains(captured.ownerType),
+              captured.serverPermissionNames.isSuperset(of: ["VIEW_CHANNEL", "MANAGE_CHANNEL"]), channels.contextIsCurrent(captured) else { return nil }
+        return makeNativeFriendChannelInviteFlow(mode: .channel(channel), sourceCurrent: { channels.contextIsCurrent(captured) })
+    }
+
+    func makeNativeFriendChannelSourceFlow(channels: any NativeChannelManagementIntegrationContextProviding,
+                                          captured: NativeChannelManagementIntegrationContext) -> NativeFriendChannelSourceFlow? {
+        guard let context = currentRuntimeDependencyContext, let channelID = Int64(captured.channelID.rawValue),
+              captured.identity.owner.accountID == context.session.accountID, captured.ownerType == "CLUB",
+              captured.serverPermissionNames.contains("VIEW_CHANNEL"), channels.contextIsCurrent(captured),
+              let approval = composition.nativeFriendChannelSourceApproval(context, channelID), approval.channelID == channelID else { return nil }
+        let viewerRevision = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard let self else { return false }
+            return self.compositionViewerRevision == viewerRevision && self.currentRuntimeDependencyContext == context &&
+                channels.contextIsCurrent(captured) && self.composition.nativeFriendChannelSourceApproval(context, channelID) == approval && Date() < approval.expiresAt
+        }
+        return try? NativeFriendChannelSourceFlow(context: context, approval: approval,
+            friend: makeNativeFriendFlow(sourceCurrent: current),
+            transport: NativeFriendDispatchTransport { [weak self] request in
+                guard let self, current() else { throw NativeFriendFailure.notSent }
+                return try await self.compositionTransport.sendNativeFriendChannelSource(request, context: context, approval: approval, stillApproved: current)
+            }, current: current, unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+
+    func makeNativeFriendTeamInviteFlow(mode: NativeFriendTeamInviteMode,
+                                          sourceCurrent: @escaping () -> Bool = { true }) -> NativeFriendTeamInviteFlow? {
+        guard mode.valid, sourceCurrent(), let context = currentRuntimeDependencyContext,
+              let approval = composition.nativeFriendTeamInviteApproval(context, mode), approval.mode == mode else { return nil }
+        let viewerRevision = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard let self else { return false }
+            return sourceCurrent() && self.compositionViewerRevision == viewerRevision && self.currentRuntimeDependencyContext == context &&
+                self.composition.nativeFriendTeamInviteApproval(context, mode) == approval && Date() < approval.expiresAt
+        }
+        let ownerKey = (try? JSONSerialization.data(withJSONObject: [context.baseURL.absoluteString,
+            context.session.namespace, String(context.session.accountID)]).base64EncodedString()) ?? ""
+        guard !ownerKey.isEmpty else { return nil }
+        let journal = storageScope.map { NativeFriendTeamInviteJournal(storage: ProjectEditSecureStorage(scope: $0), ownerKey: ownerKey) }
+        guard let service = try? NativeFriendTeamInviteService(context: context, approval: approval,
+            transport: NativeFriendDispatchTransport { [weak self] request in
+                guard let self, current() else { throw NativeFriendFailure.notSent }
+                return try await self.compositionTransport.sendNativeFriendTeamInvite(request, context: context, approval: approval, stillApproved: current)
+            }, current: current, unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            }) else { return nil }
+        return NativeFriendTeamInviteFlow(service: service, journal: journal)
+    }
+
+    func makeNativeFriendMetadataFlow(peerID: Int64) -> NativeFriendMetadataFlow {
+        let context = currentRuntimeDependencyContext
+        let viewerRevision = compositionViewerRevision
+        let ownerKey = context.flatMap { value in
+            try? JSONSerialization.data(withJSONObject: [value.baseURL.absoluteString,
+                value.session.namespace, String(value.session.accountID)])
+        }.map { "friend-meta:" + $0.base64EncodedString() } ?? "friend-meta:unconfigured"
+        let journal = OperationDefaultsJournal(defaults: composition.storage.defaults)
+        guard let context, let approval = composition.nativeFriendMetadataApproval(context) else {
+            return NativeFriendMetadataFlow(peerID: peerID, service: nil, journal: journal, ownerKey: ownerKey)
+        }
+        let service = try? NativeFriendMetadataService(context: context, approval: approval,
+            currentApproval: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context else { return nil }
+                return self.composition.nativeFriendMetadataApproval(context)
+            }, transport: NativeFriendDispatchTransport { [weak self] request in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context else { throw NativeFriendFailure.notSent }
+                return try await self.compositionTransport.sendNativeFriendMetadata(request, context: context, approval: approval,
+                    stillApproved: { self.compositionViewerRevision == viewerRevision &&
+                        self.currentRuntimeDependencyContext == context && self.composition.nativeFriendMetadataApproval(context) == approval })
+            }, current: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision else { return nil }
+                return self.currentRuntimeDependencyContext
+            }, onUnauthorized: { [weak self] captured in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context, captured == context else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch,
+                    credential: captured.session.token)
+            })
+        return NativeFriendMetadataFlow(peerID: peerID, service: service, journal: journal, ownerKey: ownerKey)
+    }
+
+    func makeNativeFriendDirectoryFlow() -> NativeFriendDirectoryFlow {
+        let context = currentRuntimeDependencyContext
+        let viewerRevision = compositionViewerRevision
+        guard let context, let approval = composition.nativeFriendDirectoryApproval(context) else {
+            return NativeFriendDirectoryFlow(service: nil)
+        }
+        let service = try? NativeFriendDirectoryService(context: context, approval: approval,
+            currentApproval: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context else { return nil }
+                return self.composition.nativeFriendDirectoryApproval(context)
+            }, transport: NativeFriendDispatchTransport { [weak self] request in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context else { throw NativeFriendFailure.notSent }
+                return try await self.compositionTransport.sendNativeFriendDirectory(request, context: context, approval: approval,
+                    stillApproved: { self.compositionViewerRevision == viewerRevision &&
+                        self.currentRuntimeDependencyContext == context && self.composition.nativeFriendDirectoryApproval(context) == approval })
+            }, current: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision else { return nil }
+                return self.currentRuntimeDependencyContext
+            }, onUnauthorized: { [weak self] captured in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context, captured == context else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch,
+                    credential: captured.session.token)
+            })
+        return NativeFriendDirectoryFlow(service: service)
+    }
+
+    func makeNativeFriendProgressCard(item: NativeFriendItem, isCurrent: @escaping () -> Bool) -> NativeFriendProgressCard {
+        let context = currentRuntimeDependencyContext
+        let viewerRevision = compositionViewerRevision
+        guard let context, let approval = composition.nativeFriendProgressApproval(context), isCurrent() else {
+            return NativeFriendProgressCard(source: nil)
+        }
+        let policyOwner = NativeProgressPrivacyInvalidation.owner(origin: context.baseURL, namespace: context.session.namespace, actor: Int64(context.session.accountID))
+        do {
+            let records = try OperationDefaultsJournal(defaults: composition.storage.defaults).pendingRecords(ownerKey: policyOwner)
+                .filter { $0.targetKey.hasPrefix("native-progress-privacy.v1.") }
+            NativeProgressPrivacyInvalidation.restore(owner: policyOwner, requests: Set(records.map(\.operationID)))
+        } catch { NativeProgressPrivacyInvalidation.restore(owner: policyOwner, requests: nil) }
+        let service = try? NativeFriendProgressService(context: context, approval: approval, friend: item,
+            currentApproval: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context, isCurrent() else { return nil }
+                return self.composition.nativeFriendProgressApproval(context)
+            }, transport: NativeFriendDispatchTransport { [weak self] request in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context, isCurrent() else { throw NativeFriendFailure.notSent }
+                return try await self.compositionTransport.sendNativeFriendProgress(request, context: context, approval: approval,
+                    stillApproved: { self.compositionViewerRevision == viewerRevision && isCurrent() &&
+                        self.currentRuntimeDependencyContext == context && self.composition.nativeFriendProgressApproval(context) == approval })
+            }, current: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision else { return nil }
+                return self.currentRuntimeDependencyContext
+            }, relationshipCurrent: isCurrent, onUnauthorized: { [weak self] captured in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context, captured == context else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+            })
+        return NativeFriendProgressCard(source: service)
+    }
+
+    func makeNativeFriendRemovalFlow(item: NativeFriendItem? = nil) -> NativeFriendRemovalFlow {
+        let context = currentRuntimeDependencyContext
+        let viewerRevision = compositionViewerRevision
+        let ownerKey = context.flatMap { value in
+            try? JSONSerialization.data(withJSONObject: [value.baseURL.absoluteString,
+                value.session.namespace, String(value.session.accountID)])
+        }.map { "friend-remove:" + $0.base64EncodedString() } ?? "friend-remove:unconfigured"
+        let journal = OperationDefaultsJournal(defaults: composition.storage.defaults)
+        guard let context, let approval = composition.nativeFriendRemovalApproval(context) else {
+            return NativeFriendRemovalFlow(item: item, service: nil, journal: journal, ownerKey: ownerKey)
+        }
+        let service = try? NativeFriendRemovalService(context: context, approval: approval,
+            currentApproval: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context else { return nil }
+                return self.composition.nativeFriendRemovalApproval(context)
+            }, transport: NativeFriendDispatchTransport { [weak self] request in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context else { throw NativeFriendFailure.notSent }
+                return try await self.compositionTransport.sendNativeFriendRemoval(request, context: context, approval: approval,
+                    stillApproved: { self.compositionViewerRevision == viewerRevision &&
+                        self.currentRuntimeDependencyContext == context && self.composition.nativeFriendRemovalApproval(context) == approval })
+            }, current: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision else { return nil }
+                return self.currentRuntimeDependencyContext
+            }, onUnauthorized: { [weak self] captured in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context, captured == context else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch,
+                    credential: captured.session.token)
+            })
+        return NativeFriendRemovalFlow(item: item, service: service, journal: journal, ownerKey: ownerKey)
+    }
+
+    func makeNativeBlacklistFlow() -> NativeBlacklistFlow {
+        let context = currentRuntimeDependencyContext
+        let viewerRevision = compositionViewerRevision
+        let ownerKey = context.flatMap { value in
+            try? JSONSerialization.data(withJSONObject: [value.baseURL.absoluteString,
+                value.session.namespace, String(value.session.accountID)])
+        }.map { "blacklist:" + $0.base64EncodedString() } ?? "blacklist:unconfigured"
+        let journal = OperationDefaultsJournal(defaults: composition.storage.defaults)
+        guard let context, let approval = composition.nativeBlacklistApproval(context) else {
+            return NativeBlacklistFlow(service: nil, journal: journal, ownerKey: ownerKey)
+        }
+        let service = try? NativeBlacklistService(context: context, approval: approval,
+            currentApproval: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context else { return nil }
+                return self.composition.nativeBlacklistApproval(context)
+            }, transport: NativeBlacklistDispatchTransport { [weak self] request in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context else { throw NativeBlacklistFailure.notSent }
+                return try await self.compositionTransport.sendNativeBlacklist(request, context: context, approval: approval,
+                    stillApproved: { self.compositionViewerRevision == viewerRevision &&
+                        self.currentRuntimeDependencyContext == context && self.composition.nativeBlacklistApproval(context) == approval })
+            }, current: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision else { return nil }
+                return self.currentRuntimeDependencyContext
+            }, onUnauthorized: { [weak self] captured in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context, captured == context else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch,
+                    credential: captured.session.token)
+            })
+        return NativeBlacklistFlow(service: service, journal: journal, ownerKey: ownerKey)
+    }
+
+    func makeNativeFriendFlow(sourceCurrent: @escaping () -> Bool = { true }) -> NativeFriendFlow {
+        let context = currentRuntimeDependencyContext
+        let viewerRevision = compositionViewerRevision
+        let ownerKey = context.flatMap { value in
+            try? JSONSerialization.data(withJSONObject: [value.baseURL.absoluteString,
+                value.session.namespace, String(value.session.accountID)])
+        }.map { "friend:" + $0.base64EncodedString() } ?? "friend:unconfigured"
+        let journal = OperationDefaultsJournal(defaults: composition.storage.defaults)
+        let fullIntent = storageScope.map { NativeFriendIntentJournal(storage: ProjectEditSecureStorage(scope: $0), ownerKey: ownerKey) }
+        guard sourceCurrent(), let context, let approval = composition.nativeFriendApproval(context) else {
+            return NativeFriendFlow(service: nil, journal: journal, ownerKey: ownerKey, intentJournal: fullIntent)
+        }
+        let service = try? NativeFriendService(context: context, approval: approval,
+            currentApproval: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context, sourceCurrent() else { return nil }
+                return self.composition.nativeFriendApproval(context)
+            }, transport: NativeFriendDispatchTransport { [weak self] request in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context, sourceCurrent() else { throw NativeFriendFailure.notSent }
+                return try await self.compositionTransport.sendNativeFriend(request, context: context, approval: approval,
+                    stillApproved: { self.compositionViewerRevision == viewerRevision &&
+                        self.currentRuntimeDependencyContext == context && sourceCurrent() && self.composition.nativeFriendApproval(context) == approval })
+            }, current: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision, sourceCurrent() else { return nil }
+                return self.currentRuntimeDependencyContext
+            }, onUnauthorized: { [weak self] captured in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context, captured == context else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch,
+                    credential: captured.session.token)
+            })
+        return NativeFriendFlow(service: service, journal: journal, ownerKey: ownerKey, intentJournal: fullIntent)
+    }
+
+    func nativeChannelProgressTeams(channelID: NativeChannelManagementID, board: NativeChannelProgressBoard) -> [NativeChannelProgressTeamOption]? {
+        guard let context = currentRuntimeDependencyContext else { return nil }
+        return composition.nativeChannelProgressTeamOptions(context, channelID, board)
+    }
+
+    func makeNativeChannelProgressFlow(channels: any NativeChannelManagementIntegrationContextProviding,
+        captured: NativeChannelManagementIntegrationContext, sourceCurrent: @escaping @MainActor () -> Bool) -> NativeChannelProgressCoordinator? {
+        guard let context = currentRuntimeDependencyContext, let storageScope,
+              sourceCurrent(), channels.contextIsCurrent(captured),
+              let selection = composition.nativeChannelProgressSelection(context, captured) else { return nil }
+        let viewer = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewer, sourceCurrent(),
+                  channels.contextIsCurrent(captured) else { return nil }
+            return self.currentRuntimeDependencyContext
+        }
+        let selected: () -> NativeChannelProgressRuntimeSelection? = { [weak self] in
+            guard let self, let latest = current(), ContentDraftContextFence.matches(latest, context),
+                  latest.session == context.session else { return nil }
+            return self.composition.nativeChannelProgressSelection(latest, captured)
+        }
+        let storage = NativeChannelProgressSecureJournalStorage(storage: ProjectEditSecureStorage(scope: storageScope))
+        guard let journal = try? NativeChannelProgressPrivacyJournal(identity: selection.authority.identity, storage: storage),
+              let dispatcher = compositionTransport.makeNativeChannelProgressFinalForward(context: context,
+                  selection: selection, journal: journal, currentRuntime: current, selected: selected,
+                  stillCurrent: sourceCurrent, receiptApproval: { [weak self] command in
+                      guard let self, selected() == selection else { return nil }
+                      return self.composition.nativeChannelProgressReceiptApproval(context, captured, command)
+                  }) else { return nil }
+        return try? NativeChannelProgressBinding.make(context: captured, provider: channels,
+            selectedAuthority: { dispatcher.isCurrent ? selected()?.authority : nil }, dispatcher: dispatcher,
+            token: { dispatcher.isCurrent ? current()?.session.token : nil }, storage: storage,
+            onUnauthorized: { [weak self] in
+                guard let self, dispatcher.isCurrent, current()?.session == context.session else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+
+    func makeNativeChannelProgressPrivacyFlow(channels: any NativeChannelManagementIntegrationContextProviding,
+                                             captured: NativeChannelManagementIntegrationContext) -> NativeProgressPrivacyFlow? {
+        guard let context = currentRuntimeDependencyContext, captured.ownerType == "CLUB", channels.contextIsCurrent(captured),
+              captured.identity.owner.accountID == context.session.accountID, captured.identity.owner.baseURL == context.baseURL.absoluteString,
+              captured.identity.owner.namespace == context.session.namespace, captured.identity.epoch == context.session.epoch,
+              captured.identity.viewerRevision == compositionViewerRevision,
+              captured.serverPermissionNames.isSuperset(of: ["VIEW_CHANNEL", "MANAGE_PROGRESS"]),
+              let id = Int64(captured.channelID.rawValue), let target = try? NativeProgressPrivacyTarget(kind: .channel, id: id) else { return nil }
+        return makeNativeProgressPrivacyFlow(target: target, channelCurrent: { channels.contextIsCurrent(captured) })
+    }
+
+    private func makeNativeProgressPrivacyFlow(target: NativeProgressPrivacyTarget?, channelCurrent: @escaping () -> Bool) -> NativeProgressPrivacyFlow {
+        let context = currentRuntimeDependencyContext, viewerRevision = compositionViewerRevision
+        let ownerKey = context.flatMap { value in
+            try? JSONSerialization.data(withJSONObject: [value.baseURL.absoluteString, value.session.namespace, String(value.session.accountID)])
+        }.map { "progress-privacy:" + $0.base64EncodedString() } ?? "progress-privacy:unconfigured"
+        let journal = OperationDefaultsJournal(defaults: composition.storage.defaults)
+        guard let context, let target, let approval = composition.nativeProgressPrivacyApproval(context, target), channelCurrent() else {
+            return NativeProgressPrivacyFlow(service: nil, journal: journal, ownerKey: ownerKey)
+        }
+        let service = try? NativeProgressPrivacyService(context: context, approval: approval, target: target,
+            transport: NativeFriendDispatchTransport { [weak self] request in
+                guard let self, self.compositionViewerRevision == viewerRevision, self.currentRuntimeDependencyContext == context,
+                      channelCurrent() else { throw NativeFriendFailure.notSent }
+                return try await self.compositionTransport.sendNativeProgressPrivacy(request, context: context, approval: approval,
+                    stillApproved: { self.compositionViewerRevision == viewerRevision && self.currentRuntimeDependencyContext == context &&
+                        channelCurrent() && self.composition.nativeProgressPrivacyApproval(context, target) == approval })
+            }, current: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision else { return nil }; return self.currentRuntimeDependencyContext
+            }, currentApproval: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision, self.currentRuntimeDependencyContext == context else { return nil }
+                return self.composition.nativeProgressPrivacyApproval(context, target)
+            }, channelCurrent: channelCurrent, onUnauthorized: { [weak self] captured in
+                guard let self, self.compositionViewerRevision == viewerRevision, self.currentRuntimeDependencyContext == context, captured == context else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+            })
+        return NativeProgressPrivacyFlow(service: service, journal: journal, ownerKey: ownerKey)
+    }
+
+    func makeNativeChannelWelcome(scope:NativeChannelManagementScope,sourceCurrent:@escaping()->Bool) -> NativeChannelWelcomeFlow? {
+        guard let context=currentRuntimeDependencyContext,let approval=composition.nativeChannelWelcomeApproval(context) else { return nil }
+        let viewer=compositionViewerRevision
+        let available: () -> Bool = { [weak self] in
+            guard let self,sourceCurrent(),self.currentRuntimeDependencyContext == context,self.compositionViewerRevision == viewer else { return false }
+            return self.composition.nativeChannelWelcomeApproval(context) == approval
+        }
+        let dispatch=NativeFriendDispatchTransport { [weak self] request in
+            guard let self,available() else { throw NativeSpaceAdmissionFailure.notSent }
+            return try await self.compositionTransport.sendNativeChannelWelcome(request,context:context,approval:approval,stillApproved:available)
+        }
+        return try? NativeChannelWelcomeFlow(scope:scope,context:context,approval:approval,transport:dispatch,current:available,unauthorized:{ [weak self] in
+            guard let self,available() else { return }
+            self.expireIfMatching(error:APIError.unauthorized,stamp:context.session.epoch,credential:context.session.token)
+        })
+    }
+
+    func makeNativeChannelOnboarding(scope:NativeChannelManagementScope,sourceCurrent:@escaping()->Bool) -> NativeChannelOnboardingFlow? {
+        guard let context=currentRuntimeDependencyContext,let storageScope,let approval=composition.nativeChannelOnboardingApproval(context) else{return nil}
+        let viewer=compositionViewerRevision
+        let available: () -> Bool = { [weak self] in
+            guard let self,sourceCurrent(),self.currentRuntimeDependencyContext==context,self.compositionViewerRevision==viewer else{return false}
+            return self.composition.nativeChannelOnboardingApproval(context)==approval
+        }
+        let dispatch=NativeFriendDispatchTransport { [weak self] request in
+            guard let self,available() else{throw NativeSpaceAdmissionFailure.notSent}
+            return try await self.compositionTransport.sendNativeChannelOnboarding(request,context:context,approval:approval,stillApproved:available)
+        }
+        return try? NativeChannelOnboardingFlow(scope:scope,context:context,approval:approval,transport:dispatch,storage:ProjectEditSecureStorage(scope:storageScope),current:available,unauthorized:{[weak self] in
+            guard let self,available() else{return}
+            self.expireIfMatching(error:APIError.unauthorized,stamp:context.session.epoch,credential:context.session.token)
+        })
+    }
+
+    func withNativeWebhookConfigurationChange(_ change: () -> Void) {
+        nativeWebhookConfigurationGeneration &+= 1
+        retainedNativeWebhookManagement?.invalidate(); retainedNativeWebhookManagement = nil
+        change()
+    }
+
+    @Published private(set) var account: Account? { willSet { if account?.id != newValue?.id || account?.effectiveRole != newValue?.effectiveRole { invalidatePersonalLocationShare() }; if account?.id != newValue?.id || account?.effectiveRole.data(using: .utf8) != newValue?.effectiveRole.data(using: .utf8) { invalidateWorkshopReadBindings() }; invalidateOwnerDraftBrowser(); if account?.id != newValue?.id || account?.effectiveRole != newValue?.effectiveRole { invalidateShopNPCConversations(); merchantNPCSessionOwner.invalidate() }; if account?.id != newValue?.id { platformConsumers.invalidate() } } didSet { _ = runtimeDependencies; synchronizeAccountMarketingEntry(); _ = searchMapReader.scope } }
     @Published private(set) var isWorking = false { didSet { synchronizeAccountMarketingEntry() } }
     @Published private(set) var errorKey: String?
     let platformConsumers = PlatformConsumerSessionOwner()
@@ -40,6 +634,26 @@ final class AppSession: ObservableObject {
     private let merchantNPCSessionOwner = MerchantNPCSessionOwner()
     private var merchantNPCGrants: MerchantNPCGrants { merchantPublicFactory?.chatGrants ?? .init() }
     private var merchantNPCJournal: any OperationPendingJournal { composition.storage.operationJournal() }
+    /// Original-result read authority is independent of game dispatch and merchant ownership.
+    func makeMerchantGamePlayerCoordinator(merchantID: Int) -> MerchantGamePlayerCoordinator? {
+        guard let context = currentRuntimeDependencyContext, let token,
+              let configuration = regionalConfiguration?.apiConfiguration,
+              let captured = try? MerchantGamePlayerSession(namespace: context.session.namespace,
+                accountID: context.session.accountID, epoch: context.session.epoch, credential: token) else { return nil }
+        let issued = composition.merchantGamePlayerReadGrant(context)
+        let approved = issued?.matches(context) == true ? issued : nil
+        let viewerRevision = compositionViewerRevision
+        guard let service = try? MerchantGamePlayerService(configuration: configuration, merchantID: merchantID,
+            session: captured, grant: approved, transport: runtimeHTTPTransport, journal: merchantNPCJournal,
+            current: { [weak self] in
+                guard let self, self.currentRuntimeDependencyContext == context, self.token == token,
+                      self.compositionViewerRevision == viewerRevision,
+                      self.composition.merchantGamePlayerReadGrant(context) == issued else { return nil }
+                return captured
+            }) else { return nil }
+        return MerchantGamePlayerCoordinator(service: service)
+    }
+
     private var merchantNPCAccess: (scope: UUID, value: MerchantOperationsAccess, revision: UUID)?
     private func merchantNPCScope(row: PublicMerchantRowID, resource: Bool = false) -> MerchantNPCScope? {
         guard let account, token != nil, let namespace = storageScope?.service else { return nil }
@@ -104,11 +718,15 @@ final class AppSession: ObservableObject {
            retainedMerchantPublicViewerRevision == compositionViewerRevision { return retainedMerchantPublicFactory }
         let dependencies = runtimeDependencies
         let transport: any HTTPTransport
+        let chatTransport: (any HTTPTransport)?
         if let approval = dependencies.merchantPublicApproval {
             transport = compositionTransport.scopedForPublicMerchantHome(approval: approval, context: context)
-        } else { transport = runtimeHTTPTransport }
+            chatTransport = compositionTransport.scopedForMerchantGameNPC(approval: approval, context: context,
+                grants: { dependencies.merchantNPCGrants })
+        } else { transport = runtimeHTTPTransport; chatTransport = nil }
         let viewerRevision = compositionViewerRevision
         let factory = dependencies.makeMerchantPublicFactory(api: api, journal: merchantNPCJournal, transportOverride: transport,
+            chatTransportOverride: chatTransport,
             current: { [weak self] in
                 guard let self, self.compositionViewerRevision == viewerRevision else { return nil }
                 return self.currentMerchantPublicContext
@@ -136,6 +754,30 @@ final class AppSession: ObservableObject {
         context.ownerProfile = .init(makeReader: { [weak self] memberID in
             self?.makeProfilePublicInfoReader(memberID: memberID)
         }, squareReader: squareReader)
+        if let destination = composition.merchantGamePlayerDestination {
+            let makePage: (PublicMerchantRowID, AnyView?) -> AnyView = { [weak self] row, chat in
+                guard let self, let captured = self.currentRuntimeDependencyContext else {
+                    return AnyView(Text("merchantNPC.unavailable"))
+                }
+                let viewerRevision = self.compositionViewerRevision, token = self.token
+                let grant = self.composition.merchantGamePlayerReadGrant(captured)
+                return AnyView(MerchantGameFactsDestination(session: self, current: { [weak self] in
+                    guard let self else { return false }
+                    return self.currentRuntimeDependencyContext == captured && self.token == token &&
+                        self.compositionViewerRevision == viewerRevision &&
+                        self.composition.merchantGamePlayerReadGrant(captured) == grant
+                }, make: { [weak self] in self?.makeMerchantGamePlayerCoordinator(merchantID: row.rawValue) },
+                    render: destination, chat: chat))
+            }
+            context.gameFactsDestination = { makePage($0, nil) }
+            // A local facts renderer must not silently enable NPC chat or make an
+            // existing separately approved sender depend on an absent read grant.
+            if merchantNPCGrants.chatAllowed, let captured = currentRuntimeDependencyContext,
+               let grant = composition.merchantGamePlayerReadGrant(captured), grant.matches(captured),
+               grant.endpoints.paths.isSuperset(of: MerchantGamePlayerReadGrant.playerPaths) {
+                context.gamePlayerDestination = makePage
+            }
+        }
         context.installMerchantNPC(grants: { [weak self] in self?.merchantNPCGrants ?? .init() },
             scopeForRow: { [weak self] in self?.merchantNPCScope(row: $0) },
             currentScope: { [weak self] in self?.merchantNPCScope(row: $0) }, client: merchantNPCClient(resource: false),
@@ -285,7 +927,61 @@ final class AppSession: ObservableObject {
         return .init(identity: captured.identity, clubID: clubID, joined: membership.isJoined, owner: membership.isOwner,
             administrator: membership.viewerIsAdmin, post: freshPost, comment: freshComment)
     }
-    private var gate = SessionOperationGate() { didSet { retainedSocialMemberActions?.synchronizeSession(); synchronizePrivateHome(); synchronizeOwnerDraftBrowser() } }
+    // Independent personal-sharing approvals. Restoring metadata never grants location access.
+    private var personalLocationShareReadApproval: PersonalLocationShareEndpointApproval? = nil
+    private var personalLocationShareWriteApproval: PersonalLocationShareEndpointApproval? = nil
+    private var personalLocationShareCaptureApproval: PersonalLocationShareCaptureApproval? = nil
+    /// Reviewed installation seam; revocation/replacement first retires the old service and sensor synchronously.
+    func installReviewedPersonalLocationShareApprovals(read: PersonalLocationShareEndpointApproval?,
+        write: PersonalLocationShareEndpointApproval?, capture: PersonalLocationShareCaptureApproval?) throws {
+        if let capture, capture.scope != personalLocationShareScope { throw PersonalLocationShareFailure.staleSession }
+        retainedPersonalLocationShareHost?.sessionWillChange()
+        personalLocationShareReadApproval = read
+        personalLocationShareWriteApproval = write
+        personalLocationShareCaptureApproval = capture
+    }
+    private var personalLocationShareEpoch: UInt64 = 0
+    private var retainedPersonalLocationShareHost: PersonalLocationShareHost?
+    var personalLocationShareScope: PersonalLocationShareScope? {
+        guard let account, let token, !token.isEmpty, let namespace = storageScope?.service,
+              let baseURL = regionalConfiguration?.apiConfiguration?.baseURL, baseURL.scheme == "https",
+              baseURL.user == nil, baseURL.password == nil, baseURL.query == nil, baseURL.fragment == nil else { return nil }
+        return try? .init(namespace: namespace + "|" + baseURL.absoluteString,
+                          accountId: Int64(account.id), epoch: personalLocationShareEpoch)
+    }
+    private final class UnavailablePersonalLocationJournal: PersonalLocationShareJournaling {
+        func records(scope: PersonalLocationShareScope) throws -> [PersonalLocationSharePendingRecord] { throw PersonalLocationShareFailure.journalUnavailable }
+        func put(_ record: PersonalLocationSharePendingRecord, scope: PersonalLocationShareScope) throws { throw PersonalLocationShareFailure.journalUnavailable }
+        func remove(requestKey: String, scope: PersonalLocationShareScope) throws { throw PersonalLocationShareFailure.journalUnavailable }
+    }
+    private lazy var personalLocationShareJournal: any PersonalLocationShareJournaling = {
+        guard let root = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
+            return UnavailablePersonalLocationJournal()
+        }
+        return PersonalLocationShareFileJournal(directory: root.appendingPathComponent("PersonalLocationSharePending", isDirectory: true))
+    }()
+    var personalLocationShareHost: PersonalLocationShareHost {
+        if let retainedPersonalLocationShareHost { return retainedPersonalLocationShareHost }
+        let host = PersonalLocationShareHost(
+            baseURL: { [weak self] in self?.regionalConfiguration?.apiConfiguration?.baseURL },
+            currentScope: { [weak self] in self?.personalLocationShareScope },
+            token: { [weak self] in self?.token }, journal: personalLocationShareJournal,
+            readApproval: { [weak self] in self?.personalLocationShareReadApproval },
+            writeApproval: { [weak self] in self?.personalLocationShareWriteApproval },
+            captureApproval: { [weak self] in self?.personalLocationShareCaptureApproval })
+        retainedPersonalLocationShareHost = host
+        return host
+    }
+    private func invalidatePersonalLocationShare() {
+        // Shut down under the old identity before replacing account/token; never delete its journal.
+        retainedPersonalLocationShareHost?.sessionWillChange()
+        personalLocationShareEpoch &+= 1
+        personalLocationShareReadApproval = nil
+        personalLocationShareWriteApproval = nil
+        personalLocationShareCaptureApproval = nil
+    }
+
+    private var gate = SessionOperationGate() { didSet { if oldValue.currentStamp != gate.currentStamp { invalidatePersonalLocationShare() }; retainedSocialMemberActions?.synchronizeSession(); synchronizePrivateHome(); synchronizeOwnerDraftBrowser() } }
     private let vault: any AppTokenStorage
     private let composition: AppCompositionRoot
     private let compositionTransport: CompositionHTTPTransport
@@ -1031,6 +1727,571 @@ final class AppSession: ObservableObject {
         return RuntimeDependencyContext(market: regionalConfiguration.market, baseURL: api.baseURL,
             role: account.effectiveRole, session: session)
     }
+    /// This concrete reviewed-composition factory owns UUID issuance and final dispatch.
+    private var nativeChannelAppealOwners: [String: NativeChannelAppealFlow] = [:]
+    func makeNativeChannelAppealFlow(notice: NativeChannelGovernanceNotice) -> NativeChannelAppealFlow? {
+        guard let context = currentRuntimeDependencyContext, let storageScope,
+              context.session.accountID == notice.recipientID else { return nil }
+        let viewer = compositionViewerRevision
+        let key = "\(notice.guildKind):\(notice.guildID):\(notice.actionID)"
+        if let existing = nativeChannelAppealOwners[key], existing.isCurrent, existing.notice == notice { return existing }
+        nativeChannelAppealOwners = nativeChannelAppealOwners.filter { $0.value.isCurrent }
+        let current: () -> Bool = { [weak self] in
+            guard let self else { return false }
+            return self.compositionViewerRevision == viewer && self.currentRuntimeDependencyContext == context
+        }
+        let flow = composition.makeNativeChannelAppealFlow(notice: notice, context: context,
+            storage: ProjectEditSecureStorage(scope: storageScope), locatorStorage: ProjectEditSecureStorage(scope: storageScope),
+            current: current, unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+        if let flow { nativeChannelAppealOwners[key] = flow }; return flow
+    }
+    private func nativeChannelAttachmentPreview(message:MessagingMessage,current: @escaping ()->Bool) -> NativeChannelAttachmentPreviewFlow? {
+        guard let context=currentRuntimeDependencyContext,let factory=businessRuntimeFactory,factory.captured==context,
+              let configuration=regionalConfiguration?.apiConfiguration,message.id>0,message.type==2 else{return nil}
+        let viewer=compositionViewerRevision
+        let active:()->Bool = { [weak self] in
+            guard let self else{return false}
+            return current() && self.currentRuntimeDependencyContext==context && self.compositionViewerRevision==viewer
+        }
+        guard let descriptor = compositionTransport.makeNativeChannelAttachmentDescriptorTransport(
+            messageID: message.id, context: context, issued: factory.configuration,
+            currentRuntime: { [weak self] in self?.currentRuntimeDependencyContext },
+            currentConfiguration: { [weak self] in self?.businessRuntimeFactory?.configuration },
+            stillCurrent: active),
+            let previewFactory = BusinessRuntimeFactory(configuration: factory.configuration, api: configuration,
+                transport: descriptor, current: { [weak self] in descriptor.isCurrent ? self?.currentRuntimeDependencyContext : nil }) else { return nil }
+        return NativeChannelAttachmentPreviewAssembly.make(message: message, configuration: configuration,
+            factory: previewFactory, currentFactory: { [weak self] in descriptor.isCurrent ? self?.businessRuntimeFactory : nil },
+            current: { descriptor.isCurrent && active() }, unauthorized: { [weak self] in
+                guard let self,active() else{return}
+                self.expireIfMatching(error:APIError.unauthorized,stamp:context.session.epoch,credential:context.session.token)
+            })
+    }
+
+    func nativeChannelMessageExpandedNavigation(for flow: NativeChannelMessageHostFlow,
+        contextMessageIsCurrent: ((MessagingMessage) -> Bool)? = nil) -> IMExpandedNavigationContext? {
+        guard flow.isCurrent, let context = currentRuntimeDependencyContext,
+              flow.reader.identity == MessagingReadIdentity(accountID: context.session.accountID, epoch: context.session.epoch) else { return nil }
+        let original = imExpandedNavigation
+        let conversationID = flow.history.conversation.id
+        let current: () -> Bool = { [weak self, weak flow] in
+            guard let self, let flow else { return false }
+            return flow.isCurrent && self.currentRuntimeDependencyContext == context
+        }
+        return .init(coordinator: { id in
+            guard current(), id == conversationID else { return nil }
+            return self.channelHostExpandedCoordinator(for: id)
+        }, uploadCoordinator: { id in
+            guard current(), id == conversationID else { return nil }
+            return self.channelHostImageUploadCoordinator(for: id)
+        }, starter: {
+            guard current() else { return nil }
+            return original.starter()
+        }, topicReader: original.topicReader, attachmentPreview: { [weak self,weak flow] message in
+            guard current(),message.conversationID==conversationID,
+                  contextMessageIsCurrent?(message) ?? true else{return nil}
+            return self?.nativeChannelAttachmentPreview(message:message,current:{
+                guard let flow,current() else{return false}
+                // An explicitly supplied original context row is an alternative current
+                // read provenance, never a media grant or fallback to an unloaded history row.
+                if let contextMessageIsCurrent { return flow.isCurrent && contextMessageIsCurrent(message) }
+                return flow.isCurrent && flow.history.visibleMessages.contains(message)
+            })
+        }, videoCoordinator: { id in
+            guard current(), id == conversationID else { return nil }
+            return self.imVideoCoordinator(for: id)
+        }, fileCoordinator: { id in
+            guard current(), id == conversationID else { return nil }
+            return self.imFileCoordinator(for: id)
+        }, voiceCoordinator: { id in
+            guard current(), id == conversationID else { return nil }
+            return self.imVoiceCoordinator(for: id)
+        }, pollCoordinator: { id, reference in
+            guard current(), id == conversationID else { return nil }
+            return self.channelHostPollCoordinator(for: flow, reference: reference)
+        }, chainCoordinator: { [weak self, weak flow] id, reference in
+            guard contextMessageIsCurrent == nil, current(), id == conversationID, let flow else { return nil }
+            return self?.makeNativeChannelChainFlow(for: flow, reference: reference)
+        }, checkinCoordinator: { [weak self, weak flow] id in
+            guard contextMessageIsCurrent == nil, current(), id == conversationID, let flow else { return nil }
+            return self?.makeNativeChannelCheckinFlow(for: flow)
+        }, channelGovernanceDestination: original.channelGovernanceDestination, safetyCoordinator: { id in
+            guard current(), id == conversationID else { return nil }
+            return original.safetyCoordinator?(id)
+        }, channelReadCoordinator: { id in
+            guard current(), id == conversationID else { return nil }
+            guard let scope = try? NativeChannelNotificationScope(type: 1, value: String(id)) else { return nil }
+            return self.makeNativeChannelNotificationFlow(scope: scope, sourceCurrent: current)
+        })
+    }
+
+    func makeNativeChannelMessageFlow(channels: any NativeChannelManagementIntegrationContextProviding,
+        channelID: NativeChannelManagementID, sourceCurrent: @escaping () -> Bool = { false }) async -> NativeChannelMessageHostFlow? {
+        guard sourceCurrent(), let context = currentRuntimeDependencyContext, let historyApproval = currentMessagingHistoryReadApproval,
+              storageScope != nil else { return nil }
+        let viewer = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, sourceCurrent(), self.compositionViewerRevision == viewer else { return nil }
+            return self.currentRuntimeDependencyContext
+        }
+        let historyCurrent: () -> Bool = { [weak self] in
+            guard let self else { return false }
+            return ContentDraftContextFence.matches(current(), context) && historyApproval.matches(context)
+                && self.currentMessagingHistoryReadApproval?.revision == historyApproval.revision
+        }
+        do {
+            let reader = messagingReader
+            let rows = try await reader.messagingConversations()
+            guard !Task.isCancelled, historyCurrent(),
+                  let conversation = rows.first(where: { String($0.id) == channelID.rawValue }) else { return nil }
+            let channel = try await channels.currentChannelContext(channelID: channelID)
+            guard !Task.isCancelled, historyCurrent(), channels.contextIsCurrent(channel),
+                  channel.identity.epoch == context.session.epoch, channel.identity.viewerRevision == viewer,
+                  channel.identity.owner == (try NativeChannelManagementOwner(accountID: context.session.accountID, namespace: context.session.namespace, baseURL: context.baseURL)) else { return nil }
+            let binding = try await NativeChannelMessageContextAdapter(source: channels).binding(channelID: channelID, conversation: conversation)
+            guard !Task.isCancelled, historyCurrent(), channels.contextIsCurrent(channel) else { return nil }
+            let selected: () -> NativeChannelMessageHostAuthority? = { [weak self] in
+                guard let self, historyCurrent() else { return nil }
+                return self.composition.nativeChannelMessageAuthorization(context, viewer, binding)
+            }
+            guard let source = selected(), source.binding == binding, source.viewerRevision == viewer,
+                  ContentDraftContextFence.matches(source.context, context), source.identity != nil else { return nil }
+            let available: () -> Bool = {
+                guard historyCurrent(), channels.contextIsCurrent(channel) else { return false }
+                guard selected() === source else { source.retireObservedSelection(); return false }
+                return source.identity != nil
+            }
+            let received401: () -> Void = { [weak self] in
+                guard let self, !Task.isCancelled, available() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            }
+            let read: () -> NativeChannelTextApproval? = { [weak self] in
+                guard let value = self?.composition.nativeChannelTextReceiptApproval(context),
+                      value.matches(context, operation: .receipt, conversationID: conversation.id) else { return nil }; return value
+            }
+            let write: () -> NativeChannelTextApproval? = { [weak self] in
+                guard let value = self?.composition.nativeChannelTextSendApproval(context),
+                      value.matches(context, operation: .send, conversationID: conversation.id) else { return nil }; return value
+            }
+            let flow = try NativeChannelMessageHostBinding.make(context: context, conversation: conversation, authority: source,
+                storage: ProjectEditSecureStorage(scope: storageScope), current: available, onUnauthorized: received401,
+                makeOriginal: { active, unauthorized in
+                    try self.compositionTransport.makeNativeChannelMessageOriginalAdapters(context: context, binding: binding,
+                        currentRuntime: current, stillCurrent: active, read: read, write: write, received401: unauthorized)
+                }, makeMutations: { journal, active, unauthorized in
+                    try self.compositionTransport.makeNativeChannelMessageDispatcher(authority: source, journal: journal,
+                        currentRuntime: current, stillCurrent: active, onUnauthorized: unauthorized)
+                })
+            if let targets = makeNativeChannelMentionTargets(channels: channels, captured: channel, flow: flow) { flow.attachMentionTargets(targets) }
+            return flow
+        } catch { return nil }
+    }
+
+    func makeNativeChannelMentionTargets(channels: any NativeChannelManagementIntegrationContextProviding,
+                                         captured: NativeChannelManagementIntegrationContext,flow: NativeChannelMessageHostFlow) -> NativeChannelMentionTargets? {
+        let features: Set<BusinessRuntimeFeature> = [.imChannelMentionMemberRead,.imChannelMentionRoleRead]
+        guard let context = currentRuntimeDependencyContext else { return nil }
+        let viewer=compositionViewerRevision
+        let current: () -> Bool = { [weak self,weak flow] in
+            guard let self,let flow else { return false }
+            return flow.isCurrent && self.compositionViewerRevision == viewer && self.currentRuntimeDependencyContext == context
+        }
+        guard let (factory, gate) = channelHostRuntimeFactory(features, current: current) else { return nil }
+        let issued = factory.routes(features)
+        return try? NativeChannelMentionTargets(binding:flow.coordinator.client.binding,captured:captured,channels:channels,
+            context:context,transport:factory.client(features),current:{ gate.isCurrent && current() },
+            permits:{ method,path in gate.isCurrent && current() && issued.contains(where:{$0.method == method && $0.path == path}) },
+            unauthorized:{ [weak self] in
+                guard let self,current() else { return }
+                self.expireIfMatching(error:APIError.unauthorized,stamp:context.session.epoch,credential:context.session.token)
+            })
+    }
+    private struct ChannelHostPollKey: Hashable {
+        let flow: ObjectIdentifier
+        let reference: GroupPollReference?
+    }
+    private var channelHostPollOwners: [ChannelHostPollKey: GroupPollCoordinator] = [:]
+    private func channelHostPollCoordinator(for flow: NativeChannelMessageHostFlow,
+        reference: GroupPollReference?) -> GroupPollCoordinator? {
+        let key = ChannelHostPollKey(flow: ObjectIdentifier(flow), reference: reference)
+        if let existing = channelHostPollOwners[key], existing.isCurrent { return existing }
+        channelHostPollOwners = channelHostPollOwners.filter { $0.value.isCurrent }
+        let features: Set<BusinessRuntimeFeature> = [.imPollResult, .imPollCreate, .imPollVote, .imPollClose, .imPollCreateReceipt]
+        guard flow.isCurrent, let storageScope, let api = regionalConfiguration?.apiConfiguration,
+              let (factory, gate) = channelHostRuntimeFactory(features, current: { [weak flow] in flow?.isCurrent == true }),
+              let identity = flow.reader.identity,
+              let scope = try? IMScope(identity: identity, conversationID: flow.history.conversation.id),
+              reference == nil || reference?.conversationID == scope.conversationID else { return nil }
+        let captured = factory.captured
+        let service = GroupPollService(configuration: api, transport: factory.client(features),
+            enabledPaths: Set(factory.routes(features).map(\.path)))
+        let client = GroupPollSessionClient(service: service, session: { [weak self] in
+            guard gate.isCurrent, let self, self.currentRuntimeDependencyContext == captured else { return nil }
+            return try? GroupPollSession(accountID: captured.session.accountID, epoch: captured.session.epoch, token: captured.session.token)
+        }, onUnauthorized: { [weak self] value in
+            guard gate.isCurrent, let self, self.currentRuntimeDependencyContext == captured else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: value.identity.epoch, credential: captured.session.token)
+        })
+        // Share the protected sidecar for both creator and detail owners. Only the
+        // nil-reference creator recovers it; a matching result alone cannot settle
+        // its durable create lock without the original request-hash receipt.
+        guard let recovery = try? GroupPollCreateRecoveryJournal(storage: ProjectEditSecureStorage(scope: storageScope),
+            namespace: storageScope.service, realm: api.baseURL, accountID: captured.session.accountID,
+            conversationID: scope.conversationID) else { return nil }
+        guard let owner = try? GroupPollCoordinator(scope: scope, reference: reference, client: client,
+            reader: flow.reader, journal: composition.storage.operationJournal(), namespace: storageScope.service,
+            realm: api.baseURL, creationRecovery: recovery) else { return nil }
+        channelHostPollOwners[key] = owner
+        return owner
+    }
+
+    private var channelHostCoordinators: [IMScope: IMExpandedCoordinator] = [:]
+    private var channelHostImages: [IMScope: IMImageUploadCoordinator] = [:]
+    private var imVideoCoordinators: [IMScope: IMVideoCoordinator] = [:]
+    private var imFileCoordinators: [IMScope: IMFileCoordinator] = [:]
+    private var imVoiceCoordinators: [IMScope: IMVoiceCoordinator] = [:]
+    private var channelHostWriter: (writer: IMExpandedWriter, gate: NativeChannelHostRuntimeTransport)?
+    private var nativeChannelReportOwners: [ObjectIdentifier: NativeChannelReportFlow] = [:]
+    private func channelHostRuntimeFactory(_ features: Set<BusinessRuntimeFeature>,
+        current: @escaping () -> Bool = { true }) -> (BusinessRuntimeFactory, NativeChannelHostRuntimeTransport)? {
+        guard let issued = businessRuntimeFactory, let api = regionalConfiguration?.apiConfiguration else { return nil }
+        let context = issued.captured, viewer = compositionViewerRevision
+        guard let gate = compositionTransport.makeNativeChannelHostRuntimeTransport(context: context,
+            issued: issued.configuration, features: features,
+            currentRuntime: { [weak self] in self?.currentRuntimeDependencyContext },
+            currentConfiguration: { [weak self] in self?.businessRuntimeFactory?.configuration },
+            stillCurrent: { [weak self] in self?.compositionViewerRevision == viewer && current() }),
+            let factory = BusinessRuntimeFactory(configuration: issued.configuration, api: api,
+                transport: gate, current: { gate.isCurrent ? context : nil }) else { return nil }
+        return (factory, gate)
+    }
+
+    private var originalChannelHostWriter: IMExpandedWriter {
+        // Observe and retire the old issuance before an absent/empty new configuration
+        // can short-circuit this getter. Regrant creates a different owner.
+        if let cached = channelHostWriter {
+            if cached.gate.isCurrent { return cached.writer }
+            channelHostWriter = nil
+        }
+        let features: Set<BusinessRuntimeFeature> = [.imStart, .imRead, .imOrdinaryReadReceipt, .imOrdinaryReadState, .imMute, .imOrdinaryMuteReceipt, .imOrdinaryMuteState, .imSend, .imUpload, .imOrdinarySendReceipt, .imImageUploadReceipt, .imStaticLocationSend, .imStaticLocationReceipt, .imRouteShareRead, .imRouteSend, .imRouteReceipt, .imVoiceSend, .imVoiceReceipt, .imFileSend, .imFileReceipt, .imVideoSend, .imVideoReceipt]
+        guard let (factory, gate) = channelHostRuntimeFactory(features), !factory.routes(features).isEmpty,
+              let configuration = regionalConfiguration?.apiConfiguration else { return disabledIMWriter }
+
+        let captured = factory.captured
+        let service = IMExpandedService(configuration: configuration, transport: factory.client(features),
+            approvedMediaOrigins: factory.configuration.imMediaOrigins, writesEnabled: true,
+            enabledPaths: Set(factory.routes(features).map(\.path)),
+            staticLocationEnabled: factory.permits(.imStaticLocationSend),
+            staticLocationReceiptEnabled: factory.permits(.imStaticLocationReceipt),
+            ordinarySendEnabled: factory.permits(.imSend),
+            ordinaryReceiptEnabled: factory.permits(.imOrdinarySendReceipt),
+            imageUploadReceiptEnabled: factory.permits(.imImageUploadReceipt),
+            routeShareReadEnabled: factory.permits(.imRouteShareRead),
+            routeSendEnabled: factory.permits(.imRouteSend),
+            routeReceiptEnabled: factory.permits(.imRouteReceipt),
+            voiceSendEnabled: factory.permits(.imVoiceSend), voiceReceiptEnabled: factory.permits(.imVoiceReceipt), fileSendEnabled: factory.permits(.imFileSend), fileReceiptEnabled: factory.permits(.imFileReceipt), videoSendEnabled: factory.permits(.imVideoSend), videoReceiptEnabled: factory.permits(.imVideoReceipt),
+            ordinaryMuteRequestEnabled: factory.permits(.imMute),
+            ordinaryMuteReceiptEnabled: factory.permits(.imOrdinaryMuteReceipt),
+            ordinaryMuteStateEnabled: factory.permits(.imOrdinaryMuteState),
+            ordinaryReadRequestEnabled: factory.permits(.imRead),
+            ordinaryReadReceiptEnabled: factory.permits(.imOrdinaryReadReceipt),
+            ordinaryReadStateEnabled: factory.permits(.imOrdinaryReadState))
+        let writer = IMExpandedWriter(service: service, session: { [weak self] in
+            guard let self, self.currentRuntimeDependencyContext == captured, gate.isCurrent else { return nil }; return self.currentIMExpandedSession
+        }, onUnauthorized: { [weak self] snapshot in
+            guard let self, self.currentRuntimeDependencyContext == captured, gate.isCurrent else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: snapshot.identity.epoch, credential: self.token)
+        })
+        channelHostWriter = (writer, gate); return writer
+    }
+    func channelHostExpandedCoordinator(for conversationID: Int) -> IMExpandedCoordinator? {
+        let writer = originalChannelHostWriter
+        guard let context = currentRuntimeDependencyContext, let storageScope,
+              let identity = writer.identity, let scope = try? IMScope(identity: identity, conversationID: conversationID),
+              let recoveryScope = try? NativeChannelTextScope(context: context, conversationID: conversationID) else { return nil }
+        if let existing = channelHostCoordinators[scope], existing.isCurrent, existing.writer === writer { return existing }
+        let viewer = compositionViewerRevision
+        let recovery = IMExpandedRecoveryJournal(storage: ProjectEditSecureStorage(scope: storageScope), scope: recoveryScope)
+        let owner = IMExpandedCoordinator(scope: scope, writer: writer, recovery: recovery, stillCurrent: { [weak self] in
+            guard let self, self.compositionViewerRevision == viewer,
+                  self.currentRuntimeDependencyContext == context else { return false }
+            return self.originalChannelHostWriter === writer
+        })
+        channelHostCoordinators[scope] = owner; return owner
+    }
+    func channelHostImageUploadCoordinator(for conversationID: Int) -> IMImageUploadCoordinator? {
+        guard let context = currentRuntimeDependencyContext, let storageScope,
+              let expanded = channelHostExpandedCoordinator(for: conversationID),
+              let durable = try? NativeChannelTextScope(context: context, conversationID: conversationID),
+              let target = try? ImageUploadTarget(accountID: expanded.scope.identity.accountID,
+                namespace: storageScope.service, realm: context.baseURL.absoluteString,
+                kind: "im", entityID: conversationID, field: "image") else { return nil }
+        let scope = expanded.scope
+        if let existing = channelHostImages[scope], existing.isCurrent { return existing }
+        let viewer = compositionViewerRevision, writer = expanded.writer
+        let current: () -> Bool = { [weak self] in
+            guard let self else { return false }
+            return self.currentRuntimeDependencyContext == context && self.compositionViewerRevision == viewer && expanded.isCurrent
+        }
+        let owner = IMImageUploadCoordinator(scope: scope, writer: writer,
+            picker: retainedImagePickerHost.imPicker(scope: scope, currentScope: { current() ? scope : nil }, selectionApproval: { [weak self] in
+                guard let self, current(), let factory = self.businessRuntimeFactory else { return false }
+                return factory.permits(.imUpload) && factory.permits(.imImageUploadReceipt) && factory.configuration.imImageSelection
+            }), journal: imageUploadJournal, target: target,
+            originalJournal: OrdinaryIMImageJournal(storage: ProjectEditSecureStorage(scope: storageScope), owner: durable),
+            expanded: expanded, reader: messagingReader, stillCurrent: current)
+        channelHostImages[scope] = owner; return owner
+    }
+    func imVoiceCoordinator(for conversationID: Int) -> IMVoiceCoordinator? {
+        guard let context = currentRuntimeDependencyContext, let storageScope,
+              let owner = channelHostExpandedCoordinator(for: conversationID),
+              let issuedFactory = businessRuntimeFactory, issuedFactory.captured == context,
+              let configuration = regionalConfiguration?.apiConfiguration,
+              let durableScope = try? NativeChannelTextScope(context: context, conversationID: conversationID) else { return nil }
+        if let existing = imVoiceCoordinators[owner.scope], existing.isCurrent, existing.expanded === owner { return existing }
+        let viewer = compositionViewerRevision
+        let features: Set<BusinessRuntimeFeature> = [.imVoiceUpload, .imVoiceUploadReceipt, .imVoicePlayback, .imVoicePlaybackStatus]
+        guard let (factory, mediaGate) = channelHostRuntimeFactory(features) else { return nil }
+        let current: () -> Bool = { [weak self] in
+            guard let self else { return false }
+            return self.currentRuntimeDependencyContext == context && self.compositionViewerRevision == viewer && owner.isCurrent && mediaGate.isCurrent
+        }
+        let service = IMVoiceService(configuration: configuration, transport: factory.client(features),
+            uploadEnabled: factory.permits(.imVoiceUpload), receiptEnabled: factory.permits(.imVoiceUploadReceipt),
+            playbackEnabled: factory.permits(.imVoicePlayback), playbackStatusEnabled: factory.permits(.imVoicePlaybackStatus), session: {
+                guard current() else { return nil }
+                return try? IMVoiceSession(accountID: context.session.accountID, epoch: context.session.epoch, token: context.session.token)
+            }, unauthorized: { [weak self] snapshot in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: snapshot.identity.epoch, credential: context.session.token)
+            })
+        let voice = IMVoiceCoordinator(scope: owner.scope, expanded: owner, service: service,
+            journal: IMVoiceJournal(storage: ProjectEditSecureStorage(scope: storageScope), owner: durableScope), stillCurrent: current)
+        imVoiceCoordinators[owner.scope] = voice; return voice
+    }
+    func imFileCoordinator(for conversationID: Int) -> IMFileCoordinator? {
+        guard let context = currentRuntimeDependencyContext, let storageScope,
+              let owner = channelHostExpandedCoordinator(for: conversationID),
+              let issuedFactory = businessRuntimeFactory, issuedFactory.captured == context,
+              let configuration = regionalConfiguration?.apiConfiguration,
+              let durableScope = try? NativeChannelTextScope(context: context, conversationID: conversationID) else { return nil }
+        if let existing = imFileCoordinators[owner.scope], existing.isCurrent, existing.expanded === owner { return existing }
+        let viewer = compositionViewerRevision
+        let features: Set<BusinessRuntimeFeature> = [.imFileUpload, .imFileUploadReceipt, .imFileScan, .imFilePreview, .imFilePreviewStatus]
+        guard let (factory, mediaGate) = channelHostRuntimeFactory(features) else { return nil }
+        let current: () -> Bool = { [weak self] in
+            guard let self else { return false }
+            return self.currentRuntimeDependencyContext == context && self.compositionViewerRevision == viewer && owner.isCurrent && mediaGate.isCurrent
+        }
+        let service = IMFileService(configuration: configuration, transport: factory.client(features),
+            mediaTransport: ResponseLimitedHTTPTransport(enabled: factory.permits(.imFilePreview), maximumResponseBytes: IMFileSelection.maximumBytes),
+            approvedMediaOrigins: factory.configuration.imMediaOrigins,
+            uploadEnabled: factory.permits(.imFileUpload), scanEnabled: factory.permits(.imFileScan), receiptEnabled: factory.permits(.imFileUploadReceipt),
+            previewEnabled: factory.permits(.imFilePreview), previewStatusEnabled: factory.permits(.imFilePreviewStatus), session: {
+                guard current() else { return nil }
+                return try? IMFileSession(accountID: context.session.accountID, epoch: context.session.epoch, token: context.session.token)
+            }, unauthorized: { [weak self] snapshot in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: snapshot.identity.epoch, credential: context.session.token)
+            })
+        let file = IMFileCoordinator(scope: owner.scope, expanded: owner, service: service,
+            journal: IMFileJournal(storage: ProjectEditSecureStorage(scope: storageScope), owner: durableScope, directory: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("im-file-drafts", isDirectory: true)), stillCurrent: current)
+        imFileCoordinators[owner.scope] = file; return file
+    }
+    func imVideoCoordinator(for conversationID: Int) -> IMVideoCoordinator? {
+        guard let context = currentRuntimeDependencyContext, let storageScope,
+              let owner = channelHostExpandedCoordinator(for: conversationID),
+              let issuedFactory = businessRuntimeFactory, issuedFactory.captured == context,
+              let configuration = regionalConfiguration?.apiConfiguration,
+              let durableScope = try? NativeChannelTextScope(context: context, conversationID: conversationID) else { return nil }
+        if let existing = imVideoCoordinators[owner.scope], existing.isCurrent, existing.expanded === owner { return existing }
+        let viewer = compositionViewerRevision
+        let features: Set<BusinessRuntimeFeature> = [.imVideoUpload, .imVideoUploadReceipt, .imVideoPolicy, .imVideoPreview, .imVideoPreviewStatus]
+        guard let (factory, mediaGate) = channelHostRuntimeFactory(features) else { return nil }
+        let current: () -> Bool = { [weak self] in
+            guard let self else { return false }
+            return self.currentRuntimeDependencyContext == context && self.compositionViewerRevision == viewer && owner.isCurrent && mediaGate.isCurrent
+        }
+        let service = IMVideoService(configuration: configuration, transport: factory.client(features),
+            mediaTransport: ResponseLimitedHTTPTransport(enabled: factory.permits(.imVideoPreview), maximumResponseBytes: IMVideoSelection.maximumBytes),
+            approvedMediaOrigins: factory.configuration.imMediaOrigins,
+            uploadEnabled: factory.permits(.imVideoUpload), policyEnabled: factory.permits(.imVideoPolicy), receiptEnabled: factory.permits(.imVideoUploadReceipt),
+            previewEnabled: factory.permits(.imVideoPreview), previewStatusEnabled: factory.permits(.imVideoPreviewStatus), session: {
+                guard current() else { return nil }
+                return try? IMVideoSession(accountID: context.session.accountID, epoch: context.session.epoch, token: context.session.token)
+            }, unauthorized: { [weak self] snapshot in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: snapshot.identity.epoch, credential: context.session.token)
+            })
+        let file = IMVideoCoordinator(scope: owner.scope, expanded: owner, service: service,
+            journal: IMVideoJournal(storage: ProjectEditSecureStorage(scope: storageScope), owner: durableScope, directory: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("im-video-drafts", isDirectory: true)), stillCurrent: current)
+        imVideoCoordinators[owner.scope] = file; return file
+    }
+    func nativeChannelReportFlow(for flow: NativeChannelMessageHostFlow) -> NativeChannelReportFlow? {
+        // Retire a cached report issuance before missing configuration can return early.
+        let key = ObjectIdentifier(flow)
+        if let existing = nativeChannelReportOwners[key] {
+            if existing.isCurrent { return existing }
+            nativeChannelReportOwners[key] = nil
+        }
+        guard flow.isCurrent, let sourceFactory = businessRuntimeFactory, let storageScope,
+              flow.reader.identity == MessagingReadIdentity(accountID: sourceFactory.captured.session.accountID,
+                                                            epoch: sourceFactory.captured.session.epoch) else { return nil }
+        let features: Set<BusinessRuntimeFeature> = [.imReport, .imChannelReportReceipt]
+        guard let (factory, reportGate) = channelHostRuntimeFactory(features, current: { [weak flow] in flow?.isCurrent == true }) else { return nil }
+        let issued = factory.routes(features)
+        guard !issued.isEmpty else { return nil }
+        nativeChannelReportOwners = nativeChannelReportOwners.filter { $0.value.isCurrent }
+        let context = factory.captured, viewer = compositionViewerRevision
+        let current: () -> Bool = { [weak self, weak flow] in
+            guard let self, let flow else { return false }
+            return reportGate.isCurrent && flow.isCurrent && self.compositionViewerRevision == viewer && self.currentRuntimeDependencyContext == context
+        }
+        let owner = try? NativeChannelReportFlow(context: context, conversationID: flow.history.conversation.id,
+            transport: factory.client(features), storage: ProjectEditSecureStorage(scope: storageScope), current: current,
+            permitsWrite: { current() && issued.contains(where: { $0.method == "POST" && $0.path == "api/im/report" }) },
+            permitsRead: { path in current() && issued.contains(where: { $0.method == "GET" && $0.path == path }) },
+            unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+        if let owner { nativeChannelReportOwners[key] = owner }; return owner
+    }
+    private func makeNativeChannelCheckinFlow(for flow: NativeChannelMessageHostFlow) -> NativeChannelCheckinFlow? {
+        guard flow.isCurrent, let sourceFactory = businessRuntimeFactory, let storageScope,
+              sourceFactory.captured == currentRuntimeDependencyContext,
+              flow.reader.identity == MessagingReadIdentity(accountID: sourceFactory.captured.session.accountID,
+                                                            epoch: sourceFactory.captured.session.epoch) else { return nil }
+        let features: Set<BusinessRuntimeFeature> = [.imCheckinStatus, .imCheckinWrite, .imCheckinRank, .imCheckinReceipt]
+        guard let (factory, gate) = channelHostRuntimeFactory(features, current: { [weak flow] in flow?.isCurrent == true }) else { return nil }
+        let issued = factory.routes(features)
+        guard !issued.isEmpty else { return nil }
+        let context = sourceFactory.captured, viewer = compositionViewerRevision
+        let current: () -> Bool = { [weak self, weak flow] in
+            guard let self, let flow else { return false }
+            return gate.isCurrent && flow.isCurrent && self.compositionViewerRevision == viewer && self.currentRuntimeDependencyContext == context
+                && self.businessRuntimeFactory?.routes(features) == issued
+        }
+        guard let service = try? NativeChannelCheckinService(context: context, channelID: String(flow.history.conversation.id),
+            transport: factory.client(features), permits: { method, path in
+                current() && issued.contains(where: { $0.method == method && $0.path == path })
+            }, current: current, unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            }) else { return nil }
+        return try? NativeChannelCheckinFlow(service: service, context: context, storage: ProjectEditSecureStorage(scope: storageScope))
+    }
+    private func makeNativeChannelChainFlow(for flow: NativeChannelMessageHostFlow,
+        reference: NativeChannelChainReference?) -> NativeChannelChainFlow? {
+        guard flow.isCurrent, let sourceFactory = businessRuntimeFactory, let storageScope,
+              sourceFactory.captured == currentRuntimeDependencyContext,
+              flow.reader.identity == MessagingReadIdentity(accountID: sourceFactory.captured.session.accountID,
+                                                            epoch: sourceFactory.captured.session.epoch),
+              reference == nil || reference?.conversationID == String(flow.history.conversation.id) else { return nil }
+        let features: Set<BusinessRuntimeFeature> = [.imChainRead, .imChainCreate, .imChainJoin, .imChainWithdraw, .imChainClose, .imChainReceipt]
+        guard let (factory, gate) = channelHostRuntimeFactory(features, current: { [weak flow] in flow?.isCurrent == true }) else { return nil }
+        let issued = factory.routes(features)
+        guard !issued.isEmpty else { return nil }
+        let context = sourceFactory.captured, viewer = compositionViewerRevision
+        let current: () -> Bool = { [weak self, weak flow] in
+            guard let self, let flow else { return false }
+            return gate.isCurrent && flow.isCurrent && self.compositionViewerRevision == viewer && self.currentRuntimeDependencyContext == context
+                && self.businessRuntimeFactory?.routes(features) == issued
+        }
+        guard let service = try? NativeChannelChainService(context: context, conversationID: String(flow.history.conversation.id),
+            transport: factory.client(features), permits: { method, path in
+                current() && issued.contains(where: { $0.method == method && $0.path == path })
+            }, current: current, unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            }) else { return nil }
+        return try? NativeChannelChainFlow(service: service, context: context,
+            storage: ProjectEditSecureStorage(scope: storageScope), reference: reference)
+    }
+    func makeNativeChannelNotificationFlow(scope: NativeChannelNotificationScope?, sharedClubDefault: Bool = false,
+        sourceCurrent: @escaping @MainActor () -> Bool = { true }) -> NativeChannelNotificationCoordinator? {
+        guard let context = currentRuntimeDependencyContext, storageScope != nil else { return nil }
+        let viewer = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewer, sourceCurrent() else { return nil }
+            return self.currentRuntimeDependencyContext
+        }
+        let selected: () -> (any NativeChannelNotificationAuthorizing)? = { [weak self] in
+            guard let self, ContentDraftContextFence.matches(current(), context) else { return nil }
+            return self.composition.nativeChannelNotificationAuthorization(context, viewer)
+        }
+        guard let source = selected() else { return nil }
+        let journal = NativeChannelNotificationJournal(
+            storage: NativeChannelNotificationProtectedStorage(existing: ProjectEditSecureStorage(scope: storageScope)),
+            owner: .init(context: context))
+        do {
+                guard let dispatcher = self.compositionTransport.makeNativeChannelNotificationDispatcher(
+                    context: context, viewerRevision: viewer, source: source, journal: journal,
+                    currentRuntime: current,
+                    currentViewer: { [weak self] in self?.compositionViewerRevision ?? UInt64.max },
+                    selectedSource: selected) else { throw NativeChannelNotificationError.accessClosed }
+                let authority = dispatcher.authority
+            guard ContentDraftContextFence.matches(authority.context, context),
+                  !sharedClubDefault || scope?.type == 2 else { return nil }
+            if !authority.allows(sharedClubDefault ? .clubDefaultRead : (scope == nil ? .directory : .preference), scope: scope) {
+                let ackAllowed = scope?.type == 1 && authority.allows(.ack, scope: scope)
+                let unreadAllowed = scope == nil && authority.allows(.unread, scope: nil)
+                if !ackAllowed && !unreadAllowed {
+                    guard let original = try journal.restore(), authority.allows(.receipt, scope: original.scope) else { return nil }
+                }
+            }
+            return try NativeChannelNotificationCoordinator(
+                client: NativeChannelNotificationService(authority: authority, transport: dispatcher),
+                journal: journal, scope: scope, sharedClubDefault: sharedClubDefault)
+        } catch { return nil }
+    }
+    func makeNativeNotificationDeliveryLogFlow() -> NativeNotificationDeliveryLogCoordinator? {
+        guard let context = currentRuntimeDependencyContext, storageScope != nil else { return nil }
+        let viewer = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewer else { return nil }
+            return self.currentRuntimeDependencyContext
+        }
+        let selected: () -> (any NativeChannelNotificationAuthorizing)? = { [weak self] in
+            guard let self, ContentDraftContextFence.matches(current(), context) else { return nil }
+            return self.composition.nativeChannelNotificationAuthorization(context, viewer)
+        }
+        guard let source = selected() else { return nil }
+        return try? NativeChannelNotificationBinding.makeDeliveryLog(context: context,
+            storage: ProjectEditSecureStorage(scope: storageScope), makeDispatcher: { journal in
+                guard let dispatcher = self.compositionTransport.makeNativeChannelNotificationDispatcher(
+                    context: context, viewerRevision: viewer, source: source, journal: journal,
+                    currentRuntime: current,
+                    currentViewer: { [weak self] in self?.compositionViewerRevision ?? UInt64.max },
+                    selectedSource: selected) else { throw NativeChannelNotificationError.accessClosed }
+                return dispatcher
+            })
+    }
+    /// Reporter-owned original receipts remain reachable after the channel host retires.
+    /// The local journal supplies only locators; independent exact GET issuance is required.
+    func makeNativeChannelReportRecoveryDirectory() -> NativeChannelReportRecoveryDirectory? {
+        guard let context = currentRuntimeDependencyContext, let storageScope,
+              storageScope.service.utf8.elementsEqual(context.session.namespace.utf8) else { return nil }
+        let viewer = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard let self else { return false }
+            return self.compositionViewerRevision == viewer && self.currentRuntimeDependencyContext == context
+        }
+        // Reuse the independently issued exact GET set through the live final-forward gate.
+        guard let (factory, gate) = channelHostRuntimeFactory([.imChannelReportReceipt], current: current) else { return nil }
+        return NativeChannelReportRecoveryAssembly.make(factory: factory,
+            currentFactory: { [weak self] in self?.businessRuntimeFactory },
+            storage: ProjectEditSecureStorage(scope: storageScope),
+            journalKeys: { try NativeChannelReportJournalKeys.read(scope: storageScope, context: context) },
+            current: { gate.isCurrent && current() }, unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+
     private var businessRuntimeFactory: BusinessRuntimeFactory? {
         guard let api = regionalConfiguration?.apiConfiguration, storageScope != nil,
               let configuration = runtimeDependencies.businessConfiguration, let context = currentRuntimeDependencyContext,
@@ -1075,11 +2336,25 @@ final class AppSession: ObservableObject {
         retainedPlayPreferences[key] = model; return model
     }
     func playOperatingSummary(topicID: Int) -> PlayOperatingSummaryCoordinator? {
-        guard topicID > 0, let api = dormantPlayRuntimeService() else { return nil }
-        let key = playRuntimeKey(.topic(topicID), suffix: "summary")
+        guard !committingAuthenticatedSession, topicID > 0,
+              let regional = regionalConfiguration, let storageScope, let account, let token,
+              let role = PlayRecoveryAccountRole(rawValue: account.effectiveRole),
+              let captured = try? PlayExperienceSession(accountID: account.id, epoch: gate.currentStamp,
+                  namespace: storageScope.service, token: token, role: role.rawValue),
+              let api = dormantPlayRuntimeService() else { return nil }
+        let viewer = compositionViewerRevision
+        let key = playRuntimeKey(.topic(topicID), suffix: "summary:\(viewer)")
         if let retained = retainedPlaySummaries[key] { return retained }
-        let model = PlayOperatingSummaryCoordinator(topicID: topicID, service: api,
-            currentSession: { [weak self] in self?.currentPlayRuntimeSession })
+        let recovery: any PlayTagRevocationRecovery
+        do {
+            recovery = try composition.storage.playRecovery.make(session: captured, scope: .topic(topicID),
+                regionalConfiguration: regional, storageScope: storageScope)
+        } catch { recovery = PlayUnavailableTagRevocationRecovery() }
+        let model = PlayOperatingSummaryCoordinator(topicID: topicID, service: api, recovery: recovery,
+            currentSession: { [weak self] in
+                guard let self, self.matchesContinuationSession(captured, viewerRevision: viewer) else { return nil }
+                return captured
+            })
         retainedPlaySummaries[key] = model; return model
     }
     /// P056 reuses an already accepted read configuration. This creates no approval
@@ -1198,10 +2473,27 @@ final class AppSession: ObservableObject {
             isCurrent: { [weak self] in self?.currentRuntimeDependencyContext == captured })
     }
     func playPlayer(scope: PlaySessionScope) -> PlayPlayerGameCoordinator? {
-        guard case .activity(let id) = scope, id > 0, let api = dormantPlayRuntimeService() else { return nil }
-        let key = playRuntimeKey(scope, suffix: "player")
+        guard !committingAuthenticatedSession, case .activity(let id) = scope, id > 0,
+              let regional = regionalConfiguration, let storageScope, let account, let token,
+              let role = PlayRecoveryAccountRole(rawValue: account.effectiveRole),
+              let captured = try? PlayExperienceSession(accountID: account.id, epoch: gate.currentStamp,
+                  namespace: storageScope.service, token: token, role: role.rawValue),
+              let api = dormantPlayRuntimeService() else { return nil }
+        // One retained coordinator owns this viewer/activity. A returning role must not
+        // revive an old in-memory lease after another viewer has reconciled the journal.
+        let viewer = compositionViewerRevision
+        let key = playRuntimeKey(scope, suffix: "player:\(viewer)")
         if let retained = retainedPlayPlayers[key] { return retained }
-        let model = PlayPlayerGameCoordinator(activityID: id, service: api, currentSession: { [weak self] in self?.currentPlayRuntimeSession })
+        guard let model = PlayGameSessionJournalFactory.makeCoordinator(scope: scope, service: api,
+            session: captured, regionalConfiguration: regional, storageScope: storageScope,
+            currentSession: { [weak self] in
+                guard let self, self.matchesContinuationSession(captured, viewerRevision: viewer) else { return nil }
+                return captured
+            }, makeRecovery: { session, scope, regional, storageScope in
+                try composition.storage.playRecovery.make(session: session, scope: scope,
+                    regionalConfiguration: regional, storageScope: storageScope)
+            }) else { return nil }
+        // Storage construction grants no read or command capability. No memory fallback.
         retainedPlayPlayers[key] = model; return model
     }
     func playCircle(topicID: Int?) -> PlayCircleCoordinator? {
@@ -1359,7 +2651,11 @@ final class AppSession: ObservableObject {
     private let growthCenterService:GrowthCenterService?
     private var currentGrowthCenterSession:GrowthCenterReadSession? {
         guard let account,let token else { return nil }
-        return try? GrowthCenterReadSession(accountID:account.id,epoch:gate.currentStamp,token:token)
+        let approvalRevision = currentRuntimeDependencyContext.flatMap { context in
+            composition.growthNormalReadApproval(context).flatMap { $0.matches(context) ? $0.revision : nil }
+        }
+        return try? GrowthCenterReadSession(accountID:account.id,epoch:gate.currentStamp,token:token,
+            approvalRevision:approvalRevision,viewerRevision:compositionViewerRevision)
     }
     lazy var growthCenterReader=GrowthCenterSessionReader(service:growthCenterService,currentSession:{ [weak self] in self?.currentGrowthCenterSession },onUnauthorized:{ [weak self] captured in
         guard let self,self.currentGrowthCenterSession == captured else { return }
@@ -2717,18 +4013,28 @@ final class AppSession: ObservableObject {
     private let publicTemplateDetails = PublicTemplateDetailOwner()
     private let discoveryService: DiscoveryService?
     private let profileService: ProfileService?
-    private let participantService: ParticipantService?
     @Published private(set) var participantRevision: UInt64=0
-    lazy var participantWriter=ParticipantSessionWriter(service:participantService,currentSession:{ [weak self] in
-        guard let self,let account=self.account,let token=self.token else { return nil }
-        return try? ParticipantWriteSession(accountID:account.id,epoch:self.gate.currentStamp,token:token)
-    },onUnauthorized:{ [weak self] snapshot in
-        guard let self else { return }
-        self.expireIfMatching(error:APIError.unauthorized,stamp:snapshot.identity.epoch,credential:self.token)
-    })
-    lazy var participantCoordinator=ParticipantMutationCoordinator(writer:participantWriter,reader:profileReader,onParticipantsChanged:{ [weak self] in
-        self?.participantRevision &+= 1
-    })
+    /// No capability is issued by a login, profile row, role or shipped configuration.
+    @Published var participantAccessSelector: (RuntimeDependencyContext) -> ProfileParticipantAccess? = { _ in nil } {
+        didSet { retainedParticipantHost.invalidateAccess() }
+    }
+    private lazy var retainedParticipantHost = ProfileParticipantHost(
+        current: { [weak self] in self?.currentRuntimeDependencyContext },
+        viewer: { [weak self] in self?.compositionViewerRevision ?? 0 },
+        access: { [weak self] context in self?.participantAccessSelector(context) },
+        makeTransport: { [weak self] context, access, current in
+            guard let self else { return nil }
+            return self.compositionTransport.makeProfileParticipantTransport(context: context, access: access,
+                currentRuntime: { [weak self] in self?.currentRuntimeDependencyContext }, stillCurrent: current)
+        }, changed: { [weak self] in self?.participantRevision &+= 1 },
+        unauthorized: { [weak self] context, viewer in
+            guard let self, self.compositionViewerRevision == viewer,
+                  ContentDraftContextFence.matches(self.currentRuntimeDependencyContext, context) else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+        })
+    var participantReader: any ProfileReading { retainedParticipantHost.reader }
+    var participantWriter: any ParticipantWriting { retainedParticipantHost.writer }
+    var participantCoordinator: ParticipantMutationCoordinator { retainedParticipantHost.coordinator }
     private var retainedMerchantOverview: (context: RuntimeDependencyContext, revision: UInt64, approval: UUID, reader: MerchantOverviewReader)?
     var merchantOverviewReader: MerchantOverviewReader? {
         guard let context = currentRuntimeDependencyContext, let api = regionalConfiguration?.apiConfiguration,
@@ -3422,29 +4728,39 @@ final class AppSession: ObservableObject {
     private struct GroupPollOwnerKey: Hashable { let scope: IMScope; let reference: GroupPollReference? }
     private var groupPollOwners: [GroupPollOwnerKey: GroupPollCoordinator] = [:]
     func groupPollCoordinator(conversationID: Int, reference: GroupPollReference?) -> GroupPollCoordinator? {
-        guard let account, let token, let namespace = storageScope?.service,
+        guard let account, let token, let storageScope,
               let configuration = regionalConfiguration?.apiConfiguration,
               let snapshot = try? GroupPollSession(accountID: account.id, epoch: gate.currentStamp, token: token),
               let scope = try? IMScope(identity: snapshot.identity, conversationID: conversationID) else { return nil }
         let key = GroupPollOwnerKey(scope: scope, reference: reference)
-        if let owner = groupPollOwners[key] { return owner }
+        if let owner = groupPollOwners[key], owner.isCurrent { return owner }
+        groupPollOwners = groupPollOwners.filter { $0.value.isCurrent }
         let captured = currentRuntimeDependencyContext
-        let features: Set<BusinessRuntimeFeature> = [.imPollResult, .imPollCreate, .imPollVote, .imPollClose]
+        let features: Set<BusinessRuntimeFeature> = [.imPollResult, .imPollCreate, .imPollVote, .imPollClose, .imPollCreateReceipt]
+        let pollRuntime = channelHostRuntimeFactory(features)
         let service: GroupPollService?
-        if let factory = businessRuntimeFactory {
+        if let (factory, _) = pollRuntime {
             service = GroupPollService(configuration: configuration, transport: factory.client(features),
                 enabledPaths: Set(factory.routes(features).map(\.path)))
         } else { service = nil }
         let client = GroupPollSessionClient(service: service, session: { [weak self] in
-            guard let self, self.currentRuntimeDependencyContext == captured, let account = self.account, let token = self.token else { return nil }
+            guard pollRuntime?.1.isCurrent ?? true, let self, self.currentRuntimeDependencyContext == captured, let account = self.account, let token = self.token else { return nil }
             return try? GroupPollSession(accountID: account.id, epoch: self.gate.currentStamp, token: token)
         }, onUnauthorized: { [weak self] value in
-            guard let self, self.currentRuntimeDependencyContext == captured else { return }
+            guard pollRuntime?.1.isCurrent ?? true, let self, self.currentRuntimeDependencyContext == captured else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: value.identity.epoch, credential: self.token)
         })
-        guard let owner = try? GroupPollCoordinator(scope: scope, reference: reference, client: client,
-            reader: messagingReader, journal: composition.storage.operationJournal(), namespace: namespace, realm: configuration.baseURL) else { return nil }
-        groupPollOwners[key] = owner; return owner
+        // All real app entries share the same original create lock and protected
+        // payload. A normal message detail must not clear a host-created draft.
+        guard let recovery = try? GroupPollCreateRecoveryJournal(storage: ProjectEditSecureStorage(scope: storageScope),
+            namespace: storageScope.service, realm: configuration.baseURL, accountID: account.id,
+            conversationID: conversationID),
+              let owner = try? GroupPollCoordinator(scope: scope, reference: reference, client: client,
+            reader: messagingReader, journal: composition.storage.operationJournal(), namespace: storageScope.service,
+            realm: configuration.baseURL, creationRecovery: recovery) else { return nil }
+        // A disabled explanatory owner must not become a permanent nil-service
+        // cache entry if the separately issued configuration later changes.
+        if pollRuntime != nil { groupPollOwners[key] = owner }; return owner
     }
     private let messagingService: MessagingService?
     private let messageActionService: MessageActionService?
@@ -3678,7 +4994,7 @@ final class AppSession: ObservableObject {
         retainedDoorCoordinator?.updateSession(doorReferralSession)
     }
 
-    private var token: String? { willSet { if token.map({ Data($0.utf8) }) != newValue.map({ Data($0.utf8) }) { invalidateWorkshopReadBindings() }; invalidateOwnerDraftBrowser(); if token != newValue { invalidateShopNPCConversations(); platformConsumers.invalidate() } } didSet { _ = runtimeDependencies; synchronizeAccountMarketingEntry() } }
+    private var token: String? { willSet { if token != newValue { invalidatePersonalLocationShare() }; if token.map({ Data($0.utf8) }) != newValue.map({ Data($0.utf8) }) { invalidateWorkshopReadBindings() }; invalidateOwnerDraftBrowser(); if token != newValue { invalidateShopNPCConversations(); platformConsumers.invalidate() } } didSet { _ = runtimeDependencies; synchronizeAccountMarketingEntry() } }
     private var didBootstrap = false
     private let restoreBlockedKey:String
     var isConfigured: Bool { storageScope != nil }
@@ -3727,7 +5043,10 @@ final class AppSession: ObservableObject {
             socialAccountService=SocialAccountService(configuration:configuration,transport:transport)
             officialEventService=OfficialEventService(configuration:configuration,transport:transport)
             profileWeeklyPointsService = ProfileWeeklyPointsService(configuration: configuration, transport: transport)
-            growthCenterService=GrowthCenterService(configuration:configuration,transport:transport)
+            do {
+                let transport = transport.growthNormalReadTransport(approval: composition.growthNormalReadApproval)
+                growthCenterService=GrowthCenterService(configuration:configuration,transport:transport)
+            }
             memberHomeService = MemberHomeService(configuration: configuration, transport: transport)
             ownMediaService = OwnMediaService(configuration: configuration, transport: transport)
             creatorContentService=CreatorContentService(configuration:configuration,transport:transport)
@@ -3736,7 +5055,6 @@ final class AppSession: ObservableObject {
             topicService=TopicService(configuration:configuration,transport:transport)
             discoveryService=DiscoveryService(configuration:configuration,transport:transport)
             profileService=ProfileService(configuration:configuration,transport:transport)
-            participantService=ParticipantService(configuration:configuration,transport:transport)
             merchantService=MerchantService(configuration:configuration,transport:transport)
             merchantEngagementService=MerchantEngagementService(configuration:configuration,readTransport:transport)
             merchantBusinessService=MerchantBusinessService(configuration:configuration,readTransport:transport)
@@ -3754,7 +5072,7 @@ final class AppSession: ObservableObject {
             roamExperienceService=RoamExperienceService(configuration:configuration,transport:transport)
             messagingService=MessagingService(configuration:configuration,transport:transport)
             messageActionService=MessageActionService(configuration:configuration,transport:transport)
-        } else { service=nil;accountSessionService=nil;authChannelService=nil;activityService=nil;searchMapService=nil;mapPublicLayerService=nil;registrationBackend=UnconfiguredRegistrationBackend();homeFeedService=nil;orderLifecycleService=nil;ticketWalletService=nil;squareService=nil;socialAccountService=nil;cooperationService=nil;accountCollectionService=nil;officialEventService=nil;growthCenterService=nil;profileWeeklyPointsService=nil;creatorContentService=nil;topicService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;merchantOperationsService=nil;merchantBusinessService=nil;merchantEngagementService=nil;cooperationFlowService=nil;merchantOnboardingService=nil;clubService=nil;clubManagementService=nil;clubOperationsService=nil;clubGovernanceService=nil;profileEditService=nil;clubActionService=nil;roamService=nil;roamExperienceService=nil;messagingService=nil;messageActionService=nil }
+        } else { service=nil;accountSessionService=nil;authChannelService=nil;activityService=nil;searchMapService=nil;mapPublicLayerService=nil;registrationBackend=UnconfiguredRegistrationBackend();homeFeedService=nil;orderLifecycleService=nil;ticketWalletService=nil;squareService=nil;socialAccountService=nil;cooperationService=nil;accountCollectionService=nil;officialEventService=nil;growthCenterService=nil;profileWeeklyPointsService=nil;creatorContentService=nil;topicService=nil;discoveryService=nil;profileService=nil;merchantService=nil;merchantOperationsService=nil;merchantBusinessService=nil;merchantEngagementService=nil;cooperationFlowService=nil;merchantOnboardingService=nil;clubService=nil;clubManagementService=nil;clubOperationsService=nil;clubGovernanceService=nil;profileEditService=nil;clubActionService=nil;roamService=nil;roamExperienceService=nil;messagingService=nil;messageActionService=nil }
         coopFlowExecutionSlot.current = { [weak self] in
             guard let self, let context = self.currentRuntimeDependencyContext else { return nil }
             return self.coopFlowExecutionApproval(context)
@@ -3916,6 +5234,7 @@ final class AppSession: ObservableObject {
     }
 
     func logout() async {
+        retainedPersonalLocationShareHost?.prepareLogout()
         nativeWeChatPaymentAdapter.cancelPending()
         weChatAuth.cancel()
         authChannels.cancel()

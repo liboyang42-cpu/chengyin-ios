@@ -125,7 +125,7 @@ public struct WorkshopModUpgradeSheetView: View {
                     Text(verbatim: "生成新版本本地升级草稿")
                         .frame(maxWidth: .infinity)
                 }
-                .disabled(!presentation.canConfirmUpgrade(confirmedByBuyer: confirmedByBuyer))
+                .disabled(confirmedRequestId != nil || !presentation.canConfirmUpgrade(confirmedByBuyer: confirmedByBuyer))
                 .accessibilityIdentifier("workshop.upgrade.confirmButton")
 
                 if let confirmedRequestId {

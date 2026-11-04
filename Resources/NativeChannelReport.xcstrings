@@ -1,0 +1,397 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "strings": {
+    "directory.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机没有可恢复的待确认频道举报。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There are no recoverable unconfirmed channel reports on this device."
+          }
+        }
+      }
+    },
+    "directory.preserved": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未删除或替换原请求，也未发送新的举报。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original requests have not been deleted or replaced. No new report has been sent."
+          }
+        }
+      }
+    },
+    "directory.readFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分或全部原请求暂时无法读取；这不代表没有待确认的举报。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some or all original requests cannot be read right now. This does not mean there are no unconfirmed reports."
+          }
+        }
+      }
+    },
+    "directory.readOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本页只查询原回执，不重新提交举报，也不读取原频道或消息内容。若原回执允许重试，仍须回到当前有权限的原频道，明确重试同一请求。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This page only reads original receipts. It never resubmits a report or reads the original channel or message. If a receipt permits retry, return to the original channel with current permission and explicitly retry the same request."
+          }
+        }
+      }
+    },
+    "directory.reload": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取本机原请求"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload original requests on this device"
+          }
+        }
+      }
+    },
+    "directory.scope": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里只恢复本机当前账号尚待确认的频道举报原请求；不是全部举报历史。已确认或其他设备提交的记录不会列出。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recover this account’s unconfirmed channel reports saved on this device. This is not a full report history; confirmed reports and reports from other devices are not listed."
+          }
+        }
+      }
+    },
+    "directory.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前账号、会话或原回执权限不可用。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current account, session, or original receipt permission is unavailable."
+          }
+        }
+      }
+    },
+    "recovery.close": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        }
+      }
+    },
+    "recovery.confirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已确认原举报记录"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original report record confirmed"
+          }
+        }
+      }
+    },
+    "recovery.noGrant": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前没有这条原请求的精确回执读取权限。原请求继续保留。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There is no current receipt-read permission for this exact request. The original request is retained."
+          }
+        }
+      }
+    },
+    "recovery.pending": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待确认的原举报"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unconfirmed original report"
+          }
+        }
+      }
+    },
+    "recovery.read": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取原举报结果"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read original report result"
+          }
+        }
+      }
+    },
+    "recovery.reading": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取原举报回执…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading the original report receipt…"
+          }
+        }
+      }
+    },
+    "recovery.reportID": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原举报编号"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original report ID"
+          }
+        }
+      }
+    },
+    "recovery.requestID": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求编号"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original request ID"
+          }
+        }
+      }
+    },
+    "recovery.statusAtRead": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次确认时的状态"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status at this confirmation"
+          }
+        }
+      }
+    },
+    "recovery.statusBoundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是原回执返回的状态，不代表消息已被判定违规或下架，也不是持续更新的审核进度。关闭后，这条已确认请求将不再列在本机待确认列表中。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is the status returned by the original receipt, not a finding that the message violated rules or was removed, and not live review progress. After closing, this confirmed request will no longer appear in this device’s unconfirmed list."
+          }
+        }
+      }
+    },
+    "recovery.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原举报结果"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original report results"
+          }
+        }
+      }
+    },
+    "recovery.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原结果尚未确认。未找到、处理中或读取失败都不会触发重新提交；原请求继续保留。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original result is not yet confirmed. A missing, pending, or failed receipt never triggers resubmission; the original request is retained."
+          }
+        }
+      }
+    },
+    "status.ACCEPTED": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "举报已采纳"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Report accepted"
+          }
+        }
+      }
+    },
+    "status.DUPLICATE": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重复举报"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplicate report"
+          }
+        }
+      }
+    },
+    "status.PENDING": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审核处理中"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Under review"
+          }
+        }
+      }
+    },
+    "status.REJECTED": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "举报未采纳"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Report not accepted"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -74,6 +74,7 @@ import SwiftUI
                         .accessibilityIdentifier("topicReview.changed")
                 }
             }
+            .p04LifecycleSurface()
             .navigationTitle(String(localized: LocalizedStringResource("topicReview.title", defaultValue: "Request a content review", locale: locale)))
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button(String(localized: LocalizedStringResource("topicReview.close", defaultValue: "Close", locale: locale)), action: close)
@@ -132,7 +133,7 @@ import SwiftUI
                 Text(String(localized: LocalizedStringResource("topicReview.failed", defaultValue: "The current capture or saved local request could not be verified. Retrying reads saved state first and does not invent a replacement request.", locale: locale)))
                     .accessibilityIdentifier("topicReview.failed")
                 Button(String(localized: LocalizedStringResource("topicReview.reload", defaultValue: "Read saved state and retry", locale: locale))) { Task { await model.load() } }
-                    .buttonStyle(.borderless).accessibilityIdentifier("topicReview.reload")
+                    .buttonStyle(.borderless).frame(minHeight: 44).accessibilityIdentifier("topicReview.reload")
             }
         case .unauthorized:
             Text(String(localized: LocalizedStringResource("topicReview.unauthorized", defaultValue: "Sign in again before reading this review request.", locale: locale))).accessibilityIdentifier("topicReview.unauthorized")
@@ -146,13 +147,14 @@ import SwiftUI
             Section {
                 if !flow.canReadStatus && !flow.canRetryExact {
                     Text(String(localized: LocalizedStringResource("topicReview.recoveryUnavailable", defaultValue: "Recovery is not configured for this account or request. The saved request remains unchanged.", locale: locale)))
-                        .font(.footnote).accessibilityIdentifier("topicReview.recoveryUnavailable")
+                        .font(.footnote).fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("topicReview.recoveryUnavailable")
                 }
                 Button(String(localized: LocalizedStringResource("topicReview.check", defaultValue: "Check saved request", locale: locale))) { model.check(captured) }
-                    .buttonStyle(.borderless).disabled(!flow.canReadStatus).accessibilityIdentifier("topicReview.check")
+                    .buttonStyle(.borderless).frame(minHeight: 44).disabled(!flow.canReadStatus).accessibilityIdentifier("topicReview.check")
                 if captured.current?.receipt == nil {
                     Button(String(localized: LocalizedStringResource("topicReview.retryExact", defaultValue: "Retry the exact saved request", locale: locale))) { model.retry(captured) }
-                        .buttonStyle(.borderless).disabled(!flow.canRetryExact).accessibilityIdentifier("topicReview.retryExact")
+                        .buttonStyle(.borderless).frame(minHeight: 44).disabled(!flow.canRetryExact).accessibilityIdentifier("topicReview.retryExact")
                 }
             }
         }
@@ -160,8 +162,10 @@ import SwiftUI
     private func receiptField(_ label: String, _ value: String, _ suffix: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(verbatim: label).font(.caption).foregroundStyle(.secondary)
-            Text(verbatim: value).textSelection(.enabled).accessibilityIdentifier("topicReview." + suffix)
-        }
+                .fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: value).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("topicReview." + suffix)
+        }.p04FactRow()
     }
 }
 
@@ -180,6 +184,7 @@ import SwiftUI
                         .buttonStyle(.borderless).accessibilityIdentifier("topicReview.confirm.submit")
                 }
             }
+            .p04LifecycleSurface()
             .navigationTitle(String(localized: LocalizedStringResource("topicReview.confirmTitle", defaultValue: "Confirm review request", locale: locale)))
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button(String(localized: LocalizedStringResource("topicReview.cancel", defaultValue: "Cancel", locale: locale)), action: cancel)

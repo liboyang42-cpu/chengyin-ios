@@ -2,7 +2,7 @@ import Foundation
 import Observation
 
 @MainActor public final class WorkshopPaidProfessionalAppearance {
-    fileprivate var started = false, closed = false
+    fileprivate var started = false, closed = false, suspended = false
     fileprivate var action: WorkshopPaidProfessionalAction?
     public init() {}
     fileprivate func begin() -> Bool { guard !started, !closed else { return false }; started = true; return true }
@@ -12,7 +12,7 @@ import Observation
     weak var appearance: WorkshopPaidProfessionalAppearance?
     private var revoked = false, entered = false
     init(_ appearance: WorkshopPaidProfessionalAppearance) { self.appearance = appearance }
-    var live: Bool { !revoked && appearance?.closed == false && appearance?.action === self }
+    var live: Bool { !revoked && appearance?.closed == false && appearance?.suspended == false && appearance?.action === self }
     func revoke() { revoked = true }
     func claim() -> Bool { guard live, !entered else { return false }; entered = true; return true }
 }
@@ -51,7 +51,7 @@ import Observation
     /// Recheck at click and before/after an independently approved owned-template read.
     public func generatedTemplateID(_ displayed: WorkshopPaidProfessionalAppearance,
                                     expected: WorkshopPaidProfessionalOperation) -> Int64? {
-        guard lease.isCurrent, phase == .operation, appearance === displayed, !displayed.closed,
+        guard lease.isCurrent, phase == .operation, appearance === displayed, !displayed.closed, !displayed.suspended,
               operation == expected, expected.state == .created,
               let command, expected.matches(command),
               let creation = expected.creation, creation.state == .committed else { return nil }
@@ -67,6 +67,22 @@ import Observation
         if phase != .invalidated { phase = .idle; issue = nil }
         // Durable intent stays until the server returns a matching terminal operation.
     }
+    /// Background retires all presentation authority, including queued confirmations and
+    /// protected preparation data. The original durable intent is never removed or replayed.
+    public func suspend(_ displayed: WorkshopPaidProfessionalAppearance) {
+        guard appearance === displayed, !displayed.closed, phase != .invalidated else { return }
+        displayed.suspended = true; displayed.action?.revoke(); displayed.action = nil
+        lifetime?.revoke(); lifetime = nil; clearVisible()
+        phase = .idle; issue = nil
+    }
+    /// Return reads only the original pending status or owner history. A new creation still
+    /// requires explicit review with fresh protected-body, target and current-draft reads.
+    public func resume(_ displayed: WorkshopPaidProfessionalAppearance) -> Action? {
+        guard appearance === displayed, !displayed.closed, displayed.suspended,
+              phase != .invalidated else { return nil }
+        displayed.suspended = false
+        return offerRecovery(displayed)
+    }
     private func clearVisible() {
         generatedDetailRevision = UUID()
         body = nil; selectedTarget = nil; currentDraft = nil; targets = []; nextTargetCursor = nil
@@ -74,14 +90,14 @@ import Observation
     }
     private func current(_ displayed: WorkshopPaidProfessionalAppearance) -> Bool {
         guard lease.isCurrent else { invalidate(); return false }
-        return phase != .invalidated && appearance === displayed && !displayed.closed
+        return phase != .invalidated && appearance === displayed && !displayed.closed && !displayed.suspended
     }
     public func appear(_ displayed: WorkshopPaidProfessionalAppearance) -> Action? {
         guard lease.isCurrent, phase != .invalidated, displayed.begin() else { return nil }
         appearance?.revoke(); lifetime?.revoke(); appearance = displayed; clearVisible()
         return offerRecovery(displayed)
     }
-    private func offer(_ displayed: WorkshopPaidProfessionalAppearance, phase next: Phase,
+    private func offer(_ displayed: WorkshopPaidProfessionalAppearance, phase next: Phase, retryPhase: Phase? = nil,
                        work: @escaping @MainActor (WorkshopPaidProfessionalLifetime) async throws -> Void) -> Action? {
         guard current(displayed) else { return nil }
         generatedDetailRevision = UUID()
@@ -97,8 +113,15 @@ import Observation
             do { try life.check(); try await work(life); try life.check() }
             catch {
                 guard action.live, self.current(displayed) else { return }
+                let issue = (error as? WorkshopPaidProfessionalIssue) ?? .unavailable
+                // A failed read page did not alter the accepted collection or its cursor.
+                // Only retryable read failures retain that phase; revoked authority still
+                // clears protected preparation through the original failure path below.
+                if let retryPhase, issue == .unavailable || issue == .malformed {
+                    self.issue = issue; self.phase = retryPhase; return
+                }
                 self.body = nil; self.selectedTarget = nil; self.currentDraft = nil
-                self.issue = (error as? WorkshopPaidProfessionalIssue) ?? .unavailable
+                self.issue = issue
                 self.phase = self.command == nil ? .unavailable : .operation
             }
         }
@@ -121,7 +144,7 @@ import Observation
     }
     public func offerMoreOperations(_ displayed: WorkshopPaidProfessionalAppearance) -> Action? {
         guard phase == .history, let cursor = nextOperationCursor else { return nil }
-        return offer(displayed, phase: .loading) { [weak self] life in
+        return offer(displayed, phase: .loading, retryPhase: .history) { [weak self] life in
             guard let self else { return }
             let page = try await self.service.operations(licenseId: self.reference.item.licenseId, before: cursor, lifetime: life)
             try life.check(); self.operations += page.items.filter { $0.command.matches(self.reference) }
@@ -161,7 +184,7 @@ import Observation
     }
     public func offerMoreTargets(_ displayed: WorkshopPaidProfessionalAppearance) -> Action? {
         guard phase == .targets, let cursor = nextTargetCursor else { return nil }
-        return offer(displayed, phase: .loading) { [weak self] life in
+        return offer(displayed, phase: .loading, retryPhase: .targets) { [weak self] life in
             guard let self else { return }
             let page = try await self.service.targets(licenseId: self.reference.item.licenseId, before: cursor, lifetime: life)
             try life.check(); self.targets += page.items; self.nextTargetCursor = page.nextBeforeTopicId; self.phase = .targets

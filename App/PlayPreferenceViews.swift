@@ -101,18 +101,61 @@ import SwiftUI
 
 @MainActor struct PlayOperatingSummaryView: View {
     @Bindable var model: PlayOperatingSummaryCoordinator
-    @State private var revokeID: Int?
+    @State private var sourceIsCurrent: @MainActor () -> Bool
+    init(model: PlayOperatingSummaryCoordinator, sourceIsCurrent: @escaping @MainActor () -> Bool = { false }) {
+        self.model = model
+        // Preserve the entry read fence for this destination lifetime, even if the host rebuilds.
+        _sourceIsCurrent = State(initialValue: sourceIsCurrent)
+    }
+    @StateObject private var presentation = PlayOperatingSummaryPresentation()
     @State private var confirm = false
+    @Environment(\.scenePhase) private var scenePhase
+    private struct ReadID: Equatable { let active: Bool; let current: Bool }
     var body: some View {
+        Group {
+            if scenePhase != .active { Color.clear }
+            else if !sourceIsCurrent() { PlayExperienceIssueView(issue: .staleSession) }
+            else { currentContent }
+        }
+        .privacySensitive().navigationTitle("playx.os.title").accessibilityIdentifier("playx.os.view")
+        .task(id: ReadID(active: scenePhase == .active, current: sourceIsCurrent())) {
+            guard scenePhase == .active, sourceIsCurrent() else { presentation.retire(); return }
+            presentation.activate()
+            await presentation.load(model: model, current: sourceIsCurrent)
+        }
+        .onDisappear { confirm = false; presentation.retire() }
+        .onChange(of: scenePhase) { _, next in
+            if next != .active { confirm = false; presentation.retire() }
+        }
+        .onChange(of: sourceIsCurrent()) { _, current in
+            if !current { confirm = false; presentation.retire() }
+        }
+        .onChange(of: presentation.review) { _, value in if value == nil { confirm = false } }
+        .onChange(of: model.phase) { _, phase in
+            if phase != "ready" { confirm = false; presentation.cancelRevocation() }
+        }
+        .confirmationDialog("playx.os.revoke", isPresented: $confirm, titleVisibility: .visible) {
+            if let review = presentation.review {
+                Button("playx.os.revoke", role: .destructive) {
+                    Task { await presentation.revoke(review, model: model, current: sourceIsCurrent) }
+                }
+            }
+            Button("playx.cancel", role: .cancel) { presentation.cancelRevocation() }
+        } message: { Text("playx.os.revokeNotice") }
+    }
+    private var currentContent: some View {
         List {
             Section {
                 Text("playx.os.private").font(.footnote).accessibilityIdentifier("playx.os.private")
                 PlayRuntimePhaseText(phase: model.phase)
+                if presentation.loading { ProgressView("playx.loading") }
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
-                Button("playx.refresh") { Task { await model.load() } }.disabled(model.phase == "submitting")
+                Button("playx.refresh") {
+                    Task { await presentation.load(model: model, current: sourceIsCurrent) }
+                }.disabled(presentation.loading || model.phase == "submitting")
                 if !model.unresolvedTagIDs.isEmpty { Text("playx.unknown.body") }
             }
-            if let summary = model.summary {
+            if let summary = presentation.displayedSummary(model: model, current: sourceIsCurrent) {
                 if let edition = summary.edition { Section { Text(verbatim: edition) } }
                 if summary.isEmpty { Text("playx.os.empty") }
                 Section("playx.os.tags") {
@@ -120,7 +163,12 @@ import SwiftUI
                         VStack(alignment: .leading) {
                             Text(verbatim: tag.value).accessibilityIdentifier("playx.os.tag.\(tag.id)")
                             if tag.revoked { Text("playx.os.revoked").font(.caption) }
-                            else { Button("playx.os.revoke", role: .destructive) { revokeID = tag.id; confirm = true }.disabled(model.phase != "ready") }
+                            else { Button("playx.os.revoke", role: .destructive) {
+                                    presentation.prepareRevocation(tagID: tag.id, model: model, current: sourceIsCurrent)
+                                    confirm = presentation.review != nil
+                                }.disabled(model.phase != "ready")
+                                 .disabled(presentation.loading || !model.unresolvedTagIDs.isEmpty)
+                            }
                         }
                     }
                 }
@@ -128,15 +176,14 @@ import SwiftUI
                     Section { if !card.title.isEmpty { Text(verbatim: card.title).font(.headline) }; if !card.body.isEmpty { Text(verbatim: card.body) } }
                 }
                 Section("playx.os.anchors") {
-                    ForEach(summary.anchors) { anchor in Text(verbatim: anchor.name).accessibilityLabel(Text(verbatim: anchor.name)) }
+                    if !summary.anchors.isEmpty { PlayPreferenceOriginalAnchorMap(anchors: summary.anchors) }
+                    ForEach(Array(summary.anchors.enumerated()), id: \.offset) { _, anchor in
+                        Text(verbatim: anchor.name).accessibilityLabel(Text(verbatim: anchor.name))
+                    }
                 }
                 Section("playx.os.week") { ForEach(Array(summary.actions7Days.enumerated()), id: \.offset) { _, action in Text(verbatim: action) } }
                 Section("playx.os.month") { ForEach(Array(summary.actions30Days.enumerated()), id: \.offset) { _, action in Text(verbatim: action) } }
             }
-        }.privacySensitive().navigationTitle("playx.os.title").accessibilityIdentifier("playx.os.view")
-            .task { await model.load() }
-            .confirmationDialog("playx.os.revoke", isPresented: $confirm, titleVisibility: .visible) {
-                Button("playx.os.revoke", role: .destructive) { if let revokeID { Task { await model.revoke(tagID: revokeID) } } }
-            } message: { Text("playx.os.revokeNotice") }
+        }
     }
 }

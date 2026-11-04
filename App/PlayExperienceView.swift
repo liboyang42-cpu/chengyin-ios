@@ -205,9 +205,12 @@ import SwiftUI
                 Section("playx.results") {
                     Button("playx.results.load") { Task { await model.loadEndingAndLeaderboard() } }.accessibilityIdentifier("playx.results.load")
                     NavigationLink("playx.stopwatch") { PlayStopwatchView() }
-                    if let topicID = model.snapshot?.result.topicID, let factory = summaryModel, let summary = factory(topicID) {
-                        NavigationLink("playx.os.title") { PlayOperatingSummaryView(model: summary) }
-                            .accessibilityIdentifier("playx.os.open")
+                    if let topicID = model.snapshot?.result.topicID, let factory = summaryModel, let summary = factory(topicID),
+                       let source = PlayOperatingSummarySource(runtime: model, summary: summary) {
+                        NavigationLink("playx.os.title") {
+                            PlayOperatingSummaryView(model: summary,
+                                sourceIsCurrent: { source.accepts(model, summary: summary, currentSummary: { factory(topicID) }) })
+                        }.accessibilityIdentifier("playx.os.open")
                     }
                     if PrefabPreviewState.isPrefabTopic(name: model.snapshot?.result.topicName), let prefabModel {
                         NavigationLink("playx.prefab.title") { PlayPrefabRuntimeView(model: prefabModel) }

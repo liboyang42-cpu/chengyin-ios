@@ -140,7 +140,7 @@ struct PrivateHomeCoordinateReview: View {
     let point: PrivateHomePoint
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("privateHome.map.exact").font(.footnote)
+            Text("privateHome.map.exact").font(.footnote).foregroundStyle(.secondary)
             Text(verbatim: "\(point.latitude), \(point.longitude) · WGS84")
                 .textSelection(.disabled).privacySensitive().accessibilityIdentifier("privateHome.coordinateReview")
         }

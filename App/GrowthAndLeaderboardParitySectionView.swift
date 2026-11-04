@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 #if canImport(QuestifyCore)
 import QuestifyCore
 #elseif canImport(Core)
@@ -40,7 +41,10 @@ public struct GrowthLeaderboardAuditRow: Identifiable, Equatable, Sendable {
 
     public var usesRemoteAvatar: Bool {
         let trimmedAvatar = (avatarURL ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-        return !isAnonymous && trimmedAvatar.lowercased().hasPrefix("https://")
+        guard !isAnonymous, let url = URLComponents(string: trimmedAvatar),
+              url.scheme?.lowercased() == "https", let host = url.host, !host.isEmpty,
+              url.user == nil, url.password == nil else { return false }
+        return true
     }
 
     public init(
@@ -153,7 +157,7 @@ public struct GrowthAndLeaderboardParitySnapshot: Equatable, Sendable {
                 rank: 1,
                 memberID: 1001,
                 nickname: "林深见鹿",
-                avatarURL: "https://cdn.questify.com/avatars/1001.png",
+                avatarURL: nil,
                 scoreText: "2,480 pt",
                 badgeTitle: "城市拓荒者",
                 isAnonymous: false

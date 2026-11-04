@@ -1,0 +1,262 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "channelText.placeholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write to this group"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "向此群发送文字"
+          }
+        }
+      }
+    },
+    "channelText.send": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送文字"
+          }
+        }
+      }
+    },
+    "channelText.check": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check original server receipt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查询原消息回执"
+          }
+        }
+      }
+    },
+    "channelText.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry the same original message"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明确重试同一条原消息"
+          }
+        }
+      }
+    },
+    "channelText.history": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return to history"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回历史"
+          }
+        }
+      }
+    },
+    "channelText.directory": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return to channel list"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回频道目录"
+          }
+        }
+      }
+    },
+    "channelText.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text recovery or sending is unavailable for this session. Return to the channel list, then reopen this group to check current access."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前会话暂不可恢复或发送文字。请返回频道目录后重新进入此群，核验当前权限。"
+          }
+        }
+      }
+    },
+    "channelText.sending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sending original message…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在发送原消息…"
+          }
+        }
+      }
+    },
+    "channelText.checking": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking original receipt…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在查询原消息回执…"
+          }
+        }
+      }
+    },
+    "channelText.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original result is unknown. Not found does not mean failed. The app will not resend automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原消息结果待确认。未查到不等于失败，不会自动再次发送。"
+          }
+        }
+      }
+    },
+    "channelText.receiptUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The receipt could not be checked. The original request is saved; retry the lookup when connected."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无法查询回执。原请求已保留，联网后可重试查询。"
+          }
+        }
+      }
+    },
+    "channelText.storageUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protected storage is unavailable. Sending is blocked; return after the device is unlocked."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "受保护存储暂不可用，已阻止发送。请解锁设备后返回重试。"
+          }
+        }
+      }
+    },
+    "channelText.accessClosed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Access changed or this group closed. Return to the directory to recheck access."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "访问权限已变化或群已关闭，请返回目录重新核验。"
+          }
+        }
+      }
+    },
+    "channelText.received": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server received the original message. This is not a recipient read receipt."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端已接收原消息，不代表其他成员已读。"
+          }
+        }
+      }
+    },
+    "channelText.cleanupPending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The receipt is verified, but local cleanup is pending. New messages remain blocked; check the receipt again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回执已核验，本地结算尚未完成。暂不能发送新消息，请再次查询回执。"
+          }
+        }
+      }
+    },
+    "channelText.withheld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server has withheld this message. Its content is not displayed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端已隐藏此消息，不显示原内容。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

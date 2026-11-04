@@ -58,3 +58,37 @@ final class StoreKit2SubscriptionAndRefundSectionViewTests: XCTestCase {
         XCTAssertTrue(view.snapshot.isFullyCompliant)
     }
 }
+
+
+@MainActor
+final class StoreKit2CloseoutLayoutTests: XCTestCase {
+    func testDefaultDiagnosticWrapsAtNarrowWidthWithAccessibilityText() {
+        assertLayout(StoreKit2LifecycleSnapshot.defaultReady)
+    }
+    func testWarningDiagnosticWrapsLongOriginalRulesWithoutChangingSnapshot() {
+        var rows = StoreKit2LifecycleSnapshot.defaultReady.rows
+        rows[1] = StoreKit2ControlRow(id: rows[1].id, kind: rows[1].kind,
+            title: String(repeating: "Original review rule 原规则 ", count: 8),
+            storeKitAPI: rows[1].storeKitAPI,
+            enforcementRule: String(repeating: "Verified server entitlement is required before finish. ", count: 12),
+            status: .warningNonCompliant)
+        let snapshot = StoreKit2LifecycleSnapshot(verifiesJWSAndServerEntitlementBeforeFinish: false,
+            exposesExplicitRestorePurchasesButton: true, rows: rows)
+        assertLayout(snapshot)
+        XCTAssertFalse(snapshot.isFullyCompliant)
+        XCTAssertEqual(snapshot.warningCount, 1)
+        XCTAssertEqual(snapshot.rows[1].enforcementRule, rows[1].enforcementRule)
+    }
+    private func assertLayout(_ snapshot: StoreKit2LifecycleSnapshot, file: StaticString = #filePath, line: UInt = #line) {
+        for language in ["en", "zh-Hans"] {
+            let content = List { StoreKit2SubscriptionAndRefundSectionView(snapshot: snapshot) }
+                .environment(\.locale, Locale(identifier: language))
+                .dynamicTypeSize(.accessibility5)
+            let controller = UIHostingController(rootView: content)
+            let size = controller.sizeThatFits(in: CGSize(width: 320, height: 20_000))
+            XCTAssertTrue(size.height.isFinite, file: file, line: line)
+            XCTAssertGreaterThan(size.height, 0, file: file, line: line)
+            XCTAssertLessThanOrEqual(size.width, 321, file: file, line: line)
+        }
+    }
+}

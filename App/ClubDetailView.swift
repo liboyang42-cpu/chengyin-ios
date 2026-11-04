@@ -58,6 +58,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     Section {
                         NavigationLink { SessionClubChatView(clubID: id, session: session) } label: { Label("club.chat.title", systemImage: "person.3") }
                             .accessibilityIdentifier("club.chat.entry")
+                        NativeChannelManagementClubEntry(club: club, session: session)
                     }
                 }
                 if tab == .manage, club.isOwner, let session = reader as? AppSession {

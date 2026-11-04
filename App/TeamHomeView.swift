@@ -54,6 +54,7 @@ import SwiftUI
     /// Source join links that still carry the retired `?teamId=` form (邀请链接已升级).
     var legacyTeamID = false
     @Environment(\.teamReformHooks) private var reformHooks
+    @Environment(\.teamChannelManagementHooks) private var channelManagementHooks
     @State private var reformSheet: TeamReformSheet?
     init(lookup: TeamLookup, coordinator: TeamCoordinator, makeCoordinator: @escaping () -> TeamCoordinator, requiresMembership: Bool = false, readOnly: Bool = false, onLogin: (() -> Void)? = nil, legacyTeamID: Bool = false) {
         self.lookup = lookup; self.makeCoordinator = makeCoordinator; self.requiresMembership = requiresMembership; self.readOnly = readOnly
@@ -84,6 +85,13 @@ import SwiftUI
                     TeamCard(team: detail.team, confirmedJoinMode: model.coordinator.confirmedJoinMode).accessibilityIdentifier("team.detail.card")
                     TeamPageHeader(detail: detail, kind: pageKind, confirmedJoinMode: model.coordinator.confirmedJoinMode)
                     Text("team.ticketSeparation").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    if let channelManagementHooks,
+                       let source = NativeTeamChannelManagementSource(coordinator: model.coordinator, lookup: lookup, readOnly: readOnly) {
+                        NativeChannelManagementTeamEntry(destinations: channelManagementHooks.destinations, detail: source.detail, makeFlow: { selected in
+                            guard source.isCurrent(for: selected) else { return nil }
+                            return channelManagementHooks.makeFlow(selected)
+                        }).disabled(model.running || model.coordinator.busy)
+                    }
                     if let invitationCode {
                         if let teamID = model.coordinator.postJoinDetailID {
                             NavigationLink {

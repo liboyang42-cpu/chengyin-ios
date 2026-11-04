@@ -27,6 +27,12 @@ public final class URLSessionTransport: HTTPTransport {
         configuration.timeoutIntervalForResource = 30
         session = URLSession(configuration: configuration, delegate: NoRedirectDelegate(), delegateQueue: nil)
     }
+    /// Returns an inert task only. The typed Progress forwarder checks its fence
+    /// immediately before resume; the ordinary transport API is unchanged.
+    func makeNativeChannelProgressTask(request: URLRequest,
+        completion: @escaping @Sendable (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask {
+        session.dataTask(with: request, completionHandler: completion)
+    }
     public func send(_ request: URLRequest) async throws -> (Data, Int) {
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw APIError.malformedResponse }

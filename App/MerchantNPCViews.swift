@@ -305,12 +305,18 @@ struct MerchantNPCIssue: View {
 extension PublicMerchantHomeContext {
     /// Existing `shopNpcChat` is a source feature-flag name, not permission to use ShopNPC APIs.
     mutating func installMerchantNPC(grants: @escaping () -> MerchantNPCGrants, scopeForRow: @escaping (PublicMerchantRowID) -> MerchantNPCScope?, currentScope: @escaping (PublicMerchantRowID) -> MerchantNPCScope?, client: MerchantNPCHTTPClient, register: @escaping (MerchantNPCChatCoordinator) -> Void = { _ in }) {
-        shopNpcChat = grants().chatAllowed
+        let player = gamePlayerDestination
+        shopNpcChat = grants().chatAllowed || player != nil
         npcDestination = { row, _ in
-            guard grants().chatAllowed, let scope = scopeForRow(row), scope.merchantRowID == row else { return AnyView(Text("merchantNPC.unavailable")) }
-            let coordinator = MerchantNPCChatCoordinator(scope: scope, client: client, currentScope: { currentScope(row) }, grants: grants)
-            register(coordinator)
-            return AnyView(MerchantNPCChatView(coordinator: coordinator))
+            var chat: AnyView?
+            if grants().chatAllowed, let scope = scopeForRow(row), scope.merchantRowID == row {
+                let coordinator = MerchantNPCChatCoordinator(scope: scope, client: client, currentScope: { currentScope(row) }, grants: grants)
+                register(coordinator)
+                chat = AnyView(MerchantNPCChatView(coordinator: coordinator))
+            }
+            // Restore original identity before allowing the pre-existing sender to open.
+            if let player { return player(row, chat) }
+            return chat ?? AnyView(Text("merchantNPC.unavailable"))
         }
     }
 }

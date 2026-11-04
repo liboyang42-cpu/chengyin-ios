@@ -44,9 +44,9 @@ import SwiftUI
         .onDisappear { if let originalImage { imageController.close(originalImage) } }
     }
     private func field(_ label: String, _ value: String, _ key: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: Theme.Space.s2) {
             Text(verbatim: label).font(.caption).foregroundStyle(.secondary)
-            Text(verbatim: value).textSelection(.enabled).accessibilityIdentifier(id(key))
-        }
+            Text(verbatim: value).textSelection(.enabled).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier(id(key))
+        }.p04FactRow()
     }
 }

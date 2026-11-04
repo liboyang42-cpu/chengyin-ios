@@ -50,7 +50,9 @@ public struct MerchantNPCHTTPResponse {
         let response: MerchantNPCHTTPResponse
         do { response = try await transport.perform(request) }
         catch let error as MerchantNPCFailure where error == .disabled { throw error }
+        catch let denial as MerchantNPCGameDispatchDenial where path == "/api/ai/npc/merchant-chat" { throw denial }
         catch { throw MerchantNPCFailure.unknownOutcome }
+        if path == "/api/ai/npc/merchant-chat", let denial = MerchantNPCGameDispatchDenial(rawValue: response.status) { throw denial }
         if response.status >= 500 { throw MerchantNPCFailure.unknownOutcome }
         guard (200..<300).contains(response.status) else {
             if let envelope = try? JSONDecoder().decode(Envelope<Empty>.self, from: response.body) { throw MerchantNPCFailure.rejected(code: response.status, message: envelope.msg) }
@@ -58,6 +60,7 @@ public struct MerchantNPCHTTPResponse {
         }
         // Decode the business status before data, so malformed data cannot hide server rejection text.
         guard let object = try? JSONSerialization.jsonObject(with: response.body) as? [String: Any], let code = object["code"] as? Int else { throw MerchantNPCFailure.malformed }
+        if path == "/api/ai/npc/merchant-chat", let denial = MerchantNPCGameDispatchDenial(rawValue: code) { throw denial }
         guard code == 200 else { throw MerchantNPCFailure.rejected(code: code, message: object["msg"] as? String) }
         guard let envelope = try? JSONDecoder().decode(Envelope<T>.self, from: response.body) else { throw MerchantNPCFailure.malformed }
         return (envelope.data, envelope.msg)

@@ -25,6 +25,10 @@ public enum MerchantNPCFailure: Error, Equatable {
     case disabled, staleScope, invalid, reviewRequired, unknownOutcome, malformed
     case rejected(code: Int, message: String?)
 }
+/// Current game dispatch denial never settles the stored original outcome.
+public enum MerchantNPCGameDispatchDenial: Int, Error, Equatable {
+    case unauthorized = 401, forbidden = 403
+}
 public struct MerchantNPCReply: Decodable, Equatable {
     public let requestID: UUID?
     public let outcomeStatus: String

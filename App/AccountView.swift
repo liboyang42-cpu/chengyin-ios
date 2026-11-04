@@ -37,6 +37,11 @@ import SwiftUI
                         .accessibilityIdentifier("door.inviter.entry")
                 }
                 Section { PrivateHomeAccountLink(coordinator: privateHomeCoordinator) }
+                Section {
+                    NavigationLink { PersonalLocationShareEntry(recipientId: nil) } label: {
+                        Label { Text("personalLocationShare.title.management", tableName: "PersonalLocationShare") } icon: { Image(systemName: "location") }
+                    }.accessibilityIdentifier("account.personalLocationShare")
+                }
                 ProfileLocalCoverSection(owner: localCoverOwner, reader: session.socialAccountReader)
                 Section("account.details") {
                     LabeledContent("account.name",value:account.nickname)
@@ -111,9 +116,9 @@ import SwiftUI
                 }
                 Section { ProfileComplaintPreparationLink(session: session) }
                 PlayerJourneyAccountLinks()
-                ProfileAccountLinks(reader:session.profileReader,ordersDestination:{ AnyView(SessionOwnedOrdersView(session: session)) },participantCoordinator:session.participantCoordinator,orderLifecycleCoordinator:session.orderLifecycleCoordinator, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory)
+                ProfileAccountLinks(reader:session.profileReader,ordersDestination:{ AnyView(SessionOwnedOrdersView(session: session)) },participantReader:session.participantReader,participantCoordinator:session.participantCoordinator,orderLifecycleCoordinator:session.orderLifecycleCoordinator, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory)
                 Section {
-                    NavigationLink { MessagingHomeView(reader:session.messagingReader,mediaReader:session.socialMessageMediaReader,senderForConversation:{ session.messageSender(for:$0) },expanded:session.imExpandedNavigation,squareDestination:{ close in AnyView(SessionSquareBrowserView(session: session, onClose: close, onSignIn: close)) },predictionEntry:{ AnyView(SessionMerchantPredictionEntry(session: session)) }).id(session.messagingViewIdentity) } label: {
+                    NavigationLink { SessionMessagingHome(session: session) } label: {
                         HStack { Label("messaging.title",systemImage:"bubble.left.and.bubble.right"); Spacer(); IMUnreadEntryBadge(reader: session.imUnreadTotalReader) }
                     }.accessibilityIdentifier("account.messages")
                     NavigationLink { ClubHomeView(reader:session,actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }).id(session.sessionRevision) } label: { Label("club.title",systemImage:"person.3") }

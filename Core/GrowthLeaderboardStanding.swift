@@ -24,11 +24,13 @@ public extension GrowthLeaderboard {
 }
 
 extension GrowthLeaderboard {
-    /// Drops the source's placeholder score/bucket from an unranked viewer row. Rank stays as sent.
+    /// Normalize the service's unranked presentation, not the raw wire decoder.
+    /// Nil and nonpositive ranks must also omit the personal rank row; otherwise
+    /// optional-only UI consumers display a synthetic zero/negative place.
     func withoutUnrankedPlaceholders() -> GrowthLeaderboard {
         guard me.rank.map({ $0 <= 0 }) ?? true else { return self }
         return GrowthLeaderboard(metric: metric, period: period, list: list,
-            me: GrowthLeaderboardEntry(rank: me.rank, memberID: me.memberID, nickname: me.nickname, avatar: me.avatar, score: nil, rankPercentage: nil))
+            me: GrowthLeaderboardEntry(rank: nil, memberID: me.memberID, nickname: me.nickname, avatar: me.avatar, score: nil, rankPercentage: nil))
     }
 }
 

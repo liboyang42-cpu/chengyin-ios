@@ -93,16 +93,21 @@ import SwiftUI
                     projectEntryIsCurrent: { gate.canPresent && gate.destination?.id == destination.id })
                     .id(destination.id)
                     .safeAreaInset(edge: .bottom) {
-                        Text("merchant.acceptedProject.boundary").font(.footnote).padding().frame(maxWidth: .infinity).background(.regularMaterial)
+                        Label("merchant.acceptedProject.boundary", systemImage: "info.circle")
+                            .font(.footnote).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.horizontal, Theme.Space.s4).padding(.vertical, Theme.Space.s3)
+                            .frame(maxWidth: .infinity, alignment: .leading).background(.bar)
                     }
             } else if !gate.isCurrent {
                 ContentUnavailableView("merchant.acceptedProject.changed", systemImage: "lock")
-            } else if gate.busy { ProgressView("merchant.loading") }
+            } else if gate.busy { ProgressView("merchant.loading").font(.subheadline).padding(Theme.Space.s4) }
             else if let issue = gate.issue {
                 MerchantFailureView(errorKey: issue, identifier: "merchant.acceptedProject", retry: { Task { await gate.load() } })
-            } else { ProgressView("merchant.loading") }
+            } else { ProgressView("merchant.loading").font(.subheadline).padding(Theme.Space.s4) }
         }
         .navigationTitle("merchant.acceptedProject.open")
+        .navigationBarTitleDisplayMode(.inline)
         .onAppear { if scenePhase == .active { gate.activate(); Task { await gate.load() } } }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { gate.activate(); Task { await gate.load() } } else { gate.retire() }

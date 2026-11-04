@@ -38,7 +38,7 @@ import SwiftUI
                             .merchantDraftSelection(.init(
                             model: model, node: controller.node(for: original), sourceID: "starter:\(original.id)",
                             nodeRevision: { controller.candidateRevision }, isCurrent: { controller.isCurrent(original) }))
-                    }.appNavigationTitle("projectStarter.firstNodeTitle").navigationBarTitleDisplayMode(.inline)
+                    }.modifier(ProjectEditorFormSurface()).appNavigationTitle("projectStarter.firstNodeTitle").navigationBarTitleDisplayMode(.inline)
                         .scrollDismissesKeyboard(.interactively)
                         .toolbar {
                             ToolbarItem(placement: .confirmationAction) {

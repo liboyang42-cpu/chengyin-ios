@@ -31,6 +31,15 @@ struct SettingsView: View {
                 ProfileSettingsFavoritesEntry(session: session, owner: favoritesOwner)
                 SettingsPrivacyLocationEntry(session: session)
                 Section {
+                    NativeNotificationPermissionEntry()
+                    NativeChannelNotificationSettingsEntry(session: session)
+                } header: {
+                    Text("notification.global.title", tableName: "NativeChannelNotification")
+                } footer: {
+                    Text("notification.permission.delivery", tableName: "NativeChannelNotification")
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Section {
                     LabeledContent { Text(verbatim:RegionalLaunchConfiguration.market?.rawValue ?? "—").accessibilityIdentifier("region.market.value") } label: { Text("region.market") }
                     Text("region.languageBoundary").font(.footnote).foregroundStyle(.secondary)
                 }

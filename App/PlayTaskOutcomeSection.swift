@@ -2,6 +2,7 @@ import SwiftUI
 import Observation
 
 @MainActor struct PlayTaskOutcomeSection: View {
+    @Environment(\.themeDomain) private var domain
     @Bindable var model: PlayExperienceCoordinator
     let nodeID: Int
     @Environment(\.dismiss) private var dismiss
@@ -15,37 +16,49 @@ import Observation
         let result = PlayTaskOutcomePresentation(snapshot: model.snapshot, nodeID: nodeID,
             phase: model.phase.rawValue, isCurrentRead: model.hasCurrentMediaSnapshot, unresolved: model.unresolved)
         Section {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(verbatim: localized("state." + result.state.rawValue))
-                    .font(.headline).fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier("playTaskOutcome.state")
-                if [.loading, .submitting, .needsReadback].contains(result.state) {
-                    ProgressView().accessibilityLabel(Text(verbatim: localized("state." + result.state.rawValue)))
-                }
-                Text(verbatim: localized("detail." + result.state.rawValue))
-                    .font(.footnote).fixedSize(horizontal: false, vertical: true)
-                if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
-                if result.continuation != .none {
-                    Text(verbatim: localized("continue." + result.continuation.rawValue))
-                        .fixedSize(horizontal: false, vertical: true)
-                    if let name = result.nextNodeName, !name.isEmpty {
-                        Text(verbatim: name).font(.headline).fixedSize(horizontal: false, vertical: true)
-                            .accessibilityIdentifier("playTaskOutcome.nextName")
+            VStack(alignment: .leading, spacing: Theme.Space.s2) {
+                VStack(alignment: .leading, spacing: Theme.Space.s2) {
+                    Text(verbatim: localized("state." + result.state.rawValue))
+                        .font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("playTaskOutcome.state")
+                    if [.loading, .submitting, .needsReadback].contains(result.state) {
+                        ProgressView().accessibilityLabel(Text(verbatim: localized("state." + result.state.rawValue)))
                     }
-                }
+                    Text(verbatim: localized("detail." + result.state.rawValue))
+                        .font(.footnote).fixedSize(horizontal: false, vertical: true)
+                    if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
+                    if result.continuation != .none {
+                        Text(verbatim: localized("continue." + result.continuation.rawValue))
+                            .fixedSize(horizontal: false, vertical: true)
+                        if let name = result.nextNodeName, !name.isEmpty {
+                            Text(verbatim: name).font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("playTaskOutcome.nextName")
+                        }
+                    }
+                }.frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.bottom, Theme.Space.s3)
                 Button {
                     Task { await actions.reload(ticket, model: model, nodeID: nodeID) }
-                } label: { Text(verbatim: localized("refresh")) }
+                } label: {
+                    Text(verbatim: localized("refresh")).fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                }
                     .buttonStyle(.borderless)
                     .disabled(ticket == nil || !PlayTaskOutcomeActionGate.canRead(model))
                     .accessibilityIdentifier("playTaskOutcome.refresh")
                 Button {
                     guard actions.accepts(ticket, model: model, nodeID: nodeID) else { return }
                     dismiss()
-                } label: { Text(verbatim: localized("back")) }
+                } label: {
+                    Text(verbatim: localized("back")).fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                }
                     .buttonStyle(.borderless).disabled(ticket == nil)
                     .accessibilityIdentifier("playTaskOutcome.back")
-            }.accessibilityElement(children: .contain)
+            }
+                .font(Theme.Font.body)
+                .foregroundStyle(Theme.Color.textPrimary(in: domain))
+                .accessibilityElement(children: .contain)
                 .onAppear { actions.appear(model: model, nodeID: nodeID, active: scenePhase == .active) }
                 .onChange(of: owner) { _, _ in actions.synchronize(model: model, nodeID: nodeID) }
                 .onChange(of: scenePhase) { _, value in actions.setActive(value == .active) }

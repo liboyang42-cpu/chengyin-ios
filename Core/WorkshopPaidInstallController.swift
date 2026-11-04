@@ -5,6 +5,7 @@ import Observation
 @MainActor public final class WorkshopPaidInstallAppearance {
     private var started = false
     private(set) var closed = false
+    fileprivate var suspended = false
     fileprivate var action: WorkshopPaidInstallAction?
     public init() {}
     fileprivate func begin() -> Bool { guard !started, !closed else { return false }; started = true; return true }
@@ -14,7 +15,7 @@ import Observation
     weak var appearance: WorkshopPaidInstallAppearance?
     private var revoked = false, entered = false
     init(_ appearance: WorkshopPaidInstallAppearance) { self.appearance = appearance }
-    var live: Bool { !revoked && appearance?.closed == false && appearance?.action === self }
+    var live: Bool { !revoked && appearance?.closed == false && appearance?.suspended == false && appearance?.action === self }
     func revoke() { revoked = true }
     func claim() -> Bool { guard live, !entered else { return false }; entered = true; return true }
 }
@@ -60,7 +61,7 @@ import Observation
     }
     private func current(_ displayed: WorkshopPaidInstallAppearance) -> Bool {
         guard lease.isCurrent else { invalidate(); return false }
-        return phase != .invalidated && appearance === displayed && !displayed.closed
+        return phase != .invalidated && appearance === displayed && !displayed.closed && !displayed.suspended
     }
     public func appear(_ displayed: WorkshopPaidInstallAppearance) -> Action? {
         guard lease.isCurrent, phase != .invalidated, displayed.begin() else { return nil }
@@ -75,6 +76,24 @@ import Observation
         target = nil; region = nil; confirmation = nil; targets = []; history = []; nextTargetCursor = nil; nextHistoryCursor = nil
         if phase != .invalidated { phase = .idle }; issue = nil; targetIssue = nil
         // A submitted operation may already be committed. Back never clears pending or reports failure.
+    }
+    /// Background retires only presentation work. A dispatched or queued confirmed
+    /// command keeps its durable original UUID; no status is inferred from cancellation.
+    public func suspend(_ displayed: WorkshopPaidInstallAppearance) {
+        guard appearance === displayed, !displayed.closed, phase != .invalidated else { return }
+        displayed.suspended = true; displayed.action?.revoke(); displayed.action = nil
+        lifetime?.revoke(); lifetime = nil
+        confirmation = nil; target = nil; region = nil
+        loadingPage = false; pageIssue = nil
+        phase = .ready
+    }
+    /// Revalidate the existing owner/config and recover its original status before
+    /// collection reads. This never offers a submit or reconstructs a command.
+    public func resume(_ displayed: WorkshopPaidInstallAppearance) -> Action? {
+        guard appearance === displayed, !displayed.closed, displayed.suspended,
+              phase != .invalidated else { return nil }
+        displayed.suspended = false
+        return offerLoad(displayed)
     }
     private func offer(_ displayed: WorkshopPaidInstallAppearance) -> (WorkshopPaidInstallAction, WorkshopPaidInstallLifetime)? {
         guard current(displayed), phase != .submitting else { return nil }
@@ -101,11 +120,23 @@ import Observation
             do {
                 self.pending = try self.store.load()
                 guard self.pending?.belongs(to: self.item) != false else { throw WorkshopPaidInstallIssue.storageUnavailable }
-                let history = try await self.service.history(licenseId: self.item.licenseId, before: beforeHistory, lifetime: life)
-                try life.check(); guard history.items.allSatisfy({ $0.command?.belongs(to: self.item) == true }) else { throw WorkshopPaidInstallIssue.malformed }
-                self.history = history.items; self.nextHistoryCursor = history.nextBeforeCommandKey
+                // Recover the durable original UUID before optional collection reads. A failed
+                // history page must not prevent discovering an already committed installation.
+                let recoveringOriginalRequest = self.pending != nil
                 if let pending = self.pending {
                     let status = try await self.service.status(command: pending, lifetime: life); try life.check(); try self.accept(status, expected: pending)
+                }
+                do {
+                    let history = try await self.service.history(licenseId: self.item.licenseId, before: beforeHistory, lifetime: life)
+                    try life.check(); guard history.items.allSatisfy({ $0.command?.belongs(to: self.item) == true }) else { throw WorkshopPaidInstallIssue.malformed }
+                    self.history = history.items; self.nextHistoryCursor = history.nextBeforeCommandKey
+                } catch {
+                    try life.check()
+                    let issue = (error as? WorkshopPaidInstallIssue) ?? .unavailable
+                    if !recoveringOriginalRequest || issue == .unauthorized || issue == .staleSession || issue == .disabled { throw issue }
+                    // Keep the exact status result usable and preserve nonterminal pending bytes.
+                    // A history failure is not a failed install and cannot authorize a retry write.
+                    self.issue = issue
                 }
                 if self.item.status == .active {
                     do {

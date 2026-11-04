@@ -6,13 +6,50 @@ struct ProfileParticipantsView: View {
     let coordinator: ParticipantMutationCoordinator?
     @State private var showsCreate = false
     @State private var refreshID = UUID()
+    @State private var snapshotIdentity: ProfileReadIdentity?
     @State private var editing: ParticipantRowTarget?
     @State private var deleting: ParticipantRowTarget?
+    @State private var recoveryRevision: UInt64 = 0
+    @State private var recoveryIdentity: ProfileReadIdentity?
+    @State private var recoveryVisible = false
+    @State private var recoveryGeneration: UInt64 = 0
+    @State private var recoveryIssue: ParticipantScreenIssue?
     init(reader: any ProfileReading, coordinator: ParticipantMutationCoordinator? = nil) {
         self.reader = reader; self.coordinator = coordinator
     }
     var body: some View {
-        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.participants", load: { try await reader.profileParticipants() }) { participants in
+        let _ = recoveryRevision
+        Group {
+        if reader.identity == nil {
+            ContentUnavailableView("profile.signInRequired", systemImage: "person.crop.circle.badge.exclamationmark", description: Text("auth.expired"))
+        } else if let coordinator, reader.identity == coordinator.identity,
+                  case .outcomeUnknown = coordinator.state {
+            Form {
+                ParticipantOperationSections(state: coordinator.state, readback: coordinator.readbackState,
+                    canReadAgain: reader.isConfigured, actionIssue: recoveryIssue) {
+                    guard recoveryVisible, reader.isConfigured, let identity = reader.identity else { return }
+                    recoveryIdentity = identity
+                    let generation = recoveryGeneration
+                    Task {
+                        guard recoveryVisible, recoveryGeneration == generation, reader.identity == identity else { return }
+                        recoveryIssue = nil; recoveryRevision &+= 1
+                        let result = await coordinator.readBackUncertainOutcome()
+                        guard recoveryVisible, recoveryGeneration == generation, reader.identity == identity else { return }
+                        recoveryIssue = ParticipantScreenIssue.feedback(for: result)
+                        recoveryRevision &+= 1
+                    }
+                }
+            }
+        } else {
+        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.participants",
+                          load: {
+                              snapshotIdentity = nil
+                              let identity = reader.identity, revision = refreshID
+                              let rows = try await reader.profileParticipants()
+                              guard !Task.isCancelled, reader.identity == identity, refreshID == revision else { throw CancellationError() }
+                              snapshotIdentity = identity
+                              return rows
+                          }) { participants in
             if participants.isEmpty {
                 ProfileEmptyState(title: "profile.participants.empty", hint: "profile.participants.emptyHint", symbol: "person.2", identifier: "profile.participants.empty")
             } else {
@@ -21,15 +58,18 @@ struct ProfileParticipantsView: View {
                         ForEach(participants) { participant in
                             NavigationLink { ProfileParticipantDetailView(id: participant.id, reader: reader, coordinator: coordinator) } label: {
                                 VStack(alignment: .leading, spacing: 6) {
-                                    if participant.fullName.isEmpty { Text("profile.participants.unnamed").font(.headline) }
-                                    else { Text(verbatim: participant.fullName).font(.headline) }
-                                    if !participant.mobilePhone.isEmpty { Text(verbatim: participant.mobilePhone).foregroundStyle(.secondary) }
+                                    if participant.fullName.isEmpty { Text("profile.participants.unnamed").font(.body.weight(.bold)) }
+                                    else { Text(verbatim: participant.fullName).font(.body.weight(.bold)) }
+                                    if !participant.mobilePhone.isEmpty { Text(verbatim: participant.mobilePhone).monospacedDigit().foregroundStyle(.secondary) }
                                     // Mini-program address list repeats the purpose on every row.
                                     Text("participant.form.purpose").font(.caption).foregroundStyle(.tertiary)
-                                }.padding(.vertical, 4)
+                                }
+                                .fixedSize(horizontal: false, vertical: true)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.vertical, 4)
                             }.accessibilityIdentifier("profile.participant.\(participant.id)")
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                if let coordinator, coordinator.isConfigured, reader.identity != nil {
+                                if let coordinator, coordinator.canPrepare, reader.identity != nil {
                                     // Direct list entry only opens the existing review/confirm flows; nothing is written here.
                                     Button("participant.form.delete", role: .destructive) { deleting = ParticipantRowTarget(id: participant.id) }
                                         .accessibilityIdentifier("participant.list.delete.\(participant.id)")
@@ -40,17 +80,33 @@ struct ProfileParticipantsView: View {
                         }
                     } footer: { Text("participant.form.purpose") }
                 }
+                .listStyle(.plain)
             }
+        }
+        }
         }
         .id(refreshID)
         .appNavigationTitle("profile.participants.title")
         .toolbar {
-            if let coordinator, coordinator.isConfigured, reader.identity != nil {
+            if let coordinator, coordinator.canPrepare, reader.identity != nil {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("participant.form.add", systemImage: "person.badge.plus") { showsCreate = true }
+                        .disabled(snapshotIdentity == nil || snapshotIdentity != reader.identity)
                         .accessibilityIdentifier("participant.list.add")
                 }
             }
+        }
+        .onAppear { recoveryGeneration &+= 1; recoveryVisible = true }
+        .onDisappear {
+            recoveryGeneration &+= 1; recoveryIssue = nil
+            recoveryVisible = false; snapshotIdentity = nil
+            if let recoveryIdentity { coordinator?.discardReadback(expectedIdentity: recoveryIdentity) }
+            recoveryIdentity = nil
+        }
+        .onChange(of: reader.identity) { _, _ in
+            recoveryGeneration &+= 1; recoveryIssue = nil
+            if let recoveryIdentity { coordinator?.discardReadback(expectedIdentity: recoveryIdentity) }
+            recoveryIdentity = nil; snapshotIdentity = nil
         }
         .sheet(isPresented: $showsCreate, onDismiss: { refreshID = UUID() }) {
             if let coordinator {
@@ -83,9 +139,9 @@ struct ParticipantListDeleteView: View {
     }
     var body: some View {
         Group {
-            if case .outcomeUnknown = model.operation {
-                Form { ParticipantOperationSections(state: model.operation, readback: model.readback) { Task { await model.readBack() } } }
-            } else if model.loading {
+            if model.showsOwnedUnknown {
+                Form { ParticipantOperationSections(state: model.coordinator.state, readback: model.coordinator.readbackState, canReadAgain: model.canReadBack, actionIssue: model.issue) { Task { await model.readBack() } } }
+            } else if model.loading || (model.loaded && !model.hasCurrentProjection) {
                 ProgressView("profile.loading")
             } else if !model.loaded {
                 ParticipantLoadFailureView(issue: model.issue) { Task { await model.load() } }
@@ -101,7 +157,7 @@ struct ParticipantListDeleteView: View {
                             .accessibilityIdentifier("participant.list.delete.review")
                     } footer: { Text("participant.form.sharedRow") }
                     if let issue = model.issue { Section { ParticipantIssueText(issue: issue) } }
-                    ParticipantOperationSections(state: model.operation, readback: model.readback) { Task { await model.readBack() } }
+                    ParticipantOperationSections(state: model.coordinator.state, readback: model.coordinator.readbackState, canReadAgain: model.canReadBack, actionIssue: model.issue) { Task { await model.readBack() } }
                 }
             }
         }
@@ -134,10 +190,16 @@ struct ProfileParticipantDetailView: View {
     init(id: Int, reader: any ProfileReading, coordinator: ParticipantMutationCoordinator? = nil) {
         self.id = id; self.reader = reader; self.coordinator = coordinator
     }
+    private var usesManagement: Bool {
+        guard let coordinator else { return false }
+        if coordinator.isConfigured { return true }
+        guard reader.identity != nil, reader.identity == coordinator.identity else { return false }
+        if case .outcomeUnknown = coordinator.state { return true }; return false
+    }
     var body: some View {
-        if let coordinator {
+        if let coordinator, usesManagement {
             ParticipantManagementDetailView(id: id, reader: reader, coordinator: coordinator)
-        } else {
+                } else {
         ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.participant.detail", load: { try await reader.profileParticipant(id: id) }) { participant in
             List {
                 Section("profile.participants.contact") {

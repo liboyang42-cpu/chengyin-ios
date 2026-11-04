@@ -47,6 +47,8 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
     var makeText: WorkshopPaidInstalledTextControllerFactory = { _ in nil }
     let onClose: () -> Void
     @State private var ownedTask: Task<Void, Never>?
+    @State private var isVisible = false
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     var body: some View {
         let displayed = appearance
@@ -136,8 +138,19 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                     .accessibilityIdentifier("workshopPaidInstall.close")
             } }
         }
-        .onAppear { schedule(controller.appear(displayed)) }
-        .onDisappear { controller.close(displayed); ownedTask?.cancel() }
+        .disabled(scenePhase != .active)
+        .onAppear {
+            isVisible = true
+            let action = controller.appear(displayed)
+            if scenePhase == .active { schedule(action) }
+            else { controller.suspend(displayed) }
+        }
+        .onDisappear { isVisible = false; controller.close(displayed); ownedTask?.cancel(); ownedTask = nil }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active {
+                controller.suspend(displayed); ownedTask?.cancel(); ownedTask = nil
+            } else if isVisible { schedule(controller.resume(displayed)) }
+        }
     }
     @ViewBuilder private func targetSelection(_ displayed: WorkshopPaidInstallAppearance) -> some View {
         Section {
@@ -190,7 +203,7 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
         } header: { installText("confirmation") }
     }
     private func schedule(_ action: WorkshopPaidInstallController.Action?) {
-        guard let action else { return }; ownedTask?.cancel(); ownedTask = Task { await action() }
+        guard isVisible, scenePhase == .active, let action else { return }; ownedTask?.cancel(); ownedTask = Task { await action() }
     }
 }
 private struct InstallFact: View {

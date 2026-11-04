@@ -6,9 +6,14 @@ struct CoopFinanceSummarySection: View {
     let summary: CoopFinanceSummary
     var body: some View {
         Section {
-            LabeledContent { amount(summary.creditedIncome) } label: {
+            VStack(alignment: .leading, spacing: Theme.Space.s2) {
                 Text("member.finance.credited", tableName: "MemberProfile")
-            }.accessibilityIdentifier("coopflow.summary.credited")
+                    .font(.subheadline).foregroundStyle(.secondary)
+                amount(summary.creditedIncome).font(.largeTitle.weight(.semibold))
+                    .fixedSize(horizontal: false, vertical: true)
+            }.padding(.vertical, Theme.Space.s2)
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("coopflow.summary.credited")
             if summary.showsPendingAdjustment {
                 LabeledContent { amount(summary.pendingAdjustment) } label: {
                     Text("member.finance.pendingAdjustment", tableName: "MemberProfile")
@@ -25,6 +30,7 @@ struct CoopFinanceSummarySection: View {
         } footer: {
             Text("member.finance.explainer", tableName: "MemberProfile")
         }
+        .labeledContentStyle(CoopFinancialRowStyle())
     }
     private func amount(_ value: Decimal?, negative: Bool = false) -> Text {
         guard let value else { return Text(verbatim: "—") }
@@ -33,5 +39,45 @@ struct CoopFinanceSummarySection: View {
         formatter.minimumFractionDigits = 2; formatter.maximumFractionDigits = 2
         let text = formatter.string(from: NSDecimalNumber(decimal: value)) ?? "—"
         return Text(verbatim: (negative ? "−¥" : "¥") + text).monospacedDigit()
+    }
+}
+
+/// Layout only. The existing finance reader, amounts and permissions stay unchanged.
+struct CoopOperationListPresentation: ViewModifier {
+    func body(content: Content) -> some View {
+        content.listStyle(.insetGrouped)
+            .listSectionSpacing(Theme.Space.s4)
+            .environment(\.defaultMinListRowHeight, 52)
+            .font(.body)
+            .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+/// Layout only: the original amount, currency, precision and unknown marker are supplied unchanged.
+struct CoopFinancialRowStyle: LabeledContentStyle {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    func makeBody(configuration: Configuration) -> some View {
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                vertical(configuration)
+            } else {
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s3) {
+                        configuration.label
+                        Spacer(minLength: Theme.Space.s2)
+                        configuration.content.fixedSize(horizontal: true, vertical: false)
+                    }
+                    vertical(configuration)
+                }
+            }
+        }.accessibilityElement(children: .combine)
+    }
+    private func vertical(_ configuration: Configuration) -> some View {
+        VStack(alignment: .leading, spacing: Theme.Space.s2) {
+            configuration.label
+            configuration.content.multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+        }.frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, Theme.Space.s1)
     }
 }

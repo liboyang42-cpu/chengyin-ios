@@ -133,8 +133,16 @@ private struct PurchasedFact: View {
     @Environment(\.locale) private var locale
     init(_ key: String, _ value: String) { self.key = key; self.value = value }
     var body: some View {
-        RevolutInsetRow(title: purchasedLabel(key, locale: locale), value: value)
-            .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
+            Text(verbatim: purchasedLabel(key, locale: locale))
+                .font(RevolutContentStyle.quiet).foregroundStyle(RevolutContentStyle.secondary)
+            Text(verbatim: value)
+                .font(RevolutContentStyle.row).foregroundStyle(RevolutContentStyle.primary)
+                .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, RevolutContentStyle.spacing)
+        .accessibilityElement(children: .combine)
     }
 }
 private struct PurchasedPolicy: View {
@@ -142,8 +150,16 @@ private struct PurchasedPolicy: View {
     @Environment(\.locale) private var locale
     init(_ key: String, _ policy: String) { self.key = key; self.policy = policy }
     var body: some View {
-        RevolutInsetRow(title: purchasedLabel(key, locale: locale), value: purchasedLabel("policy." + policy, locale: locale))
-            .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
+            Text(verbatim: purchasedLabel(key, locale: locale))
+                .font(RevolutContentStyle.quiet).foregroundStyle(RevolutContentStyle.secondary)
+            Text(verbatim: purchasedLabel("policy." + policy, locale: locale))
+                .font(RevolutContentStyle.row).foregroundStyle(RevolutContentStyle.primary)
+                .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, RevolutContentStyle.spacing)
+        .accessibilityElement(children: .combine)
     }
 }
 private struct PurchasedLimit: View {
@@ -151,8 +167,16 @@ private struct PurchasedLimit: View {
     @Environment(\.locale) private var locale
     init(_ key: String, _ value: WorkshopPurchasedItem.Limit) { self.key = key; self.value = value }
     var body: some View {
-        RevolutInsetRow(title: purchasedLabel(key, locale: locale), value: value.unlimited ? purchasedLabel("explicitUnlimited", locale: locale) : String(value.maximum))
-            .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
+            Text(verbatim: purchasedLabel(key, locale: locale))
+                .font(RevolutContentStyle.quiet).foregroundStyle(RevolutContentStyle.secondary)
+            Text(verbatim: value.unlimited ? purchasedLabel("explicitUnlimited", locale: locale) : String(value.maximum))
+                .font(RevolutContentStyle.row).foregroundStyle(RevolutContentStyle.primary)
+                .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, RevolutContentStyle.spacing)
+        .accessibilityElement(children: .combine)
     }
 }
 private struct PurchasedUnavailableView: View {

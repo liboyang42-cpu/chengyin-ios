@@ -12,17 +12,17 @@ struct ParticipantManagementDetailView: View {
 
     var body: some View {
         Group {
-            if !model.reader.isConfigured || !model.coordinator.isConfigured {
-                ContentUnavailableView("profile.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
-            } else if model.reader.identity == nil || model.coordinator.identity == nil {
+            if model.reader.identity == nil || model.coordinator.identity == nil {
                 ContentUnavailableView("profile.signInRequired", systemImage: "person.crop.circle.badge.exclamationmark", description: Text("auth.expired"))
-            } else if case .outcomeUnknown = model.operation {
+            } else if model.showsOwnedUnknown {
                 Form {
-                    ParticipantOperationSections(state: model.operation, readback: model.readback) {
+                    ParticipantOperationSections(state: model.coordinator.state, readback: model.coordinator.readbackState, canReadAgain: model.canReadBack, actionIssue: model.issue) {
                         Task { await model.readBack() }
                     }
                 }
-            } else if model.loading {
+            } else if !model.reader.isConfigured || !model.coordinator.isConfigured {
+                ContentUnavailableView("profile.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
+            } else if model.loading || (model.loaded && !model.hasCurrentProjection) {
                 ProgressView("profile.loading").accessibilityIdentifier("participant.detail.loading")
             } else if !model.loaded {
                 ParticipantLoadFailureView(issue: model.issue) { Task { await model.load() } }
@@ -47,7 +47,7 @@ struct ParticipantManagementDetailView: View {
                             .disabled(!model.canMutate).accessibilityIdentifier("participant.detail.delete")
                     } footer: { Text("participant.form.sharedRow") }
                     if let issue = model.issue { Section { ParticipantIssueText(issue: issue) } }
-                    ParticipantOperationSections(state: model.operation, readback: model.readback) {
+                    ParticipantOperationSections(state: model.operation, readback: model.readback, canReadAgain: model.canReadBack, actionIssue: model.issue) {
                         Task { await model.readBack() }
                     }
                 }

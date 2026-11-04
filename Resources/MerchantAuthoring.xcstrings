@@ -1,0 +1,4388 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "merchantAuthoring.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store AI knowledge"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本店 AI 知识"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.privateCleared": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Private content cleared"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "私有内容已清除"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.storeInfo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current store information"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本店真实信息"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.currentRelease": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current public version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前公开版本"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.visibilityUnset": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public visibility is not configured. You can save drafts, but cannot publish."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公开可见性尚未配置，可保存草稿，不能发布"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.drafts": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store drafts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本店草稿"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.new": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create store knowledge draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新建店铺知识草稿"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.generate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generate draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成草稿"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.save": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save revision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存修订"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.review.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看审核状态"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.generating": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generating"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在生成"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.cancelRequest": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request cancellation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求取消"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outcome unknown. Query the original request; do not generate or publish again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果未知，只查询原请求，不重新生成或发布"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.query": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Query original request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查询原请求"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.loadLatest": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard local changes and load the latest version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放弃此次本地修改并读取最新版本"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.factsConfirmed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store facts confirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本店事实已确认"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.factsPending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store facts await confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本店事实待确认"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.factsConfirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm this revision’s store facts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认本版店铺事实"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.approved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theme content approved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题内容已批准"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.pending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awaiting theme owner review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待主题负责人批准"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.publishNext": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review before publishing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去发布确认"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.edit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return to editing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回修改"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.publishExplanation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After publication, the store NPC will use this confirmed version. Editing a draft does not replace a published version."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发布后，玩家的店内 AI 将使用这一版已确认知识。修改草稿不会覆盖已发布版本。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.publish": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm publication"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认发布"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.cancelPublish": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel publication"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消发布"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.receipt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publication receipt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发布回执"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.preview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read back the facts used by players"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回读玩家实际使用内容"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.publicVersion": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Player-visible version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩家公开版本"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.backToList": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return to drafts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回草稿列表"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.cancelled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This operation was cancelled. Existing published versions are unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此次操作已取消。原有发布版本不受影响。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.back": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.knowledge": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store knowledge"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "店铺知识"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.services": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Service information"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务信息"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.factsOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter store facts only. Prices, inventory, offers and orders remain controlled by the business system."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只填写本店事实。价格、库存、优惠和订单以业务系统为准，不在这里承诺。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.plot": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plot"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剧情"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.variables": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allowed variables"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许变量"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.branches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approved branches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已批准分支"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.duration": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duration in minutes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时长分钟"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.participants": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximum participants"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "人数上限"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.businessHours": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Business hours segment"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "营业时段"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.noise": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noise limits"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "噪音限制"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.photo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photography limits"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拍摄限制"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.noisePhoto": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noise and photography limits"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "噪音与拍摄限制"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.accessible": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accessible alternative"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无障碍替代"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.offline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline alternative"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "断网替代"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.failureExit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failure exit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "失败退出"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.noStaff": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No staff needed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不需要店员"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.needsStaff": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Staff needed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要店员"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.noReward": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No reward"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无奖励"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.identityChanged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your account or permission changed. Private content was cleared; reopen this page."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "身份或权限已变化，私有内容已清除，请重新进入。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.configuration": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action’s deployment approval is not configured. This is separate from your merchant or theme permissions."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该动作所需配置尚未批准，不代表你没有商家或主题权限。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.conflict": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The version or original request conflicts. Read back the current state before continuing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "版本或原请求发生冲突，请回读后再操作。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.incomplete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete the required fields and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请补全必要信息后重试。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.serverFailure": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server did not complete this request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器未完成请求。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.uncertain": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The result cannot be confirmed. Query the original request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法确认结果，请回读原请求。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.loadingAccess": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading store permissions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取本店权限"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.storeChanged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your account or store permission changed. Reopen this page."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "身份或店铺权限已变化，请重新进入。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.noStorePermission": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This account cannot manage content for this store."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前账号没有本店内容管理权限。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.accessFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store permissions could not be loaded. No private knowledge is shown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取本店权限失败，未显示私有知识。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.review.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review outcome unknown. Read the review status; this does not mean approval."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审核结果未知，请回读审核状态，不代表已批准"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.latestLoaded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The latest server version was loaded. The earlier save was not resent or confirmed successful."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已读取服务器最新版本；没有重发此前保存，也不代表此前保存成功。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review merchant AI drafts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家 AI 草稿审核"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.owner": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authoritative theme owner"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题负责人身份"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.ownerID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theme owner account"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题负责人账号"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.submitted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant-confirmed revision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家已确认的修订"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.draftID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.version": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修订版本"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.merchantID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家 ID"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.authorID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revision author"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修订作者"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.factConfirmer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store facts confirmed by"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "店铺事实确认人"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.factReadOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store facts are read-only here. Review the theme characters and plot, not inventory, prices or settlement accounts."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此处只能读取商家已确认的事实。仅审核主题角色与剧情，不代商家确认库存、价格或结算账户。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.rejected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changes required by theme owner"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题负责人已拒绝，需修改"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review outcome unknown. The original revision and decision are retained; no new review is submitted automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审核结果未知，保留原修订与决定，不会自动重新提交审核。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.originalReason": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Re-enter the original rejection reason to retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试时重新填写原拒绝原因"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.retryOriginal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry the same review decision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试原审核决定"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.loadNewer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load a newer revision without marking the old request successful"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取更新修订，不将原请求标为成功"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.confirmApprove": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approve the characters and plot in this exact revision? This does not publish it or confirm store inventory."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认批准这一修订的角色与剧情？此操作不发布，也不代商家确认库存。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.confirmReject": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reject this revision with the reason shown? The merchant will read this reason and submit a new revision."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认拒绝此修订并提交所填原因？商家可回读原因并修改后重提。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.submit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm review decision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认审核决定"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.reason": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reason for rejection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拒绝原因"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.approve": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approve characters and plot"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "批准角色与剧情"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.reject": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reject revision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拒绝此修订"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.queue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submitted drafts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已提交草稿"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No merchant-confirmed drafts are available for this theme."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此主题暂无商家已确认的待审草稿。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.settled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The exact review decision was confirmed by server readback. Publication remains a separate merchant action."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已回读确认本次审核决定；发布仍由商家另行操作。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.newer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A newer revision was loaded. The earlier review request was not reported as successful."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已读取更新修订，未将原审核请求报告为成功。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.reasonRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a rejection reason of up to 200 UTF-16 characters."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写拒绝原因，最多 200 个 UTF-16 字符。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.storage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original-request marker could not be saved or read. No new decision can be sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法保存或读取原请求记录，不能发送新的审核决定。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.actionRules": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server action rules"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端动作规则"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.staff": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Staff requirement"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "店员需求"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.rewardRule": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing reward rule reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现有奖励规则引用"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.productID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Product ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商品 ID"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.skuID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SKU ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SKU ID"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.otherField": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other submitted field"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他提交字段"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.theme.invalidated": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theme approval is no longer effective. The merchant must save and confirm a new revision before another review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题审批已失效，请商家保存并确认新修订后重新审核。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Game environment snapshot"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "游戏环境快照"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.explanation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read the server-recorded decision for the published version. This is not a live forecast or a guarantee of safety."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取已发布版本的服务端判定记录；这不是实时预报或安全保证。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read current decision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取当前判定"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.release": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已发布版本"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.snapshot": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Snapshot ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "快照编号"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.continue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approved branch available for this snapshot"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次快照有已审核可用分支"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.exit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Game paused. Exit safely; no AI fallback."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "游戏已暂停，请安全退出；不会让 AI 临场编造。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.branch": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded branch"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录分支"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.provider": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approved provider"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "批准的来源提供方"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.source": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Observation source"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "观测来源"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.observedAt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Observed at (epoch ms)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "观测时间（毫秒时间戳）"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.expiresAt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expires at (epoch ms)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到期时间（毫秒时间戳）"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.timezone": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server time zone"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端时区"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.accuracy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source accuracy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源精度"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.weather": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Observed weather code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "观测天气代码"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.hours": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store opening hours"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "店铺营业时间"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.notLoaded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No current snapshot loaded. Do not assume the game is available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未读取当前快照，请勿假定游戏可用。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不可用"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.reason.READY": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approved environment evidence is valid."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "批准的环境信息有效。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.reason.CLOSED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The store is closed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "店铺当前已闭店。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.reason.TIME_WINDOW_EXPIRED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This game window has ended."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该游戏时段已结束。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.reason.SEVERE_WEATHER": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Severe weather. All game branches are paused."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "严重天气，所有游戏分支均已暂停。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.reason.ENVIRONMENT_UNAVAILABLE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Environment evidence is missing, expired or unapproved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "环境信息缺失、过期或未经批准。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.reason.STORE_STATUS_UNAVAILABLE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store business status is unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法确认店铺营业状态。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.reason.HOURS_UNAVAILABLE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store opening hours cannot be verified."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法确认店铺营业时间。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.reason.NO_APPROVED_BRANCH": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No approved branch is available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前没有已审核可用分支。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.reason.RAIN_NO_SAFE_BRANCH": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rain observed; no approved safe alternative."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "观测到雨天，且没有已审核安全替代分支。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.environment.reason.RELEASE_UNAVAILABLE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The published version is no longer available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该已发布版本不再可用。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.newGame": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New in-store game"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新建店内游戏"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.gameSetup": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an approved template"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择已批准模板"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.gameScope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an approved interaction template and an explicitly authorized theme. Unbound drafts cannot be published; no reward is selected by default."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择已批准互动模板，并明确选择有权主题。未绑定主题的草稿不可发布，默认无奖励。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.createGame": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建草稿"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.cancelSetup": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to drafts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回草稿"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.template": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approved template"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已批准模板"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.gameConstraints": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm all operating constraints before generating. AI drafts story text; it cannot change these constraints. Save edits, confirm facts, then review and publish."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成前请填写全部运营约束。AI 仅拟写剧情，不可修改这些约束。编辑保存后，确认事实，再审核发布。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.brief": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creative brief (not facts or permissions)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创作意图（不作为事实或权限）"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.chooseSegment": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an approved time segment"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择已批准时段"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.businessSegment": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Game time segment"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "游戏时段"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.staffDetail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Staff arrangement"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "店员安排"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.noRewardDefault": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New games start with no reward. Only existing authorized rule references are retained."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新游戏默认无奖励，仅保留已有授权规则引用。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.existingReward": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing reward rule reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已有奖励规则引用"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.modelChangedFacts": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The model changed an operating constraint. No draft was accepted. Edit the brief and try a new request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模型修改了运营约束，未接受该草稿。请修改创作意图后发起新请求。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.modelIncomplete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The model returned an incomplete draft. Nothing was approved or published."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模型返回的草稿不完整，未审核或发布任何内容。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.factsChanged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store facts changed. Read the latest facts before starting a new draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "店铺事实已变化，请回读最新事实后新建草稿。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.player.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In-store game and original reply"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "店内游戏与原回复"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.player.publication": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current published game"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前已发布游戏"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.player.currentVersionOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is the current publication, not proof of which version an earlier request used."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里显示当前发布版本，不代表之前请求采用的版本。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.player.noGame": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No published in-store game is available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无已发布店内游戏。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.player.withdrawn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This game has been withdrawn. An older version will not be restored."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该游戏已撤回，不会恢复使用旧版本。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.player.version": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Release and revision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发布与内容版本"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.player.openNPC": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask the existing store NPC"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进入本店 NPC 对话"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.player.noCompletionClaim": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A publication or NPC reply is not proof of game completion, rewards or redemption. Safety exits remain controlled by the server."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发布内容或 NPC 回复不代表通关、奖励或核销。安全退出仍由服务端决定。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.player.original": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original request result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求结果"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.player.request": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original request ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求编号"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.player.readOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reads the stored result only. It does not resend a question or call AI."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只读取已存结果，不重新发送问题或调用 AI。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.player.readOriginal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read original result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取原结果"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.player.acknowledged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The terminal result was read and its local pending marker was closed. No new request was sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已回读终态并关闭本地待确认记录，没有发送新请求。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.player.noPending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No pending request is recorded for this account and store."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前账号在本店没有待确认请求。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.player.closePending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close this pending record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭该待确认记录"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.player.confirmClose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close the verified terminal request?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭已核实的终态请求？"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.player.closeExplanation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only this local pending marker will be removed. The server reply is not deleted, and AI will not be called again. Any new question is a separate explicit action."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅移除本地待确认标记，不删除服务端回复，也不再次调用 AI。新问题需要另行明确发送。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.player.unresolved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original request is still unresolved. Keep its ID; do not send a replacement."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求仍待确认，请保留原编号，不要用新请求替代。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.player.fixedExit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original fixed safety exit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求的固定安全退出"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.player.replyReady": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original NPC reply is available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原 NPC 回复已回读"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.player.endedWithoutSuccess": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original request ended without success."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求已结束，但并未成功。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.player.configuration": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This read endpoint has not been independently enabled. Chat or authoring approval does not enable it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该只读接口尚未独立启用，对话或编辑权限不会自动启用它。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.player.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original result could not be verified. Its pending marker has been retained."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法核实原结果，已保留待确认记录。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.player.signIn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again to read this account’s original result."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请重新登录，读取当前账号的原请求结果。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.themeChoice.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Binding theme"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "绑定主题"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.themeChoice.unbound": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unbound draft, not publishable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不绑定主题，仅保留草稿"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.themeChoice.owner": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actual theme owner member ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "真实主题负责人会员 ID"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.themeChoice.owned": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Managed topic. Story approval still belongs to its actual owner."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可管理主题。剧情仍须由该主题真实负责人审核。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.themeChoice.cooperation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approved cooperation with an active offer. Permission is checked again when you submit."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已批准合作且供给有效。提交时会再次校验授权。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.themeChoice.noSelfReview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The existing review rule does not allow the revision author to approve their own story. Another authorized store colleague must author it for this owner to review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "既有审核规则禁止内容作者自审。需由另一名有权店员创作，再交该主题负责人审核。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.themeChoice.notPublishable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This draft cannot be published without a currently authorized theme and its owner’s story approval. Your draft is kept; its binding is not changed automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未绑定当前有权主题并取得该主题负责人的剧情审核前，不可发布。草稿保留，不会自动改换绑定。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.themeChoice.more": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Showing the first 100 authorized themes. No other theme is selected automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前显示前 100 个有权主题，不会自动选择其他主题。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.themeChoice.refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh authorized themes without discarding this draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新有权主题，保留当前草稿"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.themeChoice.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The authoritative theme list is unavailable. This is not proof that you have no permission. Refresh when the service is available; this draft stays unpublished."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "权威主题列表暂不可用，不代表你没有权限。服务恢复后请刷新，当前草稿保持未发布。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.product.new": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create existing-product copy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创作现有商品文案"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.product.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing product and SKU"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现有商品与 SKU"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.product.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use an existing store product. AI drafts descriptive copy only. It cannot create products or change prices, stock, fulfillment, refunds or rewards."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "引用本店现有商品。AI 只起草介绍文案，不创建商品，不修改价格、库存、履约、退款或奖励。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.product.choose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an existing product or SKU"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择现有商品或 SKU"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.product.source": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canonical product / SKU"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现有商品 / SKU"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.product.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The verified product source is unavailable. Keep the draft and try reading again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "真实商品来源暂不可用。保留草稿，可重新读取。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.product.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No currently listed product or SKU is available for this store. This screen does not create one."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本店暂无可用的已上架商品或 SKU，此处不会新建商品。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.product.more": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the first 100 eligible product/SKU choices are shown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前仅展示前 100 个符合条件的商品 / SKU。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.product.refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh product and theme choices"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新商品和主题选择"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.product.create": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create a referenced-product draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建引用商品的草稿"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.product.copy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Product introduction / theme copy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商品介绍 / 主题关联文案"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.product.changed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The product facts, listing, or store facts changed. This draft is retained but cannot generate, confirm or publish against a different source. Refresh, then start a separate draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商品事实、上架状态或店铺事实已变化。当前草稿保留，但不能用不同来源生成、确认或发布。刷新后可另建独立草稿。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.product.id": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Product ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商品 ID"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.product.sku": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SKU ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SKU ID"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.product.unit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "单位"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.product.version": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bound source version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "绑定来源版本"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.product.savedFacts": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These source facts belong to this saved revision."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以上来源事实属于此已保存版本。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.product.selectedFacts": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected current source. No revision has been saved yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前选定来源，尚未保存内容版本。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.withdraw.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdraw published version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤回已发布版本"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.withdraw.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdraw this release"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤回此发布版本"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.withdraw.impact": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This removes this published version from new public/NPC consumption. It does not delete the draft or historical receipts. Republish requires a new explicit publishing action."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作将停止此发布版本的公开/NPC使用，不删除草稿或历史回执。再次发布需要另行明确操作。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.withdraw.otherVersions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the release ID and revision shown above are affected. Other releases, inventory, orders and rewards are not changed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅影响上方指定发布ID及版本，不更改其他发布版本、库存、订单或奖励。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.withdraw.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm withdrawal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认撤回"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.withdraw.originalConfirmed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server confirmed this original withdrawal request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端已确认本次原撤回请求。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.withdraw.alreadyWithdrawn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This release was already withdrawn. No new withdrawal was submitted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此发布版本此前已撤回，本次未提交新的撤回。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.withdraw.request": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original withdrawal request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原撤回请求"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.withdraw.publicConfirmed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public readback confirms this exact release is unavailable and returns no content."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公开回读已确认此指定版本不可用，未返回内容。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.withdraw.publicPending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdrawal is recorded. Public readback is not yet confirmed; query it again without repeating withdrawal."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤回记录已确认，公开回读尚未确认；可再次查询，不会重复撤回。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.withdraw.verifyPublic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check public unavailability"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查询公开不可用状态"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.generated.history": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My generation results"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的生成结果"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.generated.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No generation results loaded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未读取到生成结果。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.generated.more": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load earlier results"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取更早结果"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.generated.original": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original generated draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求生成稿"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.generated.readOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read-only original output. This is not the current editor or proof of approval or publication. Open the current draft separately to edit."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是只读原生成结果，不是当前编辑稿，也不代表审核或发布通过。编辑前需单独读取当前草稿。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.generated.request": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.generated.version": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original output version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原产出版本"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.generated.currentVersion": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current version observed at read time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取时的当前版本"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.generated.hash": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original output hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原产出校验值"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.generated.openCurrent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read current editable draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取当前可编辑稿"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.generated.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original output is not available yet. Keep this request and retry reading; no new generation is sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无法读取原结果。保留该原请求并重试读取，不会重新生成。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.generated.currentUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current draft could not be read. The original stays read-only; retry reading without generating again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能读取当前草稿。原结果仍为只读，请重试读取，不会重新生成。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.finite.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finite branch copy v1"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有限分支正文 v1"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.finite.boundary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit copy and selection reasons only for approved branches. Canonical plot plus rendered copy is limited to 160 Unicode code points. Use only selected time/weather placeholders. Do not change task conditions, routes, time limits, rewards, or product commitments."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只编辑已批准分支的正文和选择理由。正文加主线渲染后最多 160 个字符；仅可使用勾选的时段和天气占位符。不改任务条件、路线、时限、奖励或商品承诺。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.finite.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branch copy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分支正文"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.finite.reason": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approved selection reason"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已审核选择理由"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.finite.environment": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weather comes only from approved, fresh server observations. Missing or severe weather keeps the fixed safe exit. This configuration does not authorize location access."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "天气只来自服务端已批准且未过期的观测。缺失或严重天气固定安全退出；此配置不授权获取位置。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.finite.legacy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This draft uses the existing contract, not finite branches v1. Existing releases are never automatically rewritten."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此稿沿用原合同，尚未配置有限分支 v1。原发布不会被自动改写。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.finite.enable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configure finite copy for this draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为当前草稿配置有限正文"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.finite.invalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid finite-copy version or content. Check every branch, reason, variable, and the 160-code-point limit. Unknown versions stay read-only and are not overwritten with legacy content."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有限分支版本或正文无效。检查全部分支正文、理由、变量和 160 字符限制；未知版本只读保留，不降级覆盖。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.finite.frozen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is the frozen copy for this review or release version. The model may return only the designated branch and original reason, not new rules or rewritten copy."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是本次审核或此发布版本的冻结正文。模型只能返回指定分支及原理由，不能生成新规则或改写正文。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI request capacity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 请求与在途额度"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read-only W05 authoring capacity in this authoring database. It is not platform-wide AI or billing governance."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只读查看本创作数据库内的 W05 准入，不代表全平台 AI 或费用治理。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.approval": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approved limits"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已批准上限"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.version": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approval version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "批准配置版本"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.daily": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing account daily generation limit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "既有账户每日生成上限"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.scope.USER": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用户"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.scope.MERCHANT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商户"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.scope.THEME": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bound theme"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "绑定主题"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.scope.GLOBAL": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authoring database total"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本创作数据库总量"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.unconfigured": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New generation is unavailable until all limits and their configuration version are approved. Existing original requests remain readable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上限及配置版本尚未完整批准，新生成不可用；仍可查询已有原请求。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.noBilling": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No verified remaining daily balance or actual usage/cost is available here. This screen does not approve fees."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此处无可核实的每日剩余额度或实际用量费用，不构成费用批准。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.held": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current held requests"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前占用请求"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.unknownHeld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An unknown or started request keeps its slot, including after restart or a configuration change. Cancel and timeout do not release possibly sent requests."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已启动或结果未知的请求在重启、配置变更后仍占用名额；取消或超时不会释放可能已发送的请求。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.requests": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My original requests"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的原请求"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No original requests on this page."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本页没有原请求。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.original": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original request result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求结果"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.isHeld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capacity remains held."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仍占用在途名额。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.released": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capacity released after a confirmed terminal result."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已确认终态，在途名额已释放。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.themeHeld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current requests held for this theme"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此主题当前占用请求"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.reason": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded result code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录的结果代码"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.readFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not confirm the original result. Keep this request and read it again; do not start a replacement."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能确认原结果。请保留原请求并重新查询，不要换请求重新生成。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.close": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.stage.RESERVED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reserved, not sent"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已预占，尚未发送"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.stage.STARTED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Started, outcome pending"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已启动，结果待确认"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.stage.UNKNOWN": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outcome unknown, slot held"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果未知，保留占用"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.stage.RELEASED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmed terminal, slot released"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已确认终态，名额已释放"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.stage.LEGACY": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Older request without admission receipt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无准入记录的旧请求"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.outcome.SUCCEEDED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generation completed; not published"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成完成，尚不代表发布"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.outcome.FAILED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generation failed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成失败"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.outcome.CANCELLED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request cancelled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求已取消"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.outcome.UNKNOWN": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original outcome unresolved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求结果未决"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.admission.capacityExceeded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The approved in-flight limit is reached. Review the original requests; unknown requests still hold capacity."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已达批准的在途上限。请查看原请求；未知请求仍占用名额。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.history.open": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My revision history"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的修订历史"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.history.scope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only revisions authored by your current account in this store are shown. Other staff members’ private history is not included."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅显示当前账号在本店撰写的修订，不包含其他员工的私有历史。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.history.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You have no saved revisions in this draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你在此草稿中尚无已保存修订。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.history.original": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original saved revision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原保存版本"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.history.readOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is a read-only historical record. Recorded reviews are not current publication approval. Open the current draft explicitly to edit."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是只读历史记录。原审核意见不代表当前发布批准，编辑前须明确读取当前草稿。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.history.facts": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original merchant fact review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原商家事实确认"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.history.content": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original theme content review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原主题内容审核"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.history.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The selected original revision is not available. Its entry is kept for another read."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所选原修订暂不可读，保留入口以便重读。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.history.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The read did not complete. The historical revision has not replaced the editor or settled any pending request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取未完成，历史版本未替换编辑稿，也未结清任何未决请求。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.history.invalidated": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This recorded approval was invalidated by a later revision."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此原批准已因后续修订失效。"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.history.decision.NONE": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No recorded review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无原审核记录"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.history.decision.UNAVAILABLE": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original review evidence is unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原审核证据不可用"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.history.decision.APPROVED": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approved at that revision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当时批准此版本"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.history.decision.REJECTED": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Returned at that revision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当时退回此版本"
+          }
+        }
+      }
+    },
+    "merchantAuthoring.withdraw.publicReadFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdrawal is recorded. The latest public availability check failed. Check again without submitting another withdrawal."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤回记录已确认，但本次公开可用状态查询失败。可重新查询，无需再次撤回。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

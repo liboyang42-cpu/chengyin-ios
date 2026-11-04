@@ -184,6 +184,12 @@ struct RegistrationSheetView: View {
                 }
             }
             .onChange(of: flow.identity) { _, _ in showingAddParticipant = false }
+            .onChange(of: flow.participantsIdentity) { _, _ in
+                showingAddParticipant = false
+                flow.synchronizeParticipantIdentity()
+                guard scenePhase == .active, flow.hasCurrentSession else { return }
+                Task { await flow.loadParticipants() }
+            }
             .onChange(of: flow.confirmation) { _, value in
                 if value == nil { showingConfirmation = false }
             }
@@ -269,13 +275,15 @@ struct RegistrationSheetView: View {
     }
     private var participantSection: some View {
         Section {
-            if flow.participantsState == .loading {
+            if participantReader?.isConfigured == false {
+                Text("auth.notConfigured")
+            } else if flow.participantsState == .loading {
                 ProgressView("registration.form.loadingParticipants")
             } else if flow.participantsState == .unavailable {
                 Text("registration.form.participantReadFailed").foregroundStyle(.secondary)
                 Button("registration.form.reloadParticipants") { Task { await flow.loadParticipants() } }
                     .accessibilityIdentifier("registration.form.reloadParticipants")
-            } else if !flow.participants.isEmpty {
+            } else if flow.participantProjectionIsCurrent, !flow.participants.isEmpty {
                 Picker("registration.form.savedParticipant", selection: Binding<Int?>(
                     get: { flow.selectedParticipantID },
                     set: { if let id = $0 { flow.selectParticipant(id: id) } else { flow.useManualEntry() } }
@@ -286,9 +294,16 @@ struct RegistrationSheetView: View {
                     }
                 }.accessibilityIdentifier("registration.form.participantPicker")
             }
-            if participantReader != nil, participantCoordinator != nil {
-                Button("participant.form.add") { focusedField = nil; showingAddParticipant = true }
-                    .disabled(!flow.canEdit).accessibilityIdentifier("registration.form.addParticipant")
+            if let participantReader, let participantCoordinator,
+               participantReader.identity != nil, participantReader.identity == participantCoordinator.identity {
+                if case .outcomeUnknown = participantCoordinator.state {
+                    Button { focusedField = nil; showingAddParticipant = true } label: {
+                        Text("participant.recovery.inspect", tableName: "ProfileParticipantRecovery")
+                    }.disabled(!flow.canEdit).accessibilityIdentifier("registration.form.inspectParticipant")
+                } else if participantReader.isConfigured, participantCoordinator.canPrepare {
+                    Button("participant.form.add") { focusedField = nil; showingAddParticipant = true }
+                        .disabled(!flow.canEdit).accessibilityIdentifier("registration.form.addParticipant")
+                }
             }
             TextField("registration.form.name", text: Binding(get: { flow.draft.realName }, set: flow.setName))
                 .textContentType(.name).textInputAutocapitalization(.words)

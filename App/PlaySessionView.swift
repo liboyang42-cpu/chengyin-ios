@@ -21,7 +21,7 @@ struct PlaySessionView: View {
             } else if reader.identity == nil {
                 PlayIssueView(issue: .init(APIError.unauthorized))
             } else if model.isLoading {
-                ProgressView("play.loading").accessibilityIdentifier("play.loading")
+                ProgressView("play.loading").frame(maxWidth: .infinity, maxHeight: .infinity).accessibilityIdentifier("play.loading")
             } else if let issue = model.visibleIssue {
                 PlayIssueView(issue: issue) { Task { await model.load(keepingReceipt: true) } }
             } else if let snapshot = model.visibleSnapshot {
@@ -119,6 +119,7 @@ struct PlaySessionView: View {
                 }
             }
         }
+        .listStyle(.insetGrouped)
         .refreshable { await model.load(keepingReceipt: true) }
         .accessibilityIdentifier("play.overview")
     }

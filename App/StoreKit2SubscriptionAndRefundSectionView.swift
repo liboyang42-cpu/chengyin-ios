@@ -144,12 +144,11 @@ public struct StoreKit2SubscriptionAndRefundSectionView: View {
 
     public var body: some View {
         Section {
-            HStack {
+            VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
                 Text(verbatim: "StoreKit 2 订阅与退款生命周期合规")
                     .font(.subheadline.weight(.semibold))
-                Spacer()
                 Text(verbatim: snapshot.isFullyCompliant ? "4/4 合规 (STOREKIT2_OK)" : "存在不合规告警")
-                    .font(.caption2.weight(.bold))
+                    .font(.caption.weight(.semibold))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
                     .background((snapshot.isFullyCompliant ? Color.green : Color.orange).opacity(0.15), in: Capsule())
@@ -157,22 +156,20 @@ public struct StoreKit2SubscriptionAndRefundSectionView: View {
                     .accessibilityIdentifier("storeKit2Lifecycle.overallBadge")
             }
 
-            LabeledContent {
+            VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
+                Text(verbatim: "生命周期控制汇总").font(.subheadline).foregroundStyle(.secondary)
                 Text(verbatim: snapshot.summaryText)
-                    .font(.footnote.monospacedDigit())
-            } label: {
-                Text(verbatim: "生命周期控制汇总")
+                    .font(.body.monospacedDigit()).fixedSize(horizontal: false, vertical: true)
             }
             .accessibilityIdentifier("storeKit2Lifecycle.summary")
 
             ForEach(snapshot.rows) { row in
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
+                VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
+                    VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
                         Text(verbatim: row.title)
                             .font(.subheadline.weight(.semibold))
-                        Spacer()
                         Text(verbatim: row.badgeText)
-                            .font(.caption2.weight(.bold))
+                            .font(.caption.weight(.semibold))
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(badgeColor(for: row.status).opacity(0.15), in: Capsule())
@@ -182,9 +179,11 @@ public struct StoreKit2SubscriptionAndRefundSectionView: View {
                         .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                     Text(verbatim: "规则：\(row.enforcementRule)")
-                        .font(.caption2)
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.vertical, 4)
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("storeKit2Lifecycle.row.\(row.id)")
             }

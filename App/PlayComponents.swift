@@ -1,6 +1,45 @@
 import SwiftUI
 import Observation
 
+/// Presentation shared only by the participation and original-run journeys.
+/// It carries no operation, authority or retained business state.
+struct G01JourneyFormStyle: ViewModifier {
+    @Environment(\.themeDomain) private var domain
+    func body(content: Content) -> some View {
+        content
+            .font(Theme.Font.body)
+            .tint(Theme.Color.accent(in: domain))
+            .scrollContentBackground(.hidden)
+            .background(Theme.Color.bgPage(in: domain))
+            .navigationBarTitleDisplayMode(.inline)
+            .scrollDismissesKeyboard(.interactively)
+    }
+}
+
+/// A non-interactive explanation; the original action stays at its call site.
+struct G01JourneyNotice: View {
+    let message: Text
+    var symbol = "info.circle"
+    var body: some View {
+        Label { message.fixedSize(horizontal: false, vertical: true) } icon: {
+            Image(systemName: symbol).accessibilityHidden(true)
+        }
+        .font(.footnote)
+        .foregroundStyle(.secondary)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, Theme.Space.s1)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+struct G01JourneyActionStyle: ViewModifier {
+    var primary = false
+    @ViewBuilder func body(content: Content) -> some View {
+        if primary { content.buttonStyle(.borderedProminent).controlSize(.large) }
+        else { content.buttonStyle(.bordered).controlSize(.large) }
+    }
+}
+
 struct PlayLoadIssue {
     let titleKey: String
     let detailKey: String
@@ -23,19 +62,22 @@ struct PlayLoadIssue {
 }
 
 struct PlayIssueView: View {
+    @Environment(\.themeDomain) private var domain
     let issue: PlayLoadIssue
     var retry: (() -> Void)? = nil
     var body: some View {
         ContentUnavailableView {
             Label(LocalizedStringKey(issue.titleKey), systemImage: "exclamationmark.circle")
         } description: {
-            if let message = issue.message, !message.isEmpty { Text(verbatim: message) }
-            else { Text(LocalizedStringKey(issue.detailKey)) }
+            if let message = issue.message, !message.isEmpty { Text(verbatim: message).fixedSize(horizontal: false, vertical: true) }
+            else { Text(LocalizedStringKey(issue.detailKey)).fixedSize(horizontal: false, vertical: true) }
         } actions: {
             if issue.retryable, let retry {
                 Button("play.retry", action: retry).accessibilityIdentifier("play.retry")
             }
         }
+        .font(Theme.Font.body)
+        .tint(Theme.Color.accent(in: domain))
     }
 }
 

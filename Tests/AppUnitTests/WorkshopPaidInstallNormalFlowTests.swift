@@ -90,7 +90,8 @@ import UIKit
     }
     func testRealHostedInstallModalDismissAndReopenRetiresOldViewCallbacks()async throws{
         let h=try Harness();defer{h.clean()};await h.login();try h.approve();let c=try h.controller(),old=WorkshopPaidInstallAppearance()
-        let window=UIWindow(frame:UIScreen.main.bounds),presenter=UIViewController();window.rootViewController=presenter;window.makeKeyAndVisible();defer{window.isHidden=true}
+        let sceneWindow = try HostedNavigationSceneWindow()
+        let window=sceneWindow.window,presenter=UIViewController();window.rootViewController=presenter;window.makeKeyAndVisible();defer{sceneWindow.retire()}
         let host=UIHostingController(rootView:WorkshopPaidInstallView(controller:c,appearance:old,onClose:{}));presenter.present(host,animated:false)
         for _ in 0..<1000{if c.phase == .ready{break};await Task.yield()};XCTAssertEqual(c.phase,.ready)
         presenter.dismiss(animated:false);for _ in 0..<1000{if c.phase == .idle{break};await Task.yield()};XCTAssertEqual(c.phase,.idle)

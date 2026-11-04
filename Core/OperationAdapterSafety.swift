@@ -26,6 +26,8 @@ public struct OperationPendingRecord: Codable, Equatable {
     public let ownerKey: String
     public let targetKey: String
     public var acknowledgedSteps: Int
+    /// Original N006 metadata only; never a token, complete URL or one-time credential.
+    public var nativeWebhook: NativeWebhookPendingMetadata?
     public init(operationID: UUID = UUID(), ownerKey: String, targetKey: String, acknowledgedSteps: Int = 0) {
         self.operationID = operationID; self.ownerKey = ownerKey; self.targetKey = targetKey; self.acknowledgedSteps = acknowledgedSteps
     }
@@ -40,9 +42,14 @@ public struct OperationPendingRecord: Codable, Equatable {
 @MainActor public protocol OperationPendingReplacing: OperationPendingJournal {
     func replace(_ existing: OperationPendingRecord, with next: OperationPendingRecord) throws
 }
+/// Optional identity-only enumeration for recovery after a write allowlist changes.
+/// Callers must supply the exact account/deployment owner key; no global records are returned.
+@MainActor public protocol OperationPendingListing: OperationPendingJournal {
+    func pendingRecords(ownerKey: String) throws -> [OperationPendingRecord]
+}
 /// Stores only account/deployment scoped operation identity, target and acknowledged step count.
 /// Never stores tokens, invite codes, drafts, media, member names or response messages.
-@MainActor public final class OperationDefaultsJournal: OperationPendingJournal, OperationPendingReplacing {
+@MainActor public final class OperationDefaultsJournal: OperationPendingListing, OperationPendingReplacing {
     private let defaults: UserDefaults
     public init(defaults: UserDefaults) { self.defaults = defaults }
     private func key(_ owner: String, _ target: String) -> String {
@@ -53,6 +60,20 @@ public struct OperationPendingRecord: Codable, Equatable {
         guard let data = raw as? Data, let record = try? JSONDecoder().decode(OperationPendingRecord.self, from: data),
               record.ownerKey == ownerKey, record.targetKey == targetKey, record.acknowledgedSteps >= 0 else { throw APIError.malformedResponse }
         return record
+    }
+    public func pendingRecords(ownerKey: String) throws -> [OperationPendingRecord] {
+        let storagePrefix = "questify.operations.pending.v1."
+        let ownerPrefix = "\(ownerKey.utf8.count):\(ownerKey):"
+        return try defaults.dictionaryRepresentation().keys.sorted().compactMap { name in
+            guard name.hasPrefix(storagePrefix),
+                  let bytes = Data(base64Encoded: String(name.dropFirst(storagePrefix.count))),
+                  let decoded = String(data: bytes, encoding: .utf8), decoded.hasPrefix(ownerPrefix) else { return nil }
+            let target = String(decoded.dropFirst(ownerPrefix.count))
+            guard name == key(ownerKey, target), let record = try pending(ownerKey: ownerKey, targetKey: target) else {
+                throw APIError.malformedResponse
+            }
+            return record
+        }
     }
     public func write(_ record: OperationPendingRecord) throws {
         if let existing = try pending(ownerKey: record.ownerKey, targetKey: record.targetKey), existing.operationID != record.operationID { throw APIError.invalidRequest }

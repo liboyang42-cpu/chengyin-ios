@@ -2,6 +2,7 @@ import SwiftUI
 
 /// The existing phase remains separate from progress. A full bar is not a new success event.
 struct PlayTaskSummaryView: View {
+    @Environment(\.themeDomain) private var domain
     let snapshot: PlaySnapshot
     let phase: String
     @State private var branchHistorySelection: PlayBranchHistorySelection?
@@ -9,9 +10,10 @@ struct PlayTaskSummaryView: View {
     @Environment(\.locale) private var locale
     private var summary: PlayTaskSummaryPresentation { .init(snapshot: snapshot) }
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let title = snapshot.result.topicName { Text(verbatim: title).font(.title2.bold()).fixedSize(horizontal: false, vertical: true) }
+        VStack(alignment: .leading, spacing: Theme.Space.s2) {
+            if let title = snapshot.result.topicName { Text(verbatim: title).font(.title3.weight(.semibold)).fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader) }
             LabeledContent("playx.state") { PlayRuntimePhaseText(phase: phase) }
+                .font(.subheadline).foregroundStyle(.secondary)
             if let done = summary.completed, let total = summary.total, let fraction = summary.fraction {
                 Text(verbatim: String(format: appLocalized("referenceTask.completedCount", locale: locale), locale: locale, done, total))
                     .font(.subheadline.weight(.semibold)).monospacedDigit()
@@ -31,7 +33,11 @@ struct PlayTaskSummaryView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }.accessibilityIdentifier("branchHistory.open")
             }
-        }.accessibilityElement(children: .contain)
+        }
+        .font(Theme.Font.body)
+        .foregroundStyle(Theme.Color.textPrimary(in: domain))
+        .tint(Theme.Color.accent(in: domain))
+        .accessibilityElement(children: .contain)
         .sheet(item: $branchHistorySelection) { selection in
             PlayBranchHistoryView(history: selection.presentation(snapshot: snapshot))
         }

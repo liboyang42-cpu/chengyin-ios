@@ -45,7 +45,7 @@ struct PlayBranchHistoryView: View {
                     }
                 }
                 #endif
-                ToolbarItem(placement: .confirmationAction) {
+                ToolbarItem(placement: .bottomBar) {
                     Button(branchHistoryLocalized("branchHistory.close", locale: locale)) { dismiss() }
                         .accessibilityIdentifier("branchHistory.close")
                 }

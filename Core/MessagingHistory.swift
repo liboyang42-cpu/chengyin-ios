@@ -30,6 +30,38 @@ public struct MessagingHistory: Equatable {
         nextCursor = page.nextCursor
         hasMore = page.hasMore
     }
+    @MainActor public static func readExistingMessage(id: Int, conversationID: Int,
+        preferredCursor: Int = 0, using reader: any MessagingReading,
+        stillCurrent: () -> Bool) async throws -> (message: MessagingMessage?, cursor: Int) {
+        guard id > 0, conversationID > 0, preferredCursor >= 0 else { throw APIError.invalidRequest }
+        let identity = reader.identity
+        func check() throws {
+            try Task.checkCancellation()
+            guard stillCurrent(), identity != nil, reader.identity == identity, reader.isConfigured else {
+                throw CancellationError()
+            }
+        }
+        func page(_ cursor: Int) async throws -> MessagingPage {
+            try check()
+            let result = try await reader.messagingMessages(conversationID: conversationID, cursor: cursor)
+            try check()
+            guard result.messages.allSatisfy({ $0.conversationID == conversationID }) else { throw APIError.malformedResponse }
+            return result
+        }
+        if preferredCursor > 0 {
+            let nearby = try await page(preferredCursor)
+            if let message = nearby.messages.last(where: { $0.id == id }) { return (message, preferredCursor) }
+        }
+        var cursor = 0, consumed = Set<Int>()
+        while true {
+            guard consumed.insert(cursor).inserted else { throw APIError.malformedResponse }
+            let result = try await page(cursor)
+            if let message = result.messages.last(where: { $0.id == id }) { return (message, cursor) }
+            guard result.hasMore else { return (nil, 0) }
+            guard let next = result.nextCursor, next > 0 else { throw APIError.malformedResponse }
+            cursor = next
+        }
+    }
     private func validate(_ page: MessagingPage) throws {
         guard conversationID > 0, page.messages.allSatisfy({ $0.conversationID == conversationID }) else {
             throw APIError.malformedResponse

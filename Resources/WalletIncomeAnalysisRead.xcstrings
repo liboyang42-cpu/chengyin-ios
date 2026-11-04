@@ -1,0 +1,142 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "strings": {
+    "wallet.analysis.read.scope": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅通过原收入明细接口读取最多 10 页、每页 20 条。按北京时间月份汇总已收到的记录；不读取余额来补齐、不创建账本快照或授予提现权限。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reads at most 10 pages of 20 records through the original income endpoint. Only received records are grouped by Beijing-time month. Balances are not used to fill gaps; this creates no ledger snapshot or withdrawal authority."
+          }
+        }
+      }
+    },
+    "wallet.analysis.read.progress": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每页重新校验原账号会话和读取权限，离开或切换账号会停止后续读取。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original session and read authority are checked for every page. Leaving or changing accounts stops subsequent reads."
+          }
+        }
+      }
+    },
+    "wallet.analysis.read.partial": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前为部分结果"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partial results"
+          }
+        }
+      }
+    },
+    "wallet.analysis.read.interrupted": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "后续读取中断，仅保留此前同一会话已收到的记录。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A later read was interrupted. Only records already received in the same session are retained."
+          }
+        }
+      }
+    },
+    "wallet.analysis.read.changed": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分页顺序、总数或内容校验发生变化；停止继续读取，不按完整快照汇总。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Page order, total or content validation changed. Reading stopped; this is not summarized as a complete snapshot."
+          }
+        }
+      }
+    },
+    "wallet.analysis.read.unverified": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原响应未提供可确认总数，停止追加分页；不据空片段判断账户无记录。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original response supplied no verifiable total. Further pages were not requested; an empty slice does not prove the account has no records."
+          }
+        }
+      }
+    },
+    "wallet.analysis.read.budget": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "达到本次最多 200 条的读取上限，未读取的记录不计入小计。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The read limit of 200 records was reached. Unread records are excluded from subtotals."
+          }
+        }
+      }
+    },
+    "wallet.analysis.read.noVerifiedRecords": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚无已验证的记录片段，不按空账户或零金额处理。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No verified record slice is available. This is not treated as an empty account or zero amount."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

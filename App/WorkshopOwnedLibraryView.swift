@@ -198,8 +198,16 @@ private struct WorkshopOwnedValueRow: View {
     let value: String
     @Environment(\.locale) private var locale
     var body: some View {
-        RevolutInsetRow(title: workshopLabel(key, locale: locale), value: value)
-            .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
+            Text(verbatim: workshopLabel(key, locale: locale))
+                .font(RevolutContentStyle.quiet).foregroundStyle(RevolutContentStyle.secondary)
+            Text(verbatim: value)
+                .font(RevolutContentStyle.row).foregroundStyle(RevolutContentStyle.primary)
+                .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, RevolutContentStyle.spacing)
+        .accessibilityElement(children: .combine)
     }
 }
 private struct WorkshopOwnedFailureView: View {

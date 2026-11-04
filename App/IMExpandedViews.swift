@@ -1,7 +1,13 @@
 import SwiftUI
+import MapKit
 
 struct IMExpandedSubmission: Equatable {
-    enum Operation: Equatable { case confirm, retry }
+    enum Operation: Equatable {
+        case confirm, retry, recoverImage, retryImage, recoverRoute, recoverStaticLocation
+        var isReceiptRecovery: Bool {
+            self == .recoverImage || self == .recoverRoute || self == .recoverStaticLocation
+        }
+    }
     let id: UUID
     let appearance: UUID
     let operation: Operation
@@ -10,6 +16,7 @@ struct IMExpandedSubmission: Equatable {
 
 @MainActor final class IMExpandedViewModel: ObservableObject {
     @Published var state: IMReviewState = .idle
+    @Published private(set) var ordinaryReceiptState: OrdinaryIMReceiptReadState = .idle
     @Published private(set) var appearance: UUID?
     let owner: IMExpandedCoordinator
     private var queued: IMExpandedSubmission?
@@ -21,12 +28,12 @@ struct IMExpandedSubmission: Equatable {
             guard let self, self.appearance != nil else { return }
             if case .acknowledged = self.owner.visibleState,
                self.executing?.appearance != self.appearance { return }
-            self.state = self.owner.visibleState
+            self.state = self.owner.visibleState; self.ordinaryReceiptState = self.owner.ordinaryReceiptState
         }
-        state = owner.visibleState
+        state = owner.visibleState; ordinaryReceiptState = owner.ordinaryReceiptState
     }
-    func retire() { appearance = nil; queued = nil; executing = nil; owner.cancelReview() }
-    func invalidateQueued() { queued = nil }
+    func retire() { appearance = nil; queued = nil; executing = nil; owner.invalidateOrdinaryImageRecovery(); owner.cancelReview() }
+    func invalidateQueued() { queued = nil; owner.invalidateOrdinaryImageRecovery() }
     func review(_ mutation: IMMutation, permits: (IMMutation) -> Bool) -> Bool {
         guard appearance != nil, permits(mutation) else { return false }
         return owner.review(mutation)
@@ -34,11 +41,20 @@ struct IMExpandedSubmission: Equatable {
     func prepare(_ operation: IMExpandedSubmission.Operation,
                  permits: (IMMutation) -> Bool) -> IMExpandedSubmission? {
         guard let appearance, queued == nil, executing == nil, owner.isCurrent,
-              owner.writer.isConfigured else { return nil }
+              operation.isReceiptRecovery || owner.writer.isConfigured else { return nil }
         let mutation: IMMutation
         switch (operation, owner.visibleState) {
         case (.confirm, .reviewing(let pending)), (.retry, .outcomeUnknown(let pending)):
+            if operation == .retry, owner.usesOriginalRecovery, owner.pendingOrdinaryImage != nil { return nil }
             mutation = pending
+        case (.recoverImage, .outcomeUnknown(let pending)), (.recoverImage, .rejected(let pending)):
+            guard owner.canRecoverOrdinaryImage else { return nil }; mutation = pending
+        case (.retryImage, .outcomeUnknown(let pending)), (.retryImage, .rejected(let pending)):
+            guard owner.canRetryOrdinaryImage else { return nil }; mutation = pending
+        case (.recoverRoute, .outcomeUnknown(let pending)):
+            guard owner.canRecoverRoute else { return nil }; mutation = pending
+        case (.recoverStaticLocation, .outcomeUnknown(let pending)):
+            guard owner.canRecoverStaticLocation else { return nil }; mutation = pending
         default: return nil
         }
         guard permits(mutation) else { return nil }
@@ -51,17 +67,34 @@ struct IMExpandedSubmission: Equatable {
         guard queued == token else { return false }
         queued = nil
         guard appearance == token.appearance, !Task.isCancelled, owner.isCurrent,
-              owner.writer.isConfigured, permits(token.mutation) else { return false }
+              (token.operation.isReceiptRecovery || owner.writer.isConfigured), permits(token.mutation) else { return false }
         switch (token.operation, owner.visibleState) {
-        case (.confirm, .reviewing(let pending)), (.retry, .outcomeUnknown(let pending)):
+        case (.confirm, .reviewing(let pending)), (.retry, .outcomeUnknown(let pending)),
+             (.recoverImage, .outcomeUnknown(let pending)), (.recoverImage, .rejected(let pending)),
+             (.retryImage, .outcomeUnknown(let pending)), (.retryImage, .rejected(let pending)),
+             (.recoverRoute, .outcomeUnknown(let pending)), (.recoverStaticLocation, .outcomeUnknown(let pending)):
             guard pending == token.mutation else { return false }
         default: return false
         }
         executing = token
         defer { if executing == token { executing = nil } }
         switch token.operation {
-        case .confirm: await owner.confirm()
+        case .confirm:
+            if owner.usesOriginalRecovery, case .send(let intent) = token.mutation, case .image = intent.payload {
+                await owner.confirm(stillAuthorized: { self.appearance == token.appearance && permits(token.mutation) })
+            } else if case .send(let intent) = token.mutation,
+                      intent.payload.isChannelHostSourceCard {
+                await owner.confirm(stillAuthorized: { self.appearance == token.appearance && permits(token.mutation) })
+            } else { await owner.confirm() }
         case .retry: await owner.retryUnchanged()
+        case .recoverRoute: await owner.recoverRoute()
+        case .recoverStaticLocation: await owner.recoverStaticLocation()
+        case .recoverImage:
+            _ = await owner.recoverOrdinaryImage(stillAuthorized: { self.appearance == token.appearance && permits(token.mutation) })
+        case .retryImage:
+            guard case .send(let intent) = token.mutation else { return false }
+            await owner.retryOrdinaryImageConfirmed(clientMessageID: intent.clientMessageID,
+                stillAuthorized: { self.appearance == token.appearance && permits(token.mutation) })
         }
         // A definite response to this already-dispatched operation can stale the
         // retained list after Controls closes. Do not revive the UI or start reads.
@@ -258,7 +291,7 @@ struct IMExpandedSubmission: Equatable {
     }
     private func clearDrafts() { selectedTopic = nil; showingTopics = false; name = ""; address = ""; latitude = ""; longitude = "" }
 }
-private struct IMMutationSummary: View {
+struct IMMutationSummary: View {
     let mutation: IMMutation
     var body: some View {
         switch mutation {
@@ -272,6 +305,12 @@ private struct IMMutationSummary: View {
             switch intent.payload {
             case .route(let id): Text("im.full.route"); Text(verbatim: String(id))
             case .image: Text("im.full.image")
+            case .video(let reference): Text("原视频消息").font(.body).fixedSize(horizontal: false, vertical: true); Text(verbatim: "\(Double(reference.durationMS)/1000) 秒 · \(reference.size) 字节").font(.body).fixedSize(horizontal: false, vertical: true)
+            case .file(let reference): Text("原文件消息").font(.body).fixedSize(horizontal: false, vertical: true); Text(verbatim: "\(reference.name) · \(reference.size) 字节").font(.body).fixedSize(horizontal: false, vertical: true)
+            case .voice(let reference): Text("原语音消息").font(.body).fixedSize(horizontal: false, vertical: true); Text(verbatim: "\(Double(reference.durationMS)/1000) 秒").font(.body).fixedSize(horizontal: false, vertical: true)
+            case .staticLocation(let place):
+                Text("静态地点，非实时位置").font(.body).fixedSize(horizontal: false, vertical: true);Text(verbatim:place.name).font(.body).fixedSize(horizontal: false, vertical: true);Text(verbatim:place.address).font(.body).fixedSize(horizontal: false, vertical: true)
+                Text(verbatim:"WGS84 · \(place.lat), \(place.lng)（四位小数）").font(.body).fixedSize(horizontal: false, vertical: true)
             case .location(let name, let address, let lat, let lng): Text(verbatim: name); Text(verbatim: address); Text(verbatim: "\(lat), \(lng)")
             }
         }
@@ -412,5 +451,255 @@ struct IMUploadSubmission: Equatable {
         guard identity == model.owner.scope.identity,
               let token = model.prepare(operation, canReply: canReply()) else { return }
         Task { await model.perform(token, canReply: { identity == model.owner.scope.identity && canReply() }) }
+    }
+}
+
+
+private extension IMOutgoingPayload {
+    var isChannelHostSourceCard: Bool {
+        switch self { case .route, .staticLocation: return true; default: return false }
+    }
+}
+
+@MainActor struct IMStaticLocationComposeView: View {
+    @StateObject private var model: IMExpandedViewModel
+    @Environment(\.scenePhase) private var phase
+    @State private var operationTask: Task<Void, Never>?
+    @State private var operationID: UUID?
+    let current: () -> Bool
+    @State private var name=""
+    @State private var address=""
+    @State private var latitude=""
+    @State private var longitude=""
+    @State private var confirmedDatum=false
+    @State private var pickingMap=false
+    @State private var pickedMapSignature:String?
+    init(owner: IMExpandedCoordinator,current:@escaping ()->Bool) { _model=StateObject(wrappedValue:IMExpandedViewModel(owner));self.current=current }
+    private var available: Bool { phase == .active && current() && model.owner.isCurrent }
+    var body: some View {
+        Form {
+            if available {
+                switch model.state {
+                case .idle:
+                    Section("选择静态地点") {
+                        Button("在地图上点选地点（不使用GPS）") { pickingMap=true }.font(Theme.Font.button)
+                        Text("输入已知地点；不会读取设备位置。仅支持明确 WGS84 来源，不能把导航/私有剧情点许可当分享授权。").fixedSize(horizontal: false, vertical: true).font(.footnote)
+                        TextField("地点名称",text:$name);TextField("地址（可选）",text:$address)
+                        TextField("纬度",text:$latitude).keyboardType(.numbersAndPunctuation)
+                        TextField("经度",text:$longitude).keyboardType(.numbersAndPunctuation)
+                        Toggle("我确认来源坐标为 WGS84",isOn:$confirmedDatum)
+                        Button("确认地点与收件会话") {
+                            guard available,confirmedDatum,let lat=Double(latitude),let lng=Double(longitude),
+                                  let place=try? IMStaticLocation(name:name,address:address,latitude:lat,longitude:lng,datum:"WGS84"),
+                                  let intent=try? IMOutgoingIntent(scope:model.owner.scope,payload:.staticLocation(place)) else { return }
+                            _ = model.owner.review(.send(intent))
+                        }.font(Theme.Font.button).disabled(!confirmedDatum || !model.owner.writer.canSendStaticLocation)
+                    }
+                case .reviewing(let mutation):
+                    if isLocation(mutation) {
+                        IMMutationSummary(mutation:mutation)
+                        Text("将向此会话发送上述四位坐标与地址。不是实时位置，也不提供导航。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+                        Button("确认发送此地点") { submit(.confirm) }.imFlowPrimaryAction()
+                        Button("取消",role:.cancel) { model.owner.cancelReview() }.font(Theme.Font.button)
+                    } else { Text("请先处理当前会话的原请求").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
+                case .outcomeUnknown(let mutation):
+                    if isLocation(mutation) {
+                        IMMutationSummary(mutation:mutation);Text("结果未知，保留原请求，不自动发送。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+                        if model.owner.canRecoverStaticLocation { Button("读取原结果，不重发") { submit(.recoverStaticLocation) }.font(Theme.Font.button) }
+                        // Recovery never grants new SEND. Explicit retry remains the same original key and bytes.
+                        if model.owner.writer.canSendStaticLocation { Button("明确重试同一个原地点请求") { submit(.retry) }.font(Theme.Font.button) }
+                    } else { Text("请先恢复当前会话的其他原请求").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
+                case .submitting: ProgressView()
+                case .acknowledged:
+                    Text("原地点消息已确认").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+                    if model.owner.writer.canSendStaticLocation {
+                        Button("重新选择另一个地点") { clear();model.owner.finishStaticLocationResult() }.font(Theme.Font.button)
+                    }
+                case .rejected: Text("请求被拒绝；原记录保留，不替换地点或请求号").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+                case .closed: Text("当前会话不可用").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+                }
+            } else { Text("当前身份或会话权限已失效").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
+        }.imFlowForm().navigationTitle("静态地点分享").privacySensitive()
+         .onChange(of:latitude) { _,_ in if pickedMapSignature != latitude+"|"+longitude { confirmedDatum=false;pickedMapSignature=nil } }
+         .onChange(of:longitude) { _,_ in if pickedMapSignature != latitude+"|"+longitude { confirmedDatum=false;pickedMapSignature=nil } }
+         .sheet(isPresented:$pickingMap) {
+             IMStaticPlaceMapPicker(current:{ available && model.appearance != nil }) { place in
+                 guard available,model.appearance != nil else{return}
+                 name=place.name;address=place.address;latitude=String(place.lat);longitude=String(place.lng)
+                 pickedMapSignature=latitude+"|"+longitude;confirmedDatum=true
+             }
+         }
+         .onAppear { if available { model.observe() } }
+         .onDisappear { stopOperation();model.retire();clear() }
+         .onChange(of:available) { _,valid in if !valid { stopOperation();model.retire();clear() } else if model.appearance == nil { model.observe() } }
+    }
+    private func submit(_ operation: IMExpandedSubmission.Operation) {
+        let permits: (IMMutation) -> Bool = { available && isLocation($0) }
+        guard operationTask == nil, let token = model.prepare(operation, permits: permits) else { return }
+        let id = UUID(); operationID = id
+        operationTask = Task {
+            _ = await model.perform(token, permits: permits)
+            guard operationID == id else { return }
+            operationTask = nil; operationID = nil
+        }
+    }
+    private func stopOperation() {
+        operationID = nil; operationTask?.cancel(); operationTask = nil
+    }
+    private func isLocation(_ mutation:IMMutation)->Bool { if case .send(let intent)=mutation,case .staticLocation=intent.payload{return true};return false }
+    private func clear() { name="";address="";latitude="";longitude="";confirmedDatum=false;pickingMap=false;pickedMapSignature=nil }
+}
+
+@MainActor struct IMRouteShareComposeView:View {
+    @StateObject private var model:IMExpandedViewModel
+    @Environment(\.scenePhase) private var phase
+    @State private var operationTask: Task<Void, Never>?
+    @State private var operationID: UUID?
+    let reader:any TopicReading
+    let current:()->Bool
+    @State private var selected:TopicSummary?
+    @State private var picking=false
+    init(owner:IMExpandedCoordinator,reader:any TopicReading,current:@escaping ()->Bool) {
+        _model=StateObject(wrappedValue:IMExpandedViewModel(owner));self.reader=reader;self.current=current
+    }
+    private var available:Bool { phase == .active && current() && model.owner.isCurrent }
+    var body:some View {
+        Form {
+            if available {
+                Text(verbatim:"目标会话：\(model.owner.scope.conversationID)").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+                switch model.state {
+                case .idle:
+                    if let selected { Text(verbatim:selected.name).font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
+                    Button("从原路线列表选择") { picking=true }.font(Theme.Font.button)
+                    Text("可查看或导航不代表可公开分享；选择后由原后端核对公开分享来源。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+                    Button("核对公开分享来源") { reviewSelectedSource() }.font(Theme.Font.button)
+                        .disabled(selected == nil || !model.owner.writer.canReadRouteShareSource || !model.owner.writer.canSendRoute)
+                    if model.owner.routeShareUnavailable { Text("该路线暂不可分享，不返回隐藏原因或内容。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
+                case .reviewing(let mutation):
+                    if isRoute(mutation),let source=model.owner.selectedRouteShareSource {
+                        Text(verbatim:source.name).font(Theme.Font.body).fixedSize(horizontal: false, vertical: true);IMMutationSummary(mutation:mutation)
+                        Text("只发送路线引用，不复制隐藏节点或轨迹，不附带导航/解锁权限。接收者打开时仍须满足原访问规则。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+                        Button("确认向此会话发送路线卡") { submit(.confirm) }.imFlowPrimaryAction()
+                        Button("取消",role:.cancel) { model.owner.cancelReview() }.font(Theme.Font.button)
+                    } else { Text("请先处理此会话的其他原请求").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
+                case .outcomeUnknown(let mutation):
+                    if isRoute(mutation) {
+                        IMMutationSummary(mutation:mutation);Text("结果未知；保留同一个原路线ID与请求号，不自动重发。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+                        if model.owner.canRecoverRoute { Button("读取原路线卡结果，不重发") { submit(.recoverRoute) }.font(Theme.Font.button) }
+                        if model.owner.writer.canSendRoute { Button("明确重试同一个原请求") { submit(.retry) }.font(Theme.Font.button) }
+                    } else { Text("请先恢复此会话的其他原请求").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
+                case .submitting:ProgressView()
+                case .acknowledged:
+                    Text("原消息结果已确认；路线是否仍可查看以接收方当前读取为准。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+                    Button("重新选择另一条路线") { selected=nil;model.owner.finishRouteResult() }.font(Theme.Font.button)
+                case .rejected:Text("请求被拒绝，原请求保持不变").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+                case .closed:Text("当前会话不可用").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+                }
+            } else { Text("当前身份或会话权限已失效").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
+        }.imFlowForm().navigationTitle("分享原路线卡").privacySensitive()
+        .sheet(isPresented:$picking) {
+            if available { NavigationStack { ContextualTopicPicker(reader:reader) { row in
+                guard available,model.appearance != nil else{return};selected=row
+            } } }
+        }
+        .onAppear { if available { model.observe() } }
+        .onDisappear { stopOperation();model.retire();selected=nil;picking=false }
+        .onChange(of:available) { _,value in if !value { stopOperation();model.retire();selected=nil;picking=false } else if model.appearance == nil { model.observe() } }
+    }
+    private func reviewSelectedSource() {
+        guard operationTask == nil, available, let appearance = model.appearance, let selected else { return }
+        let id = UUID(); operationID = id
+        operationTask = Task {
+            guard !Task.isCancelled, operationID == id, model.appearance == appearance, available else { return }
+            await model.owner.reviewRoute(topicID: selected.id)
+            guard operationID == id else { return }
+            operationTask = nil; operationID = nil
+        }
+    }
+    private func submit(_ operation: IMExpandedSubmission.Operation) {
+        let permits: (IMMutation) -> Bool = { available && isRoute($0) }
+        guard operationTask == nil, let token = model.prepare(operation, permits: permits) else { return }
+        let id = UUID(); operationID = id
+        operationTask = Task {
+            _ = await model.perform(token, permits: permits)
+            guard operationID == id else { return }
+            operationTask = nil; operationID = nil
+        }
+    }
+    private func stopOperation() {
+        operationID = nil; operationTask?.cancel(); operationTask = nil
+    }
+    private func isRoute(_ mutation:IMMutation)->Bool { if case .send(let intent)=mutation,case .route=intent.payload{return true};return false }
+}
+
+/// First-party map selection, not a business POI/navigation source and never device location.
+/// Apple MapProxy.convert(point, from:) supplies CLLocationCoordinate2D (WGS84); no relabeling of external coordinates.
+@MainActor private struct IMStaticPlaceMapPicker:View {
+    let current:()->Bool
+    let selected:(IMStaticLocation)->Void
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var consented=false
+    @State private var position:MapCameraPosition = .rect(MKMapRect.world)
+    @State private var picked:CLLocationCoordinate2D?
+    @State private var renderedCenter:CLLocationCoordinate2D?
+    @State private var name=""
+    @State private var address=""
+    @State private var selectionUnavailable=false
+    private var available:Bool { current() && scenePhase == .active }
+    private var value:IMStaticLocation? {
+        guard let picked else{return nil}
+        return try? IMStaticLocation(name:name,address:address,latitude:picked.latitude,longitude:picked.longitude,datum:"WGS84")
+    }
+    var body:some View {
+        NavigationStack {
+            Form {
+                if !available { Text("当前会话或身份已失效，不能返回地点").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
+                else if !consented {
+                    Text("打开系统地图后，地图服务会收到你浏览区域的地图请求。此页不读取GPS、当前位置或实时轨迹，不查询业务POI或隐藏路线点。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+                    Text("地图点选只准备静态地点；返回后仍须单独确认目标会话和发送。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+                    Button("同意加载地图并手动点选") { if available { consented=true } }.font(Theme.Font.button)
+                } else {
+                    Text("平移、缩放地图后点选，或使用“选取当前地图中心”。没有默认已选地点。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+                    MapReader { proxy in
+                        Map(position:$position,interactionModes:[.pan,.zoom]) {
+                            if let picked { Marker("已选静态地点",coordinate:picked) }
+                        }.frame(height:360)
+                        .onMapCameraChange(frequency:.onEnd) { context in
+                            guard available,consented else{return};renderedCenter=context.region.center
+                        }
+                        .onTapGesture { point in
+                            guard available,consented,let coordinate=proxy.convert(point,from:.local) else { selectionUnavailable=true;return }
+                            choose(coordinate)
+                        }
+                    }
+                    Button("选取当前地图中心") { if let renderedCenter { choose(renderedCenter) } }.font(Theme.Font.button)
+                        .disabled(renderedCenter == nil)
+                    if selectionUnavailable { Text("无法确认此点坐标，请重新点选；不会代填坐标。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
+                    if let picked {
+                        Text(verbatim:"MapKit WGS84 · \(picked.latitude), \(picked.longitude)（四位小数）").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+                        TextField("为地点填写名称",text:$name)
+                        TextField("地址说明（可选，不自动查询）",text:$address)
+                        Text("这是地图上的静态大致位置，不表示你现在位于此处，也不提供导航。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+                        Button("使用此点并返回确认页") {
+                            guard available,consented,let value else{return}
+                            selected(value);dismiss()
+                        }.font(Theme.Font.button).disabled(value == nil)
+                    }
+                }
+            }.imFlowForm().navigationTitle("地图选择静态地点").privacySensitive()
+            .toolbar { ToolbarItem(placement:.cancellationAction) { Button("取消") { dismiss() } } }
+            .onDisappear { retire() }
+            .onChange(of:available) { _,valid in if !valid { retire() } }
+        }
+    }
+    private func choose(_ coordinate:CLLocationCoordinate2D) {
+        guard available,consented,CLLocationCoordinate2DIsValid(coordinate),
+              let coarse=try? IMStaticLocation(name:"地图选点",address:"",latitude:coordinate.latitude,
+                                               longitude:coordinate.longitude,datum:"WGS84") else { selectionUnavailable=true;return }
+        picked=CLLocationCoordinate2D(latitude:coarse.lat,longitude:coarse.lng);selectionUnavailable=false
+    }
+    private func retire() {
+        consented=false;picked=nil;renderedCenter=nil;name="";address="";position = .rect(MKMapRect.world)
     }
 }

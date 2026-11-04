@@ -1,0 +1,295 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "activityWizardValidation.name": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter an activity name."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写活动名称。"
+          }
+        }
+      }
+    },
+    "activityWizardValidation.venue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the activity venue name."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写活动地点名称。"
+          }
+        }
+      }
+    },
+    "activityWizardValidation.start": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the activity start date and time."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请检查活动开始日期和时间。"
+          }
+        }
+      }
+    },
+    "activityWizardValidation.end": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a valid activity end date and time later than the start."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写有效的活动结束日期和时间，且晚于开始时间。"
+          }
+        }
+      }
+    },
+    "activityWizardValidation.categories": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose at least one valid activity category."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请至少选择一个有效的活动分类。"
+          }
+        }
+      }
+    },
+    "activityWizardValidation.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter an activity description."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写活动介绍。"
+          }
+        }
+      }
+    },
+    "activityWizardValidation.template": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a play template for the activity."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请为活动选择玩法模板。"
+          }
+        }
+      }
+    },
+    "activityWizardValidation.cover": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add an activity cover."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请添加活动封面。"
+          }
+        }
+      }
+    },
+    "activityWizardValidation.collaborators": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check collaborators. Select valid members without duplicates."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请检查协作者，选择有效会员且不要重复。"
+          }
+        }
+      }
+    },
+    "activityWizardValidation.tickets": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the ticket details and add at least one ticket type."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请检查票务信息，并至少添加一个票种。"
+          }
+        }
+      }
+    },
+    "activityWizardValidation.ticketName": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ticket %@: enter a name."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %@ 个票种：请填写名称。"
+          }
+        }
+      }
+    },
+    "activityWizardValidation.ticketPrice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ticket %@: enter a valid price of zero or more."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %@ 个票种：请填写有效且不小于零的价格。"
+          }
+        }
+      }
+    },
+    "activityWizardValidation.ticketStock": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ticket %@: enter a whole-number stock greater than zero."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %@ 个票种：请填写大于零的整数库存。"
+          }
+        }
+      }
+    },
+    "activityWizardValidation.ticketStart": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ticket %@: check the start date and time."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %@ 个票种：请检查开始日期和时间。"
+          }
+        }
+      }
+    },
+    "activityWizardValidation.ticketEnd": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ticket %@: enter valid start and end dates and times, with the end after the start and both within the activity period."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %@ 个票种：请填写有效的起止日期和时间，结束须晚于开始，且都在活动时段内。"
+          }
+        }
+      }
+    },
+    "activityWizardValidation.none": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No field-specific validation message is currently shown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前没有字段校验提示。"
+          }
+        }
+      }
+    },
+    "activityWizardValidation.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the activity details before continuing. A field-specific explanation is unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请检查活动信息后继续，暂无法提供具体字段说明。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

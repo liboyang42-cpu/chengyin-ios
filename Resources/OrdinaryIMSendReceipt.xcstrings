@@ -1,0 +1,159 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "ordinary.receipt.reading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking the original message…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取原消息结果…"
+          }
+        }
+      }
+    },
+    "ordinary.receipt.pending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original result is still unknown. Checking does not resend or upload."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原消息结果仍待确认；读取结果不会重新发送或上传。"
+          }
+        }
+      }
+    },
+    "ordinary.receipt.notFound": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server explicitly found no original message. The saved request is still pending."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器明确未找到原消息；原请求仍保留，尚未确认成功。"
+          }
+        }
+      }
+    },
+    "ordinary.receipt.read": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check original result (read-only)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取原消息结果（不重发）"
+          }
+        }
+      }
+    },
+    "ordinary.receipt.reviewRetry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review sending the same request again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审核原请求重发"
+          }
+        }
+      }
+    },
+    "ordinary.receipt.confirmTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send this exact original request again?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认重发这条原请求？"
+          }
+        }
+      }
+    },
+    "ordinary.receipt.confirmHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original ID and content will not change. We check once more first: if found, only the original result is merged; if unknown, nothing is sent. Images are not uploaded again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保持原消息ID与原内容不变。先再次回读：找到则仅合并原结果，无法确认则不发送；图片不会重新上传。"
+          }
+        }
+      }
+    },
+    "ordinary.receipt.confirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm same-ID resend"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认原ID重发"
+          }
+        }
+      }
+    },
+    "ordinary.receipt.cancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    }
+  }
+}

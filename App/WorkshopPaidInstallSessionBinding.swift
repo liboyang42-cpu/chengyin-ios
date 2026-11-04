@@ -13,7 +13,10 @@ import Foundation
         guard let context, let approval, let api, approval.matches(context), currentApproval()?.revision == approval.revision,
               ContentDraftContextFence.matches(current(), context), api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8) else { invalidate(); return nil }
         if ContentDraftContextFence.matches(captured, context), captured?.session.role.utf8.elementsEqual(context.session.role.utf8) == true,
-           revision == approval.revision, let controller, controller.item == item { return controller }
+           revision == approval.revision, let controller, controller.item == item,
+           controller.phase != .invalidated { return controller }
+        // An invalidated controller owns a revoked lease. Re-entry must use a fresh
+        // controller/read lease after the full checks above, retaining the owner store.
         invalidate()
         guard let store = try? WorkshopPaidInstallPendingStore(storage: storage, context: context, licenseId: item.licenseId) else { return nil }
         let lease = ContentDraftSessionLease(context: context, current: current)

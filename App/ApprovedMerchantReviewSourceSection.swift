@@ -19,15 +19,15 @@ import SwiftUI
                 }
                 ForEach(group.confirmations) { choice in
                     Button { model.selectSource(choice, from: presentation) } label: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(verbatim: choice.title ?? "#\(group.memberTemplateID)")
+                        VStack(alignment: .leading, spacing: Theme.Space.s2) {
+                            Text(verbatim: choice.title ?? "#\(group.memberTemplateID)").font(Theme.Font.cardTitle).fixedSize(horizontal: false, vertical: true)
                             Text(String(localized: LocalizedStringResource("topicReview.sources.confirmation", defaultValue: "Saved confirmation", table: "ApprovedMerchantReviewSources", locale: locale)) + " #\(choice.selection.merchantConfirmation.sourceID)")
                             Text(Date(timeIntervalSince1970: Double(choice.confirmedAtEpochMillis) / 1000), style: .date).font(.caption)
                             if model.flow.selectedSources[group.memberTemplateID] == choice.selection {
                                 Label(String(localized: LocalizedStringResource("topicReview.sources.selected", defaultValue: "Selected", table: "ApprovedMerchantReviewSources", locale: locale)), systemImage: "checkmark.circle.fill")
                             }
                         }
-                    }.buttonStyle(.borderless).accessibilityIdentifier("topicReview.sources.choose.\(choice.selection.merchantConfirmation.sourceID)")
+                    }.p04RecoveryRecord().buttonStyle(.borderless).accessibilityIdentifier("topicReview.sources.choose.\(choice.selection.merchantConfirmation.sourceID)")
                 }
                 if group.hasOlderConfirmations {
                     Text(String(localized: LocalizedStringResource("topicReview.sources.older", defaultValue: "Showing the eight most recent saved confirmations for this draft. Older confirmations are not shown here.", table: "ApprovedMerchantReviewSources", locale: locale))).font(.footnote)

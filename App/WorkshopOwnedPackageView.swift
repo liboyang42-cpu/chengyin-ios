@@ -85,8 +85,16 @@ private struct PackageValueRow: View {
     let value: String
     @Environment(\.locale) private var locale
     var body: some View {
-        RevolutInsetRow(title: packageLabel(key, locale: locale), value: value)
-            .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
+            Text(verbatim: packageLabel(key, locale: locale))
+                .font(RevolutContentStyle.quiet).foregroundStyle(RevolutContentStyle.secondary)
+            Text(verbatim: value)
+                .font(RevolutContentStyle.row).foregroundStyle(RevolutContentStyle.primary)
+                .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, RevolutContentStyle.spacing)
+        .accessibilityElement(children: .combine)
     }
 }
 private struct PackagePolicyRow: View {
@@ -94,8 +102,16 @@ private struct PackagePolicyRow: View {
     let value: String
     @Environment(\.locale) private var locale
     var body: some View {
-        RevolutInsetRow(title: packageLabel(key, locale: locale), value: packageLabel("policy." + value, locale: locale))
-            .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
+            Text(verbatim: packageLabel(key, locale: locale))
+                .font(RevolutContentStyle.quiet).foregroundStyle(RevolutContentStyle.secondary)
+            Text(verbatim: packageLabel("policy." + value, locale: locale))
+                .font(RevolutContentStyle.row).foregroundStyle(RevolutContentStyle.primary)
+                .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, RevolutContentStyle.spacing)
+        .accessibilityElement(children: .combine)
     }
 }
 private struct PackageLimitRow: View {
@@ -103,8 +119,16 @@ private struct PackageLimitRow: View {
     let limit: WorkshopOwnedPackage.Limit
     @Environment(\.locale) private var locale
     var body: some View {
-        RevolutInsetRow(title: packageLabel(key, locale: locale), value: limit.unlimited ? packageLabel("unlimited", locale: locale) : String(limit.maximum))
-            .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
+            Text(verbatim: packageLabel(key, locale: locale))
+                .font(RevolutContentStyle.quiet).foregroundStyle(RevolutContentStyle.secondary)
+            Text(verbatim: limit.unlimited ? packageLabel("unlimited", locale: locale) : String(limit.maximum))
+                .font(RevolutContentStyle.row).foregroundStyle(RevolutContentStyle.primary)
+                .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, RevolutContentStyle.spacing)
+        .accessibilityElement(children: .combine)
     }
 }
 private func packageLabel(_ key: String, locale: Locale) -> String {

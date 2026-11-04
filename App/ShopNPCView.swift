@@ -16,6 +16,7 @@ import SwiftUI
     @State private var pendingSend: (current: () -> (String, UUID?)?, run: () -> Void)?
     @FocusState private var typing: Bool
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.dismiss) private var dismiss
     private var sending: Bool { coordinator.busy }
     private var showsConversation: Bool { coordinator.active && !coordinator.isSuspended }
@@ -31,6 +32,7 @@ import SwiftUI
                 else if coordinator.isSuspended { Text("shopNPC.paused") }
                 else { Text("shopNPC.stale") }
                 Text("shopNPC.disclosure").font(.footnote).foregroundStyle(.secondary)
+                    .lineLimit(nil).fixedSize(horizontal: false, vertical: true)
             }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal).padding(.vertical, 8)
             ScrollViewReader { proxy in
                 ScrollView {
@@ -90,6 +92,7 @@ import SwiftUI
                             }.accessibilityIdentifier("shopNPC.error")
                         }
                         Text("shopNPC.voiceDisclosure").font(.footnote).foregroundStyle(.secondary)
+                        if dynamicTypeSize.isAccessibilitySize { composer }
                         Color.clear.frame(height: 1).id("referenceNPC.bottom").accessibilityHidden(true)
                     }.padding()
                 }
@@ -100,7 +103,9 @@ import SwiftUI
                 .onChange(of: coordinator.messages.count) { _, _ in proxy.scrollTo("referenceNPC.bottom", anchor: .bottom) }
             }
         }
-        .safeAreaInset(edge: .bottom) { composer }
+        .safeAreaInset(edge: .bottom) {
+            if !dynamicTypeSize.isAccessibilitySize { composer }
+        }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
@@ -130,6 +135,7 @@ import SwiftUI
     private var composer: some View {
         VStack(alignment: .leading, spacing: 8) {
             NPCQuickQuestionBar(draft: $draft, context: .gameNode(coordinator.scope), enabled: canCompose)
+                .lineLimit(nil).fixedSize(horizontal: false, vertical: true)
             TextField("shopNPC.question", text: Binding(get: { showsConversation ? draft : "" }, set: { draft = $0 }), axis: .vertical)
                 .lineLimit(1...3).textFieldStyle(.roundedBorder).focused($typing)
                 .disabled(!canCompose).accessibilityIdentifier("shopNPC.input")

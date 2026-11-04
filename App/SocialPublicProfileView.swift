@@ -119,6 +119,12 @@ import SwiftUI
                             NavigationLink { SocialActionEditorView(purpose: .toggleFollow, target: .member(profile.id), coordinator: actions) } label: { Text("social.editor.toggleFollow") }
                             NavigationLink { SocialActionEditorView(purpose: .startChat, target: .member(profile.id), coordinator: actions) } label: { Text("social.editor.startChat") }
                         }
+                        if profile.id == memberID, let accountID = reader.identity.accountID,
+                           accountID != memberID, memberID > 0, isCurrent() {
+                            NavigationLink { PersonalLocationShareEntry(recipientId: Int64(memberID)) } label: {
+                                Label { Text("personalLocationShare.title.person", tableName: "PersonalLocationShare") } icon: { Image(systemName: "location") }
+                            }.accessibilityIdentifier("social.personalLocationShare")
+                        }
                         Text("social.profileActionsDisabled").font(.footnote).foregroundStyle(.secondary)
                     }
                     Picker("social.profileSection", selection: $tab) {

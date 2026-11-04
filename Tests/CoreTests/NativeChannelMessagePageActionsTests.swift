@@ -1,7 +1,7 @@
 import XCTest
 @testable import QuestifyCore
 
-final class NativeChannelMessagePageActionsTests: XCTestCase {
+@MainActor final class NativeChannelMessagePageActionsTests: XCTestCase {
     private let sendID = "c09-send-key-0001"
     private let editID = "c09-edit-key-0001"
     private let recallID = "c09-recall-key-001"
@@ -164,17 +164,17 @@ private struct PageMutation: NativeChannelOriginalMutationIdentity {
     var content: String?
 }
 
-private final class PageTextJournal: NativeChannelOriginalTextJournal {
+@MainActor private final class PageTextJournal: NativeChannelOriginalTextJournal {
     var record: PageTextRecord?
     func restore() throws -> PageTextRecord? { record }
 }
 
-private final class PageMutationJournal: NativeChannelOriginalMutationJournal {
+@MainActor private final class PageMutationJournal: NativeChannelOriginalMutationJournal {
     var command: PageMutation?
     func restore() throws -> PageMutation? { command }
 }
 
-private final class PageTextCommand: NativeChannelOriginalTextCommand {
+@MainActor private final class PageTextCommand: NativeChannelOriginalTextCommand {
     var sends = 0
     let journal: PageTextJournal
     let storedID: String
@@ -189,7 +189,7 @@ private final class PageTextCommand: NativeChannelOriginalTextCommand {
     }
 }
 
-private final class PageMessageCommand: NativeChannelOriginalMessageCommand {
+@MainActor private final class PageMessageCommand: NativeChannelOriginalMessageCommand {
     var submits = 0
     let journal: PageMutationJournal
     init(journal: PageMutationJournal) { self.journal = journal }
@@ -199,7 +199,7 @@ private final class PageMessageCommand: NativeChannelOriginalMessageCommand {
     }
 }
 
-private struct SendHarness {
+@MainActor private struct SendHarness {
     let page: NativeChannelMessagePageActions<PageTextCommand, PageMessageCommand, PageTextJournal, PageMutationJournal>
     let text: PageTextCommand
     let journal: PageTextJournal
@@ -216,7 +216,7 @@ private struct SendHarness {
     }
 }
 
-private struct MutationHarness {
+@MainActor private struct MutationHarness {
     let page: NativeChannelMessagePageActions<PageTextCommand, PageMessageCommand, PageTextJournal, PageMutationJournal>
     let messages: PageMessageCommand
     let journal: PageMutationJournal

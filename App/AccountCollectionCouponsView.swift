@@ -54,7 +54,7 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         .appNavigationTitle("accountCollection.coupons.title")
-        .searchable(text: $searchText, prompt: Text("accountCollection.coupons.search"))
+        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("accountCollection.coupons.search"))
         .onSubmit(of: .search) { submittedQuery = searchText }
         .onChange(of: searchText) { _, text in
             if text.isEmpty, !submittedQuery.isEmpty { submittedQuery = "" }

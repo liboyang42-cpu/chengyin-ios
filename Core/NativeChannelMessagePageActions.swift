@@ -7,7 +7,7 @@ import Foundation
 /// Read-back uses the original journal `restore`. This type keeps no receipt store
 /// and does not remove a stored original. Search stays on `NativeChannelMessageEntry`.
 /// `appear()` does not send.
-public struct NativeChannelMessagePageActions<
+@MainActor public struct NativeChannelMessagePageActions<
     Text: NativeChannelOriginalTextCommand,
     Message: NativeChannelOriginalMessageCommand,
     TextJournal: NativeChannelOriginalTextJournal,
@@ -129,12 +129,12 @@ public struct NativeChannelOriginalRead: Equatable, Sendable {
 }
 
 /// Original text command: `NativeChannelTextCoordinator.sendNew(_:) async -> Bool`.
-public protocol NativeChannelOriginalTextCommand: AnyObject {
+@MainActor public protocol NativeChannelOriginalTextCommand: AnyObject {
     func sendNew(_ text: String) async -> Bool
 }
 
 /// Original mutation command: `NativeChannelMessageCoordinator.submit(_:)`.
-public protocol NativeChannelOriginalMessageCommand: AnyObject {
+@MainActor public protocol NativeChannelOriginalMessageCommand: AnyObject {
     associatedtype Command: NativeChannelOriginalMutationIdentity
     func submit(_ command: Command) async
 }
@@ -150,15 +150,22 @@ public protocol NativeChannelOriginalMutationIdentity {
 }
 
 /// Original text journal read. Restore only; this page does not remove the row.
-public protocol NativeChannelOriginalTextJournal: AnyObject {
+@MainActor public protocol NativeChannelOriginalTextJournal: AnyObject {
     associatedtype Record: NativeChannelOriginalTextRecord
     func restore() throws -> Record?
 }
 
 /// Original mutation journal read. Restore only; this page does not remove the row.
-public protocol NativeChannelOriginalMutationJournal: AnyObject {
+@MainActor public protocol NativeChannelOriginalMutationJournal: AnyObject {
     associatedtype Command: NativeChannelOriginalMutationIdentity
     func restore() throws -> Command?
 }
 
 extension MessageTextIntent: NativeChannelOriginalTextRecord {}
+
+// Original owners satisfy the page ports; no replacement writer or journal is introduced.
+extension NativeChannelTextCoordinator: NativeChannelOriginalTextCommand {}
+extension NativeChannelMessageCoordinator: NativeChannelOriginalMessageCommand {}
+extension NativeChannelTextJournal: NativeChannelOriginalTextJournal {}
+extension NativeChannelMessageMutationJournal: NativeChannelOriginalMutationJournal {}
+extension NativeChannelMessageCommand: NativeChannelOriginalMutationIdentity {}

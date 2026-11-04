@@ -109,40 +109,69 @@ import SwiftUI
     @ObservedObject var owner: PublisherIdentityRegistrationOwner
     let makeService: (() -> PublisherIdentityRegistrationService?)?
     let enabled: Bool
+    private enum Input: Hashable { case name, idCard }
+    @FocusState private var focusedInput: Input?
+    @Environment(\.locale) private var locale
     var body: some View {
         let stamp = owner.actionID
         Section {
-            Text("notice", tableName: "PublisherIdentityRegistration")
+            PublishingStatusRow(title: Text("notice", tableName: "PublisherIdentityRegistration"), symbol: "person.crop.rectangle")
             if owner.open {
-                Text(LocalizedStringKey("status." + owner.status.rawValue), tableName: "PublisherIdentityRegistration")
+                PublishingStatusRow(title: Text(LocalizedStringKey("status." + owner.status.rawValue), tableName: "PublisherIdentityRegistration"),
+                    symbol: owner.status == .registered ? "checkmark.circle" : owner.uncertain ? "clock" : "info.circle",
+                    isError: owner.status == .failed || owner.status == .rejected)
                     .accessibilityIdentifier("publisherIdentity.status")
-                if owner.uncertain && owner.status == .registered { Text("unknownReadback", tableName: "PublisherIdentityRegistration") }
-                if owner.busy { ProgressView() }
+                if owner.uncertain && owner.status == .registered {
+                    PublishingStatusRow(title: Text("unknownReadback", tableName: "PublisherIdentityRegistration"), symbol: "clock")
+                }
+                if owner.busy {
+                    ProgressView(locale.language.languageCode?.identifier == "zh" ? "正在处理，请稍候" : "Processing, please wait")
+                        .accessibilityIdentifier("publisherIdentity.busy")
+                }
                 if owner.status != .registered && owner.status != .acknowledgedReadFailed {
-                    TextField(text: owner.textBinding(nameField: true)) { Text("name", tableName: "PublisherIdentityRegistration") }
-                        .textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
-                        .disabled(!owner.canEdit).accessibilityIdentifier("publisherIdentity.name")
-                    SecureField(text: owner.textBinding(nameField: false)) { Text("idCard", tableName: "PublisherIdentityRegistration") }
-                        .textInputAutocapitalization(.characters).autocorrectionDisabled().privacySensitive()
-                        .disabled(!owner.canEdit).accessibilityIdentifier("publisherIdentity.idCard")
-                    Toggle(isOn: owner.consentBinding()) { Text("consent", tableName: "PublisherIdentityRegistration") }
+                    PublishingField(title: Text("name", tableName: "PublisherIdentityRegistration"), required: true) {
+                        TextField(text: owner.textBinding(nameField: true)) { Text("name", tableName: "PublisherIdentityRegistration") }
+                            .textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
+                            .focused($focusedInput, equals: .name)
+                            .disabled(!owner.canEdit).accessibilityIdentifier("publisherIdentity.name")
+                    }
+                    PublishingField(title: Text("idCard", tableName: "PublisherIdentityRegistration"), required: true) {
+                        SecureField(text: owner.textBinding(nameField: false)) { Text("idCard", tableName: "PublisherIdentityRegistration") }
+                            .textInputAutocapitalization(.characters).autocorrectionDisabled().privacySensitive()
+                            .focused($focusedInput, equals: .idCard)
+                            .disabled(!owner.canEdit).accessibilityIdentifier("publisherIdentity.idCard")
+                    }
+                    Toggle(isOn: owner.consentBinding()) { Text("consent", tableName: "PublisherIdentityRegistration").fixedSize(horizontal: false, vertical: true) }
                         .disabled(!owner.canEdit).accessibilityIdentifier("publisherIdentity.consent")
                     Button { Task { await owner.submit(currentYear: Calendar(identifier: .gregorian).component(.year, from: Date()), expected: stamp) } }
-                        label: { Text("submit", tableName: "PublisherIdentityRegistration") }
+                        label: { Text("submit", tableName: "PublisherIdentityRegistration").fixedSize(horizontal: false, vertical: true).frame(minHeight: 44) }
+                        .buttonStyle(.borderedProminent)
                         .disabled(!owner.canEdit || !owner.consent).accessibilityIdentifier("publisherIdentity.submit")
                 }
                 if !owner.busy {
-                    Button { Task { await owner.refresh(expected: stamp) } } label: { Text("refresh", tableName: "PublisherIdentityRegistration") }
+                    Button { Task { await owner.refresh(expected: stamp) } } label: { Text("refresh", tableName: "PublisherIdentityRegistration").fixedSize(horizontal: false, vertical: true).frame(minHeight: 44) }
                         .accessibilityIdentifier("publisherIdentity.refresh")
                 }
-                Button { owner.close(stamp) } label: { Text("return", tableName: "PublisherIdentityRegistration") }
+                Button { owner.close(stamp) } label: { Text("return", tableName: "PublisherIdentityRegistration").fixedSize(horizontal: false, vertical: true).frame(minHeight: 44) }
                     .accessibilityIdentifier("publisherIdentity.return")
             } else {
-                if owner.confirmedRegistered { Text("status.registered", tableName: "PublisherIdentityRegistration") }
+                if owner.confirmedRegistered {
+                    PublishingStatusRow(title: Text("status.registered", tableName: "PublisherIdentityRegistration"), symbol: "checkmark.circle")
+                }
                 Button { Task { await owner.begin(service: makeService?(), expected: stamp) } }
-                    label: { Text("open", tableName: "PublisherIdentityRegistration") }
+                    label: { Text("open", tableName: "PublisherIdentityRegistration").fixedSize(horizontal: false, vertical: true).frame(minHeight: 44) }
                     .disabled(!enabled).accessibilityIdentifier("publisherIdentity.open")
             }
         } header: { Text("title", tableName: "PublisherIdentityRegistration") }
+        .toolbar {
+            if focusedInput != nil {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("publishModes.done") { focusedInput = nil }
+                }
+            }
+        }
+        .onChange(of: owner.open) { _, open in if !open { focusedInput = nil } }
+        .onChange(of: owner.busy) { _, busy in if busy { focusedInput = nil } }
     }
 }

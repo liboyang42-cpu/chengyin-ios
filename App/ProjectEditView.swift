@@ -372,6 +372,12 @@ import SwiftUI
                 }
                 basicFields
                 ProjectTopicMediaHost(editor: model)
+                CollectSetAuthorEntry(model: model)
+                NativeRpgResourceAuthorEntry(model: model)
+                NativeRpgConditionAuthorEntry(model: model)
+                NativeRpgEnvironmentAuthorEntry(model: model)
+                NativeRpgGrowthAuthorEntrySection(model: model)
+                NativeRpgPassiveRulesAuthorEntry(model: model)
                 ProjectEditPendingSection(model: model, controller: pending)
                 ProjectDraftStoryPreviewEntry(model: model)
                 chapterStructure(opening: opening).id("project-issue-anchor-chapters")
@@ -630,4 +636,29 @@ struct ProjectEditName: View {
     let value: String
     let fallback: LocalizedStringKey
     var body: some View { if value.isEmpty { Text(fallback) } else { Text(verbatim: value) } }
+}
+
+/// Shared only by the P02 editor family; system groups and rows expand with type.
+struct ProjectEditorFormSurface: ViewModifier {
+    func body(content: Content) -> some View {
+        content.formStyle(.grouped)
+            .environment(\.defaultMinListRowHeight, 44)
+            .scrollDismissesKeyboard(.interactively)
+    }
+}
+
+/// A visible label remains after entry. The original text field owns its
+/// accessibility label, binding, keyboard, focus and validation identity.
+struct ProjectEditorField<Content: View>: View {
+    let title: LocalizedStringKey
+    let content: Content
+    init(title: LocalizedStringKey, @ViewBuilder content: () -> Content) {
+        self.title = title; self.content = content()
+    }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title).font(.subheadline).foregroundStyle(.secondary).accessibilityHidden(true)
+            content
+        }.padding(.vertical, 4)
+    }
 }

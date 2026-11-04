@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 /// Reviewed in source/composition, never reconstructed from a login response or remote flags.
 /// Adding a host is insufficient: native identity, capability evidence and read grants are separate.
@@ -8,6 +9,8 @@ struct ReviewedAppDeployment {
     let reads: Set<ReadGrant>
     let privateHome: PrivateHomeTransportGrant?
     let contentDetails: SignedInContentDetailReadApproval?
+    /// Explicit local endpoint approval. Absence is unavailable, never inferred from login.
+    let nativeChannelAppeals: NativeChannelAppealPolicyStore?
     enum ReadGrant: Hashable {
         case homeAndSearch
         case manualMap
@@ -20,12 +23,14 @@ struct ReviewedAppDeployment {
 
     init(market: RegionalMarket, baseURL: String, approvedBaseURLs: [RegionalMarket: Set<String>],
          verifiedCapabilities: Set<RegionalCapability>, bundleIdentifier: String, realm: String,
-         reads: Set<ReadGrant> = [], contentDetails: SignedInContentDetailReadApproval? = nil, privateHome: PrivateHomeTransportGrant? = nil) throws {
+         reads: Set<ReadGrant> = [], contentDetails: SignedInContentDetailReadApproval? = nil, privateHome: PrivateHomeTransportGrant? = nil,
+         nativeChannelAppeals: NativeChannelAppealPolicyStore? = nil) throws {
         regional = try RegionalConfiguration(market: market, baseURL: baseURL,
             approvedBaseURLs: approvedBaseURLs, verifiedCapabilities: verifiedCapabilities)
         storageScope = try RegionalSessionStorageScope(configuration: regional, bundleIdentifier: bundleIdentifier, realm: realm)
         guard privateHome == nil || privateHome?.storageScope == storageScope else { throw APIError.invalidConfiguration }
         self.reads = reads; self.privateHome = privateHome; self.contentDetails = contentDetails
+        self.nativeChannelAppeals = nativeChannelAppeals
     }
 }
 
@@ -62,6 +67,11 @@ extension KeychainTokenStore: AppTokenStorage {}
 }
 
 @MainActor struct AppCompositionRoot {
+    /// Local facts/original-receipt presentation only. No game runtime or read grant is created.
+    var merchantGamePlayerDestination: (@MainActor (MerchantGamePlayerCoordinator, AnyView?) -> AnyView)? = {
+        AnyView(MerchantGamePlayerView(coordinator: $0, chat: $1))
+    }
+    var merchantGamePlayerReadGrant: @MainActor (RuntimeDependencyContext) -> MerchantGamePlayerReadGrant? = { _ in nil }
     enum DeploymentState { case unconfigured, incompatibleBuild, reviewed(ReviewedAppDeployment) }
     enum ReadSurface { case home, contentDetail }
     enum ReadAvailability: Equatable {
@@ -83,6 +93,17 @@ extension KeychainTokenStore: AppTokenStorage {}
     let deployment: DeploymentState
     let storage: AppScopedStorageFactory
     private let makeTransport: () -> any HTTPTransport
+    /// A dedicated final gate, like the other reviewed transport factories in this root.
+    /// Does not widen BusinessRuntimeFactory.additionalRoutes or ordinary composition sends.
+    func makeNativeChannelAppealFlow(notice: NativeChannelGovernanceNotice, context: RuntimeDependencyContext,
+                                    storage: any ProjectEditDataStorage, locatorStorage: any ProjectEditDataStorage,
+                                    current: @escaping () -> Bool, unauthorized: @escaping () -> Void) -> NativeChannelAppealFlow? {
+        guard case .reviewed(let reviewed) = deployment, let api = reviewed.regional.apiConfiguration,
+              reviewed.regional.market == context.market, api.baseURL == context.baseURL,
+              reviewed.storageScope.service == context.session.namespace, let policyStore = reviewed.nativeChannelAppeals else { return nil }
+        return NativeChannelAppealRuntime.makeFlow(notice: notice, context: context, policyStore: policyStore,
+            underlying: makeTransport(), storage: storage, locatorStorage: locatorStorage, current: current, unauthorized: unauthorized)
+    }
     func favoriteRemovalTransport(accesses: [ProfileFavoriteRemovalAccess], context: RuntimeDependencyContext,
                                   collectionScope: UUID, current: @escaping () -> RuntimeDependencyContext?,
                                   currentScope: @escaping () -> UUID?,
@@ -124,6 +145,30 @@ extension KeychainTokenStore: AppTokenStorage {}
     let profilePublicInfoReadAccess: @MainActor (RuntimeDependencyContext) -> ProfilePublicInfoReadAccess?
     let profileGuideReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileGuideReadAccess?
     let profileFavoritesReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileFavoritesReadAccess?
+    var nativeChannelManagementApproval: @MainActor (RuntimeDependencyContext, UInt64, NativeChannelManagementScope) -> NativeChannelManagementApproval? = { _, _, _ in nil }
+    var nativeWebhookRuntimeFactory: (any NativeWebhookRuntimeFactory)? = nil
+    var nativeFriendChannelInviteApproval: @MainActor (RuntimeDependencyContext, NativeFriendChannelInviteMode) -> NativeFriendChannelInviteApproval? = { _, _ in nil }
+    var nativeFriendChannelSourceApproval: @MainActor (RuntimeDependencyContext, Int64) -> NativeFriendChannelSourceApproval? = { _, _ in nil }
+    var nativeFriendTeamInviteApproval: @MainActor (RuntimeDependencyContext, NativeFriendTeamInviteMode) -> NativeFriendTeamInviteApproval? = { _, _ in nil }
+    var nativeFriendMetadataApproval: @MainActor (RuntimeDependencyContext) -> NativeFriendMetadataApproval? = { _ in nil }
+    var nativeFriendRemovalApproval: @MainActor (RuntimeDependencyContext) -> NativeFriendRemovalApproval? = { _ in nil }
+    var nativeBlacklistApproval: @MainActor (RuntimeDependencyContext) -> NativeBlacklistApproval? = { _ in nil }
+    var nativeFriendDirectoryApproval: @MainActor (RuntimeDependencyContext) -> NativeFriendDirectoryApproval? = { _ in nil }
+    var nativeFriendProgressApproval: @MainActor (RuntimeDependencyContext) -> NativeFriendProgressApproval? = { _ in nil }
+    var nativeFriendApproval: @MainActor (RuntimeDependencyContext) -> NativeFriendApproval? = { _ in nil }
+    /// Independent current operation and endpoint issuance. Channel metadata is not approval.
+    var nativeChannelProgressSelection: @MainActor (RuntimeDependencyContext, NativeChannelManagementIntegrationContext) -> NativeChannelProgressRuntimeSelection? = { _, _ in nil }
+    var nativeChannelProgressReceiptApproval: @MainActor (RuntimeDependencyContext, NativeChannelManagementIntegrationContext, NativeChannelProgressPrivacyCommand) -> OperationEndpointApproval? = { _, _, _ in nil }
+    /// Actual existing team index only; a missing index must not synthesize filter IDs.
+    var nativeChannelProgressTeamOptions: @MainActor (RuntimeDependencyContext, NativeChannelManagementID, NativeChannelProgressBoard) -> [NativeChannelProgressTeamOption]? = { _, _, _ in nil }
+    var nativeProgressPrivacyApproval: @MainActor (RuntimeDependencyContext, NativeProgressPrivacyTarget) -> NativeProgressPrivacyApproval? = { _, _ in nil }
+    var nativeChannelWelcomeApproval: @MainActor (RuntimeDependencyContext) -> NativeChannelWelcomeApproval? = { _ in nil }
+    var nativeChannelOnboardingApproval: @MainActor (RuntimeDependencyContext) -> NativeChannelOnboardingApproval? = { _ in nil }
+    // Independent source-owned issuances. Nil is disabled, never a synthesized grant.
+    var nativeChannelNotificationAuthorization: @MainActor (RuntimeDependencyContext, UInt64) -> (any NativeChannelNotificationAuthorizing)? = { _, _ in nil }
+    var nativeChannelMessageAuthorization: @MainActor (RuntimeDependencyContext, UInt64, NativeChannelMessageBinding) -> NativeChannelMessageHostAuthority? = { _, _, _ in nil }
+    var nativeChannelTextReceiptApproval: @MainActor (RuntimeDependencyContext) -> NativeChannelTextApproval? = { _ in nil }
+    var nativeChannelTextSendApproval: @MainActor (RuntimeDependencyContext) -> NativeChannelTextApproval? = { _ in nil }
     var profileFavoriteRemovalAccesses: @MainActor (RuntimeDependencyContext, UUID) -> [ProfileFavoriteRemovalAccess] = { _, _ in [] }
     /// 我的 当前权益 (`api/role/info`). No reviewed lease exists yet, so the read stays dormant.
     var memberRoleInfoReadApproval: @MainActor (RuntimeDependencyContext) -> MemberRoleInfoReadApproval? = { _ in nil }
@@ -140,6 +185,8 @@ extension KeychainTokenStore: AppTokenStorage {}
     let profileFavoriteDetailAccess: @MainActor (RuntimeDependencyContext) -> ProfileFavoriteDetailAccess?
     let profileInviteHistoryReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileInviteHistoryReadAccess?
     let profileWeeklyPointsReadApproval: @MainActor (RuntimeDependencyContext) -> ProfileWeeklyPointsReadApproval?
+    /// Independent own-growth lease; nil stays HOLD, including the anonymous leaderboard.
+    let growthNormalReadApproval: @MainActor (RuntimeDependencyContext) -> GrowthNormalReadApproval?
     let walletHistoryReadApproval: @MainActor (RuntimeDependencyContext) -> WalletHistoryReadApproval?
     let cityPlayerReadApproval: @MainActor (RuntimeDependencyContext) -> CityPlayerReadApproval?
     let teamReadApproval: @MainActor (RuntimeDependencyContext) -> TeamReadApproval?
@@ -195,6 +242,7 @@ extension KeychainTokenStore: AppTokenStorage {}
          profileFavoriteDetailAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileFavoriteDetailAccess? = { _ in nil },
          profileInviteHistoryReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileInviteHistoryReadAccess? = { _ in nil },
          profileWeeklyPointsReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ProfileWeeklyPointsReadApproval? = { _ in nil },
+         growthNormalReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> GrowthNormalReadApproval? = { _ in nil },
          cityPlayerReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> CityPlayerReadApproval? = { _ in nil },
          teamReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> TeamReadApproval? = { _ in nil },
          workshopCreatorDeclarationTargets: @escaping @MainActor (RuntimeDependencyContext, Int64) -> [WorkshopCreatorDeclarationTarget] = { _, _ in [] },
@@ -241,6 +289,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.profileFavoriteDetailAccess = profileFavoriteDetailAccess
         self.profileInviteHistoryReadAccess = profileInviteHistoryReadAccess
         self.profileWeeklyPointsReadApproval = profileWeeklyPointsReadApproval
+        self.growthNormalReadApproval = growthNormalReadApproval
         self.cityPlayerReadApproval = cityPlayerReadApproval
         self.teamReadApproval = teamReadApproval
         self.workshopCreatorDeclarationTargets = workshopCreatorDeclarationTargets
@@ -283,6 +332,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     }
     func transport() -> CompositionHTTPTransport {
         let transport = CompositionHTTPTransport(deployment: reviewed, underlying: makeTransport(), couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval, templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, roamSessionFactReadAccess: roamSessionFactReadAccess, roamNearbyEventsReadAccess: roamNearbyEventsReadAccess, roamNearbyPlayersReadAccess: roamNearbyPlayersReadAccess, profileOwnedCouponReadAccess: profileOwnedCouponReadAccess, roamAlbumMetadataReadAccess: roamAlbumMetadataReadAccess, roamTileMemoryReadAccess: roamTileMemoryReadAccess, profilePublicInfoReadAccess: profilePublicInfoReadAccess, profileGuideReadAccess: profileGuideReadAccess, profileFavoritesReadAccess: profileFavoritesReadAccess, profileFavoriteTopicReadAccess: profileFavoriteTopicReadAccess, profileFavoriteDetailAccess: profileFavoriteDetailAccess, profileInviteHistoryReadAccess: profileInviteHistoryReadAccess, profileWeeklyPointsReadApproval: profileWeeklyPointsReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopCreatorPendingAuthorApproval: workshopCreatorPendingAuthorApproval, workshopCreatorPendingListApproval: workshopCreatorPendingListApproval, workshopCreatorPendingDetailApproval: workshopCreatorPendingDetailApproval, workshopCreatorConsentReadApproval: workshopCreatorConsentReadApproval, workshopCreatorConsentWriteApproval: workshopCreatorConsentWriteApproval, workshopPaidProfessionalReadApproval: workshopPaidProfessionalReadApproval, workshopPaidProfessionalWriteApproval: workshopPaidProfessionalWriteApproval, workshopPaidInstalledTextApproval: workshopPaidInstalledTextApproval, workshopPaidInstallApproval: workshopPaidInstallApproval, workshopPurchasedReadApproval: workshopPurchasedReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval, ownedOrderReadApproval: ownedOrderReadApproval)
+        transport.merchantGamePlayerReadGrant = merchantGamePlayerReadGrant
         transport.memberRoleInfoReadApproval = memberRoleInfoReadApproval
         transport.ownMediaReadApproval = ownMediaReadApproval
         transport.mapPublicLayerReadApproval = mapPublicLayerReadApproval
@@ -301,6 +351,7 @@ extension KeychainTokenStore: AppTokenStorage {}
 /// All other paths stay closed.
 /// No device/provider work or authorization is inferred from a feature grant.
 @MainActor final class CompositionHTTPTransport: ActivityCoverHTTPTransport, PublisherIdentityRegistrationHTTPTransport, ActivityEditingHTTPTransport, CouponManagementConfirmedHTTPTransport, WorkshopPaidInstallMutationTransport, WorkshopPaidProfessionalMutationTransport, WorkshopCreatorConsentMutationTransport, WorkshopCreatorPendingMutationTransport {
+    var merchantGamePlayerReadGrant: @MainActor (RuntimeDependencyContext) -> MerchantGamePlayerReadGrant? = { _ in nil }
     var publisherIdentityRegistrationApproval: @MainActor (RuntimeDependencyContext) -> PublisherIdentityRegistrationGrants = { _ in .init() }
     var activityCoverApproval: @MainActor (RuntimeDependencyContext) -> ActivityCoverApproval? = { _ in nil }
     var activityEditingApproval: @MainActor (RuntimeDependencyContext) -> ActivityEditingGrants = { _ in .init() }
@@ -590,6 +641,12 @@ extension KeychainTokenStore: AppTokenStorage {}
     var ownedTopicCoverConfigurationRevision: @MainActor () -> UInt64? = { nil }
     var ownedTopicCoverApproval: @MainActor (RuntimeDependencyContext) -> OwnedTopicCoverApproval? = { _ in nil }
     var playReadConfiguration: @MainActor (RuntimeDependencyContext) -> RuntimeDependencyConfiguration? = { _ in nil }
+    /// Only the normal GrowthCenterService receives this child. Generic/root routing is unchanged.
+    func growthNormalReadTransport(approval: @escaping @MainActor (RuntimeDependencyContext) -> GrowthNormalReadApproval?) -> GrowthNormalReadTransport {
+        GrowthNormalReadTransport(deployment: deployment, underlying: underlying,
+            current: { [weak self] in self?.current() }, approval: approval)
+    }
+
     private let deployment: ReviewedAppDeployment?
     private let underlying: any HTTPTransport
     private let manualMapReadApproval: @MainActor (RuntimeDependencyContext) -> ManualMapReadApproval?
@@ -728,6 +785,25 @@ extension KeychainTokenStore: AppTokenStorage {}
         }
         return transport
     }
+    /// Public-home remains anonymous/read-only. Chat gets a separate signed-in,
+    /// exact-route adapter bound to the same deployment/account/viewer revision.
+    func scopedForMerchantGameNPC(approval: MerchantPublicProductionApproval, context: MerchantPublicHostContext,
+                              grants: @escaping () -> MerchantNPCGrants) -> (any HTTPTransport)? {
+        let matches: (ReviewedAppDeployment, SessionIdentity) -> Bool = { deployment, viewer in
+            guard viewer.isSignedInContentViewer, let api = deployment.regional.apiConfiguration,
+                  let actual = try? MerchantPublicHostContext(market: deployment.regional.market,
+                    baseURL: api.baseURL, namespace: deployment.storageScope.service, accountID: viewer.accountID,
+                    epoch: viewer.epoch, role: viewer.role, token: viewer.token) else { return false }
+            return actual == context && approval.matches(actual)
+        }
+        guard let viewer = current(), let deployment, matches(deployment, viewer) else { return nil }
+        return MerchantGameNPCProductionTransport(approval: approval, context: context, transport: underlying,
+            current: { [weak self] in
+                guard let self, let current = self.current(), current == viewer,
+                      let deployment = self.deployment, matches(deployment, current) else { return nil }
+                return context
+            }, grants: grants)
+    }
     func scopedForMerchantOverview(approval: MerchantOverviewReadApproval, context: RuntimeDependencyContext,
                                    approved: @escaping () -> Bool) -> CompositionHTTPTransport {
         let transport = copy(underlying: underlying, manualMapSelection: manualMapSelection)
@@ -804,6 +880,401 @@ extension KeychainTokenStore: AppTokenStorage {}
         transport.clubPostImageUploadClubID = clubID
         return transport
     }
+    private func channelMessageContextMatches(_ context: RuntimeDependencyContext, viewer: SessionIdentity) -> Bool {
+        guard let deployment, let api = deployment.regional.apiConfiguration, viewer.isSignedInContentViewer else { return false }
+        return context.market == deployment.regional.market && context.baseURL == api.baseURL &&
+            context.session.namespace == deployment.storageScope.service && context.role == viewer.role &&
+            context.session.accountID == viewer.accountID && context.session.epoch == viewer.epoch && context.session.token == viewer.token
+    }
+    /// Independent descriptor final-forward. A route in the live configuration must
+    /// already exist; this does not register routes or admit GET to generic send().
+    func makeNativeChannelAttachmentDescriptorTransport(messageID: Int, context: RuntimeDependencyContext,
+        issued: BusinessRuntimeConfiguration, currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        currentConfiguration: @escaping () -> BusinessRuntimeConfiguration?,
+        stillCurrent: @escaping () -> Bool) -> NativeChannelAttachmentDescriptorTransport? {
+        guard let captured = current(), channelMessageContextMatches(context, viewer: captured),
+              ContentDraftContextFence.matches(currentRuntime(), context), stillCurrent() else { return nil }
+        return NativeChannelAttachmentDescriptorTransport(messageID: messageID, context: context,
+            issued: issued, underlying: underlying, runtime: currentRuntime,
+            configuration: currentConfiguration, presentation: { [weak self] in
+                self?.current() == captured && stillCurrent()
+            })
+    }
+    /// Reuse the private original wire, preserving the generic history gate and independent Text grants.
+    func makeNativeChannelMessageOriginalAdapters(context: RuntimeDependencyContext, binding: NativeChannelMessageBinding,
+        currentRuntime: @escaping () -> RuntimeDependencyContext?, stillCurrent: @escaping () -> Bool,
+        read: @escaping () -> NativeChannelTextApproval?, write: @escaping () -> NativeChannelTextApproval?,
+        received401: @escaping () -> Void) throws -> NativeChannelMessageOriginalAdapters {
+        guard let api = deployment?.regional.apiConfiguration, let captured = current(),
+              channelMessageContextMatches(context, viewer: captured), ContentDraftContextFence.matches(currentRuntime(), context),
+              stillCurrent() else { throw APIError.notConfigured }
+        let wire = NativeChannelMessageOriginalWireBridge(binding: binding, configuration: api, underlying: underlying,
+            current: { [weak self] in self?.current() == captured && stillCurrent() }, received401: received401)
+        let scoped = replacingUnderlying(wire)
+        return NativeChannelMessageOriginalAdapters(wire: wire, historyTransport: scoped,
+            textTransport: scoped.makeNativeChannelTextTransport(context: context, currentRuntime: currentRuntime,
+                read: read, write: write, stillCurrent: stillCurrent))
+    }
+    /// Only the existing message operation protocol is admitted here, never generic IM send.
+    func makeNativeChannelMessageDispatcher(authority: NativeChannelMessageHostAuthority,
+        journal: NativeChannelMessageMutationJournal, currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        stillCurrent: @escaping () -> Bool, onUnauthorized: @escaping (MessagingReadIdentity) -> Void) throws -> NativeChannelMessageFinalForward {
+        guard let captured = current(), channelMessageContextMatches(authority.context, viewer: captured),
+              captured.viewerRevision == authority.viewerRevision,
+              ContentDraftContextFence.matches(currentRuntime(), authority.context), stillCurrent() else { throw APIError.notConfigured }
+        return try NativeChannelMessageFinalForward(authority: authority, journal: journal, underlying: underlying,
+            current: { [weak self] in self?.current() == captured && stillCurrent() }, onUnauthorized: onUnauthorized)
+    }
+    /// Dedicated canonical text transport over the existing private adapter. This does not
+    /// admit send/send-receipt through generic IM or widen any history/read capability.
+    func makeNativeChannelTextTransport(context: RuntimeDependencyContext,
+        currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        read: @escaping () -> NativeChannelTextApproval? = { nil },
+        write: @escaping () -> NativeChannelTextApproval? = { nil },
+        stillCurrent: @escaping () -> Bool = { false }) -> NativeChannelTextTransport? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let viewer = current(), viewer.isSignedInContentViewer,
+              viewer.accountID == context.session.accountID, viewer.epoch == context.session.epoch,
+              viewer.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              viewer.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), stillCurrent() else { return nil }
+        return NativeChannelTextTransport(context: context, transport: underlying,
+            current: currentRuntime, read: read, write: write, stillCurrent: { [weak self] in
+                self?.current() == viewer && stillCurrent()
+            })
+    }
+
+    /// Consume exact existing host capabilities on the original underlying transport.
+    /// Generic send(_:) and all approval selectors remain unchanged.
+    func makeNativeChannelManagementDispatcher(context: RuntimeDependencyContext,
+        scope: NativeChannelManagementScope, viewerRevision: UInt64,
+        currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        currentViewer: @escaping () -> UInt64,
+        selectedApproval: @escaping () -> NativeChannelManagementApproval?) -> NativeChannelManagementFinalForward? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), currentViewer() == viewerRevision else { return nil }
+        return try? NativeChannelManagementFinalForward(context: context, scope: scope, viewerRevision: viewerRevision,
+            underlying: underlying, current: { [weak self] in
+                guard self?.current() == captured else { return nil }; return currentRuntime()
+            }, viewer: currentViewer, selected: selectedApproval)
+    }
+
+    func sendNativeFriendChannelInvite(_ request: URLRequest, context: RuntimeDependencyContext,
+                          approval: NativeFriendChannelInviteApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), NativeFriendChannelInviteTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.notSent
+        }
+        guard !Task.isCancelled else { throw NativeFriendFailure.notSent }
+        let result = try await underlying.send(request)
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              NativeFriendChannelInviteTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.unknown
+        }
+        return result
+    }
+
+    func sendNativeFriendChannelSource(_ request: URLRequest, context: RuntimeDependencyContext,
+                          approval: NativeFriendChannelSourceApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), NativeFriendChannelSourceTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.notSent
+        }
+        guard !Task.isCancelled else { throw NativeFriendFailure.notSent }
+        let result = try await underlying.send(request)
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              NativeFriendChannelSourceTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.unknown
+        }
+        return result
+    }
+
+    func sendNativeFriendTeamInvite(_ request: URLRequest, context: RuntimeDependencyContext,
+                          approval: NativeFriendTeamInviteApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), NativeFriendTeamInviteTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.notSent
+        }
+        guard !Task.isCancelled else { throw NativeFriendFailure.notSent }
+        let result = try await underlying.send(request)
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              NativeFriendTeamInviteTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.unknown
+        }
+        return result
+    }
+
+    func sendNativeFriendMetadata(_ request: URLRequest, context: RuntimeDependencyContext,
+                          approval: NativeFriendMetadataApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), NativeFriendMetadataTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.notSent
+        }
+        guard !Task.isCancelled else { throw NativeFriendFailure.notSent }
+        let result = try await underlying.send(request)
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              NativeFriendMetadataTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.unknown
+        }
+        return result
+    }
+
+    func sendNativeFriendRemoval(_ request: URLRequest, context: RuntimeDependencyContext,
+                          approval: NativeFriendRemovalApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), NativeFriendRemovalTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.notSent
+        }
+        guard !Task.isCancelled else { throw NativeFriendFailure.notSent }
+        let result = try await underlying.send(request)
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              NativeFriendRemovalTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.unknown
+        }
+        return result
+    }
+
+    func sendNativeBlacklist(_ request: URLRequest, context: RuntimeDependencyContext,
+                          approval: NativeBlacklistApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), NativeBlacklistTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeBlacklistFailure.notSent
+        }
+        guard !Task.isCancelled else { throw NativeBlacklistFailure.notSent }
+        let result = try await underlying.send(request)
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              NativeBlacklistTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeBlacklistFailure.unknown
+        }
+        return result
+    }
+
+    func sendNativeFriendDirectory(_ request: URLRequest, context: RuntimeDependencyContext,
+                          approval: NativeFriendDirectoryApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), NativeFriendDirectoryTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.notSent
+        }
+        guard !Task.isCancelled else { throw NativeFriendFailure.notSent }
+        let result = try await underlying.send(request)
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              NativeFriendDirectoryTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.unknown
+        }
+        return result
+    }
+
+    func sendNativeFriendProgress(_ request: URLRequest, context: RuntimeDependencyContext,
+                          approval: NativeFriendProgressApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), NativeFriendProgressTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.notSent
+        }
+        guard !Task.isCancelled else { throw NativeFriendFailure.notSent }
+        let result = try await underlying.send(request)
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              NativeFriendProgressTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.unknown
+        }
+        return result
+    }
+
+    func sendNativeFriend(_ request: URLRequest, context: RuntimeDependencyContext,
+                          approval: NativeFriendApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), NativeFriendTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.notSent
+        }
+        guard !Task.isCancelled else { throw NativeFriendFailure.notSent }
+        let result = try await underlying.send(request)
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              NativeFriendTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.unknown
+        }
+        return result
+    }
+
+    func sendNativeProgressPrivacy(_ request: URLRequest, context: RuntimeDependencyContext,
+                          approval: NativeProgressPrivacyApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), NativeProgressPrivacyTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.notSent
+        }
+        guard !Task.isCancelled else { throw NativeFriendFailure.notSent }
+        let result = try await underlying.send(request)
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              NativeProgressPrivacyTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.unknown
+        }
+        return result
+    }
+
+    func sendNativeChannelOnboarding(_ request: URLRequest, context: RuntimeDependencyContext,
+                          approval: NativeChannelOnboardingApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), NativeChannelOnboardingPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeSpaceAdmissionFailure.notSent
+        }
+        guard !Task.isCancelled else { throw NativeSpaceAdmissionFailure.notSent }
+        let result = try await underlying.send(request)
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              NativeChannelOnboardingPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeSpaceAdmissionFailure.unknown
+        }
+        return result
+    }
+
+    func sendNativeChannelWelcome(_ request: URLRequest, context: RuntimeDependencyContext,
+                          approval: NativeChannelWelcomeApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), NativeChannelWelcomePolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeSpaceAdmissionFailure.notSent
+        }
+        guard !Task.isCancelled else { throw NativeSpaceAdmissionFailure.notSent }
+        let result = try await underlying.send(request)
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              NativeChannelWelcomePolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeSpaceAdmissionFailure.unknown
+        }
+        return result
+    }
+
+    /// Dedicated Progress final forward, preserving the original client operation fence.
+    func makeNativeChannelProgressFinalForward(context: RuntimeDependencyContext,
+        selection: NativeChannelProgressRuntimeSelection, journal: NativeChannelProgressPrivacyJournal,
+        currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        selected: @escaping () -> NativeChannelProgressRuntimeSelection?, stillCurrent: @escaping () -> Bool,
+        receiptApproval: @escaping (NativeChannelProgressPrivacyCommand) -> OperationEndpointApproval?) -> NativeChannelProgressFinalForward? {
+        guard let captured = current(), channelMessageContextMatches(context, viewer: captured),
+              ContentDraftContextFence.matches(currentRuntime(), context), stillCurrent() else { return nil }
+        guard let forward = underlying as? any NativeChannelProgressDispatching else { return nil }
+        return try? NativeChannelProgressFinalForward(context: context, selection: selection, journal: journal,
+            underlying: forward, current: currentRuntime, selected: selected,
+            presentation: { [weak self] in self?.current() == captured && stillCurrent() }, receiptApproval: receiptApproval)
+    }
+
+    /// Bounded Webhook transport, separate from the generic composition route catalog.
+    func makeNativeWebhookFinalForwardTransport(context: RuntimeDependencyContext, scope: NativeWebhookScope,
+        issued: OperationEndpointApproval, currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        currentApproval: @escaping () -> OperationEndpointApproval?, stillCurrent: @escaping () -> Bool)
+        -> NativeWebhookFinalForwardTransport? {
+        guard let captured = current(), channelMessageContextMatches(context, viewer: captured),
+              ContentDraftContextFence.matches(currentRuntime(), context), stillCurrent() else { return nil }
+        return NativeWebhookFinalForwardTransport(captured: context, scope: scope, issued: issued,
+            underlying: underlying, current: currentRuntime, approval: currentApproval,
+            presentation: { [weak self] in self?.current() == captured && stillCurrent() })
+    }
+    func makeNativeChannelHostRuntimeTransport(context: RuntimeDependencyContext,
+        issued: BusinessRuntimeConfiguration, features: Set<BusinessRuntimeFeature>,
+        currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        currentConfiguration: @escaping () -> BusinessRuntimeConfiguration?,
+        stillCurrent: @escaping () -> Bool) -> NativeChannelHostRuntimeTransport? {
+        guard let captured = current(), channelMessageContextMatches(context, viewer: captured),
+              ContentDraftContextFence.matches(currentRuntime(), context), stillCurrent() else { return nil }
+        return NativeChannelHostRuntimeTransport(context: context, issued: issued, features: features,
+            underlying: underlying, runtime: currentRuntime, configuration: currentConfiguration,
+            presentation: { [weak self] in self?.current() == captured && stillCurrent() })
+    }
+    func makeNativeChannelNotificationDispatcher(context: RuntimeDependencyContext, viewerRevision: UInt64,
+        source: any NativeChannelNotificationAuthorizing, journal: NativeChannelNotificationJournal,
+        currentRuntime: @escaping () -> RuntimeDependencyContext?, currentViewer: @escaping () -> UInt64,
+        selectedSource: @escaping () -> (any NativeChannelNotificationAuthorizing)?) -> NativeChannelNotificationFinalForward? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), currentViewer() == viewerRevision else { return nil }
+        return try? NativeChannelNotificationFinalForward(context: context, viewerRevision: viewerRevision,
+            source: source, journal: journal, underlying: underlying, current: { [weak self] in
+                guard self?.current() == captured else { return nil }; return currentRuntime()
+            }, viewer: currentViewer, selected: selectedSource)
+    }
     /// Replacing only the network/recorder adapter must preserve every approval selector.
     func replacingUnderlying(_ underlying: any HTTPTransport) -> CompositionHTTPTransport {
         copy(underlying: underlying, manualMapSelection: manualMapSelection)
@@ -816,6 +1287,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         // Retain the identity source across temporary clone chains. Its AppSession
         // callback is weak, so this does not retain or extend the signed-in session.
         transport.current = { self.current() }
+        transport.merchantGamePlayerReadGrant = merchantGamePlayerReadGrant
         transport.memberRoleInfoReadApproval = memberRoleInfoReadApproval
         transport.ownMediaReadApproval = ownMediaReadApproval
         transport.mapPublicLayerReadApproval = mapPublicLayerReadApproval
@@ -1083,9 +1555,25 @@ extension KeychainTokenStore: AppTokenStorage {}
         return true
     }
 
+    /// Dedicated owned-participant caller; generic send and unrelated grants remain default-deny.
+    func makeProfileParticipantTransport(context: RuntimeDependencyContext, access: ProfileParticipantAccess,
+        currentRuntime: @escaping () -> RuntimeDependencyContext?, stillCurrent: @escaping () -> Bool) -> ProfileParticipantTransport? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), access.matches(context), stillCurrent() else { return nil }
+        return ProfileParticipantTransport(context: context, access: access, underlying: underlying,
+            current: currentRuntime, stillCurrent: { [weak self] in self?.current() == captured && stillCurrent() })
+    }
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         guard let deployment, let api = deployment.regional.apiConfiguration,
               let url = request.url, url.fragment == nil else { throw APIError.notConfigured }
+        let merchantGamePlayer = MerchantGamePlayerReadRoute(request: request, baseURL: api.baseURL)
         let merchantOverview = MerchantOverviewScope.accepts(request, baseURL: api.baseURL)
         guard !merchantOverviewOnly || merchantOverview else { throw APIError.notConfigured }
         let merchantPrediction = MerchantPredictionScope.accepts(request, baseURL: api.baseURL)
@@ -1158,6 +1646,20 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer, rewardPledgePermit(rewardPledgeOperation) else { throw APIError.notConfigured }
             let permit = rewardPledgePermit
             readApprovalStillValid = { permit(rewardPledgeOperation) }
+        } else if let route = merchantGamePlayer {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let approval = merchantGamePlayerReadGrant(context), approval.matches(context),
+                  approval.allows(configuration: api, namespace: session.namespace, accountID: account, path: route.path) else {
+                throw APIError.notConfigured
+            }
+            readApprovalStillValid = { [merchantGamePlayerReadGrant] in
+                guard let fresh = merchantGamePlayerReadGrant(context), fresh == approval, fresh.matches(context) else { return false }
+                return fresh.allows(configuration: api, namespace: session.namespace, accountID: account, path: route.path)
+            }
         } else if merchantOverviewOnly {
             guard merchantOverview, let scope = merchantOverviewScope,
                   scope.matches(deployment: deployment, viewer: captured) else { throw APIError.notConfigured }

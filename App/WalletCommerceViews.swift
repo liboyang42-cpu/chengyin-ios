@@ -117,6 +117,11 @@ extension WalletScreen where Value == WithdrawalBalance {
             }
             if visibility.assets { NavigationLink("wallet.assets") { WalletAssetsView(reader: reader) } }
             if visibility.income { NavigationLink("wallet.income") { WalletIncomeView(reader: reader, onCooperationFinance: onCooperationFinance, showsCooperationFinance: showsCooperationFinance, organizerFinance: organizerFinance) } }
+            if visibility.income {
+                NavigationLink { WalletIncomeAnalysisView(reader: reader) } label: {
+                    Label { Text("wallet.analysis.title", tableName: "WalletIncomeAnalysis") } icon: { Image(systemName: "chart.bar.xaxis") }
+                }.accessibilityIdentifier("wallet.analysis.open")
+            }
             if visibility.income, let invitationHistory {
                 NavigationLink {
                     SocialInviteHistoryView(reader: invitationHistory.reader,

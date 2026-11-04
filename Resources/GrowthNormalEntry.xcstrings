@@ -1,0 +1,54 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "growthNormalEntry.missions.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No growth missions available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无成长任务"
+          }
+        }
+      }
+    },
+    "growthNormalEntry.completed.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No completed activities recorded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无已完成活动记录"
+          }
+        }
+      }
+    },
+    "growthNormalEntry.leaderboard.hold": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anonymous rankings are not enabled for this configuration. Your personal growth records are shown separately."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前配置尚未开通匿名排行。个人成长记录独立展示。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

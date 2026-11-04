@@ -5,18 +5,21 @@ struct ParticipationSupportView: View {
     var body: some View {
         Form {
             Section("participationSupport.title") {
-                Text("participationSupport.purpose")
+                G01JourneyNotice(message: Text("participationSupport.purpose"), symbol: "message")
                 if let configuration {
                     Link(destination: configuration.url) {
                         Label { Text(verbatim: configuration.name) } icon: { Image(systemName: "arrow.up.right.square") }
                     }.accessibilityIdentifier("participationSupport.open")
+                        .font(.headline).fixedSize(horizontal: false, vertical: true)
                     Text("participationSupport.privacy").font(.footnote).foregroundStyle(.secondary)
                 } else {
                     Label("participationSupport.notConfigured", systemImage: "message.badge.filled.fill")
+                        .font(.headline).fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("participationSupport.notConfigured")
                     Text("participationSupport.configurationBoundary").font(.footnote).foregroundStyle(.secondary)
                 }
             }
         }.navigationTitle("participationSupport.title").navigationBarTitleDisplayMode(.inline)
+            .modifier(G01JourneyFormStyle())
     }
 }

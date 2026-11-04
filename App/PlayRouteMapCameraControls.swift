@@ -3,6 +3,7 @@ import SwiftUI
 /// Plain controls remain usable without map tiles and at accessibility text sizes.
 /// All menu choices come from the same safe projection as the map and stop list.
 struct PlayRouteMapCameraControls: View {
+    @Environment(\.dynamicTypeSize) private var typeSize
     let presentation: PlayRouteMapPresentation
     let preview: PlayRouteMapPresentation.Stop?
     let issue: PlayRouteMapCamera.CameraIssue?
@@ -24,8 +25,7 @@ struct PlayRouteMapCameraControls: View {
                         .disabled(choice == nil).accessibilityIdentifier("playRouteCamera.choice.\(stop.id)")
                 }
             } label: {
-                Label("playRouteCamera.choose", systemImage: "mappin.and.ellipse")
-                    .fixedSize(horizontal: false, vertical: true).frame(minHeight: 44, alignment: .leading)
+                controlLabel("playRouteCamera.choose", symbol: "mappin.and.ellipse")
             }.disabled(presentation.stops.allSatisfy { $0.state == .locked })
                 .accessibilityIdentifier("playRouteCamera.choose")
             if let preview {
@@ -51,9 +51,21 @@ struct PlayRouteMapCameraControls: View {
     private func focusButton(_ action: PlayRouteMapCamera.Action, key: String, symbol: String) -> some View {
         let choice = request(action)
         return Button { if let choice { onFocus(choice) } } label: {
-            Label(LocalizedStringKey(key), systemImage: symbol)
-                .fixedSize(horizontal: false, vertical: true).frame(minHeight: 44, alignment: .leading)
+            controlLabel(key, symbol: symbol)
         }.disabled(choice == nil).accessibilityIdentifier(key)
+    }
+    private func controlLabel(_ key: String, symbol: String) -> some View {
+        let layout = typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
+            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
+        return layout {
+            Image(systemName: symbol).accessibilityHidden(true)
+            Text(LocalizedStringKey(key))
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+        .accessibilityElement(children: .combine)
     }
     private func name(_ stop: PlayRouteMapPresentation.Stop) -> Text {
         if let name = stop.name, !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return Text(verbatim: name) }

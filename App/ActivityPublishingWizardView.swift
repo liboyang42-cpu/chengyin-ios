@@ -5,6 +5,7 @@ import SwiftUI
 @MainActor struct ActivityPublishingWizardChrome: View {
     let step: Int
     let block: String?
+    @Environment(\.themeDomain) private var domain
     @Environment(\.locale) private var locale
     private var chinese: Bool { locale.language.languageCode?.identifier == "zh" }
     var body: some View {
@@ -24,9 +25,15 @@ import SwiftUI
             Text(verbatim: chinese ? model.heading : Self.englishHeading(model.key))
                 .font(.subheadline)
                 .accessibilityIdentifier("publishModes.activity.wizard.heading")
+            if let block {
+                Text(verbatim: ActivityPublishingWizardValidationPresentation(locale: locale).message(for: block))
+                    .font(Theme.Font.body)
+                    .foregroundStyle(Theme.Color.textSecondary(in: domain))
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("publishModes.activity.wizard.validation")
+            }
         }
         .accessibilityIdentifier("publishModes.activity.wizard.step." + String(current))
-        .accessibilityValue(Text(verbatim: block ?? ""))
     }
     private static func englishTitle(_ key: String) -> String {
         switch key {

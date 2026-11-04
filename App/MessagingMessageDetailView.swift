@@ -26,6 +26,15 @@ struct MessagingMessageDetailView: View {
                     Section("messaging.message.content") {
                         MessagingMessageContent(message: message).textSelection(.enabled)
                     }
+                    if message.isPayloadVisible, message.type == 2, let preview = expanded?.attachmentPreview?(message) {
+                        Section {
+                            NavigationLink("原附件审核状态与受权预览") {
+                                NativeChannelAttachmentPreviewEntry(flow: preview, current: {
+                                    reader.identity == identity && currentSnapshot == message && message.isPayloadVisible
+                                })
+                            }
+                        }
+                    }
                     if message.isPayloadVisible, message.type == 2, let mediaReader, let identity {
                         Section {
                             NavigationLink { SocialMessageMediaView(message: message, reader: mediaReader, expectedIdentity: identity,
@@ -34,13 +43,58 @@ struct MessagingMessageDetailView: View {
                             }.accessibilityIdentifier("messaging.message.preview")
                         }
                     }
+                    if IMVoiceReference.read(message) != nil, let owner = expanded?.voiceCoordinator?(message.conversationID) {
+                        Section {
+                            NavigationLink("读取并播放原语音") { IMVoicePlaybackView(message: message, owner: owner, current: {
+                                reader.identity == identity && currentSnapshot == message && message.isPayloadVisible
+                            }) }
+                        }
+                    }
+                    if IMFileReference.read(message) != nil, let owner = expanded?.fileCoordinator?(message.conversationID) {
+                        Section {
+                            NavigationLink("读取并预览原文件") { IMFilePreviewView(message: message, owner: owner, current: {
+                                reader.identity == identity && currentSnapshot == message && message.isPayloadVisible
+                            }) }
+                        }
+                    }
+                    if IMVideoReference.read(message) != nil, let owner = expanded?.videoCoordinator?(message.conversationID) {
+                        Section {
+                            NavigationLink("读取原视频与封面") { IMVideoPlaybackView(message: message, owner: owner, current: {
+                                reader.identity == identity && currentSnapshot == message && message.isPayloadVisible
+                            }) }
+                        }
+                    }
                     if message.isPayloadVisible, let reference = message.pollReference {
                         Section {
                             NavigationLink {
-                                if currentSnapshot?.isPayloadVisible == true, currentSnapshot?.pollReference == reference, let owner = expanded?.pollCoordinator?(message.conversationID, reference) { GroupPollView(owner: owner) }
+                                if currentSnapshot?.isPayloadVisible == true, currentSnapshot?.pollReference == reference,
+                                   let owner = expanded?.pollCoordinator?(message.conversationID, reference) {
+                                    if message.type == 9 {
+                                        GroupPollOriginalResultView(owner: owner, reference: reference, current: {
+                                            reader.identity == identity && currentSnapshot == message && message.isPayloadVisible
+                                        })
+                                    } else {
+                                        GroupPollView(owner: owner, current: {
+                                            reader.identity == identity && currentSnapshot == message && message.isPayloadVisible
+                                                && owner.reference == reference && owner.scope.conversationID == message.conversationID
+                                        })
+                                    }
+                                }
                                 else { GroupPollUnavailableView() }
                             } label: { Label("poll.openResults", systemImage: "chart.bar.xaxis") }
                             .accessibilityIdentifier("poll.messageEntry")
+                        }
+                    }
+                    if let notice = NativeChannelGovernanceNotice.parse(message: message, conversation: conversation, identity: identity) {
+                        Section("原频道处置") {
+                            NavigationLink {
+                                if reader.identity == identity, currentSnapshot == message,
+                                   let destination = expanded?.channelGovernanceDestination?(notice) { destination }
+                                else { Text("当前无法读取原处置与申诉进度。请返回后重试。") }
+                            } label: { Label("查看原处置与申诉进度", systemImage: "doc.text.magnifyingglass") }
+                            .accessibilityIdentifier("channel.governance.originalNotice")
+                            Text("目的页将回读本人的原处置记录；通知内容不授予操作权限。")
+                                .font(.footnote).foregroundStyle(.secondary)
                         }
                     }
                     Section("messaging.message.details") {
@@ -151,6 +205,13 @@ struct MessagingMessageContent: View {
                     Text("poll.cardHint").font(.caption)
                 }.accessibilityIdentifier("poll.messageCard")
             } else { Label("poll.invalidCard", systemImage: "exclamationmark.bubble").accessibilityIdentifier("poll.invalidCard") }
+        case 13:
+            if let place = IMStaticLocation.read(message) { IMStaticLocationCardView(place: place) }
+            else { Label("messaging.unsupported", systemImage: "questionmark.bubble").foregroundStyle(.secondary) }
+        case 9:
+            if message.pollReference != nil {
+                Label("poll.openResults", systemImage: "chart.bar.xaxis")
+            } else { Label("messaging.unsupported", systemImage: "questionmark.bubble").foregroundStyle(.secondary) }
         default:
             Label("messaging.unsupported", systemImage: "questionmark.bubble").foregroundStyle(.secondary)
         }

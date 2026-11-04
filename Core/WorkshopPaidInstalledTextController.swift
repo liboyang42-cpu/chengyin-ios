@@ -2,7 +2,7 @@ import Foundation
 import Observation
 
 @MainActor public final class WorkshopPaidInstalledTextAppearance {
-    fileprivate var started = false, closed = false
+    fileprivate var started = false, closed = false, suspended = false
     fileprivate var action: WorkshopPaidInstalledTextAction?
     public init() {}
     fileprivate func begin() -> Bool { guard !started, !closed else { return false }; started = true; return true }
@@ -12,7 +12,7 @@ import Observation
     weak var appearance: WorkshopPaidInstalledTextAppearance?
     private var revoked = false, entered = false
     init(_ appearance: WorkshopPaidInstalledTextAppearance) { self.appearance = appearance }
-    var live: Bool { !revoked && appearance?.closed == false && appearance?.action === self }
+    var live: Bool { !revoked && appearance?.closed == false && appearance?.suspended == false && appearance?.action === self }
     func revoke() { revoked = true }
     func claim() -> Bool { guard live, !entered else { return false }; entered = true; return true }
 }
@@ -40,7 +40,7 @@ import Observation
     }
     private func current(_ displayed: WorkshopPaidInstalledTextAppearance) -> Bool {
         guard lease.isCurrent else { invalidate(); return false }
-        return phase != .invalidated && appearance === displayed && !displayed.closed
+        return phase != .invalidated && appearance === displayed && !displayed.closed && !displayed.suspended
     }
     public func appear(_ displayed: WorkshopPaidInstalledTextAppearance) -> Action? {
         guard lease.isCurrent, phase != .invalidated, displayed.begin() else { return nil }
@@ -51,6 +51,28 @@ import Observation
         displayed.revoke(); guard appearance === displayed else { return }
         lifetime?.revoke(); lifetime = nil; appearance = nil; content = nil; issue = nil
         if phase != .invalidated { phase = .idle }
+    }
+    /// Backgrounding retires only this transient body/read action. Original license and receipt
+    /// remain immutable; returning to the same presentation requires a new protected read.
+    public func suspend(_ displayed: WorkshopPaidInstalledTextAppearance) {
+        guard appearance === displayed, !displayed.closed, phase != .invalidated else { return }
+        displayed.suspended = true; displayed.action?.revoke(); displayed.action = nil
+        lifetime?.revoke(); lifetime = nil; content = nil; issue = nil; phase = .idle
+    }
+    public func resume(_ displayed: WorkshopPaidInstalledTextAppearance) -> Action? {
+        guard appearance === displayed, !displayed.closed, displayed.suspended else { return nil }
+        displayed.suspended = false
+        return offerReload(displayed)
+    }
+    /// Called while a body is visible, including when the user is idle. Configuration replacement
+    /// still invalidates synchronously through the session binding; expiry checks use no network.
+    @discardableResult public func refreshVisiblePermission(_ displayed: WorkshopPaidInstalledTextAppearance) -> Bool {
+        guard current(displayed) else { return false }
+        do { try service.validateReadPermission(); return true }
+        catch {
+            invalidate(); issue = (error as? WorkshopPaidInstalledTextIssue) ?? .unavailable
+            return false
+        }
     }
     public func offerReload(_ displayed: WorkshopPaidInstalledTextAppearance) -> Action? {
         guard current(displayed) else { return nil }
