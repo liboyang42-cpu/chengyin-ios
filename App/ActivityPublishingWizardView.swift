@@ -28,7 +28,7 @@ import SwiftUI
             if let block {
                 Text(verbatim: ActivityPublishingWizardValidationPresentation(locale: locale).message(for: block))
                     .font(Theme.Font.body)
-                    .foregroundStyle(Theme.Color.textSecondary(in: domain))
+                    .foregroundStyle(.red)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("publishModes.activity.wizard.validation")
             }
@@ -71,12 +71,12 @@ import SwiftUI
                     .disabled(!enabled)
                     .accessibilityIdentifier("publishModes.activity.wizard.cancel")
             } else {
-                Button(action: onBack) { Text(verbatim: chinese ? "上一步" : "Back") }
+                Button(action: onBack) { Text("publishModes.wizard.back") }
                     .disabled(!enabled)
                     .accessibilityIdentifier("publishModes.activity.wizard.back")
             }
             if current < ActivityPublishingWizard.steps.count - 1 {
-                Button(action: onNext) { Text(verbatim: chinese ? "下一步" : "Next") }
+                Button(action: onNext) { Text("publishModes.wizard.next") }
                     .disabled(!enabled)
                     .accessibilityIdentifier("publishModes.activity.wizard.next")
             } else {

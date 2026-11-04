@@ -18,7 +18,6 @@ import Combine
     var openResource: (PublishedResource) -> Void
     var body: some View {
         List {
-            Section { Text("publishModes.offlineNotice").foregroundStyle(.secondary) }
             NavigationLink("publishModes.quick") { QuickPublishingView(placeSearch: placeSearch, account: account, draftStore: draftStore, makeAIDraft: makeAIDraft, openProfessional: openProfessional).id(account?.epoch) }
             NavigationLink("publishModes.activity") { ActivityPublishingView(service: service, account: account, placeSearch: placeSearch, draftStore: draftStore, makeIdentityRegistration: makeIdentityRegistration, makeActivityTemplate: makeActivityTemplate, makeActivityCover: makeActivityCover, openResource: openResource) }
             NavigationLink("publishModes.projects") { PublishingProjectsView(service: service, account: account, openResource: openResource) }
@@ -40,7 +39,6 @@ import Combine
         let draft = journey.draftBinding()
         Form {
             Section {
-                Text("publishModes.aiNotice")
                 Button("contextPublish.ai.title", action: journey.openAIAction(makeClient: makeAIDraft))
                     .accessibilityIdentifier("contextPublish.ai.open")
             }
@@ -159,7 +157,7 @@ import Combine
     }
     private func publishingForm(templateSelectionAction: UUID, templateReadID: UUID) -> some View {
         Form {
-            Section { Text("publishModes.clubOnly"); Text("publishModes.offlineNotice").foregroundStyle(.secondary) }
+            Section { Text("publishModes.clubOnly") }
             Section { ActivityPublishingWizardChrome(step: wizardStep, block: wizardBlock) }
             if ActivityPublishingWizard.clamp(wizardStep) == 0 {
                 Section {
@@ -173,7 +171,7 @@ import Combine
                     Button {
                         localClear.invalidate()
                         timeRange.open(account: account, draftID: draftID, draft: draft, now: Date(), timeZoneID: TimeZone.autoupdatingCurrent.identifier)
-                    } label: { Text(verbatim: chinese ? "选择活动起止时间" : "Choose activity start and end") }
+                    } label: { Text("publishModes.chooseTimeRange") }
                         .disabled(!mayEditTimeRange || !timeRange.canOpen(account: account, draftID: draftID, draft: draft, now: Date()))
                         .accessibilityIdentifier("publishModes.activity.timeRange.open")
                     Button("publishParity.activity.type") { picker = "category" }; Text(draft.categoryIDs.map(String.init).joined(separator: ", "))
@@ -249,11 +247,11 @@ import Combine
             draft = .init(); draftID = UUID(); review = nil; localReview = false; message = ""
             wizardStep = 0; wizardBlock = nil; abandonConfirm = false
         }
-        .alert(Text(verbatim: chinese ? "放弃未发布的活动？" : "Give up this unpublished activity?"), isPresented: $abandonConfirm) {
-            Button(role: .destructive) { dismiss() } label: { Text(verbatim: chinese ? "放弃" : "Give up") }
-            Button(role: .cancel) {} label: { Text(verbatim: chinese ? "继续编辑" : "Keep editing") }
+        .alert(Text("publishModes.abandon.title"), isPresented: $abandonConfirm) {
+            Button(role: .destructive) { dismiss() } label: { Text("publishModes.abandon.confirm") }
+            Button(role: .cancel) {} label: { Text("publishModes.abandon.keepEditing") }
         } message: {
-            Text(verbatim: chinese ? "已填写的活动内容不会保留。" : "What you entered in this activity will not be kept.")
+            Text("publishModes.abandon.message")
         }
         .onAppear { submission.setActive(scenePhase == .active); cover.appear(active: scenePhase == .active); localClear.appear(active: scenePhase == .active); timeRange.setActive(scenePhase == .active); identityRegistration.appear(active: scenePhase == .active); templateSelection.setActive(scenePhase == .active) }
         .onChange(of: scenePhase) { _, phase in
