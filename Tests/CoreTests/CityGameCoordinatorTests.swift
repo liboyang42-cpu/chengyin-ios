@@ -8,6 +8,8 @@ import XCTest
         var quoteValue: ((CityActionKind, String) -> CityActionQuote)?
         var failSubmit = false
         var missingReceipt = false
+        var failReceipt = false
+        var receiptRequests: [String] = []
         var decision: CityActionReceipt.Decision = .applied
         var submitted: [CityActionIntent] = []
         var snapshots = 0
@@ -28,6 +30,8 @@ import XCTest
             return receipt
         }
         func receipt(for intent: CityActionIntent) async throws -> CityActionReceipt? {
+            receiptRequests.append(intent.requestId)
+            if failReceipt { throw URLError(.networkConnectionLost) }
             if missingReceipt { missingReceipt = false; return nil }
             return receipts[intent.requestId]
         }
@@ -63,11 +67,11 @@ import XCTest
                         expiresAtMillis: Int64((Date().timeIntervalSince1970 + 600) * 1000))
     }
     private func model(_ service: Service?, read value: CityReadSnapshot? = nil, capabilities: ReformWorldCapabilities = .syntheticFixture([.cityActions]),
-                       current: @escaping () -> Bool = { true }) -> CityGameCoordinator {
-        CityGameCoordinator(read: value ?? read(), service: service, capabilities: capabilities, memberId: "me", isCurrent: current)
+                       current: @escaping () -> Bool = { true }, journal: CityActionRecoveryJournal? = nil) -> CityGameCoordinator {
+        CityGameCoordinator(read: value ?? read(), service: service, capabilities: capabilities, memberId: "me", isCurrent: current, journal: journal)
     }
 
-    func testProjectionValidationRejectsLeaksAndInventedFacts() throws {
+    func testProjectionValidationRejectsLeaksAndInventedFacts() async throws {
         try snapshot().validate(against: read())
         // Property on a point the player cannot see.
         XCTAssertThrowsError(try snapshot(properties: [property(point: "pt-hidden")]).validate(against: read()))
@@ -148,11 +152,14 @@ import XCTest
         XCTAssertEqual(game.phase, .unknown); XCTAssertTrue(game.canRetryExact)
         let requestId = try XCTUnwrap(game.pendingIntent?.requestId)
         // A fresh snapshot never settles the unknown outcome.
+        service.failReceipt = true
         await game.load(); XCTAssertEqual(game.phase, .unknown)
+        service.failReceipt = false
         await game.readBack()
         XCTAssertEqual(game.notice, .noReceiptYet); XCTAssertEqual(game.phase, .unknown)
         await game.retryExact()
-        XCTAssertEqual(service.submitted.map(\.requestId), [requestId, requestId])
+        XCTAssertEqual(service.submitted.map(\.requestId), [requestId])
+        XCTAssertEqual(service.receiptRequests, [requestId, requestId, requestId])
         XCTAssertEqual(game.lastOutcome, .applied(version: 8)); XCTAssertNil(game.pendingIntent)
     }
 
@@ -196,4 +203,123 @@ import XCTest
         XCTAssertEqual(game.phase, .invalidated); XCTAssertNil(game.pendingIntent); XCTAssertNil(game.snapshot)
         XCTAssertEqual(service.submitted.count, 1)
     }
+
+    func testRetryReadFailureNeverResubmitsAndMissingReceiptKeepsExactBody() async throws {
+        let service = Service(snapshot()); service.failSubmit = true
+        let game = model(service); await game.load()
+        game.prepareRoll(); await game.confirm()
+        let original = try XCTUnwrap(game.pendingIntent)
+        service.failReceipt = true
+        await game.retryExact()
+        XCTAssertEqual(game.phase, .unknown)
+        XCTAssertEqual(service.submitted.count, 1)
+        service.failReceipt = false; service.missingReceipt = true
+        await game.retryExact()
+        XCTAssertEqual(service.submitted.count, 2)
+        XCTAssertEqual(try service.submitted.last?.body(), try original.body())
+    }
+
+    func testRelaunchReadsOriginalReceiptBeforeSnapshotAndNeverResubmits() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("city-recovery-test-" + UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let journal = try CityActionRecoveryJournal(directory: directory, namespace: "synthetic.cn.player")
+        let service = Service(snapshot()); service.failSubmit = true
+        let first = model(service, journal: journal); await first.load()
+        first.prepareRoll(); await first.confirm()
+        let original = try XCTUnwrap(first.pendingIntent)
+        first.invalidate() // leaving a screen or session must not erase unknown work
+        let reopened = model(service, journal: try CityActionRecoveryJournal(directory: directory, namespace: "synthetic.cn.player"))
+        XCTAssertEqual(reopened.phase, .unknown)
+        XCTAssertEqual(reopened.pendingIntent, original)
+        XCTAssertEqual(try reopened.pendingIntent?.body(), try original.body())
+        await reopened.load()
+        XCTAssertEqual(service.receiptRequests, [original.requestId])
+        XCTAssertEqual(service.submitted.count, 1)
+        XCTAssertEqual(reopened.lastOutcome, .applied(version: 5))
+        XCTAssertEqual(reopened.phase, .ready)
+        XCTAssertNil(try journal.restore(memberId: "me", read: read()))
+    }
+
+    func testJournalIsolatesAccountEnvironmentAndPreservesOriginalAgainstOverwrite() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("city-recovery-test-" + UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let journal = try CityActionRecoveryJournal(directory: directory, namespace: "synthetic.cn.player")
+        let service = Service(snapshot()); service.failSubmit = true
+        let game = model(service, journal: journal); await game.load()
+        game.prepareRoll(); await game.confirm()
+        let original = try XCTUnwrap(game.pendingIntent)
+        XCTAssertNil(try journal.restore(memberId: "other", read: read()))
+        XCTAssertNil(try CityActionRecoveryJournal(directory: directory, namespace: "synthetic.us.player").restore(memberId: "me", read: read()))
+        let another = try CityActionIntent(kind: .roll, board: board(), lifecycle: .open, participation: read().participation,
+            targetId: "b1", roundSeq: 1, expectedVersion: 4, consent: nil)
+        XCTAssertThrowsError(try journal.save(another, memberId: "me", read: read()))
+        XCTAssertEqual(try journal.restore(memberId: "me", read: read()), original)
+        XCTAssertThrowsError(try journal.clear(another, memberId: "me", read: read()))
+        let files = try XCTUnwrap(FileManager.default.enumerator(at: directory, includingPropertiesForKeys: nil))
+        let file = try XCTUnwrap(files.allObjects.compactMap { $0 as? URL }.first { $0.lastPathComponent == "pending.json" })
+        try Data("broken".utf8).write(to: file, options: .atomic)
+        let reopened = model(service, journal: journal)
+        await reopened.load(); await reopened.retryExact()
+        XCTAssertEqual(reopened.phase, .unknown)
+        XCTAssertFalse(reopened.canRetryExact)
+        XCTAssertEqual(service.submitted.count, 1)
+    }
+
+
+    func testJournalWriteFailurePreventsDispatch() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("city-recovery-test-" + UUID().uuidString)
+        try Data("file blocks directory creation".utf8).write(to: directory)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let journal = try CityActionRecoveryJournal(directory: directory, namespace: "synthetic.cn.player")
+        let service = Service(snapshot())
+        let game = model(service, journal: journal); await game.load()
+        game.prepareRoll(); await game.confirm()
+        XCTAssertEqual(game.phase, .unknown)
+        XCTAssertFalse(game.canRetryExact)
+        XCTAssertTrue(service.submitted.isEmpty)
+    }
+
+    func testFrozenBoardCanRecoverButMismatchedReceiptNeverUnlocks() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("city-recovery-test-" + UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let journal = try CityActionRecoveryJournal(directory: directory, namespace: "synthetic.cn.player")
+        let service = Service(snapshot()); service.failSubmit = true
+        let game = model(service, journal: journal); await game.load()
+        game.prepareRoll(); await game.confirm()
+        let original = try XCTUnwrap(game.pendingIntent)
+        let validReceipt = service.receipts[original.requestId]
+        service.receipts[original.requestId] = CityActionReceipt(requestId: "another-request", boardId: "b1", action: "ROLL_ROUND",
+            decision: .applied, currentVersion: 5, reasonCode: nil, taskAttemptKept: false)
+        let reopened = model(service, read: read("FROZEN"), journal: journal)
+        await reopened.retryExact()
+        XCTAssertEqual(reopened.phase, .unknown)
+        XCTAssertEqual(service.submitted.count, 1)
+        XCTAssertEqual(try journal.restore(memberId: "me", read: read()), original)
+        service.receipts[original.requestId] = validReceipt
+        service.snapshotValue = snapshot(lifecycle: .frozen)
+        await reopened.load()
+        XCTAssertEqual(reopened.phase, .ready)
+        XCTAssertFalse(reopened.canRoll)
+        XCTAssertEqual(reopened.lastOutcome, .applied(version: 5))
+    }
+
+
+    func testPaidRelaunchPreservesConsentAndCanonicalBody() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("city-recovery-test-" + UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let journal = try CityActionRecoveryJournal(directory: directory, namespace: "synthetic.cn.player")
+        let service = Service(snapshot()); service.failSubmit = true; service.quoteValue = { self.quote($0, $1) }
+        let game = model(service, journal: journal); await game.load()
+        let property = try XCTUnwrap(game.snapshot?.properties.first)
+        await game.prepare(.acquireProperty, property: property); await game.confirm()
+        let original = try XCTUnwrap(game.pendingIntent)
+        let reopened = model(service, journal: journal)
+        XCTAssertEqual(reopened.pendingIntent?.consent, original.consent)
+        XCTAssertEqual(try reopened.pendingIntent?.body(), try original.body())
+        service.missingReceipt = true
+        await reopened.retryExact()
+        XCTAssertEqual(service.submitted, [original, original])
+        XCTAssertEqual(reopened.lastOutcome, .applied(version: 8))
+    }
+
 }

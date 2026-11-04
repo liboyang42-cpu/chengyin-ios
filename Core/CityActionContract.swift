@@ -23,7 +23,7 @@ public enum CityBoardLifecycle: String, Decodable, Sendable {
     public var acceptsNewActions: Bool { self == .open }
 }
 
-public enum CityActionKind: String, Sendable {
+public enum CityActionKind: String, Codable, Sendable {
     case roll = "ROLL_ROUND", acceptTask = "ACCEPT_TASK", submitEvidence = "SUBMIT_EVIDENCE", acquireProperty = "ACQUIRE_PROPERTY"
     case acceptServiceVisit = "ACCEPT_SERVICE_VISIT", completeServiceVisit = "COMPLETE_SERVICE_VISIT", startChallenge = "START_CHALLENGE"
     /// Actions that may spend member points and therefore need a quote and explicit payer consent.
@@ -49,7 +49,7 @@ public struct CityActionQuote: Decodable, Equatable, Sendable {
 }
 
 /// The confirming member's explicit consent to exactly one quote version.
-public struct CityPayerConsent: Equatable, Sendable {
+public struct CityPayerConsent: Codable, Equatable, Sendable {
     public let quoteId: String
     public let quoteVersion: Int64
     public let payerMemberId: String
@@ -63,7 +63,7 @@ public struct CityPayerConsent: Equatable, Sendable {
     }
 }
 
-public struct CityActionIntent: Equatable, Sendable {
+public struct CityActionIntent: Codable, Equatable, Sendable {
     public let kind: CityActionKind
     public let boardId, participationId, targetId, requestId: String
     /// Server-assigned round; the client never increments it.
