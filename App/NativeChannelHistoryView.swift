@@ -57,6 +57,7 @@ private func nativeChannelLocalized(_ key: String, locale: Locale) -> String {
                             }
                         }
                         .buttonStyle(.plain)
+                        .listRowSeparator(.hidden)
                         .accessibilityIdentifier("channel.message.\(message.id)")
                     }
                     if model.loaded {
@@ -104,9 +105,17 @@ private func nativeChannelLocalized(_ key: String, locale: Locale) -> String {
             }
         }
         .navigationTitle(nativeChannelLocalized("channel.history", locale: locale))
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            Button { run { await model.load() } } label: { Label { Text("channel.refresh", tableName: "NativeChannel") } icon: { Image(systemName: "arrow.clockwise") } }
-                .disabled(model.isLoading || !model.isCurrent)
+            ToolbarItem(placement: .principal) {
+                MessagingConversationName(conversation: model.conversation).font(.headline).lineLimit(1)
+            }
+        }
+        // Pull to refresh replaces the toolbar refresh button; the same guarded run path loads.
+        .refreshable {
+            guard model.isCurrent else { return }
+            run { await model.load() }
+            await task?.value
         }
         .onAppear {
             model.onChange = { revision += 1; prepareTextCoordinator() }
