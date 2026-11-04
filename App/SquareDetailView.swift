@@ -71,7 +71,6 @@ import SwiftUI
                         }
                     }
                 }
-                Section { Text("square.readOnly").font(.footnote).foregroundStyle(.secondary) }
             }
         }
         .appNavigationTitle("square.detail")

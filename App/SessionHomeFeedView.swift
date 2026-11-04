@@ -61,6 +61,7 @@ import SwiftUI
                 reader:session.homeFeedReader,
                 unavailableMessageKey: session.homeReadAvailability.messageKey,
                 viewerNickname: session.account?.nickname,
+                viewerAvatar: session.account?.avatar,
                 selectedCity: session.roamArea?.label,
                 showsHeroBanners: true,
                 continuationCards: continuationCards,
@@ -70,22 +71,25 @@ import SwiftUI
                 onRetryContinuation: { Task { await reloadContinuationCards() } }
             ) { path.append($0) }
                 .toolbar {
-                    ToolbarItem(placement:.topBarLeading) {
-                        Button("square.title",systemImage:"square.grid.2x2") { showsSquare=true }
-                            .accessibilityIdentifier("homeFeed.openSquare")
-                    }
+                    // Two actions at most: search, then everything else in one menu.
                     ToolbarItemGroup(placement:.topBarTrailing) {
                         Button("searchMap.title",systemImage:"magnifyingglass") { showsGlobalSearch=true }
                             .labelStyle(.iconOnly).frame(minWidth:44,minHeight:44)
                             .accessibilityIdentifier("homeFeed.openGlobalSearch")
-                        Button("projectEdit.title", systemImage:"square.and.pencil") { showsProjectEditor=true }
-                            .labelStyle(.iconOnly).frame(minWidth:44,minHeight:44)
-                            .accessibilityIdentifier("homeFeed.openProjectEditor")
-                        Button("official.title",systemImage:"sparkles") { showsOfficialEvents=true }
-                            .labelStyle(.iconOnly).frame(minWidth:44,minHeight:44)
-                            .accessibilityIdentifier("homeFeed.openOfficialEvents")
-                        Button("discovery.browseTemplates",systemImage:"square.stack.3d.up") { showsTemplates=true }
-                            .accessibilityIdentifier("homeFeed.openTemplates")
+                        Menu {
+                            Button("square.title",systemImage:"square.grid.2x2") { showsSquare=true }
+                                .accessibilityIdentifier("homeFeed.openSquare")
+                            Button("official.title",systemImage:"sparkles") { showsOfficialEvents=true }
+                                .accessibilityIdentifier("homeFeed.openOfficialEvents")
+                            Button("discovery.browseTemplates",systemImage:"square.stack.3d.up") { showsTemplates=true }
+                                .accessibilityIdentifier("homeFeed.openTemplates")
+                            Button("projectEdit.title", systemImage:"square.and.pencil") { showsProjectEditor=true }
+                                .accessibilityIdentifier("homeFeed.openProjectEditor")
+                        } label: {
+                            Label("homeFeed.more", systemImage:"ellipsis.circle")
+                                .labelStyle(.iconOnly).frame(minWidth:44,minHeight:44)
+                        }
+                        .accessibilityIdentifier("homeFeed.moreMenu")
                     }
                 }
                 .navigationDestination(for:HomeFeedDestination.self) { destination in

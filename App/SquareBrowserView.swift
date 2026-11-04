@@ -84,7 +84,6 @@ import SwiftUI
                         Button("square.loadMore") { Task { await load(reset: false) } }.accessibilityIdentifier("square.loadMore")
                     }
                 }
-                Section { Text("square.readOnly").font(.footnote).foregroundStyle(.secondary) }
             }
             .appNavigationTitle("square.xcx.navTitle")
             .navigationDestination(for: Int.self) { id in SquareDetailView(id: id, contentGeneration: .communityV1, reader: reader, accountReader: accountReader, actions: actions, governanceContext: governanceContext(postID: id), workspace: workspace) }
@@ -121,7 +120,6 @@ import SwiftUI
     }
     @ViewBuilder private var filters: some View {
         if query.mode == .nearby {
-            Text("square.cityPurpose").font(.caption)
             TextField("square.cityCode", text: $cityCode).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityIdentifier("square.cityCode")
             Button("square.applyFilter") { query.cityCode = cityCode }.accessibilityIdentifier("square.applyFilter")
         } else if query.mode == .topic {

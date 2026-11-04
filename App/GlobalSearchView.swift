@@ -59,7 +59,7 @@ import SwiftUI
                     NavigationLink { SearchMapExplorerView(reader: reader, mode: .nearby, onSignIn: onSignIn, destination: destination) } label: { Label("searchMap.nearby", systemImage: "map") }
                 }.buttonStyle(.bordered).frame(minHeight: 44)
                 if let publicLayers {
-                    NavigationLink { MapPublicLayerCallerView(caller: publicLayers) } label: { Text(verbatim: "Public layers").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading) }
+                    NavigationLink { MapPublicLayerCallerView(caller: publicLayers) } label: { Label("searchMap.publicLayers", systemImage: "square.3.layers.3d").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading) }
                         .accessibilityIdentifier("mapPublic.entry")
                 }
                 NavigationLink {
@@ -200,23 +200,23 @@ import SwiftUI
                 Button("searchMap.retry") { Task { await search() } }.frame(minHeight: 44)
             }.font(.footnote).accessibilityIdentifier("searchMap.partialFailure")
         }
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack {
-                Button("searchMap.all") { selectedKind = nil }.buttonStyle(.bordered)
-                ForEach(GlobalSearchKind.allCases, id: \.self) { kind in
-                    Button { selectedKind = kind } label: { Text(kind.titleKey) + Text(verbatim: " \(value.count(kind))") }
-                        .buttonStyle(.bordered).accessibilityAddTraits(selectedKind == kind ? [.isSelected] : [])
-                        .accessibilityIdentifier("searchMap.kind.\(kind.rawValue)")
-                }
-            }.frame(minHeight: 44)
+        // Mini-program `pages/search2/result` result tabs, rendered as a native segmented control.
+        Picker("searchMap.resultKinds", selection: $selectedKind) {
+            Text("searchMap.all").tag(GlobalSearchKind?.none)
+            ForEach(GlobalSearchKind.allCases, id: \.self) { kind in
+                (Text(kind.titleKey) + Text(verbatim: " \(value.count(kind))"))
+                    .tag(Optional(kind))
+                    .accessibilityIdentifier("searchMap.kind.\(kind.rawValue)")
+            }
         }
+        .pickerStyle(.segmented)
+        .frame(minHeight: 44)
         let visible = value.rows.filter { selectedKind == nil || $0.kind == selectedKind }
         if visible.isEmpty && !loading && !value.allFailed && value.failedKinds.isEmpty && value.gatedKinds.isEmpty { ContentUnavailableView("searchMap.empty", systemImage: "magnifyingglass", description: Text("searchMap.emptyHint")) }
         ForEach(visible) { row in
             NavigationLink { destination(row.destination) } label: { SearchMapCard(row: row, offline: reader.isOfflineExample) }
                 .buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("searchMap.result.\(row.id)")
         }
-        Text("searchMap.pageLimit").font(.caption).foregroundStyle(.secondary)
     }
     private func applyFilter(_ next: GlobalSearchQuery) {
         // Invalidate synchronously, including category-only searches cleared to an empty query.

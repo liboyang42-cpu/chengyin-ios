@@ -7,24 +7,42 @@ struct HomeHeroHeaderSectionView: View {
     var nickname: String? = nil
     var selectedCity: String? = nil
     var isNationwide: Bool = false
+    var avatarSource: String? = nil
     var onSelectBanner: ((HomeIndexParityPresentation.ActionBanner) -> Void)? = nil
+
+    private var hasCity: Bool {
+        isNationwide || !(selectedCity?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+    }
 
     var body: some View {
         Section {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Text(verbatim: HomeIndexParityPresentation.greetingText(nickname: nickname, locale: locale))
-                        .font(.title3.weight(.semibold))
-                        .accessibilityIdentifier("homeIndex.hero.greeting")
-                    Spacer()
-                    Label {
-                        Text(verbatim: HomeIndexParityPresentation.citySelectorLabel(selectedCity: selectedCity, isNationwide: isNationwide, locale: locale))
-                    } icon: {
-                        Image(systemName: "location.fill")
+            VStack(alignment: .leading, spacing: 14) {
+                // Mini-program `v3-hero-greet-row`: name on its own line, then `玩家 · 城市`, avatar trailing.
+                HStack(alignment: .top, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(verbatim: HomeIndexParityPresentation.greetingText(nickname: nickname, locale: locale))
+                            .font(.title2.weight(.bold))
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("homeIndex.hero.greeting")
+                        HStack(spacing: 6) {
+                            if nickname?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
+                                Label("homeFeed.player", systemImage: "checkmark.seal.fill")
+                                    .foregroundStyle(QuestifyPalette.accent)
+                            }
+                            if hasCity {
+                                Label {
+                                    Text(verbatim: HomeIndexParityPresentation.citySelectorLabel(selectedCity: selectedCity, isNationwide: isNationwide, locale: locale))
+                                } icon: {
+                                    Image(systemName: "location.fill")
+                                }
+                                .foregroundStyle(.secondary)
+                                .accessibilityIdentifier("homeIndex.hero.city")
+                            }
+                        }
+                        .font(.subheadline.weight(.medium))
                     }
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.secondary)
-                    .accessibilityIdentifier("homeIndex.hero.city")
+                    Spacer(minLength: 0)
+                    HomeHeroAvatar(source: avatarSource)
                 }
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
@@ -49,6 +67,30 @@ struct HomeHeroHeaderSectionView: View {
             }
             .padding(.vertical, 4)
         }
+    }
+}
+
+/// Round account avatar for the Home hero. Decorative: the greeting already names the viewer.
+private struct HomeHeroAvatar: View {
+    let source: String?
+    var body: some View {
+        Group {
+            if let url = QuestifyCardArtwork.safeURL(source) {
+                AsyncImage(url: url) { phase in
+                    if let image = phase.image { image.resizable().scaledToFill() } else { fallback }
+                }
+            } else {
+                fallback
+            }
+        }
+        .frame(width: 48, height: 48)
+        .clipShape(Circle())
+        .overlay { Circle().strokeBorder(Color.primary.opacity(0.12), lineWidth: 1) }
+        .accessibilityHidden(true)
+    }
+    private var fallback: some View {
+        Color(uiColor: .tertiarySystemFill)
+            .overlay { Image(systemName: "person.fill").font(.title3).foregroundStyle(.secondary) }
     }
 }
 
@@ -151,38 +193,37 @@ struct HomeIndexShelfHeaderView: View {
     }
 }
 
-/// Horizontal result tabs bar with count badges for Global Search (`pages/search2`).
+/// Result tabs with counts for Global Search (`pages/search2`), as a native segmented control.
 @MainActor
 struct GlobalSearchResultTabsBar: View {
     let tabs: [GlobalSearchParityPresentation.ResultTabDescriptor]
     @Binding var selectedKind: GlobalSearchParityPresentation.ResultTabKind
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(tabs) { tab in
-                    let isSelected = tab.kind == selectedKind
-                    Button {
-                        selectedKind = tab.kind
-                    } label: {
-                        HStack(spacing: 4) {
-                            Text(verbatim: tab.title)
-                            if let badge = tab.badgeText {
-                                Text(verbatim: badge)
-                                    .font(.caption2.weight(.semibold))
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(.secondary.opacity(0.16), in: Capsule())
-                            }
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(isSelected ? .accentColor : .secondary)
+        Picker("searchMap.resultKinds", selection: $selectedKind) {
+            ForEach(tabs) { tab in
+                segmentTitle(tab)
+                    .tag(tab.kind)
                     .accessibilityIdentifier("globalSearch.tab.\(tab.kind.rawValue)")
-                }
             }
+        }
+        .pickerStyle(.segmented)
+    }
+
+    private func segmentTitle(_ tab: GlobalSearchParityPresentation.ResultTabDescriptor) -> Text {
+        let title = Text(LocalizedStringKey(Self.titleKey(tab.kind)))
+        guard let badge = tab.badgeText else { return title }
+        return title + Text(verbatim: " \(badge)")
+    }
+
+    private static func titleKey(_ kind: GlobalSearchParityPresentation.ResultTabKind) -> String {
+        switch kind {
+        case .all: return "searchMap.all"
+        case .routes: return "searchMap.kind.topic"
+        case .activities: return "searchMap.kind.activity"
+        case .merchants: return "searchMap.kind.merchant"
+        case .clubs: return "searchMap.kind.club"
+        case .moments: return "social.posts"
         }
     }
 }
