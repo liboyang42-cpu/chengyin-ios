@@ -12289,13 +12289,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A reviewed city read connection is required. No board or owned locations are assumed."
+            "value": "The city board isn't available right now. Try again later."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "需要已审核的城市只读连接；不会推定棋盘或已拥有地点。"
+            "value": "城市棋盘暂时无法显示，请稍后再试。"
           }
         }
       }
