@@ -1,0 +1,200 @@
+{
+  "schema_version": 1,
+  "issue_comment_ref": "https://github.com/liboyang42-cpu/chengyin-app/issues/575#issuecomment-6624585230",
+  "status": "RECEIVED_VERIFIED_AND_STAGED_IN_ISOLATED_CANDIDATE_WORKTREE",
+  "patches_received": [
+    {
+      "name": "G05",
+      "file": "G05_97ed98d6.patch",
+      "git_blob_sha": "97ed98d65ae8a0b8612fdff0acc0dd761f38cf44",
+      "bytes": 625,
+      "sha256": "6684f85d81aeaa04fc237b6f1a906732d5fec460b2f5d7ad003a1ff3348bd115",
+      "verified": true
+    },
+    {
+      "name": "M04",
+      "file": "M04_9948ddb8.patch",
+      "git_blob_sha": "9948ddb8e3cfc8cfd2f9548f5370ee87b701c33f",
+      "bytes": 5458,
+      "sha256": "f4de9b567123da52ca7a02260e1d6c7d6929c8e1d794311764394f0812506105",
+      "verified": true
+    },
+    {
+      "name": "CL02",
+      "file": "CL02_bec30661.patch",
+      "git_blob_sha": "bec30661a21330821112ae06bdaafa64f502f162",
+      "bytes": 2541,
+      "sha256": "e8d28cd84914ed6a2e34dfd4347b4b53b2d1026c4fd45077d98294d2ea22b506",
+      "verified": true
+    },
+    {
+      "name": "D01",
+      "file": "D01_dc36a87c.patch",
+      "git_blob_sha": "dc36a87c3f5655cb5a9990ba72b444041a04af6c",
+      "bytes": 724,
+      "sha256": "2fb28bad829635fdc66082c1f37e6c981a39b9240c26e41aefcbf86431c728e7",
+      "verified": true
+    },
+    {
+      "name": "S01",
+      "file": "S01_76381f05.patch",
+      "git_blob_sha": "76381f05873c047ddb603439c6bd4d9feb4f3fcc",
+      "bytes": 1596,
+      "sha256": "a22b5d74057d5b9eafcd029bef5af4d1c004f1beac012e2aa44e23041dc1177d",
+      "verified": true
+    },
+    {
+      "name": "B01",
+      "file": "B01_50ead158.patch",
+      "git_blob_sha": "50ead158d6c9d00008507e2de062d83209b811c5",
+      "bytes": 5919,
+      "sha256": "f91690fe0ae8d837543151299a9d95892205a09eef8a774355a2de9e25a3a673",
+      "verified": true
+    },
+    {
+      "name": "T02",
+      "file": "T02_f2d99be6.patch",
+      "git_blob_sha": "f2d99be63a23b14f4014d91ab8d858b270d9ba8a",
+      "bytes": 3220,
+      "sha256": "de8ab71aac8f6ee996981846bd2854627cb8a446eb07337b7cc80c5934beb621",
+      "verified": true
+    },
+    {
+      "name": "M04_test_before_blob",
+      "file": "M04_test_before_blob_c1cc00c7.swift",
+      "git_blob_sha": "c1cc00c794b48bd35fe26738bffe7ef4d0effa6e",
+      "bytes": 7794,
+      "sha256": "16fa9db3d3e27cf400d7a00c4c21166e45d9f29c3b72c16d76bd984d2a98f4f9",
+      "verified": true
+    }
+  ],
+  "isolated_candidate_verification": {
+    "base_commit": "ac6f18a35cdc63c1a20b54a9596671c76549567c",
+    "base_tree": "22857935d8859593ecb8cb49d736b902d7b7a3e6",
+    "candidate_commit": "c924bebf4d23c8abc99d9925cc8240352a641c46",
+    "candidate_tree": "8c503bf6cdd0884c6c95bc7fe620da95b418c5f9",
+    "files": [
+      {
+        "scope": "G05",
+        "path": "App/TeamComponents.swift",
+        "before_git_blob": "7d4ae7f6605f41c6cd2a66f262f8a854b2e791c4",
+        "before_sha256": "bd69869d58d34d6ffe66c9adc56bb1ffa8291abf2fbfa9c32276c4fc2db259ec",
+        "before_bytes": 12535,
+        "after_git_blob": "36f2fc3982bc8f7016cf62db3060ed1ea3f3a182",
+        "after_sha256": "685181219106b4e446d02cda51737673ac89151ecb38cc4b4b9548570271e659",
+        "after_bytes": 12582,
+        "after_blob_matched_dot": true
+      },
+      {
+        "scope": "M04",
+        "path": "App/MerchantRegistrationAvailabilityPicker.swift",
+        "before_git_blob": "d1bb6f98444a147a420159fc6767df1130691ee5",
+        "before_sha256": "7ba49189661ba461709b4988f2a54d85394e21fbbd76193e0619f8f27dfb85de",
+        "before_bytes": 10525,
+        "after_git_blob": "ac36998a9d2f63cc30b9178f6d0a94c6b8e99da7",
+        "after_sha256": "701f60686213a115dc06b5ddd2994c62e0342ff6daf5683f17eeb5ba40d39366",
+        "after_bytes": 11020,
+        "after_blob_matched_dot": true
+      },
+      {
+        "scope": "M04",
+        "path": "Tests/AppUITests/MerchantRegistrationAvailabilityFlowTests.swift",
+        "before_git_blob": "c1cc00c794b48bd35fe26738bffe7ef4d0effa6e",
+        "before_sha256": "16fa9db3d3e27cf400d7a00c4c21166e45d9f29c3b72c16d76bd984d2a98f4f9",
+        "before_bytes": 7794,
+        "after_git_blob": "0a0e571f8b185d98fa2ef5cec0a79d2b56a7479e",
+        "after_sha256": "3b50d48083447914ed747e2e7b36a57e086c799f6b3922e160abd97c3fa87fe9",
+        "after_bytes": 8910,
+        "after_blob_matched_dot": true
+      },
+      {
+        "scope": "CL02",
+        "path": "App/ClubProfileChoiceEditor.swift",
+        "before_git_blob": "3032bf2705476861af055215737059a94dcfc98c",
+        "before_sha256": "d76b14e3a21ef8997293f681ef553bd7ad0f0803d6f59ab264cdc7be1c96ca69",
+        "before_bytes": 8356,
+        "after_git_blob": "2ac8c61f4f375b4f402b0b428a1b557be787b2d2",
+        "after_sha256": "13e4addb7a6590c7e87ccc9b768c67f13bb9d3ba84db0e66ea9f39255cf134cb",
+        "after_bytes": 8561,
+        "after_blob_matched_dot": true
+      },
+      {
+        "scope": "CL02",
+        "path": "App/ClubRoleAssignmentPicker.swift",
+        "before_git_blob": "3d24afd4d2365f41d3fb681204d5b07ab29563e3",
+        "before_sha256": "623a834ca9c3e8fc159e6e7d382abe3de2747ee2febc5d493f6bd1810f2b7fcf",
+        "before_bytes": 12824,
+        "after_git_blob": "3f5bab17dc322b9d72c17be02f25c38343f93792",
+        "after_sha256": "3d3630968a9fa3d49e1c081e8acfc6f8f4706463c72c351a5a303f456b9b7773",
+        "after_bytes": 13032,
+        "after_blob_matched_dot": true
+      },
+      {
+        "scope": "D01",
+        "path": "App/HomeFeedView.swift",
+        "before_git_blob": "c6839bfc4b8e4f54f42a7315d7a7add06726741e",
+        "before_sha256": "236194a5edfce10d659290b771c2fdb42cc7169f947249bc175f3dbb84cde0ed",
+        "before_bytes": 16172,
+        "after_git_blob": "05fb5ad98134a621d1f9b00490799461edc77768",
+        "after_sha256": "ab29cdc15fb1de64d3df70cb980920e57cb76569e6b02d2ed4688ef92d36a52d",
+        "after_bytes": 16227,
+        "after_blob_matched_dot": true
+      },
+      {
+        "scope": "S01",
+        "path": "App/MessageActionComposer.swift",
+        "before_git_blob": "9f6a165ffcca151d17a93f5d9330caf7f0760ee1",
+        "before_sha256": "df5728d54bfc3941cb70fdceb42bcf3c1163c25c3e08c2eccb0dcea41b696b03",
+        "before_bytes": 8079,
+        "after_git_blob": "964d7f1f95f6c6579d7f89cfd826993140bdf27d",
+        "after_sha256": "276ee225c2c365b11e651ab65a490ec9e1cfda3d70bc6b85d7649f33fe39b692",
+        "after_bytes": 8266,
+        "after_blob_matched_dot": true
+      },
+      {
+        "scope": "B01",
+        "path": "App/ProfileOrderNumberCopySection.swift",
+        "before_git_blob": "4b080c78deb70e33b9121b439a8f576a2bb2de3e",
+        "before_sha256": "cad18ff98b3e618b5a3f2c7864e612999ae03da2618ac5e04469c00b4016d05b",
+        "before_bytes": 3074,
+        "after_git_blob": "97e987947176cd6d7aa2a870d869f8c55277be8d",
+        "after_sha256": "1c0da09856682d5fc1bc4d952fb234dfb849a545f3e4d56b25d0ccaa97249df8",
+        "after_bytes": 4439,
+        "after_blob_matched_dot": true
+      },
+      {
+        "scope": "B01",
+        "path": "App/ProfileOrdersView.swift",
+        "before_git_blob": "3dd785f704cb93c01bae042b6fa75f4041acddd3",
+        "before_sha256": "7b80eade746fd71f384413db88e8525988ede16cd805deb7f2ee9574f8ea5c31",
+        "before_bytes": 26348,
+        "after_git_blob": "7c9b5f2d9119c85b7e33c0438ec125118d3b4c9d",
+        "after_sha256": "394dd8f5b28d5584fb1f6d1025b1f785b8768e1492be1b9504937ea003201552",
+        "after_bytes": 26404,
+        "after_blob_matched_dot": true
+      },
+      {
+        "scope": "T02",
+        "path": "App/TemplateAuthoringMineView.swift",
+        "before_git_blob": "75087810b25e6f143b9167df58a23c244811fd0b",
+        "before_sha256": "ddf22ff2c8518d13b0178e055d2013226446e45ac2cdeafc61d7ff0e5f0bc74e",
+        "before_bytes": 17914,
+        "after_git_blob": "6cfd84f775680ff08233cb02d20ed8c50d645602",
+        "after_sha256": "aa7f0b95aed5bab7178dde1a5cde7245d53c590c2676373450e4559f33099441",
+        "after_bytes": 18657,
+        "after_blob_matched_dot": true
+      },
+      {
+        "scope": "T02",
+        "path": "App/TemplateOwnShelfCardSection.swift",
+        "before_git_blob": "5f38ddcfffc2b4ebb330224093f25253745123e5",
+        "before_sha256": "38a565a5f6a9a0c3441a3450c4445b5e8a42b5110bd123dc5d797bad5f8272eb",
+        "before_bytes": 3196,
+        "after_git_blob": "251697242cdb838af11b94446f8b55a9faaa44c5",
+        "after_sha256": "2352f85cdc0eebe7864a929e6e0f1cf195470307730000710803b7c052021876",
+        "after_bytes": 3491,
+        "after_blob_matched_dot": true
+      }
+    ]
+  }
+}
