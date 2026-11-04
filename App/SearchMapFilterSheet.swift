@@ -154,7 +154,6 @@ import SwiftUI
                 VStack(alignment: .leading, spacing: 16) {
                     Text(verbatim: picker.value).font(.headline)
                         .accessibilityIdentifier("mapDatePicker.value")
-                    Text("mapDatePicker.disclosure").font(.footnote).foregroundStyle(.secondary)
                     let layout = dynamicTypeSize.isAccessibilitySize
                         ? AnyLayout(VStackLayout(alignment: .leading, spacing: 16))
                         : AnyLayout(HStackLayout(alignment: .top, spacing: 8))

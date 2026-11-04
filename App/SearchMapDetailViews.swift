@@ -42,7 +42,6 @@ import SwiftUI
                         }
                         if let title = detail.templateTitle {
                             LabeledContent("searchMap.relatedTemplate", value: title)
-                            Text("searchMap.templateDomain").font(.caption).foregroundStyle(.secondary)
                         }
                         if let merchantID = detail.merchantID, merchantID > 0 {
                             NavigationLink { destination(.merchant(merchantID)) } label: {
@@ -54,7 +53,6 @@ import SwiftUI
                         NavigationLink { SearchRoutePreviewView(origin: origin, destination: coordinate, name: detail.name, scope: reader.scope, navigationReference: try? WalkingTargetReference(kind: .cityNode, id: detail.id), offline: reader.isOfflineExample) } label: { Label("searchMap.routePreview", systemImage: "point.topleft.down.to.point.bottomright.curvepath") }
                             .accessibilityIdentifier("searchMap.openRoute")
                     }
-                    Text("searchMap.nodeReadOnly").font(.footnote).foregroundStyle(.secondary)
                 }.accessibilityIdentifier("searchMap.city.detail")
             } else { Color.clear }
         }.appNavigationTitle("searchMap.nodeDetail")
