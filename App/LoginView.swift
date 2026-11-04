@@ -60,7 +60,6 @@ struct LoginView: View {
                     }
                         .disabled(session.isWorking || !consentGranted)
                         .accessibilityIdentifier("auth.otherChannels")
-                    Text("auth.registrationPending").foregroundStyle(.secondary)
                 }
             }
             .appNavigationTitle("auth.title")
