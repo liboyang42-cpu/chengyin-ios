@@ -12289,13 +12289,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A reviewed city read connection is required. No board or owned locations are assumed."
+            "value": "The city board isn't available right now. Try again later."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "需要已审核的城市只读连接；不会推定棋盘或已拥有地点。"
+            "value": "城市棋盘暂时无法显示，请稍后再试。"
           }
         }
       }
@@ -94191,13 +94191,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Badge collection readback"
+            "value": "Badge collection"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "徽章收藏回读"
+            "value": "徽章收藏"
           }
         }
       }
@@ -128635,13 +128635,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Leaving this screen, locking the phone or moving the app to the background pauses collection and nearby visibility. Return and choose Resume to continue. Unconfirmed operations are kept for recovery."
+            "value": "Leaving this screen, locking your phone or switching apps pauses your walk and hides you from nearby players. Come back and tap Resume to continue."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "离开此页、锁屏或切到后台会暂停定位采集与附近状态上报。返回后需主动选择继续。未确认的操作会保留以便恢复核对。"
+            "value": "离开此页、锁屏或切到后台会暂停漫游，附近玩家也看不到你。回来后点「继续本次漫游」即可。"
           }
         }
       }
@@ -128987,13 +128987,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check server status"
+            "value": "Check this walk"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核对服务器状态"
+            "value": "核对本次漫游"
           }
         }
       }
@@ -129003,13 +129003,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "An earlier operation needs checking. Keep this record. Checking reads the server status and does not repeat a discovery or award rewards."
+            "value": "This walk needs a quick check before you continue. Checking won't repeat discoveries or rewards."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "先前的操作需要核对，请保留这份记录。核对只读取服务器状态，不会重复提交发现操作或发放奖励。"
+            "value": "继续前需要核对本次漫游。核对不会重复提交发现，也不会重复发放奖励。"
           }
         }
       }
@@ -153871,13 +153871,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "In-app walking navigation"
+            "value": "Walking navigation"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "App 内步行导航"
+            "value": "步行导航"
           }
         }
       }
@@ -202113,6 +202113,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "调整分录"
+          }
+        }
+      }
+    },
+    "roam.toolbar.more": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更多"
           }
         }
       }

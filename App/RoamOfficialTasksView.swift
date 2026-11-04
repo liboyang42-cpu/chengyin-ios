@@ -86,7 +86,7 @@ import SwiftUI
             if model.isLoading || (model.snapshot == nil && model.error == nil) {
                 ProgressView("official.loading").accessibilityIdentifier("roam.tasks.loading")
             }
-        }.navigationTitle("roam.tasks.title")
+        }.navigationTitle("roam.tasks.title").navigationBarTitleDisplayMode(.inline)
             .task(id: model.owner) { await model.load() }
             .onAppear { model.appear() }
             .onDisappear { if target == nil { model.invalidate() } else { model.cancelPending() } }

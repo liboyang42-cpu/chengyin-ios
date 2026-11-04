@@ -4,7 +4,7 @@ extension PlayKitScreen {
     @ViewBuilder var coinFace: some View {
         let side = (raw["side"].text ?? "").uppercased()
         let key = ["HEADS", "H", "正面"].contains(side) ? "heads" : ["TAILS", "T", "反面"].contains(side) ? "tails" : ""
-        Image(systemName: key.isEmpty ? "circle.dashed" : "circle.inset.filled").font(.system(size: 100)).frame(maxWidth: .infinity).accessibilityHidden(true)
+        Image(systemName: key.isEmpty ? "circle.dashed" : "circle.inset.filled").resizable().scaledToFit().frame(width: 100, height: 100).frame(maxWidth: .infinity).accessibilityHidden(true)
         if !key.isEmpty {
             Text(verbatim: raw[key]["label"].text ?? side).font(.largeTitle.bold()).frame(maxWidth: .infinity)
             if let action = raw[key]["action"].text, !action.isEmpty { Text(verbatim: action) }
@@ -24,7 +24,7 @@ extension PlayKitScreen {
         let d20 = raw["mode"].text == "d20"
         HStack {
             ForEach(Array(values.enumerated()), id: \.offset) { _, value in
-                if !d20 && (1...6).contains(value) { Image(systemName: "die.face.\(value).fill").font(.system(size: 72)).accessibilityLabel(Text(verbatim: String(value))) }
+                if !d20 && (1...6).contains(value) { Image(systemName: "die.face.\(value).fill").resizable().scaledToFit().frame(width: 72, height: 72).accessibilityLabel(Text(verbatim: String(value))) }
                 else { Text(verbatim: String(value)).font(.system(.largeTitle, design: .rounded).bold()).padding().background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16)) }
             }
         }.frame(maxWidth: .infinity)
@@ -48,7 +48,7 @@ extension PlayKitScreen {
             }.padding().frame(maxWidth: .infinity, alignment: .leading).background(.thinMaterial, in: RoundedRectangle(cornerRadius: 20))
         }
         if count > drawn.count {
-            Image(systemName: "rectangle.stack").font(.system(size: 80)).frame(maxWidth: .infinity).accessibilityHidden(true)
+            Image(systemName: "rectangle.stack").resizable().scaledToFit().frame(width: 80, height: 80).frame(maxWidth: .infinity).accessibilityHidden(true)
             LabeledContent("playkit.random.remaining") { Text(verbatim: String(count - drawn.count)) }
         }
         Button("playkit.random.draw") { prepare("DRAW") }.buttonStyle(.questifyPrimary).disabled(!enabled || count <= drawn.count)

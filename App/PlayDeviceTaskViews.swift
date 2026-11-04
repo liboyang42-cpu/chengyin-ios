@@ -88,7 +88,7 @@ import SwiftUI
                 LabeledContent("playx.stopwatch.rounds") { Text(verbatim: PlayTimedDisplayLocalization.count(machine.rounds, locale: locale)) }
                 if let best = machine.bestDifference { LabeledContent("playx.stopwatch.best") { Text(verbatim: PlayTimedDisplayLocalization.seconds(best, locale: locale)) } }
             }
-        }.navigationTitle("playx.stopwatch").accessibilityIdentifier("playx.stopwatch.view")
+        }.navigationTitle("playx.stopwatch").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("playx.stopwatch.view")
             .onChange(of: scenePhase) { _, phase in if phase != .active { machine.interrupt() } }
             .onDisappear { machine.interrupt() }
     }
@@ -118,7 +118,7 @@ import SwiftUI
                         .accessibilityIdentifier("playx.stillness.review")
                 }
             }
-        }.navigationTitle("playx.stillness").accessibilityIdentifier("playx.stillness.stream")
+        }.navigationTitle("playx.stillness").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("playx.stillness.stream")
             .onChange(of: scenePhase) { _, phase in if phase != .active { model.pause() } }
             .onDisappear { model.pause() }
     }

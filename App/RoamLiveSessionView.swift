@@ -66,12 +66,10 @@ import Combine
                     Section {
                         Button("roam.unstarted.continue", systemImage: "arrow.uturn.backward") { owner.continueUnstartedRoam() }
                             .accessibilityIdentifier("roam.unstarted.continue")
-                        Text("roam.unstarted.hint").font(.caption).foregroundStyle(.secondary)
                     }
                 }
                 if owner.phase == .finished, let saved = owner.completedHistory, model.finishedHistory.identity != nil {
                     Section("roam.finishedHistory.title") {
-                        Text("roam.finishedHistory.hint").font(.caption).foregroundStyle(.secondary)
                         NavigationLink {
                             RoamHistoryDetailView(reader: model.finishedHistory, timestamp: saved.timestamp)
                         } label: {

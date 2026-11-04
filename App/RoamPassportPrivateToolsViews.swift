@@ -366,7 +366,7 @@ extension RoamGoalState {
     @ViewBuilder private func detailSection(_ detail: RoamExplorationGoal) -> some View {
         Section {
             (Text(detail.metric.titleKey) + Text(verbatim: " · ") + Text(detail.state.titleKey)).font(.caption).foregroundStyle(.secondary)
-            (Text(verbatim: "\(detail.progress)").font(.system(size: 48, weight: .bold)) + Text(verbatim: " / \(detail.target)").font(.title2))
+            (Text(verbatim: "\(detail.progress)").font(Theme.Font.dataXL) + Text(verbatim: " / \(detail.target)").font(.title2))
                 .monospacedDigit().accessibilityIdentifier("roam.goals.detail.progress")
             ProgressView(value: Double(detail.percent), total: 100)
             Text("roam.goals.range \(detail.startDate) \(detail.endDateExclusive)").font(.caption).foregroundStyle(.secondary)

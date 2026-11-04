@@ -136,7 +136,7 @@ import SwiftUI
                         Capsule().fill(Color.secondary).frame(width: 2, height: mark % 3 == 0 ? 18 : 10)
                             .offset(y: -105).rotationEffect(.degrees(Double(mark) * 30))
                     }
-                    Image(systemName: "location.north.fill").font(.system(size: 72))
+                    Image(systemName: "location.north.fill").resizable().scaledToFit().frame(width: 60, height: 72)
                         .foregroundStyle(stage.compass.aligned ? Color.green : Color.accentColor)
                         .rotationEffect(.degrees(stage.compass.needleDegrees))
                         .opacity(stage.compass.heading == nil ? 0.25 : 1)

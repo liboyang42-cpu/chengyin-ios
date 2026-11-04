@@ -62,7 +62,7 @@ struct RouteActionPageReadRequest {
                     Button(cameraControlsExpanded ? LocalizedStringKey("playRouteCamera.hideControls") : LocalizedStringKey("playRouteCamera.showControls")) { cameraControlsExpanded.toggle() }
                         .frame(minHeight: 44).accessibilityIdentifier("playRouteCamera.controls")
                     if cameraControlsExpanded { cameraControls(presentation, snapshot: snapshot, context: context) }
-                }
+                } header: { Text("playRouteCamera.title") }
                 if !presentation.mappedStops.isEmpty {
                     Section("playRoute.map") {
                         Button(showMap ? LocalizedStringKey("playRoute.hideMap") : LocalizedStringKey("playRoute.showMap")) { showMap.toggle() }

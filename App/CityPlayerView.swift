@@ -90,7 +90,6 @@ struct CityPlayerView: View {
                     Text(verbatim: point.title).fixedSize(horizontal: false, vertical: true)
                 } icon: { Image(systemName: symbol(point)) }
                 Text(ownStatus(point)).fixedSize(horizontal: false, vertical: true)
-                Text("city.read.point.readOnly").font(.footnote).fixedSize(horizontal: false, vertical: true)
                 Button("city.read.point.clear") {
                     guard selection?.id == renderedSelection.id,
                           renderedSelection.point(in: reader.pointMapContext) != nil else { return }

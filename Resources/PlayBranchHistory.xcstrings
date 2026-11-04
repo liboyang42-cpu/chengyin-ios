@@ -25,13 +25,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This run’s branch history"
+            "value": "Branch history"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本次游玩的分支历史"
+            "value": "分支历史"
           }
         }
       }

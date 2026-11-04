@@ -97,7 +97,7 @@ struct RoamStampCard: View {
                 if offline {
                     ZStack {
                         RoundedRectangle(cornerRadius: 12).fill(Color.accentColor.opacity(0.13))
-                        Image(systemName: "building.2.crop.circle").font(.system(size: 52)).foregroundStyle(.tint)
+                        Image(systemName: "building.2.crop.circle").font(.largeTitle).imageScale(.large).foregroundStyle(.tint)
                     }.frame(height: 140).accessibilityLabel(Text("roam.experience.sampleArt"))
                 } else if allowsRemoteImages { RoamStampImage(source: stamp.picUrl) }
                 else { Label("roam.experience.imageUnavailable", systemImage: "photo") }
@@ -150,7 +150,7 @@ struct RoamCityStampDraftView: View {
                 RoamExperienceCard {
                     VStack(alignment: .leading, spacing: 18) {
                         Label("roam.experience.draftOnly", systemImage: "pencil.and.outline").font(.caption).foregroundStyle(.secondary)
-                        Image(systemName: "camera.metering.none").font(.system(size: 52)).foregroundStyle(.tint).frame(maxWidth: .infinity).padding()
+                        Image(systemName: "camera.metering.none").font(.largeTitle).imageScale(.large).foregroundStyle(.tint).frame(maxWidth: .infinity).padding()
                             .accessibilityHidden(true)
                         TextField("roam.experience.caption", text: $draft.caption, axis: .vertical)
                             .lineLimit(2...5).textFieldStyle(.roundedBorder)
