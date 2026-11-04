@@ -54,7 +54,7 @@ private struct WorkshopOwnedUnavailableView: View {
             case .idle, .loading:
                 ProgressView { workshopText("loading") }.padding(.vertical, Theme.Space.s3).accessibilityIdentifier("workshopOwned.loading")
             case .notEnabled: WorkshopOwnedUnavailableView()
-            case .empty: WorkshopLibraryNotice(text: workshopText("empty"), symbol: "square.stack.3d.up").accessibilityIdentifier("workshopOwned.empty")
+            case .empty: WorkshopLibraryNotice(text: workshopText("empty"), systemImage: "square.stack.3d.up").accessibilityIdentifier("workshopOwned.empty")
             case .failed, .invalidated:
                 WorkshopOwnedFailureView(issue: browser.issue)
                 if browser.phase != .invalidated {
@@ -140,13 +140,13 @@ private struct WorkshopOwnedUnavailableView: View {
                         WorkshopOwnedValueRow(key: "checkedAt", value: response.metadata.checkedAt)
                     } header: { workshopText("metadata") }
                     Section {
-                        WorkshopLibraryNotice(text: workshopText("publication." + item.publicationStatus.rawValue), symbol: "square.and.arrow.up")
+                        WorkshopLibraryNotice(text: workshopText("publication." + item.publicationStatus.rawValue), systemImage: "square.and.arrow.up")
                     } header: { workshopText("publication") }
                     if browser.packageBrowser != nil {
                         Button { navigation.openPackage(presentation: presentation) } label: { workshopText("package.open") }
                             .accessibilityIdentifier("workshopOwned.package.open")
                     }
-                    Section { WorkshopLibraryNotice(text: workshopText("contentUnavailable"), symbol: "lock") }
+                    Section { WorkshopLibraryNotice(text: workshopText("contentUnavailable"), systemImage: "lock") }
                 }
             } else if let issue = browser.detailIssue {
                 WorkshopOwnedFailureView(issue: issue)

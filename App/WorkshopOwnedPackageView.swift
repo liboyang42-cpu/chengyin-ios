@@ -51,8 +51,8 @@ import SwiftUI
                     } header: { packageText("limits") }
                     Section {
                         PackageValueRow(key: "bindingCount", value: String(info.requiredBindingCount))
-                        WorkshopLibraryNotice(text: packageText("manifestUnavailable"), symbol: "doc")
-                        WorkshopLibraryNotice(text: packageText("editorUnavailable"), symbol: "lock")
+                        WorkshopLibraryNotice(text: packageText("manifestUnavailable"), systemImage: "doc")
+                        WorkshopLibraryNotice(text: packageText("editorUnavailable"), systemImage: "lock")
                     } header: { packageText("nextSteps") }
                 }
             }

@@ -233,8 +233,8 @@ struct MerchantM02Notice: View {
 
 struct WorkshopLibraryNotice: View {
     let text: Text
-    let symbol: String
-    var body: some View { QuestifyNotice(symbol: symbol) { text } }
+    let systemImage: String
+    var body: some View { QuestifyNotice(symbol: systemImage) { text } }
 }
 
 struct WorkshopLibraryState: View {
