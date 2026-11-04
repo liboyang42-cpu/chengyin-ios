@@ -1,0 +1,11 @@
+// Build inputs only. This profile never grants authentication or feature capabilities.
+#include "UnitedStates.xcconfig"
+// Reset earlier local inputs so deployments cannot inherit another environment's address.
+QUESTIFY_API_BASE_URL = http:/$()/127.0.0.1:8099
+QUESTIFY_SESSION_REALM = us-development
+#include? "Local.UnitedStates.Development.xcconfig"
+// Bind environment and market after optional overrides; endpoints and realms remain local inputs.
+QUESTIFY_DEPLOYMENT_ENVIRONMENT = development
+QUESTIFY_MARKET = US
+// Loopback is a test-server address only. Existing HTTPS and reviewed-deployment gates remain unchanged.
+// No ATS exception is installed; selecting this profile alone does not enable HTTP or login.

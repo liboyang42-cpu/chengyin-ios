@@ -4,3 +4,11 @@ QUESTIFY_MARKET = CN
 INFOPLIST_KEY_QuestifyMarket = $(QUESTIFY_MARKET)
 // Intentionally empty until a reviewed market-specific endpoint is approved.
 QUESTIFY_API_BASE_URL =
+QUESTIFY_SESSION_REALM =
+
+// Per-market deployment inputs must not inherit another market's endpoint or realm.
+#include? "Local.China.xcconfig"
+// This profile owns its market even if a local file contains a stale market value.
+QUESTIFY_MARKET = CN
+// A market-only profile must not claim a deployment environment inherited from Local.
+QUESTIFY_DEPLOYMENT_ENVIRONMENT = unconfigured
