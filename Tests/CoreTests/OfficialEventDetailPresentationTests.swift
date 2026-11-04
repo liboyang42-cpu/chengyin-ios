@@ -99,7 +99,7 @@ final class OfficialEventDetailPresentationTests: XCTestCase {
     }
     func testFactsStripForSignedV2WithNumericTimestamps() throws {
         let value = try event(",\"status\":3,\"participants\":12,\"signed\":true,\"contractVersion\":2,\"activityStart\":\(start),\"activityEnd\":1893643200000,\"missions\":[{\"complete\":true},{}]")
-        let facts = OfficialEventDetailPresentation(event: value, now: Date(timeIntervalSince1970: start / 1000)).facts
+        let facts = OfficialEventDetailPresentation(event: value, now: Date(timeIntervalSince1970: start / 1000), displayTimeZone: TimeZone(identifier: "Asia/Shanghai")!).facts
         XCTAssertEqual(facts.map(\.id), ["participants", "progress", "duration", "dates", "scope", "tasks"])
         XCTAssertEqual(facts[0].value, .verbatim("12")); XCTAssertEqual(facts[0].sub, .key("official.detailParity.fact.participantsSub"))
         XCTAssertEqual(facts[1].value, .verbatim("1/2")); XCTAssertEqual(facts[1].sub, .key("official.detailParity.fact.progressTasks"))
@@ -131,8 +131,8 @@ final class OfficialEventDetailPresentationTests: XCTestCase {
         XCTAssertEqual(OfficialEventDetailPresentation.duration(start: .milliseconds(start), end: .milliseconds(start + 86_400_000)), .days(1))
         XCTAssertEqual(OfficialEventDetailPresentation.duration(start: .milliseconds(start), end: .milliseconds(start)), .key("official.notAnnounced"))
         XCTAssertEqual(OfficialEventDetailPresentation.duration(start: .text("2030-01-01"), end: .milliseconds(start)), .key("official.notAnnounced"))
-        XCTAssertEqual(OfficialEventDetailPresentation.dateRange(start: nil, end: .milliseconds(1893643200000)), .verbatim("1.3"))
-        XCTAssertEqual(OfficialEventDetailPresentation.dateRange(start: .milliseconds(start - 1), end: nil), .verbatim("12.31"))
+        XCTAssertEqual(OfficialEventDetailPresentation.dateRange(start: nil, end: .milliseconds(1893643200000), displayTimeZone: TimeZone(identifier: "Asia/Shanghai")!), .verbatim("1.3"))
+        XCTAssertEqual(OfficialEventDetailPresentation.dateRange(start: .milliseconds(start - 1), end: nil, displayTimeZone: TimeZone(identifier: "Asia/Shanghai")!), .verbatim("12.31"))
         XCTAssertEqual(OfficialEventDetailPresentation.dateRange(start: nil, end: nil), .key("official.notAnnounced"))
     }
     func testIntroStoryEligibilityPauseAndCollectiveCopy() throws {
