@@ -1,0 +1,317 @@
+{
+"": [
+"api"
+],
+"ai": [
+"api/ai"
+],
+"approved-topic-release": [
+"api/approved-topic-release/v1/prepare",
+"api/approved-topic-release/v1/publish",
+"api/approved-topic-release/v1/review/current",
+"api/approved-topic-release/v1/review/prepare",
+"api/approved-topic-release/v1/review/sources",
+"api/approved-topic-release/v1/review/status",
+"api/approved-topic-release/v1/review/submit",
+"api/approved-topic-release/v1/status"
+],
+"channel-platform": [
+"api/channel-platform/admission/requests",
+"api/channel-platform/governance/moderation/requests",
+"api/channel-platform/governance/reports/requests",
+"api/channel-platform/governance/requests",
+"api/channel-platform/requests"
+],
+"channel": [
+"api/channel/{}/board",
+"api/channel/{}/board/{}",
+"api/channel/{}/progress/overview"
+],
+"channels": [
+"api/channels",
+"api/channels/\\(channelID",
+"api/channels/member-state-requests",
+"api/channels/{}",
+"api/channels/{}/archive",
+"api/channels/{}/effective/{}",
+"api/channels/{}/members",
+"api/channels/{}/permissions",
+"api/channels/{}/permissions/{}/\\(parts",
+"api/channels/{}/restore"
+],
+"city-game": [
+"api/city-game"
+],
+"club-compensation": [
+"api/club-compensation/quality/evidence"
+],
+"club": [
+"api/club/event-ops/waitlist/{}",
+"api/club/lead",
+"api/club/post",
+"api/club/post/operation/receipt",
+"api/club/settings/notify-level"
+],
+"common": [
+"api/common/uploadOSS/receipt"
+],
+"content-draft": [
+"api/content-draft"
+],
+"coupon": [
+"api/coupon",
+"api/coupon/command-receipt"
+],
+"friend": [
+"api/friend",
+"api/friend/accept",
+"api/friend/cancel",
+"api/friend/channel-invite",
+"api/friend/directory",
+"api/friend/directory/detail",
+"api/friend/group/list",
+"api/friend/list",
+"api/friend/metadata",
+"api/friend/metadata/receipt",
+"api/friend/metadata/settle",
+"api/friend/progress",
+"api/friend/receipt",
+"api/friend/reject",
+"api/friend/relationship",
+"api/friend/removal/receipt",
+"api/friend/removal/settle",
+"api/friend/remove",
+"api/friend/request",
+"api/friend/requests",
+"api/friend/team-invite"
+],
+"fund": [
+"api/fund/preflight/{}"
+],
+"growth": [
+"api/growth/leaderboard/anonymous"
+],
+"guilds": [
+"api/guilds/{}/{}/channels",
+"api/guilds/{}/{}/channels/manage"
+],
+"im": [
+"api/im/appeals",
+"api/im/appeals/\\(",
+"api/im/appeals/{}/evidence",
+"api/im/appeals/{}/withdraw",
+"api/im/audit-log",
+"api/im/chain",
+"api/im/chain/close",
+"api/im/chain/create",
+"api/im/chain/info",
+"api/im/chain/join",
+"api/im/chain/withdraw",
+"api/im/channel",
+"api/im/channel/checkin",
+"api/im/channel/checkin-rank",
+"api/im/channel/checkin-request",
+"api/im/channel/checkin-status",
+"api/im/device/attempts",
+"api/im/file/message",
+"api/im/file/message/{}/authorization",
+"api/im/file/message/{}/preview",
+"api/im/file/receipt",
+"api/im/file/scan",
+"api/im/file/upload",
+"api/im/interaction/request",
+"api/im/members/{}/roles",
+"api/im/message",
+"api/im/message/context",
+"api/im/message/edit",
+"api/im/message/mutations",
+"api/im/message/recall",
+"api/im/message/request",
+"api/im/message/{}/attachment",
+"api/im/message/{}/revisions",
+"api/im/moderation",
+"api/im/moderation/actions",
+"api/im/moderation/ban",
+"api/im/moderation/kick",
+"api/im/moderation/me",
+"api/im/moderation/timeout",
+"api/im/moderation/{}/revoke",
+"api/im/mute-receipt",
+"api/im/mute-state",
+"api/im/notification-requests",
+"api/im/notify-log",
+"api/im/notify-pref",
+"api/im/pin",
+"api/im/pins",
+"api/im/pins/sort",
+"api/im/poll/create-receipt",
+"api/im/read-receipt",
+"api/im/read-state",
+"api/im/roles",
+"api/im/roles/{}/members",
+"api/im/route-share-source",
+"api/im/search",
+"api/im/unpin",
+"api/im/unread-summary",
+"api/im/video/message",
+"api/im/video/message/{}/authorization",
+"api/im/video/message/{}/preview",
+"api/im/video/policy",
+"api/im/video/receipt",
+"api/im/video/upload",
+"api/im/voice/message",
+"api/im/voice/message/{}",
+"api/im/voice/message/{}/authorization",
+"api/im/voice/receipt",
+"api/im/voice/upload",
+"api/im/webhook",
+"api/im/webhook/context",
+"api/im/{}"
+],
+"invite": [
+"api/invite/revoke"
+],
+"join-request": [
+"api/join-request/approve",
+"api/join-request/cancel",
+"api/join-request/reject",
+"api/join-request/submit"
+],
+"location-share": [
+"api/location-share/personal"
+],
+"map": [
+"api/map/public-layers"
+],
+"merchant": [
+"api/merchant/authoring/draft-selection/list",
+"api/merchant/authoring/draft-selection/resolve",
+"api/merchant/authoring/drafts",
+"api/merchant/authoring/drafts/{}",
+"api/merchant/authoring/environment",
+"api/merchant/authoring/jobs",
+"api/merchant/authoring/jobs/cancel",
+"api/merchant/authoring/main-line",
+"api/merchant/authoring/player",
+"api/merchant/authoring/player/{merchantId}/game",
+"api/merchant/authoring/player/{merchantId}/requests/{requestId}",
+"api/merchant/authoring/player/{}/game",
+"api/merchant/authoring/player/{}/requests/{}",
+"api/merchant/authoring/public",
+"api/merchant/authoring/releases",
+"api/merchant/authoring/releases/{}/withdraw",
+"api/merchant/npc/avatar/generate",
+"api/merchant/npc/avatar/status",
+"api/merchant/npc/knowledge-review",
+"api/merchant/npc/knowledge-review/request",
+"api/merchant/npc/voice/revoke",
+"api/merchant/npc/voice/script",
+"api/merchant/reviews/{}"
+],
+"native": [
+"api/native/blacklist/current",
+"api/native/blacklist/list",
+"api/native/blacklist/receipt",
+"api/native/blacklist/settle",
+"api/native/blacklist/unblock",
+"api/native/channels/read-through",
+"api/native/device/enroll",
+"api/native/device/enrollment-challenge",
+"api/native/device/revoke",
+"api/native/device/status",
+"api/native/home"
+],
+"onboarding": [
+"api/onboarding/get",
+"api/onboarding/submit"
+],
+"play": [
+"api/play",
+"api/play/advanced/time-window",
+"api/play/check",
+"api/play/egg/collect",
+"api/play/run-session"
+],
+"privacy": [
+"api/privacy/progress"
+],
+"progress": [
+"api/progress/meter",
+"api/progress/requests",
+"api/progress/requests/{}"
+],
+"publisher": [
+"api/publisher/identity"
+],
+"registration": [
+"api/registration/original-event"
+],
+"reward-pledge": [
+"api/reward-pledge",
+"api/reward-pledge/awards",
+"api/reward-pledge/drafts",
+"api/reward-pledge/fulfilment/awards",
+"api/reward-pledge/fulfilment/expire",
+"api/reward-pledge/fulfilment/preview",
+"api/reward-pledge/fulfilment/redeem",
+"api/reward-pledge/fulfilment/resolve",
+"api/reward-pledge/ops",
+"api/reward-pledge/pledges",
+"api/reward-pledge/review",
+"api/reward-pledge/versions"
+],
+"rewards": [
+"api/rewards/noncash",
+"api/rewards/noncash/cases",
+"api/rewards/noncash/claims",
+"api/rewards/noncash/claims/recover",
+"api/rewards/noncash/subjects",
+"api/rewards/noncash/versions",
+"api/rewards/pledge"
+],
+"space": [
+"api/space/join-pause",
+"api/space/leave"
+],
+"team": [
+"api/team/original-request",
+"api/team/{}"
+],
+"topic": [
+"api/topic/cover/selection",
+"api/topic/cover/selection/current",
+"api/topic/cover/selection/status",
+"api/topic/cover/upload",
+"api/topic/cover/{}/content"
+],
+"us": [
+"api/us/auth/apple/challenges",
+"api/us/auth/apple/exchange",
+"api/us/auth/session"
+],
+"user": [
+"api/user/address"
+],
+"welcome-screen": [
+"api/welcome-screen/get"
+],
+"workshop": [
+"api/workshop/creator/pending-packages",
+"api/workshop/creator/public-theme-use",
+"api/workshop/owned",
+"api/workshop/owned/package",
+"api/workshop/purchased",
+"api/workshop/purchased/install",
+"api/workshop/purchased/installed-text/detail",
+"api/workshop/purchased/professional-operations/cancel",
+"api/workshop/purchased/professional-operations/history",
+"api/workshop/purchased/professional-operations/status",
+"api/workshop/purchased/professional-operations/submit",
+"api/workshop/purchased/professional-targets/detail",
+"api/workshop/purchased/professional-targets/list"
+],
+"{}": [
+"api/{}/cancel",
+"api/{}/cancel_preview"
+]
+}
