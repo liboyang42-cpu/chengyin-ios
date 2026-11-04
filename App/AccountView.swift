@@ -4,7 +4,6 @@ import SwiftUI
     let account: Account
     var privateHomeCoordinator: PrivateHomeCoordinator? = nil
     var onOpenGuideDestination: ((SocialGuideDestination) -> Void)? = nil
-    @Environment(\.locale) private var locale
     @Environment(\.merchantRootModeSwitch) private var merchantRootModeSwitch
     @EnvironmentObject private var session: AppSession
     @State private var savedTopicOwner = ProfileFavoriteTopicNavigationOwner()
@@ -20,66 +19,32 @@ import SwiftUI
     private var localCoverOwner: ProfileLocalCoverOwner? {
         ProfileLocalCoverOwner.make(accountID: account.id, configuration: session.regionalConfiguration)
     }
-    private var roleLabel: LocalizedStringKey {
-        switch account.effectiveRole {
-        case "merchant": return "account.role.merchant"
-        case "player": return "account.role.player"
-        case "club": return "account.role.club"
-        default: return "account.role.other"
-        }
-    }
     var body: some View {
         NavigationStack {
             Form {
                 MemberIdentityCardSection(account: account, reader: session.memberHomeReader, growth: session.growthCenterReader, onOpenTickets: { showsTickets = true }, refreshToken: memberRefreshToken)
-                Section {
-                    NavigationLink { SessionDoorInviterView(session: session) } label: { Text("door.inviter.title") }
-                        .accessibilityIdentifier("door.inviter.entry")
-                }
-                Section { PrivateHomeAccountLink(coordinator: privateHomeCoordinator) }
-                Section {
-                    NavigationLink { PersonalLocationShareEntry(recipientId: nil) } label: {
-                        Label { Text("personalLocationShare.title.management", tableName: "PersonalLocationShare") } icon: { Image(systemName: "location") }
-                    }.accessibilityIdentifier("account.personalLocationShare")
-                }
-                ProfileLocalCoverSection(owner: localCoverOwner, reader: session.socialAccountReader)
-                Section("account.details") {
-                    LabeledContent("account.name",value:account.nickname)
-                    LabeledContent("account.id",value:String(account.id))
-                    LabeledContent("account.role") { Text(roleLabel) }
-                    NavigationLink { ProfileEditView(coordinator:session.profileEditCoordinator,sessionRevision:session.contentDetailRevision,categoryReader:session) } label: {
-                        Label("profile.edit.title",systemImage:"pencil")
-                    }.accessibilityIdentifier("account.editProfile")
-                }
-                MemberBenefitsSection(reader: session.memberHomeReader, earningsDestination: { AnyView(SessionWalletCommerceView().id(session.walletCommerceScope)) })
                 Section {
                     NavigationLink { ProfilePublicInfoHost(reader: session.makeProfilePublicInfoReader(memberID: account.id)) { profileReader in
                         SocialPublicProfileView(memberID: account.id, reader: profileReader, squareReader: session.squareReader, actions: session.socialActionCoordinator, selfOrdersAccess: .init(session: session), selfProjectsAccess: .init(session: session), selfGrowthAccess: .init(reader: session.growthCenterReader, owner: session.socialAccountReader.identity), weeklyPointsAccess: .init(reader: session.profileWeeklyPointsReader, owner: session.socialAccountReader.identity), personalToolsAccess: .init(owner: session.socialAccountReader.identity, wallet: session.walletHistoryReader, complaint: session.cooperationFlowReader), selfCouponAccess: .init(reader: session.profileOwnedCouponReader, owner: session.socialAccountReader.identity), selfObjectCardsAccess: .init(reader: session.objectCardReader, owner: session.socialAccountReader.identity), selfMedalsReader: session.profileReader, selfEditAccess: .init(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session), localCoverOwner: localCoverOwner, isCurrent: { profileReader.isCurrent })
                     }.id(session.socialAccountReader.identity) } label: {
                         Label("social.profile", systemImage: "person.crop.rectangle")
                     }.accessibilityIdentifier("account.publicProfile")
-                    NavigationLink { SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator).id(session.profileInviteHistoryReader.identity) } label: {
-                        Label("social.invites.title", systemImage: "person.2.badge.plus")
-                    }.accessibilityIdentifier("account.inviteHistory")
-                    NavigationLink { ProfileGuideHost(reader: session.makeProfileGuideReader(), makeArticleReader: { session.makeProfileGuideArticleReader($0) }, onOpenDestination: onOpenGuideDestination, templateReader: session).id(session.socialAccountReader.identity) } label: {
-                        Label("social.guide.title", systemImage: "book")
-                    }.accessibilityIdentifier("account.playGuide")
+                    NavigationLink { ProfileEditView(coordinator:session.profileEditCoordinator,sessionRevision:session.contentDetailRevision,categoryReader:session) } label: {
+                        Label("profile.edit.title",systemImage:"pencil")
+                    }.accessibilityIdentifier("account.editProfile")
                 }
-                Section {
-                    Button { showsTickets=true } label: { Label("ticketWallet.title",systemImage:"ticket") }
-                        .accessibilityIdentifier("account.ticketWallet")
-                    NavigationLink { SessionTeamHomeView() } label: { Label("team.title", systemImage: "person.3") }
-                        .accessibilityIdentifier("account.teams")
-                }
-                Section {
-                    WorkshopOwnedAccountLink(browser: session.workshopOwnedBrowser)
-                    WorkshopPurchasedAccountLink(browser: session.workshopPurchasedBrowser, makeInstall: { session.makeWorkshopPaidInstallController(item: $0) }, makeText: { session.makeWorkshopPaidInstalledTextController(reference: $0) }, makeProfessional: { session.makeWorkshopPaidProfessionalController(reference: $0) })
-                        .environment(\.workshopGeneratedTemplateReaderFactory, { session.makeOwnedMemberTemplateReader() })
-                    OwnerDraftAccountLink(browser: session.ownerDraftBrowser)
+                ProfileLocalCoverSection(owner: localCoverOwner, reader: session.socialAccountReader)
+                ProfileAccountLinks(reader:session.profileReader,ordersDestination:{ AnyView(SessionOwnedOrdersView(session: session)) },participantReader:session.participantReader,participantCoordinator:session.participantCoordinator,orderLifecycleCoordinator:session.orderLifecycleCoordinator, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory, part: .orders)
+                PlayerJourneyAccountLinks()
+                Section("profile.selfProjects.title") {
                     NavigationLink {
                         SessionCreatorProjectsView(session: session)
                     } label: { Label("creatorContent.projects",systemImage:"square.stack") }
                     .accessibilityIdentifier("account.creatorProjects")
+                    WorkshopOwnedAccountLink(browser: session.workshopOwnedBrowser)
+                    WorkshopPurchasedAccountLink(browser: session.workshopPurchasedBrowser, makeInstall: { session.makeWorkshopPaidInstallController(item: $0) }, makeText: { session.makeWorkshopPaidInstalledTextController(reference: $0) }, makeProfessional: { session.makeWorkshopPaidProfessionalController(reference: $0) })
+                        .environment(\.workshopGeneratedTemplateReaderFactory, { session.makeOwnedMemberTemplateReader() })
+                    OwnerDraftAccountLink(browser: session.ownerDraftBrowser)
                     NavigationLink { ProjectEditLaunchView().id(session.sessionRevision) } label: {
                         Label("projectEdit.title", systemImage: "square.and.pencil")
                     }.accessibilityIdentifier("account.projectEditor")
@@ -90,14 +55,7 @@ import SwiftUI
                         Label("creatorContent.center",systemImage:"pencil.and.outline")
                     }.accessibilityIdentifier("account.creatorCenter")
                 }
-                Section {
-                    NavigationLink { GrowthCenterView(reader:session.growthCenterReader).id(session.growthCenterReader.scope)
-                            .environment(\.growthExploreHomeAction, onOpenGuideDestination.map { open in { open(.home) } })
-                    } label: {
-                        Label("growth.title",systemImage:"chart.bar.xaxis")
-                    }.accessibilityIdentifier("account.growthCenter")
-                }
-                Section {
+                Section("wallet.assets") {
                     NavigationLink { SessionWalletCommerceView().id(session.walletCommerceScope) } label: {
                         Label("wallet.title", systemImage: "wallet.pass")
                     }.accessibilityIdentifier("account.wallet")
@@ -109,26 +67,47 @@ import SwiftUI
                     guard let selected = session.profileFavoritesReader.selectPost($0, renderedScope: session.profileFavoritesReader.scope) else { return }
                     _ = savedPostOwner.open(selected, scope: session.profileFavoritesReader.scope)
                 }, favoriteRemoval: session.makeProfileFavoriteRemovalController(scope: session.profileFavoritesReader.scope), couponReader: session.profileOwnedCouponReader, favoritesReader: session.profileFavoritesReader, rewardMerchant: session.readOnlyPublicMerchantHomeContext, communityGate: session.squareReader).id(session.accountCollectionReader.scope)
-                Section {
+                Section("account.section.collection") {
+                    ProfileAccountLinks(reader:session.profileReader, part: .collection)
                     NavigationLink { SessionObjectCardsView() } label: {
                         Label("objects.title", systemImage: "rectangle.stack")
                     }.accessibilityIdentifier("account.objectCards")
+                    NavigationLink { GrowthCenterView(reader:session.growthCenterReader).id(session.growthCenterReader.scope)
+                            .environment(\.growthExploreHomeAction, onOpenGuideDestination.map { open in { open(.home) } })
+                    } label: {
+                        Label("growth.title",systemImage:"chart.bar.xaxis")
+                    }.accessibilityIdentifier("account.growthCenter")
                 }
-                Section { ProfileComplaintPreparationLink(session: session) }
-                PlayerJourneyAccountLinks()
-                ProfileAccountLinks(reader:session.profileReader,ordersDestination:{ AnyView(SessionOwnedOrdersView(session: session)) },participantReader:session.participantReader,participantCoordinator:session.participantCoordinator,orderLifecycleCoordinator:session.orderLifecycleCoordinator, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory)
+                MemberBenefitsSection(reader: session.memberHomeReader, earningsDestination: { AnyView(SessionWalletCommerceView().id(session.walletCommerceScope)) })
                 Section {
                     NavigationLink { SessionMessagingHome(session: session) } label: {
                         HStack { Label("messaging.title",systemImage:"bubble.left.and.bubble.right"); Spacer(); IMUnreadEntryBadge(reader: session.imUnreadTotalReader) }
                     }.accessibilityIdentifier("account.messages")
+                    NavigationLink { SessionTeamHomeView() } label: { Label("team.title", systemImage: "person.3") }
+                        .accessibilityIdentifier("account.teams")
                     NavigationLink { ClubHomeView(reader:session,actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }).id(session.sessionRevision) } label: { Label("club.title",systemImage:"person.3") }
                         .accessibilityIdentifier("account.clubs")
+                    NavigationLink { SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator).id(session.profileInviteHistoryReader.identity) } label: {
+                        Label("social.invites.title", systemImage: "person.2.badge.plus")
+                    }.accessibilityIdentifier("account.inviteHistory")
+                    NavigationLink { ProfileGuideHost(reader: session.makeProfileGuideReader(), makeArticleReader: { session.makeProfileGuideArticleReader($0) }, onOpenDestination: onOpenGuideDestination, templateReader: session).id(session.socialAccountReader.identity) } label: {
+                        Label("social.guide.title", systemImage: "book")
+                    }.accessibilityIdentifier("account.playGuide")
+                    NavigationLink { SessionDoorInviterView(session: session) } label: { Label("door.inviter.title", systemImage: "person.badge.plus") }
+                        .accessibilityIdentifier("door.inviter.entry")
+                }
+                Section {
+                    PrivateHomeAccountLink(coordinator: privateHomeCoordinator)
+                    NavigationLink { PersonalLocationShareEntry(recipientId: nil) } label: {
+                        Label { Text("personalLocationShare.title.management", tableName: "PersonalLocationShare") } icon: { Image(systemName: "location") }
+                    }.accessibilityIdentifier("account.personalLocationShare")
+                    ProfileComplaintPreparationLink(session: session)
                 }
                 Section {
                     Button { showsCooperation=true } label: { Label("cooperation.title",systemImage:"person.2") }
                         .accessibilityIdentifier("account.cooperation")
                     NavigationLink { SessionMerchantOverviewView(session: session) } label: {
-                        Label(locale.language.languageCode?.identifier == "zh" ? "商家只读概览" : "Merchant overview (read-only)", systemImage: "chart.bar.doc.horizontal")
+                        Label("account.merchantOverview", systemImage: "chart.bar.doc.horizontal")
                     }.accessibilityIdentifier("account.merchantOverview")
                     NavigationLink { SessionMerchantProjectBrowseView(session: session) } label: {
                         Label("merchant.projects", systemImage: "calendar")

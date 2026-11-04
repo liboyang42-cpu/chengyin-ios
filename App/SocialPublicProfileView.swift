@@ -55,7 +55,7 @@ import SwiftUI
             }
             if memberID <= 0 {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text(verbatim: "这个主页链接不完整")
+                    Text("profile.incompleteLink.title")
                         .font(.headline)
                         .accessibilityIdentifier("social.incompleteLink.title")
                     Text("social.incompleteLink")
@@ -64,7 +64,7 @@ import SwiftUI
                     Button {
                         dismiss()
                     } label: {
-                        Text(verbatim: "回到我的主页")
+                        Text("profile.incompleteLink.backHome")
                     }
                     .buttonStyle(.questifyPrimary)
                     .accessibilityIdentifier("social.incompleteLink.backHome")
@@ -128,18 +128,18 @@ import SwiftUI
                                 Label { Text("personalLocationShare.title.person", tableName: "PersonalLocationShare") } icon: { Image(systemName: "location") }
                             }.accessibilityIdentifier("social.personalLocationShare")
                         }
-                        Text("social.profileActionsDisabled").font(.footnote).foregroundStyle(.secondary)
                     }
+                    // Mini-program cy/profile tab order: 我的 (orders, projects), 帖文, 成就, 关于.
                     Picker("social.profileSection", selection: $tab) {
-                        Text("social.posts").tag(Tab.posts)
-                        Text("social.achievements").tag(Tab.achievements)
-                        Text("social.about").tag(Tab.about)
                         if let selfOrdersAccess, selfOrdersAccess.context(memberID: memberID, social: reader, isCurrent: isCurrent()) != nil {
                             Text("profile.selfOrders.title").tag(Tab.orders)
                         }
                         if let selfProjectsAccess, selfProjectsAccess.context(memberID: memberID, accountReader: reader, isCurrent: isCurrent()) != nil {
                             Text("profile.selfProjects.title").tag(Tab.projects)
                         }
+                        Text("social.posts").tag(Tab.posts)
+                        Text("social.achievements").tag(Tab.achievements)
+                        Text("social.about").tag(Tab.about)
                     }.accessibilityIdentifier("social.profile.tabs")
                     switch tab {
                     case .orders:
