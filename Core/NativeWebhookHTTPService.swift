@@ -25,7 +25,7 @@ public enum NativeWebhookManagementAction: Sendable {
         query += [URLQueryItem(name: "owner_type", value: "CLUB"), URLQueryItem(name: "owner_id", value: context.binding.scope.ownerID.rawValue),
                   URLQueryItem(name: "channel_id", value: context.binding.scope.channelID.rawValue)]
         let page: NativeWebhookPage<NativeWebhookResource> = try await read(context, path: NativeWebhookRuntimeRoute.collection(family), query: query)
-        try validPage(page.hasMore, cursor: page.nextCursor, previous: cursor)
+        try validPage(page, limit: limit, previous: cursor)
         for resource in page.list { try validate(resource, family: family, context: context) }
         return page
     }
@@ -40,8 +40,9 @@ public enum NativeWebhookManagementAction: Sendable {
         query.append(URLQueryItem(name: "include_payload", value: includePayload ? "1" : "0"))
         if let state { query.append(URLQueryItem(name: "state", value: state.rawValue)) }
         let page: NativeWebhookPage<NativeWebhookDelivery> = try await read(context, path: NativeWebhookRuntimeRoute.deliveries(id), query: query)
-        try validPage(page.hasMore, cursor: page.nextCursor, previous: cursor)
+        try validPage(page, limit: limit, previous: cursor)
         guard page.list.allSatisfy({ $0.id == $0.deliveryID && !$0.eventID.isEmpty && !$0.eventType.isEmpty && $0.attempt >= 0 }) else { throw NativeWebhookClientError.invalidWire }
+        guard state == nil || page.list.allSatisfy({ $0.state == state }) else { throw NativeWebhookClientError.invalidWire }
         return page
     }
     public func inboundLogs(_ id: NativeWebhookID, context: NativeWebhookContext, result: NativeWebhookInboundState? = nil,
@@ -49,7 +50,8 @@ public enum NativeWebhookManagementAction: Sendable {
         var query = try pageQuery(cursor, limit: limit)
         if let result { query.append(URLQueryItem(name: "result", value: result.rawValue)) }
         let page: NativeWebhookPage<NativeWebhookInboundLog> = try await read(context, path: NativeWebhookRuntimeRoute.inboundLogs(id), query: query)
-        try validPage(page.hasMore, cursor: page.nextCursor, previous: cursor)
+        try validPage(page, limit: limit, previous: cursor)
+        guard result == nil || page.list.allSatisfy({ $0.result == result }) else { throw NativeWebhookClientError.invalidWire }
         guard page.list.allSatisfy({ row in
             guard row.result == row.state else { return false }
             if row.result == .accepted {
@@ -234,11 +236,19 @@ public enum NativeWebhookManagementAction: Sendable {
               reauthorized.value(forHTTPHeaderField: "Authorization") == authorized.value(forHTTPHeaderField: "Authorization") else {
             throw NativeWebhookClientError.scopeChanged
         }
+        // A gateway/server failure can follow a committed mutation. Keep the
+        // original identity recoverable even when the error body looks definite.
+        if method != .get, (500...599).contains(status) {
+            throw NativeWebhookClientError.resultUnknown(traceID: nil)
+        }
         guard data.count <= 4 * 1024 * 1024 else { throw method == .get ? NativeWebhookClientError.invalidWire : .resultUnknown(traceID: nil) }
         let header: Header
         do { header = try JSONDecoder().decode(Header.self, from: data) }
         catch { throw method == .get ? NativeWebhookClientError.invalidWire : .resultUnknown(traceID: nil) }
         guard (200...299).contains(status), header.code == 200 else {
+            if method != .get, (500...599).contains(header.code) {
+                throw NativeWebhookClientError.resultUnknown(traceID: header.traceID)
+            }
             let code = Self.safeCode(header.err)
             if code == "WEBHOOK_RESULT_UNKNOWN" { throw NativeWebhookClientError.resultUnknown(traceID: header.traceID) }
             if status == 401 || status == 403 || header.code == 401 || header.code == 403 {
@@ -263,8 +273,11 @@ public enum NativeWebhookManagementAction: Sendable {
         var query = [URLQueryItem(name: "limit", value: String(limit))]
         if let cursor { query.append(URLQueryItem(name: "cursor", value: cursor)) }; return query
     }
-    private func validPage(_ hasMore: Bool, cursor: String?, previous: String?) throws {
-        guard !hasMore || (cursor != nil && cursor != "" && cursor != previous) else { throw NativeWebhookClientError.invalidWire }
+    private func validPage<Item: Decodable & Sendable & Identifiable>(_ page: NativeWebhookPage<Item>, limit: Int, previous: String?) throws where Item.ID: Hashable {
+        guard page.list.count <= limit, Set(page.list.map(\.id)).count == page.list.count,
+              !page.hasMore || (!page.list.isEmpty && page.nextCursor != nil && page.nextCursor != "" && page.nextCursor != previous) else {
+            throw NativeWebhookClientError.invalidWire
+        }
     }
     private func validate(_ resource: NativeWebhookResource, family: NativeWebhookFamily, context: NativeWebhookContext) throws {
         guard resource.ownerType == "CLUB", resource.ownerID == context.binding.scope.ownerID,
