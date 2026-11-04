@@ -171,3 +171,52 @@ Projection run log SHA-256:
 `d6e8df86ea1edc810c0c27bcb59bac3404e9b3b24e95b0d6dd0f3b6d7b85c97b`.
 Coordinator compile/link attempt log SHA-256:
 `2ee48e5be34583cae0cee6f323c77da09d0cf7642dfdea01a0f7e0ff9e89df11`.
+
+
+## Stop decision after remaining-scope audit
+
+A final read-only audit found no further complete, non-duplicating independent L10
+group under the current frozen backend contract. This is a blocked handoff, not a
+claim that the lane is complete. Only this record is updated by this audit.
+
+Rechecked refs:
+- iOS integration: `eec839502b11f1119a6ede212c768bb3f2de4f29`.
+- iOS completed client groups: `49e0ac5afa0cab260d9a1cfdc0a7494fcf1bed5e`.
+- Backend contract remains frozen at `58f4cc429b0d0e3035ccdf1bd4a9c3dfd76eb9a4`.
+- Public backend integration is `c6eac3b8cebf7311e8f00f208d294c3c8212aaec`;
+  its tracked tree also has no CityGame/CityBoard implementation. It does not
+  supersede the frozen contract.
+- #136 still has no assignee or comments. No additional public iOS L10 owner branch
+  was found. Existing G06/private work was not accessed or reassigned.
+
+| Remaining group | Concrete blocker |
+| --- | --- |
+| Board/season/rules/region/participation/points live reads | Existing public board-publication work at `36071cdfd55513b59966c5185153eac692a9753d` is a candidate outside the frozen contract. Its production source probe is UNAVAILABLE, current board is FROZEN, and participation/points return 503 rather than authoritative membership or points. Porting a second copy would duplicate that work. |
+| Check-in, occupation, operating actions and reconnect | No player writer, signed-evidence contract, cooldown source or original-action receipt route exists in the frozen backend. The iOS operation protocol cannot be promoted to live transport by inventing routes. |
+| Economic configuration and fair server decisions | Real quote/dice/ownership sources and owner-provided rule values are missing. Client-side computed outcomes or invented defaults would violate the assigned scope. |
+| City/viewport/permission filtering before aggregation | Authoritative location-permission and source probes are not connected. Client filtering cannot substitute for server authorization or prove hidden-source counts/cursors are safe. |
+| Shanghai pilot and two-account season acceptance | Persistent playable board/season/action/receipt sources and test environment are required first. Candidate SQL is not executed and is not part of the frozen contract. A fictional seed cannot prove play. |
+
+The existing public operations work at
+`37a3c5baca3a8cb8e87bf90197be16693d8b3b46` was also inspected. Its contract
+`docs/contracts/w20-city-game-operations.md` is explicitly
+`CITY_OPS_TRACE_V1`, `transport: NOT_APPROVED`, and records
+`NO_EVIDENCE_SOURCE`, `NO_TASK_SOURCE`, `NO_DICE_SOURCE`,
+`NO_QUOTE_SOURCE`, and `NO_OWNERSHIP_SOURCE`. Its administrative correction
+request receipts are not player occupation/action receipts. No duplicate port or
+new permission grant was attempted.
+
+The frozen backend [AGENTS.md](https://github.com/liboyang42-cpu/hengyin/blob/58f4cc429b0d0e3035ccdf1bd4a9c3dfd76eb9a4/AGENTS.md)
+requires development/test backends and Java tests to stay on the dedicated test VPS:
+"Do not start local Docker, Colima, Java build/test processes, Java application
+servers or Redis, and do not fall back locally when the VPS is unavailable."
+No authorized test-VPS route was supplied for this task. No local Java/backend
+fallback, private source, user computer, credentials or network expansion was used.
+
+Next coordination dependency: retain/identify the existing backend port owner,
+supply reviewed authoritative read/write/receipt contracts in an explicitly
+designated backend base, provide owner economic configuration and an authorized
+test environment, then have L1 apply the shared wiring/manifest handoff. Until
+those prerequisites change, this task stops implementation. No permission denial
+was retried or bypassed. No new code, test execution, CI, PR, production write,
+DDL, transaction or award was performed during this final audit.
