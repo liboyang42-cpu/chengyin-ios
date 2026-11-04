@@ -42,7 +42,7 @@ public enum SHA256 {
  public init(wrappedValue: Value) { self.wrappedValue = wrappedValue }
 }
 ''')
-whole=['APIConfiguration','AuthRequestBuilder','AppPreferences','NativeFriendContracts','NativeFriendMetadataContracts','NativeFriendIntentJournal','NativeFriendFlow','NativeFriendService','NativePushAttemptRead','NativeWebhookContracts','NativeWebhookScopeProvider','NativeWebhookRuntimeRoute','NativeWebhookHTTPService','NativeWebhookPendingJournal','NativeWebhookPresentation','NativeWebhookCoordinator']
+whole=['APIConfiguration','AuthRequestBuilder','AppPreferences','NativeFriendContracts','NativeFriendMetadataContracts','NativeFriendIntentJournal','NativeFriendFlow','NativeFriendService','NativeNotificationPermissionState','NativePushAttemptRead','NativeWebhookContracts','NativeWebhookScopeProvider','NativeWebhookRuntimeRoute','NativeWebhookHTTPService','NativeWebhookPendingJournal','NativeWebhookPresentation','NativeWebhookCoordinator']
 for name in whole:
     source=subprocess.check_output(['git','show',args.base+':Core/'+name+'.swift'],cwd=repo) if args.base and name in changed else (repo/f'Core/{name}.swift').read_bytes()
     (out/f'Sources/QuestifyCore/{name}.swift').write_bytes(source)
@@ -58,7 +58,7 @@ def decl(file,marker):
     return source[start:end]+'\n'
 parts=[('AuthService','public protocol HTTPTransport'),('RegionalConfiguration','public enum RegionalMarket'),('PlayExperienceContracts','public struct PlayExperienceSession'),('PlayExperienceContracts','extension PlayExperienceSession'),('RuntimeDependencyConfiguration','public struct RuntimeDependencyContext'),('OperationAdapterSafety','public struct OperationEndpointApproval'),('OperationAdapterSafety','public struct OperationPendingRecord'),('OperationAdapterSafety','@MainActor public protocol OperationPendingJournal'),('OperationAdapterSafety','@MainActor public protocol OperationPendingListing'),('ProjectEditLocalStore','@MainActor public protocol ProjectEditDataStorage'),('SquareContracts','public enum SquareContentGeneration')]
 (out/'Sources/QuestifyCore/SharedDeclarations.swift').write_text('import Foundation\nimport FoundationNetworking\n'+''.join(decl(*p) for p in parts))
-tests=['NativeFriendOriginalReplayBoundaryTests','NativeFriendIndependentRecoveryTests','NativeWebhookContractsTests','NativeWebhookRestoredBoundaryTests','NativeWebhookResponseBoundaryTests','NativePushAttemptReadBoundaryTests']
+tests=['NativeFriendOriginalReplayBoundaryTests','NativeFriendIndependentRecoveryTests','NativeWebhookContractsTests','NativeWebhookRestoredBoundaryTests','NativeWebhookResponseBoundaryTests','NativePushAttemptReadBoundaryTests','NativeNotificationPermissionLifecycleTests']
 for name in tests:
     source=(repo/f'Tests/CoreTests/{name}.swift').read_text()
     # Linux XCTest cannot discover synchronous @MainActor methods. Only add async
