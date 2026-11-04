@@ -261,13 +261,16 @@ extension PlayExperienceService {
     }
     private func sendPending() async {
         guard let pending, let session = owner, session == currentSession() else { return }
+        // A rejection of a replay is not proof that the earlier request did not
+        // commit. Keep its immutable idempotency key until its own result returns.
+        let preservesUnknown = phase == "retryable" || phase == "unknown"
         let generation = generation; let cardLifetime = cardLifetime; phase = "submitting"
         do {
             let result = try await service.advancedAction(pending, token: session.token)
             try accept(result, session: session, generation: generation)
             if self.cardLifetime == cardLifetime { cardReceipts.accept(result, owner: session, pending: pending, requestedCard: pendingRequestedCard) }
             self.pending = nil; pendingRequestedCard = false
-        } catch { failure(error, session: session, generation: generation) }
+        } catch { failure(error, session: session, generation: generation, preservePending: preservesUnknown) }
     }
     public func recover() async {
         guard let pending, let session = owner, session == currentSession(), phase == "unknown" else { return }
@@ -281,7 +284,7 @@ extension PlayExperienceService {
             // Version advancement alone is NOT proof, including on a single-user run.
             // Expose only replay of the frozen idempotent request after explicit review.
             phase = "retryable"
-        } catch { failure(error, session: session, generation: generation) }
+        } catch { failure(error, session: session, generation: generation, preservePending: true) }
     }
     public func retryExact() async { guard phase == "retryable" else { return }; await sendPending() }
     public func refreshAuthoritative() async {
@@ -305,10 +308,23 @@ extension PlayExperienceService {
         // Step submission itself is separately unsupported until its proof contract is approved.
         phase = "ready"
     }
-    private func failure(_ error: Error, session: PlayExperienceSession, generation: UInt64) {
+    private func failure(_ error: Error, session: PlayExperienceSession, generation: UInt64, preservePending: Bool = false) {
         guard self.generation == generation else { return }
         guard currentSession() == session else { clearAdvancedLeaderboard(); self.state = nil; clearObjectCardReceipt(); phase = "stale"; return }
         issue = error as? PlayExperienceError ?? .unknownResult
+        if preservePending, pending != nil {
+            // A current-state read has no original action identity. Missing data,
+            // an expired grant or a business error must not release that action.
+            clearAdvancedLeaderboard()
+            if case PlayExperienceError.unauthorized = error { clearObjectCardReceipt(); phase = "stale" }
+            else if case APIError.unauthorized = error { clearObjectCardReceipt(); phase = "stale" }
+            else {
+                if case PlayExperienceError.rejected = error { clearObjectCardReceipt() }
+                if case PlayExperienceError.disabled = error { clearObjectCardReceipt() }
+                phase = "unknown"
+            }
+            return
+        }
         if case PlayExperienceError.rejected = error { pending = nil; clearObjectCardReceipt(); phase = "rejected"; clearAdvancedLeaderboard() }
         else if case PlayExperienceError.disabled = error { clearAdvancedLeaderboard(); pending = nil; clearObjectCardReceipt(); phase = "disabled" }
         else if case PlayExperienceError.unauthorized = error { clearAdvancedLeaderboard(); clearObjectCardReceipt(); phase = "stale" }
