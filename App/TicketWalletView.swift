@@ -20,7 +20,6 @@ import SwiftUI
         let offeredPendingPresentation = pendingOrderEntry.presentationID
         NavigationStack {
             List {
-                if reader.isOfflineExample { Text("ticketWallet.offlineExample").font(.caption) }
                 if !reader.isAuthenticated {
                     TicketWalletIssueView(issue: .login)
                     Text("ticketWallet.parity.login.detail").font(.subheadline).foregroundStyle(.secondary)
@@ -43,12 +42,16 @@ import SwiftUI
                     }
                     if snapshot.tickets.isEmpty {
                         // A partial empty response never claims the whole wallet is empty.
-                        Text(LocalizedStringKey(snapshot.partialFailure == nil ? "ticketWallet.empty" : "ticketWallet.partialEmpty"))
-                            .accessibilityIdentifier("ticketWallet.empty")
-                        if snapshot.partialFailure == nil {
-                            Text("ticketWallet.parity.empty.detail").font(.subheadline).foregroundStyle(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .accessibilityIdentifier("ticketWallet.emptyHint")
+                        ContentUnavailableView {
+                            Label {
+                                Text(LocalizedStringKey(snapshot.partialFailure == nil ? "ticketWallet.empty" : "ticketWallet.partialEmpty"))
+                                    .accessibilityIdentifier("ticketWallet.empty")
+                            } icon: { Image(systemName: "ticket") }
+                        } description: {
+                            if snapshot.partialFailure == nil {
+                                Text("ticketWallet.parity.empty.detail")
+                                    .accessibilityIdentifier("ticketWallet.emptyHint")
+                            }
                         }
                     }
                     // Source preserves both lanes and row order, including repeated server IDs.

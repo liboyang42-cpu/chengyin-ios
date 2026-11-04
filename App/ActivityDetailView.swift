@@ -333,16 +333,13 @@ struct ActivityDetailView: View {
         return .signUp
     }
     private var registrationAction: some View {
-        VStack(spacing:0) {
-            Divider()
+        // Same placement as `.questifyBottomAction`: one primary action pinned above the home indicator.
+        Group {
             if primaryAction == .signUp {
                 Button { showsRegistration=true } label: { primaryActionLabel(.signUp) }
                     .buttonStyle(.questifyPrimary)
                     .controlSize(.large)
-                    .tint(QuestifyPalette.accent)
                     .accessibilityIdentifier("activity.openRegistration")
-                    .padding(.horizontal,16)
-                    .padding(.vertical,12)
             } else {
                 // A registered or cancelled activity never reopens the registration sheet.
                 let action = primaryAction
@@ -350,14 +347,13 @@ struct ActivityDetailView: View {
                 Button { if action != .cancelled, walletAvailable { showsTicketWallet=true } } label: { primaryActionLabel(action) }
                     .buttonStyle(.questifyPrimary)
                     .controlSize(.large)
-                    .tint(QuestifyPalette.accent)
                     .disabled(action == .cancelled || !walletAvailable)
                     .accessibilityIdentifier("activity.primaryAction")
-                    .padding(.horizontal,16)
-                    .padding(.vertical,12)
             }
         }
-        .background(Color(uiColor:.secondarySystemGroupedBackground))
+        .frame(maxWidth:.infinity)
+        .padding(.horizontal,Theme.Space.pageX)
+        .padding(.vertical,Theme.Space.s2)
     }
     private func primaryActionLabel(_ action: ActivityPrimaryAction) -> some View {
         Text(LocalizedStringKey(action.titleKey))

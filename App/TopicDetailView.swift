@@ -50,11 +50,13 @@ struct TopicDetailView: View {
         ScrollViewReader { proxy in
         List {
             Section {
-                if reader.isOfflineExample { Text("topic.offlineExample").font(.caption) }
-                TopicXcxHero(topic: value)
                 let covers = value.images.isEmpty ? (value.imageURL.map { [$0] } ?? []) : Array(value.images.prefix(9))
-                if covers.isEmpty { Text("topicXcx.coverHint").font(.caption).foregroundStyle(.secondary) }
-                else { NativeMediaGalleryEntry(sources: covers, scope: key.scope, titleKey: "media.destination.squareImages", compact: true) }
+                if covers.isEmpty {
+                    // No cover: a clean surface with no text.
+                    RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(uiColor: .tertiarySystemFill))
+                        .frame(height: 180).accessibilityHidden(true)
+                } else { NativeMediaGalleryEntry(sources: covers, scope: key.scope, titleKey: "media.destination.squareImages", compact: true) }
+                TopicXcxHero(topic: value)
                 Text(verbatim: value.name).font(.title2.bold())
                 TopicXcxStatBar(cells: TopicXcxFacts.statBar(value))
                 TopicXcxTabs(proxy: proxy)
@@ -68,9 +70,8 @@ struct TopicDetailView: View {
                 }
                 if let subtitle = value.subtitle { Text(verbatim: subtitle) }
                 if let introduction = value.introduction { Text(verbatim: introduction).textSelection(.enabled) }
-                if let audio = value.audioURL, !audio.isEmpty { PlatformAudioHost(rawURL: audio, scope: reader.scope, makeModel: makeAudio) }
                 if let club = value.clubName { Text(verbatim: club) }
-                if !value.categoryNames.isEmpty { Text(verbatim: value.categoryNames.joined(separator: " · ")) }
+                if let audio = value.audioURL, !audio.isEmpty { PlatformAudioHost(rawURL: audio, scope: reader.scope, makeModel: makeAudio) }
                 if let start = value.startDate { LabeledContent("topic.start", value: start) }
                 if let end = value.endDate { LabeledContent("topic.end", value: end) }
                 if let count = value.merchantCount { LabeledContent("topic.merchants", value: String(count)) }
@@ -121,7 +122,6 @@ struct TopicDetailView: View {
                     Button("contextSelfPlay.title") { showingSelfPlay = true }
                         .disabled(!value.canOfferPurchase).accessibilityIdentifier("contextSelfPlay.open")
                 }
-                Text("topic.readOnly").font(.footnote).foregroundStyle(.secondary)
             }
             if value.showStoryPaywall {
                 Section("topic.lockedStory") {
@@ -271,7 +271,6 @@ struct TopicChapterView: View {
                             }
                         }
                     }
-                    Section { Text("topic.readOnly").font(.footnote) }
                 }
             }
         }.appNavigationTitle("topic.chapter").navigationBarTitleDisplayMode(.inline)

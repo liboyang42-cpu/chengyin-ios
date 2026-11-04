@@ -123684,13 +123684,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current source contract requires an 11-digit mobile number starting with 1. International numbers are not supported yet."
+            "value": "Enter a valid mobile number."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前来源接口要求以 1 开头的 11 位手机号，尚未支持国际号码。"
+            "value": "请输入有效的手机号。"
           }
         }
       }
@@ -154559,13 +154559,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Filters apply to loaded records. Load more to see additional matches"
+            "value": "Filters apply to the records shown. Load more to see other matches"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "筛选仅针对已加载记录，加载更多可查看后续匹配项"
+            "value": "筛选仅针对当前显示的记录，加载更多可查看其他匹配项"
           }
         }
       }
@@ -155023,13 +155023,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The source returns only this batch; more records may exist"
+            "value": "Showing the latest records"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "源接口仅提供本批记录，可能还有其他记录"
+            "value": "仅显示最近的记录"
           }
         }
       }

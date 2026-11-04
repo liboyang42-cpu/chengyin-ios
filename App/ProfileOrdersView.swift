@@ -130,7 +130,10 @@ private struct ProfileOrderRow: View {
                     Text("profile.orders.number \(number)").font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 8)
-                Text(LocalizedStringKey("orderLifecycle.state." + historyState.rawValue)).font(.subheadline)
+                QuestifyStatusBadge(title: LocalizedStringKey("orderLifecycle.state." + historyState.rawValue),
+                                    systemImage: Self.symbol(historyState),
+                                    emphasized: historyState == .pendingPayment || historyState == .notStarted || historyState == .inProgress,
+                                    stateKey: historyState.rawValue)
             }
             switch order.sourceMode {
             case .cityOrienteering?:
@@ -158,6 +161,21 @@ private struct ProfileOrderRow: View {
                 ProfileOrderAmountLabel(amount: order.actualPaidAmount)
             }
         }.padding(.vertical, 6)
+    }
+    /// The symbol and label carry the state together, never colour alone.
+    private static func symbol(_ state: OrderLifecycleState) -> String {
+        switch state {
+        case .pendingPayment: return "creditcard"
+        case .notStarted: return "ticket"
+        case .inProgress: return "figure.walk"
+        case .completed: return "checkmark.seal"
+        case .cancelled: return "xmark.circle"
+        case .expired: return "calendar.badge.exclamationmark"
+        case .refunding, .manualRefund: return "arrow.uturn.backward.circle"
+        case .refunded: return "arrow.uturn.backward"
+        case .nonRefundable: return "lock"
+        case .unknown: return "questionmark.circle"
+        }
     }
 }
 
