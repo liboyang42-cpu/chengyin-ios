@@ -312,7 +312,6 @@ import SwiftUI
                 if model.coordinator.isReadOnly {
                     Label("roam.experience.readOnly", systemImage: "lock.fill")
                         .accessibilityIdentifier("projectRemote.readOnly")
-                    Text(verbatim: ProjectEditScope.sellingFrozen.rawValue).font(.caption)
                 } else {
                     QuestifyStatusBadge(title: LocalizedStringKey(model.coordinator.canSimulate ? "projectEdit.fixtureBadge" : "projectEdit.localBadge"), systemImage: "square.and.pencil")
                     Text(LocalizedStringKey(model.coordinator.canSimulate ? "projectEdit.fixtureNotice" : "projectEdit.unconfigured"))
@@ -345,11 +344,15 @@ import SwiftUI
                             .accessibilityIdentifier("projectRemote.continue")
                     }
                 }
-                Section {
-                    Button("contextPublish.mode.choose") { modeReview.open() }
-                        .disabled(!model.fullEdit || model.coordinator.session == nil || model.draft.owner == .merchant).accessibilityIdentifier("contextPublish.mode.open")
-                    if model.draft.owner == .merchant { Text("contextPublish.mode.merchantLocked").font(.caption) }
-                    if modeCopyFailed { Text("contextPublish.mode.failed") }
+                // Merchant route mode is fixed, so its entry is hidden rather than shown disabled.
+                if model.draft.owner != .merchant || modeCopyFailed {
+                    Section {
+                        if model.draft.owner != .merchant {
+                            Button("contextPublish.mode.choose") { modeReview.open() }
+                                .disabled(!model.fullEdit || model.coordinator.session == nil || model.draft.owner == .merchant).accessibilityIdentifier("contextPublish.mode.open")
+                        }
+                        if modeCopyFailed { Text("contextPublish.mode.failed").foregroundStyle(.red) }
+                    }
                 }
                 if model.hasRestore {
                     Section("projectEdit.restoreTitle") {
@@ -402,10 +405,10 @@ import SwiftUI
                         ForEach(issueRows) { row in
                             if let capture = row.capture {
                                 Button { focusedField = nil; issueNavigation.open(capture) } label: {
-                                    Label(LocalizedStringKey(row.issue.key), systemImage: "exclamationmark.circle")
+                                    Label(LocalizedStringKey(row.issue.key), systemImage: "exclamationmark.circle").foregroundStyle(.red)
                                 }.accessibilityIdentifier("projectEdit.issue." + row.issue.id)
                             } else {
-                                Label(LocalizedStringKey(row.issue.key), systemImage: "exclamationmark.circle")
+                                Label(LocalizedStringKey(row.issue.key), systemImage: "exclamationmark.circle").foregroundStyle(.red)
                                     .accessibilityIdentifier("projectEdit.issue." + row.issue.id)
                             }
                         }
@@ -578,13 +581,11 @@ struct ProjectEditReferenceField: View {
     let title: LocalizedStringKey
     @Binding var value: String
     let identifier: String
-    var showsDeferredHint = true
+    /// Kept for call sites; the deferred-media caption is no longer shown.
+    var showsDeferredHint = false
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            TextField(title, text: $value).textInputAutocapitalization(.never).autocorrectionDisabled()
-                .accessibilityIdentifier(identifier)
-            if showsDeferredHint { Text("projectEdit.mediaDeferred").font(.caption).foregroundStyle(.secondary) }
-        }
+        TextField(title, text: $value).textInputAutocapitalization(.never).autocorrectionDisabled()
+            .accessibilityIdentifier(identifier)
     }
 }
 /// Manual IDs remain available when the scoped category reader is unavailable.
