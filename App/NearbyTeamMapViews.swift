@@ -6,22 +6,26 @@ enum NearbyTeamViewMode: Hashable { case map, list }
 struct NearbyMineLoad { var loading = false; var failed = false; var loaded = false }
 enum NearbyRecruitingLoad: Equatable { case idle, loading, loaded, failed, noArea }
 
-/// Dark count bar 附近的队伍 · N 支在招募 with the 地图 / 列表 switch.
-struct NearbyTeamHeaderBar: View {
+/// Count line 附近的队伍 · N 支在招募. The 地图 / 列表 switch lives in the navigation bar (`NearbyTeamViewModePicker`).
+struct NearbyTeamCountLine: View {
     let loaded: Bool
     let count: Int
+    var body: some View {
+        Label {
+            if loaded { Text("nearby.w208.header \(count)") } else { Text("nearby.w208.header.loading") }
+        } icon: { Image(systemName: "circle.fill").font(.caption2).foregroundStyle(.tint) }
+        .font(Theme.Font.sectionTitle).accessibilityIdentifier("nearby.w208.header")
+    }
+}
+
+/// Native segmented 地图 / 列表 switch for the toolbar.
+struct NearbyTeamViewModePicker: View {
     @Binding var mode: NearbyTeamViewMode
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label {
-                if loaded { Text("nearby.w208.header \(count)") } else { Text("nearby.w208.header.loading") }
-            } icon: { Image(systemName: "circle.fill").font(.caption2).foregroundStyle(.tint) }
-            .font(.subheadline.weight(.semibold)).accessibilityIdentifier("nearby.w208.header")
-            Picker("nearby.w208.viewMode", selection: $mode) {
-                Text("nearby.w208.mode.map").tag(NearbyTeamViewMode.map)
-                Text("nearby.w208.mode.list").tag(NearbyTeamViewMode.list)
-            }.pickerStyle(.segmented).accessibilityIdentifier("nearby.w208.viewMode")
-        }
+        Picker("nearby.w208.viewMode", selection: $mode) {
+            Text("nearby.w208.mode.map").tag(NearbyTeamViewMode.map)
+            Text("nearby.w208.mode.list").tag(NearbyTeamViewMode.list)
+        }.pickerStyle(.segmented).fixedSize().accessibilityIdentifier("nearby.w208.viewMode")
     }
 }
 
