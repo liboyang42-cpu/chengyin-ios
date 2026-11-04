@@ -439,6 +439,114 @@ import XCTest
         XCTAssertEqual(f.unauthorized, 1); XCTAssertEqual(f.wire.writes, 0)
     }
 
+    func testExplicitOriginalStatus401RetiresProtectedPresentationAndKeepsDurableIntent() async throws {
+        let f = try Fixture(), command = try Self.command(), appearance = WorkshopPaidInstallAppearance()
+        try f.store.save(command)
+        f.wire.scripted["history"] = [try Self.historyPage([1])]
+        try await f.load(appearance)
+        let visibleReceipt = try XCTUnwrap(f.controller.history.first)
+        XCTAssertNotNil(f.controller.installedTextReference(visibleReceipt, appearance: appearance))
+        let saved = f.memory.values
+        f.wire.scripted["status"] = [(Data(), 401)]
+        await (try XCTUnwrap(f.controller.offerStatus(appearance)))()
+        XCTAssertEqual(f.unauthorized, 1)
+        assertPresentationRetired(f, appearance: appearance)
+        XCTAssertNil(f.controller.installedTextReference(visibleReceipt, appearance: appearance))
+        XCTAssertEqual(f.memory.values, saved)
+        XCTAssertEqual(try f.store.load(), command)
+        XCTAssertEqual(f.wire.writes, 0)
+        // A separate, revalidated session recovers the original operation. This
+        // never replays the original mutation merely because the old page expired.
+        let fresh = try Fixture(memory: f.memory), reopened = WorkshopPaidInstallAppearance()
+        fresh.wire.committed = command
+        try await fresh.load(reopened)
+        XCTAssertEqual(fresh.controller.outcome?.command, command)
+        XCTAssertEqual(fresh.controller.phase, .installed)
+        XCTAssertNil(try fresh.store.load())
+        XCTAssertEqual(fresh.wire.writes, 0)
+        XCTAssertEqual(fresh.wire.requests.first?.url?.lastPathComponent, "status")
+    }
+
+    func testExplicitOriginalStatusAfterApprovalLossRetiresWithoutNetworkOrDeletingIntent() async throws {
+        let f = try Fixture(), command = try Self.command(), appearance = WorkshopPaidInstallAppearance()
+        try f.store.save(command)
+        f.wire.scripted["history"] = [try Self.historyPage([1])]
+        try await f.load(appearance)
+        let saved = f.memory.values, requestCount = f.wire.requests.count
+        f.approval = nil
+        await (try XCTUnwrap(f.controller.offerStatus(appearance)))()
+        assertPresentationRetired(f, appearance: appearance)
+        XCTAssertEqual(f.controller.issue, .disabled)
+        XCTAssertEqual(f.wire.requests.count, requestCount)
+        XCTAssertEqual(f.memory.values, saved)
+        XCTAssertEqual(try f.store.load(), command)
+        XCTAssertEqual(f.wire.writes, 0)
+    }
+
+    func testCurrentSubmit401RetiresPresentationButRetainsPossiblyCommittedOriginal() async throws {
+        let f = try Fixture(), appearance = WorkshopPaidInstallAppearance()
+        f.wire.scripted["history"] = [try Self.historyPage([1])]
+        try await f.load(appearance)
+        let command = try f.review(appearance)
+        f.wire.delayNext = true
+        let action = try XCTUnwrap(f.controller.offerSubmit(appearance, command: command))
+        let saved = f.memory.values, task = Task { await action() }
+        await f.wire.wait()
+        f.wire.resume((Data(), 401)); await task.value
+        XCTAssertEqual(f.unauthorized, 1)
+        assertPresentationRetired(f, appearance: appearance)
+        XCTAssertEqual(f.memory.values, saved)
+        XCTAssertEqual(try f.store.load(), command)
+        XCTAssertEqual(f.wire.writes, 1)
+        XCTAssertNil(f.controller.offerSubmit(appearance, command: command))
+    }
+
+    func testConfirmedSubmitAfterApprovalLossRetiresWithoutDispatchAndKeepsOriginal() async throws {
+        let f = try Fixture(), appearance = WorkshopPaidInstallAppearance()
+        try await f.load(appearance)
+        let command = try f.review(appearance)
+        f.approval = nil
+        let action = try XCTUnwrap(f.controller.offerSubmit(appearance, command: command))
+        let saved = f.memory.values, requestCount = f.wire.requests.count
+        await action()
+        assertPresentationRetired(f, appearance: appearance)
+        XCTAssertEqual(f.controller.issue, .disabled)
+        XCTAssertEqual(f.wire.requests.count, requestCount)
+        XCTAssertEqual(f.memory.values, saved)
+        XCTAssertEqual(try f.store.load(), command)
+        XCTAssertEqual(f.wire.writes, 0)
+    }
+
+    func testDispatchedSubmitDisabledResponseRetiresWithoutAssumingWriteDidNotCommit() async throws {
+        let f = try Fixture(), appearance = WorkshopPaidInstallAppearance()
+        try await f.load(appearance)
+        let command = try f.review(appearance)
+        f.wire.delayNext = true
+        let action = try XCTUnwrap(f.controller.offerSubmit(appearance, command: command))
+        let saved = f.memory.values, task = Task { await action() }
+        await f.wire.wait()
+        f.wire.resume((Data(), 503)); await task.value
+        assertPresentationRetired(f, appearance: appearance)
+        XCTAssertEqual(f.controller.issue, .disabled)
+        XCTAssertEqual(f.memory.values, saved)
+        XCTAssertEqual(try f.store.load(), command)
+        XCTAssertEqual(f.wire.writes, 1)
+        XCTAssertEqual(f.unauthorized, 0)
+    }
+
+    private func assertPresentationRetired(_ f: Fixture, appearance: WorkshopPaidInstallAppearance,
+                                           file: StaticString = #filePath, line: UInt = #line) {
+        XCTAssertEqual(f.controller.phase, .invalidated, file: file, line: line)
+        XCTAssertTrue(f.controller.history.isEmpty, file: file, line: line)
+        XCTAssertTrue(f.controller.targets.isEmpty, file: file, line: line)
+        XCTAssertNil(f.controller.outcome, file: file, line: line)
+        XCTAssertNil(f.controller.pending, file: file, line: line)
+        XCTAssertNil(f.controller.confirmation, file: file, line: line)
+        XCTAssertNil(f.controller.offerLoad(appearance), file: file, line: line)
+        XCTAssertNil(f.controller.offerStatus(appearance), file: file, line: line)
+        XCTAssertNil(f.controller.resume(appearance), file: file, line: line)
+    }
+
     func testRestartMissingApprovalDoesNotReadOrEraseSavedOriginalRequest() async throws {
         let f = try Fixture(approved: false), command = try Self.command(), appearance = WorkshopPaidInstallAppearance()
         try f.store.save(command); let original = f.memory.values
