@@ -85,6 +85,8 @@ import SwiftUI
                     }.accessibilityIdentifier("account.messages")
                     NavigationLink { SessionTeamHomeView() } label: { Label("team.title", systemImage: "person.3") }
                         .accessibilityIdentifier("account.teams")
+                    NavigationLink { ClubHomeView(reader:session,actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }).id(session.sessionRevision) } label: { Label("club.title",systemImage:"person.3") }
+                        .accessibilityIdentifier("account.clubs")
                     NavigationLink { SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator).id(session.profileInviteHistoryReader.identity) } label: {
                         Label("social.invites.title", systemImage: "person.2.badge.plus")
                     }.accessibilityIdentifier("account.inviteHistory")
