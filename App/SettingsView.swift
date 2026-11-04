@@ -41,7 +41,6 @@ struct SettingsView: View {
                 }
                 Section {
                     LabeledContent { Text(verbatim:RegionalLaunchConfiguration.market?.rawValue ?? "—").accessibilityIdentifier("region.market.value") } label: { Text("region.market") }
-                    Text("region.languageBoundary").font(.footnote).foregroundStyle(.secondary)
                 }
                 Section {
                     Picker("settings.language", selection: language) {
@@ -50,7 +49,7 @@ struct SettingsView: View {
                         Text(verbatim: "简体中文").tag(AppLanguage.simplifiedChinese)
                     }
                     .pickerStyle(.inline)
-                } footer: { Text("settings.languageNotice") }
+                }
                 SettingsSupportSections(market: session.operationalMarket, complianceCoordinator: session.accountComplianceCoordinator)
                 SettingsSignOutEntry(session: session) { dismiss() }
             }
