@@ -1,0 +1,35 @@
+--- a/Questify.xcodeproj/project.pbxproj
++++ b/Questify.xcodeproj/project.pbxproj
+@@ -14733,6 +14733,16 @@
+ 		"94FF2A991D76E0152FA998DE" = {
+ 			"isa" = "PBXBuildFile";
+ 			"fileRef" = "347879C9196CC69427733BD9";
++		};
++		"A88F0510A9B50EDB0FEE187A" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/CityActionRecoveryJournal.swift";
++			"sourceTree" = "<group>";
++		};
++		"6FF05E6165DA180394C13032" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "A88F0510A9B50EDB0FEE187A";
+ 		};
+ 		"90AB209048D361C11A9F6DA3" = {
+ 			"isa" = "PBXFileReference";
+@@ -29001,6 +29011,7 @@
+ 				"DD8502E8CFB6C5AC306EEA72",
+ 				"347879C9196CC69427733BD9",
+ 				"90AB209048D361C11A9F6DA3",
++				"A88F0510A9B50EDB0FEE187A",
+ 				"F0715224A1388F7D301AF2A5",
+ 				"EF0CABAEDC6A4174FCFFE450",
+ 				"6EE890F2A0DAD2965981CFA3",
+@@ -32528,6 +32539,7 @@
+ 				"36E035F02F92292E4B2712E6",
+ 				"94FF2A991D76E0152FA998DE",
+ 				"0ACAC4316420EB509B221645",
++				"6FF05E6165DA180394C13032",
+ 				"867A3B4F63493FE1A73F9565",
+ 				"E8D03FD41E7FB943F69773B0",
+ 				"A46D38CD5D9E94A41791D79B",
