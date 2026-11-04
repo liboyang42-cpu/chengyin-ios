@@ -199,13 +199,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use GCJ-02 latitude and longitude from your chosen source. This form does not request device location, convert GPS coordinates, or verify the source."
+            "value": "Enter the latitude and longitude from a China map app. This form doesn't use your location."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请使用你所选来源的GCJ-02经纬度。此表单不请求设备定位、不转换GPS坐标，也不认证坐标来源。"
+            "value": "请填写国内地图应用中的经纬度，此表单不会获取你的位置。"
           }
         }
       }

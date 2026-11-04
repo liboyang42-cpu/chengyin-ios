@@ -570,13 +570,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read-only, masked information for your current account."
+            "value": "Your phone number is partly hidden for privacy."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅显示当前账号的脱敏手机号。"
+            "value": "为保护隐私，手机号已部分隐藏。"
           }
         }
       }
@@ -57393,13 +57393,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review source records and prepare changes"
+            "value": "Review your content and prepare changes"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看源记录并准备变更"
+            "value": "查看内容并准备修改"
           }
         }
       }
@@ -58977,13 +58977,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "More records exist beyond this source page"
+            "value": "There are more records not shown here"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "源页面之外还有记录未加载"
+            "value": "还有更多记录未显示"
           }
         }
       }
@@ -59089,13 +59089,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This review freezes the target and fields. Permissions and source data are checked again before dispatch."
+            "value": "Your changes are locked for review. Permissions and the latest details are checked again before sending."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此预览已冻结目标与字段，发送前会重新核对权限和源数据。"
+            "value": "当前修改内容已锁定，提交前会再次核对权限和最新信息。"
           }
         }
       }
@@ -59153,13 +59153,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "An invitation is a pre-approved application, not just a message."
+            "value": "An invitation creates an already-approved application, not just a message."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "邀请会建立预先批准的申请，并非仅发送消息。"
+            "value": "邀请会直接生成已同意的申请，不只是发送一条消息。"
           }
         }
       }
@@ -59233,13 +59233,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Could not load the source. Retry when ready."
+            "value": "Couldn't load this content. Please try again later."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂时无法加载源数据，请稍后重试。"
+            "value": "暂时无法加载内容，请稍后重试。"
           }
         }
       }
@@ -59249,13 +59249,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Source data could not be safely read"
+            "value": "This content couldn't be loaded correctly"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无法安全读取源数据"
+            "value": "内容无法正常读取"
           }
         }
       }
@@ -59329,13 +59329,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Node changes are submitted for source review. Applying does not mean winning the slot."
+            "value": "Station changes are reviewed after you submit. Signing up doesn't mean you've won the slot."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "点位变更提交后由服务端处理审核；报名成功不等于中标。"
+            "value": "点位修改提交后需审核；报名成功不等于中标。"
           }
         }
       }
@@ -59777,13 +59777,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original station receipt is terminal. Reload the current source state."
+            "value": "This request has already been processed. Reload to see the latest status."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原本站回执已到终态，请重新加载当前源状态。"
+            "value": "该请求已处理完毕，请刷新查看最新状态。"
           }
         }
       }
@@ -59857,13 +59857,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Route, node, template, award and settlement fields are fixed. Source dates remain unchanged. Empty capacity submits zero, meaning unlimited."
+            "value": "Route, station, template, award and settlement fields can't be changed. The original dates stay the same. Leave capacity empty for unlimited."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "路线、站点、模板、中标和结算字段不可更改；保留原日期。人数留空将提交 0，表示不限。"
+            "value": "路线、站点、模板、中标和结算字段不可更改；保留原日期。人数留空表示不限。"
           }
         }
       }
@@ -60385,13 +60385,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Exploration-value editing is unavailable: the retained source says the backend validates it without persisting it."
+            "value": "Exploration value can't be edited right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "探索值暂不可编辑：保留的源记录表明后端会校验，但不会保存。"
+            "value": "探索值暂不可编辑。"
           }
         }
       }
@@ -60470,13 +60470,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "选择来源日期"
+            "value": "选择日期"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose source dates"
+            "value": "Choose dates"
           }
         }
       }
@@ -60944,13 +60944,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "View source records"
+            "value": "View all records"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看来源记录"
+            "value": "查看全部记录"
           }
         }
       }
@@ -62658,13 +62658,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The number is kept out of chat, logs and persistent storage. A separate enabled device action is required to use it."
+            "value": "For privacy, the number isn't shown in chat or saved."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "号码不会出现在聊天、日志或持久存储中，使用号码还需单独启用的设备操作。"
+            "value": "为保护隐私，号码不会在聊天中显示，也不会被保存。"
           }
         }
       }
@@ -63058,13 +63058,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Device file saving requires a separate host grant."
+            "value": "Saving to your device isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "保存到设备文件需要单独启用。"
+            "value": "保存到本机文件暂不可用。"
           }
         }
       }
@@ -63218,13 +63218,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Export uses page 1, source page size 20, and every keyword, segment, tag, source and date filter. It does not export a client-selected ID roster."
+            "value": "The export includes the first 20 results matching all current filters (keywords, segments, tags, channels and dates). Individually selected members aren't exported."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "导出使用第1页、源页大小20及全部关键词、分群、标签、来源和日期筛选，不提交客户端选择的会员ID名单。"
+            "value": "导出包含符合当前全部筛选条件（关键词、分群、标签、渠道和日期）的前 20 条记录，不按单独勾选的会员导出。"
           }
         }
       }
@@ -63234,13 +63234,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Request the source service's masked workbook for exactly these filters. Download and device saving are separate explicit steps."
+            "value": "Request a spreadsheet with personal details masked, using exactly these filters. Downloading and saving to your device are separate steps."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅按这些筛选条件请求源服务提供的脱敏表格。下载和保存到设备分别需要明确操作。"
+            "value": "按当前筛选条件申请脱敏表格。下载和保存到本机需分别操作。"
           }
         }
       }
@@ -63378,13 +63378,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The source invitation contract has no pre-acceptance store or role lookup. The token is hidden; this screen does not guess the destination store or assigned role."
+            "value": "This invitation doesn't show which store or role it's for."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "源邀请协议没有接受前的门店或岗位查询接口。凭证已隐藏，本页不会猜测目标门店或分配岗位。"
+            "value": "此邀请暂无法显示对应的门店和岗位。"
           }
         }
       }
@@ -63506,13 +63506,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Native photo and camera permissions are not enabled in this host."
+            "value": "Photos and camera aren't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前入口尚未启用原生相册与摄像头能力。"
+            "value": "相册和相机暂不可用。"
           }
         }
       }
@@ -63634,13 +63634,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Source response"
+            "value": "Result"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "源回执"
+            "value": "处理结果"
           }
         }
       }
@@ -63778,13 +63778,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Source row count"
+            "value": "Number of rows"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端行数"
+            "value": "记录条数"
           }
         }
       }
@@ -64178,13 +64178,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Offline synthetic example. No customer is contacted and no account is changed."
+            "value": "Example content. No customer is contacted and no account is changed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "离线虚构示例。不会联系真实客户，也不会变更账号。"
+            "value": "示例内容，不会联系真实客户，也不会更改账号。"
           }
         }
       }
@@ -64226,13 +64226,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Task ID"
+            "value": "Reference number"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "任务ID"
+            "value": "编号"
           }
         }
       }
@@ -65310,7 +65310,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Source topic"
+            "value": "From topic"
           }
         },
         "zh-Hans": {
@@ -65990,13 +65990,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current source service requires a mainland Chinese resident ID with an 18-character checksum. A supported US registration process has not been verified, so this app cannot complete new identity enrollment. No SSN or EIN is requested here."
+            "value": "Identity verification requires an 18-digit mainland China resident ID. Other ID types aren't supported, so new identity verification can't be completed in this app. We won't ask for an SSN or EIN."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前源服务要求具有校验位的 18 位中国大陆居民身份证号。美国登记流程尚未核实，因此本应用暂不能完成新的实名登记。此处不会要求 SSN 或 EIN。"
+            "value": "实名认证需使用 18 位中国大陆居民身份证号。暂不支持其他证件，因此无法在本应用完成新的实名认证。此处不会要求提供 SSN 或 EIN。"
           }
         }
       }
@@ -66857,13 +66857,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Send the reviewed store details, contact phone, address, business hours and uploaded license reference to the configured Chengyin service for review. Submission does not grant approval or merchant access."
+            "value": "Send your store details, contact phone, address, business hours and uploaded business license to Questify for review. Submitting doesn't mean approval or merchant access."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "将已核对的门店资料、联系电话、地址、营业时间和已上传执照信息发送给已配置的城瘾服务审核。提交不代表审核通过，也不会获得商家权限。"
+            "value": "将门店资料、联系电话、地址、营业时间和已上传的营业执照提交给城瘾审核。提交不代表审核通过，也不代表已开通商家权限。"
           }
         }
       }
@@ -66891,13 +66891,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Submission was acknowledged. The status below comes from the server; approval and merchant access are separate decisions. This application will not be sent again automatically."
+            "value": "Submitted. Check the status below. Approval and merchant access are decided separately. Your application won't be resent automatically."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务已确认收到提交。下方状态来自服务器；审核通过与商家权限分别确认。本申请不会自动再次提交。"
+            "value": "已提交，请查看下方状态。审核结果与商家权限分别确认。本申请不会自动重复提交。"
           }
         }
       }
@@ -67076,7 +67076,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Add synthetic image placeholder"
+            "value": "Add example image placeholder"
           }
         },
         "zh-Hans": {
@@ -67668,13 +67668,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The source changed while you were reviewing. Reload before preparing another draft."
+            "value": "This content changed while you were reviewing. Reload before making another draft."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "检查草稿期间来源已变更，请重新读取后再编辑。"
+            "value": "查看期间内容已更新，请刷新后再编辑。"
           }
         }
       }
@@ -67684,13 +67684,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Activity types and cooperation availability are hidden source fields and will be preserved."
+            "value": "Activity types and cooperation settings stay as they are."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "适合活动类型与合作开放状态为隐藏来源字段，会原样保留。"
+            "value": "适合的活动类型与合作开放状态将保持不变。"
           }
         }
       }
@@ -67972,13 +67972,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Synthetic offline examples. Edits never change a real store, review decision, order, or provider resource."
+            "value": "Example content. Edits won't change any real store, review result, order or resource."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "离线示例数据。编辑不会改变真实门店、审核结果、订单或供应商资源。"
+            "value": "示例内容。编辑不会改变真实门店、审核结果、订单或资源。"
           }
         }
       }
@@ -69124,13 +69124,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reload source"
+            "value": "Reload"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新读取来源"
+            "value": "重新加载"
           }
         }
       }
@@ -69156,13 +69156,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Source-reported resources only. No recording, cloning, generation, playback, download or automatic polling."
+            "value": "Shows resource status only. Recording, voice cloning, generation, playback and download aren't available here, and status doesn't refresh automatically."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅展示来源报告的资源状态，不录音、克隆、生成、播放、下载或自动轮询。"
+            "value": "仅展示资源状态，不支持录音、声音克隆、生成、播放或下载，也不会自动刷新。"
           }
         }
       }
@@ -69252,13 +69252,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A saved draft does not mean content approval, public visibility, or activation."
+            "value": "Saving a draft doesn't mean it's approved, public or live."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "草稿保存不代表内容审核通过、公开可见或业务生效。"
+            "value": "保存草稿不代表内容已通过审核、公开可见或已生效。"
           }
         }
       }
@@ -69412,13 +69412,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Story body only, up to 300 UTF-16 units. The existing hidden title is preserved; the source save uses two separate operations."
+            "value": "Edit the story text only, up to 300 characters. The existing title stays the same."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅编辑故事正文，最多 300 个 UTF-16 单元。保留原有隐藏标题，来源保存涉及两个独立操作。"
+            "value": "仅编辑故事正文，最多 300 字。原有标题保持不变。"
           }
         }
       }
@@ -69460,13 +69460,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Synthetic placeholder; no remote image"
+            "value": "Example placeholder image"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "示例占位，不读取远程图片"
+            "value": "示例占位图"
           }
         }
       }
@@ -69556,13 +69556,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Blank optional fields are omitted by the source contract; blanking one does not request deletion of its saved value."
+            "value": "Clearing an optional field won't delete its saved value."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "来源契约会省略空的可选字段；清空输入不代表删除已存值。"
+            "value": "清空选填项不会删除已保存的内容。"
           }
         }
       }
@@ -69572,13 +69572,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Private template answers are read from the owner-only detail endpoint."
+            "value": "Template answers are visible to the owner only."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "模板答案仅从所有者专用详情接口读取。"
+            "value": "模板答案仅所有者可见。"
           }
         }
       }
@@ -71393,13 +71393,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Moderation task ID"
+            "value": "Reference number"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "审核任务编号"
+            "value": "编号"
           }
         }
       }
@@ -72354,13 +72354,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Public reviews are read-only in this connection"
+            "value": "Public reviews can only be viewed here"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此连接中的公开评价为只读"
+            "value": "公开评价仅支持查看"
           }
         }
       }
@@ -72434,13 +72434,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Offline fixture. No real requests or images"
+            "value": "Example content. Nothing is sent and no images are loaded."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "离线示例，不发送真实请求或加载图片"
+            "value": "示例内容，不会实际发送或加载图片。"
           }
         }
       }
@@ -72579,13 +72579,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read-only merchant information"
+            "value": "Merchant information (view only)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "商家信息，只读查看"
+            "value": "商家信息（仅查看）"
           }
         }
       }
@@ -73504,13 +73504,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The source or draft changed. Cancel and reopen the time selector."
+            "value": "This information has changed. Cancel and reopen the time picker."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "来源或草稿已变化，请取消后重新打开时间选择。"
+            "value": "信息已变化，请取消后重新打开时间选择。"
           }
         }
       }
@@ -74150,13 +74150,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Handwritten draft · chat layout only"
+            "value": "Handwritten draft · chat layout"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "手写草稿 · 仅预览聊天排版"
+            "value": "手写草稿 · 聊天排版效果"
           }
         }
       }
@@ -75580,13 +75580,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use GCJ-02 latitude and longitude from your chosen source. This form does not request device location, convert GPS coordinates, or verify the source."
+            "value": "Enter the latitude and longitude from a China map app. This form doesn't use your location."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请使用你所选来源的GCJ-02经纬度。此表单不请求设备定位、不转换GPS坐标，也不认证坐标来源。"
+            "value": "请填写国内地图应用中的经纬度，此表单不会获取你的位置。"
           }
         }
       }
@@ -75911,13 +75911,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Capabilities and quotas"
+            "value": "Features and quotas"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "能力与额度"
+            "value": "功能与额度"
           }
         }
       }
@@ -76098,13 +76098,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The source allows 48 hours to answer. The platform voids overdue rounds; no one receives a reward. Follow the server deadline."
+            "value": "You have 48 hours to reveal the answer. Overdue rounds are voided and no one receives a reward. Follow the deadline shown."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "源规则要求 48 小时内给出答案，超时由平台作废且无人获奖，请以服务端期限为准"
+            "value": "需在 48 小时内公布答案，超时将作废，且无人获奖。请以页面显示的截止时间为准。"
           }
         }
       }
@@ -76132,13 +76132,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Live service access, AI processing and prediction settlement require separate activation."
+            "value": "AI analysis and prediction settlement aren't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "真实服务、AI 分析和竞猜结算需分别开通"
+            "value": "AI 分析和竞猜结算暂不可用。"
           }
         }
       }
@@ -77293,13 +77293,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No approved image reference"
+            "value": "No image yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无获准的图片引用"
+            "value": "暂无图片"
           }
         }
       }
@@ -77309,13 +77309,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approved image reference ready"
+            "value": "Image ready"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已准备获准的图片引用"
+            "value": "图片已就绪"
           }
         }
       }
@@ -77437,13 +77437,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recording unavailable. Server availability and an approved capture provider are required."
+            "value": "Recording isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "录音不可用，需确认服务器可用性并接入获准的录音服务。"
+            "value": "录音暂不可用。"
           }
         }
       }
@@ -77613,13 +77613,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approved sample reference ready"
+            "value": "Voice sample ready"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已准备获准的样本引用"
+            "value": "声音样本已就绪"
           }
         }
       }
@@ -79125,13 +79125,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Source action labels"
+            "value": "Card buttons"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原卡片操作文案"
+            "value": "卡片按钮"
           }
         }
       }
@@ -79312,13 +79312,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Linked content is not loaded in this read-only view."
+            "value": "Linked content can't be opened here."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此只读视图不加载关联内容。"
+            "value": "关联内容无法在此打开。"
           }
         }
       }
@@ -79346,13 +79346,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Task ID"
+            "value": "Reference number"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "任务编号"
+            "value": "编号"
           }
         }
       }
@@ -80108,13 +80108,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read-only view. This app does not send read receipts."
+            "value": "View only. Others won't see that you've read their messages."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "只读视图。此应用不发送已读回执。"
+            "value": "仅供查看，不会向对方显示已读。"
           }
         }
       }
@@ -80463,13 +80463,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approved App ID"
+            "value": "App ID"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已审核的 App ID"
+            "value": "App ID"
           }
         }
       }
@@ -81564,13 +81564,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This native feature awaits service and privacy approval."
+            "value": "This feature isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此原生功能尚待服务与隐私审核通过。"
+            "value": "此功能暂不可用。"
           }
         }
       }
@@ -83164,13 +83164,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Synthetic preview. No real application or membership change is sent."
+            "value": "Example content. No real application or team change is sent."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "合成数据预览，不会发送真实申请或更改成员。"
+            "value": "示例内容，不会实际发送申请或更改队伍成员。"
           }
         }
       }
@@ -83260,13 +83260,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approvals can fill the team. The server then removes it from the map and expires remaining applications."
+            "value": "Approving applicants can fill the team. Once it's full, the team is removed from the map and remaining applications expire."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "同意后可能满员，由服务端从地图移除队伍并使其余申请失效。"
+            "value": "同意申请后队伍可能满员，满员后队伍将从地图移除，其余申请自动失效。"
           }
         }
       }
@@ -83532,13 +83532,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review the exact team and applicant. Applying requests membership; approval adds the applicant; rejection prevents reapplication; withdrawal removes your pending request. This screen only simulates these actions."
+            "value": "Check the team and applicant. Applying requests membership; approval adds the applicant; rejection prevents reapplying; withdrawing removes your pending request. This is an example; nothing is actually sent."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请核对队伍与申请人。申请请求加入；同意会添加成员；拒绝后无法再次申请；撤回会移除待处理请求。本页面仅模拟这些操作。"
+            "value": "请核对队伍与申请人。申请即请求加入；同意会添加成员；拒绝后无法再次申请；撤回会移除待处理的申请。本页为示例，不会实际操作。"
           }
         }
       }
@@ -84018,13 +84018,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read-only records returned for the signed-in account. This screen keeps text in memory only and clears it when closed or backgrounded. Search stays on this device."
+            "value": "Chat records for your account. Text is cleared when you close this screen or leave the app. Search happens on your device only."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅查看服务器返回的当前登录账号记录。此页只在内存中显示文字，关闭或进入后台后清除。检索仅在本机进行。"
+            "value": "当前账号的聊天记录。关闭此页或切到后台后，文字将被清除。搜索仅在本机进行。"
           }
         }
       }
@@ -84188,13 +84188,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This is historical chat text. It does not establish current store facts, task completion, or an approved answer."
+            "value": "This is past chat history. It doesn't reflect current store information, task completion or a confirmed answer."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这是历史聊天文本，不代表当前店铺事实、任务完成或答案获准。"
+            "value": "这是历史聊天记录，不代表当前店铺信息、任务完成情况或正确答案。"
           }
         }
       }
@@ -84443,13 +84443,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Source time value"
+            "value": "Time"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务器原始时间"
+            "value": "时间"
           }
         }
       }
@@ -85473,13 +85473,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Source image host"
+            "value": "Image from"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "来源图片域名"
+            "value": "图片出处"
           }
         }
       }
@@ -86211,13 +86211,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reason not provided by the source"
+            "value": "No reason given"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "来源未提供原因"
+            "value": "未提供原因"
           }
         }
       }
@@ -86466,13 +86466,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Synthetic offline example"
+            "value": "Example content"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "离线合成示例"
+            "value": "示例内容"
           }
         }
       }
@@ -86534,13 +86534,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Exploration tasks are available in the source"
+            "value": "Includes exploration tasks"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原应用提供探索任务"
+            "value": "包含探索任务"
           }
         }
       }
@@ -86551,13 +86551,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Registration is open in the source; native registration is not available"
+            "value": "Registration is open. Signing up in the app isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原应用开放报名，原生报名尚未接入"
+            "value": "报名进行中，暂不支持在 App 内报名。"
           }
         }
       }
@@ -86585,13 +86585,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Roaming tasks are available in the source"
+            "value": "Includes roaming tasks"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原应用提供漫游任务"
+            "value": "包含漫游任务"
           }
         }
       }
@@ -86721,13 +86721,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Price not provided by the source"
+            "value": "Price not available"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "数据源未提供价格"
+            "value": "暂无价格信息"
           }
         }
       }
@@ -86823,13 +86823,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read-only native preview. Publishing, registration, task verification and invitation responses are not available here."
+            "value": "View only. Publishing, registration, task check-in and replying to invitations aren't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原生只读预览。暂不支持发布、报名、任务验证或邀约处置。"
+            "value": "仅供查看，发布、报名、任务验证和邀约回复暂不可用。"
           }
         }
       }
@@ -88136,13 +88136,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Published. Cover approval is separate"
+            "value": "Published. The cover is reviewed separately"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已发布。封面审核单独处理"
+            "value": "已发布，封面将单独审核"
           }
         }
       }
@@ -89637,13 +89637,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Each action needs an approved account, order and destination. After an uncertain result, check the order; do not repeat the action."
+            "value": "If you're not sure an action went through, check the order first. Don't repeat the action."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "每项操作都需要获批的账户、订单和服务地址。结果不明确时请查看订单，不要重复操作。"
+            "value": "如果不确定操作是否成功，请先查看订单，不要重复操作。"
           }
         }
       }
@@ -91238,13 +91238,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Author cover selection is not configured for this account or saved submission."
+            "value": "Choosing a cover isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此账号或已保存的提交尚未配置作者封面选择能力。"
+            "value": "选择封面暂不可用。"
           }
         }
       }
@@ -92163,13 +92163,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This is a read-only snapshot. It does not prove whether the earlier request completed, so this session keeps further changes paused."
+            "value": "We couldn't confirm whether your last change went through, so further changes are paused."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这是只读查询结果，无法据此确认先前请求是否完成，因此本次会话仍暂停后续修改。"
+            "value": "暂时无法确认上次修改是否成功，因此暂停后续修改。"
           }
         }
       }
@@ -92950,13 +92950,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This task requires verified arrival or a scan first. That verification flow is not available in this native module."
+            "value": "This task requires an arrival check-in or a scan first, which isn't available in the app right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此任务需要先验证到达或扫码，原生模块暂未接入此验证流程。"
+            "value": "此任务需先到达打卡或扫码，App 内暂不支持。"
           }
         }
       }
@@ -92967,13 +92967,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Branch-route progress is available to view. Answer submission requires the route recovery flow, which is not connected yet."
+            "value": "You can view branch-route progress. Submitting answers isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "可以查看分支路线进度，答案提交需先接入路线冲突恢复流程。"
+            "value": "可查看分支路线进度，暂不支持提交答案。"
           }
         }
       }
@@ -93188,13 +93188,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This task uses a verification method that isn’t supported by this native module yet."
+            "value": "This task's check-in method isn't available in the app right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此任务所需的验证方式尚未接入原生模块。"
+            "value": "此任务的验证方式暂不可用。"
           }
         }
       }
@@ -94072,13 +94072,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "An approved service address is needed to load this journey."
+            "value": "This journey isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "需要配置已批准的服务地址才能加载游玩进度。"
+            "value": "游玩进度暂不可用。"
           }
         }
       }
@@ -94723,13 +94723,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Store-specific consent and redemption-code display are not connected yet. Photo proof does not mean redemption is complete."
+            "value": "Store redemption codes aren't available right now. A photo record doesn't mean the redemption is complete."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前门店授权和核销码展示尚未接通。照片凭证已记录不代表已核销。"
+            "value": "门店核销码暂不可用。照片记录不代表已核销。"
           }
         }
       }
@@ -96340,13 +96340,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Journey history is not connected yet."
+            "value": "Journey history isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "旅程记录服务尚未接通"
+            "value": "旅程记录暂不可用"
           }
         }
       }
@@ -97441,13 +97441,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Camera access is not configured for this session"
+            "value": "Camera isn't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前会话尚未配置相机能力"
+            "value": "相机暂不可用"
           }
         }
       }
@@ -98563,13 +98563,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This task’s image host is not approved yet"
+            "value": "This task's images aren't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "任务图片来源尚未获准加载"
+            "value": "任务图片暂不可用"
           }
         }
       }
@@ -101130,13 +101130,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The service requires WeChat encrypted step proof. Native device steps cannot replace that proof without an approved contract."
+            "value": "This task requires WeChat step counts. Steps from your phone can't be used instead."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前服务需要微信运动的加密步数凭证。原生设备步数不能在未经契约批准的情况下替代该凭证。"
+            "value": "此任务需使用微信运动步数，暂不支持使用手机计步代替。"
           }
         }
       }
@@ -102830,13 +102830,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preparing approved AR images"
+            "value": "Preparing AR images"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在准备已批准的 AR 图片"
+            "value": "正在准备 AR 图片"
           }
         }
       }
@@ -103668,13 +103668,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Capture with approved provider"
+            "value": "Capture"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "使用已验收的设备服务"
+            "value": "开始记录"
           }
         }
       }
@@ -106916,13 +106916,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "These are the source story’s fixed ending descriptions, not a server-awarded result or live player statistics."
+            "value": "These are the story's preset endings, not your personal result or live player stats."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "以下是源故事的固定结局说明，并非服务端判定的个人结果或实时玩家统计"
+            "value": "以下是故事的预设结局说明，并非你的个人结果或实时玩家统计"
           }
         }
       }
@@ -106996,13 +106996,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verify arrival at the first source node, then photograph the hall."
+            "value": "Check in at the first stop, then take a photo of the hall."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在源路线首节点验证到达，然后拍摄展馆"
+            "value": "先在路线第一站打卡，然后拍摄展馆"
           }
         }
       }
@@ -107268,13 +107268,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Begin the source story, one scene at a time."
+            "value": "Begin the story, one scene at a time."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "开始源故事，逐个场景前进"
+            "value": "开始故事，逐个场景推进"
           }
         }
       }
@@ -107492,13 +107492,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Place the source story's “unloaded map” sticker. This is board space, not a location report."
+            "value": "Place the story's “unloaded map” sticker. This is a spot on the board, not your location."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "放置源故事的“未加载地图”贴纸，这是画板坐标，不是位置上报"
+            "value": "放置故事中的“未加载地图”贴纸，这是画板上的位置，不是你的定位"
           }
         }
       }
@@ -107940,13 +107940,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose a source-provided tag to skip these questions, or answer again if your situation changed."
+            "value": "Choose a saved tag to skip these questions, or answer again if your situation has changed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "选择服务端提供的标签可跳过本站题组；情况变化时也可重新作答"
+            "value": "选择已有标签可跳过本站题组；情况变化时也可重新作答"
           }
         }
       }
@@ -110178,13 +110178,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "End synthetic session"
+            "value": "End example"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "结束模拟会话"
+            "value": "结束示例"
           }
         }
       }
@@ -110402,13 +110402,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Synthetic test points (no map network)"
+            "value": "Example points (map not loaded)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "模拟测试点（无地图网络请求）"
+            "value": "示例地点（不加载地图）"
           }
         }
       }
@@ -112892,7 +112892,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read-only preview. Changes and payments aren’t available here yet."
+            "value": "View only. Changes and payments aren't available here right now."
           }
         },
         "zh-Hans": {
@@ -113092,13 +113092,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Source text; time could not be parsed or converted."
+            "value": "Original text; the time couldn't be read."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "来源原文，时间未能解析或转换。"
+            "value": "原始文本，时间无法识别。"
           }
         }
       }
@@ -113700,13 +113700,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This saved club-lead setting is not supported by this editor. It is preserved read-only and blocks a full submission."
+            "value": "This club setting can't be edited here. It stays as it is, and the full form can't be submitted."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此已存俱乐部承接设置暂不受本编辑器支持。原值只读保留，完整提交已阻止。"
+            "value": "此俱乐部承接设置暂不支持在此编辑，将保持原样，且无法提交完整表单。"
           }
         }
       }
@@ -113844,13 +113844,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Existing ownership, collaborators, self-play, rewards, media and commerce settings are preserved. Those advanced editors are not connected yet."
+            "value": "Ownership, collaborators, self-play, rewards, media and sales settings stay as they are. Editing them here isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已有归属、合作者、自玩、奖励、媒体及商业设置均会保留。高级编辑功能尚未接入。"
+            "value": "已有归属、合作者、自玩、奖励、媒体及商业设置均会保留，暂不支持在此编辑。"
           }
         }
       }
@@ -113924,13 +113924,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enter verified category IDs. The category picker is not connected yet."
+            "value": "Enter valid category IDs. Category selection isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请输入已核实的类别编号。类别选择器尚未接入。"
+            "value": "请输入有效的类别编号。类别选择暂不可用。"
           }
         }
       }
@@ -157153,13 +157153,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Planning details are not proof of staffing, opening hours, capacity, safety approval or publication. Existing server facts, stock and rewards remain authoritative."
+            "value": "Planning details don't confirm staffing, opening hours, capacity, safety review or publication. Current stock and rewards on record still apply."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "规划内容不代表已确认员工、营业时间、场地容量、安全审核或发布。既有服务端事实、库存与奖励保持权威。"
+            "value": "规划内容不代表已确认人员、营业时间、场地容量、安全审核或发布。现有库存与奖励以平台记录为准。"
           }
         }
       }
@@ -157340,13 +157340,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "These are unapproved planning notes for this editing session. They do not confirm a safe or accessible route, cancel an order, issue a refund or grant a reward. No runtime fallback is enabled."
+            "value": "These are draft plans only. They don't confirm a safe or accessible route, cancel an order, issue a refund or grant a reward."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这些是本次编辑中的待审预案，不代表已确认路线安全或无障碍，也不会取消订单、退款或发放奖励。未启用运行时替代分支。"
+            "value": "以下仅为草拟预案，不代表已确认路线安全或无障碍，也不会取消订单、退款或发放奖励。"
           }
         }
       }
@@ -157459,13 +157459,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Save acknowledged. The template was reloaded from the server; this does not establish separate publication or review approval."
+            "value": "Saved, and the template has been refreshed. This doesn't mean it's published or approved."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已确认保存，并已重新读取模板；这不代表另行发布或审核已获批准。"
+            "value": "已保存，模板已刷新。这不代表已发布或已通过审核。"
           }
         }
       }
@@ -157561,13 +157561,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current source value is retained. Choose a listed venue only if you want to replace it."
+            "value": "Your current venue type is kept. Choose one from the list only if you want to change it."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前来源值已保留；只有选择列表中的场所类型才会替换它。"
+            "value": "当前场所类型将保留；如需更换，请从列表中选择。"
           }
         }
       }
@@ -161965,13 +161965,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This replaces the saved date range and daily hours together. Saving does not mean the application is approved; server eligibility still applies."
+            "value": "This replaces the saved date range and daily hours together. Saving doesn't mean your application is approved; eligibility rules still apply."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本次将一并替换已保存的日期区间及每日时段。保存不代表报名获批，仍以服务端资格校验为准。"
+            "value": "本次将一并替换已保存的日期区间及每日时段。保存不代表报名获批，仍需符合报名资格。"
           }
         }
       }
@@ -162254,13 +162254,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose one available industry. Clearing is not supported by the current save contract."
+            "value": "Choose an industry. This field can't be left empty."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请选择一个可用行业。当前保存合同不支持清空行业。"
+            "value": "请选择一个行业，行业不能为空。"
           }
         }
       }
@@ -162356,13 +162356,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This changes the shop’s public classification, not its qualifications or approval. Only the server save and readback confirm the stored industry."
+            "value": "This changes how your shop is categorized publicly. It doesn't change your qualifications or review status."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此操作变更店铺公开分类，不改变资质或审核资格。保存结果以服务端确认和回读为准。"
+            "value": "此操作仅修改店铺对外展示的分类，不影响资质或审核状态。"
           }
         }
       }
@@ -192241,13 +192241,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Home (synthetic)"
+            "value": "Home (example)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "首页（合成数据）"
+            "value": "首页（示例）"
           }
         }
       }
@@ -192717,13 +192717,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ticket wallet (synthetic)"
+            "value": "Ticket wallet (example)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "票夹（合成数据）"
+            "value": "票夹（示例）"
           }
         }
       }
@@ -200870,13 +200870,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "退出提交尚未启用，仅可预览资格与影响。"
+            "value": "退出暂不可用，可查看资格与影响。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Exit submission is not enabled yet; eligibility and impact preview only."
+            "value": "Leaving isn't available right now. You can still check eligibility and impact."
           }
         }
       }

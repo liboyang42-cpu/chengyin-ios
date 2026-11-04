@@ -107,13 +107,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Save acknowledged. The template was reloaded from the server; this does not establish separate publication or review approval."
+          "value": "Saved, and the template has been refreshed. This doesn't mean it's published or approved."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端已确认保存，并已重新读取模板；这不代表另行发布或审核已获批准。"
+          "value": "已保存，模板已刷新。这不代表已发布或已通过审核。"
         }
       }
     }

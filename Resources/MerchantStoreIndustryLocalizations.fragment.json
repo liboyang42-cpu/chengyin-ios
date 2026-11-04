@@ -226,13 +226,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Choose one available industry. Clearing is not supported by the current save contract."
+          "value": "Choose an industry. This field can't be left empty."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "请选择一个可用行业。当前保存合同不支持清空行业。"
+          "value": "请选择一个行业，行业不能为空。"
         }
       }
     }
@@ -328,13 +328,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This changes the shop’s public classification, not its qualifications or approval. Only the server save and readback confirm the stored industry."
+          "value": "This changes how your shop is categorized publicly. It doesn't change your qualifications or review status."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "此操作变更店铺公开分类，不改变资质或审核资格。保存结果以服务端确认和回读为准。"
+          "value": "此操作仅修改店铺对外展示的分类，不影响资质或审核状态。"
         }
       }
     }

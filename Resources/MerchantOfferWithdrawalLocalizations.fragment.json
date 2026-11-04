@@ -532,13 +532,13 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "退出提交尚未启用，仅可预览资格与影响。"
+          "value": "退出暂不可用，可查看资格与影响。"
         }
       },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Exit submission is not enabled yet; eligibility and impact preview only."
+          "value": "Leaving isn't available right now. You can still check eligibility and impact."
         }
       }
     }

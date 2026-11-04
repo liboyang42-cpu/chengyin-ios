@@ -331,13 +331,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Camera access is not configured for this session"
+            "value": "Camera isn't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前会话尚未配置相机能力"
+            "value": "相机暂不可用"
           }
         }
       }
@@ -1147,13 +1147,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This task’s image host is not approved yet"
+            "value": "This task's images aren't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "任务图片来源尚未获准加载"
+            "value": "任务图片暂不可用"
           }
         }
       }
@@ -3442,13 +3442,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The service requires WeChat encrypted step proof. Native device steps cannot replace that proof without an approved contract."
+            "value": "This task requires WeChat step counts. Steps from your phone can't be used instead."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前服务需要微信运动的加密步数凭证。原生设备步数不能在未经契约批准的情况下替代该凭证。"
+            "value": "此任务需使用微信运动步数，暂不支持使用手机计步代替。"
           }
         }
       }

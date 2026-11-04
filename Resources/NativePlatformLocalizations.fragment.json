@@ -4,13 +4,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This native feature awaits service and privacy approval."
+          "value": "This feature isn't available right now."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "此原生功能尚待服务与隐私审核通过。"
+          "value": "此功能暂不可用。"
         }
       }
     }

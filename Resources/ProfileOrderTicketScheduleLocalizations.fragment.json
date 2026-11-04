@@ -54,13 +54,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Source text; time could not be parsed or converted."
+            "value": "Original text; the time couldn't be read."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "来源原文，时间未能解析或转换。"
+            "value": "原始文本，时间无法识别。"
           }
         }
       }

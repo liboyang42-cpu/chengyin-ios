@@ -118,13 +118,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Synthetic preview. No real application or membership change is sent."
+            "value": "Example content. No real application or team change is sent."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "合成数据预览，不会发送真实申请或更改成员。"
+            "value": "示例内容，不会实际发送申请或更改队伍成员。"
           }
         }
       }
@@ -422,13 +422,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approvals can fill the team. The server then removes it from the map and expires remaining applications."
+            "value": "Approving applicants can fill the team. Once it's full, the team is removed from the map and remaining applications expire."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "同意后可能满员，由服务端从地图移除队伍并使其余申请失效。"
+            "value": "同意申请后队伍可能满员，满员后队伍将从地图移除，其余申请自动失效。"
           }
         }
       }
@@ -710,13 +710,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review the exact team and applicant. Applying requests membership; approval adds the applicant; rejection prevents reapplication; withdrawal removes your pending request. This screen only simulates these actions."
+            "value": "Check the team and applicant. Applying requests membership; approval adds the applicant; rejection prevents reapplying; withdrawing removes your pending request. This is an example; nothing is actually sent."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请核对队伍与申请人。申请请求加入；同意会添加成员；拒绝后无法再次申请；撤回会移除待处理请求。本页面仅模拟这些操作。"
+            "value": "请核对队伍与申请人。申请即请求加入；同意会添加成员；拒绝后无法再次申请；撤回会移除待处理的申请。本页为示例，不会实际操作。"
           }
         }
       }

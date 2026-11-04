@@ -25,13 +25,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preparing approved AR images"
+            "value": "Preparing AR images"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在准备已批准的 AR 图片"
+            "value": "正在准备 AR 图片"
           }
         }
       }

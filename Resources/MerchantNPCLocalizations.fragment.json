@@ -214,13 +214,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approved sample reference ready"
+            "value": "Voice sample ready"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已准备获准的样本引用"
+            "value": "声音样本已就绪"
           }
         }
       }
@@ -246,13 +246,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recording unavailable. Server availability and an approved capture provider are required."
+            "value": "Recording isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "录音不可用，需确认服务器可用性并接入获准的录音服务。"
+            "value": "录音暂不可用。"
           }
         }
       }
@@ -406,13 +406,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No approved image reference"
+            "value": "No image yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无获准的图片引用"
+            "value": "暂无图片"
           }
         }
       }
@@ -422,13 +422,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approved image reference ready"
+            "value": "Image ready"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已准备获准的图片引用"
+            "value": "图片已就绪"
           }
         }
       }

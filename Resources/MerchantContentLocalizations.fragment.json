@@ -660,13 +660,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Review source records and prepare changes"
+          "value": "Review your content and prepare changes"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "查看源记录并准备变更"
+          "value": "查看内容并准备修改"
         }
       }
     }
@@ -2244,13 +2244,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "More records exist beyond this source page"
+          "value": "There are more records not shown here"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "源页面之外还有记录未加载"
+          "value": "还有更多记录未显示"
         }
       }
     }
@@ -2356,13 +2356,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This review freezes the target and fields. Permissions and source data are checked again before dispatch."
+          "value": "Your changes are locked for review. Permissions and the latest details are checked again before sending."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "此预览已冻结目标与字段，发送前会重新核对权限和源数据。"
+          "value": "当前修改内容已锁定，提交前会再次核对权限和最新信息。"
         }
       }
     }
@@ -2420,13 +2420,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "An invitation is a pre-approved application, not just a message."
+          "value": "An invitation creates an already-approved application, not just a message."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "邀请会建立预先批准的申请，并非仅发送消息。"
+          "value": "邀请会直接生成已同意的申请，不只是发送一条消息。"
         }
       }
     }
@@ -2500,13 +2500,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Could not load the source. Retry when ready."
+          "value": "Couldn't load this content. Please try again later."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "暂时无法加载源数据，请稍后重试。"
+          "value": "暂时无法加载内容，请稍后重试。"
         }
       }
     }
@@ -2516,13 +2516,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Source data could not be safely read"
+          "value": "This content couldn't be loaded correctly"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "无法安全读取源数据"
+          "value": "内容无法正常读取"
         }
       }
     }
@@ -2596,13 +2596,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Node changes are submitted for source review. Applying does not mean winning the slot."
+          "value": "Station changes are reviewed after you submit. Signing up doesn't mean you've won the slot."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "点位变更提交后由服务端处理审核；报名成功不等于中标。"
+          "value": "点位修改提交后需审核；报名成功不等于中标。"
         }
       }
     }
@@ -3044,13 +3044,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The original station receipt is terminal. Reload the current source state."
+          "value": "This request has already been processed. Reload to see the latest status."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "原本站回执已到终态，请重新加载当前源状态。"
+          "value": "该请求已处理完毕，请刷新查看最新状态。"
         }
       }
     }
@@ -3124,13 +3124,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Route, node, template, award and settlement fields are fixed. Source dates remain unchanged. Empty capacity submits zero, meaning unlimited."
+          "value": "Route, station, template, award and settlement fields can't be changed. The original dates stay the same. Leave capacity empty for unlimited."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "路线、站点、模板、中标和结算字段不可更改；保留原日期。人数留空将提交 0，表示不限。"
+          "value": "路线、站点、模板、中标和结算字段不可更改；保留原日期。人数留空表示不限。"
         }
       }
     }
@@ -3652,13 +3652,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Exploration-value editing is unavailable: the retained source says the backend validates it without persisting it."
+          "value": "Exploration value can't be edited right now."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "探索值暂不可编辑：保留的源记录表明后端会校验，但不会保存。"
+          "value": "探索值暂不可编辑。"
         }
       }
     }

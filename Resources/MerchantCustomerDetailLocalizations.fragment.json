@@ -116,13 +116,13 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "查看来源记录"
+          "value": "查看全部记录"
         }
       },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "View source records"
+          "value": "View all records"
         }
       }
     }
