@@ -126,13 +126,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Badge collection readback"
+            "value": "Badge collection"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "徽章收藏回读"
+            "value": "徽章收藏"
           }
         }
       }

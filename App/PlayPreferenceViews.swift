@@ -79,7 +79,7 @@ import SwiftUI
             }
             if model.phase == "completed" { Button("playx.preference.done") { dismiss() } }
             if model.phase == "failed" || model.phase == "idle" { Button("playx.refresh") { Task { await model.load() } } }
-        }.privacySensitive().navigationTitle("playx.preference.title").accessibilityIdentifier("playx.preference.view")
+        }.privacySensitive().navigationTitle("playx.preference.title").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("playx.preference.view")
             .task { await model.load() }
             .confirmationDialog("playx.review", isPresented: $confirm, titleVisibility: .visible) {
                 Button("playx.submit") { if let review { Task { await model.submit(review); self.review = nil; useExisting = false } } }

@@ -83,7 +83,7 @@ import SwiftUI
                         Button("journey.confirm") { Task { await model.confirm(review) } }
                             .accessibilityIdentifier("journey.check.confirm")
                     }
-                }.navigationTitle("journey.review").privacySensitive()
+                }.navigationTitle("journey.review").navigationBarTitleDisplayMode(.inline).privacySensitive()
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("journey.cancel", role: .cancel) { model.cancelReview() }

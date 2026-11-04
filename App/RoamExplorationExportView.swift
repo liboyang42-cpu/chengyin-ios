@@ -12,7 +12,7 @@ import UniformTypeIdentifiers
         Group {
             if let tools { RoamExportContent(tools: tools).id(tools.identity) }
             else { List { RoamPrivateIssueView(issue: .notConfigured) }.accessibilityIdentifier("roam.export.screen") }
-        }.appNavigationTitle("roam.export.title")
+        }.appNavigationTitle("roam.export.title").navigationBarTitleDisplayMode(.inline)
     }
 }
 

@@ -53,7 +53,7 @@ import Observation
                     }
                 }
             }.accessibilityIdentifier("roam.experience.recovery.result")
-        }.navigationTitle("roam.experience.recovery")
+        }.navigationTitle("roam.experience.recovery").navigationBarTitleDisplayMode(.inline)
             .onAppear { presentation.setForeground(scenePhase == .active); presentation.setVisible(true) }
             .onChange(of: scenePhase) { _, value in presentation.setForeground(value == .active) }
             .onChange(of: presentation.readScope) { _, _ in presentation.reset() }
