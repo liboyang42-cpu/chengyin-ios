@@ -397,7 +397,7 @@
   {
     "key": "merchant.todo.verified",
     "en": "Completed verifications",
-    "zh-Hans": "服务端报告已核销"
+    "zh-Hans": "已核销"
   },
   {
     "key": "merchant.todo.verify",

@@ -281,8 +281,8 @@
   },
   {
     "key": "play.refresh",
-    "en": "Refresh source review",
-    "zh-Hans": "重新核对原文"
+    "en": "Refresh",
+    "zh-Hans": "刷新"
   },
   {
     "key": "play.registrationRequired",
@@ -337,7 +337,7 @@
   {
     "key": "play.unconfigured",
     "en": "Not available right now",
-    "zh-Hans": "供应商尚不可用"
+    "zh-Hans": "暂不可用"
   },
   {
     "key": "play.unconfigured.detail",

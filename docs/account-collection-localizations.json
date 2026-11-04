@@ -16,8 +16,8 @@
   },
   {
     "key": "accountCollection.refresh",
-    "en": "Refresh source review",
-    "zh-Hans": "重新核对原文"
+    "en": "Refresh",
+    "zh-Hans": "刷新"
   },
   {
     "key": "accountCollection.loadMore",

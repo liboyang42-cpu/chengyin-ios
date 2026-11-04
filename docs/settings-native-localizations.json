@@ -197,7 +197,7 @@
   {
     "key": "settingsNative.blocked.unavailable",
     "en": "Not available right now",
-    "zh-Hans": "供应商尚不可用"
+    "zh-Hans": "暂不可用"
   },
   {
     "key": "settingsNative.blocked.locationConsent.title",

@@ -251,8 +251,8 @@
   },
   {
     "key": "ticketWallet.entitlementStatus.redeemed",
-    "en": "Server reported redemption",
-    "zh-Hans": "服务端报告已核销"
+    "en": "Redeemed",
+    "zh-Hans": "已核销"
   },
   {
     "key": "ticketWallet.entitlementStatus.invalid",

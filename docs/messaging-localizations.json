@@ -1,7 +1,7 @@
 [
   {"key":"messaging.title","en":"Messages","zh-Hans":"消息"},
   {"key":"messaging.loading","en":"Loading messages…","zh-Hans":"正在加载消息…"},
-  {"key":"messaging.refresh","en":"Refresh source review","zh-Hans":"重新核对原文"},
+  {"key":"messaging.refresh","en":"Refresh","zh-Hans":"刷新"},
   {"key":"messaging.retry","en":"Retry","zh-Hans":"重试"},
   {"key":"messaging.readOnly","en":"View only. Others won't see that you've read their messages.","zh-Hans":"仅供查看，不会向对方显示已读。"},
   {"key":"messaging.signInRequired","en":"Sign in to view messages","zh-Hans":"登录后查看消息"},

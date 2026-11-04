@@ -121,7 +121,7 @@
   },
   {
     "key": "merchant.cityRedeem.success",
-    "en": "Server reported redemption",
+    "en": "Redeemed",
     "zh-Hans": "核销成功"
   },
   {

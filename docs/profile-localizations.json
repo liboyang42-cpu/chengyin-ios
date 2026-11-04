@@ -31,8 +31,8 @@
   },
   {
     "key": "profile.refresh",
-    "en": "Refresh source review",
-    "zh-Hans": "重新核对原文"
+    "en": "Refresh",
+    "zh-Hans": "刷新"
   },
   {
     "key": "profile.readOnly",
@@ -177,7 +177,7 @@
   {
     "key": "profile.orders.verified",
     "en": "Verified",
-    "zh-Hans": "服务端报告已核销"
+    "zh-Hans": "已核销"
   },
   {
     "key": "profile.orders.notVerified",
