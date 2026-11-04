@@ -702,13 +702,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Server reported redemption"
+          "value": "Redeemed"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端报告已核销"
+          "value": "已核销"
         }
       }
     }
@@ -855,13 +855,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Refresh source review"
+          "value": "Refresh"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "重新核对原文"
+          "value": "刷新"
         }
       }
     }

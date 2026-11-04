@@ -738,7 +738,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Provider unavailable"
+            "value" : "Unavailable"
           }
         },
         "zh-Hans" : {

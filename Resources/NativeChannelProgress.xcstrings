@@ -438,13 +438,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新核对原文"
+            "value": "刷新"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh source review"
+            "value": "Refresh"
           }
         }
       }

@@ -73,13 +73,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This service is not configured"
+          "value": "This feature is not configured"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "此服务尚未配置"
+          "value": "此功能尚未配置"
         }
       }
     }
@@ -294,13 +294,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Refresh source review"
+          "value": "Refresh"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "重新核对原文"
+          "value": "刷新"
         }
       }
     }
@@ -396,13 +396,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Server reported redemption"
+          "value": "Redeemed"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端报告已核销"
+          "value": "已核销"
         }
       }
     }

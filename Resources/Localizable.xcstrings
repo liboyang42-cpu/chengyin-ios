@@ -7561,13 +7561,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh source review"
+            "value": "Refresh"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新核对原文"
+            "value": "刷新"
           }
         }
       }
@@ -8015,7 +8015,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Provider unavailable"
+            "value": "Unavailable"
           }
         },
         "zh-Hans": {
@@ -10424,13 +10424,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This service is not configured."
+            "value": "The approved service address is not configured for this build."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此服务尚未配置"
+            "value": "此构建尚未配置已批准的服务地址。"
           }
         }
       }
@@ -13631,13 +13631,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh source review"
+            "value": "Refresh"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新核对原文"
+            "value": "刷新"
           }
         }
       }
@@ -14010,7 +14010,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端报告已核销"
+            "value": "已核销"
           }
         }
       }
@@ -19381,13 +19381,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh source review"
+            "value": "Refresh"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新核对原文"
+            "value": "刷新"
           }
         }
       }
@@ -20016,7 +20016,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端报告已核销"
+            "value": "已核销"
           }
         }
       }
@@ -20095,7 +20095,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This service is not configured"
+            "value": "This service has not been configured"
           }
         },
         "zh-Hans": {
@@ -22947,13 +22947,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh source review"
+            "value": "Refresh"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新核对原文"
+            "value": "刷新"
           }
         }
       }
@@ -34071,13 +34071,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh source review"
+            "value": "Refresh"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新核对原文"
+            "value": "刷新"
           }
         }
       }
@@ -34530,13 +34530,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server reported redemption"
+            "value": "Redeemed"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端报告已核销"
+            "value": "已核销"
           }
         }
       }
@@ -42793,13 +42793,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This service is not configured."
+            "value": "This feature is not enabled in this build."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此服务尚未配置"
+            "value": "当前版本尚未启用此功能。"
           }
         }
       }
@@ -44222,13 +44222,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh source review"
+            "value": "Refresh"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新核对原文"
+            "value": "刷新"
           }
         }
       }
@@ -45056,13 +45056,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This service is not configured."
+            "value": "This connection is not configured."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此服务尚未配置"
+            "value": "尚未配置连接。"
           }
         }
       }
@@ -56704,7 +56704,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server reported redemption"
+            "value": "Redeemed"
           }
         },
         "zh-Hans": {
@@ -71977,7 +71977,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "供应商尚不可用"
+            "value": "此连接尚未启用"
           }
         }
       }
@@ -72569,7 +72569,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端报告已核销"
+            "value": "已核销"
           }
         }
       }
@@ -74105,7 +74105,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端报告已核销"
+            "value": "已核销"
           }
         }
       }
@@ -76676,13 +76676,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server reported redemption"
+            "value": "Redeemed"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端报告已核销"
+            "value": "已核销"
           }
         }
       }
@@ -76710,13 +76710,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh source review"
+            "value": "Refresh"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新核对原文"
+            "value": "刷新"
           }
         }
       }
@@ -76999,13 +76999,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This service is not configured"
+            "value": "This feature is not configured"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此服务尚未配置"
+            "value": "此功能尚未配置"
           }
         }
       }
@@ -77732,7 +77732,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "供应商尚不可用"
+            "value": "不可用或尚未配置"
           }
         }
       }
@@ -78713,13 +78713,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recording unavailable. Server availability and an approved capture provider are required."
+            "value": "Recording is off until the deployment confirms audio format, duration, size limits and recipient hosts."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "录音不可用，需确认服务器可用性并接入获准的录音服务。"
+            "value": "录音暂未启用，需先确认部署的音频格式、时长、大小限制及接收域名。"
           }
         }
       }
@@ -80142,13 +80142,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh source review"
+            "value": "Refresh"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新核对原文"
+            "value": "刷新"
           }
         }
       }
@@ -81581,13 +81581,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This service is not configured."
+            "value": "This native feature awaits service and privacy approval."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此服务尚未配置。"
+            "value": "此原生功能尚待服务与隐私审核通过。"
           }
         }
       }
@@ -83485,13 +83485,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh source review"
+            "value": "Refresh"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新核对原文"
+            "value": "刷新"
           }
         }
       }
@@ -91783,13 +91783,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh source review"
+            "value": "Refresh"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新核对原文"
+            "value": "刷新"
           }
         }
       }
@@ -93885,13 +93885,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh source review"
+            "value": "Refresh"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新核对原文"
+            "value": "刷新"
           }
         }
       }
@@ -94078,7 +94078,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "供应商尚不可用"
+            "value": "服务尚未配置"
           }
         }
       }
@@ -94820,13 +94820,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server reported redemption"
+            "value": "Redeemed"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端报告已核销"
+            "value": "已核销"
           }
         }
       }
@@ -96601,7 +96601,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端报告已核销"
+            "value": "已核销"
           }
         }
       }
@@ -105493,7 +105493,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Provider unavailable"
+            "value": "Not enabled"
           }
         },
         "zh-Hans": {
@@ -105797,13 +105797,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Provider unavailable"
+            "value": "Unavailable"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "供应商尚不可用"
+            "value": "暂不可用"
           }
         }
       }
@@ -108133,13 +108133,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh source review"
+            "value": "Refresh"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新核对原文"
+            "value": "刷新"
           }
         }
       }
@@ -110467,7 +110467,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Provider unavailable"
+            "value": "Not enabled"
           }
         },
         "zh-Hans": {
@@ -112711,7 +112711,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端报告已核销"
+            "value": "已核销"
           }
         }
       }
@@ -112926,13 +112926,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh source review"
+            "value": "Refresh"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新核对原文"
+            "value": "刷新"
           }
         }
       }
@@ -126015,13 +126015,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server reported redemption"
+            "value": "Redeemed"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端报告已核销"
+            "value": "已核销"
           }
         }
       }
@@ -133250,7 +133250,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "供应商尚不可用"
+            "value": "此控制尚未接入"
           }
         }
       }
@@ -137511,13 +137511,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh source review"
+            "value": "Refresh"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新核对原文"
+            "value": "刷新"
           }
         }
       }
@@ -141410,7 +141410,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh source review"
+            "value": "Refresh"
           }
         },
         "zh-Hans": {
@@ -148750,13 +148750,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server reported redemption"
+            "value": "Redeemed"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端报告已核销"
+            "value": "已核销"
           }
         }
       }
@@ -165391,7 +165391,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Provider unavailable"
+            "value": "Unavailable"
           }
         },
         "zh-Hans": {
@@ -196633,7 +196633,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端报告已核销"
+            "value": "已核销"
           }
         }
       }

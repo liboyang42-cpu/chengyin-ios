@@ -1750,13 +1750,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recording unavailable. Server availability and an approved capture provider are required."
+            "value": "This version does not access the microphone, so recording is not available."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "录音不可用，需确认服务器可用性并接入获准的录音服务。"
+            "value": "此版本不会访问麦克风，暂不能录音。"
           }
         }
       }

@@ -39,13 +39,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recording unavailable. Server availability and an approved capture provider are required."
+            "value": "Recording is off until the deployment confirms audio format, duration, size limits and recipient hosts."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "录音不可用，需确认服务器可用性并接入获准的录音服务。"
+            "value": "录音暂未启用，需先确认部署的音频格式、时长、大小限制及接收域名。"
           }
         }
       }
