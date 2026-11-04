@@ -97,7 +97,7 @@ import Foundation
             guard request == generation else { return }
             if !isCurrent {
                 // A retired authority must never expose or retry the former viewer's payload.
-                history = .init(conversationID: conversation.id); receipt = nil; loaded = false; seenThrough = nil
+                history = .init(conversationID: conversation.id); receipt = nil; loaded = false; seenThrough = nil; seenPosition = -1
                 failedOperation = nil
             } else if error is CancellationError {
                 // Task cancellation alone is not a server rollback. Preserve the
@@ -107,16 +107,24 @@ import Foundation
                 if case .read = operation { receipt = nil }
             } else {
                 issue = error; failedOperation = operation
-                if case .read = operation, let failure = error as? MessagingReadFailure,
-                   failure.httpStatus == nil, let code = failure.code, [400,401,403,404,409].contains(code) {
+                let failure = error as? MessagingReadFailure
+                // HTTP status takes precedence over envelope metadata: an HTTP
+                // 5xx with a rejection code still leaves the write uncertain.
+                let rejection = failure.map { failure in
+                    [400,401,403,404,409].contains(failure.httpStatus ?? failure.code ?? 0)
+                } ?? false
+                if case .read = operation, rejection {
                     // A structured rejection from this transactional endpoint is
                     // not an unknown write. Recover with a fresh authorized page.
                     failedOperation = .latest
                 }
-                if let failure = error as? MessagingReadFailure,
+                if let failure, failure.httpStatus == nil || rejection,
                    failure.isForbidden || failure.isClosed || failure.isUnauthorized || failure.code == 404
-                    || failure.errorCode == "IM_CONVERSATION_CLOSED" {
-                    history = .init(conversationID: conversation.id); receipt = nil; loaded = false; seenThrough = nil
+                    || failure.httpStatus == 404 || failure.errorCode == "IM_CONVERSATION_CLOSED" {
+                    history = .init(conversationID: conversation.id); receipt = nil; loaded = false; seenThrough = nil; seenPosition = -1
+                    // The old page/read target no longer exists locally. A
+                    // subsequent explicit retry must reacquire the latest page.
+                    failedOperation = .latest
                 }
             }
         }
