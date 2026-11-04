@@ -39,13 +39,13 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "尚未配置承接资料。"
+          "value": "尚未填写承接资料。"
         }
       },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The cooperation profile is not configured."
+          "value": "No cooperation profile set up yet."
         }
       }
     }

@@ -838,13 +838,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open friends and recover the original request"
+            "value": "Open Friends and check the original request"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "打开好友首页，回读原请求"
+            "value": "打开好友首页，查看原请求"
           }
         }
       }

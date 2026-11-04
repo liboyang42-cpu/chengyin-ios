@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Audio playback is disabled"
+            "value": "Audio playback isn't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "语音播放未启用"
+            "value": "语音播放暂不可用"
           }
         }
       }
@@ -166,13 +166,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recording, uploads and live generation remain disabled in this migration."
+            "value": "Recording, uploads and voice generation aren't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本迁移版本未启用录音、上传与实时生成。"
+            "value": "录音、上传与语音生成暂不可用。"
           }
         }
       }
@@ -358,13 +358,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unavailable or not configured"
+            "value": "Not available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "不可用或尚未配置"
+            "value": "暂不可用"
           }
         }
       }

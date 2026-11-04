@@ -46,8 +46,8 @@
     "wallet.earnings.stages.unconfigured": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Not configured / unavailable" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未配置/暂不可用" } }
+        "en": { "stringUnit": { "state": "translated", "value": "Unavailable" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "暂不可用" } }
       }
     },
     "wallet.earnings.stages.signedOut": {
@@ -74,8 +74,8 @@
     "wallet.earnings.finance.unconfigured": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Not configured / unavailable" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未配置/暂不可用" } }
+        "en": { "stringUnit": { "state": "translated", "value": "Unavailable" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "暂不可用" } }
       }
     },
     "wallet.earnings.finance.signedOut": {

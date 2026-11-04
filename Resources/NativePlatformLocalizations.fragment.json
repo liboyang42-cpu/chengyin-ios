@@ -100,13 +100,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This native record is for auditing only. It does not complete the task or unlock points or rewards."
+          "value": "This step record is for review only. It doesn't complete the task or unlock points or rewards."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "原生步数仅用于审核记录，不会完成任务或解锁积分及奖励。"
+          "value": "步数仅用于审核记录，不会完成任务或解锁积分及奖励。"
         }
       }
     }

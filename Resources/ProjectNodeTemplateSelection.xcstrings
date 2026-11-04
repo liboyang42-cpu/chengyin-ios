@@ -86,13 +86,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Personal draft reading is not configured or this is not a current ordinary place node. Your existing reference is unchanged."
+            "value": "Your drafts aren't available here right now. Your current selection is unchanged."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本人草稿读取尚未配置，或当前不是普通地点节点；现存引用保持不变。"
+            "value": "此处暂不可使用你的草稿，当前选择保持不变。"
           }
         }
       }

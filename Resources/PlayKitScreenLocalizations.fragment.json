@@ -195,13 +195,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tiles and line progress come from the server. Reward labels describe the configured rewards, not a claim or payout receipt."
+            "value": "Tile and line progress are updated as you play. Reward labels describe the available rewards; they don't mean a reward has been claimed or paid out."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "格子与连线进度由服务端返回。奖励文案是配置说明，不代表已兑换或已到账。"
+            "value": "格子与连线进度会随游玩更新。奖励文案仅为说明，不代表已兑换或已到账。"
           }
         }
       }
@@ -382,13 +382,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read the task’s QR code with the camera. Review the captured code before sending it for server validation."
+            "value": "Scan the task's QR code with your camera. Check the code before sending it to be verified."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "使用相机读取任务二维码。识别后先核对，再发送给服务端验证。"
+            "value": "使用相机扫描任务二维码。识别后先核对，再提交验证。"
           }
         }
       }
@@ -433,13 +433,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start is confirmed by the server first. Local measurements do not award a result or reward."
+            "value": "The start must be confirmed first. Your device's measurements alone don't earn a result or reward."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "先由服务端确认开局。本地测量不代表通过或获得奖励。"
+            "value": "需先确认开局。设备测量本身不代表通过或获得奖励。"
           }
         }
       }
@@ -501,13 +501,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This is your device measurement. Submit it for the server’s decision."
+            "value": "This is your device's measurement. Submit it to get the result."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这是设备测量值，提交后由服务端判定。"
+            "value": "这是设备测量值，提交后判定结果。"
           }
         }
       }
@@ -654,13 +654,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The result will appear after the server responds"
+            "value": "The result will appear shortly"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端返回后显示结果"
+            "value": "稍后显示结果"
           }
         }
       }
@@ -858,13 +858,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your message may be shown to the next visitor. Completion still depends on the server response."
+            "value": "Your message may be shown to the next visitor. Completion is confirmed after you submit."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这句话可能展示给下一位来访者，是否完成以服务端回执为准。"
+            "value": "这句话可能展示给下一位来访者，提交后确认是否完成。"
           }
         }
       }
@@ -943,13 +943,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server total"
+            "value": "Total"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端合计"
+            "value": "合计"
           }
         }
       }
@@ -994,13 +994,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unsubmitted input and this attempt’s local measurements will be discarded. Any already-sent request still needs its server readback."
+            "value": "Unsubmitted input and this attempt's measurements will be cleared. Anything already submitted still needs its result checked."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未提交的输入和本次本地测量将被清除。已经发出的请求仍需核对服务端结果。"
+            "value": "未提交的输入和本次测量将被清除。已提交的内容仍需核对结果。"
           }
         }
       }
@@ -1062,13 +1062,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only your chosen position is submitted. Target locations and hit decisions remain on the server."
+            "value": "Only the position you choose is submitted. Target locations and hit results stay hidden."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "只提交你点选的位置，目标位置与命中判定由服务端保管。"
+            "value": "只提交你点选的位置，目标位置与命中结果不会公开。"
           }
         }
       }
@@ -3595,13 +3595,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server marked the complete selection correct."
+            "value": "Your whole selection is correct."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端判定整组标记正确。"
+            "value": "整组标记正确。"
           }
         }
       }
@@ -3612,13 +3612,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server marked the complete selection incorrect. Individual answers are not revealed."
+            "value": "Your selection isn't fully correct. Individual answers aren't revealed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端判定整组标记有误，不揭示单条答案。"
+            "value": "整组标记有误，不揭示单条答案。"
           }
         }
       }
@@ -3663,13 +3663,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Replace your unsent selection with the server’s last recorded selection?"
+            "value": "Replace your unsent selection with your last submitted selection?"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "用服务端最近记录的选择替换未提交的选择？"
+            "value": "用最近提交的选择替换未提交的选择？"
           }
         }
       }
@@ -3697,13 +3697,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The comparison question is incomplete or inconsistent. Refresh the server state before continuing."
+            "value": "This comparison question is incomplete. Refresh before continuing."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "对照题数据不完整或不一致，请刷新服务端状态后继续。"
+            "value": "对照题内容不完整，请刷新后继续。"
           }
         }
       }
@@ -3748,13 +3748,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "These exact entries will be submitted together. One submission is recorded; only the server decides the result."
+            "value": "These entries will be submitted together as one answer."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "将一起提交以下条目并计作一次作答，结果仅由服务端判定。"
+            "value": "以下条目将一起提交，计作一次作答。"
           }
         }
       }

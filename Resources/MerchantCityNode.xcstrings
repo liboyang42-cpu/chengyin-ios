@@ -438,13 +438,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server checks your online-node quota again."
+            "value": "Your listed-spot limit will be checked again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端会重新校验在架据点配额。"
+            "value": "将重新校验在架据点数量上限。"
           }
         }
       }
@@ -1222,13 +1222,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The submission result is unknown. It will not be resent; read the latest server state instead."
+            "value": "We couldn't confirm whether this was submitted. It won't be sent again; refresh to see the latest status."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "提交结果未确认，不会重复提交；请以服务端最新状态为准。"
+            "value": "提交结果未确认，不会重复提交；请刷新查看最新状态。"
           }
         }
       }
@@ -1238,13 +1238,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A placement application in review was read back."
+            "value": "Found your placement application in review."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已读到审核中的投放申请。"
+            "value": "已找到审核中的投放申请。"
           }
         }
       }
@@ -1254,13 +1254,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No placement application in review was read back yet. The result is still unconfirmed."
+            "value": "No placement application in review was found yet. The result is still unconfirmed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂未读到审核中的投放申请，结果仍未确认。"
+            "value": "暂未找到审核中的投放申请，结果仍未确认。"
           }
         }
       }
@@ -2374,13 +2374,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Live node actions are not enabled. Nothing will be sent."
+            "value": "Spot actions aren't available right now. Nothing will be sent."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "真实据点操作尚未启用，不会发送任何请求。"
+            "value": "据点操作暂不可用，不会发送任何请求。"
           }
         }
       }
@@ -2390,13 +2390,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Node actions are paused. The list above is the latest server readback; nothing will be resent."
+            "value": "Spot actions are paused. The list above is up to date; nothing will be sent again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已暂停据点操作。以上为服务端最新读取结果，不会重复发送。"
+            "value": "据点操作已暂停。以上为最新列表，不会重复发送。"
           }
         }
       }

@@ -36,13 +36,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Audience, consent, frequency limits and daily limits are recalculated by the server. A preview is not a delivery receipt."
+          "value": "Audience, consent, frequency and daily limits are checked again when sending. A preview doesn't mean the message was delivered."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "受众、同意、频控与每日限额均由服务端重新计算。预览不等于送达回执。"
+          "value": "受众、同意、频次与每日限额将在发送时重新核对。预览不代表已送达。"
         }
       }
     }
@@ -500,13 +500,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This action requests a fresh, audited number for this customer and purpose. The server checks ownership, consent and limits. Masked numbers and previous disclosures are never reused."
+          "value": "This action requests a new, logged number for this customer and purpose. Ownership, consent and limits are checked. Masked or previously shared numbers are never reused."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "此操作按客户和用途请求一次新的、留有审计记录的号码。服务端检查归属、同意与限额；不会使用脱敏号或复用之前披露的号码。"
+          "value": "此操作会为该客户和用途获取一个新号码，并留有记录。将核对归属、同意与限额；不会使用脱敏号码或复用之前提供过的号码。"
         }
       }
     }
@@ -900,13 +900,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This reviewed action asks the service to deliver the exact task or retry its eligible recipients. The response may be partial or still processing."
+          "value": "This sends the selected message, or resends it to eligible recipients who didn't get it. Delivery may be partial or still in progress."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "此预览操作请求服务端投放指定任务，或重试其中符合条件的收件人。回执可能表示部分完成或仍在处理中。"
+          "value": "将发送所选消息，或向符合条件的未送达收件人重新发送。可能部分送达或仍在处理中。"
         }
       }
     }
@@ -948,13 +948,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Choose a valid JPEG, PNG or GIF image within the native 20 MiB memory limit."
+          "value": "Choose a JPEG, PNG or GIF image up to 20 MB."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "请选择有效的JPEG、PNG或GIF图片，且不超过原生20 MiB内存限制。"
+          "value": "请选择不超过20 MB的JPEG、PNG或GIF图片。"
         }
       }
     }
@@ -1172,13 +1172,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Acceptance can assign the role chosen by the inviter and change business access. The service remains authoritative; no local role is inferred from the token."
+          "value": "Accepting may give you the role chosen by the inviter and change what you can access in the business."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "接受后可能分配邀请人选择的岗位并改变经营访问权限。以服务端为准，不会从凭证推断本地岗位。"
+          "value": "接受后可能获得邀请人指定的岗位，并改变你的经营权限。"
         }
       }
     }
@@ -1268,13 +1268,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The service returned an active operator membership."
+          "value": "You're now an active team member."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端返回了生效的经营成员记录。"
+          "value": "你已成为在职成员。"
         }
       }
     }
@@ -1764,13 +1764,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Server-calculated audience"
+          "value": "Calculated audience"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端计算的受众"
+          "value": "预计受众"
         }
       }
     }
@@ -2132,13 +2132,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This action is not enabled for this reviewed account and store."
+          "value": "This action isn't available for this account and store right now."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "当前已审核账户与门店尚未启用此操作。"
+          "value": "此账号与门店暂不可用此操作"
         }
       }
     }
@@ -2148,13 +2148,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The server has not supplied the full message and frozen recipient list needed for a send review. Dispatch and retry remain unavailable."
+          "value": "The full message and recipient list aren't available yet, so sending and resending aren't possible right now."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端尚未提供发送审核所需的完整消息与冻结收件人名单，暂不支持发送或重试。"
+          "value": "暂未获取完整消息与收件人名单，暂不能发送或重新发送。"
         }
       }
     }

@@ -358,13 +358,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "These actions are not enabled in the app yet"
+            "value": "These actions aren't available in the app right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这些操作暂未在 App 中开放"
+            "value": "这些操作暂不可用"
           }
         }
       }

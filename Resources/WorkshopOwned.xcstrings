@@ -534,13 +534,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Package snapshot"
+            "value": "Package version"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "玩法包版本快照"
+            "value": "玩法包版本"
           }
         }
       }
@@ -630,13 +630,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The immutable snapshot cannot be read for this acquisition right now. Return to the record for its current status."
+            "value": "This package can't be loaded right now. Go back to the record to see its current status."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前无法读取此领取记录的不可变快照，请返回记录查看其当前状态。"
+            "value": "暂时无法加载此玩法包，请返回记录查看当前状态。"
           }
         }
       }

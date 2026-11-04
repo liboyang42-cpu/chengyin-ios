@@ -886,13 +886,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No reviewed support contact is configured for this deployment"
+            "value": "Customer support contact isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此环境尚未配置经核验的客服联系方式"
+            "value": "客服联系方式暂不可用"
           }
         }
       }

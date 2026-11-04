@@ -158,13 +158,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The server returned no available store industries."
+          "value": "No store industries are available."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端暂无可选店铺行业。"
+          "value": "暂无可选店铺行业。"
         }
       }
     }
@@ -345,13 +345,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The server-confirmed store industry has been reloaded."
+          "value": "Store industry updated."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "已重新读取服务端确认的店铺行业。"
+          "value": "店铺行业已更新。"
         }
       }
     }

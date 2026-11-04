@@ -177,13 +177,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Send exactly this captured version for review. This action does not approve the content or create an immutable release."
+            "value": "Submit this version for review. Submitting doesn't approve or publish it."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅将这份捕获的版本提交审核。此操作不会批准内容，也不会创建不可变发布版本。"
+            "value": "将此版本提交审核。提交不代表审核通过或发布。"
           }
         }
       }
@@ -245,13 +245,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current capture or saved local request could not be verified. Retrying reads saved state first and does not invent a replacement request."
+            "value": "We couldn't check this request. Try again; your saved request won't be replaced."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无法核实当前快照或本地保存的请求。重试会先读取保存状态，不会擅自替换请求。"
+            "value": "暂时无法核对此申请，请重试；已保存的申请不会被替换。"
           }
         }
       }
@@ -449,13 +449,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recovery is not configured for this account or request. The saved request remains unchanged."
+            "value": "This request can't be restored right now. Your saved request hasn't changed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账号或请求未配置恢复操作。已保存的请求保持不变。"
+            "value": "此申请暂时无法恢复，已保存的申请保持不变。"
           }
         }
       }
@@ -551,13 +551,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Captured snapshot SHA-256"
+            "value": "Content check code"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "捕获快照 SHA-256"
+            "value": "内容校验码"
           }
         }
       }
@@ -585,13 +585,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Request review of this capture"
+            "value": "Submit for review"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "为此快照申请审核"
+            "value": "提交审核"
           }
         }
       }
@@ -738,13 +738,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Template snapshot SHA-256"
+            "value": "Gameplay check code"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "玩法快照 SHA-256"
+            "value": "玩法校验码"
           }
         }
       }
@@ -823,13 +823,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "New review requests are not configured for this account, mode or submission. The original submission receipt is retained."
+            "value": "New review requests aren't available right now. Your original submission is kept."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账号、玩法模式或提交尚未配置新的审核申请。原提交回执仍保留。"
+            "value": "暂不可发起新的审核申请，原提交记录仍保留。"
           }
         }
       }

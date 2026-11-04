@@ -54,13 +54,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Show this live code to the authorized host. A scan result and any remaining chapters are confirmed by the server."
+            "value": "Show this live code to the host. Whether it's redeemed and how many chapters remain is confirmed after scanning."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "向有权限的主办方出示此实时码。核销结果及剩余章节以服务器记录为准。"
+            "value": "向主办方出示此实时码。核销结果及剩余章节以扫码后的记录为准。"
           }
         }
       }
@@ -342,13 +342,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Code issuance is not enabled for this account and service."
+            "value": "Codes aren't available for this account right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账号和服务尚未开放出码。"
+            "value": "当前账号暂不可出码。"
           }
         }
       }

@@ -4,13 +4,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The server lists no permissions for this role."
+          "value": "No permissions are listed for this role."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端未列出此岗位的权限。"
+          "value": "此岗位暂无权限。"
         }
       }
     }
@@ -36,13 +36,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Only permissions returned for the selected role are listed. The server still checks store ownership and current access for each action."
+          "value": "Only permissions for the selected role are shown. Store ownership and access are checked again for each action."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "这里只显示服务端为所选岗位返回的权限。每次操作仍由服务端校验门店归属和当前权限。"
+          "value": "仅显示所选岗位的权限。每次操作仍会核对门店归属和当前权限。"
         }
       }
     }
@@ -68,13 +68,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Empty permission code returned by the server"
+          "value": "Unnamed permission"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端返回了空权限代码"
+          "value": "未命名权限"
         }
       }
     }

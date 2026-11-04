@@ -150,13 +150,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chapter audio upload is not configured for this account or current draft. Existing references remain unchanged."
+            "value": "Chapter audio upload isn't available right now. Existing audio stays unchanged."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账号或草稿尚未配置章节音频上传，现存引用保持不变。"
+            "value": "章节音频上传暂不可用，已有音频保持不变。"
           }
         }
       }

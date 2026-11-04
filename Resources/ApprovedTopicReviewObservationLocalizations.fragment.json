@@ -102,13 +102,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Observed snapshot hash"
+            "value": "Content check code"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本次读取的快照哈希"
+            "value": "内容校验码"
           }
         }
       }
@@ -166,13 +166,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Current-task checking is not configured or this saved request is not available for checking."
+            "value": "Review status isn't available for this request right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前任务查询尚未配置，或此保存请求暂不可查询。"
+            "value": "此申请的审核状态暂不可查看。"
           }
         }
       }

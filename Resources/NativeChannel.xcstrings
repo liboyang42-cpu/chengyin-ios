@@ -230,13 +230,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Incremental reading is not enabled."
+            "value": "Loading newer messages isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "增量读取尚未启用。"
+            "value": "加载新消息暂不可用。"
           }
         }
       }
@@ -246,13 +246,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read receipts are not enabled. Unread counts will not be cleared automatically."
+            "value": "Read status isn't available right now. Unread counts won't clear automatically."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已读确认尚未启用，不会自动清除未读。"
+            "value": "已读状态暂不可用，未读数不会自动清除。"
           }
         }
       }
@@ -262,13 +262,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unread remaining on server"
+            "value": "Unread remaining"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端剩余未读"
+            "value": "剩余未读"
           }
         }
       }
@@ -374,13 +374,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server status"
+            "value": "Status"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端状态"
+            "value": "状态"
           }
         }
       }
@@ -486,13 +486,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not provided by the server"
+            "value": "Not provided"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端未提供"
+            "value": "未提供"
           }
         }
       }
@@ -502,13 +502,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A countdown is unavailable without a trusted server clock. The server determines whether the action is still in effect."
+            "value": "A countdown can't be shown right now. Whether the action is still in effect is shown in its status."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "缺少可信服务端时钟，暂不显示倒计时。处置是否仍生效以服务端为准。"
+            "value": "暂不显示倒计时，处置是否仍生效以状态为准。"
           }
         }
       }

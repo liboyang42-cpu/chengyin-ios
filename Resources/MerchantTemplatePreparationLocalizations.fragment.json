@@ -107,13 +107,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "An empty value is omitted from the request and does not clear an existing server value. Saving uses the existing template permissions and readback flow."
+          "value": "Leaving a field blank won't clear its current value. Saving follows your existing template permissions."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "留空时请求不发送该字段，不会清除已有服务端值。保存沿用既有模板权限与回读流程。"
+          "value": "留空不会清除已有内容。保存时沿用现有模板权限。"
         }
       }
     }

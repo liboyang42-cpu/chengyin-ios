@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Owner draft reading is not configured for this account. Your existing template reference is retained."
+            "value": "Store drafts aren't available right now. Your current template stays selected."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账户尚未配置本店草稿读取，已有模板引用会保留。"
+            "value": "本店草稿暂不可用，已选模板会保留。"
           }
         }
       }

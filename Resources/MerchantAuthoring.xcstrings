@@ -1462,13 +1462,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server action rules"
+            "value": "Action rules"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端动作规则"
+            "value": "动作规则"
           }
         }
       }
@@ -2262,13 +2262,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Store facts changed. Read the latest facts before starting a new draft."
+            "value": "Your store details have changed. Refresh them before starting a new draft."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "店铺事实已变化，请回读最新事实后新建草稿。"
+            "value": "店铺信息已变化，请刷新后再新建草稿。"
           }
         }
       }

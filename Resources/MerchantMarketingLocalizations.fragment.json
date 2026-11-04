@@ -73,13 +73,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This feature is not configured"
+          "value": "This feature isn't available right now"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "此功能尚未配置"
+          "value": "此功能暂不可用"
         }
       }
     }
@@ -141,13 +141,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The server data could not be confirmed"
+          "value": "This information couldn't be loaded"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "无法确认服务端数据"
+          "value": "信息加载失败"
         }
       }
     }
@@ -226,13 +226,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The server returned a message"
+          "value": "Something went wrong"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端返回了提示"
+          "value": "出现问题"
         }
       }
     }
@@ -311,13 +311,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Server acknowledgement"
+          "value": "Confirmation"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端确认"
+          "value": "确认结果"
         }
       }
     }
@@ -957,13 +957,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Digital-entitlement checkout is unavailable on iOS. No Apple purchase integration has been supplied."
+          "value": "Buying digital items isn't available on iOS right now."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "iOS 暂不支持数字权益自助购买，尚未提供 Apple 内购接口"
+          "value": "iOS 暂不支持购买数字权益"
         }
       }
     }
@@ -1110,13 +1110,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Settlement is one-time and cannot be undone. The server may issue coupons to winners according to the merchant rules."
+          "value": "Settlement happens only once and can't be undone. Coupons may be issued to winners according to your rules."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "结算只能进行一次且不可撤销，服务端可能按商家规则向猜中者发券"
+          "value": "结算只能进行一次且不可撤销，可能按商家规则向猜中者发券"
         }
       }
     }

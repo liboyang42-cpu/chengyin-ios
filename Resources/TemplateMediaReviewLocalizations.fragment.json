@@ -214,13 +214,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Native image selection is unavailable in this build."
+            "value": "Choosing images isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此版本暂不可使用原生图片选择。"
+            "value": "选择图片暂不可用。"
           }
         }
       }
@@ -230,13 +230,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Native audio document selection is unavailable here. Inspection is not playable audio or an attachment."
+            "value": "Choosing audio files isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此处暂不可使用原生音频文件选择。检查结果不是可播放音频，也不是已添加附件。"
+            "value": "选择音频文件暂不可用。"
           }
         }
       }

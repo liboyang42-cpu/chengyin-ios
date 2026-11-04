@@ -102,13 +102,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Eligibility is rechecked by the server. A public profile or one-way follow is not authorization."
+            "value": "Eligibility is checked again. A public profile or one-way follow doesn't count as permission."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "资格由服务端重新核验，公开主页或单向关注不构成授权。"
+            "value": "资格会重新核验，公开主页或单向关注不构成授权。"
           }
         }
       }
@@ -198,13 +198,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Coarse representative point (server projection)"
+            "value": "Approximate location"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "接收方粗略代表点（服务端投影）"
+            "value": "大致位置"
           }
         }
       }
@@ -390,13 +390,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server grants"
+            "value": "Active shares"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端授权"
+            "value": "共享授权"
           }
         }
       }
@@ -454,13 +454,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh received snapshots"
+            "value": "Refresh shared locations"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "刷新接收快照"
+            "value": "刷新收到的位置"
           }
         }
       }
@@ -534,13 +534,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This is the latest authorized snapshot, not guaranteed to be real-time"
+            "value": "This is the latest shared location and may not be real-time"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这是最近一次授权快照，不保证实时"
+            "value": "这是最近一次共享的位置，不保证实时"
           }
         }
       }
@@ -614,13 +614,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server grant is active"
+            "value": "Sharing is active"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端授权有效"
+            "value": "共享中"
           }
         }
       }
@@ -630,13 +630,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stopped on this device; server revocation is awaiting confirmation"
+            "value": "Stopped on this device; waiting to confirm the stop"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本机已停止，服务端撤销待确认"
+            "value": "本机已停止，停止待确认"
           }
         }
       }
@@ -646,13 +646,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server has confirmed completion"
+            "value": "Sharing has ended"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已确认结束"
+            "value": "共享已结束"
           }
         }
       }
@@ -694,13 +694,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Agree to upload the latest device location for server presentation at the selected precision"
+            "value": "I agree to share my device's latest location at the selected precision"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "同意上传设备最新位置，由服务端按所选精度展示"
+            "value": "同意按所选精度共享设备的最新位置"
           }
         }
       }
@@ -998,13 +998,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign in and select a specific other member. Location sharing is not enabled."
+            "value": "Sign in and choose another member. Location sharing isn't on."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请登录并选择明确的其他成员。位置共享尚未启用。"
+            "value": "请登录并选择其他成员。位置共享尚未开启。"
           }
         }
       }
@@ -1094,13 +1094,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server grant status has been read. Capture and sharing do not resume automatically after a restart."
+            "value": "Sharing status loaded. Location sharing doesn't resume automatically after a restart."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已读取服务端授权状态。重启后不会自动恢复采集或共享。"
+            "value": "已加载共享状态。重启后不会自动恢复位置采集或共享。"
           }
         }
       }
@@ -1126,13 +1126,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirming the server grant."
+            "value": "Confirming sharing."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在确认服务端授权。"
+            "value": "正在确认共享。"
           }
         }
       }
@@ -1158,13 +1158,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A server grant remains, but capture has not resumed on this device. Stop the original grant before confirming sharing again."
+            "value": "Sharing is still active, but this device isn't sending your location. Stop the existing share before sharing again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端仍有授权，但本机未恢复采集。请停止原授权后再重新确认共享。"
+            "value": "共享仍有效，但本机未恢复位置采集。请先停止原共享，再重新确认共享。"
           }
         }
       }
@@ -1174,13 +1174,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stopped on this device, but the stop intent could not be saved safely and server revocation is unconfirmed. New sharing is blocked."
+            "value": "Stopped on this device, but the stop couldn't be saved and isn't confirmed. New sharing is blocked."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本机已停止；停止意图未能安全保存，服务端撤销尚未确认。已禁止新建共享。"
+            "value": "本机已停止，但停止操作未能保存，尚未确认。已暂停新建共享。"
           }
         }
       }
@@ -1190,13 +1190,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stopped on this device; server revocation is unconfirmed. Retry after reconnecting with the original account."
+            "value": "Stopped on this device; the stop isn't confirmed yet. Try again once you're back online with the same account."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本机已停止，服务端撤销待确认。请在原账号恢复连接后重试。"
+            "value": "本机已停止，停止待确认。请使用原账号恢复联网后重试。"
           }
         }
       }
@@ -1222,13 +1222,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stopped on this device; server revocation is awaiting confirmation."
+            "value": "Stopped on this device; waiting to confirm the stop."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本机已停止，服务端撤销待确认。"
+            "value": "本机已停止，停止待确认。"
           }
         }
       }
@@ -1238,13 +1238,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server has confirmed sharing ended. Information already seen cannot be recalled."
+            "value": "Sharing has ended. Information already seen can't be recalled."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已确认结束共享。已经看见的信息无法收回。"
+            "value": "共享已结束。已经看到的信息无法收回。"
           }
         }
       }
@@ -1254,13 +1254,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server has not found the original request; this does not mean it was revoked. Stop the original request to establish a stop record."
+            "value": "We couldn't find the original request; that doesn't mean it was stopped. Stop the original request to make sure."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端暂未找到原请求，不等于已撤销。请选择停止原请求以建立停止记录。"
+            "value": "暂未找到原请求，不等于已停止。请停止原请求以确保共享结束。"
           }
         }
       }
@@ -1270,13 +1270,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server grant is established. Waiting for this foreground location capture; publication is not yet confirmed."
+            "value": "Sharing is set up. Waiting for your current location; it hasn't been shared yet."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端授权已建立，正在等待本次前台定位；尚不能确认已发布位置。"
+            "value": "共享已建立，正在获取当前位置；尚未确认已共享位置。"
           }
         }
       }
@@ -1302,13 +1302,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stopped on this device, but saving the stop intent failed. Server revocation is unconfirmed and new sharing is blocked."
+            "value": "Stopped on this device, but the stop couldn't be saved. It isn't confirmed yet, and new sharing is blocked."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本机已停止，但停止意图保存失败；服务端撤销待确认。已禁止新建共享。"
+            "value": "本机已停止，但停止操作保存失败，尚未确认。已暂停新建共享。"
           }
         }
       }
@@ -1318,13 +1318,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Local capture has stopped and received locations were cleared. Original requests remain for unconfirmed server revocations. Recheck and confirm after returning to the foreground; old grants do not resume automatically."
+            "value": "Location sharing has stopped on this device and received locations were cleared. Any unconfirmed stops are kept. When you return to the app, check and confirm again; earlier shares don't resume automatically."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本机采集已停止，接收位置已清除。未确认的服务端撤销仍保留原请求。返回前台须重新核验并确认，不会自动恢复旧授权。"
+            "value": "本机位置采集已停止，收到的位置已清除。未确认的停止操作仍会保留。回到应用后须重新核验并确认，之前的共享不会自动恢复。"
           }
         }
       }
@@ -1334,13 +1334,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server rejected authorization for this relationship. Capture was stopped and received locations cleared."
+            "value": "Sharing with this person isn't allowed. Location sharing stopped and received locations were cleared."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端拒绝当前关系授权。已同步停止采集并清除接收位置。"
+            "value": "无法与此成员共享位置。已停止采集并清除收到的位置。"
           }
         }
       }
@@ -1350,13 +1350,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server rejected the current sharing policy. Capture was stopped and received locations cleared."
+            "value": "Sharing isn't allowed under the current sharing rules. Location sharing stopped and received locations were cleared."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端拒绝当前共享政策。已同步停止采集并清除接收位置。"
+            "value": "当前共享规则不允许共享。已停止采集并清除收到的位置。"
           }
         }
       }
@@ -1622,13 +1622,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无法核验原请求日志，不代表没有待处理请求。已禁止新建共享；服务端当前列表不能代替原请求恢复。请重试读取日志。"
+            "value": "无法核对之前的请求，可能仍有待处理请求，已暂停新建共享。请重试。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original requests could not be verified. This does not mean none are pending. New sharing is blocked; current server lists cannot replace original-request recovery. Retry reading the journal."
+            "value": "We couldn't check your earlier requests. There may still be some pending, so new sharing is blocked. Try again."
           }
         }
       }
@@ -1654,13 +1654,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本机已停止，但停止意图尚未安全保存。服务端撤销仍未确认，新建共享继续锁定。请重试原请求的停止操作。"
+            "value": "本机已停止共享，但停止操作未能保存。停止尚未确认，新共享暂时锁定。请重试停止。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Collection has stopped locally, but the stop intent is not safely saved. Server revocation is still unconfirmed and new sharing remains blocked. Retry stopping the original request."
+            "value": "Sharing has stopped on this device, but we couldn't save that you stopped it. The stop isn't confirmed yet, so new sharing is blocked. Try stopping again."
           }
         }
       }
@@ -1686,13 +1686,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原请求是恢复未知结果的依据。当前授权和接收快照不能证明原请求已结束。"
+            "value": "之前的请求会保留至结果确认。当前授权和收到的位置不能证明之前的请求已结束。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original requests are the recovery record for unknown outcomes. Current grants and received snapshots do not prove that an original request has ended."
+            "value": "Earlier requests are kept until their result is confirmed. Current shares and received locations don't prove an earlier request has ended."
           }
         }
       }
@@ -1702,13 +1702,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此处仅为上次读取的服务端授权。它与本机原请求日志独立；读取成功不会解除日志恢复或停止保存失败的锁定。"
+            "value": "此处为上次加载的共享授权。刷新不会解除因停止未确认而锁定的共享。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "These are the last-read server grants, independent of the local request journal. A successful read does not clear a journal-recovery or unsaved-stop lock."
+            "value": "These are the shares as last loaded. Refreshing doesn't unlock sharing that's blocked by an unconfirmed stop."
           }
         }
       }
@@ -1718,13 +1718,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此次读取未返回服务端授权。"
+            "value": "暂无共享授权。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This read returned no server grants."
+            "value": "No active shares."
           }
         }
       }
@@ -1766,13 +1766,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "上次读取快照，并非实时状态。"
+            "value": "上次刷新结果，并非实时。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last-read snapshot, not live state."
+            "value": "As of last refresh, not live."
           }
         }
       }
@@ -1894,13 +1894,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端撤销仍待确认，请重试原请求。"
+            "value": "停止尚未确认，请重试。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server revocation is still unconfirmed. Retry the original request."
+            "value": "The stop isn't confirmed yet. Try again."
           }
         }
       }
@@ -1910,13 +1910,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本机已停止，服务端撤销待确认。保留原请求重试。"
+            "value": "本机已停止，停止尚未确认，可重试。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Collection has stopped locally; server revocation is unconfirmed. Keep the original request for retry."
+            "value": "Stopped on this device; the stop isn't confirmed yet. You can try again."
           }
         }
       }
@@ -1942,13 +1942,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端拒绝共享访问（%@）。已同步停止采集并清除接收位置；需重新核验会话与授权。"
+            "value": "共享访问被拒绝（%@）。已停止采集并清除收到的位置；请重新登录并核对授权。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server denied sharing access (%@). Collection has stopped and received locations have been cleared. Recheck the session and authorization."
+            "value": "Sharing access was denied (%@). Location sharing stopped and received locations were cleared. Sign in again and check your permissions."
           }
         }
       }
@@ -1974,13 +1974,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "位置共享尚未启用"
+            "value": "位置共享暂不可用"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Location sharing is unavailable"
+            "value": "Location sharing isn't available right now"
           }
         }
       }

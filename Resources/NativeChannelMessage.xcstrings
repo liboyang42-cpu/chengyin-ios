@@ -278,13 +278,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "确认撤回这条消息？结果以服务器原请求回执为准。"
+            "value": "确认撤回这条消息？撤回结果以最终确认为准。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recall this message? The original server receipt determines the outcome."
+            "value": "Recall this message? We'll confirm whether the recall succeeded."
           }
         }
       }
@@ -662,13 +662,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此附件需要当前服务端授权来源。可用图片沿原预览打开。"
+            "value": "此附件暂时无法打开，可用图片可按原方式预览。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This attachment needs current server authorization. Available images use the existing preview."
+            "value": "This attachment can't be opened right now. Available images open in the usual preview."
           }
         }
       }
@@ -1142,13 +1142,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前置顶列表：尚未取得有效读回；原请求结果不受影响。"
+            "value": "暂时无法加载置顶列表，之前的请求不受影响。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Current pinned list: a valid readback is not yet available; the original request outcome is unchanged."
+            "value": "Couldn't load the current pinned list. Your earlier request isn't affected."
           }
         }
       }

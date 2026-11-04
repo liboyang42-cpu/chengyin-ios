@@ -38,13 +38,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此服务尚未配置。登录不会自动开启声明权限。"
+            "value": "创作者声明暂不可用。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This service is not configured. Signing in does not enable declarations."
+            "value": "Creator declarations aren't available right now."
           }
         }
       }
@@ -124,7 +124,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Exact text for this version"
+            "value": "Full text of this version"
           }
         }
       }
@@ -134,13 +134,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此版本只包含下列文字。请逐项核对原文。"
+            "value": "此版本只包含下列文字，请逐项阅读。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This version contains only the text below. Review every field."
+            "value": "This version contains only the text below. Please read every item."
           }
         }
       }

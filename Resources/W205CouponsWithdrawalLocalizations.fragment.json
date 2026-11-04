@@ -175,13 +175,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Withdrawal history is not available in this build."
+          "value": "Withdrawal history isn't available right now."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "此版本暂未开放提现记录读取"
+          "value": "提现记录暂不可用"
         }
       }
     }
