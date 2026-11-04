@@ -91,8 +91,6 @@ struct AuthChannelView: View {
                         if model.state.work == .appleAuthorization || model.state.work == .appleExchange {
                             ProgressView("auth.channels.appleWorking")
                         }
-                    } else {
-                        Label("auth.channels.appleNotConfigured", systemImage: "info.circle")
                     }
                 }
                 if !model.coordinator.isConfigured {
@@ -106,9 +104,6 @@ struct AuthChannelView: View {
                     Button("auth.channels.privacyPolicy") { focus = nil; onOpenPrivacy?() }
                         .disabled(onOpenPrivacy == nil)
                         .frame(minHeight: 44)
-                    if !legalReleaseContentVerified || onOpenAgreement == nil || onOpenPrivacy == nil {
-                        Label("auth.channels.legalPending", systemImage: "exclamationmark.triangle")
-                    }
                 }
             }
             .appNavigationTitle("auth.channels.title")
