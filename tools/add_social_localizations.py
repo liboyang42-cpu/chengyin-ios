@@ -4,7 +4,7 @@ import json, pathlib
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 PAIRS = {
 'social.fixtureSwitchAccount': ('Switch example account', '切换示例账号'),
-'social.notConfigured': ('This feature isn\'t available right now.', '此功能暂不可用。'),
+'social.notConfigured': ('This service is not configured.', '此服务尚未配置。'),
 'social.signIn': ('Sign in to continue.', '请登录后继续。'),
 'social.emptyText': ('Enter some text before reviewing.', '请先输入内容再预览。'),
 'social.ownerRequired': ('Only the post owner can edit this post.', '只有作者可以编辑这篇动态。'),

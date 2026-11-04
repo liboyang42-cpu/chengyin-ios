@@ -351,8 +351,8 @@
  },
  {
   "key": "square.video.policyUnavailable",
-  "en": "Video rules for posts are not connected yet. No video file is read or uploaded.",
-  "zh-Hans": "帖文视频规则尚未接通，不会读取或上传视频文件。"
+  "en": "Video posts aren't available right now. No video is read or uploaded.",
+  "zh-Hans": "视频动态暂不可用，不会读取或上传视频。"
  },
  {
   "key": "square.video.empty",
@@ -486,28 +486,28 @@
  },
  {
   "key": "square.video.fixture.pickValid",
-  "en": "Synthetic: pick a 15 s video",
+  "en": "Example: pick a 15 s video",
   "zh-Hans": "示例：选择 15 秒视频"
  },
  {
   "key": "square.video.fixture.pickLong",
-  "en": "Synthetic: pick a 2 min video",
+  "en": "Example: pick a 2 min video",
   "zh-Hans": "示例：选择 2 分钟视频"
  },
  {
   "key": "square.video.fixture.save",
-  "en": "Synthetic: save draft",
+  "en": "Example: save draft",
   "zh-Hans": "示例：保存草稿"
  },
  {
   "key": "square.video.fixture.restore",
-  "en": "Synthetic: restore draft",
+  "en": "Example: restore draft",
   "zh-Hans": "示例：恢复草稿"
  },
  {
   "key": "square.video.fixture.loseFile",
-  "en": "Synthetic: lose local file",
-  "zh-Hans": "示例：模拟本机文件丢失"
+  "en": "Example: lose local file",
+  "zh-Hans": "示例：本机文件丢失"
  },
  {
   "key": "topic.unauthorized",

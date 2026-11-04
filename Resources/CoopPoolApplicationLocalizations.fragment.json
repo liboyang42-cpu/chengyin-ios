@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This is an expression of interest, not a cooperation agreement. It isn't sent to a specific club or merchant. Submitting isn't available right now."
+            "value": "This is an application of interest, not a cooperation agreement. The source request does not select a club or merchant ID. Submission remains unavailable."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此处是承接意向申请，不是合作协议，不会指定俱乐部或商家。提交暂不可用。"
+            "value": "此处是承接意向申请，不是合作协议。源请求不指定俱乐部或商户编号，当前仍不可提交。"
           }
         }
       }

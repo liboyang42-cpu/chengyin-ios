@@ -126,13 +126,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh"
+            "value": "Refresh source review"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "刷新"
+            "value": "重新核对原文"
           }
         }
       }
@@ -160,13 +160,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Writes are disabled by default and require an explicitly granted adapter"
+            "value": "Posting isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "写入默认关闭，需要显式授权的适配器"
+            "value": "发布暂不可用"
           }
         }
       }
@@ -449,13 +449,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Image upload is not enabled"
+            "value": "Image upload isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "尚未开启图片上传"
+            "value": "图片上传暂不可用"
           }
         }
       }
@@ -755,13 +755,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server acknowledged. Review refreshed server content."
+            "value": "Received. Please check the refreshed content."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已确认，请查看刷新后的内容"
+            "value": "已收到，请查看刷新后的内容。"
           }
         }
       }

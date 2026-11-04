@@ -76,8 +76,8 @@
   },
   {
     "key": "merchant.cityRedeem.disabled",
-    "en": "Live city-node redemption is not enabled. This code will not be sent.",
-    "zh-Hans": "据点实际核销尚未启用，不会发送此码。"
+    "en": "City-node redemption isn't available right now. This code won't be sent.",
+    "zh-Hans": "据点核销暂不可用，不会发送此码。"
   },
   {
     "key": "merchant.cityRedeem.code",
@@ -121,7 +121,7 @@
   },
   {
     "key": "merchant.cityRedeem.success",
-    "en": "Redeemed",
+    "en": "Server reported redemption",
     "zh-Hans": "核销成功"
   },
   {

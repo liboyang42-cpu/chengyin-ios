@@ -1,11 +1,11 @@
 {
   "templateAuthor.acknowledged": {
-    "en": "The server acknowledged this request. Publication or review approval is not confirmed.",
-    "zh-Hans": "服务器已接收请求，但尚未确认发布或审核通过。"
+    "en": "Request received. It isn't published or reviewed yet.",
+    "zh-Hans": "已收到请求，尚未发布或通过审核。"
   },
   "templateAuthor.httpReview": {
-    "en": "Review the exact request before submitting. Server approval may still be required.",
-    "zh-Hans": "提交前请核对请求，仍可能需要服务器审核。"
+    "en": "Check your request before submitting. It may still need review.",
+    "zh-Hans": "提交前请核对内容，提交后可能仍需审核。"
   },
   "templateAuthor.confirmRequest": {
     "en": "Confirm request",
@@ -80,8 +80,8 @@
     "zh-Hans": "我的模板列表为空。"
   },
   "templateAuthor.shelf.pageScope": {
-    "en": "Browse 10 at a time, up to 1,000 per search. Changes require a matching first-100 owner snapshot.",
-    "zh-Hans": "每页显示 10 项，每次搜索最多 1,000 项。修改需要与前 100 项的所有者快照一致。"
+    "en": "Browse 10 at a time, up to 1,000 per search. Refresh the list before making changes.",
+    "zh-Hans": "每页显示 10 项，每次搜索最多 1,000 项。修改前请先刷新列表。"
   },
   "templateAuthor.shelf.keyword": {
     "en": "Search owned templates",

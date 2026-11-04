@@ -106,7 +106,7 @@
   },
   {
     "key": "participant.form.readBackHint",
-    "en": "This is a read-only snapshot. It does not prove whether the earlier request completed, so this session keeps further changes paused.",
-    "zh-Hans": "这是只读查询结果，无法据此确认先前请求是否完成，因此本次会话仍暂停后续修改。"
+    "en": "We couldn't confirm whether your last change went through, so further changes are paused.",
+    "zh-Hans": "暂时无法确认上次修改是否成功，因此暂停后续修改。"
   }
 ]

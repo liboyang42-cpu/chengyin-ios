@@ -54,7 +54,7 @@
   {"key": "im.safety.block.doneDetail", "en": "You won't receive their messages anymore.", "zh-Hans": "你不会再收到对方消息。"},
   {"key": "im.safety.block.failed", "en": "Couldn't block. Try again.", "zh-Hans": "拉黑失败，请重试"},
   {"key": "im.safety.unblock.title", "en": "Unblock this person?", "zh-Hans": "解除拉黑?"},
-  {"key": "im.safety.unblock.content", "en": "Whether you can message them again is read back from the server.", "zh-Hans": "能否再次发送消息以服务器回读为准。"},
+  {"key": "im.safety.unblock.content", "en": "Whether you can message them again will be shown once this updates.", "zh-Hans": "能否再次发送消息以更新后的状态为准。"},
   {"key": "im.safety.unblock.confirm", "en": "Unblock", "zh-Hans": "解除拉黑"},
   {"key": "im.safety.unblock.done", "en": "Unblocked", "zh-Hans": "已解除拉黑"},
   {"key": "im.safety.unblock.failed", "en": "Couldn't unblock. Try again.", "zh-Hans": "解除拉黑失败，请重试"},

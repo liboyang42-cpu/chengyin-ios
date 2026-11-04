@@ -550,13 +550,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unavailable"
+            "value": "Provider unavailable"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂不可用"
+            "value": "供应商尚不可用"
           }
         }
       }
@@ -1670,13 +1670,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unavailable"
+            "value": "Provider unavailable"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂不可用"
+            "value": "供应商尚不可用"
           }
         }
       }
@@ -1750,13 +1750,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unavailable"
+            "value": "Provider unavailable"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂不可用"
+            "value": "供应商尚不可用"
           }
         }
       }
@@ -1798,13 +1798,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh"
+            "value": "Refresh source review"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "刷新"
+            "value": "重新核对原文"
           }
         }
       }

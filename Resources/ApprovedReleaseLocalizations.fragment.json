@@ -160,13 +160,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "We couldn't confirm an approved version right now. Review may still be in progress, or the content may have changed. Nothing was published."
+            "value": "No current approved snapshot could be verified. Review may still be pending, changed, unsupported or unavailable. Nothing was published."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂时无法确认已通过审核的版本。审核可能仍在进行中，或内容已有变更。本次未发布任何内容。"
+            "value": "无法核实当前已审核快照。审核可能仍在等待、已变更，或内容暂不支持、服务不可用。本次操作未发布任何内容。"
           }
         }
       }

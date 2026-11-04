@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This connection is not enabled"
+            "value": "This isn't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此连接尚未启用"
+            "value": "供应商尚不可用"
           }
         }
       }
@@ -118,13 +118,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Offline fixture. No real requests or images"
+            "value": "Example content. Nothing is sent and no images are loaded."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "离线示例，不发送真实请求或加载图片"
+            "value": "示例内容，不会实际发送或加载图片。"
           }
         }
       }
@@ -294,13 +294,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photo preview is not enabled"
+            "value": "Photo preview isn't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "图片预览尚未启用"
+            "value": "图片预览暂不可用"
           }
         }
       }
@@ -406,13 +406,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Public reviews are read-only in this connection"
+            "value": "Public reviews can only be viewed here"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此连接中的公开评价为只读"
+            "value": "公开评价仅支持查看"
           }
         }
       }
@@ -470,13 +470,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Eligibility and reporting permissions are checked by the service"
+            "value": "Review eligibility and reporting are checked when you submit"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "评价资格与举报权限由服务端核验"
+            "value": "评价资格与举报权限将在提交时核验"
           }
         }
       }
@@ -524,7 +524,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已核销"
+            "value": "服务端报告已核销"
           }
         }
       }
@@ -806,13 +806,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The service rejected this submission. Refresh before trying again"
+            "value": "This submission couldn't be completed. Refresh and try again"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端拒绝此次提交，请刷新后再试"
+            "value": "提交未能完成，请刷新后再试"
           }
         }
       }
@@ -902,13 +902,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Moderation task ID"
+            "value": "Reference number"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "审核任务编号"
+            "value": "编号"
           }
         }
       }

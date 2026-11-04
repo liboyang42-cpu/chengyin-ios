@@ -29,7 +29,7 @@ entries = {
 'myProject.op.cancel': ('Cancel and refund', '取消并退款'),
 'myProject.op.delete': ('Delete', '删除'),
 'myProject.op.toggle': ('List / unlist', '上下架'),
-'myProject.op.unavailable': ('These actions are not enabled in the app yet', '这些操作暂未在 App 中开放'),
+'myProject.op.unavailable': ('These actions aren\'t available in the app right now', '这些操作暂不可用'),
 'myProject.template.scope': ('Node plays come from your template shelf, not from project records', '节点玩法来自你的模板列表，不与主题 / 活动混排'),
 'myProject.template.open': ('Open my node plays', '查看我的节点玩法'),
 'myProject.template.unavailable': ('Node plays are not available from this entry', '此入口暂不提供节点玩法列表'),

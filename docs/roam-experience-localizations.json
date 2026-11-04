@@ -1,13 +1,13 @@
 [
   {
     "key": "roam.experience.offline",
-    "en": "Offline synthetic example. No real journey, reward or photo.",
-    "zh-Hans": "离线示例，不代表真实行程、奖励或照片"
+    "en": "Example content. No real journey, reward or photo.",
+    "zh-Hans": "示例内容，不代表真实行程、奖励或照片。"
   },
   {
     "key": "roam.experience.readOnly",
-    "en": "Read-only records and local drafts",
-    "zh-Hans": "只读记录与本地草稿"
+    "en": "Your records and drafts",
+    "zh-Hans": "你的记录与草稿"
   },
   {
     "key": "roam.experience.historyUnreadable",
@@ -111,8 +111,8 @@
   },
   {
     "key": "roam.experience.liveHint",
-    "en": "Starting a journey needs a reviewed location adapter and verified server capability. This screen does not collect or simulate your position.",
-    "zh-Hans": "开始漫游需要经过审核的定位适配与已验证的服务能力。本页不会采集或模拟你的位置"
+    "en": "Starting a journey isn't available right now. We don't collect or simulate your location on this screen.",
+    "zh-Hans": "暂不支持开始漫游。本页不会采集或模拟你的位置。"
   },
   {
     "key": "roam.experience.tileMemory",
@@ -216,13 +216,13 @@
   },
   {
     "key": "roam.experience.recoveryHint",
-    "en": "Enter a known server session ID to read its current state. This never restarts or settles a journey.",
-    "zh-Hans": "输入已知的服务端会话编号以核对当前状态，此操作不会重新开始或结算行程"
+    "en": "Enter a journey number to check its current status. This never restarts or settles a journey.",
+    "zh-Hans": "输入行程编号以核对当前状态，此操作不会重新开始或结算行程"
   },
   {
     "key": "roam.experience.sessionID",
-    "en": "Server session ID",
-    "zh-Hans": "服务端会话编号"
+    "en": "Journey number",
+    "zh-Hans": "行程编号"
   },
   {
     "key": "roam.experience.checkSession",
@@ -231,8 +231,8 @@
   },
   {
     "key": "roam.experience.sessionActive",
-    "en": "The server reports an active journey",
-    "zh-Hans": "服务端记录为进行中"
+    "en": "This journey is in progress",
+    "zh-Hans": "行程进行中"
   },
   {
     "key": "roam.experience.activeHint",
@@ -241,8 +241,8 @@
   },
   {
     "key": "roam.experience.sessionNotFound",
-    "en": "The server has no matching session",
-    "zh-Hans": "服务端没有匹配的会话"
+    "en": "No matching journey found",
+    "zh-Hans": "未找到匹配的行程"
   },
   {
     "key": "roam.experience.settlementIncomplete",
@@ -261,8 +261,8 @@
   },
   {
     "key": "roam.experience.xp",
-    "en": "Server-awarded exploration points",
-    "zh-Hans": "服务端发放的探索值"
+    "en": "Exploration points earned",
+    "zh-Hans": "获得的探索值"
   },
   {
     "key": "roam.experience.newTiles",
@@ -276,8 +276,8 @@
   },
   {
     "key": "roam.experience.recoveryNoTrack",
-    "en": "This server receipt does not contain a route or duration. It is not added as a fabricated local journey.",
-    "zh-Hans": "此服务端回执不含轨迹和时长，不会据此编造本地行程"
+    "en": "This record has no route or duration, so it isn't added to your journeys.",
+    "zh-Hans": "此记录不含轨迹和时长，不会添加到你的行程"
   },
   {
     "key": "roam.experience.albumEmpty",
@@ -286,13 +286,13 @@
   },
   {
     "key": "roam.experience.albumEmptyHint",
-    "en": "A stamp needs a successful server receipt before it appears in your album.",
-    "zh-Hans": "邮票成功入册并取得服务端回执后才会显示"
+    "en": "A stamp appears in your album once it's been successfully collected.",
+    "zh-Hans": "邮票成功入册后才会显示"
   },
   {
     "key": "roam.experience.sampleArt",
-    "en": "Synthetic city illustration",
-    "zh-Hans": "城市示例图形"
+    "en": "Example city illustration",
+    "zh-Hans": "城市示例插图"
   },
   {
     "key": "roam.experience.reviewNotSubmitted",
@@ -331,8 +331,8 @@
   },
   {
     "key": "roam.experience.captionLimit",
-    "en": "The caption is over the source limit",
-    "zh-Hans": "配文超出来源规定的长度"
+    "en": "Caption is too long",
+    "zh-Hans": "配文超出字数限制"
   },
   {
     "key": "roam.experience.previewDraft",
@@ -356,8 +356,8 @@
   },
   {
     "key": "roam.experience.stampHint",
-    "en": "This draft stays on this screen. A real city stamp requires a reviewed photo workflow and an idempotent server receipt. No serial or reward is created here.",
-    "zh-Hans": "草稿仅保留在当前页面。真实城市签需要经过审核的照片流程和幂等服务端回执，本页不会生成签号或奖励"
+    "en": "This draft stays on this screen only. Real city stamps require a reviewed photo. No stamp number or reward is created here.",
+    "zh-Hans": "草稿仅保留在当前页面。真实城市签需经过照片审核，本页不会生成签号或奖励"
   },
   {
     "key": "roam.experience.poiID",
@@ -391,8 +391,8 @@
   },
   {
     "key": "roam.experience.hangoutHint",
-    "en": "This source flow is retired in the native integration. Browse supported nearby activities and routes on the map. Creating, joining and leaving groups are not enabled.",
-    "zh-Hans": "原生集成未开放此旧版流程。可在地图浏览支持的附近活动与路线，创建、加入及退出群组暂不可用"
+    "en": "Group hangouts aren't available right now. Browse nearby activities and routes on the map.",
+    "zh-Hans": "组队约玩暂不可用，可在地图上浏览附近的活动与路线。"
   },
   {
     "key": "roam.experience.fixtureSignOut",

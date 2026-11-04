@@ -4,13 +4,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This feature isn't available right now."
+          "value": "This service is not configured."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "此功能暂不可用。"
+          "value": "此服务尚未配置。"
         }
       }
     }

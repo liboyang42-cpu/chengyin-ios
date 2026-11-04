@@ -230,13 +230,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Legal terms for your region aren't available right now, so this action can't be used yet."
+            "value": "Approved regional legal content is unavailable. This action cannot be enabled."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你所在地区的法律条款暂不可用，暂时无法使用此操作。"
+            "value": "已批准的地区法律文档尚不可用，暂不能启用此操作。"
           }
         }
       }

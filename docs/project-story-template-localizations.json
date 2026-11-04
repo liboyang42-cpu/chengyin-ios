@@ -52,13 +52,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Personal story-draft reading is not configured, or this story position is unavailable. Existing local content stays editable."
+          "value": "Story drafts aren't available right now, or this story position is unavailable. You can still edit existing content."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "个人故事玩法草稿读取尚未配置，或当前故事位置不可用。已有本机内容仍可编辑。"
+          "value": "故事玩法草稿暂不可用，或当前故事位置不可用。已有内容仍可编辑。"
         }
       }
     }
@@ -84,13 +84,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This adds a story gameplay node without a location. The existing template ID is preserved; publication is not enabled."
+          "value": "This adds a story gameplay step without a location. The existing gameplay is kept, and nothing is published."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "将加入无需地点坐标的故事玩法节点，保留已有玩法编号；不会启用发布。"
+          "value": "将加入无需地点的故事玩法节点，保留已有玩法；不会发布。"
         }
       }
     }

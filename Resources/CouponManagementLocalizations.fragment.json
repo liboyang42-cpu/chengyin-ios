@@ -702,13 +702,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Redeemed"
+          "value": "Server reported redemption"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "已核销"
+          "value": "服务端报告已核销"
         }
       }
     }
@@ -821,13 +821,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Claiming isn't available right now. Coupons you've claimed stay in your coupon wallet."
+          "value": "Claiming is unavailable: the source contract does not define a claim operation. Claimed coupons remain in your coupon wallet."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "领取暂不可用。已领取的券仍可在券包中查看。"
+          "value": "暂不支持领取：源接口尚未定义领取操作。已领券仍可在券包中查看"
         }
       }
     }
@@ -855,13 +855,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Refresh"
+          "value": "Refresh source review"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "刷新"
+          "value": "重新核对原文"
         }
       }
     }

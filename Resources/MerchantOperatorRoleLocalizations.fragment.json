@@ -36,13 +36,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Only permissions for the selected role are shown. Store ownership and access are checked again for each action."
+          "value": "Only permissions returned for the selected role are listed. The server still checks store ownership and current access for each action."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "仅显示所选岗位的权限。每次操作仍会核对门店归属和当前权限。"
+          "value": "这里只显示服务端为所选岗位返回的权限。每次操作仍由服务端校验门店归属和当前权限。"
         }
       }
     }

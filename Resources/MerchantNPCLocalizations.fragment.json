@@ -246,13 +246,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recording isn't available right now."
+            "value": "Recording unavailable. Server availability and an approved capture provider are required."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "录音暂不可用。"
+            "value": "录音不可用，需确认服务器可用性并接入获准的录音服务。"
           }
         }
       }
@@ -364,7 +364,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂不可用"
+            "value": "供应商尚不可用"
           }
         }
       }

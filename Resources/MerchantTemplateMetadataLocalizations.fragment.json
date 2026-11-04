@@ -56,13 +56,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "These are the template's existing fields. The player-count description isn't a venue capacity limit. Participation and exit plans aren't copied here. Existing permissions and save rules still apply."
+          "value": "These are existing template fields. The player-count description is not a venue capacity limit. Local participation and exit plans are not copied into them. Existing server permissions and save restrictions still apply."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "这是模板现有字段。游戏人数说明不等于现场人数上限；参与安排和退出预案不会自动写入这些字段。仍受现有权限与保存规则约束。"
+          "value": "这是既有模板字段。游戏人数说明不等于现场人数上限；本地参与安排和退出预案不会自动写入这些字段。仍受既有服务端权限与保存限制约束。"
         }
       }
     }
@@ -73,13 +73,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Leaving a field blank won't clear its current value. For a new template, a blank duration is saved as 0."
+          "value": "Leaving a value blank omits it from the request and does not clear an existing value. The server defaults an omitted duration to 0 for a new template."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "留空不会清除已有内容；新模板未填写时长时，默认为0。"
+          "value": "留空时请求不发送该字段，不会清除已有值；新模板未填写时长时，服务端默认返回0。"
         }
       }
     }

@@ -436,13 +436,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This place couldn't be verified, so the claim can't be withdrawn right now."
+          "value": "The source returned an application ID but no verified place ID. Claim withdrawal is unavailable."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "该地点尚未核实，暂不能撤回认领。"
+          "value": "源数据仅返回申请编号，没有已核实的地点编号，暂不能撤回认领。"
         }
       }
     }
@@ -3652,13 +3652,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Exploration value can't be edited right now."
+          "value": "Exploration-value editing is unavailable: the retained source says the backend validates it without persisting it."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "探索值暂不可编辑。"
+          "value": "探索值暂不可编辑：保留的源记录表明后端会校验，但不会保存。"
         }
       }
     }

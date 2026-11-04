@@ -159,7 +159,7 @@ final class OfficialEventFlowTests: XCTestCase {
             let row = app.buttons["official.event.71"]
             XCTAssertTrue(row.waitForExistence(timeout: 10), scenario)
             XCTAssertFalse(row.label.contains("Information incomplete"), row.label)
-            XCTAssertFalse(row.label.contains("No reason given"), row.label)
+            XCTAssertFalse(row.label.contains("Reason not provided by the source"), row.label)
             XCTAssertFalse(row.label.contains("Synthetic reason"), row.label)
             row.tap()
             XCTAssertTrue(app.navigationBars["Official event details"].waitForExistence(timeout: 5), scenario)

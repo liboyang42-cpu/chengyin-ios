@@ -81,8 +81,8 @@
   },
   {
     "key": "auth.channels.appleNotConfigured",
-    "en": "Apple sign-in is not enabled for this build. Native capability and backend configuration must be verified first.",
-    "zh-Hans": "此版本尚未启用 Apple 登录，需要先验证原生权限及后端配置。"
+    "en": "Sign in with Apple isn't available right now.",
+    "zh-Hans": "Apple 登录暂不可用"
   },
   {
     "key": "auth.channels.appleMissingCredential",
@@ -121,7 +121,7 @@
   },
   {
     "key": "auth.channels.legalPending",
-    "en": "Release configuration required: approved app-specific legal documents and working links are not yet verified.",
-    "zh-Hans": "发布前需完成配置：适用于本应用的正式法律文档与可用入口尚未验证。"
+    "en": "Legal documents aren't available right now.",
+    "zh-Hans": "法律文档暂不可用"
   }
 ]

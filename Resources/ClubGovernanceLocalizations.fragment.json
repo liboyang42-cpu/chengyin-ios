@@ -602,13 +602,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This feature isn't available right now"
+            "value": "This service is not configured"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此功能暂不可用"
+            "value": "此服务尚未配置"
           }
         }
       }
@@ -891,13 +891,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh"
+            "value": "Refresh source review"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "刷新"
+            "value": "重新核对原文"
           }
         }
       }
@@ -1027,13 +1027,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Issuing, refreshing, redeeming and saving group codes isn't available right now"
+            "value": "Live group-code issuance, refresh, redemption and saving require separate provider acceptance"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "团码签发、刷新、核销与保存暂不可用"
+            "value": "真实团码签发、刷新、核销与保存需要单独完成服务验收"
           }
         }
       }
@@ -1214,13 +1214,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This shows the public chapters and gameplay. Answers are only shown to people with permission"
+            "value": "This is the public chapter and gameplay projection. Answers use a separate permission-checked request"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此处展示公开章节与玩法，答案仅对有权限的人可见"
+            "value": "此处展示公开章节与玩法，答案通过独立权限校验接口获取"
           }
         }
       }

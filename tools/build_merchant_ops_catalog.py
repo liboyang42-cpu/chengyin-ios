@@ -68,7 +68,7 @@ ROWS = {
  'merchantOps.aftercare.source.registration': ('Registration refund', '报名退款'),
  'merchantOps.aftercare.source.other': ('Refund request', '退款申请'),
  'merchantOps.aftercare.policy.exploreEnd': ('Full refund can be requested before redemption and the deadline', '截止前未核销可全额申请'),
- 'merchantOps.aftercare.policy.snapshot': ('Refund rules follow the order snapshot', '退款规则以订单快照为准'),
+ 'merchantOps.aftercare.policy.snapshot': ('Refund rules follow the terms at the time of order', '退款规则以下单时的规则为准'),
  'merchantOps.aftercare.policy.unknown': ('Refund policy to be confirmed', '退款政策待确认'),
  'merchantOps.aftercare.policyVersion %lld': ('Policy version %lld', '政策版本 %lld'),
  'merchantOps.aftercare.platformSteps': ('Platform progress', '平台处理进度'),

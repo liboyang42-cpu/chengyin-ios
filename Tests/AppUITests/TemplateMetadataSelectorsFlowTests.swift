@@ -168,7 +168,7 @@ import XCTest
         let status = app.staticTexts["templateAuthor.status"]
         reveal(status, in: app, hittable: false)
         let simulated = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@",
-            "Practice run finished. Nothing was saved or published."), object: status)
+            "Simulation completed. No template was saved to a server or published."), object: status)
         XCTAssertEqual(XCTWaiter.wait(for: [simulated], timeout: 5), .completed, app.debugDescription)
         let result = try inspect(app, requests: 1, locked: true)
         XCTAssertEqual(result.state, "simulated"); XCTAssertEqual(result.lastRequestPath, "/api/template/draft")

@@ -26,13 +26,13 @@
   },
   {
     "key": "merchant.access.inactiveHint",
-    "en": "Operating tools require active access confirmed by the server.",
-    "zh-Hans": "经营功能需要服务端确认有效经营身份。"
+    "en": "Business tools require an active, confirmed merchant account.",
+    "zh-Hans": "经营功能需要已确认的有效商家身份。"
   },
   {
     "key": "merchant.access.noReadSurfaces",
-    "en": "This role has no access to the available read-only sections.",
-    "zh-Hans": "当前岗位无权查看已迁移的只读内容。"
+    "en": "Your role doesn't have access to these sections.",
+    "zh-Hans": "当前岗位无权查看这些内容。"
   },
   {
     "key": "merchant.access.pending",
@@ -266,8 +266,8 @@
   },
   {
     "key": "merchant.projects.partial",
-    "en": "Showing a limited first page. More projects exist on the server.",
-    "zh-Hans": "当前仅显示第一页，服务端还有更多项目。"
+    "en": "Showing the first page only. There are more projects.",
+    "zh-Hans": "当前仅显示第一页，还有更多项目。"
   },
   {
     "key": "merchant.projects.scope",
@@ -276,8 +276,8 @@
   },
   {
     "key": "merchant.readOnly",
-    "en": "Read-only merchant information",
-    "zh-Hans": "商家信息，只读查看"
+    "en": "Merchant information (view only)",
+    "zh-Hans": "商家信息（仅查看）"
   },
   {
     "key": "merchant.recordID",
@@ -397,7 +397,7 @@
   {
     "key": "merchant.todo.verified",
     "en": "Completed verifications",
-    "zh-Hans": "已核销"
+    "zh-Hans": "服务端报告已核销"
   },
   {
     "key": "merchant.todo.verify",

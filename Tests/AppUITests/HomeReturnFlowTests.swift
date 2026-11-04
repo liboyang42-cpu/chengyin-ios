@@ -36,7 +36,7 @@ final class HomeReturnFlowTests: XCTestCase {
 
     func testDisabledCapabilityShowsNotEnabledAndNoCheckIn() {
         let app = launch(["--home-return-disabled"])
-        XCTAssertTrue(element("homeReturn.phase", app).label.contains("Unavailable"))
+        XCTAssertTrue(element("homeReturn.phase", app).label.contains("Provider unavailable"))
         XCTAssertFalse(app.buttons["homeReturn.checkIn"].exists)
         XCTAssertEqual(recorder("restores", app), "0")
     }

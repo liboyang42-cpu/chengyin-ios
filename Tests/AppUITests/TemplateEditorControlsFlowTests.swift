@@ -10,7 +10,7 @@ import XCTest
     private let supportedStory = " \n" + #"[{"tag":"Start","text":"  First scene  ","imgs":["fixture:1","fixture:2","fixture:3","fixture:4","fixture:5","fixture:6"]},{"text":"Second scene","imgs":[],"tag":"Next"}]"# + "\n "
     private let historicalStory = " \r\n" + #"[{"tag":"Old","text":"Retained scene","imgs":[],"future":{"integer":9007199254740993,"decimal":1.2300}}]"# + "\t "
     private let localSaved = "Saved securely on this device for this account."
-    private let simulated = "Practice run finished. Nothing was saved or published."
+    private let simulated = "Simulation completed. No template was saved to a server or published."
 
     private struct Snapshot: Decodable {
         struct Draft: Decodable {

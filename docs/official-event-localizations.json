@@ -279,13 +279,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Official-event service is not configured"
+            "value": "Official events aren't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "官方活动服务尚未配置"
+            "value": "官方活动暂不可用"
           }
         }
       }
@@ -398,13 +398,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read-only native preview. Publishing, registration, task verification and invitation responses are not available here."
+            "value": "View only. Publishing, registration, task check-in and replying to invitations aren't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原生只读预览。暂不支持发布、报名、任务验证或邀约处置。"
+            "value": "仅供查看，发布、报名、任务验证和邀约回复暂不可用。"
           }
         }
       }
@@ -415,13 +415,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Synthetic offline example"
+            "value": "Example content"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "离线合成示例"
+            "value": "示例内容"
           }
         }
       }
@@ -721,13 +721,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Price not provided by the source"
+            "value": "Price not available"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "数据源未提供价格"
+            "value": "暂无价格信息"
           }
         }
       }
@@ -823,13 +823,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Roaming tasks are available in the source"
+            "value": "Includes roaming tasks"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原应用提供漫游任务"
+            "value": "包含漫游任务"
           }
         }
       }
@@ -840,13 +840,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Exploration tasks are available in the source"
+            "value": "Includes exploration tasks"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原应用提供探索任务"
+            "value": "包含探索任务"
           }
         }
       }
@@ -891,13 +891,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Registration is open in the source; native registration is not available"
+            "value": "Registration is open. Signing up in the app isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原应用开放报名，原生报名尚未接入"
+            "value": "报名进行中，暂不支持在 App 内报名。"
           }
         }
       }
@@ -976,13 +976,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Eligibility confirmed by the server"
+            "value": "You're eligible"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已确认资格"
+            "value": "已确认资格"
           }
         }
       }
@@ -1248,7 +1248,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No rewards configured"
+            "value": "No rewards yet"
           }
         },
         "zh-Hans": {
@@ -1469,13 +1469,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invitation responses are not available in this native preview."
+            "value": "Responding to invitations isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原生预览暂不支持处置邀约。"
+            "value": "处理邀约暂不可用。"
           }
         }
       }

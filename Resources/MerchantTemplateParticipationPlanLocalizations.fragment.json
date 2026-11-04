@@ -22,13 +22,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "These fields are kept only while you're editing. They aren't saved; leaving, reloading or discarding removes them. A draft with this plan can't be submitted."
+          "value": "These fields stay in this editing session only. They are not sent or saved to the server; leaving, reloading or discarding removes them. A draft with this plan cannot be submitted."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "这些内容仅在编辑期间保留，不会保存；离开、刷新或放弃修改后将被清除。含此安排的草稿暂不能提交。"
+          "value": "这些字段只保留在本次编辑中，不发送或保存到服务端；离开、刷新或放弃修改会移除。含此安排的草稿暂不能提交。"
         }
       }
     }

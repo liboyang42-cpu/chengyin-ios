@@ -175,13 +175,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "These are draft plans only. They don't confirm a safe or accessible route, cancel an order, issue a refund or grant a reward."
+          "value": "These are unapproved planning notes for this editing session. They do not confirm a safe or accessible route, cancel an order, issue a refund or grant a reward. No runtime fallback is enabled."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "以下仅为草拟预案，不代表已确认路线安全或无障碍，也不会取消订单、退款或发放奖励。"
+          "value": "这些是本次编辑中的待审预案，不代表已确认路线安全或无障碍，也不会取消订单、退款或发放奖励。未启用运行时替代分支。"
         }
       }
     }

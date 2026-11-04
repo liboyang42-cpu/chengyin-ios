@@ -585,13 +585,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only a valid current code can be shown. Showing it doesn't mean it has been redeemed."
+            "value": "Only a current server-issued code can be shown. Showing it does not confirm redemption."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅显示当前有效的券码。出示券码不代表已核销。"
+            "value": "仅展示当前服务端签发的有效凭证。出示码不代表核销成功。"
           }
         }
       }

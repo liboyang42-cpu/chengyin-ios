@@ -206,8 +206,8 @@
   },
   {
     "key": "merchant.onboarding.submitConfirm.message",
-    "en": "Send the reviewed store details, contact phone, address, business hours and uploaded license reference to the configured Chengyin service for review. Submission does not grant approval or merchant access.",
-    "zh-Hans": "将已核对的门店资料、联系电话、地址、营业时间和已上传执照信息发送给已配置的城瘾服务审核。提交不代表审核通过，也不会获得商家权限。"
+    "en": "Send your store details, contact phone, address, business hours and uploaded business license to Questify for review. Submitting doesn't mean approval or merchant access.",
+    "zh-Hans": "将门店资料、联系电话、地址、营业时间和已上传的营业执照提交给城瘾审核。提交不代表审核通过，也不代表已开通商家权限。"
   },
   {
     "key": "merchant.onboarding.identity.title",
@@ -231,8 +231,8 @@
   },
   {
     "key": "merchant.onboarding.identity.regionalGate",
-    "en": "The current source service requires a mainland Chinese resident ID with an 18-character checksum. A supported US registration process has not been verified, so this app cannot complete new identity enrollment. No SSN or EIN is requested here.",
-    "zh-Hans": "当前源服务要求具有校验位的 18 位中国大陆居民身份证号。美国登记流程尚未核实，因此本应用暂不能完成新的实名登记。此处不会要求 SSN 或 EIN。"
+    "en": "Identity verification requires an 18-digit mainland China resident ID. Other ID types aren't supported, so new identity verification can't be completed in this app. We won't ask for an SSN or EIN.",
+    "zh-Hans": "实名认证需使用 18 位中国大陆居民身份证号。暂不支持其他证件，因此无法在本应用完成新的实名认证。此处不会要求提供 SSN 或 EIN。"
   },
   {
     "key": "merchant.onboarding.identity.unavailable",
@@ -246,8 +246,8 @@
   },
   {
     "key": "merchant.onboarding.submitted",
-    "en": "Submission was acknowledged. The status below comes from the server; approval and merchant access are separate decisions. This application will not be sent again automatically.",
-    "zh-Hans": "服务已确认收到提交。下方状态来自服务器；审核通过与商家权限分别确认。本申请不会自动再次提交。"
+    "en": "Submitted. Check the status below. Approval and merchant access are decided separately. Your application won't be resent automatically.",
+    "zh-Hans": "已提交，请查看下方状态。审核结果与商家权限分别确认。本申请不会自动重复提交。"
   },
   {
     "key": "merchant.onboarding.outcomeUnknown",
@@ -256,8 +256,8 @@
   },
   {
     "key": "merchant.onboarding.noApplicationReadback",
-    "en": "The server currently reports no application. This readback alone does not resolve the earlier submission outcome.",
-    "zh-Hans": "服务器当前报告无申请，仅此查询结果尚不能确定先前的提交结果。"
+    "en": "No application found right now. This alone doesn't tell us whether your earlier submission went through.",
+    "zh-Hans": "当前未查到申请，暂无法确定之前的提交是否成功。"
   },
   {
     "key": "merchant.onboarding.rejectedByServer",

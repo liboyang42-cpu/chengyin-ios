@@ -8,8 +8,8 @@
     "zh-Hans": "提交已核对的更改"
   },
   "projectEdit.confirmLiveHint": {
-    "en": "Submit these exact changes to the server. A lost response will stay locked to prevent duplicate submission.",
-    "zh-Hans": "将这些更改提交至服务器。若回执丢失，将保留锁定以避免重复提交。"
+    "en": "Submit these changes? If no response comes back, editing stays locked to prevent a duplicate submission.",
+    "zh-Hans": "提交这些更改？如未收到结果，将保持锁定以避免重复提交。"
   },
   "club.ops.confirmLive": {
     "en": "Confirm these changes",

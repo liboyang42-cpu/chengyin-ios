@@ -438,13 +438,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "刷新"
+            "value": "重新核对原文"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh"
+            "value": "Refresh source review"
           }
         }
       }
@@ -950,13 +950,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "历史记录暂不可用。"
+            "value": "历史快照暂不可用。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "History isn't available right now."
+            "value": "The historical snapshot is unavailable."
           }
         }
       }
@@ -1670,13 +1670,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "频道隐私设置暂不可用"
+            "value": "频道总览隐私原来源不可用"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Channel privacy settings aren't available right now."
+            "value": "The original channel overview privacy source is unavailable."
           }
         }
       }

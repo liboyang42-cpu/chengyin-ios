@@ -336,8 +336,8 @@
   },
   {
     "key": "discovery.readOnlyHint",
-    "en": "Template browsing is available. Adopting or editing a template is not available in this native build yet.",
-    "zh-Hans": "当前原生版本支持浏览模板，暂不支持套用或编辑。"
+    "en": "You can browse templates. Using or editing a template isn't available in the app right now.",
+    "zh-Hans": "App 支持浏览模板，暂不支持套用或编辑。"
   },
   {
     "key": "discovery.topicPreview",

@@ -102,13 +102,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh"
+            "value": "Refresh source review"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "刷新"
+            "value": "重新核对原文"
           }
         }
       }
@@ -1846,7 +1846,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unavailable"
+            "value": "Provider unavailable"
           }
         },
         "zh-Hans": {
@@ -2454,7 +2454,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read original result"
+            "value": "Check original result"
           }
         },
         "zh-Hans": {
@@ -3766,13 +3766,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Creating new content isn't available right now. You can still view your earlier requests."
+            "value": "New generation is unavailable until all limits and their configuration version are approved. Existing original requests remain readable."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "新建生成暂不可用，仍可查看已有请求。"
+            "value": "上限及配置版本尚未完整批准，新生成不可用；仍可查询已有原请求。"
           }
         }
       }

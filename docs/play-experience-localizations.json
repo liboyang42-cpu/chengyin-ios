@@ -12,28 +12,28 @@
     "zh-Hans": "进度"
   },
   "playx.disabled": {
-    "en": "Live gameplay is not enabled for this environment.",
-    "zh-Hans": "当前环境尚未启用实时玩法"
+    "en": "Live gameplay isn't available right now.",
+    "zh-Hans": "实时玩法暂不可用"
   },
   "playx.loading": {
     "en": "Loading…",
     "zh-Hans": "正在加载…"
   },
   "playx.refresh": {
-    "en": "Refresh",
-    "zh-Hans": "刷新"
+    "en": "Refresh source review",
+    "zh-Hans": "重新核对原文"
   },
   "playx.unknown.title": {
     "en": "Result needs checking",
     "zh-Hans": "结果待核对"
   },
   "playx.unknown.body": {
-    "en": "The server may have received your action. Check the result before submitting anything else.",
-    "zh-Hans": "服务端可能已收到操作，请先核对结果，不要重复提交"
+    "en": "Your action may have gone through. Check the result before submitting anything else.",
+    "zh-Hans": "操作可能已提交成功，请先核对结果，不要重复提交"
   },
   "playx.reconcile": {
-    "en": "Check server state",
-    "zh-Hans": "核对服务端状态"
+    "en": "Check status",
+    "zh-Hans": "核对状态"
   },
   "playx.retryExact": {
     "en": "Retry the original request",
@@ -96,8 +96,8 @@
     "zh-Hans": "同行者榜"
   },
   "playx.leaderboard.metric": {
-    "en": "Ranked by completed nodes, as reported by the server.",
-    "zh-Hans": "按服务端返回的完成节点数排名"
+    "en": "Ranked by completed checkpoints.",
+    "zh-Hans": "按完成节点数排名"
   },
   "playx.leaderboard.me": {
     "en": "My position and completed nodes",
@@ -120,8 +120,8 @@
     "zh-Hans": "核对操作"
   },
   "playx.review.detail": {
-    "en": "Send this action to the current journey? Completion will be checked against server state.",
-    "zh-Hans": "将此操作提交到当前旅程？完成状态将以服务端回读为准"
+    "en": "Submit this action to your current journey? Completion will be checked after you submit.",
+    "zh-Hans": "将此操作提交到当前旅程？提交后将核对完成状态"
   },
   "playx.submit": {
     "en": "Submit",
@@ -152,8 +152,8 @@
     "zh-Hans": "确认获取提示"
   },
   "playx.hints.consequence": {
-    "en": "The shown point cost may be charged. Puzzle hints can lower your score cap and are recorded by the server.",
-    "zh-Hans": "可能扣除所示积分，谜题提示会影响解谜分上限，并由服务端记录"
+    "en": "The points shown may be deducted. Puzzle hints can lower your maximum puzzle score and are recorded.",
+    "zh-Hans": "可能扣除所示积分，谜题提示会降低解谜分上限并被记录"
   },
   "playx.media.audio": {
     "en": "Audio is attached to this task",
@@ -168,8 +168,8 @@
     "zh-Hans": "媒体大小与类型"
   },
   "playx.media.uploadGate": {
-    "en": "Photo upload requires an accepted media provider. Selecting a photo does not complete the task.",
-    "zh-Hans": "照片上传需通过媒体验收，选择照片不代表任务完成"
+    "en": "Photo upload isn't available right now. Selecting a photo doesn't complete the task.",
+    "zh-Hans": "照片上传暂不可用，选择照片不代表任务完成"
   },
   "playx.locked": {
     "en": "Task locked",
@@ -252,8 +252,8 @@
     "zh-Hans": "到店和照片凭证是独立步骤，完成状态由商家核销确认"
   },
   "playx.merchant.consentGate": {
-    "en": "Showing a merchant verification code requires the exact store-scoped consent and verified code provider.",
-    "zh-Hans": "出示商家核销码需要当前门店的精确授权及已验收的码服务"
+    "en": "Merchant verification codes aren't available right now.",
+    "zh-Hans": "商家核销码暂不可用"
   },
   "playx.node.unavailable": {
     "en": "This task is no longer visible in the current session.",
@@ -276,16 +276,16 @@
     "zh-Hans": "暂时无法确认结果，请刷新核对最新状态"
   },
   "playx.rejected": {
-    "en": "The server did not accept this action",
-    "zh-Hans": "服务端未接受此操作"
+    "en": "This action wasn't accepted",
+    "zh-Hans": "此操作未被接受"
   },
   "playx.reward": {
-    "en": "Server reward receipt",
-    "zh-Hans": "服务端奖励回执"
+    "en": "Reward details",
+    "zh-Hans": "奖励明细"
   },
   "playx.reward.authority": {
-    "en": "Only returned values are shown. Missing rewards are not estimated.",
-    "zh-Hans": "只显示服务端返回的值，不估算缺失奖励"
+    "en": "Only confirmed rewards are shown. Missing rewards aren't estimated.",
+    "zh-Hans": "仅显示已确认的奖励，不估算缺失奖励"
   },
   "playx.reward.xp": {
     "en": "Exploration XP",
@@ -348,8 +348,8 @@
     "zh-Hans": "确认对当前队伍执行此操作"
   },
   "playx.lead.settle.consequence": {
-    "en": "This asks the server to end and settle the current team run. Review the activity before continuing.",
-    "zh-Hans": "这将请求服务端结束并结算当前队伍行程，请确认场次后继续"
+    "en": "This ends and settles your team's current run. Check the activity before continuing.",
+    "zh-Hans": "这将结束并结算当前队伍行程，请确认场次后继续"
   },
   "playx.lead.unknown": {
     "en": "The last team action is still unconfirmed. Do not send it again.",
@@ -360,12 +360,12 @@
     "zh-Hans": "设备凭证"
   },
   "playx.device.capture": {
-    "en": "Capture with approved provider",
-    "zh-Hans": "使用已验收的设备服务"
+    "en": "Capture",
+    "zh-Hans": "开始记录"
   },
   "playx.device.disabled": {
-    "en": "This device provider is not enabled. No permission request or capture has started.",
-    "zh-Hans": "设备服务尚未启用，未请求权限或开始采集"
+    "en": "This device feature isn't available right now. No permission was requested and nothing was recorded.",
+    "zh-Hans": "该设备功能暂不可用，未请求权限或开始采集"
   },
   "playx.device.scanCaptured": {
     "en": "A code was captured. Review before sending.",
@@ -416,8 +416,8 @@
     "zh-Hans": "音频播放"
   },
   "playx.stopwatch.local": {
-    "en": "This is a local challenge. It does not grant server rewards or complete a route.",
-    "zh-Hans": "这是本地挑战，不会发放服务端奖励或完成路线"
+    "en": "This challenge is just for fun. It doesn't earn rewards or complete a route.",
+    "zh-Hans": "这是趣味挑战，不会发放奖励或完成路线"
   },
   "playx.stopwatch.target": {
     "en": "Target time",
@@ -492,8 +492,8 @@
     "zh-Hans": "开始本次玩法"
   },
   "playx.advanced.authority": {
-    "en": "Server-confirmed state",
-    "zh-Hans": "服务端权威状态"
+    "en": "Confirmed status",
+    "zh-Hans": "已确认状态"
   },
   "playx.advanced.version": {
     "en": "State version",
@@ -504,8 +504,8 @@
     "zh-Hans": "剩余秒数"
   },
   "playx.advanced.timerNotice": {
-    "en": "The countdown is only a display. The server confirms timeout and completion.",
-    "zh-Hans": "倒计时仅供显示，超时和完成由服务端确认"
+    "en": "The countdown is for reference only. Timeout and completion are confirmed by Questify.",
+    "zh-Hans": "倒计时仅供参考，超时和完成以城瘾确认为准"
   },
   "playx.advanced.stepsGate": {
     "en": "This task requires a trusted step receipt that has not been accepted for this platform.",
@@ -536,8 +536,8 @@
     "zh-Hans": "领取今日签"
   },
   "playx.advanced.specialGate": {
-    "en": "This kit's full native interaction is awaiting its dedicated provider or UI acceptance.",
-    "zh-Hans": "此玩法的完整原生交互仍待专用设备服务或界面验收"
+    "en": "The full interaction for this activity isn't available right now.",
+    "zh-Hans": "此玩法的完整互动暂不可用"
   },
   "playx.advanced.roles": {
     "en": "Team roles",
@@ -772,8 +772,8 @@
     "zh-Hans": "复盘尚未生成，不将缺失指标显示为零"
   },
   "playx.director.commandNotice": {
-    "en": "Review the current activity, server revision and selected people before sending. Unconfirmed actions stay locked.",
-    "zh-Hans": "提交前核对当前场次、服务端版本和所选人员，结果未确认时将保持锁定"
+    "en": "Check the current activity and selected people before sending. Actions stay locked until confirmed.",
+    "zh-Hans": "提交前请核对当前场次和所选人员，结果确认前操作将保持锁定"
   },
   "playx.director.target": {
     "en": "Broadcast audience",
@@ -840,8 +840,8 @@
     "zh-Hans": "显示排行榜"
   },
   "playx.director.invalid": {
-    "en": "The selection is incomplete or no longer allowed by the current server state.",
-    "zh-Hans": "选择不完整，或当前服务端状态已不允许此操作"
+    "en": "The selection is incomplete or is no longer allowed.",
+    "zh-Hans": "选择不完整，或当前已不允许此操作"
   },
   "playx.director.finishNotice": {
     "en": "This ends the current game session for its participants. Confirm only after reviewing the session.",
@@ -900,8 +900,8 @@
     "zh-Hans": "预制人生旅程"
   },
   "playx.prefab.runtimeNotice": {
-    "en": "Narrative choices are local. Arrival, photo upload and completion use separate server-verified steps.",
-    "zh-Hans": "叙事选择保存在本机，到达、照片上传和完成使用独立的服务端验证步骤"
+    "en": "Story choices are saved on this device. Arrival, photo upload and completion are each verified separately.",
+    "zh-Hans": "剧情选择保存在本机，到达、照片上传和完成会分别验证"
   },
   "playx.prefab.check": {
     "en": "Story check",
@@ -936,20 +936,20 @@
     "zh-Hans": "拍摄并上传照片"
   },
   "playx.prefab.photo.consent": {
-    "en": "This will use the accepted camera provider and upload the selected image to the journey service. The hall step also sends your GCJ-02 location to verify arrival.",
-    "zh-Hans": "将使用已验收的相机服务，并把所选图片上传至旅程服务；展馆步骤还会发送GCJ-02位置以验证到达"
+    "en": "This uses your camera and uploads the selected photo to your journey. The hall step also sends your location to confirm you've arrived.",
+    "zh-Hans": "将使用相机，并把所选图片上传至本次旅程；展馆步骤还会发送你的位置以确认到达"
   },
   "playx.prefab.sync": {
     "en": "Sync on-site completion",
     "zh-Hans": "同步现场完成记录"
   },
   "playx.prefab.sync.notice": {
-    "en": "Submit the uploaded hall photo to the first route node, then read the server state back. A local story or preview cannot prove completion.",
-    "zh-Hans": "将已上传的展馆照片提交到路线首节点，再回读服务端状态；本地故事或预览不能证明完成"
+    "en": "Submit the uploaded hall photo to the route's first stop to confirm completion. Story progress on this device alone doesn't count as completion.",
+    "zh-Hans": "将已上传的展馆照片提交到路线第一站以确认完成；仅凭本机故事进度不算完成"
   },
   "playx.prefab.prologue": {
-    "en": "Begin the source story, one scene at a time.",
-    "zh-Hans": "开始源故事，逐个场景前进"
+    "en": "Begin the story, one scene at a time.",
+    "zh-Hans": "开始故事，逐个场景推进"
   },
   "playx.prefab.gender": {
     "en": "Gender description",
@@ -996,8 +996,8 @@
     "zh-Hans": "继续步行动画"
   },
   "playx.prefab.hall.instructions": {
-    "en": "Verify arrival at the first source node, then photograph the hall.",
-    "zh-Hans": "在源路线首节点验证到达，然后拍摄展馆"
+    "en": "Check in at the first stop, then take a photo of the hall.",
+    "zh-Hans": "先在路线第一站打卡，然后拍摄展馆"
   },
   "playx.prefab.hall.arrivePhoto": {
     "en": "Verify arrival and photograph hall",
@@ -1064,8 +1064,8 @@
     "zh-Hans": "一只苍蝇，它很精密"
   },
   "playx.prefab.sticker.instructions": {
-    "en": "Place the source story's “unloaded map” sticker. This is board space, not a location report.",
-    "zh-Hans": "放置源故事的“未加载地图”贴纸，这是画板坐标，不是位置上报"
+    "en": "Place the story's “unloaded map” sticker. This is a spot on the board, not your location.",
+    "zh-Hans": "放置故事中的“未加载地图”贴纸，这是画板上的位置，不是你的定位"
   },
   "playx.prefab.sticker.place": {
     "en": "Place “unloaded map” sticker",
@@ -1120,12 +1120,12 @@
     "zh-Hans": "拍摄手机场景"
   },
   "playx.prefab.flow": {
-    "en": "Your local story is saved. On-site completion still needs server confirmation.",
-    "zh-Hans": "本地故事已保存，现场完成仍需服务端确认"
+    "en": "Your story progress is saved on this device. On-site completion still needs to be confirmed.",
+    "zh-Hans": "故事进度已保存在本机，现场完成仍需确认"
   },
   "playx.prefab.synced": {
-    "en": "On-site record confirmed by readback",
-    "zh-Hans": "现场记录已由服务端回读确认"
+    "en": "On-site record confirmed",
+    "zh-Hans": "现场记录已确认"
   },
   "playx.prefab.hold.progress": {
     "en": "Timed interaction progress",
@@ -1320,15 +1320,15 @@
     "zh-Hans": "登录会话已变更"
   },
   "playx.phase.unsupported": {
-    "en": "Unavailable",
-    "zh-Hans": "暂不可用"
+    "en": "Provider unavailable",
+    "zh-Hans": "供应商尚不可用"
   },
   "playx.phase.rejected": {
     "en": "Rejected by server",
     "zh-Hans": "服务端已拒绝"
   },
   "playx.phase.disabled": {
-    "en": "Not enabled",
+    "en": "Provider unavailable",
     "zh-Hans": "尚未启用"
   },
   "playx.phase.unknownOpen": {
@@ -1372,8 +1372,8 @@
     "zh-Hans": "故事结局图鉴"
   },
   "playx.prefab.endings.fixed": {
-    "en": "These are the source story’s fixed ending descriptions, not a server-awarded result or live player statistics.",
-    "zh-Hans": "以下是源故事的固定结局说明，并非服务端判定的个人结果或实时玩家统计"
+    "en": "These are the story's preset endings, not your personal result or live player stats.",
+    "zh-Hans": "以下是故事的预设结局说明，并非你的个人结果或实时玩家统计"
   },
   "playx.prefab.ending.0.title": {
     "en": "Standard version",
@@ -1492,16 +1492,16 @@
     "zh-Hans": "核对标签修改"
   },
   "playx.preference.completedNoResult": {
-    "en": "The server confirms this node is complete. No result text was recovered.",
-    "zh-Hans": "服务端已确认此节点完成，尚未恢复结果正文"
+    "en": "This checkpoint is complete. The result text isn't available.",
+    "zh-Hans": "此节点已完成，暂无结果内容"
   },
   "playx.preference.inherit": {
     "en": "Reuse a confirmed condition",
     "zh-Hans": "沿用已确认的条件"
   },
   "playx.preference.inherit.detail": {
-    "en": "Choose a source-provided tag to skip these questions, or answer again if your situation changed.",
-    "zh-Hans": "选择服务端提供的标签可跳过本站题组；情况变化时也可重新作答"
+    "en": "Choose a saved tag to skip these questions, or answer again if your situation has changed.",
+    "zh-Hans": "选择已有标签可跳过本站题组；情况变化时也可重新作答"
   },
   "playx.preference.reuse": {
     "en": "Review reuse of this condition",
@@ -1516,8 +1516,8 @@
     "zh-Hans": "选择要舍弃的一项"
   },
   "playx.preference.submitNotice": {
-    "en": "Send these choices to generate this node's result? Only the server determines the outcome and next step.",
-    "zh-Hans": "提交这些选择以生成本站结果？结果和下一步由服务端决定"
+    "en": "Submit these choices to see this checkpoint's result?",
+    "zh-Hans": "提交这些选择以生成本站结果？"
   },
   "playx.preference.reuseNotice": {
     "en": "Reuse the selected confirmed condition and skip this node's questions?",
@@ -1560,8 +1560,8 @@
     "zh-Hans": "未来三十天行动"
   },
   "playx.os.revokeNotice": {
-    "en": "After revocation, this tag will no longer be used for subsequent personalized recommendations. Server readback must confirm the change.",
-    "zh-Hans": "撤回后，此标签不再用于后续个性化推荐，变更需由服务端回读确认"
+    "en": "After you withdraw it, this tag won't be used for future personalized recommendations.",
+    "zh-Hans": "撤回后，此标签将不再用于后续个性化推荐"
   },
   "playx.preference.done": {
     "en": "Return to journey",
@@ -1624,8 +1624,8 @@
     "zh-Hans": "请先完成开局玩法"
   },
   "playx.opening.review": {
-    "en": "Setting off records the opening as finished on the server. Continue?",
-    "zh-Hans": "出发后服务端会记录开局已完成，确定出发吗？"
+    "en": "Setting off marks the opening as finished. Continue?",
+    "zh-Hans": "出发后开局将记为已完成，确定出发吗？"
   },
   "playx.opening.confirm": {
     "en": "Confirm and set off",
@@ -1672,8 +1672,8 @@
     "zh-Hans": "返回首页"
   },
   "playx.circleLink.fixtureHome": {
-    "en": "Home (synthetic)",
-    "zh-Hans": "首页（合成数据）"
+    "en": "Home (example)",
+    "zh-Hans": "首页（示例）"
   },
   "playx.themeRecords.title": {
     "en": "My play records",
@@ -1784,8 +1784,8 @@
     "zh-Hans": "先不去"
   },
   "playx.entryCode.fixtureWallet": {
-    "en": "Ticket wallet (synthetic)",
-    "zh-Hans": "票夹（合成数据）"
+    "en": "Ticket wallet (example)",
+    "zh-Hans": "票夹（示例）"
   },
   "playx.backpack.title": {
     "en": "Backpack",

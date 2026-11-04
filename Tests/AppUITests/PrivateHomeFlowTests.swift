@@ -33,7 +33,7 @@ final class PrivateHomeFlowTests: XCTestCase {
     }
     func testDisabledFeatureNeverRequestsLocationOrShowsMutationControls() {
         let app = launch(["--private-home-disabled"])
-        XCTAssertTrue(app.staticTexts["Unavailable"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Provider unavailable"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["privateHome.reviewSet"].exists); XCTAssertFalse(app.buttons["privateHome.confirm"].exists)
         XCTAssertEqual(app.alerts.count, 0)
     }

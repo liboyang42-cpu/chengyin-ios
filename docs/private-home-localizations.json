@@ -4,8 +4,8 @@
     "zh-Hans": "私人家园"
   },
   "privateHome.disabled": {
-    "en": "Private home is not enabled",
-    "zh-Hans": "私人家园尚未启用"
+    "en": "Private home isn't available right now",
+    "zh-Hans": "私人家园暂不可用"
   },
   "privateHome.gate": {
     "en": "This feature needs reviewed server access and secure recovery storage.",
@@ -92,7 +92,7 @@
     "zh-Hans": "原样重试请求"
   },
   "privateHome.phase.disabled": {
-    "en": "Not enabled",
+    "en": "Provider unavailable",
     "zh-Hans": "未启用"
   },
   "privateHome.phase.idle": {
@@ -180,8 +180,8 @@
     "zh-Hans": "来源坐标超过六位小数，未作舍入，也未保存。请手动输入你要选择的 WGS84 坐标，最多六位小数。"
   },
   "privateHome.map.synthetic": {
-    "en": "Synthetic test points (no map network)",
-    "zh-Hans": "模拟测试点（无地图网络请求）"
+    "en": "Example points (map not loaded)",
+    "zh-Hans": "示例地点（不加载地图）"
   },
   "privateHome.map.preview": {
     "en": "Point preview",
@@ -228,7 +228,7 @@
     "zh-Hans": "坐标超范围测试点"
   },
   "privateHome.map.fixture.invalidate": {
-    "en": "End synthetic session",
-    "zh-Hans": "结束模拟会话"
+    "en": "End example",
+    "zh-Hans": "结束示例"
   }
 }

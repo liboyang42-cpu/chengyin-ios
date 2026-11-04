@@ -85,8 +85,8 @@ class WalletEarningsOverviewContracts(unittest.TestCase):
         self.assertEqual(strings["wallet.earnings.tab.organizer"]["localizations"]["zh-Hans"]["stringUnit"]["value"], "主办分润")
         self.assertEqual(strings["wallet.earnings.tab.income"]["localizations"]["zh-Hans"]["stringUnit"]["value"], "收入")
         for key in ("wallet.earnings.stages.unconfigured", "wallet.earnings.finance.unconfigured"):
-            self.assertEqual(strings[key]["localizations"]["zh-Hans"]["stringUnit"]["value"], "暂不可用")
-            self.assertEqual(strings[key]["localizations"]["en"]["stringUnit"]["value"], "Unavailable")
+            self.assertEqual(strings[key]["localizations"]["zh-Hans"]["stringUnit"]["value"], "供应商尚不可用")
+            self.assertEqual(strings[key]["localizations"]["en"]["stringUnit"]["value"], "Provider unavailable")
         self.assertNotIn("wallet.earnings.stages.noPermission", strings)
         self.assertNotIn("wallet.earnings.finance.noPermission", strings)
         main = json.loads(read("Resources/Localizable.xcstrings"))["strings"]

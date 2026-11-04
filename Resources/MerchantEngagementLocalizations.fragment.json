@@ -2148,13 +2148,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The full message and recipient list aren't available yet, so sending and resending aren't possible right now."
+          "value": "The server has not supplied the full message and frozen recipient list needed for a send review. Dispatch and retry remain unavailable."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "暂未获取完整消息与收件人名单，暂不能发送或重新发送。"
+          "value": "服务端尚未提供发送审核所需的完整消息与冻结收件人名单，暂不支持发送或重试。"
         }
       }
     }

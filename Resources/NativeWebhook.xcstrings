@@ -205,7 +205,7 @@
         }
       }
     },
-    "仅回读服务端当前仍允许的原事件快照。": {
+    "仅显示当前仍可查看的原事件。": {
       "extractionState": "manual",
       "localizations": {
         "zh-Hans": {
@@ -1463,7 +1463,7 @@
         }
       }
     },
-    "操作结果未知。请恢复原请求并回读资源，不要新建相同操作。": {
+    "操作结果未知。请查看原请求并刷新，不要重复相同操作。": {
       "extractionState": "manual",
       "localizations": {
         "zh-Hans": {
@@ -2432,7 +2432,7 @@
         }
       }
     },
-    "这会请求服务端排队测试投递，排队不代表已送达。": {
+    "这会排队发送一次测试投递，排队不代表已送达。": {
       "extractionState": "manual",
       "localizations": {
         "zh-Hans": {
@@ -2449,7 +2449,7 @@
         }
       }
     },
-    "远端是否已接收尚未确认。此记录不会自动重新发送。": {
+    "尚未确认是否送达，此记录不会自动重新发送。": {
       "extractionState": "manual",
       "localizations": {
         "zh-Hans": {
@@ -2602,7 +2602,7 @@
         }
       }
     },
-    "频道 Webhook 管理尚未接入当前账号的真实频道、原生管理权限和事件目录。": {
+    "频道 Webhook 管理暂不可用": {
       "extractionState": "manual",
       "localizations": {
         "zh-Hans": {
@@ -2642,13 +2642,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This isn't available right now (%@)."
+            "value": "The required source is unavailable (%@)."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂不可用（%@）"
+            "value": "当前来源尚不可用（%@）"
           }
         }
       }
@@ -2687,7 +2687,7 @@
         }
       }
     },
-    "原请求或版本冲突（%@），请回读核对，不会覆盖。": {
+    "与之前的修改冲突（%@），请刷新核对，不会覆盖。": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -2721,7 +2721,7 @@
         }
       }
     },
-    "投递请求回执：%@。请回读原日志核对最终状态。": {
+    "投递请求：%@。请查看日志核对最终状态。": {
       "extractionState": "manual",
       "localizations": {
         "en": {

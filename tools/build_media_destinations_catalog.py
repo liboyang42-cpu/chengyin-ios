@@ -11,12 +11,12 @@ entries = {
 'media.destination.empty': ('No photos', '暂无图片'),
 'media.destination.previous': ('Previous', '上一张'),
 'media.destination.next': ('Next', '下一张'),
-'media.destination.unavailable': ('Photo loading is not enabled', '图片加载尚未启用'),
+'media.destination.unavailable': ('Photos can\'t be loaded right now', '图片暂不可用'),
 'media.destination.failed': ('Photo could not load', '图片加载失败'),
 'media.destination.zoomHint': ('Pinch or double-tap to zoom; drag to pan', '双指或双击缩放，拖动查看细节'),
 'media.poster.title': ('Scan the place poster', '扫描据点海报'),
 'media.poster.purpose': ('Scan with the camera and use one fresh foreground location to verify this place. Scanning alone does not complete check-in.', '使用相机扫描，并获取一次当前前台位置核验据点。扫描本身不代表打卡完成。'),
-'media.poster.disabled': ('Camera, location and check-in are not enabled for this deployment', '此环境尚未启用相机、定位与打卡提交'),
+'media.poster.disabled': ('Camera, location and check-in aren\'t available right now', '相机、定位与打卡暂不可用'),
 'media.poster.consent': ('Allow this scan and one location check', '同意本次扫描与一次定位核验'),
 'media.poster.scan': ('Open scanner', '打开扫描相机'),
 'media.poster.confirm': ('Confirm place verification', '确认提交据点核验'),
@@ -34,7 +34,7 @@ entries = {
 'media.poster.phase.failed': ('Verification was not completed. Check permissions and scan again.', '核验未完成，请检查权限后重新扫描。'),
 'media.stamp.title': ('Stamp camera', '集邮相机'),
 'media.stamp.purpose': ('Take a new photo and review its 4:5 center crop before uploading. Saving to the album is a separate confirmed step. No location is requested.', '拍摄新照片后，先预览 4:5 中心裁切，再确认上传。上传成功后另行确认入册。本流程不请求定位。'),
-'media.stamp.disabled': ('Camera and photo upload are not enabled for this deployment', '此环境尚未启用相机和照片上传'),
+'media.stamp.disabled': ('Camera and photo upload aren\'t available right now', '相机和照片上传暂不可用'),
 'media.stamp.cameraIssue': ('Camera access is unavailable. Check camera permission in Settings, then return and try again.', '相机暂不可用，请在系统设置中检查相机权限后返回重试。'),
 'media.stamp.consent': ('Use the camera for this stamp', '为本枚邮票使用相机'),
 'media.stamp.capturedPreview': ('Your captured photo, cropped to 4:5', '实际拍摄并裁切为 4:5 的照片'),
@@ -59,7 +59,7 @@ entries = {
 'withdrawal.support.contact': ('Contact platform support', '联系平台客服'),
 'withdrawal.support.weChat': ('Support WeChat ID', '客服微信号'),
 'withdrawal.support.manualContact': ('Select the ID to copy it and contact support yourself. No message or financial details are sent automatically.', '可选择并复制微信号后自行联系。不会自动发送消息或财务信息。'),
-'withdrawal.support.unconfigured': ('No reviewed support contact is configured for this deployment', '此环境尚未配置经核验的客服联系方式'),
+'withdrawal.support.unconfigured': ('Customer support contact isn\'t available right now.', '客服联系方式暂不可用'),
 }
 fragment = {'sourceLanguage': 'en', 'strings': {key: {'localizations': {language: {'stringUnit': {'state': 'translated', 'value': value}} for language, value in zip(['en', 'zh-Hans'], values)}} for key, values in entries.items()}, 'version': '1.0'}
 (root / 'Resources/MediaDestinationsLocalizations.fragment.json').write_text(json.dumps(fragment, ensure_ascii=False, indent=2) + '\n')

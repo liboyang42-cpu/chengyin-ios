@@ -41,8 +41,8 @@
   },
   {
     "key": "settingsNative.sound.localOnly",
-    "en": "These preferences are saved on this device. Playback and haptic feedback are not connected to them in this build. Airplane ambience does not change Airplane Mode.",
-    "zh-Hans": "这些偏好仅保存在本机。本版本的音频播放和触感反馈尚未接入这些偏好。飞机环境音不会更改系统飞行模式。"
+    "en": "These preferences are saved on this device. Airplane ambience doesn't turn on Airplane Mode.",
+    "zh-Hans": "这些偏好保存在本机。飞机环境音不会开启系统飞行模式。"
   },
   {
     "key": "settingsNative.sound.loadFailed",
@@ -86,8 +86,8 @@
   },
   {
     "key": "settingsNative.legal.sourceNotice",
-    "en": "Chinese source text from the existing app. Native-app legal review is still required; an approved English version has not been supplied.",
-    "zh-Hans": "以下为原应用中的中文源文档，仍需完成原生 App 法务审阅；尚未提供经过批准的英文版本。"
+    "en": "This document is available in Chinese only.",
+    "zh-Hans": "本文档仅提供中文版本。"
   },
   {
     "key": "settingsNative.legal.noAcceptance",
@@ -96,13 +96,13 @@
   },
   {
     "key": "settingsNative.legal.version",
-    "en": "Source version",
-    "zh-Hans": "源文档版本"
+    "en": "Version",
+    "zh-Hans": "版本"
   },
   {
     "key": "settingsNative.legal.effectiveDate",
-    "en": "Source effective date",
-    "zh-Hans": "源文档生效日期"
+    "en": "Effective date",
+    "zh-Hans": "生效日期"
   },
   {
     "key": "settingsNative.legal.loadFailed",
@@ -181,8 +181,8 @@
   },
   {
     "key": "settingsNative.about.contactSource",
-    "en": "Contact number listed in the CN source app. Select the number to copy it.",
-    "zh-Hans": "中国源应用中列出的联系电话，可选择并复制。"
+    "en": "Customer service number. Select it to copy.",
+    "zh-Hans": "客服电话，可选择并复制。"
   },
   {
     "key": "settingsNative.about.contactUnavailable",
@@ -196,8 +196,8 @@
   },
   {
     "key": "settingsNative.blocked.unavailable",
-    "en": "Control not connected",
-    "zh-Hans": "此控制尚未接入"
+    "en": "Not available right now",
+    "zh-Hans": "供应商尚不可用"
   },
   {
     "key": "settingsNative.blocked.locationConsent.title",
@@ -231,13 +231,13 @@
   },
   {
     "key": "settingsNative.attribution.title",
-    "en": "Source artwork credits",
-    "zh-Hans": "源应用素材署名"
+    "en": "Artwork credits",
+    "zh-Hans": "素材署名"
   },
   {
     "key": "settingsNative.attribution.context",
-    "en": "Credits retained from the source app. No third-party artwork was copied into this native module.",
-    "zh-Hans": "保留源应用素材署名；此原生模块未复制第三方素材。"
+    "en": "Credits for artwork used in Questify.",
+    "zh-Hans": "城瘾所用素材的署名。"
   },
   {
     "key": "settingsNative.fixture.notice",

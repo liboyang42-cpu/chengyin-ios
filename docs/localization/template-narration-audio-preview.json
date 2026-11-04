@@ -15,8 +15,8 @@
     },
     "templateNarration.previewUnavailable": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Preview needs an approved playback service and a valid HTTPS audio reference." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "试听需要已获准的播放服务和有效的 HTTPS 音频地址。" } }
+        "en": { "stringUnit": { "state": "translated", "value": "Audio preview isn't available right now." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "试听暂不可用。" } }
       }
     }
   },

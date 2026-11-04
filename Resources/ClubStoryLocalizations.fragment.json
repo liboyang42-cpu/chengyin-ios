@@ -134,13 +134,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Template details aren't available right now."
+            "value": "Template details are unavailable for this session or source."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "模板介绍暂不可用"
+            "value": "当前会话或来源暂时无法查看模板介绍。"
           }
         }
       }

@@ -21,13 +21,13 @@
   },
   {
     "key": "play.answer.arrivalRequired",
-    "en": "This task requires verified arrival or a scan first. That verification flow is not available in this native module.",
-    "zh-Hans": "此任务需要先验证到达或扫码，原生模块暂未接入此验证流程。"
+    "en": "This task requires an arrival check-in or a scan first, which isn't available in the app right now.",
+    "zh-Hans": "此任务需先到达打卡或扫码，App 内暂不支持。"
   },
   {
     "key": "play.answer.branchReadOnly",
-    "en": "Branch-route progress is available to view. Answer submission requires the route recovery flow, which is not connected yet.",
-    "zh-Hans": "可以查看分支路线进度，答案提交需先接入路线冲突恢复流程。"
+    "en": "You can view branch-route progress. Submitting answers isn't available right now.",
+    "zh-Hans": "可查看分支路线进度，暂不支持提交答案。"
   },
   {
     "key": "play.answer.checkProgress",
@@ -41,8 +41,8 @@
   },
   {
     "key": "play.answer.instructions",
-    "en": "Enter your own answer, then submit once. Progress changes only after confirmation from the server.",
-    "zh-Hans": "输入你的答案后提交。完成进度仅以服务端确认结果为准。"
+    "en": "Enter your answer, then submit once. Progress updates after your answer is confirmed.",
+    "zh-Hans": "输入你的答案后提交。答案确认后才会更新进度。"
   },
   {
     "key": "play.answer.mediaUnavailable",
@@ -51,8 +51,8 @@
   },
   {
     "key": "play.answer.missingQuestion",
-    "en": "The server hasn’t supplied a complete question and options for this task.",
-    "zh-Hans": "服务端暂未提供此任务的完整题目和选项。"
+    "en": "This task's question and options aren't available yet.",
+    "zh-Hans": "此任务的题目和选项暂不可用。"
   },
   {
     "key": "play.answer.placeholder",
@@ -61,23 +61,23 @@
   },
   {
     "key": "play.answer.readOnly",
-    "en": "Answer submission is not enabled for this session.",
-    "zh-Hans": "当前游玩尚未启用答案提交。"
+    "en": "Submitting answers isn't available right now.",
+    "zh-Hans": "答案提交暂不可用。"
   },
   {
     "key": "play.answer.readback",
-    "en": "This receipt comes from the server. The route shows separately refreshed progress.",
-    "zh-Hans": "此回执来自服务端，路线进度以单独刷新后的结果为准。"
+    "en": "Here's your result. Route progress updates separately when refreshed.",
+    "zh-Hans": "这是本次结果，路线进度以刷新后为准。"
   },
   {
     "key": "play.answer.refreshProgress",
-    "en": "Check server progress",
-    "zh-Hans": "查询服务端进度"
+    "en": "Check progress",
+    "zh-Hans": "查看进度"
   },
   {
     "key": "play.answer.routeCompleted",
-    "en": "The server confirmed this answer completed the journey.",
-    "zh-Hans": "服务端已确认本次答题完成了整条路线。"
+    "en": "This answer completed the journey.",
+    "zh-Hans": "本次答题完成了整条路线。"
   },
   {
     "key": "play.answer.submit",
@@ -91,8 +91,8 @@
   },
   {
     "key": "play.answer.unsupported",
-    "en": "This task uses a verification method that isn’t supported by this native module yet.",
-    "zh-Hans": "此任务所需的验证方式尚未接入原生模块。"
+    "en": "This task's check-in method isn't available in the app right now.",
+    "zh-Hans": "此任务的验证方式暂不可用。"
   },
   {
     "key": "play.businessTime",
@@ -151,8 +151,8 @@
   },
   {
     "key": "play.expiresAt",
-    "en": "Pass expiry as reported",
-    "zh-Hans": "通行证到期时间（服务端）"
+    "en": "Pass expires",
+    "zh-Hans": "通行证到期时间"
   },
   {
     "key": "play.fixture.notice",
@@ -241,8 +241,8 @@
   },
   {
     "key": "play.openStatus",
-    "en": "Reported opening status",
-    "zh-Hans": "服务端营业状态"
+    "en": "Opening status",
+    "zh-Hans": "营业状态"
   },
   {
     "key": "play.passRequired",
@@ -281,8 +281,8 @@
   },
   {
     "key": "play.refresh",
-    "en": "Refresh",
-    "zh-Hans": "刷新"
+    "en": "Refresh source review",
+    "zh-Hans": "重新核对原文"
   },
   {
     "key": "play.registrationRequired",
@@ -296,8 +296,8 @@
   },
   {
     "key": "play.result",
-    "en": "Reported result",
-    "zh-Hans": "服务端结果"
+    "en": "Result",
+    "zh-Hans": "结果"
   },
   {
     "key": "play.retry",
@@ -331,18 +331,18 @@
   },
   {
     "key": "play.unavailable.detail",
-    "en": "The server hasn’t allowed this journey to continue. Check the reported time window or route status.",
-    "zh-Hans": "服务端暂未允许继续游玩，请查看可玩时间或路线状态。"
+    "en": "This journey can't continue right now. Check the playable hours or route status.",
+    "zh-Hans": "暂不能继续游玩，请查看可玩时间或路线状态。"
   },
   {
     "key": "play.unconfigured",
-    "en": "Service not configured",
-    "zh-Hans": "服务尚未配置"
+    "en": "Not available right now",
+    "zh-Hans": "供应商尚不可用"
   },
   {
     "key": "play.unconfigured.detail",
-    "en": "An approved service address is needed to load this journey.",
-    "zh-Hans": "需要配置已批准的服务地址才能加载游玩进度。"
+    "en": "This journey isn't available right now.",
+    "zh-Hans": "游玩进度暂不可用。"
   },
   {
     "key": "play.unknown",
