@@ -127,7 +127,7 @@ struct TeamReformSheetHost: View {
                 }
                 if batch.phase == .reviewed {
                     Button("teamReform.invite.send") { Task { await box.run { await $0.send() } } }.frame(minHeight: 44)
-                        .buttonStyle(.borderedProminent).disabled(flow.busy).accessibilityIdentifier("teamReform.invite.send")
+                        .buttonStyle(.questifyPrimary).disabled(flow.busy).accessibilityIdentifier("teamReform.invite.send")
                 }
                 if flow.busy { ProgressView() }
             }
@@ -212,7 +212,7 @@ struct TeamReformSheetHost: View {
             case .readyToMeet:
                 Text("teamReform.meeting.ready")
                 Button("teamReform.meeting.start") { Task { await box.run { await $0.startHandshake() } } }
-                    .buttonStyle(.borderedProminent).frame(minHeight: 44).disabled(flow.busy).accessibilityIdentifier("teamReform.meeting.start")
+                    .buttonStyle(.questifyPrimary).frame(minHeight: 44).disabled(flow.busy).accessibilityIdentifier("teamReform.meeting.start")
             case .handshaking:
                 handshake
             case .confirmationPending:

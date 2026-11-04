@@ -222,7 +222,7 @@ import Observation
         }
         if model.phase == .nearDestination, let onOpenVerification {
             Button("walking.openVerification", action: onOpenVerification)
-                .buttonStyle(.borderedProminent).frame(minHeight: 44)
+                .buttonStyle(.questifyPrimary).frame(minHeight: 44)
         }
         if model.phase.mayStart {
             Button {
@@ -234,7 +234,7 @@ import Observation
                 }
             } label: {
                 Text(LocalizedStringKey(model.phase == .ready ? "walking.start" : "walking.resume"))
-            }.buttonStyle(.borderedProminent).frame(minHeight: 44).accessibilityIdentifier("walking.start")
+            }.buttonStyle(.questifyPrimary).frame(minHeight: 44).accessibilityIdentifier("walking.start")
         }
         if model.phase.mayPause {
             Button("walking.pause") { model.pause() }

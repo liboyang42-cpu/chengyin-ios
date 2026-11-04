@@ -49,7 +49,7 @@ import SwiftUI
                 Button("playkit.review") {
                     guard let payload = stage.payload else { return }
                     requestReview(stage.submitAction, payload, {})
-                }.buttonStyle(.borderedProminent).disabled(!enabled || !active || stage.payload == nil)
+                }.buttonStyle(.questifyPrimary).disabled(!enabled || !active || stage.payload == nil)
                     .accessibilityIdentifier("playkit.sensor.review")
             } else if stage.phase == .ready {
                 Button("playkit.sensor.reviewStart") {
@@ -59,13 +59,13 @@ import SwiftUI
                         // acknowledgement. A stale callback cannot restart sensors.
                         if stage.startAfterAcknowledgement(attempt: token, revisionIdentity: currentRevisionIdentity?() ?? revisionIdentity) { onDirty() }
                     }
-                }.buttonStyle(.borderedProminent).disabled(!enabled || !active)
+                }.buttonStyle(.questifyPrimary).disabled(!enabled || !active)
                     .accessibilityIdentifier("playkit.sensor.start")
                 Text("playkit.sensor.startBoundary").font(.footnote).foregroundStyle(.secondary)
             } else if stage.phase == .idle || stage.phase == .interrupted {
                 Button(LocalizedStringKey(kind == .compass ? "playkit.compass.begin" : "playkit.sensor.calibrate")) {
                     onDirty(); stage.begin(active: active)
-                }.buttonStyle(.borderedProminent).disabled(!enabled || !active || !stage.supported)
+                }.buttonStyle(.questifyPrimary).disabled(!enabled || !active || !stage.supported)
                     .accessibilityIdentifier("playkit.sensor.calibrate")
             }
             if [.authorizing, .calibrating, .running, .ready].contains(stage.phase) {

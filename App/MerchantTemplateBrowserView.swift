@@ -112,7 +112,7 @@ import SwiftUI
                         Button { model.open(nil, permit: permit) } label: {
                             Label("merchant.operations.newTemplate", systemImage: "plus")
                                 .font(Theme.Font.button).frame(maxWidth: .infinity, minHeight: 44)
-                        }.buttonStyle(.borderedProminent).disabled(!browser.canOpen).accessibilityIdentifier("merchant.operations.newTemplate")
+                        }.buttonStyle(.questifyPrimary).disabled(!browser.canOpen).accessibilityIdentifier("merchant.operations.newTemplate")
                         if let total = browser.total {
                             Text("merchant.templateBrowser.count \(browser.rows.count) \(total)")
                                 .font(Theme.Font.label).foregroundStyle(.secondary).accessibilityIdentifier("merchant.templateBrowser.count")

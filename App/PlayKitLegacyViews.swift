@@ -59,7 +59,7 @@ extension PlayKitScreen {
                 if revealed {
                     if let text = segment["unlockText"].text, !text.isEmpty { Text(verbatim: text).font(.title3) }
                     else { Text("playkitLegacy.slow.emptyReadback") }
-                } else { Button("playkitLegacy.slow.reveal") { revealed = true }.buttonStyle(.borderedProminent) }
+                } else { Button("playkitLegacy.slow.reveal") { revealed = true }.buttonStyle(.questifyPrimary) }
             } else if segment["started"].bool == true {
                 if let days = segment["daysLeft"].integer, days > 0 {
                     LabeledContent("playkitLegacy.slow.daysLeft") { Text(verbatim: String(days)) }
@@ -68,13 +68,13 @@ extension PlayKitScreen {
                     Text("playkitLegacy.slow.ready")
                     Button { requestReview("CLAIM_SLOW_TASK", [:], {}) } label: {
                         if let label = segment["unlockLabel"].text, !label.isEmpty { Text(verbatim: label) } else { Text("playkitLegacy.slow.claim") }
-                    }.buttonStyle(.borderedProminent).disabled(!enabled)
+                    }.buttonStyle(.questifyPrimary).disabled(!enabled)
                 } else { Text("playkit.configurationInvalid") }
             } else {
                 if let hint = segment["startHint"].text, !hint.isEmpty { Text(verbatim: hint) }
                 Button { requestReview("START_SLOW_TASK", [:], {}) } label: {
                     if let label = segment["startLabel"].text, !label.isEmpty { Text(verbatim: label) } else { Text("playkitLegacy.slow.start") }
-                }.buttonStyle(.borderedProminent).disabled(!enabled)
+                }.buttonStyle(.questifyPrimary).disabled(!enabled)
             }
             Text("playkitLegacy.slow.authority").font(.footnote)
         }

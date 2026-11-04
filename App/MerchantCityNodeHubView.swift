@@ -137,7 +137,7 @@ struct MerchantCityNodeInlineError: View {
             Text(verbatim: sub).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
             if retry {
                 Button { Task { await reload() } } label: { MerchantCityNodeCopy.text("merchantCityNode.action.retry") }
-                    .buttonStyle(.borderedProminent).accessibilityIdentifier("cityNodeHub.retry")
+                    .buttonStyle(.questifyPrimary).accessibilityIdentifier("cityNodeHub.retry")
             }
         }.frame(maxWidth: .infinity).padding(.vertical, 40).accessibilityElement(children: .contain).accessibilityIdentifier(identifier)
     }
@@ -182,7 +182,7 @@ struct MerchantCityNodeInlineError: View {
                 MerchantCityNodeCopy.text("merchantCityNode.empty.sub").font(.subheadline).foregroundStyle(.secondary)
                 if p.showsEmptyPlacementAction {
                     Button { goCreate(p.quota) } label: { MerchantCityNodeCopy.text("merchantCityNode.place.action") }
-                        .buttonStyle(.borderedProminent).accessibilityIdentifier("cityNodeHub.empty.place")
+                        .buttonStyle(.questifyPrimary).accessibilityIdentifier("cityNodeHub.empty.place")
                 }
             }.frame(maxWidth: .infinity).padding(.vertical, 28).accessibilityElement(children: .contain).accessibilityIdentifier("cityNodeHub.empty")
         }
@@ -395,7 +395,7 @@ struct MerchantCityNodeInlineError: View {
             MerchantCityNodeCopy.text("merchantCityNode.claim.loadFailed").font(.headline)
             Text(verbatim: message).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
             Button { Task { await claimModel.load() } } label: { MerchantCityNodeCopy.text("merchantCityNode.action.retry") }
-                .buttonStyle(.borderedProminent).disabled(claimModel.coordinator.busy).accessibilityIdentifier("cityNodeHub.claim.retry")
+                .buttonStyle(.questifyPrimary).disabled(claimModel.coordinator.busy).accessibilityIdentifier("cityNodeHub.claim.retry")
         }.frame(maxWidth: .infinity).padding(.vertical, 28).accessibilityElement(children: .contain).accessibilityIdentifier("cityNodeHub.claim.error")
     }
     @ViewBuilder private func claimRow(_ row: MerchantCityClaimableRow) -> some View {
@@ -474,7 +474,7 @@ struct MerchantCityNodeInlineError: View {
                             MerchantCityNodeCopy.text("merchantCityNode.poster.failedTitle").font(.headline)
                             Text(verbatim: message).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
                             Button { loadPoster(shown.poiID) } label: { MerchantCityNodeCopy.text("merchantCityNode.poster.retry") }
-                                .buttonStyle(.borderedProminent).accessibilityIdentifier("cityNodeHub.poster.retry")
+                                .buttonStyle(.questifyPrimary).accessibilityIdentifier("cityNodeHub.poster.retry")
                         }.padding(.vertical, 28).accessibilityElement(children: .contain).accessibilityIdentifier("cityNodeHub.poster.error")
                     }
                 }.padding()

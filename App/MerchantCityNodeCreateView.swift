@@ -104,7 +104,7 @@ import SwiftUI
             VStack(spacing: 12) {
                 stateView(title: "merchantCityNode.create.login", sub: nil, identifier: "cityNodeCreate.login", retry: false)
                 Button { dismiss() } label: { Text(verbatim: "去登录") }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.questifyPrimary)
                     .accessibilityIdentifier("cityNodeCreate.login.action")
             }
         } else if c.issue == "merchant.content.denied" {
@@ -120,7 +120,7 @@ import SwiftUI
             if let sub { Text(verbatim: sub).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center) }
             if retry {
                 Button { Task { await model.load(); seedIfNeeded() } } label: { MerchantCityNodeCopy.text("merchantCityNode.action.retry") }
-                    .buttonStyle(.borderedProminent).accessibilityIdentifier("cityNodeCreate.retry")
+                    .buttonStyle(.questifyPrimary).accessibilityIdentifier("cityNodeCreate.retry")
             }
         }.frame(maxWidth: .infinity).padding(.vertical, 40).accessibilityElement(children: .contain).accessibilityIdentifier(identifier)
     }
@@ -236,7 +236,7 @@ import SwiftUI
                         .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("cityNodeCreate.address.hint")
                     HStack {
                         Button { confirmProfileAddress() } label: { MerchantCityNodeCopy.text("merchantCityNode.create.confirmAddress") }
-                            .buttonStyle(.borderedProminent).disabled(submitting || submittedID != nil).accessibilityIdentifier("cityNodeCreate.address.confirm")
+                            .buttonStyle(.questifyPrimary).disabled(submitting || submittedID != nil).accessibilityIdentifier("cityNodeCreate.address.confirm")
                         Button(action: choose) { MerchantCityNodeCopy.text("merchantCityNode.create.repick") }
                             .buttonStyle(.bordered).disabled(!canChoose).accessibilityIdentifier("cityNodeCreate.address.repick")
                     }
@@ -261,7 +261,7 @@ import SwiftUI
                 if submitting { ProgressView() }
                 MerchantCityNodeCopy.text(submittedID != nil ? "merchantCityNode.create.reread" : "merchantCityNode.create.submit")
             }.font(.headline).frame(maxWidth: .infinity).padding(.vertical, 6)
-        }.buttonStyle(.borderedProminent).disabled(!ready && submittedID == nil).padding().background(.bar)
+        }.buttonStyle(.questifyPrimary).disabled(!ready && submittedID == nil).padding().background(.bar)
             .accessibilityIdentifier("cityNodeCreate.submit")
     }
 

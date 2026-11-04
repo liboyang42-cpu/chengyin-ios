@@ -494,7 +494,7 @@ struct RegistrationSheetView: View {
                     focusedField = nil
                     if flow.prepareConfirmation() { showingConfirmation = true }
                 } label: { Text("registration.form.review").frame(maxWidth: .infinity, minHeight: 44) }
-                .buttonStyle(.borderedProminent).disabled(flow.confirmationBlock != nil)
+                .buttonStyle(.questifyPrimary).disabled(flow.confirmationBlock != nil)
                 .accessibilityIdentifier("registration.form.review")
             }
         } footer: { Text("registration.form.sharingPurpose") }

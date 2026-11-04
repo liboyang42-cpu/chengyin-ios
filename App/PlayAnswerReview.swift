@@ -33,7 +33,7 @@ struct PlayAnswerReview: Identifiable, Equatable {
                     } header: { Text(verbatim: localized("answer")) }
                     Text(verbatim: localized("detail")).font(.footnote)
                     Button(action: confirm) { Text(verbatim: localized("confirm")) }
-                        .buttonStyle(.borderedProminent).accessibilityIdentifier("play.answer.review.confirm")
+                        .buttonStyle(.questifyPrimary).accessibilityIdentifier("play.answer.review.confirm")
                 } else {
                     Text(verbatim: localized("expired")).accessibilityIdentifier("play.answer.review.expired")
                 }

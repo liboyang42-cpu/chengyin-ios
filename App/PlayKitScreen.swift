@@ -187,7 +187,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     }
     func submitButton(_ action: String, payload: [String: PlayWireValue], valid: Bool = true) -> some View {
         Button("playkit.review") { prepare(action, payload) }
-            .buttonStyle(.borderedProminent).disabled(!enabled || !valid)
+            .buttonStyle(.questifyPrimary).disabled(!enabled || !valid)
             .accessibilityIdentifier("playkit.submit." + kind.rawValue)
     }
     func artwork(_ url: String?) -> some View {

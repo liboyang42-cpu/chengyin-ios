@@ -337,7 +337,7 @@ struct ActivityDetailView: View {
             Divider()
             if primaryAction == .signUp {
                 Button { showsRegistration=true } label: { primaryActionLabel(.signUp) }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.questifyPrimary)
                     .controlSize(.large)
                     .tint(QuestifyPalette.accent)
                     .accessibilityIdentifier("activity.openRegistration")
@@ -348,7 +348,7 @@ struct ActivityDetailView: View {
                 let action = primaryAction
                 let walletAvailable = reader is AppSession
                 Button { if action != .cancelled, walletAvailable { showsTicketWallet=true } } label: { primaryActionLabel(action) }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.questifyPrimary)
                     .controlSize(.large)
                     .tint(QuestifyPalette.accent)
                     .disabled(action == .cancelled || !walletAvailable)

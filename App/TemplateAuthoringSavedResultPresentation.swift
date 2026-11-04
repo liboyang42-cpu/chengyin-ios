@@ -76,7 +76,7 @@ struct TemplateAuthoringSavedResultPreferenceKey: PreferenceKey {
             }
             Text("templateSavedResult.destination", tableName: "CreatorSavedResult").font(.footnote).foregroundStyle(.secondary)
             Button(action: close) { Text("templateSavedResult.openLibrary", tableName: "CreatorSavedResult") }
-                .buttonStyle(.borderedProminent).accessibilityIdentifier("templateSavedResult.openLibrary")
+                .buttonStyle(.questifyPrimary).accessibilityIdentifier("templateSavedResult.openLibrary")
         }.padding(24).presentationDetents([.medium]).interactiveDismissDisabled(true)
             .accessibilityIdentifier("templateSavedResult.panel")
     }

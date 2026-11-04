@@ -70,7 +70,7 @@ struct WelcomeView: View {
             .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
             .padding(8)
         }
-        .buttonStyle(.borderedProminent)
+        .buttonStyle(.questifyPrimary)
         .accessibilityIdentifier("welcome.\(role.rawValue)")
     }
 }

@@ -266,7 +266,7 @@ import SwiftUI
                 Button("mapPublicLayers.retry") {
                     coordinator.retryFailedPage()
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.questifyPrimary)
                 .frame(minHeight: 44)
                 .accessibilityIdentifier("mapPublicLayers.retry")
             }

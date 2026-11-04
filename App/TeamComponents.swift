@@ -159,7 +159,7 @@ struct TeamMemberRow: View {
                             guard model.coordinator.review == review else { return }
                             if await model.run(permit: permit, { await model.coordinator.confirm(review) }) { dismiss() }
                         }
-                    }.buttonStyle(.borderedProminent).frame(minHeight: 44)
+                    }.buttonStyle(.questifyPrimary).frame(minHeight: 44)
                         .disabled(!model.coordinator.canSubmit || model.running)
                         .accessibilityIdentifier("team.review.confirm")
                     if case .disband(let teamID) = review.action {

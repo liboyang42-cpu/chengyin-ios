@@ -60,7 +60,7 @@ struct TeamPageStateView: View {
             Text(LocalizedStringKey(state.detailKey)).font(.footnote).foregroundStyle(.secondary)
                 .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
             if let key = state.actionKey, let action = handler {
-                Button(LocalizedStringKey(key), action: action).buttonStyle(.borderedProminent).frame(minHeight: 44)
+                Button(LocalizedStringKey(key), action: action).buttonStyle(.questifyPrimary).frame(minHeight: 44)
                     .accessibilityIdentifier("teamPage.state.action")
             }
         }.padding().frame(maxWidth: .infinity)

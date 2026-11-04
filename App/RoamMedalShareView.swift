@@ -43,7 +43,7 @@ import UIKit
                     } else {
                         if renderFailed { Text("roam.share.renderFailed") }
                         Button("roam.medalShare.prepare", systemImage: "medal") { prepare() }
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(.questifyPrimary)
                             .accessibilityIdentifier("roam.medalShare.prepare")
                     }
                 } else {
@@ -80,7 +80,7 @@ import UIKit
             photoSave.save(image, selection: .init(record: selection.record, includeRoute: false)) { sourceIsCurrent }
         } label: {
             Label(LocalizedStringKey(saveButtonKey), systemImage: "square.and.arrow.down")
-        }.buttonStyle(.borderedProminent)
+        }.buttonStyle(.questifyPrimary)
             .disabled(photoSave.inFlight || phase == .saved || phase == .sourceChanged)
             .accessibilityIdentifier("roam.medalShare.savePhotos")
         if photoSave.inFlight { ProgressView("roam.share.savingPhotos") }

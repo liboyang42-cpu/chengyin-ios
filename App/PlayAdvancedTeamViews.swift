@@ -37,7 +37,7 @@ import SwiftUI
                 if team.completedUnits >= team.requiredTurns { Text("advancedTeam.turnsRecorded") }
                 else {
                     Button("advancedTeam.complete") { prepare(.completeUnit) }
-                        .buttonStyle(.borderedProminent).disabled(!model.canTeamInteract || !team.canRequestUnit)
+                        .buttonStyle(.questifyPrimary).disabled(!model.canTeamInteract || !team.canRequestUnit)
                         .accessibilityIdentifier("advancedTeam.complete")
                 }
                 Text("advancedTeam.serverTurn").font(.footnote)

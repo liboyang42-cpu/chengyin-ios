@@ -440,7 +440,7 @@ import SwiftUI
                 Button("projectEdit.saveLocal") { focusedField = nil; model.saveLocal() }
                     .buttonStyle(.bordered).disabled(!model.canSaveLocal).accessibilityIdentifier("projectEdit.saveLocal")
                 Button("projectEdit.review") { focusedField = nil; model.review() }
-                    .buttonStyle(.borderedProminent).disabled(!model.canReview).accessibilityIdentifier("projectEdit.review")
+                    .buttonStyle(.questifyPrimary).disabled(!model.canReview).accessibilityIdentifier("projectEdit.review")
             }.frame(maxWidth: .infinity, minHeight: 44).padding().background(.regularMaterial)
         }
         .task(id: sessionRevision) { await model.load() }

@@ -112,7 +112,7 @@ struct MessagingHistoryView: View {
                     // Source closed hangout: 「返回消息列表」 instead of a dead end.
                     if issue.titleKey == "messaging.closed" {
                         Button("im.chat.returnToList") { dismissHistory() }
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(.questifyPrimary)
                             .accessibilityIdentifier("im.chat.returnToList")
                     }
                 }

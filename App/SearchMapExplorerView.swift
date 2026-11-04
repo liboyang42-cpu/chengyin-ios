@@ -82,7 +82,7 @@ import SwiftUI
                 }
                 if mode == .city { layerControls }
                 Button("searchMap.searchArea") { startLoad() }
-                    .buttonStyle(.borderedProminent).frame(minHeight: 44)
+                    .buttonStyle(.questifyPrimary).frame(minHeight: 44)
                     .disabled(area == nil || !reader.isConfigured || loading)
                     .accessibilityIdentifier("searchMap.searchArea")
                 if visibleCityResults != nil { refreshControls }

@@ -66,7 +66,7 @@ import SwiftUI
                     } label: {
                         Text(verbatim: "回到我的主页")
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.questifyPrimary)
                     .accessibilityIdentifier("social.incompleteLink.backHome")
                 }
                 .padding(.vertical, 6)

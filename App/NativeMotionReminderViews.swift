@@ -38,7 +38,7 @@ import SwiftUI
                 LabeledContent("nativePlatform.steps.day") { Text(verbatim: challenge.dayKey) }
                 Text("nativePlatform.steps.sharePurpose").font(.footnote)
                 Button("nativePlatform.steps.send") { Task { await stage.submitReviewed(); await refresh() } }
-                    .buttonStyle(.borderedProminent).disabled(!advanced.isCurrent)
+                    .buttonStyle(.questifyPrimary).disabled(!advanced.isCurrent)
                     .accessibilityIdentifier("nativePlatform.steps.send")
                 Button("nativePlatform.cancel", role: .cancel) { stage.interrupt() }
             } else if stage.phase == "unknown" {
@@ -54,7 +54,7 @@ import SwiftUI
                     if let delta = receipt["acceptedDelta"].integer { LabeledContent("nativePlatform.steps.delta") { Text(verbatim: String(delta)) } }
                 }
                 Button("nativePlatform.steps.read") { purpose = true }
-                    .buttonStyle(.borderedProminent).disabled(!advanced.canInteract || !stage.supported)
+                    .buttonStyle(.questifyPrimary).disabled(!advanced.canInteract || !stage.supported)
                     .accessibilityIdentifier("nativePlatform.steps.read")
                 if !stage.supported { Text("nativePlatform.issue.unsupported").font(.footnote) }
             }
@@ -114,7 +114,7 @@ import SwiftUI
                     Button("nativePlatform.reminder.cancel", role: .destructive) { stage.cancel() }.accessibilityIdentifier("nativePlatform.reminder.cancel")
                 } else {
                     Button("nativePlatform.reminder.enable") { reviewed = stage.window }
-                        .buttonStyle(.borderedProminent).disabled(stage.window == nil || stage.phase == "scheduling" || !active)
+                        .buttonStyle(.questifyPrimary).disabled(stage.window == nil || stage.phase == "scheduling" || !active)
                         .accessibilityIdentifier("nativePlatform.reminder.enable")
                 }
                 if let issue = readIssue ?? stage.issue { Text(LocalizedStringKey("nativePlatform.issue." + issue.rawValue)).accessibilityIdentifier("nativePlatform.reminder.issue") }

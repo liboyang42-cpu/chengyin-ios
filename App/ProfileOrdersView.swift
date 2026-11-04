@@ -32,11 +32,11 @@ struct ProfileOrdersView: View {
                     ProfileEmptyState(title: "profile.orders.sourceEmpty", hint: "profile.orders.sourceEmptyHint", symbol: "ticket", identifier: "profile.orders.empty")
                     if let discoverRoutes {
                         Button("profile.orderParity.discover") { discoverRoutes() }
-                            .buttonStyle(.borderedProminent).frame(minHeight: 44)
+                            .buttonStyle(.questifyPrimary).frame(minHeight: 44)
                             .accessibilityIdentifier("profile.orders.discover")
                     } else if rootTabSwitch.isAvailable {
                         Button("profile.orderParity.discover") { rootTabSwitch(.home) }
-                            .buttonStyle(.borderedProminent).frame(minHeight: 44)
+                            .buttonStyle(.questifyPrimary).frame(minHeight: 44)
                             .accessibilityIdentifier("profile.orders.discover")
                     }
                 }

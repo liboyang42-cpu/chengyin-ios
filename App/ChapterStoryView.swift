@@ -58,7 +58,7 @@ import UIKit
                     audioSelection
                     if audioURL != nil { PlatformAudioHost(rawURL: audioURL, scope: mediaScope, makeModel: makeAudio) }
                     Text("chapterStory.end").font(.footnote).foregroundStyle(.secondary)
-                    Button("chapterStory.return") { leave() }.buttonStyle(.borderedProminent)
+                    Button("chapterStory.return") { leave() }.buttonStyle(.questifyPrimary)
                 } else {
                     ContentUnavailableView("chapterStory.unavailable", systemImage: "lock", description: Text("chapterStory.unavailable.detail"))
                 }

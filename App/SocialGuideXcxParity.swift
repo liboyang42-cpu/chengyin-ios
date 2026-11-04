@@ -27,7 +27,7 @@ struct SocialGuideXcxModeRow: View {
                     .background(Capsule().fill(Color.secondary.opacity(0.15)))
             }
             Text(mode.xcxDetailKey).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            if let onOpen { Button("guideXcx.go") { onOpen(mode.destination) }.buttonStyle(.borderedProminent).controlSize(.small).accessibilityIdentifier("social.guide.\(mode.rawValue)") }
+            if let onOpen { Button("guideXcx.go") { onOpen(mode.destination) }.buttonStyle(.questifyPrimary).controlSize(.small).accessibilityIdentifier("social.guide.\(mode.rawValue)") }
         }.padding(.vertical, 5)
     }
 }

@@ -71,6 +71,6 @@ extension View {
     }
 
     func nativeAuthorPrimaryAction() -> some View {
-        self.buttonStyle(.borderedProminent).controlSize(.large)
+        self.buttonStyle(.questifyPrimary).controlSize(.large)
     }
 }

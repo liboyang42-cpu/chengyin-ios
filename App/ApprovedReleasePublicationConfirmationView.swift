@@ -14,7 +14,7 @@ import SwiftUI
                 ApprovedReleaseSummarySection(prepared: original.prepared, identifierPrefix: "approvedRelease.confirm")
                 Section {
                     Button(String(localized: LocalizedStringResource("approvedRelease.confirmCreate", defaultValue: "Create this immutable release", locale: locale))) { confirm(original) }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.questifyPrimary)
                         .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, minHeight: 44).accessibilityIdentifier("approvedRelease.confirm.create")
                 }

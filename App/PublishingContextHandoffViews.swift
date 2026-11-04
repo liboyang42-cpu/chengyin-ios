@@ -217,7 +217,7 @@ struct PublishingFormSurface: ViewModifier {
                     Text(verbatim: receipt.title).font(Theme.Font.sectionTitle)
                         .fixedSize(horizontal: false, vertical: true)
                     ProjectSubmissionEvidenceView(acknowledgment: acknowledgment, currentVerificationConfigured: canVerifyRelease)
-                    Button("action.done") { if let capture { lifecycle.finish(capture, action: close) } }.buttonStyle(.borderedProminent)
+                    Button("action.done") { if let capture { lifecycle.finish(capture, action: close) } }.buttonStyle(.questifyPrimary)
                         .frame(minHeight: 44)
                         .disabled(capture == nil)
                         .accessibilityIdentifier("projectSubmission.done")
@@ -239,7 +239,7 @@ struct PublishingFormSurface: ViewModifier {
                 .foregroundStyle(Theme.Color.textSecondary(in: domain)).fixedSize(horizontal: false, vertical: true)
             if !canNavigate {
                 Button("action.done") { if let capture { lifecycle.finish(capture, action: close) } }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.questifyPrimary)
                     .frame(minHeight: 44)
                     .disabled(capture == nil)
             }

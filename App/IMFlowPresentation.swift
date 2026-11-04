@@ -19,7 +19,7 @@ private struct IMFlowPrimaryActionPresentation: ViewModifier {
     @Environment(\.themeDomain) private var domain
     func body(content: Content) -> some View {
         content.font(Theme.Font.button)
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.questifyPrimary)
             .controlSize(.large)
             .tint(Theme.Color.actionPrimaryBackground(in: domain))
             .foregroundStyle(Theme.Color.actionPrimaryForeground(in: domain))

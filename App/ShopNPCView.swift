@@ -128,7 +128,7 @@ import SwiftUI
         VStack(alignment: .leading, spacing: 12) {
             Text("shopNPC.pauseNotice")
             Button("shopNPC.resume") { coordinator.resumeAfterInterruption(); localFailure = nil }
-                .buttonStyle(.borderedProminent).controlSize(.large)
+                .buttonStyle(.questifyPrimary).controlSize(.large)
                 .disabled(scenePhase != .active).accessibilityIdentifier("shopNPC.resume")
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -153,7 +153,7 @@ import SwiftUI
     }
     private var textReviewButton: some View {
         Button("shopNPC.reviewText") { typing = false; guardedSend(current: { (draft, nil) }) { attempt { try coordinator.reviewText(draft) } } }
-            .buttonStyle(.borderedProminent).controlSize(.large)
+            .buttonStyle(.questifyPrimary).controlSize(.large)
             .disabled(!canCompose || draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             .accessibilityIdentifier("shopNPC.reviewText")
     }
@@ -214,7 +214,7 @@ import SwiftUI
                     } label: {
                         Text(coordinator.failure == nil ? LocalizedStringKey("shopNPC.confirmSend") : LocalizedStringKey("shopNPC.retry"))
                     }
-                    .buttonStyle(.borderedProminent).controlSize(.large).disabled(!coordinator.canConfirmPending || recording || !showsConversation)
+                    .buttonStyle(.questifyPrimary).controlSize(.large).disabled(!coordinator.canConfirmPending || recording || !showsConversation)
                     .accessibilityIdentifier("shopNPC.confirmSend")
                 }
             }

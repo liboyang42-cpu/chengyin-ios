@@ -27,7 +27,7 @@ import SwiftUI
         case .reviewing:
             Text("playx.opening.review").accessibilityIdentifier("playx.opening.review")
             Button("playx.opening.confirm") { Task { await model.confirm() } }
-                .buttonStyle(.borderedProminent).accessibilityIdentifier("playx.opening.confirm")
+                .buttonStyle(.questifyPrimary).accessibilityIdentifier("playx.opening.confirm")
             Button("playx.opening.cancel", role: .cancel) { model.cancelReview() }
                 .accessibilityIdentifier("playx.opening.cancel")
         case .departed:
@@ -50,6 +50,6 @@ import SwiftUI
 
     private var departButton: some View {
         Button("playx.opening.depart") { model.depart(chapterIsOpening: true) }
-            .buttonStyle(.borderedProminent).accessibilityIdentifier("playx.opening.depart")
+            .buttonStyle(.questifyPrimary).accessibilityIdentifier("playx.opening.depart")
     }
 }

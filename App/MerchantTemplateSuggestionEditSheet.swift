@@ -43,7 +43,7 @@ import SwiftUI
                     }
                     Section {
                         Button("merchantSuggestionEdit.save") { if model.save() { dismiss() } }
-                            .buttonStyle(.borderedProminent).controlSize(.large)
+                            .buttonStyle(.questifyPrimary).controlSize(.large)
                             .disabled(!model.canSave).accessibilityIdentifier("merchantSuggestionEdit.save")
                     }
                     Section(LocalizedStringKey(edit.action.field.titleKey)) {

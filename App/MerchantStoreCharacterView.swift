@@ -226,7 +226,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
                         Spacer()
                     }
                 }
-                .buttonStyle(.borderedProminent).disabled(c.saving || c.saveLocked).accessibilityIdentifier("aiNPC.avatar.save")
+                .buttonStyle(.questifyPrimary).disabled(c.saving || c.saveLocked).accessibilityIdentifier("aiNPC.avatar.save")
             }
         }
     }
@@ -422,7 +422,7 @@ private struct StoreCharacterPresetSheet: View {
                 }
                 .padding()
                 Button { c.confirmPreset() } label: { t("storeCharacter.preset.use").frame(maxWidth: .infinity) }
-                    .buttonStyle(.borderedProminent).padding(.horizontal).accessibilityIdentifier("aiNPC.preset.use")
+                    .buttonStyle(.questifyPrimary).padding(.horizontal).accessibilityIdentifier("aiNPC.preset.use")
             }
             .navigationTitle(t("storeCharacter.preset.title")).navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -507,7 +507,7 @@ private struct StoreCharacterVoiceSheet: View {
             .accessibilityElement().accessibilityLabel(t("storeCharacter.voice.progress"))
             t("storeCharacter.voice.sentence1")
             Button {} label: { t("storeCharacter.voice.hold").frame(maxWidth: .infinity) }
-                .buttonStyle(.borderedProminent).disabled(true).accessibilityIdentifier("aiNPC.voice.hold")
+                .buttonStyle(.questifyPrimary).disabled(true).accessibilityIdentifier("aiNPC.voice.hold")
             t("storeCharacter.voice.recordingUnavailable").font(.footnote).foregroundStyle(.secondary)
             if c.canRecord {
                 Button { c.useSyntheticRecording() } label: { t("storeCharacter.voice.useSample") }

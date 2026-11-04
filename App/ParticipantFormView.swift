@@ -255,7 +255,7 @@ struct ParticipantFormView: View {
                             : model.draft.validation == nil ? "participant.form.save" : "profile.participantValidation.check"))
                             .frame(maxWidth: .infinity, minHeight: 44)
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.questifyPrimary)
                     .disabled(!model.canReviewForSave)
                     .accessibilityIdentifier("participant.form.save")
                     .padding().background(.regularMaterial)

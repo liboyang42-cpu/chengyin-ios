@@ -142,7 +142,7 @@ import UIKit
                     .accessibilityAddTraits(owner.selected == row ? .isSelected : [])
             }
             Button { _ = apply(stamp) } label: { Text("apply", tableName: "ActivityTemplateSelection") }
-                .buttonStyle(.borderedProminent).frame(minHeight: 44)
+                .buttonStyle(.questifyPrimary).frame(minHeight: 44)
                 .disabled(!owner.canApply).accessibilityIdentifier("activityTemplate.apply")
             Button { owner.create(expected: stamp, available: createAvailable) } label: { Text("create", tableName: "ActivityTemplateSelection") }
                 .frame(minHeight: 44)

@@ -84,7 +84,7 @@ extension EnvironmentValues {
                 .multilineTextAlignment(.center).accessibilityIdentifier("verificationCode.phase")
             if [.review, .expired, .paused, .failed, .invalid].contains(model.phase) {
                 Button(model.phase == .review ? "verificationCode.show" : "verificationCode.retry") { run { await model.present() } }
-                    .buttonStyle(.borderedProminent).accessibilityIdentifier("verificationCode.show")
+                    .buttonStyle(.questifyPrimary).accessibilityIdentifier("verificationCode.show")
             }
         }
     }

@@ -71,7 +71,7 @@ extension EnvironmentValues {
             Button { if profit.canWithdraw, loadedSession == reader.session { showsSupport = true } } label: {
                 Text("cooperation.finance.withdraw").frame(maxWidth: .infinity)
             }
-            .buttonStyle(.borderedProminent).controlSize(.large).disabled(!profit.canWithdraw)
+            .buttonStyle(.questifyPrimary).controlSize(.large).disabled(!profit.canWithdraw)
             .accessibilityLabel(Text(LocalizedStringKey(withdrawAccessibilityKey(profit.withdrawState))))
             .accessibilityIdentifier("cooperation.finance.withdraw")
             if profit.withdrawState == .unknown { Text("cooperation.finance.withdraw.unknown").font(.footnote).foregroundStyle(.secondary) }

@@ -126,7 +126,7 @@ struct TopicXcxActionBar: View {
                     Label("topicXcx.cta.ticketWallet", systemImage: "ticket").frame(maxWidth: .infinity)
                 case .locked(let lifecycle):
                     if TopicXcxFacts.opensPricing(topic), let openPricing {
-                        Button(action: openPricing) { Text("topicXcx.cta.confirmPrice").frame(maxWidth: .infinity) }.buttonStyle(.borderedProminent)
+                        Button(action: openPricing) { Text("topicXcx.cta.confirmPrice").frame(maxWidth: .infinity) }.buttonStyle(.questifyPrimary)
                             .accessibilityIdentifier("topic.cta.pricing")
                     } else {
                         Text(LocalizedStringKey("topicXcx.cta.locked." + String(lifecycle))).frame(maxWidth: .infinity).foregroundStyle(.secondary)
@@ -136,9 +136,9 @@ struct TopicXcxActionBar: View {
                     Button(action: openSelfPlay) {
                         if let price { Text("topicXcx.cta.selfPlay \(NSDecimalNumber(decimal: price).stringValue)").frame(maxWidth: .infinity) }
                         else { Text("topicXcx.cta.selfPlayNoPrice").frame(maxWidth: .infinity) }
-                    }.buttonStyle(.borderedProminent).disabled(!topic.canOfferPurchase)
+                    }.buttonStyle(.questifyPrimary).disabled(!topic.canOfferPurchase)
                 case .signUp:
-                    Button(action: openSessions) { Text("topicXcx.cta.signUp").frame(maxWidth: .infinity) }.buttonStyle(.borderedProminent)
+                    Button(action: openSessions) { Text("topicXcx.cta.signUp").frame(maxWidth: .infinity) }.buttonStyle(.questifyPrimary)
                         .disabled(topic.merchantClosed)
                 }
             }.accessibilityIdentifier("topic.actionBar")

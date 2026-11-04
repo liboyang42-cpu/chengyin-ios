@@ -52,7 +52,7 @@ import SwiftUI
                         .labelStyle(.iconOnly).frame(minWidth: 44, minHeight: 44).accessibilityIdentifier("searchMap.filters")
                 }.padding(12).background(.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
                 Button("searchMap.search") { Task { await search() } }
-                    .buttonStyle(.borderedProminent).frame(minHeight: 44).disabled(!reader.isConfigured || !filter.canSearch)
+                    .buttonStyle(.questifyPrimary).frame(minHeight: 44).disabled(!reader.isConfigured || !filter.canSearch)
                     .accessibilityIdentifier("searchMap.submit")
                 HStack {
                     NavigationLink { SearchMapExplorerView(reader: reader, mode: .city, initialFilter: filter, onSignIn: onSignIn, destination: destination) } label: { Label("searchMap.citySearch", systemImage: "mappin.and.ellipse") }

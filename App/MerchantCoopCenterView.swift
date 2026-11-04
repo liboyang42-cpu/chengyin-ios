@@ -207,7 +207,7 @@ func mcc(_ key: String, _ locale: Locale) -> String {
             Image(systemName: "tray").font(.largeTitle).foregroundStyle(.secondary)
             Text(title).font(.headline)
             Button(mcc("merchantCoopCenter.refresh", locale)) { model.loadAll() }
-                .buttonStyle(.borderedProminent).accessibilityIdentifier("merchantCoopCenter.refresh")
+                .buttonStyle(.questifyPrimary).accessibilityIdentifier("merchantCoopCenter.refresh")
         }
         .frame(maxWidth: .infinity).padding(.vertical, 48)
         .accessibilityElement(children: .contain).accessibilityIdentifier(id)
@@ -293,7 +293,7 @@ struct MerchantCoopCenterRouteCard: View {
                     NavigationLink {
                         MerchantContentDocumentView(service: content, query: .chapters(topicID: topicID))
                     } label: { Text(mcc("merchantCoopCenter.detail", locale)) }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.questifyPrimary)
                     .accessibilityLabel(String(format: mcc("merchantCoopCenter.detail.label", locale), route.title))
                     .accessibilityIdentifier("merchantCoopCenter.route.detail." + route.id)
                 }

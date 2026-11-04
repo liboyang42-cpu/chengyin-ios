@@ -252,7 +252,7 @@ enum MerchantGameNodeCopy {
                 }
                 if station.canAccept {
                     Button { c.prepareAccept() } label: { MerchantGameNodeCopy.text("merchantGameNode.invite.accept").frame(maxWidth: .infinity) }
-                        .buttonStyle(.borderedProminent).disabled(writeBlocked).accessibilityIdentifier("gameNode.accept")
+                        .buttonStyle(.questifyPrimary).disabled(writeBlocked).accessibilityIdentifier("gameNode.accept")
                 }
             }
         }
@@ -290,7 +290,7 @@ enum MerchantGameNodeCopy {
             }
             Button { Task { await c.submitReady() } } label: {
                 HStack { if c.writeState == .submitting { ProgressView() }; MerchantGameNodeCopy.text("merchantGameNode.ready.submit") }.frame(maxWidth: .infinity)
-            }.buttonStyle(.borderedProminent).disabled(writeBlocked).accessibilityIdentifier("gameNode.ready.submit")
+            }.buttonStyle(.questifyPrimary).disabled(writeBlocked).accessibilityIdentifier("gameNode.ready.submit")
         }
     }
     private func labeled<Content: View>(_ key: String, required: Bool, @ViewBuilder content: () -> Content) -> some View {
@@ -308,7 +308,7 @@ enum MerchantGameNodeCopy {
             MerchantGameNodeCopy.text("merchantGameNode.pauseInfo.refund").font(.footnote).foregroundStyle(.secondary)
             if station.canResume {
                 Button { c.prepareResume() } label: { MerchantGameNodeCopy.text("merchantGameNode.pauseInfo.resume").frame(maxWidth: .infinity) }
-                    .buttonStyle(.borderedProminent).disabled(writeBlocked).accessibilityIdentifier("gameNode.resume")
+                    .buttonStyle(.questifyPrimary).disabled(writeBlocked).accessibilityIdentifier("gameNode.resume")
             }
         }
     }
@@ -323,7 +323,7 @@ enum MerchantGameNodeCopy {
         card("merchantGameNode.run.title", "merchantGameNode.run.sub", id: "gameNode.runCard") {
             if station.playable {
                 Button { Task { await c.showCheckin() } } label: { MerchantGameNodeCopy.text("merchantGameNode.run.checkin").frame(maxWidth: .infinity) }
-                    .buttonStyle(.borderedProminent).disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.checkin")
+                    .buttonStyle(.questifyPrimary).disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.checkin")
             }
             if station.canPause {
                 Button { c.openPause() } label: { MerchantGameNodeCopy.text("merchantGameNode.run.pause").frame(maxWidth: .infinity) }
@@ -334,7 +334,7 @@ enum MerchantGameNodeCopy {
                     Button { c.openVerify() } label: { MerchantGameNodeCopy.text("merchantGameNode.run.manualVerify").frame(maxWidth: .infinity) }
                         .buttonStyle(.bordered).disabled(writeBlocked).accessibilityIdentifier("gameNode.verify.manual")
                     Button { showsScanImport = true } label: { MerchantGameNodeCopy.text("merchantGameNode.run.scanVerify").frame(maxWidth: .infinity) }
-                        .buttonStyle(.borderedProminent).disabled(writeBlocked).accessibilityIdentifier("gameNode.verify.scan")
+                        .buttonStyle(.questifyPrimary).disabled(writeBlocked).accessibilityIdentifier("gameNode.verify.scan")
                 }
             }
         }
@@ -454,7 +454,7 @@ struct MerchantGameNodeCivilDateField: View {
             MerchantGameNodeChoices(reasons: MerchantGameNodeReason.decline, selected: c.declineDraft.reason?.code) { c.declineDraft.reason = $0 }
             Button(role: .destructive) { Task { await c.submitDecline() } } label: {
                 HStack { if c.writeState == .submitting { ProgressView() }; MerchantGameNodeCopy.text("merchantGameNode.decline.submit") }.frame(maxWidth: .infinity)
-            }.buttonStyle(.borderedProminent).disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.decline.submit")
+            }.buttonStyle(.questifyPrimary).disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.decline.submit")
         }
     }
 }
@@ -489,7 +489,7 @@ struct MerchantGameNodeCivilDateField: View {
             }
             Button(role: .destructive) { Task { await c.submitPause() } } label: {
                 HStack { if c.writeState == .submitting { ProgressView() }; MerchantGameNodeCopy.text("merchantGameNode.pause.submit") }.frame(maxWidth: .infinity)
-            }.buttonStyle(.borderedProminent).disabled(!c.pauseDraft.canSubmit || c.writeState != .idle).accessibilityIdentifier("gameNode.pause.submit")
+            }.buttonStyle(.questifyPrimary).disabled(!c.pauseDraft.canSubmit || c.writeState != .idle).accessibilityIdentifier("gameNode.pause.submit")
         }
     }
 }
@@ -513,7 +513,7 @@ struct MerchantGameNodeCivilDateField: View {
             }
             Button { Task { await c.submitVerify() } } label: {
                 HStack { if c.writeState == .submitting { ProgressView() }; MerchantGameNodeCopy.text("merchantGameNode.verify.submit") }.frame(maxWidth: .infinity)
-            }.buttonStyle(.borderedProminent).disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.verify.submit")
+            }.buttonStyle(.questifyPrimary).disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.verify.submit")
         }
     }
 }

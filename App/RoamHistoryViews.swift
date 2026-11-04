@@ -37,7 +37,7 @@ import SwiftUI
                         Button("roam.experience.live", systemImage: "figure.walk") {
                             liveEntry.activate(reader: reader, hasDestination: liveDestination != nil, presentationID: presentationID)
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.questifyPrimary)
                         .accessibilityIdentifier("roam.experience.history.live.open")
                     }
                 } else {

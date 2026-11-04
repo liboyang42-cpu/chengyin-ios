@@ -17,7 +17,7 @@ private struct NativeChannelPrimaryAction: ViewModifier {
     @Environment(\.themeDomain) private var domain
     func body(content: Content) -> some View {
         content
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.questifyPrimary)
             .controlSize(.large)
             .tint(Theme.Color.actionPrimaryBackground(in: domain))
             .foregroundStyle(Theme.Color.actionPrimaryForeground(in: domain))

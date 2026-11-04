@@ -145,7 +145,7 @@ import SwiftUI
                         .disabled(!owner.canEdit).accessibilityIdentifier("publisherIdentity.consent")
                     Button { Task { await owner.submit(currentYear: Calendar(identifier: .gregorian).component(.year, from: Date()), expected: stamp) } }
                         label: { Text("submit", tableName: "PublisherIdentityRegistration").fixedSize(horizontal: false, vertical: true).frame(minHeight: 44) }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.questifyPrimary)
                         .disabled(!owner.canEdit || !owner.consent).accessibilityIdentifier("publisherIdentity.submit")
                 }
                 if !owner.busy {

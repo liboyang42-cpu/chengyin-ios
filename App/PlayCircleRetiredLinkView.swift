@@ -10,7 +10,7 @@ import SwiftUI
             Text("playx.circleLink.subtitle")
         } actions: {
             Button("playx.circleLink.home", action: goHome)
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.questifyPrimary)
                 .accessibilityIdentifier("playx.circleLink.home")
         }
         .accessibilityIdentifier("playx.circleLink.missing")

@@ -79,7 +79,7 @@ import SwiftUI
                 Button(LocalizedStringKey(machine.phase == .running ? "playx.stopwatch.stop" : "playx.stopwatch.start")) {
                     if machine.phase == .running { machine.stop(now: ProcessInfo.processInfo.systemUptime) }
                     else { machine.begin(now: ProcessInfo.processInfo.systemUptime) }
-                }.buttonStyle(.borderedProminent).accessibilityIdentifier("playx.stopwatch.toggle")
+                }.buttonStyle(.questifyPrimary).accessibilityIdentifier("playx.stopwatch.toggle")
                 if let result = machine.result {
                     LabeledContent("playx.stopwatch.stars") { Text(verbatim: PlayTimedDisplayLocalization.count(result.stars, locale: locale)) }
                     LabeledContent("playx.stopwatch.diff") { Text(verbatim: PlayTimedDisplayLocalization.seconds(result.difference, locale: locale)) }

@@ -126,7 +126,7 @@ import SwiftUI
                     Text(LocalizedStringKey("playx.task." + PlayNodeTask.resolve(mode: snapshot.result.mode, node: node).rawValue))
                     PlayTaskStatusBadge(node: node, snapshot: snapshot)
                     Button("referenceTask.open") { selectedNode = id }
-                        .buttonStyle(.borderedProminent).accessibilityIdentifier("referenceTask.open")
+                        .buttonStyle(.questifyPrimary).accessibilityIdentifier("referenceTask.open")
                 }
             }
             if !model.unresolved, model.interactionContext != nil, let snapshot = model.snapshot,

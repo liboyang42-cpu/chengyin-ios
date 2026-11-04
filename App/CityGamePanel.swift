@@ -150,7 +150,7 @@ struct CityGamePanel: View {
             Button { Task { await model.confirm() } } label: {
                 Text("cityGame.review.confirm", tableName: "CityGame")
                     .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
-            }.buttonStyle(.borderedProminent)
+            }.buttonStyle(.questifyPrimary)
                 .disabled(!model.reviewAffordable).accessibilityIdentifier("cityGame.confirm")
             Button(role: .cancel) { model.cancelReview() } label: {
                 Text("cityGame.review.cancel", tableName: "CityGame")

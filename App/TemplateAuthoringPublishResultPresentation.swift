@@ -76,7 +76,7 @@ struct TemplateAuthoringPublishResultPreferenceKey: PreferenceKey {
             }
             Text("templatePublishResult.destination", tableName: "CreatorPublishResult").font(.footnote).foregroundStyle(.secondary)
             Button(action: close) { Text("templatePublishResult.openLibrary", tableName: "CreatorPublishResult") }
-                .buttonStyle(.borderedProminent).accessibilityIdentifier("templatePublishResult.openLibrary")
+                .buttonStyle(.questifyPrimary).accessibilityIdentifier("templatePublishResult.openLibrary")
         }.padding(24).presentationDetents([.medium]).interactiveDismissDisabled(true)
             .accessibilityIdentifier("templatePublishResult.panel")
     }

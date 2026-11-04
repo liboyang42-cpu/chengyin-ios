@@ -17,7 +17,7 @@ extension PlayKitScreen {
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
         }
-        Button("playkit.coin.flip") { prepare("FLIP_COIN") }.buttonStyle(.borderedProminent).disabled(!enabled)
+        Button("playkit.coin.flip") { prepare("FLIP_COIN") }.buttonStyle(.questifyPrimary).disabled(!enabled)
     }
     @ViewBuilder var diceFaces: some View {
         let values = (raw["pips"].array ?? []).compactMap(\.integer)
@@ -35,7 +35,7 @@ extension PlayKitScreen {
         if d20, let dc = raw["dc"].integer { LabeledContent("playkit.dice.target") { Text(verbatim: String(dc)) } }
         if d20, projection.complete, let success = raw["success"].bool { Text(success ? "playkit.result.passed" : "playkit.result.notPassed") }
         if !d20, values.count == 1, let pip = values.first, let faces = raw["faces"].array, faces.indices.contains(pip - 1), let task = faces[pip - 1].text { Text(verbatim: task) }
-        Button("playkit.dice.roll") { prepare("ROLL_DICE") }.buttonStyle(.borderedProminent).disabled(!enabled)
+        Button("playkit.dice.roll") { prepare("ROLL_DICE") }.buttonStyle(.questifyPrimary).disabled(!enabled)
     }
     @ViewBuilder var randomDeck: some View {
         if let name = raw["deckName"].text { Text(verbatim: name).font(.title2.bold()) }
@@ -51,7 +51,7 @@ extension PlayKitScreen {
             Image(systemName: "rectangle.stack").font(.system(size: 80)).frame(maxWidth: .infinity).accessibilityHidden(true)
             LabeledContent("playkit.random.remaining") { Text(verbatim: String(count - drawn.count)) }
         }
-        Button("playkit.random.draw") { prepare("DRAW") }.buttonStyle(.borderedProminent).disabled(!enabled || count <= drawn.count)
+        Button("playkit.random.draw") { prepare("DRAW") }.buttonStyle(.questifyPrimary).disabled(!enabled || count <= drawn.count)
     }
     @ViewBuilder var dailySignForm: some View {
         if let address = raw["address"].text { Text(verbatim: address).font(.headline) }

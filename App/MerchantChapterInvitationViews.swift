@@ -41,7 +41,7 @@ import SwiftUI
                             Text("merchantChapterInvitation.pending").font(.headline)
                             ForEach(MerchantChapterInvitation.impactKeys(accepted: true), id: \.self) { Text(LocalizedStringKey($0)).font(.footnote) }
                             Button("merchantChapterInvitation.accept") { prepare(invitation, accepted: true) }
-                                .buttonStyle(.borderedProminent).disabled(c.busy || c.locked || c.review != nil || c.receipt != nil)
+                                .buttonStyle(.questifyPrimary).disabled(c.busy || c.locked || c.review != nil || c.receipt != nil)
                                 .accessibilityIdentifier("merchantChapterInvitation.accept")
                             ForEach(MerchantChapterInvitation.impactKeys(accepted: false), id: \.self) { Text(LocalizedStringKey($0)).font(.footnote) }
                             Button("merchantChapterInvitation.reject", role: .destructive) { prepare(invitation, accepted: false) }

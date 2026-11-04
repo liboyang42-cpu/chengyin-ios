@@ -39,7 +39,7 @@ import UIKit
                         .accessibilityIdentifier("roam.experience.album.empty")
                     if allowsCapture {
                         NavigationLink { captureDestination } label: { Label("stampAlbum.openCamera", systemImage: "camera") }
-                            .buttonStyle(.borderedProminent).frame(minHeight: 44)
+                            .buttonStyle(.questifyPrimary).frame(minHeight: 44)
                             .accessibilityIdentifier("roam.experience.album.openCamera")
                     }
                 }
@@ -158,7 +158,7 @@ struct RoamCityStampDraftView: View {
                         LabeledContent("roam.experience.remaining", value: String(draft.remaining)).font(.caption).monospacedDigit()
                         if !draft.canReview { Label("roam.experience.captionLimit", systemImage: "exclamationmark.circle").foregroundStyle(.red) }
                         Button("roam.experience.previewDraft") { withAnimation(reduceMotion ? nil : QuestifyMotion.content) { review = true } }
-                            .buttonStyle(.borderedProminent).disabled(!draft.canReview)
+                            .buttonStyle(.questifyPrimary).disabled(!draft.canReview)
                             .accessibilityIdentifier("roam.experience.stamp.preview")
                         if review {
                             Divider()

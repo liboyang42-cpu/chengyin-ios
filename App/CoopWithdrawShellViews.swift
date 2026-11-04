@@ -25,7 +25,7 @@ import SwiftUI
                 }
                 Section {
                     Button { showsSupport = true } label: { Text("cooperation.finance.withdraw").frame(maxWidth: .infinity) }
-                        .buttonStyle(.borderedProminent).accessibilityIdentifier("cooperation.withdraw.contact")
+                        .buttonStyle(.questifyPrimary).accessibilityIdentifier("cooperation.withdraw.contact")
                 }
             } else {
                 Section { Text("cooperation.login").accessibilityIdentifier("cooperation.withdraw.login") }

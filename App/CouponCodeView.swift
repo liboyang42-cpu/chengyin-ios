@@ -82,7 +82,7 @@ extension EnvironmentValues {
             Button("couponCode.show") {
                 guard !appearance.isClosed, let presentation, model.presentation === presentation else { return }
                 review = true
-            }.buttonStyle(.borderedProminent).accessibilityIdentifier("couponCode.review")
+            }.buttonStyle(.questifyPrimary).accessibilityIdentifier("couponCode.review")
         case .ready:
             if model.canDisplay {
                 if let token = model.displayToken { CouponLocalQRImage(token: token) }

@@ -220,7 +220,7 @@ import SwiftUI
     }
     private func primary(_ title: String, disabled: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) { Text(verbatim: title).bold().frame(maxWidth: .infinity) }
-            .buttonStyle(.borderedProminent).controlSize(.large).disabled(disabled).accessibilityIdentifier("storeDayPage.cta.primary")
+            .buttonStyle(.questifyPrimary).controlSize(.large).disabled(disabled).accessibilityIdentifier("storeDayPage.cta.primary")
     }
 
     // MARK: Sheets
