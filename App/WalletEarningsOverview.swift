@@ -144,28 +144,21 @@ struct WalletEarningsTabHold: Equatable {
 @MainActor struct WalletEarningsTabBar: View {
     let tab: WalletEarningsTabHold.Tab
     let select: (WalletEarningsTabHold.Tab) -> Void
+    /// Native segmented control; selection still flows through `select` so the hold's mount rules apply.
     var body: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(spacing: 8) { buttons }
-            VStack(alignment: .leading, spacing: 8) { buttons }
-        }
-        .padding(.horizontal).padding(.vertical, 8)
-        .accessibilityIdentifier("wallet.earnings.tabs")
-    }
-    private var buttons: some View {
-        Group {
-            button(.income, Text("wallet.earnings.tab.income", tableName: "WalletEarningsOverview"))
+        Picker(selection: Binding(get: { tab }, set: { select($0) })) {
+            Text("wallet.earnings.tab.income", tableName: "WalletEarningsOverview")
                 .accessibilityIdentifier("wallet.earnings.tab.income")
-            button(.organizer, Text("wallet.earnings.tab.organizer", tableName: "WalletEarningsOverview"))
+                .tag(WalletEarningsTabHold.Tab.income)
+            Text("wallet.earnings.tab.organizer", tableName: "WalletEarningsOverview")
                 .accessibilityIdentifier("wallet.earnings.tab.organizer")
+                .tag(WalletEarningsTabHold.Tab.organizer)
+        } label: {
+            EmptyView()
         }
-    }
-    private func button(_ which: WalletEarningsTabHold.Tab, _ label: Text) -> some View {
-        Button { select(which) } label: {
-            label.frame(maxWidth: .infinity, minHeight: 44)
-        }
-        .buttonStyle(.bordered)
-        .accessibilityAddTraits(tab == which ? .isSelected : AccessibilityTraits())
+        .pickerStyle(.segmented)
+        .padding(.horizontal, Theme.Space.pageX).padding(.vertical, Theme.Space.s2)
+        .accessibilityIdentifier("wallet.earnings.tabs")
     }
 }
 
