@@ -1,0 +1,237 @@
+--- a/Core/RuntimeDependencyConfiguration.swift
++++ b/Core/RuntimeDependencyConfiguration.swift
+@@ -23,14 +23,24 @@
+     public let artworkHosts: Set<String>
+     public let spatial: PlayKitSpatialApproval
+     public let shopNPCWrites: Bool
++    /// Explicit personal inventory acceptance; nil issuance keeps the writer closed.
++    public let themeBackpackApprovalID: UUID?
++    public let themeBackpackWrites: Bool
++    /// Requires a separately verified completed-session CAS contract.
++    public let themeBackpackCompletedReceive: Bool
+     public init(market: RegionalMarket, endpoints: OperationEndpointApproval,
+                 play: Set<PlayExperienceCapability> = [], journeyReads: Bool = false,
+                 journeyChecks: Bool = false, journeyCollect: Bool = false, journeyAsks: Bool = false,
+                 publisherReads: Bool = false, nearbyLocation: Bool = false,
+                 devices: Set<PlayDeviceKind> = [], sensors: Set<PlayKitSensorKind> = [],
+                 artworkHosts: Set<String> = [], spatial: PlayKitSpatialApproval = .init(), shopNPCWrites: Bool = false,
+-                playReadApprovalID: UUID? = nil) {
++                playReadApprovalID: UUID? = nil,
++                themeBackpackApprovalID: UUID? = nil, themeBackpackWrites: Bool = false,
++                themeBackpackCompletedReceive: Bool = false) {
+         self.playReadApprovalID = playReadApprovalID
++        self.themeBackpackApprovalID = themeBackpackApprovalID
++        self.themeBackpackWrites = themeBackpackWrites
++        self.themeBackpackCompletedReceive = themeBackpackCompletedReceive
+         self.market = market; self.endpoints = endpoints; self.play = play
+         self.journeyAsks = journeyAsks
+         self.journeyReads = journeyReads; self.journeyChecks = journeyChecks; self.journeyCollect = journeyCollect
+--- a/App/AppSession.swift
++++ b/App/AppSession.swift
+@@ -2502,6 +2502,53 @@
+         if let retained = retainedPlayCircles[key] { return retained }
+         let model = PlayCircleCoordinator(topicID: id, service: api, currentSession: { [weak self] in self?.currentPlayRuntimeSession })
+         retainedPlayCircles[key] = model; return model
++    }
++    private var freshThemeBackpackConfiguration: RuntimeDependencyConfiguration? {
++        guard !committingAuthenticatedSession, let context = currentRuntimeDependencyContext,
++              let configuration = (injectedRuntimeDependencies ?? composition.sessionDependencies(context)).configuration,
++              configuration.matches(context) else { return nil }
++        return configuration
++    }
++    // Dedicated personal inventory write acceptance, never inferred from .reads.
++    func playThemeBackpackBindingIdentity(lifetime: PlayInteractionLifetime?) -> String? {
++        guard let lifetime, lifetime.isCurrent, let accepted = freshThemeBackpackConfiguration,
++              accepted.themeBackpackWrites, let issuance = accepted.themeBackpackApprovalID,
++              accepted.endpoints.paths.isSuperset(of: ["api/play/theme/state", "api/play/theme/action"]) else { return nil }
++        let acceptedPaths = Data(accepted.endpoints.paths.sorted().joined(separator: "\n").utf8).base64EncodedString()
++        return issuance.uuidString + ":" + String(compositionViewerRevision) + ":" + lifetime.identity +
++            ":" + String(accepted.themeBackpackCompletedReceive) + ":" + String(accepted.play.contains(.reads)) + ":" + acceptedPaths
++    }
++    func playThemeBackpackActions(scope: PlaySessionScope, topicID: Int?, lifetime: PlayInteractionLifetime?, onConfirmed: @escaping () async -> Void) -> PlayThemeBackpackActions? {
++        guard !committingAuthenticatedSession, let lifetime, lifetime.isCurrent,
++              let topicID, topicID > 0, scope.isValid,
++              let regional = regionalConfiguration, let api = regional.apiConfiguration,
++              let storageScope, let account, let token,
++              let role = PlayRecoveryAccountRole(rawValue: account.effectiveRole),
++              let captured = try? PlayExperienceSession(accountID: account.id, epoch: gate.currentStamp,
++                  namespace: storageScope.service, token: token, role: role.rawValue),
++              let context = currentRuntimeDependencyContext,
++              let accepted = freshThemeBackpackConfiguration,
++              accepted.themeBackpackWrites, let issuance = accepted.themeBackpackApprovalID,
++              accepted.endpoints.paths.isSuperset(of: ["api/play/theme/state", "api/play/theme/action"]) else { return nil }
++        if case .topic(let id) = scope, id != topicID { return nil }
++        let viewer = compositionViewerRevision
++        let current: () -> PlayExperienceSession? = { [weak self] in
++            guard let self, self.matchesContinuationSession(captured, viewerRevision: viewer),
++                  self.currentRuntimeDependencyContext == context, lifetime.isCurrent,
++                  let live = self.freshThemeBackpackConfiguration, live.matches(context),
++                  live.themeBackpackApprovalID == issuance, live.themeBackpackWrites,
++                  live.themeBackpackCompletedReceive == accepted.themeBackpackCompletedReceive,
++                  live.endpoints.paths == accepted.endpoints.paths else { return nil }
++            return captured
++        }
++        guard current() == captured else { return nil }
++        let recovery = try? PlayThemeBackpackRecoveryStore.make(session: captured, scope: scope,
++            topicID: topicID, regionalConfiguration: regional, storageScope: storageScope)
++        let service = PlayThemeBackpackActionService(configuration: api, transport: runtimeHTTPTransport,
++            accepted: true, completedReceiveAccepted: accepted.themeBackpackCompletedReceive, lifetime: lifetime)
++        // A failed OS storage construction stays visibly unavailable; never inject memory.
++        return PlayThemeBackpackActions(service: service, scope: scope, topicID: topicID,
++            current: current, recovery: recovery, onConfirmed: onConfirmed)
+     }
+     func playThemeAuxiliary(scope: PlaySessionScope, topicID: Int?) -> PlayThemeAuxiliaryReader? {
+         guard scope.isValid, let id = topicID, id > 0, let api = dormantPlayRuntimeService() else { return nil }
+@@ -5110,6 +5157,10 @@
+             guard let self, !self.projectConfigurationChanging, self.currentRuntimeDependencyContext == context else { return nil }
+             return (self.injectedRuntimeDependencies ?? self.composition.sessionDependencies(context)).businessConfiguration
+         }
++        compositionTransport.themeBackpackConfiguration = { [weak self] context in
++            guard let self, self.currentRuntimeDependencyContext == context else { return nil }
++            return self.freshThemeBackpackConfiguration
++        }
+         compositionTransport.playReadConfiguration = { [weak self] context in
+             guard let self, self.currentRuntimeDependencyContext == context else { return nil }
+             // Re-read the reviewed selector at the boundary: retained providers must not
+--- a/App/PlayThemeAuxiliaryAdapter.swift
++++ b/App/PlayThemeAuxiliaryAdapter.swift
+@@ -62,21 +62,23 @@
+ /// Retains one pair of coordinators per `(sessionRevision, scope, topicID)` so SwiftUI redraws
+ /// do not wipe loaded records/backpack state, while any session or topic change replaces them.
+ @MainActor final class PlayThemeAuxiliaryStore {
+-    private struct Key: Equatable { let revision: UInt64; let scope: PlaySessionScope; let topicID: Int }
++    private struct Key: Equatable { let revision: UInt64; let scope: PlaySessionScope; let topicID: Int; let bindingIdentity: String? }
+     private var key: Key?
+     private var records: PlayThemeRecordsCoordinator?
+     private var backpack: PlayThemeBackpackCoordinator?
+ 
+-    func models(revision: UInt64, scope: PlaySessionScope, topicID: Int?, provider: PlayThemeAuxiliaryProvider?)
++    func models(revision: UInt64, scope: PlaySessionScope, topicID: Int?, provider: PlayThemeAuxiliaryProvider?,
++                bindingIdentity: String? = nil, makeActions: (() -> PlayThemeBackpackActions?)? = nil)
+         -> (records: PlayThemeRecordsCoordinator?, backpack: PlayThemeBackpackCoordinator?) {
+-        guard let topicID, topicID > 0, let provider else { key = nil; records = nil; backpack = nil; return (nil, nil) }
+-        if case .topic(let scopedTopicID) = scope, scopedTopicID != topicID { key = nil; records = nil; backpack = nil; return (nil, nil) }
+-        let next = Key(revision: revision, scope: scope, topicID: topicID)
++        guard let topicID, topicID > 0, let provider else { backpack?.actions?.suspend(); key = nil; records = nil; backpack = nil; return (nil, nil) }
++        if case .topic(let scopedTopicID) = scope, scopedTopicID != topicID { backpack?.actions?.suspend(); key = nil; records = nil; backpack = nil; return (nil, nil) }
++        let next = Key(revision: revision, scope: scope, topicID: topicID, bindingIdentity: bindingIdentity)
+         if key != next {
++            backpack?.actions?.suspend()
+             key = next
+             if let reader = provider(scope, topicID) {
+                 records = PlayThemeRecordsCoordinator(topicID: topicID, reader: reader)
+-                backpack = PlayThemeBackpackCoordinator(reader: reader)
++                backpack = PlayThemeBackpackCoordinator(reader: reader, actions: makeActions?())
+             } else { records = nil; backpack = nil }
+         }
+         return (records, backpack)
+--- a/App/SessionPlayRuntimeView.swift
++++ b/App/SessionPlayRuntimeView.swift
+@@ -15,8 +15,11 @@
+             switch destination {
+             case .journey(let scope):
+                 if let model = session.playExperience(for: scope) {
++                    let backpackLifetime = model.makeInteractionLifetime()
+                     let auxiliary = auxiliaryStore.models(revision: session.sessionRevision, scope: scope, topicID: model.snapshot?.result.topicID,
+-                        provider: auxiliaryProvider ?? session.playThemeAuxiliaryProvider)
++                        provider: auxiliaryProvider ?? session.playThemeAuxiliaryProvider,
++                        bindingIdentity: session.playThemeBackpackBindingIdentity(lifetime: backpackLifetime),
++                        makeActions: { session.playThemeBackpackActions(scope: scope, topicID: model.snapshot?.result.topicID, lifetime: backpackLifetime, onConfirmed: { await model.load() }) })
+                     PlayExperienceView(model: model,
+                         deviceModel: { nodeID in session.playDevice(scope: scope, nodeID: nodeID, lifetime: model.makeInteractionLifetime()) },
+                         advancedModel: { nodeID in session.playAdvanced(scope: scope, nodeID: nodeID, topicID: model.snapshot?.result.topicID, lifetime: model.makeInteractionLifetime()) },
+--- a/App/AppCompositionRoot.swift
++++ b/App/AppCompositionRoot.swift
+@@ -350,11 +350,13 @@
+ /// require a one-use confirmed dispatch ticket. Private home keeps its separate owner grant.
+ /// All other paths stay closed.
+ /// No device/provider work or authorization is inferred from a feature grant.
+-@MainActor final class CompositionHTTPTransport: ActivityCoverHTTPTransport, PublisherIdentityRegistrationHTTPTransport, ActivityEditingHTTPTransport, CouponManagementConfirmedHTTPTransport, WorkshopPaidInstallMutationTransport, WorkshopPaidProfessionalMutationTransport, WorkshopCreatorConsentMutationTransport, WorkshopCreatorPendingMutationTransport {
++@MainActor final class CompositionHTTPTransport: PlayThemeBackpackTransport, ActivityCoverHTTPTransport, PublisherIdentityRegistrationHTTPTransport, ActivityEditingHTTPTransport, CouponManagementConfirmedHTTPTransport, WorkshopPaidInstallMutationTransport, WorkshopPaidProfessionalMutationTransport, WorkshopCreatorConsentMutationTransport, WorkshopCreatorPendingMutationTransport {
+     var merchantGamePlayerReadGrant: @MainActor (RuntimeDependencyContext) -> MerchantGamePlayerReadGrant? = { _ in nil }
+     var publisherIdentityRegistrationApproval: @MainActor (RuntimeDependencyContext) -> PublisherIdentityRegistrationGrants = { _ in .init() }
+     var activityCoverApproval: @MainActor (RuntimeDependencyContext) -> ActivityCoverApproval? = { _ in nil }
+     var activityEditingApproval: @MainActor (RuntimeDependencyContext) -> ActivityEditingGrants = { _ in .init() }
++    /// Independent personal-inventory acceptance. Nil never grants a route.
++    var themeBackpackConfiguration: @MainActor (RuntimeDependencyContext) -> RuntimeDependencyConfiguration? = { _ in nil }
+     /// Chapter invite, invite response, and offer withdraw. Each stays closed until AppSession
+     /// wires the existing approval. A true flag still cannot admit a different path or body.
+     var chapterInviteExecution: @MainActor (RuntimeDependencyContext) -> Bool = { _ in false }
+@@ -1316,6 +1318,7 @@
+         transport.profileFavoriteSelection = profileFavoriteSelection
+         transport.activityCoverApproval = { self.activityCoverApproval($0) }
+         transport.activityEditingApproval = { self.activityEditingApproval($0) }
++        transport.themeBackpackConfiguration = { self.themeBackpackConfiguration($0) }
+         transport.publisherIdentityRegistrationApproval = { self.publisherIdentityRegistrationApproval($0) }
+         transport.workshopPaidInstallBeforeForward = { if let barrier = self.workshopPaidInstallBeforeForward { await barrier() } }
+         transport.couponBeforeForward = { if let barrier = self.couponBeforeForward { await barrier() } }
+@@ -1492,6 +1495,69 @@
+         let result = try await underlying.send(request)
+         try Task.checkCancellation(); guard permitted() else { throw CancellationError() }
+         return result
++    }
++
++    /// Dedicated personal backpack exit. Generic send still rejects both theme routes.
++    /// The selector is re-read at each boundary, including on existing transport clones.
++    func sendThemeBackpackRead(_ request: URLRequest, session: PlayExperienceSession,
++                               scope: PlaySessionScope, topicID: Int) async throws -> (Data, Int) {
++        guard let deployment, deployment.regional.market == .china, let api = deployment.regional.apiConfiguration,
++              let captured = current(), captured.isSignedInContentViewer,
++              let account = captured.accountID, let role = captured.role, let token = captured.token,
++              let actual = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
++                  namespace: deployment.storageScope.service, token: token, role: role), actual == session,
++              let runtime = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
++                  namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
++        // The selector context preserves the existing default-role runtime shape;
++        // actual request ownership above separately includes the current real role.
++        let context = RuntimeDependencyContext(market: .china, baseURL: api.baseURL, role: role, session: runtime)
++        guard let issued = themeBackpackConfiguration(context), issued.matches(context),
++              issued.themeBackpackWrites, let issuance = issued.themeBackpackApprovalID,
++              issued.endpoints.paths.isSuperset(of: ["api/play/theme/state", "api/play/theme/action"]) else { throw APIError.notConfigured }
++        func permitted() -> Bool {
++            guard current() == captured, let live = themeBackpackConfiguration(context) else { return false }
++            return live.matches(context) && live.themeBackpackWrites && live.themeBackpackApprovalID == issuance &&
++                live.themeBackpackCompletedReceive == issued.themeBackpackCompletedReceive &&
++                live.endpoints.paths == issued.endpoints.paths
++        }
++        try PlayThemeBackpackReadRoute.validate(request, baseURL: api.baseURL, session: actual, scope: scope, topicID: topicID)
++        try Task.checkCancellation()
++        guard permitted() else { throw APIError.notConfigured }
++        let response = try await underlying.send(request)
++        try Task.checkCancellation()
++        guard permitted() else { throw CancellationError() }
++        return response
++    }
++
++    func sendThemeBackpackWrite(_ request: URLRequest, permit: PlayThemeBackpackDispatchPermit) async throws -> (Data, Int) {
++        guard let deployment, deployment.regional.market == .china, let api = deployment.regional.apiConfiguration,
++              let captured = current(), captured.isSignedInContentViewer,
++              let account = captured.accountID, let role = captured.role, let token = captured.token,
++              let actual = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
++                  namespace: deployment.storageScope.service, token: token, role: role), actual == permit.session,
++              let runtime = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
++                  namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
++        let context = RuntimeDependencyContext(market: .china, baseURL: api.baseURL, role: role, session: runtime)
++        guard let issued = themeBackpackConfiguration(context), issued.matches(context),
++              issued.themeBackpackWrites, let issuance = issued.themeBackpackApprovalID,
++              issued.endpoints.paths.isSuperset(of: ["api/play/theme/state", "api/play/theme/action"]),
++              !permit.requiresCompletedReceive || issued.themeBackpackCompletedReceive else { throw APIError.notConfigured }
++        func permitted() -> Bool {
++            guard current() == captured, let live = themeBackpackConfiguration(context) else { return false }
++            return live.matches(context) && live.themeBackpackWrites && live.themeBackpackApprovalID == issuance &&
++                live.themeBackpackCompletedReceive == issued.themeBackpackCompletedReceive &&
++                live.endpoints.paths == issued.endpoints.paths &&
++                (!permit.requiresCompletedReceive || live.themeBackpackCompletedReceive)
++        }
++        try permit.checkCurrent()
++        guard permitted() else { throw APIError.notConfigured }
++        try await permit.consume(request: request, baseURL: api.baseURL, session: actual)
++        try permit.checkCurrent()
++        guard permitted() else { throw APIError.notConfigured }
++        let response = try await underlying.send(request)
++        try permit.checkCurrent()
++        guard permitted() else { throw CancellationError() }
++        return response
+     }
+ 
+     func sendActivityEditing(_ request: URLRequest, activityID: Int, session: PublishingSession,
