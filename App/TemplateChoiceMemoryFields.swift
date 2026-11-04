@@ -55,14 +55,12 @@ import Combine
     var body: some View {
         Section("templateMemo.title") {
             Toggle("templateMemo.remember", isOn: editor.enabledInput()).disabled(!editor.canChange).accessibilityIdentifier("creator.memo.toggle")
-            Text("templateMemo.scope").font(.caption).foregroundStyle(.secondary)
             if editor.needsReopen { Text("templateMemo.reopen").font(.caption) }
             else {
                 if !editor.isEnabled && editor.otherEffectCount >= 16 { Text("templateMemo.capacity").font(.caption) }
                 if editor.tags.isEmpty { Text("templateMemo.off").font(.caption) }
                 else {
                     ForEach(Array(editor.tags.enumerated()), id: \.offset) { _, tag in Text(verbatim: tag).font(.caption.monospaced()).textSelection(.enabled) }
-                    Text("templateMemo.removeScope").font(.caption)
                 }
                 Text("templateMemo.otherEffects \(editor.otherEffectCount)").font(.caption).foregroundStyle(.secondary)
             }

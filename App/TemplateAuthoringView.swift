@@ -305,7 +305,6 @@ import Combine
                 TemplateAuthoringRuleFields(model: model)
                 TemplateAuthoringField("imgUrl", text: model.optional(\.imgUrl))
                 TemplateBasicFieldClearButton(model: model, field: .cover)
-                Text("templateAuthor.mediaHint").font(.caption).foregroundStyle(.secondary)
                 Toggle("templateAuthor.sync", isOn: .init(get: { model.draft.isSync == 1 }, set: { model.draft.isSync = $0 ? 1 : 0 }))
             }
             Section("templateAuthor.finish") {
@@ -380,7 +379,6 @@ struct TemplateAuthoringReviewView: View {
                         Text(LocalizedStringKey(key)).accessibilityIdentifier("creatorComposition.review." + key)
                     }
                     if draft.advanced.hasRootAuthoringConfiguration { Text("creatorRoot.rules") }
-                    Text("creatorComposition.presentationScope").font(.caption).foregroundStyle(.secondary)
                 }
             }
             if canSimulate {

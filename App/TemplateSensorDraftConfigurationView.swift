@@ -21,7 +21,6 @@ import SwiftUI
     private var value: TemplateSensorDraft { model.draft.sensorDraft ?? .init() }
     var body: some View {
         if model.canEdit, model.draft.id == nil, model.draft.validationMethod.rawValue == 7 {
-            Text("sensorDraft.scope").font(.caption).foregroundStyle(.secondary)
             if value.canEdit {
                 Picker("sensorDraft.type", selection: Binding<String>(get: { value.selectedType ?? "" }, set: {
                     guard let kind = TemplateSensorDraft.Kind(rawValue: $0) else { return }

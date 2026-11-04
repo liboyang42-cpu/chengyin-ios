@@ -32,7 +32,6 @@ import Combine
                 }
                 Section("creator.review") {
                     NavigationLink("creator.rehearse") { TemplateCreatorRehearsalView(draft: model.draft.advanced, family: family) }.disabled(!issues.isEmpty)
-                    Text("creator.localOnly").font(.footnote)
                 }
                 if !issues.isEmpty {
                     Section("templateAuthor.validationTitle") {

@@ -24,7 +24,6 @@ import SwiftUI
             if editable {
                 Text("templateAuthor.preference.editorTitle").font(.headline)
                 Text("templateAuthor.localConfigurationOnly").foregroundStyle(.secondary)
-                Text("templateAuthor.preference.instructions").font(.caption)
                 TextEditor(text: .init(get: { raw }, set: { value in
                     guard editable else { return }
                     invalidate()
@@ -56,7 +55,6 @@ import SwiftUI
                     if report.status != .valid { Text(verbatim: report.path).font(.caption) }
                     if report.canPreview {
                         Text("templateAuthor.preference.preview").font(.headline).accessibilityIdentifier("templateAuthor.preference.preview")
-                        Text("templateAuthor.preference.previewScope").font(.caption)
                         ForEach(Array(report.fields.enumerated()), id: \.offset) { _, field in
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(verbatim: field.path).font(.caption).foregroundStyle(.secondary)

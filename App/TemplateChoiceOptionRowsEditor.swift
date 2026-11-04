@@ -79,7 +79,6 @@ import SwiftUI
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             LabeledContent("templateChoiceRows.count", value: "\(editor.letters.count) / 4")
-            Text("templateAuthor.optionMedia.scope").font(.caption).foregroundStyle(.secondary)
             if !model.draft.choiceOptionMedia.isSupported {
                 Text("templateAuthor.optionMedia.unsupported").accessibilityIdentifier("templateAuthor.optionMedia.unsupported")
             }

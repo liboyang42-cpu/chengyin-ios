@@ -39,7 +39,6 @@ import SwiftUI
     var body: some View {
         Group {
             Text("templateAuthor.optionMedia.title").font(.headline)
-            Text("templateAuthor.optionMedia.scope").font(.caption).foregroundStyle(.secondary)
             if !configuration.isSupported {
                 Text("templateAuthor.optionMedia.unsupported").accessibilityIdentifier("templateAuthor.optionMedia.unsupported")
             }
@@ -115,7 +114,6 @@ import SwiftUI
         Section("templateAuthor.reward") {
             Toggle("templateAuthor.moduleEnabled", isOn: rewards.moduleEnabled())
             if model.draft.rewardEnabled {
-                Text("templateRewardKinds.clearNotice").font(.caption).foregroundStyle(.secondary)
                 Toggle("templateRewardKinds.coupon", isOn: rewards.toggle(.coupon))
                     .accessibilityIdentifier("templateRewardKinds.coupon")
                 if rewards.isEnabled(.coupon) {
@@ -158,7 +156,6 @@ import SwiftUI
             Toggle("templateAuthor.moduleEnabled", isOn: $model.draft.storyEnabled)
             if model.draft.storyEnabled {
                 if model.draft.storyTimelineEdited == true {
-                    Text("templateStory.derivedSummary").font(.caption).foregroundStyle(.secondary)
                     if let summary = try? model.draft.preparedStoryText() { Text(verbatim: summary).accessibilityIdentifier("templateStory.summary") }
                     if let issue = model.draft.storyProjectionIssue { Text(LocalizedStringKey(issue)).foregroundStyle(.red) }
                 } else { TemplateAuthoringField("storyText", text: model.optional(\.storyText), multiline: true) }
@@ -194,7 +191,6 @@ import SwiftUI
     var body: some View {
         Form {
             Section {
-                Text("templateStory.scope").font(.caption).foregroundStyle(.secondary)
                 if let issue = editor.visibleIssueKey { Text(LocalizedStringKey(issue)).foregroundStyle(.red).accessibilityIdentifier("templateStory.issue") }
             }
             ForEach(Array(editor.visibleBeats.enumerated()), id: \.element.id) { index, beat in
@@ -248,8 +244,6 @@ import SwiftUI
                         }
                     }.accessibilityIdentifier("templateAuthor.game." + game.rawValue)
                 }
-                Text("creatorComposition.coexist").font(.caption).foregroundStyle(.secondary)
-                Text("templateAuthor.advancedScope").font(.caption).foregroundStyle(.secondary)
             }
             Section("playkitAuthor.presentation") {
                 Picker("playkitAuthor.presentation", selection: Binding(get: { model.draft.advanced.explicitPresentation }, set: { model.draft.advanced.setPresentation($0) })) {
@@ -258,7 +252,6 @@ import SwiftUI
                     Text("playkitAuthor.presentation.focused").tag("fullscreen")
                 }.accessibilityIdentifier("creatorComposition.presentation")
                 if model.draft.advanced.presentationRequiresFullscreen { Text("playkitAuthor.presentation.focusedRequired").font(.footnote) }
-                Text("creatorComposition.presentationScope").font(.caption).foregroundStyle(.secondary)
             }
             Section("creatorRoot.rules") {
                 NavigationLink("creatorRoot.rules") { TemplateRootAuthoringView(model: model) }
@@ -269,7 +262,6 @@ import SwiftUI
                         HStack { Text(LocalizedStringKey(family.labelKey)); Spacer(); if model.draft.advanced.enabled(family.rawValue) { Image(systemName: "checkmark.circle.fill") } }
                     }
                 }
-                Text("creator.coexist").font(.caption).foregroundStyle(.secondary)
             }
             Section("templateAuthor.timer") {
                 Toggle("templateAuthor.moduleEnabled", isOn: .init(get: { model.draft.advanced.enabled("timer") }, set: { model.draft.advanced.set("timer", "enabled", .bool($0)) }))

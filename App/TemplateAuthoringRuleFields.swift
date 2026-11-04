@@ -9,7 +9,6 @@ import SwiftUI
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("templateAuthor.field.ruleInstructions").font(.subheadline)
-            Text("templateRules.hint").font(.caption).foregroundStyle(.secondary)
             if !model.ruleSteps.isEditable {
                 Text("templateRules.historical").font(.caption).foregroundStyle(.secondary)
                     .accessibilityIdentifier("templateRules.historical")

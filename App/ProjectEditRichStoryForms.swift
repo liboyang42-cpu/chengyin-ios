@@ -51,7 +51,6 @@ import SwiftUI
                 Section("projectEdit.rich.location") {
                     Text(verbatim: nodes.first { $0.id == block.nodeID }?.name ?? "")
                     Toggle("projectEdit.rich.locationRequired", isOn: Binding(get: { block.sourceFields?["locationRequired"] != .bool(false) }, set: { block.setField("locationRequired", .bool($0)) }))
-                    Text("projectEdit.rich.storyGameHint").font(.caption).foregroundStyle(.secondary)
                 }
             case .image, .audio:
                 Section { ProjectEditReferenceField(title: LocalizedStringKey(block.kind == .image ? "projectEdit.imageReference" : "projectEdit.audioReference"), value: $block.url, identifier: "projectEdit.rich.media") }
@@ -81,7 +80,6 @@ import SwiftUI
                     }
                     Button("projectEdit.rich.addImage") { block.appendDreamImage() }.disabled(block.dreamImages.count >= 6)
                         .accessibilityIdentifier("projectEdit.rich.addImage")
-                    Text("projectEdit.rich.albumHint").font(.caption).foregroundStyle(.secondary)
                 }
             case .mood:
                 Section {
@@ -93,7 +91,6 @@ import SwiftUI
                 Section {
                     ProjectThoughtReferencePicker(model: model, block: $block, chapterID: chapterID)
                     TextField("projectEdit.rich.thoughtKey", text: text("thoughtKey")).textInputAutocapitalization(.never).autocorrectionDisabled()
-                    Text("projectEdit.rich.thoughtHint").font(.caption).foregroundStyle(.secondary)
                 }
             case .odd:
                 Section {
@@ -136,7 +133,6 @@ import SwiftUI
                 }
                 Text(LocalizedStringKey(beat.afterNode ? "projectEdit.rich.afterNodeHint" : "projectEdit.rich.beforeNodeHint"))
                     .font(.caption).foregroundStyle(.secondary)
-                Text("projectEdit.rich.narrativeHint").font(.caption).foregroundStyle(.secondary)
             }
         }
     }
@@ -177,11 +173,9 @@ import SwiftUI
                 Text(LocalizedStringKey(plain || ending ? "projectEdit.rich.tagThoughtHint" : "projectEdit.rich.tagHint")).font(.caption).foregroundStyle(.secondary)
             } else if op == "NODE_COMPLETED" {
                 TextField("projectEdit.rich.savedNodeID", text: text("nodeId", integer: true)).keyboardType(.numberPad)
-                Text("projectEdit.rich.savedNodeHint").font(.caption).foregroundStyle(.secondary)
             } else {
                 TextField("projectEdit.rich.stateVariable", text: text("var")).textInputAutocapitalization(.never).autocorrectionDisabled()
                 TextField("projectEdit.rich.stateValue", text: text("value", integer: true)).keyboardType(.numbersAndPunctuation)
-                Text("projectEdit.rich.stateHint").font(.caption).foregroundStyle(.secondary)
             }
         }
     }
@@ -218,7 +212,6 @@ import SwiftUI
                     Button("projectEdit.rich.addCondition") { setConditions(conditions + [.object(["op": .string("HAS_TAG"), "value": .string("")])]) }.disabled(conditions.count >= 16)
                 }
             }
-            Text("projectEdit.rich.chapterRoleHint").font(.caption).foregroundStyle(.secondary)
         }
     }
     private func setConditions(_ values: [ProjectEditJSON]) { var row = ending ?? [:]; row["when"] = .array(values); chapter.preserved["ending"] = .object(row) }

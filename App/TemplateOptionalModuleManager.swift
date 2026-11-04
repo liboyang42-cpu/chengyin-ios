@@ -102,7 +102,6 @@ import Combine
             Section {
                 Button("templateAuthor.saveLocal", action: editor.saveAction()).disabled(!editor.canEdit || !model.draft.canSave)
                     .accessibilityIdentifier("templateModules.saveLocal")
-                Text("templateModules.savedScope").font(.caption)
             }
         }.navigationTitle("templateModules.title")
             .sheet(item: Binding(get: { editor.currentReview }, set: { _ in editor.dismiss(presented) })) { original in

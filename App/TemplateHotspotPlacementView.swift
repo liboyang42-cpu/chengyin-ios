@@ -149,7 +149,6 @@ import Combine
                 }
                 Button("templateHotspots.add", systemImage: "plus", action: editor.addAction()).disabled(!editor.canAdd)
                     .accessibilityIdentifier("creator.hotspots.add")
-                Text("templateHotspots.countBoundary").font(.caption).foregroundStyle(.secondary)
             }
             if !editor.issues.isEmpty {
                 Section("templateAuthor.validationTitle") {

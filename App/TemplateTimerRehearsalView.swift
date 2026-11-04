@@ -124,7 +124,6 @@ typealias TemplateTimerCancellation = @MainActor () -> Void
         Form {
             Section {
                 Text("templateTimer.localOnly").font(.callout)
-                Text("templateTimer.background").font(.footnote).foregroundStyle(.secondary)
                 if controller.mode == .sourceExample { Text("templateTimer.exampleOnly").font(.footnote) }
             }
             if let state = controller.visibleState {

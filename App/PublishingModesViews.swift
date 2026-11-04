@@ -171,7 +171,6 @@ import Combine
                     if let place = draft.place { Text(place.name); Text(place.address).font(.caption) }
                     TextField("publishModes.start", text: $draft.start).accessibilityIdentifier("publishModes.activity.start")
                     TextField("publishModes.end", text: $draft.end)
-                    Text("publishModes.dateFormat").font(.caption)
                     Button {
                         localClear.invalidate()
                         timeRange.open(account: account, draftID: draftID, draft: draft, now: Date(), timeZoneID: TimeZone.autoupdatingCurrent.identifier)

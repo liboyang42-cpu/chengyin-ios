@@ -214,7 +214,6 @@ import SwiftUI
                             var block = ProjectEditBlock(kind: .text); block.selectBeat(.outcome); block.setField("field", .string("line")); block.nodeID = node.id
                             var c = chapter.wrappedValue; c.blocks?.append(block); chapter.wrappedValue = c
                         }.disabled(blocks.count >= 200 || chapter.wrappedValue.nodes.isEmpty)
-                        Text("projectEdit.storyFlowHint").font(.caption).foregroundStyle(.secondary)
                     }.id("project-issue-anchor-storyFlow")
                 }
                 if handlesPendingRemoval {
@@ -433,7 +432,6 @@ import SwiftUI
                 TextField("projectEdit.address", text: $node.address).accessibilityIdentifier("projectEdit.address")
                 TextField("projectEdit.longitude", text: $node.longitude).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("projectEdit.longitude").id("project-issue-anchor-coordinates")
                 TextField("projectEdit.latitude", text: $node.latitude).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("projectEdit.latitude")
-                Text("projectEdit.coordinatesHint").font(.caption).foregroundStyle(.secondary)
                 Stepper {
                     LabeledContent("projectEdit.nodeMinutes", value: String(node.nodeTime))
                 } onIncrement: {
@@ -468,7 +466,6 @@ import SwiftUI
             Section("projectEdit.ticketDetails") {
                 TextField("projectEdit.ticketName", text: ticket.name).accessibilityIdentifier("projectEdit.ticketName").id("project-issue-anchor-ticketName")
                 TextField("projectEdit.ticketPrice", text: ticket.price).keyboardType(.decimalPad).accessibilityIdentifier("projectEdit.ticketPrice").id("project-issue-anchor-price")
-                Text("projectEdit.priceHint").font(.caption).foregroundStyle(.secondary)
                 TextField("projectEdit.totalStock", text: ticket.totalStock).keyboardType(.numberPad).accessibilityIdentifier("projectEdit.totalStock").id("project-issue-anchor-stock")
                 TextField("projectEdit.teamSize", text: ticket.teamSize).keyboardType(.numberPad).id("project-issue-anchor-team")
                 TextField("projectEdit.description", text: ticket.description, axis: .vertical).lineLimit(3...8)
@@ -478,7 +475,6 @@ import SwiftUI
                     .disabled(!ticket.wrappedValue.canEditSaleTime(end: false))
                 ProjectEditDateField(title: "projectEdit.saleEnd", value: ticket.saleEndTime, identifier: "projectEdit.saleEnd").dateEditing(.init(model: model, field: .saleEnd(ticketID)))
                     .disabled(!ticket.wrappedValue.canEditSaleTime(end: true))
-                Text("projectEdit.saleStoredOnly").font(.caption).foregroundStyle(.secondary)
                 if !ticket.wrappedValue.canEditSaleTime(end: false) || !ticket.wrappedValue.canEditSaleTime(end: true) {
                     Text("projectEdit.saleLegacy").font(.caption).foregroundStyle(.secondary)
                 }
@@ -488,7 +484,6 @@ import SwiftUI
                     Toggle("projectEdit.syncThemeDates", isOn: model.ticketDateSync(ticketID))
                         .disabled(!ticket.wrappedValue.canEditThemeDateSync)
                         .accessibilityIdentifier("projectEdit.syncThemeDates")
-                    Text("projectEdit.syncThemeDatesHint").font(.caption).foregroundStyle(.secondary)
                     if !ticket.wrappedValue.canEditThemeDateSync { Text("projectEdit.syncThemeDatesLegacy").font(.caption).foregroundStyle(.secondary) }
                 }
                 if model.draft.product == .freeExplore && ticket.wrappedValue.syncsWithThemeDates {
@@ -578,7 +573,6 @@ struct ProjectEditReviewView: View {
                         let sale = (try? ticket.saleTimePayloads()) ?? [:]
                         row("projectEdit.saleStart", sale["saleStartTime"]?.text ?? ticket.saleStartTime)
                         row("projectEdit.saleEnd", sale["saleEndTime"]?.text ?? ticket.saleEndTime)
-                        Text("projectEdit.saleStoredOnly").font(.caption).foregroundStyle(.secondary)
                         if !ticket.canEditSaleTime(end: false) || !ticket.canEditSaleTime(end: true) { Text("projectEdit.saleLegacy") }
 
                     }

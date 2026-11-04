@@ -332,7 +332,6 @@ import SwiftUI
                         ProjectRemoteVersionRow(revision: model.draft.baseRevision)
                         Text(LocalizedStringKey(model.draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore"))
                             .accessibilityIdentifier("projectRemote.mode")
-                        Text("projectRemote.freshSource").font(.caption)
                     }
                 }
                 ProjectSubmissionEvidenceSection(model: model)
@@ -626,7 +625,6 @@ struct ProjectEditReferenceField: View {
         VStack(alignment: .leading, spacing: 4) {
             TextField(title, text: $value).textInputAutocapitalization(.never).autocorrectionDisabled()
                 .accessibilityIdentifier(identifier)
-            Text("projectEdit.dateFormat").font(.caption).foregroundStyle(.secondary)
             if let dateContext { ProjectEditDatePickerEntry(context: dateContext).id(dateContext.id) }
         }
     }

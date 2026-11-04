@@ -93,7 +93,6 @@ import Combine
                 TextField("creator.field.hint", text: editor.textInput(.hint), axis: .vertical).accessibilityIdentifier("templatePrediction.hint")
             }.disabled(!editor.canEdit)
             Section("templatePrediction.options") {
-                Text("templatePrediction.keysNotice").font(.caption)
                 ForEach(editor.rows) { row in
                     VStack(alignment: .leading) {
                         TextField("creator.field.label", text: editor.labelInput(row.id), axis: .vertical).accessibilityIdentifier("templatePrediction.option.\(row.id).label")
@@ -120,7 +119,6 @@ import Combine
                     LabeledContent("creator.field.closeAtHour", value: hour(editor.timing(.closeAtHour)))
                     LabeledContent("creator.field.revealDays") { dayLabel(editor.timing(.revealDays)) }
                     LabeledContent("creator.field.revealHour", value: hour(editor.timing(.revealHour)))
-                    Text("templatePrediction.relative").font(.caption)
                 }
             }
             if !editor.issues.isEmpty {

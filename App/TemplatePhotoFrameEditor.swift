@@ -107,7 +107,6 @@ import Combine
             Section("creator.field.frameUrl") {
                 TextField("creator.field.frameUrl", text: editor.referenceInput(), axis: .vertical).textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
                     .accessibilityIdentifier("creator.frame.reference")
-                Text("templateFrame.addressHint").font(.caption)
                 Button("templateFrame.clear", role: .destructive, action: editor.clearAction()).disabled(!editor.canClear).accessibilityIdentifier("creator.frame.clear")
             }.disabled(!editor.canEdit)
             if editor.isSupported && !editor.reference.isEmpty {
@@ -139,7 +138,6 @@ import Combine
                         image.resizable().scaledToFit().opacity(editor.opacity / 100)
                     }.frame(height: 240).clipped().onAppear { editor.imageReady(request) }
                         .accessibilityLabel("templateFrame.preview").accessibilityIdentifier("creator.frame.canvas")
-                    Text("templateFrame.backgroundHint").font(.caption)
                 }
             } else if phase.error != nil { Text("templateFrame.loadFailed").onAppear { editor.imageFailed(request) } }
             else { ProgressView().accessibilityLabel("templateFrame.loading") }

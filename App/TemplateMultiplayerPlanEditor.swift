@@ -110,7 +110,6 @@ import Combine
             Section("templateTeam.order") {
                 TextEditor(text: editor.orderInput()).frame(minHeight: 92).textInputAutocapitalization(.never).autocorrectionDisabled()
                     .accessibilityLabel("templateTeam.order").accessibilityIdentifier("creator.team.order")
-                Text("templateTeam.orderHint").font(.caption)
             }.disabled(!editor.canEdit)
             Section("templateTeam.preview") {
                 if editor.turns.isEmpty { Text("templateTeam.emptyOrder").font(.caption) }

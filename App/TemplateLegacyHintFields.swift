@@ -45,7 +45,6 @@ import SwiftUI
         if model.draft.legacyHintControlsVisible {
             Toggle("templateLegacyHints.enabled", isOn: model.legacyHintToggle())
                 .disabled(!model.canEdit).accessibilityIdentifier("templateLegacyHints.enabled")
-            Text("templateLegacyHints.clearNotice").font(.caption).foregroundStyle(.secondary)
             if model.draft.legacyHintsAreEnabled {
                 ForEach(TemplateLegacyHintField.allCases) { field in
                     TemplateAuthoringField(field.rawValue, text: model.legacyHint(field), multiline: true).disabled(!model.canEdit)

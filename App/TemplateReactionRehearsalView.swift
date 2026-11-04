@@ -117,7 +117,6 @@ import Combine
         Form {
             Section {
                 Text("templateReaction.localOnly").font(.callout)
-                Text("templateReaction.background").font(.footnote).foregroundStyle(.secondary)
                 if controller.mode == .sourceExample { Text("templateReaction.exampleOnly").font(.footnote) }
             }
             if let state = controller.visibleState {

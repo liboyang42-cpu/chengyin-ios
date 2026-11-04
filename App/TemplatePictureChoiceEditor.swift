@@ -91,7 +91,6 @@ import Combine
                     TextField("creator.field.imageUrl", text: editor.text(row.id, field: .imageURL), axis: .vertical)
                         .textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
                         .accessibilityIdentifier("creator.pictures.imageURL.\(index)")
-                    Text("templatePictures.addressHint").font(.caption).foregroundStyle(.secondary)
                     Button(action: editor.chooseAction(row.id)) {
                         Label(LocalizedStringKey(row.isCorrect ? "templatePictures.selected" : "templatePictures.select"), systemImage: row.isCorrect ? "largecircle.fill.circle" : "circle")
                     }.accessibilityAddTraits(row.isCorrect ? [.isSelected] : [])
