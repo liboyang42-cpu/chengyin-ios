@@ -1,0 +1,29 @@
+{
+  "devices" : {
+    "com.apple.CoreSimulator.SimRuntime.iOS-27-0" : [
+      {
+        "dataPath" : "\/Users\/fanning\/Library\/Developer\/CoreSimulator\/Devices\/25316F87-058C-46CE-8825-617906638207\/data",
+        "dataPathSize" : 10271920128,
+        "logPath" : "\/Users\/fanning\/Library\/Logs\/CoreSimulator\/25316F87-058C-46CE-8825-617906638207",
+        "udid" : "25316F87-058C-46CE-8825-617906638207",
+        "lastUsedAt" : "2026-11-03T18:18:50Z",
+        "isAvailable" : true,
+        "logPathSize" : 647168,
+        "deviceTypeIdentifier" : "com.apple.CoreSimulator.SimDeviceType.iPhone-17",
+        "state" : "Booted",
+        "name" : "Questify-iPhone17"
+      },
+      {
+        "dataPath" : "\/Users\/fanning\/Library\/Developer\/CoreSimulator\/Devices\/2337B386-AC5F-4417-B8B8-012A8DB888BD\/data",
+        "logPath" : "\/Users\/fanning\/Library\/Logs\/CoreSimulator\/2337B386-AC5F-4417-B8B8-012A8DB888BD",
+        "udid" : "2337B386-AC5F-4417-B8B8-012A8DB888BD",
+        "lastUsedAt" : "2026-11-04T04:56:33Z",
+        "isAvailable" : true,
+        "logPathSize" : 401408,
+        "deviceTypeIdentifier" : "com.apple.CoreSimulator.SimDeviceType.iPhone-17",
+        "state" : "Booted",
+        "name" : "Questify-iPhone17-Lane2"
+      }
+    ]
+  }
+}

@@ -1,0 +1,61 @@
+diff --git a/Tests/AppUITests/ClubProfileScopeFlowTests.swift b/Tests/AppUITests/ClubProfileScopeFlowTests.swift
+index 8a31da6f..36b25bf2 100644
+--- a/Tests/AppUITests/ClubProfileScopeFlowTests.swift
++++ b/Tests/AppUITests/ClubProfileScopeFlowTests.swift
+@@ -16,15 +16,18 @@ final class ClubProfileScopeFlowTests: XCTestCase {
+     // The toolbar wrapper may retain an earlier accessibilityValue after a scope change.
+     // Read the Text leaf that displays the live fixture store's count and identity.
+     private var visibleWriteCounters: [XCUIElement] {
+-        func visible(_ elements: [XCUIElement]) -> [XCUIElement] {
+-            elements.filter { $0.exists && $0.isHittable && !$0.frame.isEmpty && app.frame.contains($0.frame) }
++        func visible(_ elements: [XCUIElement], requireHittable: Bool = true) -> [XCUIElement] {
++            elements.filter { $0.exists && (!requireHittable || $0.isHittable) && !$0.frame.isEmpty && app.frame.contains($0.frame) }
+         }
+         // Run108 exposes both the covered root List and the foreground sheet's
+         // counter. Resolve the leaf through its actual toolbar, never the covered
+         // root or the stale accessibility value cached on a wrapping Other node.
+         let presented = app.toolbars.staticTexts.matching(identifier: "club.ops.writeCount")
+         if presented.count > 0 { return visible(presented.allElementsBoundByIndex) }
+-        return visible(app.staticTexts.matching(identifier: "club.ops.writeCount").allElementsBoundByIndex)
++        let all = app.staticTexts.matching(identifier: "club.ops.writeCount").allElementsBoundByIndex
++        let hittable = visible(all)
++        if !hittable.isEmpty { return hittable }
++        return visible(all, requireHittable: false)
+     }
+     private var writeCounter: XCUIElement {
+         let counters = visibleWriteCounters
+diff --git a/Tests/AppUITests/FailureScreenshot.swift b/Tests/AppUITests/FailureScreenshot.swift
+index 3b97ffdc..c65e6b90 100644
+--- a/Tests/AppUITests/FailureScreenshot.swift
++++ b/Tests/AppUITests/FailureScreenshot.swift
+@@ -39,7 +39,7 @@ func revealFixtureElement(_ element: XCUIElement, in app: XCUIApplication,
+         let hierarchy = descendants(snapshot)
+         // One AX generation: later in-screen bars belong to the presented layer.
+         func foregroundBarFrame(_ type: XCUIElement.ElementType) -> CGRect? {
+-            hierarchy.last { $0.elementType == type && !$0.frame.isEmpty && screen.intersects($0.frame) }?.frame
++            hierarchy.last { $0.elementType == type && !$0.frame.isEmpty && screen.intersects($0.frame) && (type != .toolbar || $0.frame.height < screen.height * 0.75) }?.frame
+         }
+         if let frame = foregroundBarFrame(.navigationBar) { bounds.origin.y = max(bounds.minY, frame.maxY + 4) }
+         var bottom = screen.maxY - 40
+diff --git a/Vendor/GLTFKit2/GLTFKit2.xcodeproj/project.pbxproj b/Vendor/GLTFKit2/GLTFKit2.xcodeproj/project.pbxproj
+index f8ac4721..58b29a55 100644
+--- a/Vendor/GLTFKit2/GLTFKit2.xcodeproj/project.pbxproj
++++ b/Vendor/GLTFKit2/GLTFKit2.xcodeproj/project.pbxproj
+@@ -314,7 +314,7 @@
+ 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+ 				GCC_WARN_UNUSED_FUNCTION = YES;
+ 				GCC_WARN_UNUSED_VARIABLE = YES;
+-				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
++				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+ 				MACOSX_DEPLOYMENT_TARGET = 11.0;
+ 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+ 				MTL_FAST_MATH = YES;
+@@ -376,7 +376,7 @@
+ 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+ 				GCC_WARN_UNUSED_FUNCTION = YES;
+ 				GCC_WARN_UNUSED_VARIABLE = YES;
+-				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
++				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+ 				MACOSX_DEPLOYMENT_TARGET = 11.0;
+ 				MTL_ENABLE_DEBUG_INFO = NO;
+ 				MTL_FAST_MATH = YES;

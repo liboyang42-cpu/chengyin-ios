@@ -1,0 +1,1543 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -xctestrun <RUNNER_TEMP>/pilot-derived-data/Build/Products/Questify_iphonesimulator27.1-arm64.xctestrun -destination "platform=iOS Simulator,id=25316F87-058C-46CE-8825-617906638207" -destination-timeout 60 -resultBundlePath <RUNNER_TEMP>/current-ui-pilot/pilot.xcresult -parallel-testing-enabled NO -maximum-concurrent-test-simulator-destinations 1 -test-timeouts-enabled YES -default-test-execution-time-allowance 180 -maximum-test-execution-time-allowance 180 "-only-testing:QuestifyUITests/TeamFlowTests/testCreatePrivateTeamReviewCancelPreservesForm" "-only-testing:QuestifyUITests/MerchantRegistrationAvailabilityFlowTests/testCancelAndRestorePreserveOriginalUnrecognizedSource" "-only-testing:QuestifyUITests/ClubProfileScopeFlowTests/testCaptureCL02TypeChoiceSheetWithoutApplying" "-only-testing:QuestifyUITests/ClubProfileScopeFlowTests/testCaptureCL02DirectionsSheetWithoutApplying" "-only-testing:QuestifyUITests/ClubProfileScopeFlowTests/testCaptureCL02ProfileReviewWithoutSubmitting" "-only-testing:QuestifyUITests/ClubGovernanceFlowTests/testCaptureCL02RolePickerWithoutPreparing" test-without-building
+
+Writing result bundle at path:
+	<RUNNER_TEMP>/current-ui-pilot/pilot.xcresult
+
+2026-11-04 12:59:14.417479+0800 QuestifyUITests-Runner[15963:101198118] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-11-04 12:59:19.048.
+Test Suite 'QuestifyUITests.xctest' started at 2026-11-04 12:59:19.049.
+Test Suite 'ClubGovernanceFlowTests' started at 2026-11-04 12:59:19.049.
+Test Case '-[QuestifyUITests.ClubGovernanceFlowTests testCaptureCL02RolePickerWithoutPreparing]' started.
+    t =     0.01s Start Test at 2026-11-04 12:59:19.054
+    t =     0.07s Set Up
+    t =     0.07s Open invalid.example.questify.ios
+    t =     0.07s     Launch invalid.example.questify.ios
+objc[15963]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.5RJUGx/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x102608398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.5RJUGx/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10630c310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.24s         Setting up automation session
+    t =     3.65s         Wait for invalid.example.questify.ios to idle
+    t =     5.91s Waiting 5.0s for "club.gov.synthetic" StaticText to exist
+    t =     6.95s     Checking `Expect predicate `existsNoRetry == 1` for object "club.gov.synthetic" StaticText`
+    t =     6.95s         Checking existence of `"club.gov.synthetic" StaticText`
+    t =     7.08s Waiting 5.0s for "club.gov.fixture.root" CollectionView to exist
+    t =     8.11s     Checking `Expect predicate `existsNoRetry == 1` for object "club.gov.fixture.root" CollectionView`
+    t =     8.12s         Checking existence of `"club.gov.fixture.root" CollectionView`
+    t =     8.17s Find the Target Application 'invalid.example.questify.ios'
+    t =     8.22s Checking existence of `"club.gov.fixture.roles" Button`
+    t =     8.25s Find the "club.gov.fixture.roles" Button
+    t =     8.28s Find the Target Application 'invalid.example.questify.ios'
+    t =     8.40s Added attachment named 'Club fixture entry unreachable – synthetic fixture'
+    t =     8.40s Requesting snapshot of accessibility hierarchy for app with pid 16429
+    t =     8.57s Requesting snapshot of accessibility hierarchy for app with pid 16429
+<PILOT_WORKTREE>/Tests/AppUITests/ClubGovernanceFlowTests.swift:22: error: -[QuestifyUITests.ClubGovernanceFlowTests testCaptureCL02RolePickerWithoutPreparing] : failed - Attributes: Application, 0x1075f4640, pid: 16429, label: 'Questify'
+Element subtree:
+ →Application, 0x1075f4640, pid: 16429, label: 'Questify'
+    Window (Main), 0x1075f4780, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1075f48c0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1075f4a00, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x1075f4b40, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1075f4c80, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x1075f4dc0, {{0.0, 0.0}, {402.0, 874.0}}
+                NavigationBar, 0x1075f4f00, {{0.0, 62.0}, {402.0, 106.0}}, identifier: 'Club workspace'
+                  StaticText, 0x1075f5040, {{16.0, 119.7}, {254.7, 40.7}}, label: 'Club workspace'
+                Other, 0x1075f5180, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x1075f52c0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1075f5400, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x1075f5540, {{0.0, 0.0}, {402.0, 874.0}}
+                        CollectionView, 0x1075f5680, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'club.gov.fixture.root'
+                          Other, 0x1075f57c0, {{-16.0, -1580.0}, {434.0, 4920.0}}
+                          Other, 0x1075f5900, {{0.0, 0.0}, {402.0, 874.0}}
+                            Other, 0x1075f5a40, {{0.0, 0.0}, {402.0, 102.0}}
+                          Other, 0x1075f5b80, {{0.0, 0.0}, {402.0, 874.0}}
+                          Cell, 0x1075f5cc0, {{16.0, 168.0}, {370.0, 52.0}}
+                            Other, 0x1075f5e00, {{16.0, 168.0}, {370.0, 52.0}}
+                              Other, 0x1075f5f40, {{16.0, 168.0}, {370.0, 52.0}}
+                            Other, 0x1075f6080, {{16.0, 168.0}, {370.0, 52.0}}
+                              Other, 0x1075f61c0, {{16.0, 168.0}, {370.0, 52.0}}
+                                Other, 0x1075f6300, {{16.0, 168.0}, {370.0, 52.0}}
+                                  StaticText, 0x1075f6440, {{16.0, 168.0}, {370.0, 52.0}}, identifier: 'club.gov.synthetic', label: 'Synthetic fixtures only. No real club actions'
+                          Cell, 0x1075f6580, {{16.0, 220.0}, {370.0, 52.0}}
+                            Other, 0x1075f66c0, {{16.0, 220.0}, {370.0, 52.0}}
+                              Other, 0x1075f6800, {{16.0, 220.0}, {370.0, 52.0}}
+                            Other, 0x1075f6940, {{16.0, 220.0}, {370.0, 52.0}}
+                              Other, 0x1075f6a80, {{16.0, 220.0}, {370.0, 52.0}}
+                                Other, 0x1075f6bc0, {{16.0, 220.0}, {370.0, 52.0}}
+                                  Button, 0x1075f6d00, {{16.0, 220.0}, {370.0, 52.0}}, identifier: 'club.refund.fixtureAccepted', label: 'Refund review example'
+                                    StaticText, 0x1075f6e40, {{32.0, 235.8}, {176.7, 20.3}}, label: 'Refund review example'
+                                    Image, 0x1075f6f80, {{360.7, 240.0}, {7.0, 12.0}}, identifier: 'chevron.forward'
+                          Other, 0x1075f70c0, {{32.0, 219.0}, {338.0, 1.0}}
+                          Cell, 0x1075f7200, {{16.0, 272.0}, {370.0, 52.0}}
+                            Other, 0x1075f7340, {{16.0, 272.0}, {370.0, 52.0}}
+                              Other, 0x1075f7480, {{16.0, 272.0}, {370.0, 52.0}}
+                            Other, 0x1075f75c0, {{16.0, 272.0}, {370.0, 52.0}}
+                              Other, 0x1075f7700, {{16.0, 272.0}, {370.0, 52.0}}
+                                Other, 0x1075f7840, {{16.0, 272.0}, {370.0, 52.0}}
+                                  Button, 0x1075f7980, {{16.0, 272.0}, {370.0, 52.0}}, identifier: 'club.refund.fixtureUnknown', label: 'Unknown refund example'
+                                    StaticText, 0x1075f7ac0, {{32.0, 287.8}, {194.0, 20.3}}, label: 'Unknown refund example'
+                                    Image, 0x1075f7c00, {{360.7, 292.0}, {7.0, 12.0}}, identifier: 'chevron.forward'
+                          Other, 0x1075f7d40, {{32.0, 271.0}, {338.0, 1.0}}
+                          Cell, 0x1075f7e80, {{16.0, 324.0}, {370.0, 52.0}}
+                            Other, 0x10367bc00, {{16.0, 324.0}, {370.0, 52.0}}
+                              Other, 0x103679400, {{16.0, 324.0}, {370.0, 52.0}}
+                            Other, 0x103679540, {{16.0, 324.0}, {370.0, 52.0}}
+                              Other, 0x10367bd40, {{16.0, 324.0}, {370.0, 52.0}}
+                                Other, 0x10367bac0, {{16.0, 324.0}, {370.0, 52.0}}
+                                  Button, 0x10367b980, {{16.0, 324.0}, {370.0, 52.0}}, identifier: 'club.refund.fixtureDisabled', label: 'Disabled refund example'
+                                    StaticText, 0x10647a080, {{32.0, 339.8}, {188.7, 20.3}}, label: 'Disabled refund example'
+                                    Image, 0x10647a440, {{360.7, 344.0}, {7.0, 12.0}}, identifier: 'chevron.forward'
+                          Other, 0x10647a6c0, {{32.0, 323.0}, {338.0, 1.0}}
+                          Cell, 0x10647a300, {{16.0, 376.0}, {370.0, 52.0}}
+                            Other, 0x10647a580, {{16.0, 376.0}, {370.0, 52.0}}
+                              Other, 0x10647a940, {{16.0, 376.0}, {370.0, 52.0}}
+                            Other, 0x10647abc0, {{16.0, 376.0}, {370.0, 52.0}}
+                              Other, 0x10647ad00, {{16.0, 376.0}, {370.0, 52.0}}
+                                Other, 0x10647af80, {{16.0, 376.0}, {370.0, 52.0}}
+                                  Button, 0x10647b200, {{16.0, 376.0}, {370.0, 52.0}}, identifier: 'club.enroll.fixture', label: 'Enrollment roster'
+                                    StaticText, 0x10647b0c0, {{32.0, 391.8}, {130.3, 20.3}}, label: 'Enrollment roster'
+                                    Image, 0x10647b340, {{360.7, 396.0}, {7.0, 12.0}}, identifier: 'chevron.forward'
+                          Other, 0x1075fc000, {{32.0, 375.0}, {338.0, 1.0}}
+                          Cell, 0x1075fc140, {{16.0, 428.0}, {370.0, 52.0}}
+                            Other, 0x1075fc280, {{16.0, 428.0}, {370.0, 52.0}}
+                              Other, 0x1075fc3c0, {{16.0, 428.0}, {370.0, 52.0}}
+                            Other, 0x1075fc500, {{16.0, 428.0}, {370.0, 52.0}}
+                              Other, 0x1075fc640, {{16.0, 428.0}, {370.0, 52.0}}
+                                Other, 0x1075fc780, {{16.0, 428.0}, {370.0, 52.0}}
+                                  Button, 0x1075fc8c0, {{16.0, 428.0}, {370.0, 52.0}}, identifier: 'club.gov.openHost', label: 'Become a host'
+                                    Image, 0x1075fca00, {{34.7, 441.7}, {25.3, 24.7}}, identifier: 'person.badge.plus', label: 'Person With A Plus Badge'
+                                    StaticText, 0x1075fcb40, {{34.7, 441.7}, {150.7, 24.7}}, label: 'Become a host'
+                                    Image, 0x1075fcc80, {{360.7, 448.0}, {7.0, 12.0}}, identifier: 'chevron.forward'
+                          Other, 0x1075fcdc0, {{32.0, 427.0}, {338.0, 1.0}}
+                          Cell, 0x1075fcf00, {{16.0, 480.0}, {370.0, 52.0}}
+                            Other, 0x1075fd040, {{16.0, 480.0}, {370.0, 52.0}}
+                              Other, 0x1075fd180, {{16.0, 480.0}, {370.0, 52.0}}
+                            Other, 0x1075fd2c0, {{16.0, 480.0}, {370.0, 52.0}}
+                              Other, 0x1075fd400, {{16.0, 480.0}, {370.0, 52.0}}
+                                Other, 0x1075fd540, {{16.0, 480.0}, {370.0, 52.0}}
+                                  Button, 0x1075fd680, {{16.0, 480.0}, {370.0, 52.0}}, identifier: 'club.gov.openFeed', label: 'Joined-club feed'
+                                    Image, 0x1075fd7c0, {{32.0, 495.0}, {23.7, 22.0}}, identifier: 'text.bubble', label: 'Comment Lines'
+                                    StaticText, 0x1075fd900, {{32.0, 495.0}, {169.3, 22.0}}, label: 'Joined-club feed'
+                                    Image, 0x1075fda40, {{360.7, 500.0}, {7.0, 12.0}}, identifier: 'chevron.forward'
+                          Other, 0x1075fdb80, {{72.0, 479.0}, {298.0, 1.0}}
+                          Cell, 0x1075fdcc0, {{16.0, 532.0}, {370.0, 52.0}}
+                            Other, 0x1075fde00, {{16.0, 532.0}, {370.0, 52.0}}
+                              Other, 0x1075fdf40, {{16.0, 532.0}, {370.0, 52.0}}
+                            Other, 0x1075fe080, {{16.0, 532.0}, {370.0, 52.0}}
+                              Other, 0x1075fe1c0, {{16.0, 532.0}, {370.0, 52.0}}
+                                Other, 0x1075fe300, {{16.0, 532.0}, {370.0, 52.0}}
+                                  Button, 0x1075fe440, {{16.0, 532.0}, {370.0, 52.0}}, identifier: 'club.gov.open', label: 'Club workspace'
+                                    StaticText, 0x1075fe580, {{21.7, 547.7}, {172.3, 20.7}}, label: 'Club workspace'
+                                    Image, 0x1075fe6c0, {{21.7, 547.7}, {43.7, 20.7}}, identifier: 'person.3.sequence.fill', label: 'Three People In Sequence, Filled'
+                          Other, 0x1075fe800, {{72.0, 531.0}, {298.0, 1.0}}
+                          Cell, 0x1075fe940, {{16.0, 584.0}, {370.0, 52.0}}
+                            Other, 0x1075fea80, {{16.0, 584.0}, {370.0, 52.0}}
+                              Other, 0x1075febc0, {{16.0, 584.0}, {370.0, 52.0}}
+                            Other, 0x1075fed00, {{16.0, 584.0}, {370.0, 52.0}}
+                              Other, 0x1075fee40, {{16.0, 584.0}, {370.0, 52.0}}
+                                Other, 0x1075fef80, {{16.0, 584.0}, {370.0, 52.0}}
+                                  Button, 0x1075ff0c0, {{16.0, 584.0}, {370.0, 52.0}}, identifier: 'club.gov.fixture.customers', label: 'Customers'
+                                    StaticText, 0x1075ff200, {{32.0, 599.8}, {83.0, 20.3}}, label: 'Customers'
+                                    Image, 0x1075ff340, {{360.7, 604.0}, {7.0, 12.0}}, identifier: 'chevron.forward'
+                          Other, 0x1075ff480, {{72.0, 583.0}, {298.0, 1.0}}
+                          Cell, 0x1075ff5c0, {{16.0, 636.0}, {370.0, 52.0}}
+                            Other, 0x1075ff700, {{16.0, 636.0}, {370.0, 52.0}}
+                              Other, 0x1075ff840, {{16.0, 636.0}, {370.0, 52.0}}
+                            Other, 0x1075ff980, {{16.0, 636.0}, {370.0, 52.0}}
+                              Other, 0x1075ffac0, {{16.0, 636.0}, {370.0, 52.0}}
+                                Other, 0x1075ffc00, {{16.0, 636.0}, {370.0, 52.0}}
+                                  Button, 0x1075ffd40, {{16.0, 636.0}, {370.0, 52.0}}, identifier: 'club.gov.fixture.series', label: 'Event series'
+                                    StaticText, 0x1075ffe80, {{32.0, 651.8}, {92.3, 20.3}}, label: 'Event series'
+                                    Image, 0x107618000, {{360.7, 656.0}, {7.0, 12.0}}, identifier: 'chevron.forward'
+                          Other, 0x107618140, {{32.0, 635.0}, {338.0, 1.0}}
+                          Cell, 0x107618280, {{16.0, 688.0}, {370.0, 52.0}}
+                            Other, 0x1076183c0, {{16.0, 688.0}, {370.0, 52.0}}
+                              Other, 0x107618500, {{16.0, 688.0}, {370.0, 52.0}}
+                            Other, 0x107618640, {{16.0, 688.0}, {370.0, 52.0}}
+                              Other, 0x107618780, {{16.0, 688.0}, {370.0, 52.0}}
+                                Other, 0x1076188c0, {{16.0, 688.0}, {370.0, 52.0}}
+                                  Button, 0x107618a00, {{16.0, 688.0}, {370.0, 52.0}}, identifier: 'club.gov.fixture.roles', label: 'Roles and permissions'
+                                    StaticText, 0x107618b40, {{32.0, 703.8}, {170.7, 20.3}}, label: 'Roles and permissions'
+                                    Image, 0x107618c80, {{360.7, 708.0}, {7.0, 12.0}}, identifier: 'chevron.forward'
+                          Other, 0x107618dc0, {{32.0, 687.0}, {338.0, 1.0}}
+                          Cell, 0x107618f00, {{16.0, 740.0}, {370.0, 52.0}}
+                            Other, 0x107619040, {{16.0, 740.0}, {370.0, 52.0}}
+                              Other, 0x107619180, {{16.0, 740.0}, {370.0, 52.0}}
+                            Other, 0x1076192c0, {{16.0, 740.0}, {370.0, 52.0}}
+                              Other, 0x107619400, {{16.0, 740.0}, {370.0, 52.0}}
+                                Other, 0x107619540, {{16.0, 740.0}, {370.0, 52.0}}
+                                  Button, 0x107619680, {{16.0, 740.0}, {370.0, 52.0}}, identifier: 'club.gov.fixture.topicOverview', label: 'Club topic workspace'
+                                    StaticText, 0x1076197c0, {{32.0, 755.8}, {164.3, 20.3}}, label: 'Club topic workspace'
+                                    Image, 0x107619900, {{360.7, 760.0}, {7.0, 12.0}}, identifier: 'chevron.forward'
+                          Other, 0x107619a40, {{32.0, 739.0}, {338.0, 1.0}}
+                          Cell, 0x107619b80, {{16.0, 792.0}, {370.0, 52.0}}
+                            Other, 0x107619cc0, {{16.0, 792.0}, {370.0, 52.0}}
+                              Other, 0x107619e00, {{16.0, 792.0}, {370.0, 52.0}}
+                            Other, 0x107619f40, {{16.0, 792.0}, {370.0, 52.0}}
+                              Other, 0x10761a080, {{16.0, 792.0}, {370.0, 52.0}}
+                                Other, 0x10761a1c0, {{16.0, 792.0}, {370.0, 52.0}}
+                                  Button, 0x10761a300, {{16.0, 792.0}, {370.0, 52.0}}, identifier: 'club.gov.fixture.editions', label: 'Edition reports'
+                                    StaticText, 0x10761a440, {{32.0, 807.8}, {111.3, 20.3}}, label: 'Edition reports'
+                                    Image, 0x10761a580, {{360.7, 812.0}, {7.0, 12.0}}, identifier: 'chevron.forward'
+                          Other, 0x10761a6c0, {{32.0, 791.0}, {338.0, 1.0}}
+                          Cell, 0x10761a800, {{16.0, 844.0}, {370.0, 52.0}}
+                            Other, 0x10761a940, {{16.0, 844.0}, {370.0, 52.0}}
+                              Other, 0x10761aa80, {{16.0, 844.0}, {370.0, 52.0}}
+                            Other, 0x10761abc0, {{16.0, 844.0}, {370.0, 52.0}}
+                              Other, 0x10761ad00, {{16.0, 844.0}, {370.0, 52.0}}
+                                Other, 0x10761ae40, {{16.0, 844.0}, {370.0, 52.0}}
+                                  Button, 0x10761af80, {{16.0, 844.0}, {370.0, 52.0}}, identifier: 'club.gov.fixture.dissolutionBlockers', label: 'Dissolution blockers'
+                                    StaticText, 0x10761b0c0, {{32.0, 859.8}, {153.0, 20.3}}, label: 'Dissolution blockers'
+                                    Image, 0x10761b200, {{360.7, 864.0}, {7.0, 12.0}}, identifier: 'chevron.forward'
+                          Other, 0x10761b340, {{32.0, 843.0}, {338.0, 1.0}}
+                          Other, 0x10761b480, {{369.0, 116.0}, {30.0, 696.0}}, label: 'Vertical scroll bar, 3 pages', value: 0%
+                            Other, 0x10761b5c0, {{396.0, 802.0}, {3.0, 7.0}}
+                          Other, 0x10761b700, {{369.0, 116.0}, {30.0, 696.0}}, label: 'Vertical scroll bar, 3 pages', value: 0%
+                            Other, 0x10761b840, {{396.0, 802.0}, {3.0, 7.0}}
+                Toolbar, 0x10761b980, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                  Other, 0x10761bac0, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x1075f4640, pid: 16429, label: 'Questify'
+Query chain:
+ →Find: Target Application 'invalid.example.questify.ios'
+  Output: {
+    Application, 0x10761bc00, pid: 16429, label: 'Questify'
+  }
+
+    t =     8.72s Tear Down
+    t =     8.72s     Find the Target Application 'invalid.example.questify.ios'
+    t =     8.80s     Added attachment named 'Failure state – -[ClubGovernanceFlowTests testCaptureCL02RolePickerWithoutPreparing]'
+    t =     8.80s     Terminate invalid.example.questify.ios:16429
+Test Case '-[QuestifyUITests.ClubGovernanceFlowTests testCaptureCL02RolePickerWithoutPreparing]' failed (9.949 seconds).
+Test Suite 'ClubGovernanceFlowTests' failed at 2026-11-04 12:59:29.004.
+	 Executed 1 test, with 1 failure (0 unexpected) in 9.949 (9.955) seconds
+Test Suite 'ClubProfileScopeFlowTests' started at 2026-11-04 12:59:29.007.
+Test Case '-[QuestifyUITests.ClubProfileScopeFlowTests testCaptureCL02DirectionsSheetWithoutApplying]' started.
+    t =     0.00s Start Test at 2026-11-04 12:59:29.009
+    t =     0.02s Set Up
+    t =     0.03s Open invalid.example.questify.ios
+    t =     0.03s     Launch invalid.example.questify.ios
+    t =     0.24s         Setting up automation session
+    t =     2.06s         Wait for invalid.example.questify.ios to idle
+    t =     3.67s Waiting 10.0s for "club.ops.fixtureNotice" Any to exist
+    t =     4.71s     Checking `Expect predicate `existsNoRetry == 1` for object "club.ops.fixtureNotice" Any`
+    t =     4.71s         Checking existence of `"club.ops.fixtureNotice" Any`
+    t =     4.83s Get all elements bound by index for: Elements matching predicate '"club.ops.openManage" IN identifiers'
+    t =     4.86s Checking existence of `"club.ops.openManage" Any`
+    t =     4.87s Find the "club.ops.openManage" Any
+    t =     4.94s Get all elements bound by index for: Elements matching predicate '"club.ops.openManage" IN identifiers'
+    t =     4.95s Checking existence of `"club.ops.openManage" Button`
+    t =     4.97s Find the "club.ops.openManage" Button
+    t =     4.98s Find the "club.ops.openManage" Button
+    t =     5.00s Tap "club.ops.openManage" Button
+    t =     5.00s     Wait for invalid.example.questify.ios to idle
+    t =     5.00s     Find the "club.ops.openManage" Button
+    t =     5.01s     Check for interrupting elements affecting "club.ops.openManage" Button
+    t =     5.06s     Synthesize event
+    t =     5.37s     Wait for invalid.example.questify.ios to idle
+    t =     6.88s Checking `Expect predicate `BLOCKPREDICATE(0x113eb2f70)` for object Target Application 'invalid.example.questify.ios'`
+    t =     6.88s     Get number of matches for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     6.98s     Get all elements bound by index for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     7.01s     Checking existence of `"club.ops.writeCount" StaticText`
+    t =     7.04s     Find the "club.ops.writeCount" StaticText
+    t =     7.08s     Capturing element debug description
+    t =     7.91s Checking `Expect predicate `BLOCKPREDICATE(0x113eb2f70)` for object Target Application 'invalid.example.questify.ios'`
+    t =     7.91s     Get number of matches for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     7.97s     Get all elements bound by index for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     8.00s     Checking existence of `"club.ops.writeCount" StaticText`
+    t =     8.03s     Find the "club.ops.writeCount" StaticText
+    t =     8.07s     Capturing element debug description
+    t =     8.90s Checking `Expect predicate `BLOCKPREDICATE(0x113eb2f70)` for object Target Application 'invalid.example.questify.ios'`
+    t =     8.91s     Get number of matches for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     8.96s     Get all elements bound by index for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     9.00s     Checking existence of `"club.ops.writeCount" StaticText`
+    t =     9.03s     Find the "club.ops.writeCount" StaticText
+    t =     9.07s     Capturing element debug description
+    t =     9.90s Checking `Expect predicate `BLOCKPREDICATE(0x113eb2f70)` for object Target Application 'invalid.example.questify.ios'`
+    t =     9.90s     Get number of matches for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     9.96s     Get all elements bound by index for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     9.99s     Checking existence of `"club.ops.writeCount" StaticText`
+    t =    10.02s     Find the "club.ops.writeCount" StaticText
+    t =    10.06s     Capturing element debug description
+    t =    10.85s Checking `Expect predicate `BLOCKPREDICATE(0x113eb2f70)` for object Target Application 'invalid.example.questify.ios'`
+    t =    10.86s     Get number of matches for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =    10.92s     Get all elements bound by index for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =    10.95s     Checking existence of `"club.ops.writeCount" StaticText`
+    t =    10.98s     Find the "club.ops.writeCount" StaticText
+    t =    11.02s     Capturing element debug description
+    t =    11.04s Requesting snapshot of accessibility hierarchy for app with pid 16445
+    t =    11.23s Requesting snapshot of accessibility hierarchy for app with pid 16445
+<PILOT_WORKTREE>/Tests/AppUITests/ClubProfileScopeFlowTests.swift:98: error: -[QuestifyUITests.ClubProfileScopeFlowTests testCaptureCL02DirectionsSheetWithoutApplying] : XCTAssertEqual failed: ("XCTWaiterResult(rawValue: 2)") is not equal to ("XCTWaiterResult(rawValue: 1)") - Optional(Attributes: Application, 0x10367bc00, pid: 16445, label: 'Questify'
+Element subtree:
+ →Application, 0x10367bc00, pid: 16445, label: 'Questify'
+    Window (Main), 0x103679400, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x103679540, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10367bd40, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x10367bac0, {{-402.0, -874.0}, {1206.0, 2622.0}}
+          Other, 0x10367b980, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1075f4640, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x1075f4780, {{0.0, 0.0}, {402.0, 874.0}}
+                NavigationBar, 0x1075f7c00, {{0.0, 62.0}, {402.0, 106.0}}, identifier: 'Club workspace'
+                  StaticText, 0x1075f7ac0, {{16.0, 119.7}, {254.7, 40.7}}, label: 'Club workspace'
+                Other, 0x1075f7340, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x1075f7480, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1075f70c0, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x1075f6580, {{0.0, 0.0}, {402.0, 874.0}}
+                        CollectionView, 0x1075f6940, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x1075f6a80, {{-16.0, -1580.0}, {434.0, 3848.3}}
+                          Other, 0x1075f6bc0, {{0.0, 0.0}, {402.0, 874.0}}
+                            Other, 0x1075f6d00, {{0.0, 0.0}, {402.0, 102.0}}
+                          Other, 0x1075f6f80, {{0.0, 0.0}, {402.0, 874.0}}
+                          Cell, 0x1075f6e40, {{16.0, 168.0}, {370.0, 72.3}}
+                            Other, 0x1075f66c0, {{16.0, 168.0}, {370.0, 72.3}}
+                              Other, 0x1075f6800, {{16.0, 168.0}, {370.0, 72.3}}
+                            Other, 0x1075f6300, {{16.0, 168.0}, {370.0, 72.3}}
+                              Other, 0x1075f5cc0, {{16.0, 168.0}, {370.0, 72.3}}
+                                Other, 0x1075f6440, {{16.0, 168.0}, {370.0, 72.3}}
+                                  StaticText, 0x1075f5e00, {{16.0, 168.0}, {370.0, 72.3}}, identifier: 'club.ops.fixtureNotice', label: 'Offline synthetic club operations. No real data or backend requests.', value: scenario=owner;cre...
+                          Cell, 0x1075f5f40, {{16.0, 240.3}, {370.0, 52.0}}
+                            Other, 0x1075f5b80, {{16.0, 240.3}, {370.0, 52.0}}
+                              Other, 0x1075f5900, {{16.0, 240.3}, {370.0, 52.0}}
+                            Other, 0x1075f5a40, {{16.0, 240.3}, {370.0, 52.0}}
+                              Other, 0x1075f57c0, {{16.0, 240.3}, {370.0, 52.0}}
+                                Other, 0x1075f4f00, {{16.0, 240.3}, {370.0, 52.0}}
+                                  Button, 0x1075f5040, {{16.0, 240.3}, {370.0, 52.0}}, identifier: 'club.ops.openCreate', label: 'Create club'
+                          Other, 0x1075f4500, {{32.0, 239.3}, {338.0, 1.0}}
+                          Cell, 0x1076192c0, {{16.0, 292.3}, {370.0, 52.0}}
+                            Other, 0x107619400, {{16.0, 292.3}, {370.0, 52.0}}
+                              Other, 0x107619540, {{16.0, 292.3}, {370.0, 52.0}}
+                            Other, 0x107619680, {{16.0, 292.3}, {370.0, 52.0}}
+                              Other, 0x107619900, {{16.0, 292.3}, {370.0, 52.0}}
+                                Other, 0x1076197c0, {{16.0, 292.3}, {370.0, 52.0}}
+                                  Button, 0x107619040, {{16.0, 292.3}, {370.0, 52.0}}, identifier: 'club.ops.openManage', label: 'Club workspace'
+                          Other, 0x107619a40, {{32.0, 291.3}, {338.0, 1.0}}
+                          Cell, 0x107618f00, {{16.0, 344.3}, {370.0, 52.0}}
+                            Other, 0x1071c4000, {{16.0, 344.3}, {370.0, 52.0}}
+                              Other, 0x1071c4140, {{16.0, 344.3}, {370.0, 52.0}}
+                            Other, 0x1071c4280, {{16.0, 344.3}, {370.0, 52.0}}
+                              Other, 0x1071c43c0, {{16.0, 344.3}, {370.0, 52.0}}
+                                Other, 0x1071c4500, {{16.0, 344.3}, {370.0, 52.0}}
+                                  Button, 0x1071c4640, {{16.0, 344.3}, {370.0, 52.0}}, identifier: 'club.ops.switchAccount', label: 'Switch fixture account'
+                          Other, 0x1071c4780, {{32.0, 343.3}, {338.0, 1.0}}
+                          Cell, 0x1071c48c0, {{16.0, 396.3}, {370.0, 52.0}}
+                            Other, 0x1071c4a00, {{16.0, 396.3}, {370.0, 52.0}}
+                              Other, 0x1071c4b40, {{16.0, 396.3}, {370.0, 52.0}}
+                            Other, 0x1071c4c80, {{16.0, 396.3}, {370.0, 52.0}}
+                              Other, 0x1071c4dc0, {{16.0, 396.3}, {370.0, 52.0}}
+                                Other, 0x1071c4f00, {{16.0, 396.3}, {370.0, 52.0}}
+                                  Button, 0x1071c5040, {{16.0, 396.3}, {370.0, 52.0}}, identifier: 'club.ops.signOut', label: 'Sign out fixture'
+                          Other, 0x1071c5180, {{32.0, 395.3}, {338.0, 1.0}}
+                          Cell, 0x1071c52c0, {{16.0, 448.3}, {370.0, 52.0}}
+                            Other, 0x1071c5400, {{16.0, 448.3}, {370.0, 52.0}}
+                              Other, 0x1071c5540, {{16.0, 448.3}, {370.0, 52.0}}
+                            Other, 0x1071c5680, {{16.0, 448.3}, {370.0, 52.0}}
+                              Other, 0x1071c57c0, {{16.0, 448.3}, {370.0, 52.0}}
+                                Other, 0x1071c5900, {{16.0, 448.3}, {370.0, 52.0}}
+                                  StaticText, 0x1071c5a40, {{16.0, 448.3}, {370.0, 52.0}}, identifier: 'club.ops.writeCount', label: '0', value: account=701;finish...
+                          Other, 0x1071c5b80, {{32.0, 447.3}, {338.0, 1.0}}
+                          Other, 0x1071c5cc0, {{369.0, 116.0}, {30.0, 696.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                            Other, 0x1071c5e00, {{396.0, 438.7}, {3.0, 370.3}}
+                          Other, 0x1071c5f40, {{369.0, 116.0}, {30.0, 696.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                            Other, 0x1071c6080, {{396.0, 438.7}, {3.0, 370.3}}
+                Toolbar, 0x1071c61c0, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                  Other, 0x1071c6300, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1071c6440, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1071c6580, {{-402.0, -874.0}, {1206.0, 2622.0}}
+        Other, 0x1071c66c0, {{0.0, 62.0}, {402.0, 812.0}}
+          Other, 0x1071c6800, {{0.0, 62.0}, {402.0, 812.0}}
+            Other, 0x1071c6940, {{0.0, 62.0}, {402.0, 812.0}}
+              Other, 0x1071c6a80, {{0.0, 62.0}, {402.0, 812.0}}
+                Other, 0x1071c6bc0, {{0.0, 62.0}, {402.0, 812.0}}
+                  NavigationBar, 0x1071c6d00, {{0.0, 78.0}, {402.0, 106.0}}, identifier: 'Club workspace'
+                    Other, 0x1071c6e40, {{20.0, 82.0}, {67.0, 36.0}}
+                      Other, 0x1071c6f80, {{20.0, 82.0}, {67.0, 36.0}}
+                        Button, 0x1071c70c0, {{20.0, 82.0}, {67.0, 36.0}}, identifier: 'club.ops.close', label: 'Close'
+                    StaticText, 0x1071c7200, {{16.0, 135.7}, {254.7, 40.7}}, label: 'Club workspace'
+                  Other, 0x1071c7340, {{0.0, 62.0}, {402.0, 812.0}}
+                    Other, 0x1071c7480, {{0.0, 62.0}, {402.0, 812.0}}
+                      Other, 0x1071c75c0, {{0.0, 62.0}, {402.0, 812.0}}
+                        Other, 0x1071c7700, {{0.0, 62.0}, {402.0, 812.0}}
+                          CollectionView, 0x1071c7840, {{0.0, 62.0}, {402.0, 812.0}}, identifier: 'club.ops.fixture.workspace'
+                            Other, 0x1071c7980, {{-16.0, -1440.0}, {434.0, 1968.0}}
+                            Other, 0x1071c7ac0, {{0.0, 62.0}, {402.0, 812.0}}
+                              Other, 0x1071c7c00, {{0.0, 62.0}, {402.0, 110.0}}
+                              Other, 0x1071c7d40, {{0.0, 748.0}, {402.0, 126.0}}
+                            Other, 0x1071c7e80, {{0.0, 62.0}, {402.0, 812.0}}
+                              Other, 0x1071c8000, {{0.0, 748.0}, {402.0, 126.0}}
+                            Cell, 0x1071c8140, {{16.0, 184.0}, {370.0, 326.3}}
+                              Other, 0x1071c8280, {{16.0, 184.0}, {370.0, 326.3}}
+                                Other, 0x1071c83c0, {{16.0, 184.0}, {370.0, 326.3}}
+                                  Other, 0x1071c8500, {{16.0, 184.0}, {370.0, 326.3}}
+                                    Other, 0x1071c8640, {{16.0, 184.0}, {370.0, 326.3}}
+                              Other, 0x1071c8780, {{16.0, 184.0}, {370.0, 326.3}}
+                                Other, 0x1071c88c0, {{16.0, 184.0}, {370.0, 326.3}}
+                                  Other, 0x1071c8a00, {{16.0, 184.0}, {370.0, 326.3}}
+                                    Image, 0x1071c8b40, {{16.0, 190.0}, {370.0, 314.3}}, identifier: 'person.3.fill', label: 'Three People, Filled'
+                                    Other, 0x1071c8c80, {{16.0, 310.0}, {370.0, 72.0}}
+                                    StaticText, 0x1071c8dc0, {{36.0, 402.0}, {120.3, 26.3}}, label: 'Fixture club'
+                                    StaticText, 0x1071c8f00, {{36.0, 438.3}, {75.7, 18.0}}, label: 'Fixture city'
+                                    StaticText, 0x1071c9040, {{36.0, 466.3}, {45.3, 18.0}}, label: 'Owner'
+                            Other, 0x1071c9180, {{-16.0, 528.0}, {434.0, 391.3}}
+                            Cell, 0x1071c92c0, {{16.0, 528.0}, {370.0, 40.3}}
+                              Other, 0x1071c9400, {{16.0, 528.0}, {370.0, 40.3}}
+                              Other, 0x1071c9540, {{16.0, 528.0}, {370.0, 40.3}}
+                                Other, 0x1071c9680, {{16.0, 528.0}, {370.0, 40.3}}
+                                  Other, 0x1071c97c0, {{16.0, 528.0}, {370.0, 40.3}}
+                                    StaticText, 0x1071c9900, {{16.0, 528.0}, {370.0, 40.3}}, label: 'Club profile'
+                            Cell, 0x1071c9a40, {{16.0, 568.3}, {370.0, 52.0}}
+                              Other, 0x1071c9b80, {{16.0, 568.3}, {370.0, 52.0}}
+                                Other, 0x1071c9cc0, {{16.0, 568.3}, {370.0, 52.0}}
+                              Other, 0x1071c9e00, {{16.0, 568.3}, {370.0, 52.0}}
+                                Other, 0x1071c9f40, {{16.0, 568.3}, {370.0, 52.0}}
+                                  Other, 0x1071ca080, {{16.0, 568.3}, {370.0, 52.0}}
+                                    TextField, 0x1071ca1c0, {{32.0, 583.3}, {338.0, 22.0}}, identifier: 'club.ops.field.name', label: 'Name (up to 30 characters)', placeholderValue: 'Name (up to 30 characters)', value: Fixture club
+                            Cell, 0x1071ca300, {{16.0, 620.3}, {370.0, 52.0}}
+                              Other, 0x1071ca440, {{16.0, 620.3}, {370.0, 52.0}}
+                                Other, 0x1071ca580, {{16.0, 620.3}, {370.0, 52.0}}
+                              Other, 0x1071ca6c0, {{16.0, 620.3}, {370.0, 52.0}}
+                                Other, 0x1071ca800, {{16.0, 620.3}, {370.0, 52.0}}
+                                  Other, 0x1071ca940, {{16.0, 620.3}, {370.0, 52.0}}
+                                    TextField, 0x1071caa80, {{32.0, 635.3}, {338.0, 22.0}}, identifier: 'club.ops.field.city', label: 'City (up to 20 characters)', placeholderValue: 'City (up to 20 characters)', value: Fixture city
+                            Other, 0x1071cabc0, {{32.0, 619.3}, {338.0, 1.0}}
+                            Cell, 0x1071cad00, {{16.0, 672.3}, {370.0, 73.3}}
+                              Other, 0x1071cae40, {{16.0, 672.3}, {370.0, 73.3}}
+                                Other, 0x1071caf80, {{16.0, 672.3}, {370.0, 73.3}}
+                              Other, 0x1071cb0c0, {{16.0, 672.3}, {370.0, 73.3}}
+                                Other, 0x1071cb200, {{16.0, 672.3}, {370.0, 73.3}}
+                                  Other, 0x1071cb340, {{16.0, 672.3}, {370.0, 73.3}}
+                                    Button, 0x1071cb480, {{16.0, 672.3}, {370.0, 73.3}}, identifier: 'club.profileChoice.open.type', label: 'Choose club category, Interest community'
+                                      StaticText, 0x1071cb5c0, {{32.0, 687.3}, {167.0, 20.3}}, label: 'Choose club category'
+                                      StaticText, 0x1071cb700, {{32.0, 712.7}, {132.3, 18.0}}, label: 'Interest community'
+                            Other, 0x1071cb840, {{32.0, 671.3}, {338.0, 1.0}}
+                            Cell, 0x1071cb980, {{16.0, 745.7}, {370.0, 52.0}}
+                              Other, 0x1071cbac0, {{16.0, 745.7}, {370.0, 52.0}}
+                                Other, 0x1071cbc00, {{16.0, 745.7}, {370.0, 52.0}}
+                              Other, 0x1071cbd40, {{16.0, 745.7}, {370.0, 52.0}}
+                                Other, 0x1071cbe80, {{16.0, 745.7}, {370.0, 52.0}}
+                                  Other, 0x1071cc000, {{16.0, 745.7}, {370.0, 52.0}}
+                                    TextField, 0x1071cc140, {{32.0, 760.7}, {338.0, 22.0}}, identifier: 'club.ops.field.description', label: 'Introduction (up to 200 characters)', value: Synthetic club pro...
+                                      Other, 0x1071cc280, {{32.0, 768.7}, {338.0, 11.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                                        Other, 0x1071cc3c0, {{35.0, 776.7}, {332.0, 3.0}}
+                            Other, 0x1071cc500, {{32.0, 744.7}, {338.0, 1.0}}
+                            Cell, 0x1071cc640, {{16.0, 797.7}, {370.0, 52.0}}
+                              Other, 0x1071cc780, {{16.0, 797.7}, {370.0, 52.0}}
+                                Other, 0x1071cc8c0, {{16.0, 797.7}, {370.0, 52.0}}
+                              Other, 0x1071cca00, {{16.0, 797.7}, {370.0, 52.0}}
+                                Other, 0x1071ccb40, {{16.0, 797.7}, {370.0, 52.0}}
+                                  Other, 0x1071ccc80, {{16.0, 797.7}, {370.0, 52.0}}
+                                    TextField, 0x1071ccdc0, {{32.0, 812.7}, {338.0, 22.0}}, identifier: 'club.ops.field.keywords', label: 'Keywords (up to 60 characters)', placeholderValue: 'Keywords (up to 60 characters)'
+                            Other, 0x1071ccf00, {{32.0, 796.7}, {338.0, 1.0}}
+                            Cell, 0x1071cd040, {{16.0, 849.7}, {370.0, 52.0}}
+                              Other, 0x1071cd180, {{16.0, 849.7}, {370.0, 52.0}}
+                                Other, 0x1071cd2c0, {{16.0, 849.7}, {370.0, 52.0}}
+                              Other, 0x1071cd400, {{16.0, 849.7}, {370.0, 52.0}}
+                                Other, 0x1071cd540, {{16.0, 849.7}, {370.0, 52.0}}
+                                  Other, 0x1071cd680, {{16.0, 849.7}, {370.0, 52.0}}
+                                    TextField, 0x1071cd7c0, {{32.0, 864.7}, {338.0, 22.0}}, identifier: 'club.ops.field.style', label: 'Style (up to 30 characters)', placeholderValue: 'Style (up to 30 characters)', value: Explore together
+                            Other, 0x1071cd900, {{32.0, 848.7}, {338.0, 1.0}}
+                            Other, 0x1071cda40, {{369.0, 132.0}, {30.0, 680.0}}, label: 'Vertical scroll bar, 3 pages', value: 0%
+                              Other, 0x1071cdb80, {{396.0, 739.0}, {3.0, 74.3}}
+                            Other, 0x1071cdcc0, {{369.0, 132.0}, {30.0, 680.0}}, label: 'Vertical scroll bar, 3 pages', value: 0%
+                              Other, 0x1071cde00, {{396.0, 739.0}, {3.0, 74.3}}
+                  Toolbar, 0x1071cdf40, {{0.0, 62.0}, {402.0, 812.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                    Other, 0x1071ce080, {{0.0, 62.0}, {402.0, 812.0}}
+                      Other, 0x1071ce1c0, {{0.0, 62.0}, {402.0, 812.0}}
+                        Other, 0x1071ce300, {{0.0, 62.0}, {402.0, 812.0}}
+                          Other, 0x1071ce440, {{0.0, 62.0}, {0.0, 0.0}}
+                            Other, 0x1071ce580, {{73.3, 798.0}, {195.7, 48.0}}
+                              Other, 0x1071ce6c0, {{73.3, 798.0}, {195.7, 48.0}}
+                                Other, 0x1071ce800, {{78.3, 804.0}, {185.7, 36.0}}
+                                  Other, 0x1071ce940, {{78.3, 804.0}, {185.7, 36.0}}
+                                    Other, 0x1071cea80, {{78.3, 804.0}, {185.7, 36.0}}
+                                      Other, 0x1071cebc0, {{78.3, 804.0}, {185.7, 36.0}}
+                                        Button, 0x1071ced00, {{78.3, 804.0}, {185.7, 36.0}}, identifier: 'club.ops.switchAccount', label: 'Switch fixture account'
+                            Other, 0x1071cee40, {{281.0, 798.0}, {48.0, 48.0}}
+                              Other, 0x1071cef80, {{281.0, 798.0}, {48.0, 48.0}}
+                                Other, 0x1071cf0c0, {{286.0, 803.0}, {38.0, 38.0}}
+                                  Other, 0x1071cf200, {{286.0, 803.0}, {38.0, 38.0}}
+                                    Button, 0x1071cf340, {{286.0, 803.0}, {38.0, 38.0}}, identifier: 'ToolbarOverflowBarButtonItem', label: 'More'
+Path to element:
+ →Application, 0x10367bc00, pid: 16445, label: 'Questify'
+Query chain:
+ →Find: Target Application 'invalid.example.questify.ios'
+  Output: {
+    Application, 0x1071cf480, pid: 16445, label: 'Questify'
+  }
+)
+    t =    11.28s Tear Down
+    t =    11.28s     Find the Target Application 'invalid.example.questify.ios'
+    t =    11.38s     Added attachment named 'Failure state – -[ClubProfileScopeFlowTests testCaptureCL02DirectionsSheetWithoutApplying]'
+    t =    11.38s     Requesting snapshot of accessibility hierarchy for app with pid 16445
+    t =    11.57s     Requesting snapshot of accessibility hierarchy for app with pid 16445
+    t =    11.61s     Added attachment named 'Club operations failure accessibility hierarchy'
+    t =    11.61s     Terminate invalid.example.questify.ios:16445
+Test Case '-[QuestifyUITests.ClubProfileScopeFlowTests testCaptureCL02DirectionsSheetWithoutApplying]' failed (12.712 seconds).
+Test Case '-[QuestifyUITests.ClubProfileScopeFlowTests testCaptureCL02ProfileReviewWithoutSubmitting]' started.
+    t =     0.00s Start Test at 2026-11-04 12:59:41.723
+    t =     0.03s Set Up
+    t =     0.03s Open invalid.example.questify.ios
+    t =     0.03s     Launch invalid.example.questify.ios
+    t =     0.24s         Setting up automation session
+    t =     2.05s         Wait for invalid.example.questify.ios to idle
+    t =     3.55s Waiting 10.0s for "club.ops.fixtureNotice" Any to exist
+    t =     4.59s     Checking `Expect predicate `existsNoRetry == 1` for object "club.ops.fixtureNotice" Any`
+    t =     4.59s         Checking existence of `"club.ops.fixtureNotice" Any`
+    t =     4.66s Get all elements bound by index for: Elements matching predicate '"club.ops.openManage" IN identifiers'
+    t =     4.69s Checking existence of `"club.ops.openManage" Any`
+    t =     4.70s Find the "club.ops.openManage" Any
+    t =     4.74s Get all elements bound by index for: Elements matching predicate '"club.ops.openManage" IN identifiers'
+    t =     4.76s Checking existence of `"club.ops.openManage" Button`
+    t =     4.77s Find the "club.ops.openManage" Button
+    t =     4.79s Find the "club.ops.openManage" Button
+    t =     4.80s Tap "club.ops.openManage" Button
+    t =     4.80s     Wait for invalid.example.questify.ios to idle
+    t =     4.80s     Find the "club.ops.openManage" Button
+    t =     4.81s     Check for interrupting elements affecting "club.ops.openManage" Button
+    t =     4.83s     Synthesize event
+    t =     5.11s     Wait for invalid.example.questify.ios to idle
+    t =     6.31s Checking `Expect predicate `BLOCKPREDICATE(0x113eb3780)` for object Target Application 'invalid.example.questify.ios'`
+    t =     6.31s     Get number of matches for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     6.40s     Get all elements bound by index for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     6.43s     Checking existence of `"club.ops.writeCount" StaticText`
+    t =     6.46s     Find the "club.ops.writeCount" StaticText
+    t =     6.50s     Capturing element debug description
+    t =     7.33s Checking `Expect predicate `BLOCKPREDICATE(0x113eb3780)` for object Target Application 'invalid.example.questify.ios'`
+    t =     7.34s     Get number of matches for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     7.38s     Get all elements bound by index for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     7.42s     Checking existence of `"club.ops.writeCount" StaticText`
+    t =     7.45s     Find the "club.ops.writeCount" StaticText
+    t =     7.49s     Capturing element debug description
+    t =     8.31s Checking `Expect predicate `BLOCKPREDICATE(0x113eb3780)` for object Target Application 'invalid.example.questify.ios'`
+    t =     8.31s     Get number of matches for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     8.37s     Get all elements bound by index for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     8.40s     Checking existence of `"club.ops.writeCount" StaticText`
+    t =     8.44s     Find the "club.ops.writeCount" StaticText
+    t =     8.48s     Capturing element debug description
+    t =     9.30s Checking `Expect predicate `BLOCKPREDICATE(0x113eb3780)` for object Target Application 'invalid.example.questify.ios'`
+    t =     9.31s     Get number of matches for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     9.35s     Get all elements bound by index for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     9.39s     Checking existence of `"club.ops.writeCount" StaticText`
+    t =     9.42s     Find the "club.ops.writeCount" StaticText
+    t =     9.46s     Capturing element debug description
+    t =    10.28s Checking `Expect predicate `BLOCKPREDICATE(0x113eb3780)` for object Target Application 'invalid.example.questify.ios'`
+    t =    10.28s     Get number of matches for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =    10.33s     Get all elements bound by index for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =    10.37s     Checking existence of `"club.ops.writeCount" StaticText`
+    t =    10.40s     Find the "club.ops.writeCount" StaticText
+    t =    10.45s     Capturing element debug description
+    t =    10.45s Requesting snapshot of accessibility hierarchy for app with pid 16456
+    t =    10.64s Requesting snapshot of accessibility hierarchy for app with pid 16456
+<PILOT_WORKTREE>/Tests/AppUITests/ClubProfileScopeFlowTests.swift:98: error: -[QuestifyUITests.ClubProfileScopeFlowTests testCaptureCL02ProfileReviewWithoutSubmitting] : XCTAssertEqual failed: ("XCTWaiterResult(rawValue: 2)") is not equal to ("XCTWaiterResult(rawValue: 1)") - Optional(Attributes: Application, 0x1075f4dc0, pid: 16456, label: 'Questify'
+Element subtree:
+ →Application, 0x1075f4dc0, pid: 16456, label: 'Questify'
+    Window (Main), 0x1075f5180, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1075f52c0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1075f5400, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x1075f5540, {{-402.0, -874.0}, {1206.0, 2622.0}}
+          Other, 0x1075f5680, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1075f7e80, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x1075f7d40, {{0.0, 0.0}, {402.0, 874.0}}
+                NavigationBar, 0x1075f7200, {{0.0, 62.0}, {402.0, 106.0}}, identifier: 'Club workspace'
+                  StaticText, 0x1075f75c0, {{16.0, 119.7}, {254.7, 40.7}}, label: 'Club workspace'
+                Other, 0x1075f7700, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x1075f7840, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1075f6080, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x1075f61c0, {{0.0, 0.0}, {402.0, 874.0}}
+                        CollectionView, 0x1075f7980, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x1075f4a00, {{-16.0, -1580.0}, {434.0, 3848.3}}
+                          Other, 0x1075f4b40, {{0.0, 0.0}, {402.0, 874.0}}
+                            Other, 0x1075f4c80, {{0.0, 0.0}, {402.0, 102.0}}
+                          Other, 0x1075fcb40, {{0.0, 0.0}, {402.0, 874.0}}
+                          Cell, 0x1075fcc80, {{16.0, 168.0}, {370.0, 72.3}}
+                            Other, 0x1075fcdc0, {{16.0, 168.0}, {370.0, 72.3}}
+                              Other, 0x1075fcf00, {{16.0, 168.0}, {370.0, 72.3}}
+                            Other, 0x1075fd040, {{16.0, 168.0}, {370.0, 72.3}}
+                              Other, 0x1075fd180, {{16.0, 168.0}, {370.0, 72.3}}
+                                Other, 0x1075fd2c0, {{16.0, 168.0}, {370.0, 72.3}}
+                                  StaticText, 0x1075fd400, {{16.0, 168.0}, {370.0, 72.3}}, identifier: 'club.ops.fixtureNotice', label: 'Offline synthetic club operations. No real data or backend requests.', value: scenario=owner;cre...
+                          Cell, 0x1075fd540, {{16.0, 240.3}, {370.0, 52.0}}
+                            Other, 0x1075fd680, {{16.0, 240.3}, {370.0, 52.0}}
+                              Other, 0x1075fd7c0, {{16.0, 240.3}, {370.0, 52.0}}
+                            Other, 0x1075fd900, {{16.0, 240.3}, {370.0, 52.0}}
+                              Other, 0x1075fda40, {{16.0, 240.3}, {370.0, 52.0}}
+                                Other, 0x1075fdb80, {{16.0, 240.3}, {370.0, 52.0}}
+                                  Button, 0x1075fdcc0, {{16.0, 240.3}, {370.0, 52.0}}, identifier: 'club.ops.openCreate', label: 'Create club'
+                          Other, 0x1075fea80, {{32.0, 239.3}, {338.0, 1.0}}
+                          Cell, 0x1075febc0, {{16.0, 292.3}, {370.0, 52.0}}
+                            Other, 0x1075fde00, {{16.0, 292.3}, {370.0, 52.0}}
+                              Other, 0x1075fed00, {{16.0, 292.3}, {370.0, 52.0}}
+                            Other, 0x1075fee40, {{16.0, 292.3}, {370.0, 52.0}}
+                              Other, 0x1075fef80, {{16.0, 292.3}, {370.0, 52.0}}
+                                Other, 0x1075ff0c0, {{16.0, 292.3}, {370.0, 52.0}}
+                                  Button, 0x1075ff200, {{16.0, 292.3}, {370.0, 52.0}}, identifier: 'club.ops.openManage', label: 'Club workspace'
+                          Other, 0x1075ff340, {{32.0, 291.3}, {338.0, 1.0}}
+                          Cell, 0x1075ff480, {{16.0, 344.3}, {370.0, 52.0}}
+                            Other, 0x1075ff5c0, {{16.0, 344.3}, {370.0, 52.0}}
+                              Other, 0x1075ff700, {{16.0, 344.3}, {370.0, 52.0}}
+                            Other, 0x1075ff840, {{16.0, 344.3}, {370.0, 52.0}}
+                              Other, 0x1075ff980, {{16.0, 344.3}, {370.0, 52.0}}
+                                Other, 0x1075ffac0, {{16.0, 344.3}, {370.0, 52.0}}
+                                  Button, 0x1075ffc00, {{16.0, 344.3}, {370.0, 52.0}}, identifier: 'club.ops.switchAccount', label: 'Switch fixture account'
+                          Other, 0x1075ffd40, {{32.0, 343.3}, {338.0, 1.0}}
+                          Cell, 0x1075ffe80, {{16.0, 396.3}, {370.0, 52.0}}
+                            Other, 0x1075fca00, {{16.0, 396.3}, {370.0, 52.0}}
+                              Other, 0x1071cb700, {{16.0, 396.3}, {370.0, 52.0}}
+                            Other, 0x1071cb840, {{16.0, 396.3}, {370.0, 52.0}}
+                              Other, 0x1071cb980, {{16.0, 396.3}, {370.0, 52.0}}
+                                Other, 0x1071cbc00, {{16.0, 396.3}, {370.0, 52.0}}
+                                  Button, 0x1071cbd40, {{16.0, 396.3}, {370.0, 52.0}}, identifier: 'club.ops.signOut', label: 'Sign out fixture'
+                          Other, 0x1071cbe80, {{32.0, 395.3}, {338.0, 1.0}}
+                          Cell, 0x1071cbac0, {{16.0, 448.3}, {370.0, 52.0}}
+                            Other, 0x1071cb5c0, {{16.0, 448.3}, {370.0, 52.0}}
+                              Other, 0x1071d0000, {{16.0, 448.3}, {370.0, 52.0}}
+                            Other, 0x1071d0140, {{16.0, 448.3}, {370.0, 52.0}}
+                              Other, 0x1071d0280, {{16.0, 448.3}, {370.0, 52.0}}
+                                Other, 0x1071d03c0, {{16.0, 448.3}, {370.0, 52.0}}
+                                  StaticText, 0x1071d0500, {{16.0, 448.3}, {370.0, 52.0}}, identifier: 'club.ops.writeCount', label: '0', value: account=701;finish...
+                          Other, 0x1071d0640, {{32.0, 447.3}, {338.0, 1.0}}
+                          Other, 0x1071d0780, {{369.0, 116.0}, {30.0, 696.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                            Other, 0x1071d08c0, {{396.0, 438.7}, {3.0, 370.3}}
+                          Other, 0x1071d0a00, {{369.0, 116.0}, {30.0, 696.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                            Other, 0x1071d0b40, {{396.0, 438.7}, {3.0, 370.3}}
+                Toolbar, 0x1071d0c80, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                  Other, 0x1071d0dc0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1071d0f00, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1071d1040, {{-402.0, -874.0}, {1206.0, 2622.0}}
+        Other, 0x1071d1180, {{0.0, 62.0}, {402.0, 812.0}}
+          Other, 0x1071d12c0, {{0.0, 62.0}, {402.0, 812.0}}
+            Other, 0x1071d1400, {{0.0, 62.0}, {402.0, 812.0}}
+              Other, 0x1071d1540, {{0.0, 62.0}, {402.0, 812.0}}
+                Other, 0x1071d1680, {{0.0, 62.0}, {402.0, 812.0}}
+                  NavigationBar, 0x1071d17c0, {{0.0, 78.0}, {402.0, 106.0}}, identifier: 'Club workspace'
+                    Other, 0x1071d1900, {{20.0, 82.0}, {67.0, 36.0}}
+                      Other, 0x1071d1a40, {{20.0, 82.0}, {67.0, 36.0}}
+                        Button, 0x1071d1b80, {{20.0, 82.0}, {67.0, 36.0}}, identifier: 'club.ops.close', label: 'Close'
+                    StaticText, 0x1071d1cc0, {{16.0, 135.7}, {254.7, 40.7}}, label: 'Club workspace'
+                  Other, 0x1071d1e00, {{0.0, 62.0}, {402.0, 812.0}}
+                    Other, 0x1071d1f40, {{0.0, 62.0}, {402.0, 812.0}}
+                      Other, 0x1071d2080, {{0.0, 62.0}, {402.0, 812.0}}
+                        Other, 0x1071d21c0, {{0.0, 62.0}, {402.0, 812.0}}
+                          CollectionView, 0x1071d2300, {{0.0, 62.0}, {402.0, 812.0}}, identifier: 'club.ops.fixture.workspace'
+                            Other, 0x1071d2440, {{-16.0, -1440.0}, {434.0, 1968.0}}
+                            Other, 0x1071d2580, {{0.0, 62.0}, {402.0, 812.0}}
+                              Other, 0x1071d26c0, {{0.0, 62.0}, {402.0, 110.0}}
+                              Other, 0x1071d2800, {{0.0, 748.0}, {402.0, 126.0}}
+                            Other, 0x1071d2940, {{0.0, 62.0}, {402.0, 812.0}}
+                              Other, 0x1071d2a80, {{0.0, 748.0}, {402.0, 126.0}}
+                            Cell, 0x1071d2bc0, {{16.0, 184.0}, {370.0, 326.3}}
+                              Other, 0x1071d2d00, {{16.0, 184.0}, {370.0, 326.3}}
+                                Other, 0x1071d2e40, {{16.0, 184.0}, {370.0, 326.3}}
+                                  Other, 0x1071d2f80, {{16.0, 184.0}, {370.0, 326.3}}
+                                    Other, 0x1071d30c0, {{16.0, 184.0}, {370.0, 326.3}}
+                              Other, 0x1071d3200, {{16.0, 184.0}, {370.0, 326.3}}
+                                Other, 0x1071d3340, {{16.0, 184.0}, {370.0, 326.3}}
+                                  Other, 0x1071d3480, {{16.0, 184.0}, {370.0, 326.3}}
+                                    Image, 0x1071d35c0, {{16.0, 190.0}, {370.0, 314.3}}, identifier: 'person.3.fill', label: 'Three People, Filled'
+                                    Other, 0x1071d3700, {{16.0, 310.0}, {370.0, 72.0}}
+                                    StaticText, 0x1071d3840, {{36.0, 402.0}, {120.3, 26.3}}, label: 'Fixture club'
+                                    StaticText, 0x1071d3980, {{36.0, 438.3}, {75.7, 18.0}}, label: 'Fixture city'
+                                    StaticText, 0x1071d3ac0, {{36.0, 466.3}, {45.3, 18.0}}, label: 'Owner'
+                            Other, 0x1071d3c00, {{-16.0, 528.0}, {434.0, 391.3}}
+                            Cell, 0x1071d3d40, {{16.0, 528.0}, {370.0, 40.3}}
+                              Other, 0x1071d3e80, {{16.0, 528.0}, {370.0, 40.3}}
+                              Other, 0x111c9c000, {{16.0, 528.0}, {370.0, 40.3}}
+                                Other, 0x111c9c140, {{16.0, 528.0}, {370.0, 40.3}}
+                                  Other, 0x111c9c280, {{16.0, 528.0}, {370.0, 40.3}}
+                                    StaticText, 0x111c9c3c0, {{16.0, 528.0}, {370.0, 40.3}}, label: 'Club profile'
+                            Cell, 0x111c9c500, {{16.0, 568.3}, {370.0, 52.0}}
+                              Other, 0x111c9c640, {{16.0, 568.3}, {370.0, 52.0}}
+                                Other, 0x111c9c780, {{16.0, 568.3}, {370.0, 52.0}}
+                              Other, 0x111c9c8c0, {{16.0, 568.3}, {370.0, 52.0}}
+                                Other, 0x111c9ca00, {{16.0, 568.3}, {370.0, 52.0}}
+                                  Other, 0x111c9cb40, {{16.0, 568.3}, {370.0, 52.0}}
+                                    TextField, 0x111c9cc80, {{32.0, 583.3}, {338.0, 22.0}}, identifier: 'club.ops.field.name', label: 'Name (up to 30 characters)', placeholderValue: 'Name (up to 30 characters)', value: Fixture club
+                            Cell, 0x111c9cdc0, {{16.0, 620.3}, {370.0, 52.0}}
+                              Other, 0x111c9cf00, {{16.0, 620.3}, {370.0, 52.0}}
+                                Other, 0x111c9d040, {{16.0, 620.3}, {370.0, 52.0}}
+                              Other, 0x111c9d180, {{16.0, 620.3}, {370.0, 52.0}}
+                                Other, 0x111c9d2c0, {{16.0, 620.3}, {370.0, 52.0}}
+                                  Other, 0x111c9d400, {{16.0, 620.3}, {370.0, 52.0}}
+                                    TextField, 0x111c9d540, {{32.0, 635.3}, {338.0, 22.0}}, identifier: 'club.ops.field.city', label: 'City (up to 20 characters)', placeholderValue: 'City (up to 20 characters)', value: Fixture city
+                            Other, 0x111c9d680, {{32.0, 619.3}, {338.0, 1.0}}
+                            Cell, 0x111c9d7c0, {{16.0, 672.3}, {370.0, 73.3}}
+                              Other, 0x111c9d900, {{16.0, 672.3}, {370.0, 73.3}}
+                                Other, 0x111c9da40, {{16.0, 672.3}, {370.0, 73.3}}
+                              Other, 0x111c9db80, {{16.0, 672.3}, {370.0, 73.3}}
+                                Other, 0x111c9dcc0, {{16.0, 672.3}, {370.0, 73.3}}
+                                  Other, 0x111c9de00, {{16.0, 672.3}, {370.0, 73.3}}
+                                    Button, 0x111c9df40, {{16.0, 672.3}, {370.0, 73.3}}, identifier: 'club.profileChoice.open.type', label: 'Choose club category, Interest community'
+                                      StaticText, 0x111c9e080, {{32.0, 687.3}, {167.0, 20.3}}, label: 'Choose club category'
+                                      StaticText, 0x111c9e1c0, {{32.0, 712.7}, {132.3, 18.0}}, label: 'Interest community'
+                            Other, 0x111c9e300, {{32.0, 671.3}, {338.0, 1.0}}
+                            Cell, 0x111c9e440, {{16.0, 745.7}, {370.0, 52.0}}
+                              Other, 0x111c9e580, {{16.0, 745.7}, {370.0, 52.0}}
+                                Other, 0x111c9e6c0, {{16.0, 745.7}, {370.0, 52.0}}
+                              Other, 0x111c9e800, {{16.0, 745.7}, {370.0, 52.0}}
+                                Other, 0x111c9e940, {{16.0, 745.7}, {370.0, 52.0}}
+                                  Other, 0x111c9ea80, {{16.0, 745.7}, {370.0, 52.0}}
+                                    TextField, 0x111c9ebc0, {{32.0, 760.7}, {338.0, 22.0}}, identifier: 'club.ops.field.description', label: 'Introduction (up to 200 characters)', value: Synthetic club pro...
+                                      Other, 0x111c9ed00, {{32.0, 768.7}, {338.0, 11.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                                        Other, 0x111c9ee40, {{35.0, 776.7}, {332.0, 3.0}}
+                            Other, 0x111c9ef80, {{32.0, 744.7}, {338.0, 1.0}}
+                            Cell, 0x111c9f0c0, {{16.0, 797.7}, {370.0, 52.0}}
+                              Other, 0x111c9f200, {{16.0, 797.7}, {370.0, 52.0}}
+                                Other, 0x111c9f340, {{16.0, 797.7}, {370.0, 52.0}}
+                              Other, 0x111c9f480, {{16.0, 797.7}, {370.0, 52.0}}
+                                Other, 0x111c9f5c0, {{16.0, 797.7}, {370.0, 52.0}}
+                                  Other, 0x111c9f700, {{16.0, 797.7}, {370.0, 52.0}}
+                                    TextField, 0x111c9f840, {{32.0, 812.7}, {338.0, 22.0}}, identifier: 'club.ops.field.keywords', label: 'Keywords (up to 60 characters)', placeholderValue: 'Keywords (up to 60 characters)'
+                            Other, 0x111c9f980, {{32.0, 796.7}, {338.0, 1.0}}
+                            Cell, 0x111c9fac0, {{16.0, 849.7}, {370.0, 52.0}}
+                              Other, 0x111c9fc00, {{16.0, 849.7}, {370.0, 52.0}}
+                                Other, 0x111c9fd40, {{16.0, 849.7}, {370.0, 52.0}}
+                              Other, 0x111c9fe80, {{16.0, 849.7}, {370.0, 52.0}}
+                                Other, 0x111ca4000, {{16.0, 849.7}, {370.0, 52.0}}
+                                  Other, 0x111ca4140, {{16.0, 849.7}, {370.0, 52.0}}
+                                    TextField, 0x111ca4280, {{32.0, 864.7}, {338.0, 22.0}}, identifier: 'club.ops.field.style', label: 'Style (up to 30 characters)', placeholderValue: 'Style (up to 30 characters)', value: Explore together
+                            Other, 0x111ca43c0, {{32.0, 848.7}, {338.0, 1.0}}
+                            Other, 0x111ca4500, {{369.0, 132.0}, {30.0, 680.0}}, label: 'Vertical scroll bar, 3 pages', value: 0%
+                              Other, 0x111ca4640, {{396.0, 739.0}, {3.0, 74.3}}
+                            Other, 0x111ca4780, {{369.0, 132.0}, {30.0, 680.0}}, label: 'Vertical scroll bar, 3 pages', value: 0%
+                              Other, 0x111ca48c0, {{396.0, 739.0}, {3.0, 74.3}}
+                  Toolbar, 0x111ca4a00, {{0.0, 62.0}, {402.0, 812.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                    Other, 0x111ca4b40, {{0.0, 62.0}, {402.0, 812.0}}
+                      Other, 0x111ca4c80, {{0.0, 62.0}, {402.0, 812.0}}
+                        Other, 0x111ca4dc0, {{0.0, 62.0}, {402.0, 812.0}}
+                          Other, 0x111ca4f00, {{0.0, 62.0}, {0.0, 0.0}}
+                            Other, 0x111ca5040, {{73.3, 798.0}, {195.7, 48.0}}
+                              Other, 0x111ca5180, {{73.3, 798.0}, {195.7, 48.0}}
+                                Other, 0x111ca52c0, {{78.3, 804.0}, {185.7, 36.0}}
+                                  Other, 0x111ca5400, {{78.3, 804.0}, {185.7, 36.0}}
+                                    Other, 0x111ca5540, {{78.3, 804.0}, {185.7, 36.0}}
+                                      Other, 0x111ca5680, {{78.3, 804.0}, {185.7, 36.0}}
+                                        Button, 0x111ca57c0, {{78.3, 804.0}, {185.7, 36.0}}, identifier: 'club.ops.switchAccount', label: 'Switch fixture account'
+                            Other, 0x111ca5900, {{281.0, 798.0}, {48.0, 48.0}}
+                              Other, 0x111ca5a40, {{281.0, 798.0}, {48.0, 48.0}}
+                                Other, 0x111ca5b80, {{286.0, 803.0}, {38.0, 38.0}}
+                                  Other, 0x111ca5cc0, {{286.0, 803.0}, {38.0, 38.0}}
+                                    Button, 0x111ca5e00, {{286.0, 803.0}, {38.0, 38.0}}, identifier: 'ToolbarOverflowBarButtonItem', label: 'More'
+Path to element:
+ →Application, 0x1075f4dc0, pid: 16456, label: 'Questify'
+Query chain:
+ →Find: Target Application 'invalid.example.questify.ios'
+  Output: {
+    Application, 0x111ca5f40, pid: 16456, label: 'Questify'
+  }
+)
+    t =    10.68s Tear Down
+    t =    10.68s     Find the Target Application 'invalid.example.questify.ios'
+    t =    10.78s     Added attachment named 'Failure state – -[ClubProfileScopeFlowTests testCaptureCL02ProfileReviewWithoutSubmitting]'
+    t =    10.78s     Requesting snapshot of accessibility hierarchy for app with pid 16456
+    t =    10.96s     Requesting snapshot of accessibility hierarchy for app with pid 16456
+    t =    11.00s     Added attachment named 'Club operations failure accessibility hierarchy'
+    t =    11.00s     Terminate invalid.example.questify.ios:16456
+Test Case '-[QuestifyUITests.ClubProfileScopeFlowTests testCaptureCL02ProfileReviewWithoutSubmitting]' failed (12.115 seconds).
+Test Case '-[QuestifyUITests.ClubProfileScopeFlowTests testCaptureCL02TypeChoiceSheetWithoutApplying]' started.
+    t =     0.00s Start Test at 2026-11-04 12:59:53.840
+    t =     0.03s Set Up
+    t =     0.03s Open invalid.example.questify.ios
+    t =     0.03s     Launch invalid.example.questify.ios
+    t =     0.24s         Setting up automation session
+    t =     2.05s         Wait for invalid.example.questify.ios to idle
+    t =     3.68s Waiting 10.0s for "club.ops.fixtureNotice" Any to exist
+    t =     4.70s     Checking `Expect predicate `existsNoRetry == 1` for object "club.ops.fixtureNotice" Any`
+    t =     4.70s         Checking existence of `"club.ops.fixtureNotice" Any`
+    t =     4.81s Get all elements bound by index for: Elements matching predicate '"club.ops.openManage" IN identifiers'
+    t =     4.84s Checking existence of `"club.ops.openManage" Any`
+    t =     4.86s Find the "club.ops.openManage" Any
+    t =     4.90s Get all elements bound by index for: Elements matching predicate '"club.ops.openManage" IN identifiers'
+    t =     4.91s Checking existence of `"club.ops.openManage" Button`
+    t =     4.93s Find the "club.ops.openManage" Button
+    t =     4.94s Find the "club.ops.openManage" Button
+    t =     4.96s Tap "club.ops.openManage" Button
+    t =     4.96s     Wait for invalid.example.questify.ios to idle
+    t =     4.96s     Find the "club.ops.openManage" Button
+    t =     4.97s     Check for interrupting elements affecting "club.ops.openManage" Button
+    t =     4.99s     Synthesize event
+    t =     5.27s     Wait for invalid.example.questify.ios to idle
+    t =     6.49s Checking `Expect predicate `BLOCKPREDICATE(0x113eb1020)` for object Target Application 'invalid.example.questify.ios'`
+    t =     6.49s     Get number of matches for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     6.58s     Get all elements bound by index for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     6.61s     Checking existence of `"club.ops.writeCount" StaticText`
+    t =     6.64s     Find the "club.ops.writeCount" StaticText
+    t =     6.68s     Capturing element debug description
+    t =     7.52s Checking `Expect predicate `BLOCKPREDICATE(0x113eb1020)` for object Target Application 'invalid.example.questify.ios'`
+    t =     7.52s     Get number of matches for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     7.58s     Get all elements bound by index for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     7.61s     Checking existence of `"club.ops.writeCount" StaticText`
+    t =     7.64s     Find the "club.ops.writeCount" StaticText
+    t =     7.69s     Capturing element debug description
+    t =     8.52s Checking `Expect predicate `BLOCKPREDICATE(0x113eb1020)` for object Target Application 'invalid.example.questify.ios'`
+    t =     8.52s     Get number of matches for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     8.58s     Get all elements bound by index for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     8.62s     Checking existence of `"club.ops.writeCount" StaticText`
+    t =     8.65s     Find the "club.ops.writeCount" StaticText
+    t =     8.69s     Capturing element debug description
+    t =     9.52s Checking `Expect predicate `BLOCKPREDICATE(0x113eb1020)` for object Target Application 'invalid.example.questify.ios'`
+    t =     9.52s     Get number of matches for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     9.58s     Get all elements bound by index for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     9.62s     Checking existence of `"club.ops.writeCount" StaticText`
+    t =     9.65s     Find the "club.ops.writeCount" StaticText
+    t =     9.69s     Capturing element debug description
+    t =    10.46s Checking `Expect predicate `BLOCKPREDICATE(0x113eb1020)` for object Target Application 'invalid.example.questify.ios'`
+    t =    10.46s     Get number of matches for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =    10.53s     Get all elements bound by index for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =    10.56s     Checking existence of `"club.ops.writeCount" StaticText`
+    t =    10.59s     Find the "club.ops.writeCount" StaticText
+    t =    10.63s     Capturing element debug description
+    t =    10.63s Requesting snapshot of accessibility hierarchy for app with pid 16473
+    t =    10.84s Requesting snapshot of accessibility hierarchy for app with pid 16473
+<PILOT_WORKTREE>/Tests/AppUITests/ClubProfileScopeFlowTests.swift:98: error: -[QuestifyUITests.ClubProfileScopeFlowTests testCaptureCL02TypeChoiceSheetWithoutApplying] : XCTAssertEqual failed: ("XCTWaiterResult(rawValue: 2)") is not equal to ("XCTWaiterResult(rawValue: 1)") - Optional(Attributes: Application, 0x111c9ea80, pid: 16473, label: 'Questify'
+Element subtree:
+ →Application, 0x111c9ea80, pid: 16473, label: 'Questify'
+    Window (Main), 0x111c9ebc0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x111c9e580, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x111c9ee40, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x111c9ef80, {{-402.0, -874.0}, {1206.0, 2622.0}}
+          Other, 0x111c9f0c0, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x111c9f200, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x111c9f840, {{0.0, 0.0}, {402.0, 874.0}}
+                NavigationBar, 0x111c9fc00, {{0.0, 62.0}, {402.0, 106.0}}, identifier: 'Club workspace'
+                  StaticText, 0x111c9fd40, {{16.0, 119.7}, {254.7, 40.7}}, label: 'Club workspace'
+                Other, 0x111c9fe80, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x111c9fac0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x111c9f700, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x111c9f480, {{0.0, 0.0}, {402.0, 874.0}}
+                        CollectionView, 0x111c9f5c0, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x111c9f340, {{-16.0, -1580.0}, {434.0, 3848.3}}
+                          Other, 0x1075fdf40, {{0.0, 0.0}, {402.0, 874.0}}
+                            Other, 0x1075fc8c0, {{0.0, 0.0}, {402.0, 102.0}}
+                          Other, 0x1075fc000, {{0.0, 0.0}, {402.0, 874.0}}
+                          Cell, 0x1075fc140, {{16.0, 168.0}, {370.0, 72.3}}
+                            Other, 0x1075fc280, {{16.0, 168.0}, {370.0, 72.3}}
+                              Other, 0x1075fc3c0, {{16.0, 168.0}, {370.0, 72.3}}
+                            Other, 0x1075fc500, {{16.0, 168.0}, {370.0, 72.3}}
+                              Other, 0x1075fc640, {{16.0, 168.0}, {370.0, 72.3}}
+                                Other, 0x1075fc780, {{16.0, 168.0}, {370.0, 72.3}}
+                                  StaticText, 0x111db4000, {{16.0, 168.0}, {370.0, 72.3}}, identifier: 'club.ops.fixtureNotice', label: 'Offline synthetic club operations. No real data or backend requests.', value: scenario=owner;cre...
+                          Cell, 0x111db4140, {{16.0, 240.3}, {370.0, 52.0}}
+                            Other, 0x111db4280, {{16.0, 240.3}, {370.0, 52.0}}
+                              Other, 0x111db43c0, {{16.0, 240.3}, {370.0, 52.0}}
+                            Other, 0x111db4500, {{16.0, 240.3}, {370.0, 52.0}}
+                              Other, 0x111db4640, {{16.0, 240.3}, {370.0, 52.0}}
+                                Other, 0x111db4780, {{16.0, 240.3}, {370.0, 52.0}}
+                                  Button, 0x111db48c0, {{16.0, 240.3}, {370.0, 52.0}}, identifier: 'club.ops.openCreate', label: 'Create club'
+                          Other, 0x111db4a00, {{32.0, 239.3}, {338.0, 1.0}}
+                          Cell, 0x111db4b40, {{16.0, 292.3}, {370.0, 52.0}}
+                            Other, 0x111db4c80, {{16.0, 292.3}, {370.0, 52.0}}
+                              Other, 0x111db4dc0, {{16.0, 292.3}, {370.0, 52.0}}
+                            Other, 0x111db4f00, {{16.0, 292.3}, {370.0, 52.0}}
+                              Other, 0x111db5040, {{16.0, 292.3}, {370.0, 52.0}}
+                                Other, 0x111db5180, {{16.0, 292.3}, {370.0, 52.0}}
+                                  Button, 0x111db52c0, {{16.0, 292.3}, {370.0, 52.0}}, identifier: 'club.ops.openManage', label: 'Club workspace'
+                          Other, 0x111db5400, {{32.0, 291.3}, {338.0, 1.0}}
+                          Cell, 0x111db5540, {{16.0, 344.3}, {370.0, 52.0}}
+                            Other, 0x111db5680, {{16.0, 344.3}, {370.0, 52.0}}
+                              Other, 0x111db57c0, {{16.0, 344.3}, {370.0, 52.0}}
+                            Other, 0x111db5900, {{16.0, 344.3}, {370.0, 52.0}}
+                              Other, 0x111db5a40, {{16.0, 344.3}, {370.0, 52.0}}
+                                Other, 0x111db5b80, {{16.0, 344.3}, {370.0, 52.0}}
+                                  Button, 0x111db5cc0, {{16.0, 344.3}, {370.0, 52.0}}, identifier: 'club.ops.switchAccount', label: 'Switch fixture account'
+                          Other, 0x111db5e00, {{32.0, 343.3}, {338.0, 1.0}}
+                          Cell, 0x111db5f40, {{16.0, 396.3}, {370.0, 52.0}}
+                            Other, 0x111db6080, {{16.0, 396.3}, {370.0, 52.0}}
+                              Other, 0x111db61c0, {{16.0, 396.3}, {370.0, 52.0}}
+                            Other, 0x111db6300, {{16.0, 396.3}, {370.0, 52.0}}
+                              Other, 0x111db6440, {{16.0, 396.3}, {370.0, 52.0}}
+                                Other, 0x111db6580, {{16.0, 396.3}, {370.0, 52.0}}
+                                  Button, 0x111db66c0, {{16.0, 396.3}, {370.0, 52.0}}, identifier: 'club.ops.signOut', label: 'Sign out fixture'
+                          Other, 0x111db6800, {{32.0, 395.3}, {338.0, 1.0}}
+                          Cell, 0x111db6940, {{16.0, 448.3}, {370.0, 52.0}}
+                            Other, 0x111db6a80, {{16.0, 448.3}, {370.0, 52.0}}
+                              Other, 0x111db6bc0, {{16.0, 448.3}, {370.0, 52.0}}
+                            Other, 0x111db6d00, {{16.0, 448.3}, {370.0, 52.0}}
+                              Other, 0x111db6e40, {{16.0, 448.3}, {370.0, 52.0}}
+                                Other, 0x111db6f80, {{16.0, 448.3}, {370.0, 52.0}}
+                                  StaticText, 0x111db70c0, {{16.0, 448.3}, {370.0, 52.0}}, identifier: 'club.ops.writeCount', label: '0', value: account=701;finish...
+                          Other, 0x111db7200, {{32.0, 447.3}, {338.0, 1.0}}
+                          Other, 0x111db7340, {{369.0, 116.0}, {30.0, 696.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                            Other, 0x111db7480, {{396.0, 438.7}, {3.0, 370.3}}
+                          Other, 0x111db75c0, {{369.0, 116.0}, {30.0, 696.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                            Other, 0x111db7700, {{396.0, 438.7}, {3.0, 370.3}}
+                Toolbar, 0x111db7840, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                  Other, 0x111db7980, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x111db7ac0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x111db7c00, {{-402.0, -874.0}, {1206.0, 2622.0}}
+        Other, 0x111db7d40, {{0.0, 62.0}, {402.0, 812.0}}
+          Other, 0x111db7e80, {{0.0, 62.0}, {402.0, 812.0}}
+            Other, 0x111db8000, {{0.0, 62.0}, {402.0, 812.0}}
+              Other, 0x111db8140, {{0.0, 62.0}, {402.0, 812.0}}
+                Other, 0x111db8280, {{0.0, 62.0}, {402.0, 812.0}}
+                  NavigationBar, 0x111db83c0, {{0.0, 78.0}, {402.0, 106.0}}, identifier: 'Club workspace'
+                    Other, 0x111db8500, {{20.0, 82.0}, {67.0, 36.0}}
+                      Other, 0x111db8640, {{20.0, 82.0}, {67.0, 36.0}}
+                        Button, 0x111db8780, {{20.0, 82.0}, {67.0, 36.0}}, identifier: 'club.ops.close', label: 'Close'
+                    StaticText, 0x111db88c0, {{16.0, 135.7}, {254.7, 40.7}}, label: 'Club workspace'
+                  Other, 0x111db8a00, {{0.0, 62.0}, {402.0, 812.0}}
+                    Other, 0x111db8b40, {{0.0, 62.0}, {402.0, 812.0}}
+                      Other, 0x111db8c80, {{0.0, 62.0}, {402.0, 812.0}}
+                        Other, 0x111db8dc0, {{0.0, 62.0}, {402.0, 812.0}}
+                          CollectionView, 0x111db8f00, {{0.0, 62.0}, {402.0, 812.0}}, identifier: 'club.ops.fixture.workspace'
+                            Other, 0x111db9040, {{-16.0, -1440.0}, {434.0, 1968.0}}
+                            Other, 0x111db9180, {{0.0, 62.0}, {402.0, 812.0}}
+                              Other, 0x111db92c0, {{0.0, 62.0}, {402.0, 110.0}}
+                              Other, 0x111db9400, {{0.0, 748.0}, {402.0, 126.0}}
+                            Other, 0x111db9540, {{0.0, 62.0}, {402.0, 812.0}}
+                              Other, 0x111db9680, {{0.0, 748.0}, {402.0, 126.0}}
+                            Cell, 0x111db97c0, {{16.0, 184.0}, {370.0, 326.3}}
+                              Other, 0x111db9900, {{16.0, 184.0}, {370.0, 326.3}}
+                                Other, 0x111db9a40, {{16.0, 184.0}, {370.0, 326.3}}
+                                  Other, 0x111db9b80, {{16.0, 184.0}, {370.0, 326.3}}
+                                    Other, 0x111db9cc0, {{16.0, 184.0}, {370.0, 326.3}}
+                              Other, 0x111db9e00, {{16.0, 184.0}, {370.0, 326.3}}
+                                Other, 0x111db9f40, {{16.0, 184.0}, {370.0, 326.3}}
+                                  Other, 0x111dba080, {{16.0, 184.0}, {370.0, 326.3}}
+                                    Image, 0x111dba1c0, {{16.0, 190.0}, {370.0, 314.3}}, identifier: 'person.3.fill', label: 'Three People, Filled'
+                                    Other, 0x111dba300, {{16.0, 310.0}, {370.0, 72.0}}
+                                    StaticText, 0x111dba440, {{36.0, 402.0}, {120.3, 26.3}}, label: 'Fixture club'
+                                    StaticText, 0x111dba580, {{36.0, 438.3}, {75.7, 18.0}}, label: 'Fixture city'
+                                    StaticText, 0x111dba6c0, {{36.0, 466.3}, {45.3, 18.0}}, label: 'Owner'
+                            Other, 0x111dba800, {{-16.0, 528.0}, {434.0, 391.3}}
+                            Cell, 0x111dba940, {{16.0, 528.0}, {370.0, 40.3}}
+                              Other, 0x111dbaa80, {{16.0, 528.0}, {370.0, 40.3}}
+                              Other, 0x111dbabc0, {{16.0, 528.0}, {370.0, 40.3}}
+                                Other, 0x111dbad00, {{16.0, 528.0}, {370.0, 40.3}}
+                                  Other, 0x111dbae40, {{16.0, 528.0}, {370.0, 40.3}}
+                                    StaticText, 0x111dbaf80, {{16.0, 528.0}, {370.0, 40.3}}, label: 'Club profile'
+                            Cell, 0x111dbb0c0, {{16.0, 568.3}, {370.0, 52.0}}
+                              Other, 0x111dbb200, {{16.0, 568.3}, {370.0, 52.0}}
+                                Other, 0x111dbb340, {{16.0, 568.3}, {370.0, 52.0}}
+                              Other, 0x111dbb480, {{16.0, 568.3}, {370.0, 52.0}}
+                                Other, 0x111dbb5c0, {{16.0, 568.3}, {370.0, 52.0}}
+                                  Other, 0x111dbb700, {{16.0, 568.3}, {370.0, 52.0}}
+                                    TextField, 0x111dbb840, {{32.0, 583.3}, {338.0, 22.0}}, identifier: 'club.ops.field.name', label: 'Name (up to 30 characters)', placeholderValue: 'Name (up to 30 characters)', value: Fixture club
+                            Cell, 0x111dbb980, {{16.0, 620.3}, {370.0, 52.0}}
+                              Other, 0x111dbbac0, {{16.0, 620.3}, {370.0, 52.0}}
+                                Other, 0x111dbbc00, {{16.0, 620.3}, {370.0, 52.0}}
+                              Other, 0x111dbbd40, {{16.0, 620.3}, {370.0, 52.0}}
+                                Other, 0x111dbbe80, {{16.0, 620.3}, {370.0, 52.0}}
+                                  Other, 0x111dbc000, {{16.0, 620.3}, {370.0, 52.0}}
+                                    TextField, 0x111dbc140, {{32.0, 635.3}, {338.0, 22.0}}, identifier: 'club.ops.field.city', label: 'City (up to 20 characters)', placeholderValue: 'City (up to 20 characters)', value: Fixture city
+                            Other, 0x111dbc280, {{32.0, 619.3}, {338.0, 1.0}}
+                            Cell, 0x111dbc3c0, {{16.0, 672.3}, {370.0, 73.3}}
+                              Other, 0x111dbc500, {{16.0, 672.3}, {370.0, 73.3}}
+                                Other, 0x111dbc640, {{16.0, 672.3}, {370.0, 73.3}}
+                              Other, 0x111dbc780, {{16.0, 672.3}, {370.0, 73.3}}
+                                Other, 0x111dbc8c0, {{16.0, 672.3}, {370.0, 73.3}}
+                                  Other, 0x111dbca00, {{16.0, 672.3}, {370.0, 73.3}}
+                                    Button, 0x111dbcb40, {{16.0, 672.3}, {370.0, 73.3}}, identifier: 'club.profileChoice.open.type', label: 'Choose club category, Interest community'
+                                      StaticText, 0x111dbcc80, {{32.0, 687.3}, {167.0, 20.3}}, label: 'Choose club category'
+                                      StaticText, 0x111dbcdc0, {{32.0, 712.7}, {132.3, 18.0}}, label: 'Interest community'
+                            Other, 0x111dbcf00, {{32.0, 671.3}, {338.0, 1.0}}
+                            Cell, 0x111dbd040, {{16.0, 745.7}, {370.0, 52.0}}
+                              Other, 0x111dbd180, {{16.0, 745.7}, {370.0, 52.0}}
+                                Other, 0x111dbd2c0, {{16.0, 745.7}, {370.0, 52.0}}
+                              Other, 0x111dbd400, {{16.0, 745.7}, {370.0, 52.0}}
+                                Other, 0x111dbd540, {{16.0, 745.7}, {370.0, 52.0}}
+                                  Other, 0x111dbd680, {{16.0, 745.7}, {370.0, 52.0}}
+                                    TextField, 0x111dbd7c0, {{32.0, 760.7}, {338.0, 22.0}}, identifier: 'club.ops.field.description', label: 'Introduction (up to 200 characters)', value: Synthetic club pro...
+                                      Other, 0x111dbd900, {{32.0, 768.7}, {338.0, 11.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                                        Other, 0x111dbda40, {{35.0, 776.7}, {332.0, 3.0}}
+                            Other, 0x111dbdb80, {{32.0, 744.7}, {338.0, 1.0}}
+                            Cell, 0x111dbdcc0, {{16.0, 797.7}, {370.0, 52.0}}
+                              Other, 0x111dbde00, {{16.0, 797.7}, {370.0, 52.0}}
+                                Other, 0x111dbdf40, {{16.0, 797.7}, {370.0, 52.0}}
+                              Other, 0x111dbe080, {{16.0, 797.7}, {370.0, 52.0}}
+                                Other, 0x111dbe1c0, {{16.0, 797.7}, {370.0, 52.0}}
+                                  Other, 0x111dbe300, {{16.0, 797.7}, {370.0, 52.0}}
+                                    TextField, 0x111dbe440, {{32.0, 812.7}, {338.0, 22.0}}, identifier: 'club.ops.field.keywords', label: 'Keywords (up to 60 characters)', placeholderValue: 'Keywords (up to 60 characters)'
+                            Other, 0x111dbe580, {{32.0, 796.7}, {338.0, 1.0}}
+                            Cell, 0x111dbe6c0, {{16.0, 849.7}, {370.0, 52.0}}
+                              Other, 0x111dbe800, {{16.0, 849.7}, {370.0, 52.0}}
+                                Other, 0x111dbe940, {{16.0, 849.7}, {370.0, 52.0}}
+                              Other, 0x111dbea80, {{16.0, 849.7}, {370.0, 52.0}}
+                                Other, 0x111dbebc0, {{16.0, 849.7}, {370.0, 52.0}}
+                                  Other, 0x111dbed00, {{16.0, 849.7}, {370.0, 52.0}}
+                                    TextField, 0x111dbee40, {{32.0, 864.7}, {338.0, 22.0}}, identifier: 'club.ops.field.style', label: 'Style (up to 30 characters)', placeholderValue: 'Style (up to 30 characters)', value: Explore together
+                            Other, 0x111dbef80, {{32.0, 848.7}, {338.0, 1.0}}
+                            Other, 0x111dbf0c0, {{369.0, 132.0}, {30.0, 680.0}}, label: 'Vertical scroll bar, 3 pages', value: 0%
+                              Other, 0x111dbf200, {{396.0, 739.0}, {3.0, 74.3}}
+                            Other, 0x111dbf340, {{369.0, 132.0}, {30.0, 680.0}}, label: 'Vertical scroll bar, 3 pages', value: 0%
+                              Other, 0x111dbf480, {{396.0, 739.0}, {3.0, 74.3}}
+                  Toolbar, 0x111dbf5c0, {{0.0, 62.0}, {402.0, 812.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                    Other, 0x111dbf700, {{0.0, 62.0}, {402.0, 812.0}}
+                      Other, 0x111dbf840, {{0.0, 62.0}, {402.0, 812.0}}
+                        Other, 0x111dbf980, {{0.0, 62.0}, {402.0, 812.0}}
+                          Other, 0x111dbfac0, {{0.0, 62.0}, {0.0, 0.0}}
+                            Other, 0x111dbfc00, {{73.3, 798.0}, {195.7, 48.0}}
+                              Other, 0x111dbfd40, {{73.3, 798.0}, {195.7, 48.0}}
+                                Other, 0x111dbfe80, {{78.3, 804.0}, {185.7, 36.0}}
+                                  Other, 0x111dc0000, {{78.3, 804.0}, {185.7, 36.0}}
+                                    Other, 0x111dc0140, {{78.3, 804.0}, {185.7, 36.0}}
+                                      Other, 0x111dc0280, {{78.3, 804.0}, {185.7, 36.0}}
+                                        Button, 0x111dc03c0, {{78.3, 804.0}, {185.7, 36.0}}, identifier: 'club.ops.switchAccount', label: 'Switch fixture account'
+                            Other, 0x111dc0500, {{281.0, 798.0}, {48.0, 48.0}}
+                              Other, 0x111dc0640, {{281.0, 798.0}, {48.0, 48.0}}
+                                Other, 0x111dc0780, {{286.0, 803.0}, {38.0, 38.0}}
+                                  Other, 0x111dc08c0, {{286.0, 803.0}, {38.0, 38.0}}
+                                    Button, 0x111dc0a00, {{286.0, 803.0}, {38.0, 38.0}}, identifier: 'ToolbarOverflowBarButtonItem', label: 'More'
+Path to element:
+ →Application, 0x111c9ea80, pid: 16473, label: 'Questify'
+Query chain:
+ →Find: Target Application 'invalid.example.questify.ios'
+  Output: {
+    Application, 0x111dc0b40, pid: 16473, label: 'Questify'
+  }
+)
+    t =    10.89s Tear Down
+    t =    10.89s     Find the Target Application 'invalid.example.questify.ios'
+    t =    10.99s     Added attachment named 'Failure state – -[ClubProfileScopeFlowTests testCaptureCL02TypeChoiceSheetWithoutApplying]'
+    t =    10.99s     Requesting snapshot of accessibility hierarchy for app with pid 16473
+    t =    11.26s     Requesting snapshot of accessibility hierarchy for app with pid 16473
+    t =    11.30s     Added attachment named 'Club operations failure accessibility hierarchy'
+    t =    11.30s     Terminate invalid.example.questify.ios:16473
+Test Case '-[QuestifyUITests.ClubProfileScopeFlowTests testCaptureCL02TypeChoiceSheetWithoutApplying]' failed (12.386 seconds).
+Test Suite 'ClubProfileScopeFlowTests' failed at 2026-11-04 13:00:06.226.
+	 Executed 3 tests, with 3 failures (0 unexpected) in 37.213 (37.219) seconds
+Test Suite 'MerchantRegistrationAvailabilityFlowTests' started at 2026-11-04 13:00:06.227.
+Test Case '-[QuestifyUITests.MerchantRegistrationAvailabilityFlowTests testCancelAndRestorePreserveOriginalUnrecognizedSource]' started.
+    t =     0.00s Start Test at 2026-11-04 13:00:06.228
+    t =     0.02s Set Up
+    t =     0.02s Open invalid.example.questify.ios
+    t =     0.02s     Launch invalid.example.questify.ios
+    t =     0.23s         Setting up automation session
+    t =     2.03s         Wait for invalid.example.questify.ios to idle
+    t =     3.66s Find the Target Application 'invalid.example.questify.ios'
+    t =     3.78s Checking existence of `"merchant.content.entry.registrations" Button`
+    t =     3.80s Requesting snapshot of accessibility hierarchy for app with pid 16543
+    t =     3.85s Requesting snapshot of accessibility hierarchy for app with pid 16543
+<PILOT_WORKTREE>/Tests/AppUITests/MerchantRegistrationAvailabilityFlowTests.swift:34: error: -[QuestifyUITests.MerchantRegistrationAvailabilityFlowTests testCancelAndRestorePreserveOriginalUnrecognizedSource] : XCTAssertTrue failed - Could not reveal merchant.content.entry.registrations: Attributes: Application, 0x107618a00, pid: 16543, label: 'Questify'
+Element subtree:
+ →Application, 0x107618a00, pid: 16543, label: 'Questify'
+    Window (Main), 0x107618c80, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x10761bac0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10761b700, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x10761b840, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x10761b480, {{0.0, 0.0}, {402.0, 874.0}}
+              Button, 0x10761b5c0, {{89.3, 70.0}, {112.0, 14.3}}, identifier: 'merchant.content.fixture.signOut', label: 'Switch test account'
+              Button, 0x107618780, {{209.3, 70.0}, {103.7, 14.3}}, identifier: 'merchant.content.fixture.recover', label: 'Restore test reads'
+              Other, 0x1076188c0, {{0.0, 92.3}, {402.0, 720.0}}
+                NavigationBar, 0x107618280, {{0.0, 102.3}, {402.0, 106.0}}, identifier: 'Projects & local content'
+                  StaticText, 0x107618640, {{16.0, 160.0}, {370.0, 40.7}}, label: 'Projects & local content'
+                Other, 0x10761b340, {{0.0, 92.3}, {402.0, 720.0}}
+                  Other, 0x10761a800, {{0.0, 92.3}, {402.0, 720.0}}
+                    Other, 0x10761a440, {{0.0, 92.3}, {402.0, 720.0}}
+                      Other, 0x107618dc0, {{0.0, 92.3}, {402.0, 720.0}}
+                        ScrollView, 0x107619180, {{0.0, 92.3}, {402.0, 720.0}}
+                          Other, 0x107619e00, {{0.0, 208.3}, {402.0, 2080.0}}
+                            Other, 0x107619cc0, {{16.0, 224.3}, {370.0, 1251.0}}
+                              Image, 0x107619f40, {{18.3, 225.7}, {10.7, 13.0}}, identifier: 'merchant.content.boundary', label: 'Padlock In A Shield'
+                              StaticText, 0x10761a580, {{18.3, 224.3}, {367.0, 33.7}}, identifier: 'merchant.content.boundary', label: 'Live actions are disabled. Edits and reviews remain local; test requests use an injected offline transport only.'
+                              Button, 0x10761a300, {{16.0, 276.0}, {370.0, 286.3}}, identifier: 'merchant.content.entry.chapters', label: 'Chapter recruitment, Review source records and prepare changes'
+                                Image, 0x10761a1c0, {{16.0, 276.0}, {370.0, 286.3}}, identifier: 'map', label: 'Show Map'
+                                Other, 0x10761a080, {{16.0, 396.0}, {370.0, 72.0}}
+                                StaticText, 0x10761aa80, {{36.0, 488.0}, {209.0, 26.3}}, label: 'Chapter recruitment'
+                                StaticText, 0x10761be80, {{36.0, 524.3}, {304.3, 18.0}}, label: 'Review source records and prepare changes'
+                              Button, 0x107618000, {{16.0, 580.3}, {370.0, 286.3}}, identifier: 'merchant.content.entry.recruiting', label: 'Open recruiting routes, Review source records and prepare changes'
+                                Image, 0x107619b80, {{16.0, 580.3}, {370.0, 286.3}}, identifier: 'map', label: 'Show Map'
+                                Other, 0x10761a6c0, {{16.0, 700.3}, {370.0, 72.0}}
+                                StaticText, 0x10761ae40, {{36.0, 792.3}, {230.7, 26.3}}, label: 'Open recruiting routes'
+                                StaticText, 0x10761a940, {{36.0, 828.7}, {304.3, 18.0}}, label: 'Review source records and prepare changes'
+                              Button, 0x10761b0c0, {{16.0, 884.7}, {370.0, 286.3}}, identifier: 'merchant.content.entry.projects', label: 'Hosted projects, Review source records and prepare changes'
+                                Image, 0x10761b200, {{16.0, 884.7}, {370.0, 286.3}}, identifier: 'map', label: 'Show Map'
+                                Other, 0x10761af80, {{16.0, 1004.7}, {370.0, 72.0}}
+                                StaticText, 0x10761ad00, {{36.0, 1096.7}, {163.7, 26.3}}, label: 'Hosted projects'
+                                StaticText, 0x10761abc0, {{36.0, 1133.0}, {304.3, 18.0}}, label: 'Review source records and prepare changes'
+                              Button, 0x1076183c0, {{16.0, 1189.0}, {370.0, 286.3}}, identifier: 'merchant.content.entry.applications', label: 'My chapter applications, Review source records and prepare changes'
+                                Image, 0x107618500, {{16.0, 1189.0}, {370.0, 286.3}}, identifier: 'map', label: 'Show Map'
+                                Other, 0x107618140, {{16.0, 1309.0}, {370.0, 72.0}}
+                                StaticText, 0x10647abc0, {{36.0, 1401.0}, {246.3, 26.3}}, label: 'My chapter applications'
+                                StaticText, 0x10647ad00, {{36.0, 1437.3}, {304.3, 18.0}}, label: 'Review source records and prepare changes'
+                          Other, 0x10647af80, {{369.0, 156.3}, {30.0, 655.7}}, label: 'Vertical scroll bar, 4 pages', value: 0%
+                            Other, 0x10647b200, {{396.0, 159.3}, {3.0, 213.0}}
+                          Other, 0x10647b340, {{369.0, 156.3}, {30.0, 655.7}}, label: 'Vertical scroll bar, 4 pages', value: 0%
+                            Other, 0x10647b0c0, {{396.0, 159.3}, {3.0, 213.0}}
+                Toolbar, 0x10647a6c0, {{0.0, 92.3}, {402.0, 720.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                  Other, 0x10647a440, {{0.0, 92.3}, {402.0, 720.0}}
+              StaticText, 0x10647a080, {{32.7, 818.3}, {336.7, 15.7}}, identifier: 'merchant.content.fixture.context', label: 'Synthetic offline data. No business action is performed.', value: merchant:light
+Path to element:
+ →Application, 0x107618a00, pid: 16543, label: 'Questify'
+Query chain:
+ →Find: Target Application 'invalid.example.questify.ios'
+  Output: {
+    Application, 0x10647a300, pid: 16543, label: 'Questify'
+  }
+
+    t =     3.87s Tear Down
+    t =     3.87s     Find the Target Application 'invalid.example.questify.ios'
+    t =     3.95s     Added attachment named 'Failure state – -[MerchantRegistrationAvailabilityFlowTests testCancelAndRestorePreserveOriginalUnrecognizedSource]'
+    t =     3.95s     Terminate invalid.example.questify.ios:16543
+Test Case '-[QuestifyUITests.MerchantRegistrationAvailabilityFlowTests testCancelAndRestorePreserveOriginalUnrecognizedSource]' failed (4.987 seconds).
+Test Suite 'MerchantRegistrationAvailabilityFlowTests' failed at 2026-11-04 13:00:11.215.
+	 Executed 1 test, with 1 failure (0 unexpected) in 4.987 (4.988) seconds
+Test Suite 'TeamFlowTests' started at 2026-11-04 13:00:11.216.
+Test Case '-[QuestifyUITests.TeamFlowTests testCreatePrivateTeamReviewCancelPreservesForm]' started.
+    t =     0.00s Start Test at 2026-11-04 13:00:11.216
+    t =     0.01s Set Up
+    t =     0.02s Open invalid.example.questify.ios
+    t =     0.02s     Launch invalid.example.questify.ios
+    t =     0.22s         Setting up automation session
+    t =     2.05s         Wait for invalid.example.questify.ios to idle
+    t =     4.06s Waiting 5.0s for "Synthetic harbor activity" StaticText to exist
+    t =     5.09s     Checking `Expect predicate `existsNoRetry == 1` for object "Synthetic harbor activity" StaticText`
+    t =     5.09s         Checking existence of `"Synthetic harbor activity" StaticText`
+    t =     5.19s Find the Target Application 'invalid.example.questify.ios'
+    t =     5.22s Checking existence of `"Synthetic harbor activity" StaticText`
+    t =     5.24s Find the "Synthetic harbor activity" StaticText
+    t =     5.26s Find the Target Application 'invalid.example.questify.ios'
+    t =     5.34s Added attachment named 'G05 create title missing or clipped – synthetic fixture'
+    t =     5.34s Requesting snapshot of accessibility hierarchy for app with pid 16546
+    t =     5.43s Requesting snapshot of accessibility hierarchy for app with pid 16546
+<PILOT_WORKTREE>/Tests/AppUITests/TeamFlowTests.swift:158: error: -[QuestifyUITests.TeamFlowTests testCreatePrivateTeamReviewCancelPreservesForm] : failed - Optional(Attributes: Application, 0x107618280, pid: 16546, label: 'Questify'
+Element subtree:
+ →Application, 0x107618280, pid: 16546, label: 'Questify'
+    Window (Main), 0x107618640, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x10761aa80, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10761a080, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x107618000, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x10761ae40, {{0.0, 0.0}, {402.0, 874.0}}
+              StaticText, 0x10761a6c0, {{0.0, 0.0}, {402.0, 92.3}}, identifier: 'module.fixture.notice', label: 'UI test fixtures · No live data', value: colorScheme=light;...
+              Button, 0x107619b80, {{47.3, 100.3}, {71.0, 28.3}}, identifier: 'team.fixture.guest', label: 'Sign out'
+              Button, 0x10761a300, {{126.3, 100.3}, {109.3, 28.3}}, identifier: 'team.fixture.account', label: 'Reauthenticate'
+              Button, 0x10761a940, {{243.7, 100.3}, {111.0, 28.3}}, identifier: 'team.fixture.otherAccount', label: 'Switch account'
+              Other, 0x10761b200, {{0.0, 136.3}, {402.0, 737.7}}
+                NavigationBar, 0x1076183c0, {{0.0, 146.3}, {402.0, 106.0}}, identifier: 'Create a team'
+                  StaticText, 0x10761b0c0, {{16.0, 204.0}, {220.0, 40.7}}, label: 'Create a team'
+                Other, 0x10761abc0, {{0.0, 136.3}, {402.0, 737.7}}
+                  Other, 0x10761ad00, {{0.0, 136.3}, {402.0, 737.7}}
+                    Other, 0x10761af80, {{0.0, 136.3}, {402.0, 737.7}}
+                      Other, 0x107618140, {{0.0, 136.3}, {402.0, 737.7}}
+                        CollectionView, 0x107618500, {{0.0, 136.3}, {402.0, 737.7}}
+                          Other, 0x10761a800, {{-16.0, -1223.0}, {434.0, 1630.3}}
+                          Cell, 0x107618dc0, {{16.0, 252.3}, {370.0, 137.3}}
+                            Other, 0x107619180, {{16.0, 252.3}, {370.0, 137.3}}
+                              Other, 0x107619e00, {{16.0, 252.3}, {370.0, 137.3}}
+                            Other, 0x107619cc0, {{16.0, 252.3}, {370.0, 137.3}}
+                              Other, 0x10761a440, {{16.0, 252.3}, {370.0, 137.3}}
+                                Other, 0x10761b340, {{16.0, 252.3}, {370.0, 137.3}}
+                                  StaticText, 0x107618c80, {{52.0, 283.3}, {272.0, 33.7}}, identifier: 'team.fixtureNotice', label: 'Offline example. All people, teams and outcomes are synthetic.'
+                                  Image, 0x10761bac0, {{52.0, 291.7}, {16.3, 17.0}}, identifier: 'team.fixtureNotice', label: 'Two Test Tubes'
+                                  StaticText, 0x10761b700, {{48.0, 325.0}, {272.7, 33.7}}, label: 'Live team changes and invitation sharing are disabled pending backend verification.'
+                          Other, 0x1076188c0, {{-16.0, 407.3}, {434.0, 110.0}}
+                          Cell, 0x10761b480, {{16.0, 407.3}, {370.0, 40.3}}
+                            Other, 0x10761b840, {{16.0, 407.3}, {370.0, 40.3}}
+                            Other, 0x107618a00, {{16.0, 407.3}, {370.0, 40.3}}
+                              Other, 0x1075fe580, {{16.0, 407.3}, {370.0, 40.3}}
+                                Other, 0x1075fe440, {{16.0, 407.3}, {370.0, 40.3}}
+                                  StaticText, 0x1075fe800, {{16.0, 407.3}, {370.0, 40.3}}, label: 'Activity'
+                          Cell, 0x1075fe940, {{16.0, 447.7}, {370.0, 52.0}}
+                            Other, 0x1075fe080, {{16.0, 447.7}, {370.0, 52.0}}
+                              Other, 0x1075fe1c0, {{16.0, 447.7}, {370.0, 52.0}}
+                            Other, 0x1075fe300, {{16.0, 447.7}, {370.0, 52.0}}
+                              Other, 0x1075fe6c0, {{16.0, 447.7}, {370.0, 52.0}}
+                                Other, 0x111c9e800, {{16.0, 447.7}, {370.0, 52.0}}
+                                  StaticText, 0x111c9ed00, {{16.0, 447.7}, {370.0, 52.0}}, label: 'Synthetic harbor activity'
+                          Other, 0x111c9e940, {{-16.0, 517.0}, {434.0, 225.7}}
+                          Cell, 0x111c9e6c0, {{16.0, 517.0}, {370.0, 40.3}}
+                            Other, 0x111c9e440, {{16.0, 517.0}, {370.0, 40.3}}
+                            Other, 0x111c9f980, {{16.0, 517.0}, {370.0, 40.3}}
+                              Other, 0x111c9e080, {{16.0, 517.0}, {370.0, 40.3}}
+                                Other, 0x111c9e1c0, {{16.0, 517.0}, {370.0, 40.3}}
+                                  StaticText, 0x111c9e300, {{16.0, 517.0}, {370.0, 40.3}}, label: 'Team settings'
+                          Cell, 0x111dbda40, {{16.0, 557.3}, {370.0, 52.0}}
+                            Other, 0x111dbee40, {{16.0, 557.3}, {370.0, 52.0}}
+                              Other, 0x111dbf200, {{16.0, 557.3}, {370.0, 52.0}}
+                            Other, 0x111dbf340, {{16.0, 557.3}, {370.0, 52.0}}
+                              Other, 0x111dbed00, {{16.0, 557.3}, {370.0, 52.0}}
+                                Other, 0x111dbf0c0, {{16.0, 557.3}, {370.0, 52.0}}
+                                  Button, 0x111dbfd40, {{32.0, 566.3}, {338.0, 34.3}}, identifier: 'team.create.size', label: 'Team size, 2'
+                                    StaticText, 0x111dbf5c0, {{343.7, 573.3}, {10.0, 20.3}}, label: '2'
+                                  StaticText, 0x111dbf980, {{32.0, 573.2}, {75.7, 20.3}}, label: 'Team size'
+                          Cell, 0x111dbf840, {{16.0, 609.3}, {370.0, 52.0}}
+                            Other, 0x111dbfe80, {{16.0, 609.3}, {370.0, 52.0}}
+                              Other, 0x111dbdcc0, {{16.0, 609.3}, {370.0, 52.0}}
+                            Other, 0x111dbfc00, {{16.0, 609.3}, {370.0, 52.0}}
+                              Other, 0x111dbfac0, {{16.0, 609.3}, {370.0, 52.0}}
+                                Other, 0x111dbf700, {{16.0, 609.3}, {370.0, 52.0}}
+                                  Switch, 0x111dbde00, {{16.0, 609.3}, {370.0, 52.0}}, identifier: 'team.create.inviteOnly', label: 'Invitation only', value: 0
+                                    StaticText, 0x111dbd400, {{32.0, 625.2}, {105.3, 20.3}}, label: 'Invitation only'
+                                    Switch, 0x111dbdb80, {{309.0, 621.3}, {63.0, 28.0}}, value: 0
+                          Other, 0x111dbd900, {{32.0, 608.3}, {338.0, 1.0}}
+                          Cell, 0x111dbd540, {{16.0, 661.3}, {370.0, 63.7}}
+                            Other, 0x111dbcc80, {{16.0, 661.3}, {370.0, 63.7}}
+                              Other, 0x111dbd2c0, {{16.0, 661.3}, {370.0, 63.7}}
+                            Other, 0x111dbd040, {{16.0, 661.3}, {370.0, 63.7}}
+                              Other, 0x111dbcf00, {{16.0, 661.3}, {370.0, 63.7}}
+                                Other, 0x111dbea80, {{16.0, 661.3}, {370.0, 63.7}}
+                                  StaticText, 0x111dbe6c0, {{16.0, 661.3}, {370.0, 63.7}}, label: 'Public by default. Nearby players can apply and the captain reviews each application.'
+                          Other, 0x111dbe300, {{32.0, 660.3}, {338.0, 1.0}}
+                          Other, 0x111dbe080, {{-16.0, 742.7}, {434.0, 1703.3}}
+                          Cell, 0x111dbe1c0, {{16.0, 760.0}, {370.0, 116.3}}
+                            Other, 0x111dbdf40, {{16.0, 760.0}, {370.0, 116.3}}
+                              Other, 0x111dbd7c0, {{16.0, 760.0}, {370.0, 116.3}}
+                            Other, 0x111dbd180, {{16.0, 760.0}, {370.0, 116.3}}
+                              Other, 0x111dbd680, {{16.0, 760.0}, {370.0, 116.3}}
+                                Other, 0x111dbebc0, {{16.0, 760.0}, {370.0, 116.3}}
+                                  StaticText, 0x111dbe580, {{16.0, 760.0}, {370.0, 116.3}}, label: 'Creating a team does not register anyone, buy tickets or change refund rules. Public teams appear in nearby teams and require captain approval for applications.'
+                          Other, 0x111dbe940, {{369.0, 200.3}, {30.0, 611.7}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                            Other, 0x111dbe800, {{396.0, 830.0}, {3.0, 7.0}}
+                          Other, 0x111dbe440, {{369.0, 200.3}, {30.0, 611.7}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                            Other, 0x111dbcdc0, {{396.0, 830.0}, {3.0, 7.0}}
+                Toolbar, 0x111e58000, {{0.0, 136.3}, {402.0, 737.7}}, identifier: 'Toolbar', label: 'Toolbar'
+                  Other, 0x111e58140, {{0.0, 136.3}, {402.0, 737.7}}
+Path to element:
+ →Application, 0x107618280, pid: 16546, label: 'Questify'
+Query chain:
+ →Find: Target Application 'invalid.example.questify.ios'
+  Output: {
+    Application, 0x111e58280, pid: 16546, label: 'Questify'
+  }
+)
+    t =     5.46s Tear Down
+    t =     5.47s     Find the Target Application 'invalid.example.questify.ios'
+    t =     5.55s     Added attachment named 'Failure state – -[TeamFlowTests testCreatePrivateTeamReviewCancelPreservesForm]'
+    t =     5.55s     Terminate invalid.example.questify.ios:16546
+Test Case '-[QuestifyUITests.TeamFlowTests testCreatePrivateTeamReviewCancelPreservesForm]' failed (6.620 seconds).
+Test Suite 'TeamFlowTests' failed at 2026-11-04 13:00:17.836.
+	 Executed 1 test, with 1 failure (0 unexpected) in 6.620 (6.621) seconds
+Test Suite 'QuestifyUITests.xctest' failed at 2026-11-04 13:00:17.837.
+	 Executed 6 tests, with 6 failures (0 unexpected) in 58.769 (58.788) seconds
+Test Suite 'Selected tests' failed at 2026-11-04 13:00:17.838.
+	 Executed 6 tests, with 6 failures (0 unexpected) in 58.769 (58.790) seconds
+Testing started
+In flight operation:   <DVTOperationGroup: 0x7a62099380; state = AREfc>
+     <DVTOperationGroup: 0x7a62099200; state = AREfc>
+         <DVTOperation: 0x7a61ffd180; name = 'Remove Log If Needed', state = aReFc>
+         <DVTOperationGroup: 0x7a62099080; state = AREfc>
+             <DVTOperationGroup: 0x7a62098f00; state = AREfc>
+                 <__DVTSwiftAsyncOperation: 0x7a62098c00; state = AReFc>
+                 <DVTOperation: 0x7a61ffcf00; state = arefc>
+                 <IDESchemeActionResultOperation: 0x7a62098180; state = Arefc>
+                 <__DVTSwiftAsyncOperation: 0x7a62098a80; state = AReFc>
+                 <__DVTSwiftAsyncOperation: 0x7a62098d80; state = AReFc>
+                 <DVTOperation: 0x7a61ffcdc0; state = aReFc>
+                 <DVTOperationGroup: 0x7a61fdb180; state = AReF!c, blocking { Blocking finish to clean up test session. }>
+                     <DVTOperation: 0x7a61ffc500; state = aReFc>
+                     <XCTHOperationGroup: 0x7a61fdb300>
+                 <DVTOperation: 0x7a61ffd040; state = arefc>
+                 <DVTOperation: 0x7a61ffcc80; state = aReFc>
+                 <__DVTSwiftAsyncOperation: 0x7a62098900; state = AReFc>
+         <_IDETestingFinalizeLogsOperation: 0x7a61ffd2c0; name = 'Finalize test log', state = aref!c, blocking { waiting for test log to finish recording }>
+<DVTOperationGroup: 0x7a62099380; state = AREfc> created at:
+  0   -[DVTOperation init] (in DVTFoundation)
+  1   -[DVTOperationGroup init] (in DVTFoundation)
+  2   +[DVTOperationGroup operationGroupWithSuboperations:] (in DVTFoundation)
+  3   -[IDEScheme _groupAndImposeDependenciesForOrderedOperations:] (in IDEFoundation)
+  4   -[IDEScheme _executionOperationForSchemeOperationParameters:build:onlyBuild:buildParameters:title:buildLog:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:actionCallbackBlock:] (in IDEFoundation)
+  5   -[IDEScheme(TestSchemeAction) schemeTestActionOperationForSchemeOperationParameters:onlyBuild:buildLog:deviceAvailableChecker:buildParameters:shouldBuild:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+  6   -[IDEScheme buildAndActionTaskForSchemeOperationParameters:shouldBuild:onlyBuild:buildParameters:buildLog:deviceAvailableChecker:restorePersistedBuildResults:dontActuallyRunCommands:error:completionBlock:] (in IDEFoundation)
+  7   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:completionBlock:] (in IDEFoundation)
+  8   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+  9   -[Xcode3CommandLineBuildTool(TestSchemeAction) buildForTestSchemeCommandWantsSkip:buildAction:isProjectBuild:title:buildLog:isMoreDestinationsPending:runDestinations:runDestination:schemeCommand:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 10   -[Xcode3CommandLineBuildTool doSchemeBuildWithRunDestinations:runDestinationIdx:wantsSkip:buildActionTimingSection:timingSection:buildAction:isMoreDesinationsPending:actionResultBlock:title:buildLog:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 11   -[Xcode3CommandLineBuildTool doBuildForBuildAction:timingSection:colorize:colorizeFailure:error:] (in Xcode3Core)
+ 12   -[Xcode3CommandLineBuildTool _buildWithTimingSection:] (in Xcode3Core)
+ 13   -[Xcode3CommandLineBuildTool run] (in Xcode3Core)
+ 14   XcodeBuildMain (in libxcodebuildLoader.dylib)
+ 15   -[XcodebuildPreIDEHandler loadXcode3ProjectSupportAndRunXcode3CommandLineBuildToolWithArguments:] (in xcodebuild)
+ 16   -[XcodebuildPreIDEHandler runWithArguments:] (in xcodebuild)
+ 17   main (in xcodebuild)
+ 18   start (in dyld)
+
+<DVTOperationGroup: 0x7a62099200; state = AREfc> created at:
+  0   -[DVTOperation init] (in DVTFoundation)
+  1   -[DVTOperationGroup init] (in DVTFoundation)
+  2   +[DVTOperationGroup operationGroupWithSuboperations:] (in DVTFoundation)
+  3   -[IDETestSchemeAction testOperationWithSchemeOperationParameters:testManager:buildOperation:buildParameters:schemeCommand:actionRecord:testPlanRunSpecifications:deviceAvailableChecker:outError:actionCallbackBlock:] (in IDEFoundation)
+  4   -[IDEScheme(TestSchemeAction) executionOperationForTestSchemeActionWithOperationParameters:command:buildOperationVariantSpecifiers:buildOperationGroup:schemeActionResult:buildParameters:shouldOnlyBuild:runDestination:orderedOperations:schemeActionRecord:deviceAvailableChecker:actionCallbackBlock:error:] (in IDEFoundation)
+  5   -[IDEScheme _executionOperationForSchemeOperationParameters:build:onlyBuild:buildParameters:title:buildLog:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:actionCallbackBlock:] (in IDEFoundation)
+  6   -[IDEScheme(TestSchemeAction) schemeTestActionOperationForSchemeOperationParameters:onlyBuild:buildLog:deviceAvailableChecker:buildParameters:shouldBuild:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+  7   -[IDEScheme buildAndActionTaskForSchemeOperationParameters:shouldBuild:onlyBuild:buildParameters:buildLog:deviceAvailableChecker:restorePersistedBuildResults:dontActuallyRunCommands:error:completionBlock:] (in IDEFoundation)
+  8   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:completionBlock:] (in IDEFoundation)
+  9   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+ 10   -[Xcode3CommandLineBuildTool(TestSchemeAction) buildForTestSchemeCommandWantsSkip:buildAction:isProjectBuild:title:buildLog:isMoreDestinationsPending:runDestinations:runDestination:schemeCommand:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 11   -[Xcode3CommandLineBuildTool doSchemeBuildWithRunDestinations:runDestinationIdx:wantsSkip:buildActionTimingSection:timingSection:buildAction:isMoreDesinationsPending:actionResultBlock:title:buildLog:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 12   -[Xcode3CommandLineBuildTool doBuildForBuildAction:timingSection:colorize:colorizeFailure:error:] (in Xcode3Core)
+ 13   -[Xcode3CommandLineBuildTool _buildWithTimingSection:] (in Xcode3Core)
+ 14   -[Xcode3CommandLineBuildTool run] (in Xcode3Core)
+ 15   XcodeBuildMain (in libxcodebuildLoader.dylib)
+ 16   -[XcodebuildPreIDEHandler loadXcode3ProjectSupportAndRunXcode3CommandLineBuildToolWithArguments:] (in xcodebuild)
+ 17   -[XcodebuildPreIDEHandler runWithArguments:] (in xcodebuild)
+ 18   main (in xcodebuild)
+ 19   start (in dyld)
+
+<DVTOperation: 0x7a61ffd180; name = 'Remove Log If Needed', state = aReFc> created at:
+  0   -[DVTOperation init] (in DVTFoundation)
+  1   +[DVTOperation(DVTConveniences) operationWithBlock:] (in DVTFoundation)
+  2   -[IDETestSchemeAction _removeLogIfNeededOperationWithLogStore:logRecord:buildOperation:] (in IDEFoundation)
+  3   -[IDETestSchemeAction testOperationWithSchemeOperationParameters:testManager:buildOperation:buildParameters:schemeCommand:actionRecord:testPlanRunSpecifications:deviceAvailableChecker:outError:actionCallbackBlock:] (in IDEFoundation)
+  4   -[IDEScheme(TestSchemeAction) executionOperationForTestSchemeActionWithOperationParameters:command:buildOperationVariantSpecifiers:buildOperationGroup:schemeActionResult:buildParameters:shouldOnlyBuild:runDestination:orderedOperations:schemeActionRecord:deviceAvailableChecker:actionCallbackBlock:error:] (in IDEFoundation)
+  5   -[IDEScheme _executionOperationForSchemeOperationParameters:build:onlyBuild:buildParameters:title:buildLog:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:actionCallbackBlock:] (in IDEFoundation)
+  6   -[IDEScheme(TestSchemeAction) schemeTestActionOperationForSchemeOperationParameters:onlyBuild:buildLog:deviceAvailableChecker:buildParameters:shouldBuild:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+  7   -[IDEScheme buildAndActionTaskForSchemeOperationParameters:shouldBuild:onlyBuild:buildParameters:buildLog:deviceAvailableChecker:restorePersistedBuildResults:dontActuallyRunCommands:error:completionBlock:] (in IDEFoundation)
+  8   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:completionBlock:] (in IDEFoundation)
+  9   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+ 10   -[Xcode3CommandLineBuildTool(TestSchemeAction) buildForTestSchemeCommandWantsSkip:buildAction:isProjectBuild:title:buildLog:isMoreDestinationsPending:runDestinations:runDestination:schemeCommand:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 11   -[Xcode3CommandLineBuildTool doSchemeBuildWithRunDestinations:runDestinationIdx:wantsSkip:buildActionTimingSection:timingSection:buildAction:isMoreDesinationsPending:actionResultBlock:title:buildLog:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 12   -[Xcode3CommandLineBuildTool doBuildForBuildAction:timingSection:colorize:colorizeFailure:error:] (in Xcode3Core)
+ 13   -[Xcode3CommandLineBuildTool _buildWithTimingSection:] (in Xcode3Core)
+ 14   -[Xcode3CommandLineBuildTool run] (in Xcode3Core)
+ 15   XcodeBuildMain (in libxcodebuildLoader.dylib)
+ 16   -[XcodebuildPreIDEHandler loadXcode3ProjectSupportAndRunXcode3CommandLineBuildToolWithArguments:] (in xcodebuild)
+ 17   -[XcodebuildPreIDEHandler runWithArguments:] (in xcodebuild)
+ 18   main (in xcodebuild)
+ 19   start (in dyld)
+
+<DVTOperationGroup: 0x7a62099080; state = AREfc> created at:
+  0   -[DVTOperation init] (in DVTFoundation)
+  1   -[DVTOperationGroup init] (in DVTFoundation)
+  2   +[DVTOperationGroup operationGroupWithSuboperations:] (in DVTFoundation)
+  3   -[IDETestSchemeAction testOperationWithSchemeOperationParameters:testManager:buildOperation:buildParameters:schemeCommand:actionRecord:testPlanRunSpecifications:deviceAvailableChecker:outError:actionCallbackBlock:] (in IDEFoundation)
+  4   -[IDEScheme(TestSchemeAction) executionOperationForTestSchemeActionWithOperationParameters:command:buildOperationVariantSpecifiers:buildOperationGroup:schemeActionResult:buildParameters:shouldOnlyBuild:runDestination:orderedOperations:schemeActionRecord:deviceAvailableChecker:actionCallbackBlock:error:] (in IDEFoundation)
+  5   -[IDEScheme _executionOperationForSchemeOperationParameters:build:onlyBuild:buildParameters:title:buildLog:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:actionCallbackBlock:] (in IDEFoundation)
+  6   -[IDEScheme(TestSchemeAction) schemeTestActionOperationForSchemeOperationParameters:onlyBuild:buildLog:deviceAvailableChecker:buildParameters:shouldBuild:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+  7   -[IDEScheme buildAndActionTaskForSchemeOperationParameters:shouldBuild:onlyBuild:buildParameters:buildLog:deviceAvailableChecker:restorePersistedBuildResults:dontActuallyRunCommands:error:completionBlock:] (in IDEFoundation)
+  8   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:completionBlock:] (in IDEFoundation)
+  9   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+ 10   -[Xcode3CommandLineBuildTool(TestSchemeAction) buildForTestSchemeCommandWantsSkip:buildAction:isProjectBuild:title:buildLog:isMoreDestinationsPending:runDestinations:runDestination:schemeCommand:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 11   -[Xcode3CommandLineBuildTool doSchemeBuildWithRunDestinations:runDestinationIdx:wantsSkip:buildActionTimingSection:timingSection:buildAction:isMoreDesinationsPending:actionResultBlock:title:buildLog:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 12   -[Xcode3CommandLineBuildTool doBuildForBuildAction:timingSection:colorize:colorizeFailure:error:] (in Xcode3Core)
+ 13   -[Xcode3CommandLineBuildTool _buildWithTimingSection:] (in Xcode3Core)
+ 14   -[Xcode3CommandLineBuildTool run] (in Xcode3Core)
+ 15   XcodeBuildMain (in libxcodebuildLoader.dylib)
+ 16   -[XcodebuildPreIDEHandler loadXcode3ProjectSupportAndRunXcode3CommandLineBuildToolWithArguments:] (in xcodebuild)
+ 17   -[XcodebuildPreIDEHandler runWithArguments:] (in xcodebuild)
+ 18   main (in xcodebuild)
+ 19   start (in dyld)
+
+<DVTOperationGroup: 0x7a62098f00; state = AREfc> created at:
+  0   -[DVTOperation init] (in DVTFoundation)
+  1   -[DVTOperationGroup init] (in DVTFoundation)
+  2   +[DVTOperationGroup operationGroupWithSuboperations:] (in DVTFoundation)
+  3   -[IDETestSchemeAction testOperationWithSchemeOperationParameters:testManager:buildOperation:buildParameters:schemeCommand:actionRecord:testPlanRunSpecifications:deviceAvailableChecker:outError:actionCallbackBlock:] (in IDEFoundation)
+  4   -[IDEScheme(TestSchemeAction) executionOperationForTestSchemeActionWithOperationParameters:command:buildOperationVariantSpecifiers:buildOperationGroup:schemeActionResult:buildParameters:shouldOnlyBuild:runDestination:orderedOperations:schemeActionRecord:deviceAvailableChecker:actionCallbackBlock:error:] (in IDEFoundation)
+  5   -[IDEScheme _executionOperationForSchemeOperationParameters:build:onlyBuild:buildParameters:title:buildLog:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:actionCallbackBlock:] (in IDEFoundation)
+  6   -[IDEScheme(TestSchemeAction) schemeTestActionOperationForSchemeOperationParameters:onlyBuild:buildLog:deviceAvailableChecker:buildParameters:shouldBuild:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+  7   -[IDEScheme buildAndActionTaskForSchemeOperationParameters:shouldBuild:onlyBuild:buildParameters:buildLog:deviceAvailableChecker:restorePersistedBuildResults:dontActuallyRunCommands:error:completionBlock:] (in IDEFoundation)
+  8   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:completionBlock:] (in IDEFoundation)
+  9   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+ 10   -[Xcode3CommandLineBuildTool(TestSchemeAction) buildForTestSchemeCommandWantsSkip:buildAction:isProjectBuild:title:buildLog:isMoreDestinationsPending:runDestinations:runDestination:schemeCommand:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 11   -[Xcode3CommandLineBuildTool doSchemeBuildWithRunDestinations:runDestinationIdx:wantsSkip:buildActionTimingSection:timingSection:buildAction:isMoreDesinationsPending:actionResultBlock:title:buildLog:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 12   -[Xcode3CommandLineBuildTool doBuildForBuildAction:timingSection:colorize:colorizeFailure:error:] (in Xcode3Core)
+ 13   -[Xcode3CommandLineBuildTool _buildWithTimingSection:] (in Xcode3Core)
+ 14   -[Xcode3CommandLineBuildTool run] (in Xcode3Core)
+ 15   XcodeBuildMain (in libxcodebuildLoader.dylib)
+ 16   -[XcodebuildPreIDEHandler loadXcode3ProjectSupportAndRunXcode3CommandLineBuildToolWithArguments:] (in xcodebuild)
+ 17   -[XcodebuildPreIDEHandler runWithArguments:] (in xcodebuild)
+ 18   main (in xcodebuild)
+ 19   start (in dyld)
+
+<__DVTSwiftAsyncOperation: 0x7a62098c00; state = AReFc> created at:
+  0   -[DVTOperation init] (in DVTFoundation)
+  1   @objc DVTAsyncOperation.init() (in DVTFoundation)
+  2   static DVTOperation.awaiting(_:) (in DVTFoundation)
+  3   @objc static IDESchemeAction.operationToWaitForFinishedLoadingOperation(of:) (in IDEFoundation)
+  4   -[IDESchemeAction _setUpOperationsForPackageLoadingInWorkspace:handlePreActionsActivityLogSection:isCleanOperation:] (in IDEFoundation)
+  5   -[IDESchemeAction setUpActionDependenciesForCorePhaseOperation:shouldRunPostActionsBlock:prePhaseEnvironmentPopulationBlock:postPhaseEnvironmentPopulationBlock:handlePreActionsActivityLogSection:handlePostActionsActivityLogSection:buildParameters:schemeActionResultOperation:error:] (in IDEFoundation)
+  6   -[IDETestSchemeAction testOperationWithSchemeOperationParameters:testManager:buildOperation:buildParameters:schemeCommand:actionRecord:testPlanRunSpecifications:deviceAvailableChecker:outError:actionCallbackBlock:] (in IDEFoundation)
+  7   -[IDEScheme(TestSchemeAction) executionOperationForTestSchemeActionWithOperationParameters:command:buildOperationVariantSpecifiers:buildOperationGroup:schemeActionResult:buildParameters:shouldOnlyBuild:runDestination:orderedOperations:schemeActionRecord:deviceAvailableChecker:actionCallbackBlock:error:] (in IDEFoundation)
+  8   -[IDEScheme _executionOperationForSchemeOperationParameters:build:onlyBuild:buildParameters:title:buildLog:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:actionCallbackBlock:] (in IDEFoundation)
+  9   -[IDEScheme(TestSchemeAction) schemeTestActionOperationForSchemeOperationParameters:onlyBuild:buildLog:deviceAvailableChecker:buildParameters:shouldBuild:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+ 10   -[IDEScheme buildAndActionTaskForSchemeOperationParameters:shouldBuild:onlyBuild:buildParameters:buildLog:deviceAvailableChecker:restorePersistedBuildResults:dontActuallyRunCommands:error:completionBlock:] (in IDEFoundation)
+ 11   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:completionBlock:] (in IDEFoundation)
+ 12   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+ 13   -[Xcode3CommandLineBuildTool(TestSchemeAction) buildForTestSchemeCommandWantsSkip:buildAction:isProjectBuild:title:buildLog:isMoreDestinationsPending:runDestinations:runDestination:schemeCommand:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 14   -[Xcode3CommandLineBuildTool doSchemeBuildWithRunDestinations:runDestinationIdx:wantsSkip:buildActionTimingSection:timingSection:buildAction:isMoreDesinationsPending:actionResultBlock:title:buildLog:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 15   -[Xcode3CommandLineBuildTool doBuildForBuildAction:timingSection:colorize:colorizeFailure:error:] (in Xcode3Core)
+ 16   -[Xcode3CommandLineBuildTool _buildWithTimingSection:] (in Xcode3Core)
+ 17   -[Xcode3CommandLineBuildTool run] (in Xcode3Core)
+ 18   XcodeBuildMain (in libxcodebuildLoader.dylib)
+ 19   -[XcodebuildPreIDEHandler loadXcode3ProjectSupportAndRunXcode3CommandLineBuildToolWithArguments:] (in xcodebuild)
+ 20   -[XcodebuildPreIDEHandler runWithArguments:] (in xcodebuild)
+ 21   main (in xcodebuild)
+ 22   start (in dyld)
+
+<DVTOperation: 0x7a61ffcf00; state = arefc> created at:
+  0   -[DVTOperation init] (in DVTFoundation)
+  1   +[DVTOperation(DVTConveniences) operationWithBlock:] (in DVTFoundation)
+  2   -[IDESchemeAction setUpActionDependenciesForCorePhaseOperation:shouldRunPostActionsBlock:prePhaseEnvironmentPopulationBlock:postPhaseEnvironmentPopulationBlock:handlePreActionsActivityLogSection:handlePostActionsActivityLogSection:buildParameters:schemeActionResultOperation:error:] (in IDEFoundation)
+  3   -[IDETestSchemeAction testOperationWithSchemeOperationParameters:testManager:buildOperation:buildParameters:schemeCommand:actionRecord:testPlanRunSpecifications:deviceAvailableChecker:outError:actionCallbackBlock:] (in IDEFoundation)
+  4   -[IDEScheme(TestSchemeAction) executionOperationForTestSchemeActionWithOperationParameters:command:buildOperationVariantSpecifiers:buildOperationGroup:schemeActionResult:buildParameters:shouldOnlyBuild:runDestination:orderedOperations:schemeActionRecord:deviceAvailableChecker:actionCallbackBlock:error:] (in IDEFoundation)
+  5   -[IDEScheme _executionOperationForSchemeOperationParameters:build:onlyBuild:buildParameters:title:buildLog:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:actionCallbackBlock:] (in IDEFoundation)
+  6   -[IDEScheme(TestSchemeAction) schemeTestActionOperationForSchemeOperationParameters:onlyBuild:buildLog:deviceAvailableChecker:buildParameters:shouldBuild:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+  7   -[IDEScheme buildAndActionTaskForSchemeOperationParameters:shouldBuild:onlyBuild:buildParameters:buildLog:deviceAvailableChecker:restorePersistedBuildResults:dontActuallyRunCommands:error:completionBlock:] (in IDEFoundation)
+  8   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:completionBlock:] (in IDEFoundation)
+  9   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+ 10   -[Xcode3CommandLineBuildTool(TestSchemeAction) buildForTestSchemeCommandWantsSkip:buildAction:isProjectBuild:title:buildLog:isMoreDestinationsPending:runDestinations:runDestination:schemeCommand:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 11   -[Xcode3CommandLineBuildTool doSchemeBuildWithRunDestinations:runDestinationIdx:wantsSkip:buildActionTimingSection:timingSection:buildAction:isMoreDesinationsPending:actionResultBlock:title:buildLog:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 12   -[Xcode3CommandLineBuildTool doBuildForBuildAction:timingSection:colorize:colorizeFailure:error:] (in Xcode3Core)
+ 13   -[Xcode3CommandLineBuildTool _buildWithTimingSection:] (in Xcode3Core)
+ 14   -[Xcode3CommandLineBuildTool run] (in Xcode3Core)
+ 15   XcodeBuildMain (in libxcodebuildLoader.dylib)
+ 16   -[XcodebuildPreIDEHandler loadXcode3ProjectSupportAndRunXcode3CommandLineBuildToolWithArguments:] (in xcodebuild)
+ 17   -[XcodebuildPreIDEHandler runWithArguments:] (in xcodebuild)
+ 18   main (in xcodebuild)
+ 19   start (in dyld)
+
+<IDESchemeActionResultOperation: 0x7a62098180; state = Arefc> created at:
+  0   -[DVTOperation init] (in DVTFoundation)
+  1   +[IDESchemeActionResultOperation schemeActionResultOperationWithSchemeActionRecord:trackingExecutionOfOperation:actionCallbackBlock:schemeActionResultComputationBlock:] (in IDEFoundation)
+  2   -[IDETestRunSession testOperationForTestRunSpecificationGroups:executionEnvironment:invocationRecord:actionRecord:schemeIdentifier:outSchemeActionResultOperation:launchParametersBlock:actionCallbackBlock:error:] (in IDEFoundation)
+  3   -[IDETestManager testOperationForTestRunSpecificationGroups:executionEnvironment:runDestinationPool:invocationRecord:actionRecord:schemeIdentifier:outSchemeActionResultOperation:launchParametersBlock:actionCallbackBlock:error:] (in IDEFoundation)
+  4   -[IDETestSchemeAction testOperationWithSchemeOperationParameters:testManager:buildOperation:buildParameters:schemeCommand:actionRecord:testPlanRunSpecifications:deviceAvailableChecker:outError:actionCallbackBlock:] (in IDEFoundation)
+  5   -[IDEScheme(TestSchemeAction) executionOperationForTestSchemeActionWithOperationParameters:command:buildOperationVariantSpecifiers:buildOperationGroup:schemeActionResult:buildParameters:shouldOnlyBuild:runDestination:orderedOperations:schemeActionRecord:deviceAvailableChecker:actionCallbackBlock:error:] (in IDEFoundation)
+  6   -[IDEScheme _executionOperationForSchemeOperationParameters:build:onlyBuild:buildParameters:title:buildLog:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:actionCallbackBlock:] (in IDEFoundation)
+  7   -[IDEScheme(TestSchemeAction) schemeTestActionOperationForSchemeOperationParameters:onlyBuild:buildLog:deviceAvailableChecker:buildParameters:shouldBuild:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+  8   -[IDEScheme buildAndActionTaskForSchemeOperationParameters:shouldBuild:onlyBuild:buildParameters:buildLog:deviceAvailableChecker:restorePersistedBuildResults:dontActuallyRunCommands:error:completionBlock:] (in IDEFoundation)
+  9   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:completionBlock:] (in IDEFoundation)
+ 10   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+ 11   -[Xcode3CommandLineBuildTool(TestSchemeAction) buildForTestSchemeCommandWantsSkip:buildAction:isProjectBuild:title:buildLog:isMoreDestinationsPending:runDestinations:runDestination:schemeCommand:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 12   -[Xcode3CommandLineBuildTool doSchemeBuildWithRunDestinations:runDestinationIdx:wantsSkip:buildActionTimingSection:timingSection:buildAction:isMoreDesinationsPending:actionResultBlock:title:buildLog:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 13   -[Xcode3CommandLineBuildTool doBuildForBuildAction:timingSection:colorize:colorizeFailure:error:] (in Xcode3Core)
+ 14   -[Xcode3CommandLineBuildTool _buildWithTimingSection:] (in Xcode3Core)
+ 15   -[Xcode3CommandLineBuildTool run] (in Xcode3Core)
+ 16   XcodeBuildMain (in libxcodebuildLoader.dylib)
+ 17   -[XcodebuildPreIDEHandler loadXcode3ProjectSupportAndRunXcode3CommandLineBuildToolWithArguments:] (in xcodebuild)
+ 18   -[XcodebuildPreIDEHandler runWithArguments:] (in xcodebuild)
+ 19   main (in xcodebuild)
+ 20   start (in dyld)
+
+<__DVTSwiftAsyncOperation: 0x7a62098a80; state = AReFc> created at:
+  0   -[DVTOperation init] (in DVTFoundation)
+  1   @objc DVTAsyncOperation.init() (in DVTFoundation)
+  2   @objc static DVTOperation.operationWithMainThreadBlock(_:) (in DVTFoundation)
+  3   -[IDESchemeAction _setUpOperationsForPackageLoadingInWorkspace:handlePreActionsActivityLogSection:isCleanOperation:] (in IDEFoundation)
+  4   -[IDESchemeAction setUpActionDependenciesForCorePhaseOperation:shouldRunPostActionsBlock:prePhaseEnvironmentPopulationBlock:postPhaseEnvironmentPopulationBlock:handlePreActionsActivityLogSection:handlePostActionsActivityLogSection:buildParameters:schemeActionResultOperation:error:] (in IDEFoundation)
+  5   -[IDETestSchemeAction testOperationWithSchemeOperationParameters:testManager:buildOperation:buildParameters:schemeCommand:actionRecord:testPlanRunSpecifications:deviceAvailableChecker:outError:actionCallbackBlock:] (in IDEFoundation)
+  6   -[IDEScheme(TestSchemeAction) executionOperationForTestSchemeActionWithOperationParameters:command:buildOperationVariantSpecifiers:buildOperationGroup:schemeActionResult:buildParameters:shouldOnlyBuild:runDestination:orderedOperations:schemeActionRecord:deviceAvailableChecker:actionCallbackBlock:error:] (in IDEFoundation)
+  7   -[IDEScheme _executionOperationForSchemeOperationParameters:build:onlyBuild:buildParameters:title:buildLog:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:actionCallbackBlock:] (in IDEFoundation)
+  8   -[IDEScheme(TestSchemeAction) schemeTestActionOperationForSchemeOperationParameters:onlyBuild:buildLog:deviceAvailableChecker:buildParameters:shouldBuild:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+  9   -[IDEScheme buildAndActionTaskForSchemeOperationParameters:shouldBuild:onlyBuild:buildParameters:buildLog:deviceAvailableChecker:restorePersistedBuildResults:dontActuallyRunCommands:error:completionBlock:] (in IDEFoundation)
+ 10   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:completionBlock:] (in IDEFoundation)
+ 11   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+ 12   -[Xcode3CommandLineBuildTool(TestSchemeAction) buildForTestSchemeCommandWantsSkip:buildAction:isProjectBuild:title:buildLog:isMoreDestinationsPending:runDestinations:runDestination:schemeCommand:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 13   -[Xcode3CommandLineBuildTool doSchemeBuildWithRunDestinations:runDestinationIdx:wantsSkip:buildActionTimingSection:timingSection:buildAction:isMoreDesinationsPending:actionResultBlock:title:buildLog:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 14   -[Xcode3CommandLineBuildTool doBuildForBuildAction:timingSection:colorize:colorizeFailure:error:] (in Xcode3Core)
+ 15   -[Xcode3CommandLineBuildTool _buildWithTimingSection:] (in Xcode3Core)
+ 16   -[Xcode3CommandLineBuildTool run] (in Xcode3Core)
+ 17   XcodeBuildMain (in libxcodebuildLoader.dylib)
+ 18   -[XcodebuildPreIDEHandler loadXcode3ProjectSupportAndRunXcode3CommandLineBuildToolWithArguments:] (in xcodebuild)
+ 19   -[XcodebuildPreIDEHandler runWithArguments:] (in xcodebuild)
+ 20   main (in xcodebuild)
+ 21   start (in dyld)
+
+<__DVTSwiftAsyncOperation: 0x7a62098d80; state = AReFc> created at:
+  0   -[DVTOperation init] (in DVTFoundation)
+  1   @objc DVTAsyncOperation.init() (in DVTFoundation)
+  2   @objc static DVTOperation.operationWithMainThreadBlock(_:) (in DVTFoundation)
+  3   -[IDESchemeAction _setUpOperationsForPackageLoadingInWorkspace:handlePreActionsActivityLogSection:isCleanOperation:] (in IDEFoundation)
+  4   -[IDESchemeAction setUpActionDependenciesForCorePhaseOperation:shouldRunPostActionsBlock:prePhaseEnvironmentPopulationBlock:postPhaseEnvironmentPopulationBlock:handlePreActionsActivityLogSection:handlePostActionsActivityLogSection:buildParameters:schemeActionResultOperation:error:] (in IDEFoundation)
+  5   -[IDETestSchemeAction testOperationWithSchemeOperationParameters:testManager:buildOperation:buildParameters:schemeCommand:actionRecord:testPlanRunSpecifications:deviceAvailableChecker:outError:actionCallbackBlock:] (in IDEFoundation)
+  6   -[IDEScheme(TestSchemeAction) executionOperationForTestSchemeActionWithOperationParameters:command:buildOperationVariantSpecifiers:buildOperationGroup:schemeActionResult:buildParameters:shouldOnlyBuild:runDestination:orderedOperations:schemeActionRecord:deviceAvailableChecker:actionCallbackBlock:error:] (in IDEFoundation)
+  7   -[IDEScheme _executionOperationForSchemeOperationParameters:build:onlyBuild:buildParameters:title:buildLog:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:actionCallbackBlock:] (in IDEFoundation)
+  8   -[IDEScheme(TestSchemeAction) schemeTestActionOperationForSchemeOperationParameters:onlyBuild:buildLog:deviceAvailableChecker:buildParameters:shouldBuild:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+  9   -[IDEScheme buildAndActionTaskForSchemeOperationParameters:shouldBuild:onlyBuild:buildParameters:buildLog:deviceAvailableChecker:restorePersistedBuildResults:dontActuallyRunCommands:error:completionBlock:] (in IDEFoundation)
+ 10   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:completionBlock:] (in IDEFoundation)
+ 11   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+ 12   -[Xcode3CommandLineBuildTool(TestSchemeAction) buildForTestSchemeCommandWantsSkip:buildAction:isProjectBuild:title:buildLog:isMoreDestinationsPending:runDestinations:runDestination:schemeCommand:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 13   -[Xcode3CommandLineBuildTool doSchemeBuildWithRunDestinations:runDestinationIdx:wantsSkip:buildActionTimingSection:timingSection:buildAction:isMoreDesinationsPending:actionResultBlock:title:buildLog:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 14   -[Xcode3CommandLineBuildTool doBuildForBuildAction:timingSection:colorize:colorizeFailure:error:] (in Xcode3Core)
+ 15   -[Xcode3CommandLineBuildTool _buildWithTimingSection:] (in Xcode3Core)
+ 16   -[Xcode3CommandLineBuildTool run] (in Xcode3Core)
+ 17   XcodeBuildMain (in libxcodebuildLoader.dylib)
+ 18   -[XcodebuildPreIDEHandler loadXcode3ProjectSupportAndRunXcode3CommandLineBuildToolWithArguments:] (in xcodebuild)
+ 19   -[XcodebuildPreIDEHandler runWithArguments:] (in xcodebuild)
+ 20   main (in xcodebuild)
+ 21   start (in dyld)
+
+<DVTOperation: 0x7a61ffcdc0; state = aReFc> created at:
+  0   -[DVTOperation init] (in DVTFoundation)
+  1   +[DVTOperation(DVTConveniences) operationWithBlock:] (in DVTFoundation)
+  2   -[IDESchemeAction setUpActionDependenciesForCorePhaseOperation:shouldRunPostActionsBlock:prePhaseEnvironmentPopulationBlock:postPhaseEnvironmentPopulationBlock:handlePreActionsActivityLogSection:handlePostActionsActivityLogSection:buildParameters:schemeActionResultOperation:error:] (in IDEFoundation)
+  3   -[IDETestSchemeAction testOperationWithSchemeOperationParameters:testManager:buildOperation:buildParameters:schemeCommand:actionRecord:testPlanRunSpecifications:deviceAvailableChecker:outError:actionCallbackBlock:] (in IDEFoundation)
+  4   -[IDEScheme(TestSchemeAction) executionOperationForTestSchemeActionWithOperationParameters:command:buildOperationVariantSpecifiers:buildOperationGroup:schemeActionResult:buildParameters:shouldOnlyBuild:runDestination:orderedOperations:schemeActionRecord:deviceAvailableChecker:actionCallbackBlock:error:] (in IDEFoundation)
+  5   -[IDEScheme _executionOperationForSchemeOperationParameters:build:onlyBuild:buildParameters:title:buildLog:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:actionCallbackBlock:] (in IDEFoundation)
+  6   -[IDEScheme(TestSchemeAction) schemeTestActionOperationForSchemeOperationParameters:onlyBuild:buildLog:deviceAvailableChecker:buildParameters:shouldBuild:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+  7   -[IDEScheme buildAndActionTaskForSchemeOperationParameters:shouldBuild:onlyBuild:buildParameters:buildLog:deviceAvailableChecker:restorePersistedBuildResults:dontActuallyRunCommands:error:completionBlock:] (in IDEFoundation)
+  8   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:completionBlock:] (in IDEFoundation)
+  9   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+ 10   -[Xcode3CommandLineBuildTool(TestSchemeAction) buildForTestSchemeCommandWantsSkip:buildAction:isProjectBuild:title:buildLog:isMoreDestinationsPending:runDestinations:runDestination:schemeCommand:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 11   -[Xcode3CommandLineBuildTool doSchemeBuildWithRunDestinations:runDestinationIdx:wantsSkip:buildActionTimingSection:timingSection:buildAction:isMoreDesinationsPending:actionResultBlock:title:buildLog:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 12   -[Xcode3CommandLineBuildTool doBuildForBuildAction:timingSection:colorize:colorizeFailure:error:] (in Xcode3Core)
+ 13   -[Xcode3CommandLineBuildTool _buildWithTimingSection:] (in Xcode3Core)
+ 14   -[Xcode3CommandLineBuildTool run] (in Xcode3Core)
+ 15   XcodeBuildMain (in libxcodebuildLoader.dylib)
+ 16   -[XcodebuildPreIDEHandler loadXcode3ProjectSupportAndRunXcode3CommandLineBuildToolWithArguments:] (in xcodebuild)
+ 17   -[XcodebuildPreIDEHandler runWithArguments:] (in xcodebuild)
+ 18   main (in xcodebuild)
+ 19   start (in dyld)
+
+<DVTOperationGroup: 0x7a61fdb180; state = AReF!c> created at:
+  0   -[DVTOperation init] (in DVTFoundation)
+  1   -[DVTOperationGroup init] (in DVTFoundation)
+  2   -[IDETestRunSession testOperationForTestRunSpecificationGroups:executionEnvironment:invocationRecord:actionRecord:schemeIdentifier:outSchemeActionResultOperation:launchParametersBlock:actionCallbackBlock:error:] (in IDEFoundation)
+  3   -[IDETestManager testOperationForTestRunSpecificationGroups:executionEnvironment:runDestinationPool:invocationRecord:actionRecord:schemeIdentifier:outSchemeActionResultOperation:launchParametersBlock:actionCallbackBlock:error:] (in IDEFoundation)
+  4   -[IDETestSchemeAction testOperationWithSchemeOperationParameters:testManager:buildOperation:buildParameters:schemeCommand:actionRecord:testPlanRunSpecifications:deviceAvailableChecker:outError:actionCallbackBlock:] (in IDEFoundation)
+  5   -[IDEScheme(TestSchemeAction) executionOperationForTestSchemeActionWithOperationParameters:command:buildOperationVariantSpecifiers:buildOperationGroup:schemeActionResult:buildParameters:shouldOnlyBuild:runDestination:orderedOperations:schemeActionRecord:deviceAvailableChecker:actionCallbackBlock:error:] (in IDEFoundation)
+  6   -[IDEScheme _executionOperationForSchemeOperationParameters:build:onlyBuild:buildParameters:title:buildLog:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:actionCallbackBlock:] (in IDEFoundation)
+  7   -[IDEScheme(TestSchemeAction) schemeTestActionOperationForSchemeOperationParameters:onlyBuild:buildLog:deviceAvailableChecker:buildParameters:shouldBuild:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+  8   -[IDEScheme buildAndActionTaskForSchemeOperationParameters:shouldBuild:onlyBuild:buildParameters:buildLog:deviceAvailableChecker:restorePersistedBuildResults:dontActuallyRunCommands:error:completionBlock:] (in IDEFoundation)
+  9   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:completionBlock:] (in IDEFoundation)
+ 10   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+ 11   -[Xcode3CommandLineBuildTool(TestSchemeAction) buildForTestSchemeCommandWantsSkip:buildAction:isProjectBuild:title:buildLog:isMoreDestinationsPending:runDestinations:runDestination:schemeCommand:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 12   -[Xcode3CommandLineBuildTool doSchemeBuildWithRunDestinations:runDestinationIdx:wantsSkip:buildActionTimingSection:timingSection:buildAction:isMoreDesinationsPending:actionResultBlock:title:buildLog:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 13   -[Xcode3CommandLineBuildTool doBuildForBuildAction:timingSection:colorize:colorizeFailure:error:] (in Xcode3Core)
+ 14   -[Xcode3CommandLineBuildTool _buildWithTimingSection:] (in Xcode3Core)
+ 15   -[Xcode3CommandLineBuildTool run] (in Xcode3Core)
+ 16   XcodeBuildMain (in libxcodebuildLoader.dylib)
+ 17   -[XcodebuildPreIDEHandler loadXcode3ProjectSupportAndRunXcode3CommandLineBuildToolWithArguments:] (in xcodebuild)
+ 18   -[XcodebuildPreIDEHandler runWithArguments:] (in xcodebuild)
+ 19   main (in xcodebuild)
+ 20   start (in dyld)
+
+<DVTOperation: 0x7a61ffc500; state = aReFc> created at:
+  0   -[DVTOperation init] (in DVTFoundation)
+  1   +[DVTOperation(DVTConveniences) operationWithBlock:] (in DVTFoundation)
+  2   -[IDETestRunSession testOperationForTestRunSpecificationGroups:executionEnvironment:invocationRecord:actionRecord:schemeIdentifier:outSchemeActionResultOperation:launchParametersBlock:actionCallbackBlock:error:] (in IDEFoundation)
+  3   -[IDETestManager testOperationForTestRunSpecificationGroups:executionEnvironment:runDestinationPool:invocationRecord:actionRecord:schemeIdentifier:outSchemeActionResultOperation:launchParametersBlock:actionCallbackBlock:error:] (in IDEFoundation)
+  4   -[IDETestSchemeAction testOperationWithSchemeOperationParameters:testManager:buildOperation:buildParameters:schemeCommand:actionRecord:testPlanRunSpecifications:deviceAvailableChecker:outError:actionCallbackBlock:] (in IDEFoundation)
+  5   -[IDEScheme(TestSchemeAction) executionOperationForTestSchemeActionWithOperationParameters:command:buildOperationVariantSpecifiers:buildOperationGroup:schemeActionResult:buildParameters:shouldOnlyBuild:runDestination:orderedOperations:schemeActionRecord:deviceAvailableChecker:actionCallbackBlock:error:] (in IDEFoundation)
+  6   -[IDEScheme _executionOperationForSchemeOperationParameters:build:onlyBuild:buildParameters:title:buildLog:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:actionCallbackBlock:] (in IDEFoundation)
+  7   -[IDEScheme(TestSchemeAction) schemeTestActionOperationForSchemeOperationParameters:onlyBuild:buildLog:deviceAvailableChecker:buildParameters:shouldBuild:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+  8   -[IDEScheme buildAndActionTaskForSchemeOperationParameters:shouldBuild:onlyBuild:buildParameters:buildLog:deviceAvailableChecker:restorePersistedBuildResults:dontActuallyRunCommands:error:completionBlock:] (in IDEFoundation)
+  9   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:completionBlock:] (in IDEFoundation)
+ 10   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+ 11   -[Xcode3CommandLineBuildTool(TestSchemeAction) buildForTestSchemeCommandWantsSkip:buildAction:isProjectBuild:title:buildLog:isMoreDestinationsPending:runDestinations:runDestination:schemeCommand:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 12   -[Xcode3CommandLineBuildTool doSchemeBuildWithRunDestinations:runDestinationIdx:wantsSkip:buildActionTimingSection:timingSection:buildAction:isMoreDesinationsPending:actionResultBlock:title:buildLog:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 13   -[Xcode3CommandLineBuildTool doBuildForBuildAction:timingSection:colorize:colorizeFailure:error:] (in Xcode3Core)
+ 14   -[Xcode3CommandLineBuildTool _buildWithTimingSection:] (in Xcode3Core)
+ 15   -[Xcode3CommandLineBuildTool run] (in Xcode3Core)
+ 16   XcodeBuildMain (in libxcodebuildLoader.dylib)
+ 17   -[XcodebuildPreIDEHandler loadXcode3ProjectSupportAndRunXcode3CommandLineBuildToolWithArguments:] (in xcodebuild)
+ 18   -[XcodebuildPreIDEHandler runWithArguments:] (in xcodebuild)
+ 19   main (in xcodebuild)
+ 20   start (in dyld)
+
+<DVTOperation: 0x7a61ffd040; state = arefc> created at:
+  0   -[DVTOperation init] (in DVTFoundation)
+  1   +[DVTOperation(DVTConveniences) operationWithBlock:] (in DVTFoundation)
+  2   -[IDESchemeAction setUpActionDependenciesForCorePhaseOperation:shouldRunPostActionsBlock:prePhaseEnvironmentPopulationBlock:postPhaseEnvironmentPopulationBlock:handlePreActionsActivityLogSection:handlePostActionsActivityLogSection:buildParameters:schemeActionResultOperation:error:] (in IDEFoundation)
+  3   -[IDETestSchemeAction testOperationWithSchemeOperationParameters:testManager:buildOperation:buildParameters:schemeCommand:actionRecord:testPlanRunSpecifications:deviceAvailableChecker:outError:actionCallbackBlock:] (in IDEFoundation)
+  4   -[IDEScheme(TestSchemeAction) executionOperationForTestSchemeActionWithOperationParameters:command:buildOperationVariantSpecifiers:buildOperationGroup:schemeActionResult:buildParameters:shouldOnlyBuild:runDestination:orderedOperations:schemeActionRecord:deviceAvailableChecker:actionCallbackBlock:error:] (in IDEFoundation)
+  5   -[IDEScheme _executionOperationForSchemeOperationParameters:build:onlyBuild:buildParameters:title:buildLog:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:actionCallbackBlock:] (in IDEFoundation)
+  6   -[IDEScheme(TestSchemeAction) schemeTestActionOperationForSchemeOperationParameters:onlyBuild:buildLog:deviceAvailableChecker:buildParameters:shouldBuild:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+  7   -[IDEScheme buildAndActionTaskForSchemeOperationParameters:shouldBuild:onlyBuild:buildParameters:buildLog:deviceAvailableChecker:restorePersistedBuildResults:dontActuallyRunCommands:error:completionBlock:] (in IDEFoundation)
+  8   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:deviceAvailableChecker:error:completionBlock:] (in IDEFoundation)
+  9   -[IDEScheme schemeOperationForSchemeOperationParameters:buildLog:overridingProperties:overridingBuildConfiguration:dontActuallyRunCommands:restorePersistedBuildResults:error:completionBlock:] (in IDEFoundation)
+ 10   -[Xcode3CommandLineBuildTool(TestSchemeAction) buildForTestSchemeCommandWantsSkip:buildAction:isProjectBuild:title:buildLog:isMoreDestinationsPending:runDestinations:runDestination:schemeCommand:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 11   -[Xcode3CommandLineBuildTool doSchemeBuildWithRunDestinations:runDestinationIdx:wantsSkip:buildActionTimingSection:timingSection:buildAction:isMoreDesinationsPending:actionResultBlock:title:buildLog:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 12   -[Xcode3CommandLineBuildTool doBuildForBuildAction:timingSection:colorize:colorizeFailure:error:] (in Xcode3Core)
+ 13   -[Xcode3CommandLineBuildTool _buildWithTimingSection:] (in Xcode3Core)
+ 14   -[Xcode3CommandLineBuildTool run] (in Xcode3Core)
+ 15   XcodeBuildMain (in libxcodebuildLoader.dylib)
+ 16   -[XcodebuildPreIDEHandler loadXcode3ProjectSupportAndRunXcode3CommandLineBuildToolWithArguments:] (in xcodebuild)
+ 17   -[XcodebuildPreIDEHandler runWithArguments:] (in xcodebuild)
+ 18   main (in xcodebuild)
+ 19   start (in dyld)
+
+<DVTOperation: 0x7a61ffcc80; state = aReFc> created at:
+  0   -[DVTOperation init] (in DVTFoundation)
+  1   +[DVTOperation(DVTConveniences) operationWithBlock:] (in DVTFoundation)
+  2   -[IDESchemeAction setUpActionDependenciesForCorePhaseOperation:shouldRunPostActionsBlock:prePhaseEnvironmentPopulationBlock:postPhaseEnvironmentPopulationBlock:handlePreActionsActivityLogSection:handlePostActionsActivityLogSection:buildParameters:schemeActionResultOperation:error:] (in IDEFoundation)
+  3   -[IDETestSchemeAction testOperationWithSchemeOperationParameters:testManager:buildOperation:buildParameters:schemeCommand:actionRecord:testPlanRunSpecifications:deviceAvailableChecker:outError:actionCallbackBlock:] (in IDEFoundation)
+  4   -[IDEScheme(TestSchemeAction) executionOperationForTestSchemeActionWithOperationParameters:command:buildOperationVariantSpecifiers:buildOperationGroup:schemeActionResult:buildParameters:shouldOnlyBuild:runDestination:orderedOperations:schemeActionRecord:deviceAvailableChecker:actionCallbackBlock:error:] (in IDEFoundation)
+  5   -[IDEScheme _executionOperationForSchemeOperationParameters:build:onlyBuild:buildParameters:title:buildLog:dontActuallyRu
