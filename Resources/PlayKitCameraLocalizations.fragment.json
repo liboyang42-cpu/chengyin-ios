@@ -42,13 +42,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Camera overlay is not enabled for this session"
+            "value": "Camera overlay isn't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前会话尚未启用相机叠图"
+            "value": "相机叠图暂不可用"
           }
         }
       }
@@ -110,13 +110,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Show the server-returned image over the rear-camera preview. No photo or video is saved or uploaded, and this does not submit task completion."
+            "value": "Shows the task image over your rear-camera view. No photo or video is saved or uploaded, and this doesn't complete the task."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "将服务端返回的图片叠在后置相机预览上。不会保存或上传照片、视频，也不会提交任务完成状态。"
+            "value": "将任务图片叠加在后置相机画面上。不会保存或上传照片、视频，也不会提交任务完成。"
           }
         }
       }

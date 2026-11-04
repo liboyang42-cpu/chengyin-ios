@@ -1776,13 +1776,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server recorded a fallback outcome. Its completion state controls the next step."
+            "value": "Your result has been recorded. The next step depends on whether the task is complete."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已记录兜底结果，下一步由服务端完成状态决定。"
+            "value": "已记录你的结果，下一步取决于任务是否完成。"
           }
         }
       }
@@ -1861,13 +1861,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only the uploaded image address is submitted. The server performs the visual check; no local score is sent."
+            "value": "Only your uploaded photo is submitted, and we'll check it for you."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅提交上传后的图片地址。由服务端进行视觉审核，不上报本地分数。"
+            "value": "仅提交你上传的照片，由我们进行审核。"
           }
         }
       }
@@ -1929,13 +1929,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photo upload is not configured, or this photo no longer belongs to the current task version"
+            "value": "Photo upload isn't available right now, or this photo no longer applies to this task"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "尚未配置图片上传，或这张照片已不属于当前任务版本"
+            "value": "照片上传暂不可用，或这张照片已不适用于当前任务"
           }
         }
       }
@@ -2031,13 +2031,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server settled this prediction as incorrect"
+            "value": "Your prediction was incorrect"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已结算：未猜中"
+            "value": "未猜中"
           }
         }
       }
@@ -2133,13 +2133,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server settled this prediction as correct"
+            "value": "Your prediction was correct"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已结算：猜中"
+            "value": "猜中了"
           }
         }
       }
@@ -2184,13 +2184,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Registration is locked after the server accepts it. Check every answer and the avatar before submitting."
+            "value": "Your registration can't be changed once submitted. Check every answer and your avatar before submitting."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端接受后将锁定档案，请在提交前核对所有回答和头像。"
+            "value": "提交后档案将锁定，请在提交前核对所有回答和头像。"
           }
         }
       }
@@ -2235,13 +2235,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Answer revealed by the server"
+            "value": "Revealed answer"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端公布的答案"
+            "value": "公布的答案"
           }
         }
       }
@@ -2405,13 +2405,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only the overall decision comes back from the server. No individual answer is revealed or guessed here."
+            "value": "Only the overall result is shown. Individual answers aren't revealed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这里只显示服务端的整体判定，不揭露或猜测每一项答案。"
+            "value": "这里只显示整体判定结果，不公布每一项的答案。"
           }
         }
       }
@@ -2456,13 +2456,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh server state"
+            "value": "Refresh status"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "刷新服务端状态"
+            "value": "刷新状态"
           }
         }
       }
@@ -2473,13 +2473,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Completion and rewards are based only on the server’s returned state"
+            "value": "Completion and rewards are based on the official result"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "是否完成及奖励仅以服务端返回状态为准"
+            "value": "是否完成及奖励以最终判定为准"
           }
         }
       }
@@ -2490,13 +2490,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server result: not passed"
+            "value": "Result: not passed"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端判定：未通过"
+            "value": "判定：未通过"
           }
         }
       }
@@ -2507,13 +2507,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server result: passed"
+            "value": "Result: passed"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端判定：已通过"
+            "value": "判定：已通过"
           }
         }
       }
@@ -2524,13 +2524,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recorded by the server"
+            "value": "Recorded"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已记录"
+            "value": "已记录"
           }
         }
       }
@@ -2677,13 +2677,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting for server response"
+            "value": "Waiting for result"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "等待服务端回应"
+            "value": "等待结果"
           }
         }
       }
@@ -2745,13 +2745,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This sensor activity is not enabled for this build."
+            "value": "This sensor activity isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此版本尚未启用该传感器玩法。"
+            "value": "该传感器玩法暂不可用。"
           }
         }
       }

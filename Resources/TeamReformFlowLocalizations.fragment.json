@@ -7,13 +7,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Offline example of a planned flow. Nothing is sent, scanned or verified for real."
+            "value": "Some team actions aren't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这是规划中流程的离线示例，不会真实发送、扫码或核验。"
+            "value": "部分队伍操作暂不可用。"
           }
         }
       }
@@ -687,13 +687,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scanning a teammate's code is not available in this build."
+            "value": "Scanning a teammate's code isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前版本暂不支持扫描队友的码。"
+            "value": "扫描队友的码暂不可用。"
           }
         }
       }

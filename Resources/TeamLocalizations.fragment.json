@@ -636,13 +636,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Team services are not configured"
+            "value": "Teams aren't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "队伍服务尚未配置"
+            "value": "队伍功能暂不可用"
           }
         }
       }

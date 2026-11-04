@@ -59,13 +59,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A direction is required. Compass alignment awards configured points only; it is not proof of arrival. Native sensor permission and device acceptance are separate."
+            "value": "A direction is required. Aligning the compass only awards the points you set; it doesn't prove the player arrived."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "必须明确填写目标方位。罗盘对准仅按配置计分，不能作为到店凭证。原生传感器权限与真机验收是独立步骤。"
+            "value": "必须填写目标方位。罗盘对准仅按设置计分，不能作为到店凭证。"
           }
         }
       }
@@ -348,13 +348,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This shows the configured sensor task and its native controls. Hardware stays off in author preview; use an accepted device-testing configuration to measure real input."
+            "value": "This preview shows the sensor task and its controls. Sensors stay off in preview."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这里展示配置的传感器任务与原生控件。作者预览中不启动硬件，真实输入需在获准的真机测试配置中验证。"
+            "value": "这里预览传感器任务及其控件，预览中不会启用传感器。"
           }
         }
       }
@@ -382,13 +382,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server default"
+            "value": "Default"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "由服务端按规则决定"
+            "value": "默认"
           }
         }
       }
@@ -1181,13 +1181,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The service has not supplied a witness code"
+            "value": "No witness code yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端尚未提供见证码"
+            "value": "暂无见证码"
           }
         }
       }
@@ -1300,13 +1300,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose what you tasted. The answer stays on the server."
+            "value": "Choose what you tasted. The answer stays hidden."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "选择你品尝到的选项，答案由服务端保管。"
+            "value": "选择你品尝到的选项，答案暂不公开。"
           }
         }
       }
@@ -1351,13 +1351,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The name can be shown publicly and is checked by the service before it is saved."
+            "value": "The name may be shown publicly and is reviewed before it's saved."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "作品名可能公开展示，保存前会由服务端进行内容审核。"
+            "value": "作品名可能公开展示，保存前会进行内容审核。"
           }
         }
       }
@@ -1368,13 +1368,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server recorded the claim but returned no reveal text"
+            "value": "Claimed. There's no reveal text for this discovery."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已记录领取，但未返回揭示文案"
+            "value": "已领取，这次发现暂无揭示文案。"
           }
         }
       }
@@ -1419,13 +1419,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server says this discovery can be claimed"
+            "value": "This discovery is ready to claim"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端显示这次发现已可领取"
+            "value": "这次发现已可领取"
           }
         }
       }
@@ -1470,13 +1470,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting and availability come from the server. Changing your device date cannot unlock this task."
+            "value": "The waiting time is tracked by Questify, so changing your device date won't unlock this task."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "等待天数和可领取状态由服务端返回，修改设备日期不能解锁任务。"
+            "value": "等待天数由城瘾统一计算，修改设备日期不能解锁此任务。"
           }
         }
       }

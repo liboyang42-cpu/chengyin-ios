@@ -132,13 +132,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Reporting is not enabled for this service. Policy reads and report submissions remain disabled."
+          "value": "Reporting isn't available right now."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "此服务尚未开放举报。举报规则读取和提交均保持关闭。"
+          "value": "举报暂不可用。"
         }
       }
     }
@@ -164,13 +164,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The exact policy labels are shown. English translations are supplementary."
+          "value": "Policy labels are shown in their original wording. English translations are for reference."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "展示服务端规则原文；英文翻译仅作辅助说明。"
+          "value": "规则标签按原文展示；英文翻译仅供参考。"
         }
       }
     }
@@ -228,13 +228,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Server status"
+          "value": "Status"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端状态"
+          "value": "状态"
         }
       }
     }
@@ -244,13 +244,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The server received this report."
+          "value": "Report received."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端已收到此举报。"
+          "value": "已收到举报。"
         }
       }
     }
@@ -340,13 +340,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The server rejected the report. No moderation outcome can be inferred."
+          "value": "This report wasn't accepted. It doesn't indicate any moderation outcome."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端拒绝了此举报，不能据此推断任何处置结果。"
+          "value": "此举报未被受理，不代表任何处置结果。"
         }
       }
     }
@@ -692,13 +692,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This legacy action toggles the current post like once. An unconfirmed result remains locked."
+          "value": "This likes or unlikes the post once. If the result isn't confirmed, it stays locked."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "旧版接口会切换一次当前动态点赞状态，结果未确认时继续保持锁定。"
+          "value": "将切换一次当前动态的点赞状态，结果未确认时保持锁定。"
         }
       }
     }
