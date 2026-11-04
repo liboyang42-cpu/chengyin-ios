@@ -315,7 +315,7 @@ struct RegistrationSheetView: View {
                 .focused($focusedField, equals: .phone)
                 .accessibilityIdentifier("registration.form.phone")
             if !flow.draft.phone.isEmpty, flow.draft.validation == .invalidPhone {
-                Text("registration.form.phoneHint").font(.caption).foregroundStyle(.secondary)
+                Text("registration.form.phoneHint").font(.caption).foregroundStyle(.red)
             }
         } header: { Text("registrationParity.section.participants") } footer: { Text("registration.form.contactHint") }
         .disabled(!flow.canEdit)

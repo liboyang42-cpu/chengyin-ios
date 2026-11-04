@@ -123572,13 +123572,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current source contract requires an 11-digit mobile number starting with 1. International numbers are not supported yet."
+            "value": "Enter a valid mobile number."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前来源接口要求以 1 开头的 11 位手机号，尚未支持国际号码。"
+            "value": "请输入有效的手机号。"
           }
         }
       }
