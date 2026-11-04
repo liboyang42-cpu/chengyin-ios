@@ -119,7 +119,26 @@ public struct CityGameSnapshot: Decodable, Equatable, Sendable {
     public var heldCount: Int { properties.filter(\.heldByMyTeam).count }
 
     /// Binds the proposed snapshot to the reviewed read snapshot it extends.
-    public func validate(against read: CityReadSnapshot) throws {
+    /// Only values from this exact server projection may be used as action inputs.
+    public func contains(_ property: CityPropertyState) -> Bool {
+        properties.first(where: { $0.propertyId == property.propertyId }) == property
+    }
+    public func offers(_ service: CityServiceOffer, on property: CityPropertyState) -> Bool {
+        contains(property) && property.services.contains(service)
+    }
+
+    public func validate(against read: CityReadSnapshot, previous: CityGameSnapshot? = nil) throws {
+        guard read.board.valid, read.membership != .unavailable,
+              (read.membership == .joined && read.participation?.valid == true)
+                || (read.membership == .notJoined && read.participation == nil),
+              let points = read.points, points.count <= 200,
+              Set(points.map(\.pointId)).count == points.count,
+              points.allSatisfy({ $0.valid && (!$0.mine || read.membership == .joined) }) else { throw CityGameProjectionIssue.invalid }
+        if let previous {
+            guard previous.boardId == boardId, previous.seasonId == seasonId,
+                  previous.rules.rulesReleaseId == rules.rulesReleaseId,
+                  boardVersion >= previous.boardVersion, sequence >= previous.sequence else { throw CityGameProjectionIssue.boardMismatch }
+        }
         guard contract == "CITY_GAME_SNAPSHOT_V1", scope == "CITY" else { throw CityGameProjectionIssue.invalid }
         guard boardId == read.board.boardId, seasonId == read.board.seasonId, rules.rulesReleaseId == read.board.rulesReleaseId,
               boardVersion >= read.board.revision else { throw CityGameProjectionIssue.boardMismatch }
@@ -129,7 +148,7 @@ public struct CityGameSnapshot: Decodable, Equatable, Sendable {
         if let memberPoints { guard memberPoints >= 0, ReformWire.version(memberPoints) else { throw CityGameProjectionIssue.invalid } }
         try rules.validate(); try properties.forEach { try $0.validate() }
         // Every property must sit on a visible reviewed point; hidden sources never leak via state.
-        let visible = Set((read.points ?? []).map(\.pointId))
+        let visible = Set(points.map(\.pointId))
         guard properties.allSatisfy({ visible.contains($0.pointId) }) else { throw CityGameProjectionIssue.invalid }
         // A non-member sees board state only, never "my team" facts.
         if read.membership != .joined { guard heldCount == 0, roundSeq == nil, properties.allSatisfy({ !$0.taskAttemptKept }) else { throw CityGameProjectionIssue.invalid } }
