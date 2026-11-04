@@ -335,7 +335,7 @@ import Combine
                 }
             }
             if !model.draft.publishIssues.isEmpty {
-                Section("templateAuthor.validationTitle") { ForEach(Array(Set(model.draft.publishIssues)).sorted(), id: \.self) { Text(LocalizedStringKey($0)).foregroundStyle(.secondary) } }
+                Section("templateAuthor.validationTitle") { ForEach(Array(Set(model.draft.publishIssues)).sorted(), id: \.self) { Text(LocalizedStringKey($0)).foregroundStyle(.red) } }
             }
         }.disabled(!model.canEdit)
     }

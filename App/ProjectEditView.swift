@@ -608,7 +608,7 @@ struct ProjectEditReferenceField: View {
                     // Invalid text clears selection; review must not silently send old IDs.
                     selection = invalid ? [] : ids
                 }
-            Text(LocalizedStringKey(invalid ? "projectEdit.validation.categories" : "projectEdit.categoriesHint")).font(.caption).foregroundStyle(.secondary)
+            Text(LocalizedStringKey(invalid ? "projectEdit.validation.categories" : "projectEdit.categoriesHint")).font(.caption).foregroundStyle(invalid ? Color.red : Color.secondary)
             if let categoryModel { ProjectCategoryPickerEntry(model: categoryModel) }
         }.onAppear { text = selection.map(String.init).joined(separator: ",") }
             .onChange(of: selection) { _, value in if !focused { text = value.map(String.init).joined(separator: ",") } }

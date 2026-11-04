@@ -32,7 +32,7 @@ import Combine
                 }
             }
             Section { NavigationLink("creatorRoot.rehearse") { TemplateRootRehearsalView(draft: model.draft.advanced) }.disabled(!model.draft.advanced.issues.isEmpty) }
-            if !issues.isEmpty { Section("templateAuthor.validationTitle") { ForEach(issues) { issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)); Text(verbatim: issue.path).font(.caption) } } } }
+            if !issues.isEmpty { Section("templateAuthor.validationTitle") { ForEach(issues) { issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(.red) } } } }
         }.navigationTitle("creatorRoot.rules").toolbar { EditButton() }.disabled(!model.canEdit)
     }
 }
@@ -68,7 +68,7 @@ import Combine
                 }.disabled(newField == nil)
             }
             let issues = model.draft.advanced.rootCreatorIssues.filter { $0.path.hasPrefix("variants[\(index + 1)]") }
-            if !issues.isEmpty { Section("templateAuthor.validationTitle") { ForEach(issues) { issue in Text(LocalizedStringKey(issue.labelKey)) } } }
+            if !issues.isEmpty { Section("templateAuthor.validationTitle") { ForEach(issues) { issue in Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(.red) } } }
         }.navigationTitle("creatorRoot.variant")
     }
 }

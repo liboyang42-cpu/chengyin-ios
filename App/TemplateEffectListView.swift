@@ -141,7 +141,7 @@ import Combine
             if !editor.issues.isEmpty {
                 Section("templateAuthor.validationTitle") {
                     ForEach(editor.issues) { issue in
-                        VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)); Text(verbatim: issue.path).font(.caption) }
+                        VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(.red) }
                     }
                 }
             }

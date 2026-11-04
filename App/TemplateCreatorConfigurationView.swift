@@ -36,8 +36,7 @@ import Combine
                 if !issues.isEmpty {
                     Section("templateAuthor.validationTitle") {
                         ForEach(issues) { issue in VStack(alignment: .leading) {
-                            Text(LocalizedStringKey(issue.labelKey))
-                            Text(verbatim: issue.path).font(.caption).foregroundStyle(.secondary)
+                            Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(.red)
                         } }
                     }
                 }
