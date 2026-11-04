@@ -24,7 +24,6 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
             } else if model.loadedRevision == reader.sessionRevision, let rows = model.value {
                 List {
                     Section {
-                        Text("merchant.readOnly").font(.footnote).foregroundStyle(.secondary)
                         if filter.status != nil || filter.aftersaleStatus != nil { filterSummary }
                         if model.isLoading { ProgressView("merchant.refreshing") }
                         if let error = model.errorKey {
@@ -33,7 +32,10 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
                         }
                     }
                     if rows.isEmpty {
-                        Section { Text("merchant.orders.empty").accessibilityIdentifier("merchant.orders.empty") }
+                        ContentUnavailableView {
+                            Label { Text("merchant.orders.empty").accessibilityIdentifier("merchant.orders.empty") } icon: { Image(systemName: "receipt") }
+                        }
+                        .listRowBackground(Color.clear)
                     } else {
                         ForEach(Array(rows.enumerated()), id: \.offset) { index, order in
                             Button {
@@ -119,16 +121,26 @@ private struct MerchantOrderRow: View {
     @Environment(\.locale) private var locale
     let order: MerchantOrder
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(order.orderSn.flatMap { $0.isEmpty ? nil : $0 } ?? appLocalized("merchant.orders",locale:locale))
-                .font(.headline)
-            MerchantOrderStatusLabel(value: order.status)
-            if let time = order.createTime, !time.isEmpty { Text(time).font(.caption).foregroundStyle(.secondary) }
-            Text(MerchantMoney.display(order.payAmount)).monospacedDigit()
-            if let raw = order.aftersaleStatus, raw >= 2 {
-                MerchantAftersaleLabel(value: raw).font(.subheadline).foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: Theme.Space.s1_5) {
+            HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s3) {
+                Text(order.orderSn.flatMap { $0.isEmpty ? nil : $0 } ?? appLocalized("merchant.orders",locale:locale))
+                    .font(.headline)
+                Spacer(minLength: 0)
+                Text(MerchantMoney.display(order.payAmount)).font(.headline).monospacedDigit()
+                    .layoutPriority(1)
             }
-        }.padding(.vertical, 4)
+            HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s3) {
+                MerchantOrderStatusLabel(value: order.status)
+                Spacer(minLength: 0)
+                if let time = order.createTime, !time.isEmpty { Text(time).font(.caption) }
+            }
+            .font(.subheadline).foregroundStyle(.secondary)
+            if let raw = order.aftersaleStatus, raw >= 2 {
+                MerchantAftersaleLabel(value: raw).font(.subheadline).foregroundStyle(.orange)
+            }
+        }
+        .padding(.vertical, Theme.Space.s1)
+        .contentShape(Rectangle())
     }
 }
 
@@ -137,14 +149,16 @@ private struct MerchantOrderSummary: View {
     var body: some View {
         Form {
             Section {
-                Text("merchant.summarySnapshot").font(.footnote).foregroundStyle(.secondary)
+                QuestifyHeroValue(value: Text(MerchantMoney.display(order.payAmount)).monospacedDigit(), caption: Text("merchant.order.amount"))
+                    .listRowBackground(Color.clear)
+            }
+            Section {
                 if let value = order.orderSn, !value.isEmpty { LabeledContent("merchant.order.number", value: value).textSelection(.enabled) }
                 if let value = order.id { MerchantCountRow("merchant.recordID", value: value) }
                 LabeledContent { MerchantOrderStatusLabel(value: order.status) } label: { Text("merchant.order.status") }
                 if let value = order.aftersaleStatus {
                     LabeledContent { MerchantAftersaleLabel(value: value) } label: { Text("merchant.order.aftersale") }
                 }
-                LabeledContent("merchant.order.amount", value: MerchantMoney.display(order.payAmount))
                 if let value = order.createTime, !value.isEmpty { LabeledContent("merchant.order.created", value: value) }
             }
         }.appNavigationTitle("merchant.order.summary")
