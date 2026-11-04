@@ -39,7 +39,10 @@ import SwiftUI
                     }
                     Text("couponManagement.chinaTime").font(.footnote).foregroundStyle(.secondary)
                     if model.working || model.core.loading { ProgressView("couponManagement.loading") }
-                    else if model.core.rows.isEmpty { Text("couponManagement.empty").foregroundStyle(.secondary) }
+                    else if model.core.rows.isEmpty {
+                        ContentUnavailableView("couponManagement.empty", systemImage: "ticket")
+                            .listRowBackground(Color.clear)
+                    }
                     ForEach(model.core.rows) { row in
                         NavigationLink {
                             CouponManagementDetailView(model: model, id: row.id)
@@ -115,7 +118,6 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
                     LabeledContent("couponManagement.type") { Text(LocalizedStringKey(row.typeKey)) }
                     LabeledContent("couponManagement.start", value: CouponValidityTime.display(row.startTime) ?? "—")
                     LabeledContent("couponManagement.end", value: CouponValidityTime.display(row.endTime) ?? "—")
-                    Text("couponManagement.dateNotice").font(.footnote)
                     Text("couponManagement.chinaTime").font(.footnote)
                 }
                 if let code = row.publishedBatchCode {
@@ -140,7 +142,6 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
                         Button("couponManagement.reviewStop", role: .destructive) { model.run { await model.core.prepareStop(id) } }
                             .disabled(model.working || !model.core.canReviewStop).accessibilityIdentifier("couponManagement.stop.review")
                     }
-                    Text("couponManagement.claimUnavailable").font(.footnote)
                 }
                 if let review = model.core.review { CouponManagementReviewSection(model: model, review: review) }
             } else if model.working { ProgressView("couponManagement.loading") }
