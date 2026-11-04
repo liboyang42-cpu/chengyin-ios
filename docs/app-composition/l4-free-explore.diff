@@ -1,0 +1,81 @@
+--- a/App/AppSession.swift
++++ b/App/AppSession.swift
+@@ -3912,0 +3913,25 @@
++    }
++    // L4 free-explore factory. Reservation dispatch remains closed pending L2 review.
++    private var currentFreeExploreLaunchSession: FreeExploreLaunchSession? {
++        guard let context = currentRuntimeDependencyContext else { return nil }
++        return try? FreeExploreLaunchSession(baseURL: context.baseURL,
++            accountID: Int64(context.session.accountID), market: context.market.rawValue,
++            namespace: context.session.namespace, role: context.role,
++            epoch: context.session.epoch, token: context.session.token)
++    }
++    func makeFreeExploreLaunchCoordinator() throws -> FreeExploreLaunchCoordinator? {
++        guard storageScope != nil, let captured = currentFreeExploreLaunchSession else { return nil }
++        let viewer = compositionViewerRevision
++        let current: () -> FreeExploreLaunchSession? = { [weak self] in
++            guard let self, self.compositionViewerRevision == viewer else { return nil }
++            return self.currentFreeExploreLaunchSession
++        }
++        let service = FreeExploreLaunchService(session: captured, transport: compositionTransport,
++            currentSession: current, reservationAllowed: { false },
++            onUnauthorized: { [weak self] session in
++                guard let self, current() == session else { return }
++                self.expireIfMatching(error: APIError.unauthorized, stamp: session.epoch,
++                    credential: self.token)
++            })
++        let pending = FreeExploreLaunchPendingStore(storage: templateAuthoringSecureStorage, session: captured)
++        return try FreeExploreLaunchCoordinator(service: service, pending: pending)
+--- a/Questify.xcodeproj/project.pbxproj
++++ b/Questify.xcodeproj/project.pbxproj
+@@ -7,0 +8,40 @@
++		"BB419CE7EBF1F0AE17E53069" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/FreeExploreLaunchContracts.swift";
++			"sourceTree" = "<group>";
++		};
++		"7DE332E016C469EEB53ACCC5" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "BB419CE7EBF1F0AE17E53069";
++		};
++		"DEEB33D7DD2913E3CB39CA89" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/FreeExploreLaunchCoordinator.swift";
++			"sourceTree" = "<group>";
++		};
++		"CB29D14D4E2F16501E08EB69" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "DEEB33D7DD2913E3CB39CA89";
++		};
++		"AB9C9D3B7BFC3662693F3224" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/FreeExploreLaunchPendingStore.swift";
++			"sourceTree" = "<group>";
++		};
++		"BEA867B7A75A815ABBAE79FF" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "AB9C9D3B7BFC3662693F3224";
++		};
++		"7D90B0C3A296155DE5999067" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/FreeExploreLaunchService.swift";
++			"sourceTree" = "<group>";
++		};
++		"14E74BD6E80539C1A706274E" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "7D90B0C3A296155DE5999067";
++		};
+@@ -27530,0 +27571,4 @@
++				"BB419CE7EBF1F0AE17E53069",
++				"DEEB33D7DD2913E3CB39CA89",
++				"AB9C9D3B7BFC3662693F3224",
++				"7D90B0C3A296155DE5999067",
+@@ -31116,0 +31161,4 @@
++				"7DE332E016C469EEB53ACCC5",
++				"CB29D14D4E2F16501E08EB69",
++				"BEA867B7A75A815ABBAE79FF",
++				"14E74BD6E80539C1A706274E",
