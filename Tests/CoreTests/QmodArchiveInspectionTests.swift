@@ -49,7 +49,10 @@ final class QmodArchiveInspectionTests: XCTestCase {
             "formatVersion": "1.0", "kind": "questify.mod", "packageId": "bookshop.mystery", "packageVersion": "1.0.0",
             "entrypoint": "content.json", "locales": ["en", "zh-Hans"],
             "runtime": ["minHostVersion": "1.0.0", "capabilities": []] as [String: Any],
-            "files": files.map { ["path": $0.0, "bytes": $0.1.count, "sha256": SHA256.hash(data: $0.1).map { String(format: "%02x", $0) }.joined()] },
+            "files": files.map { file -> [String: Any] in
+                let digest = SHA256.hash(data: file.1).map { String(format: "%02x", $0) }.joined()
+                return ["path": file.0, "bytes": file.1.count, "sha256": digest]
+            },
             "rightsDeclaration": ["declared": true], "monetizationDeclaration": "NONE"
         ]
         files.insert(("manifest.json", path == "manifest.json" ? payload : try JSONSerialization.data(withJSONObject: root)), at: 0)
@@ -57,17 +60,25 @@ final class QmodArchiveInspectionTests: XCTestCase {
         func word(_ value: UInt32, _ width: Int = 4) -> Data {
             Data((0..<width).map { UInt8(truncatingIfNeeded: value >> ($0 * 8)) })
         }
+        func fields(_ values: [(UInt32, Int)]) -> Data {
+            var result = Data()
+            for (value, width) in values { result += word(value, width) }
+            return result
+        }
         for (name, data) in files {
             let nameBytes = Data(name.utf8), offset = UInt32(archive.count)
             let crc = try XCTUnwrap(QmodCRC32.checksum(data)), size = UInt32(data.count)
-            archive += word(0x04034b50) + word(20, 2) + word(0, 2) + word(0, 2) + word(0) + word(crc) + word(size) + word(size)
-            archive += word(UInt32(nameBytes.count), 2) + word(0, 2) + nameBytes + data
-            central += word(0x02014b50) + word(20, 2) + word(20, 2) + word(0, 2) + word(0, 2) + word(0) + word(crc) + word(size) + word(size)
-            central += word(UInt32(nameBytes.count), 2) + word(0, 2) + word(0, 2) + word(0, 2) + word(0, 2) + word(0) + word(offset) + nameBytes
+            archive += fields([(0x04034b50, 4), (20, 2), (0, 2), (0, 2), (0, 4), (crc, 4), (size, 4), (size, 4)])
+            archive += fields([(UInt32(nameBytes.count), 2), (0, 2)])
+            archive += nameBytes
+            archive += data
+            central += fields([(0x02014b50, 4), (20, 2), (20, 2), (0, 2), (0, 2), (0, 4), (crc, 4), (size, 4), (size, 4)])
+            central += fields([(UInt32(nameBytes.count), 2), (0, 2), (0, 2), (0, 2), (0, 2), (0, 4), (offset, 4)])
+            central += nameBytes
         }
         let start = UInt32(archive.count)
         archive += central
-        archive += word(0x06054b50) + word(0, 2) + word(0, 2) + word(UInt32(files.count), 2) + word(UInt32(files.count), 2) + word(UInt32(central.count)) + word(start) + word(0, 2)
+        archive += fields([(0x06054b50, 4), (0, 2), (0, 2), (UInt32(files.count), 2), (UInt32(files.count), 2), (UInt32(central.count), 4), (start, 4), (0, 2)])
         return archive
     }
 
