@@ -1,0 +1,5 @@
+{
+  "QuestifyCoreTests/H5LaunchIssuerTests/testDifferentHostDoesNotLoad": "The spec requires a server-issued, one-use H5 launch ticket on a separate host. These tests asserted the client minted the nonce on the API host, which L11 removed. Reviewed by Claude, 2026-11-04.",
+  "QuestifyCoreTests/H5LaunchIssuerTests/testExplicitPortStaysOnTheSameHost": "The spec requires a server-issued, one-use H5 launch ticket on a separate host. These tests asserted the client minted the nonce on the API host, which L11 removed. Reviewed by Claude, 2026-11-04.",
+  "QuestifyCoreTests/H5LaunchIssuerTests/testHeldHostMintsNonceAndParentReadsTheOwnedReceipt": "The spec requires a server-issued, one-use H5 launch ticket on a separate host. These tests asserted the client minted the nonce on the API host, which L11 removed. Reviewed by Claude, 2026-11-04."
+}
