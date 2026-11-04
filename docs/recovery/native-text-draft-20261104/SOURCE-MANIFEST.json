@@ -1,0 +1,172 @@
+{
+  "status": "RECOVERY_PATCH_ONLY_NOT_APPLIED_TO_APP",
+  "source_base": "eec839502b11f1119a6ede212c768bb3f2de4f29",
+  "source_tree": "8ae00bce7fddf29de634080c95c87d5a761c81c0",
+  "source_paths": 18,
+  "patch_sha256": "d7fb32ddaa4bc52d7c8a6063e59c2d2076ab470490bcb2d2ae985f143a83dd72",
+  "patch_bytes": 95376,
+  "files": [
+    {
+      "path": "App/NativeTextDraftEditorView.swift",
+      "base_blob": null,
+      "result_blob": "56ac984be8e8f5bb4a8532a5f4508af9f3501efa",
+      "base_sha256": null,
+      "result_sha256": "9f6d8172e6004e623c17fb9f3eb3822aba67a31d8fb09bf9f9d1c671a16e2f66",
+      "bytes": 4847,
+      "new_leaf": true
+    },
+    {
+      "path": "App/NativeTextDraftEntryView.swift",
+      "base_blob": null,
+      "result_blob": "c2a6fef620510a08a9f8718888a13179c89ed4c5",
+      "base_sha256": null,
+      "result_sha256": "5efb9c8a1780ce3f6167bb97a14d7b228d027c97014b7e66ebbcba7a0cde7280",
+      "bytes": 1910,
+      "new_leaf": true
+    },
+    {
+      "path": "App/NativeTextDraftFixtureHost.swift",
+      "base_blob": null,
+      "result_blob": "0f0a7b23a6a9ce5663c4f61cff8ae19aefbf76cf",
+      "base_sha256": null,
+      "result_sha256": "1ca135dee1eedfd089397e3c15f1e5231518c2a183ee169daf9ab6fa753320a5",
+      "bytes": 6806,
+      "new_leaf": true
+    },
+    {
+      "path": "App/OwnerDraftBrowserView.swift",
+      "base_blob": "a609ae536e38192c12f3f5f655f686a63617bc5c",
+      "result_blob": "1294eb4e1667bed57c03961be171480bf3511bad",
+      "base_sha256": "c14e5fb671d9baee0cb7a2513139b18573b9afbb8fa4abb96451095eb59b5151",
+      "result_sha256": "468c6c987753e6663a74fa57906bab82b85ecbdeabf30b5991cce9cfca43b4ce",
+      "bytes": 9983,
+      "new_leaf": false
+    },
+    {
+      "path": "App/OwnerDraftFixtureHost.swift",
+      "base_blob": "01e47ff2459dc2bf784a952e5a66a152b4a0693a",
+      "result_blob": "2a4bb0014dc0dafc5f61da23a27a6f583e43793e",
+      "base_sha256": "3c1bd2ea7d2dd11b0b0b15a8e7fa475a7d2f28a5c792147e7714dc218c50c17a",
+      "result_sha256": "1a4bb8b08f325f530f44c278af652e5069863eee9a2c6a5d95ebf1b6c4fa2fea",
+      "bytes": 9549,
+      "new_leaf": false
+    },
+    {
+      "path": "App/QuestifyApp.swift",
+      "base_blob": "12a6a00d6e1340936c81ef0dfcfa14a2dff48086",
+      "result_blob": "46c6858b730e6cba6e39f721415b490897b2d76e",
+      "base_sha256": "a64e4ed01dd548d47479f110a104b1c125f60f79be0cd0f5fc7165d124af29a0",
+      "result_sha256": "8490433dff2f68f5500d6d2c15f66beb5a47da3ba31acc78478b663b3204d771",
+      "bytes": 29928,
+      "new_leaf": false
+    },
+    {
+      "path": "Core/NativeTextDraftEditor.swift",
+      "base_blob": null,
+      "result_blob": "ecdc7c6968cf156cd3f03e7407aad21b1d5b51dd",
+      "base_sha256": null,
+      "result_sha256": "754cb2127225fe1aa9a649f2769fc5c5fb8dfe86b20bb76fc9b82ca554a14d28",
+      "bytes": 7353,
+      "new_leaf": true
+    },
+    {
+      "path": "Core/NativeTextDraftPayload.swift",
+      "base_blob": null,
+      "result_blob": "353d4aab7c1dc18a39da433410b5c8f22c5df4ad",
+      "base_sha256": null,
+      "result_sha256": "8b927eeb6dada5f5b397da8d8b9d2ebabb67854c9ad1d2933abf34bf30422f0c",
+      "bytes": 8661,
+      "new_leaf": true
+    },
+    {
+      "path": "Core/OwnerDraftBrowser.swift",
+      "base_blob": "c5161f8038b962d6c7ba1511bad395011689bc95",
+      "result_blob": "3fbf2374d361ae2aa5606b014195cc5ceb56dce8",
+      "base_sha256": "adff85f8ae38556117f399905570088c1e2480cb20e6bbc90e14e5cc08c2d493",
+      "result_sha256": "da083e6d5940cf83064327b00966061533a34dc08b2f7e2d886e8ac5885dc3a1",
+      "bytes": 7100,
+      "new_leaf": false
+    },
+    {
+      "path": "Core/VersionedContentDraftContracts.swift",
+      "base_blob": "d30401e30463d867679e595560ea5badb1cdad54",
+      "result_blob": "9fcb281304cbe36b0d9cf2c54cdf8fe0eee60f4a",
+      "base_sha256": "8657741500148ab0296333ca8902d309236e42c2a10e3f603aa9f242dfbdf75c",
+      "result_sha256": "8250af171c08eb57676950b3728be6efab0fb187ff3cec5201db69ba24e36694",
+      "bytes": 19039,
+      "new_leaf": false
+    },
+    {
+      "path": "Questify.xcodeproj/project.pbxproj",
+      "base_blob": "7600d19e5e32290b8e746b7ba41d35e2c227bff6",
+      "result_blob": "590207e275db7d6c4ed1c240c8ee06d7181a4e6e",
+      "base_sha256": "4656beb8500e3dbc58ad5ba6b5c286c6b8cd3cd286547b81ac11e1ddb68fd192",
+      "result_sha256": "5db9329372f935067cc841c235847bb7e7b970e90a042bb55a7c137e02d3e7c2",
+      "bytes": 1344573,
+      "new_leaf": false
+    },
+    {
+      "path": "Resources/Localizable.xcstrings",
+      "base_blob": "5fc300ab03c33797e9c6d80b6ab858ae326c6f61",
+      "result_blob": "cba16c88a07084c1691858661855ce603a0222bb",
+      "base_sha256": "f674542a29988c70ad15ff468e6e154072ca4efbd46710d686c8609869873bcb",
+      "result_sha256": "d9f9335bddd251ae58f927451e918077db34fc38d673f5deaab6a7db0a1eaf09",
+      "bytes": 5025656,
+      "new_leaf": false
+    },
+    {
+      "path": "Tests/AppUITests/NativeTextDraftEditorFlowTests.swift",
+      "base_blob": null,
+      "result_blob": "1758fece034fa02a8b6405d7433b700b26fb0b0c",
+      "base_sha256": null,
+      "result_sha256": "4da6d2975e7ab58a3791639f9187ed29323068653d18ef6d635c9b40c8cb8952",
+      "bytes": 4220,
+      "new_leaf": true
+    },
+    {
+      "path": "Tests/AppUITests/OwnerDraftBrowserFlowTests.swift",
+      "base_blob": "6c2ef6fa31d21759c621df2b4569328878f58394",
+      "result_blob": "57edc9fde0c1c27253dcac6ba5a333b57f46e0cc",
+      "base_sha256": "f7229b195dd3e47ee90ec6038ebd893ac9dd444182192c4a2de76bf861f90aa8",
+      "result_sha256": "2a5f7f601e417af8eaf371b1bf40ffc872ce58a1c1cbc5677755246dba0448a6",
+      "bytes": 11987,
+      "new_leaf": false
+    },
+    {
+      "path": "Tests/ContractChecks/test_native_text_draft_editor.py",
+      "base_blob": null,
+      "result_blob": "ec67e69e6a5c354e631100895c891a5f62aaa8b4",
+      "base_sha256": null,
+      "result_sha256": "50099606134fd4dd66b208fd44ab381076629ba590eed4eb11f9df3d0876fcc2",
+      "bytes": 3950,
+      "new_leaf": true
+    },
+    {
+      "path": "Tests/CoreTests/NativeTextDraftEditorTests.swift",
+      "base_blob": null,
+      "result_blob": "d49605d049868798594cad7f0906b98eeafa0719",
+      "base_sha256": null,
+      "result_sha256": "5d3927b4b6ef219b92bbfab4d93e65da02d23ed64f532a379659494d89a89c64",
+      "bytes": 22397,
+      "new_leaf": true
+    },
+    {
+      "path": "docs/versioned-content-drafts/contract.md",
+      "base_blob": "389a983f50c0a3dc12d4bb2cd78ed849ee5af3b0",
+      "result_blob": "3418526d329659a17663655434e9fefb5cb545db",
+      "base_sha256": "1f9ab5477d67335aa323f3b492d17cb5c6a9c8108b1ccdc69d8c388079f0d719",
+      "result_sha256": "e09e926429b6b1aebf7b8e85be92493df3b0f40b5553c61f63ac5b1bb353406c",
+      "bytes": 9611,
+      "new_leaf": false
+    },
+    {
+      "path": "docs/versioned-content-drafts/native-text-editor.md",
+      "base_blob": null,
+      "result_blob": "1f5e817771955b985f4c71aceba41beae4a98b68",
+      "base_sha256": null,
+      "result_sha256": "f99edda561a44627de0b9810658cdb5582e1360f44618619218134fdc43b1415",
+      "bytes": 5537,
+      "new_leaf": true
+    }
+  ]
+}
