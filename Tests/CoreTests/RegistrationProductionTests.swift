@@ -404,4 +404,53 @@ private final class RegistrationProductionWire: HTTPTransport {
         XCTAssertEqual(wire.requests.filter { $0.url!.path.hasSuffix("registration/create") }.count, 1)
     }
 
+    func testFrozen58FirstSignupConsentWithoutDataReachesOriginalWriterAndReadback() async throws {
+        let wire = RegistrationProductionWire(), journal = RegistrationProductionJournal(), current = try session()
+        installReadHandler(wire)
+        let handler = wire.handler, confirmed = legal
+        var agreed = false
+        wire.handler = { request in
+            if request.url!.path.hasSuffix("consents/latest") {
+                return agreed ? confirmed : #"{"code":200,"msg":"操作成功"}"#
+            }
+            if request.url!.path.hasSuffix("/consents") {
+                agreed = true
+                return confirmed
+            }
+            return try handler(request)
+        }
+        let service = RegistrationProductionService(configuration: configuration, approval: try grant(), transport: wire,
+            journal: journal, current: { current }, now: { self.fixedNow })
+        try await service.agreeToSignupNotice(.init(activityID: 7, ticketID: 11))
+        let intent = try await makeIntent(service)
+        let result = try await service.create(intent, token: "fixture-token")
+        let snapshot = try await service.readStatus(registrationID: result.registrationID, token: "fixture-token")
+        XCTAssertEqual(snapshot.registrationID, 41)
+        XCTAssertEqual(wire.requests.filter { $0.url!.path.hasSuffix("/consents") }.count, 1)
+        XCTAssertEqual(wire.requests.filter { $0.url!.path.hasSuffix("registration/create") }.count, 1)
+    }
+
+    func testFrozen58AbsentConsentNeverAuthorizesQuoteOrCreate() async throws {
+        let wire = RegistrationProductionWire(), current = try session()
+        wire.handler = { _ in #"{"code":200,"msg":"操作成功"}"# }
+        let service = RegistrationProductionService(configuration: configuration, approval: try grant(), transport: wire,
+            journal: RegistrationProductionJournal(), current: { current }, now: { self.fixedNow })
+        do { _ = try await makeIntent(service); XCTFail("Missing agreement must not grant signup") } catch {}
+        XCTAssertEqual(wire.requests.count, 1)
+        XCTAssertTrue(wire.requests[0].url!.path.hasSuffix("consents/latest"))
+    }
+
+    func testMalformedOrRefusedConsentLatestCannotBecomeEmptySuccess() async throws {
+        for body in [#"{"msg":"missing code"}"#, #"{"code":500,"msg":"refused"}"#,
+                     #"{"code":"200","msg":"wrong code type"}"#, #"{"code":200,"data":"invalid"}"#] {
+            let wire = RegistrationProductionWire(), journal = RegistrationProductionJournal(), current = try session()
+            wire.handler = { _ in body }
+            let service = RegistrationProductionService(configuration: configuration, approval: try grant(), transport: wire,
+                journal: journal, current: { current }, now: { self.fixedNow })
+            do { try await service.agreeToSignupNotice(.init(activityID: 7, ticketID: 11)); XCTFail("Invalid latest consent") } catch {}
+            XCTAssertEqual(wire.requests.count, 1)
+            XCTAssertTrue(journal.records.isEmpty)
+        }
+    }
+
 }

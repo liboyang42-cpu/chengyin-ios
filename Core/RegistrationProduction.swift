@@ -136,6 +136,10 @@ public enum RegistrationDurableCreation: Equatable { case none, pending(registra
         let (data, status) = try await transport.send(request)
         try fence(session, scope: scope, path: path)
         guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
+        // Frozen backend 58f4cc4 returns AjaxResult.success() without a data key
+        // when no consent exists. That is an absent agreement, never authorization.
+        if let envelope = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+           envelope["code"] as? Int == 200, !envelope.keys.contains("data") { return false }
         let consent = try JSONDecoder().decode(RegistrationResponse<ConsentPayload>.self, from: data).data.value
         return consent?.matches(.signup, event: .agree) == true && consent?.docVersion == approval.consentVersion
     }
