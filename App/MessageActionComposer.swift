@@ -104,21 +104,27 @@ struct MessageComposerSubmission: Equatable {
             case .acknowledged: Text("message.send.accepted").font(.footnote).accessibilityIdentifier("message.send.receipt")
             case .idle: EmptyView()
             }
-            HStack(alignment:.bottom) {
+            // Rounded field with the send control inside it, as in native chat apps.
+            HStack(alignment:.bottom,spacing:4) {
                 TextField("message.send.placeholder",text:$model.draft,axis:.vertical)
-                    .lineLimit(1...5).textFieldStyle(.roundedBorder).frame(minHeight:44).focused($typing).disabled(!canCompose)
+                    .lineLimit(1...5).textFieldStyle(.plain).padding(.vertical,11).padding(.leading,16).focused($typing).disabled(!canCompose)
                     .accessibilityIdentifier("message.send.input")
                 Button {
                     typing=false
                     guard let token = model.prepare(.send(model.draft), identity: identity, canReply: ready) else { return }
                     Task { await model.perform(token, canReply: { ready }) }
-                } label: { Label("message.send.button",systemImage:"arrow.up.circle.fill").frame(minWidth:44,minHeight:44).contentShape(Rectangle()) }
+                } label: {
+                    Label("message.send.button",systemImage:"arrow.up.circle.fill").labelStyle(.iconOnly)
+                        .font(.title2).frame(minWidth:44,minHeight:44).contentShape(Rectangle())
+                }
                 .disabled(!canCompose || model.draft.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty)
                 .accessibilityIdentifier("message.send.button")
             }
+            .frame(minHeight:44)
+            .background(Color(uiColor:.secondarySystemBackground),in:RoundedRectangle(cornerRadius:22,style:.continuous))
             if !conversationReady { Text("message.send.historyRequired").font(.caption).foregroundStyle(.secondary) }
         }
-        .padding().background(.regularMaterial).privacySensitive()
+        .padding(.horizontal).padding(.vertical,8).background(.bar).privacySensitive()
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()

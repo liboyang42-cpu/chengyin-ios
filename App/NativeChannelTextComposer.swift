@@ -18,37 +18,45 @@ import SwiftUI
         VStack(alignment: .leading, spacing: Theme.Space.s2) {
             if historyReady && coordinator.isCurrent {
                 status
-                if let mentions = coordinator.pendingMentionSummary { Text("原请求提及："+mentions).fixedSize(horizontal: false, vertical: true).font(.footnote) }
-                if let reply = coordinator.pendingQuotedMessageID { Text("原请求引用消息：\(reply)").fixedSize(horizontal: false, vertical: true).font(.footnote) }
+                if let mentions = coordinator.pendingMentionSummary { Text("channelText.pendingMentions \(mentions)", tableName: "NativeChannelText").fixedSize(horizontal: false, vertical: true).font(.footnote) }
+                if coordinator.pendingQuotedMessageID != nil { Text("channelText.replying", tableName: "NativeChannelText").fixedSize(horizontal: false, vertical: true).font(.footnote) }
                 if coordinator.canSendNew {
                     if let mentions = coordinator.mentionSummary {
-                        Text("待发送原提及："+mentions).fixedSize(horizontal: false, vertical: true).font(.footnote)
-                        Text("提及不代表提醒已送达；原服务过滤无权限、屏蔽对象并执行所有人频率限制。").font(Theme.Font.label).foregroundStyle(Theme.Color.textSecondary(in: domain)).fixedSize(horizontal: false, vertical: true)
-                        Button("取消所有未发送引用与提及") { coordinator.cancelQuoteDraft() }.font(Theme.Font.button)
+                        Text("channelText.mentions \(mentions)", tableName: "NativeChannelText").fixedSize(horizontal: false, vertical: true).font(.footnote)
+                        Button { coordinator.cancelQuoteDraft() } label: { Text("channelText.cancelReply", tableName: "NativeChannelText") }.font(Theme.Font.button)
                     }
-                    if let reply = coordinator.quotedMessageID {
-                        Text("引用消息：\(reply)").fixedSize(horizontal: false, vertical: true).font(.footnote)
-                        if !coordinator.quoteDraftIsCurrent { Text("引用对象当前不可用，请取消引用或返回频道刷新。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
-                        Button("取消所有未发送引用与提及") { coordinator.cancelQuoteDraft() }.font(Theme.Font.button)
+                    if coordinator.quotedMessageID != nil {
+                        Text("channelText.replying", tableName: "NativeChannelText").fixedSize(horizontal: false, vertical: true).font(.footnote)
+                        if !coordinator.quoteDraftIsCurrent { Text("channelText.replyUnavailable", tableName: "NativeChannelText").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
+                        Button { coordinator.cancelQuoteDraft() } label: { Text("channelText.cancelReply", tableName: "NativeChannelText") }.font(Theme.Font.button)
                     }
-                    TextField(text: $draft, axis: .vertical) { Text("channelText.placeholder", tableName: "NativeChannelText").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
-                        .lineLimit(2...5).textFieldStyle(.plain)
-                        .padding(Theme.Space.s3)
-                        .background(Theme.Color.bgPage(in: domain), in: RoundedRectangle(cornerRadius: Theme.Radius.md))
-                        .accessibilityIdentifier("channel.text.draft")
-                    Button {
-                        let original = draft
-                        run {
-                            let accepted = await coordinator.sendNew(original)
-                            if accepted || coordinator.pendingClientMessageID != nil { draft = "" }
+                    // Rounded field with the send control inside it.
+                    HStack(alignment: .bottom, spacing: Theme.Space.s1) {
+                        TextField(text: $draft, axis: .vertical) { Text("channelText.placeholder", tableName: "NativeChannelText").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
+                            .lineLimit(1...5).textFieldStyle(.plain)
+                            .padding(.vertical, 11).padding(.leading, 16)
+                            .accessibilityIdentifier("channel.text.draft")
+                        Button {
+                            let original = draft
+                            run {
+                                let accepted = await coordinator.sendNew(original)
+                                if accepted || coordinator.pendingClientMessageID != nil { draft = "" }
+                            }
+                        } label: {
+                            if coordinator.mentionSummary != nil { Text("channelText.sendMentions", tableName: "NativeChannelText").font(Theme.Font.button).fixedSize(horizontal: false, vertical: true).padding(.horizontal, Theme.Space.s2) }
+                            else if coordinator.quotedMessageID != nil { Text("channelText.sendReply", tableName: "NativeChannelText").font(Theme.Font.button).fixedSize(horizontal: false, vertical: true).padding(.horizontal, Theme.Space.s2) }
+                            else {
+                                Label { Text("channelText.send", tableName: "NativeChannelText") } icon: { Image(systemName: "arrow.up.circle.fill") }
+                                    .labelStyle(.iconOnly).font(.title2)
+                            }
                         }
-                    } label: {
-                        if coordinator.mentionSummary != nil { Text("确认按上述目标发送提及").font(Theme.Font.button).fixedSize(horizontal: false, vertical: true) }
-                        else if coordinator.quotedMessageID != nil { Text("确认引用发送").font(Theme.Font.button).fixedSize(horizontal: false, vertical: true) }
-                        else { Text("channelText.send", tableName: "NativeChannelText").font(Theme.Font.button).fixedSize(horizontal: false, vertical: true) }
-                    }.nativeChannelPrimaryAction()
-                    .disabled(!coordinator.quoteDraftIsCurrent || draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || draft.utf8.count > 16 * 1024)
+                        .buttonStyle(.borderless)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .disabled(!coordinator.quoteDraftIsCurrent || draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || draft.utf8.count > 16 * 1024)
                         .accessibilityIdentifier("channel.text.send")
+                    }
+                    .frame(minHeight: 44)
+                    .background(Theme.Color.bgSurface(in: domain), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
                 } else if let pending = coordinator.pendingText {
                     Text(verbatim: pending).font(Theme.Font.body).fixedSize(horizontal: false, vertical: true).lineLimit(4).textSelection(.enabled).privacySensitive().accessibilityIdentifier("channel.text.original")
                 }
@@ -71,7 +79,7 @@ import SwiftUI
             .controlSize(.regular)
         }
         .font(Theme.Font.body)
-        .padding(Theme.Space.s3).background(.regularMaterial).privacySensitive()
+        .padding(.horizontal, Theme.Space.s3).padding(.vertical, Theme.Space.s2).background(.bar).privacySensitive()
         .onAppear { coordinator.onChange = { revision += 1 }; resume() }
         .onChange(of: historyReady) { _, ready in
             if ready { resume() } else { draft = ""; task?.cancel(); coordinator.stop() }
