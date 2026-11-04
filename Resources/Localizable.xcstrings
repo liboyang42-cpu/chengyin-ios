@@ -135525,6 +135525,40 @@
         }
       }
     },
+    "profile.incompleteLink.backHome": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to my profile"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回到我的主页"
+          }
+        }
+      }
+    },
+    "profile.incompleteLink.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This profile link is incomplete"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个主页链接不完整"
+          }
+        }
+      }
+    },
     "social.incompleteLink": {
       "localizations": {
         "en": {
