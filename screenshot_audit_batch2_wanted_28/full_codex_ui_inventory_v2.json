@@ -1,0 +1,1292 @@
+{
+  "version": 1,
+  "generated_at_utc": "2026-11-04T05:20:00Z",
+  "public_baseline_sha": "ab2d3905ec0b0fb17b58ba6b53ec433d83164701",
+  "pilot_branch_base_sha": "57868e426484a9b0e3c70fb1755dedebed8f782b",
+  "pilot_handoff_tree": "57a62ae420135a23089f8195e15ec8195947dc91",
+  "pilot_attempt2_tree": "a7ff3b194cdcfe86ba72a2665c75c80ca8b25b40",
+  "pilot_attempt3_commit": "ac6f18a35cdc63c1a20b54a9596671c76549567c",
+  "pilot_attempt3_tree": "22857935d8859593ecb8cb49d736b902d7b7a3e6",
+  "bucket1_batch1_pilot": {
+    "method_count": 6,
+    "image_count": 17,
+    "total_image_bytes": 5282753,
+    "files": [
+      {
+        "attachment": "G05 create review reopened – synthetic fixture",
+        "attachment_index": 0,
+        "bytes": 199386,
+        "dimensions": [
+          1206,
+          2622
+        ],
+        "export_manifest_sha256": "4f291cd7b0a9157fc6ca1685faa612f4e9dfbd540c57dbfb402443dce426d41f",
+        "exported_name": "G05 create review reopened – synthetic fixture_0_450F60C9-DAD7-4C43-828A-57DB4CEEB4B8.png",
+        "method": "QuestifyUITests/TeamFlowTests/testCreatePrivateTeamReviewCancelPreservesForm",
+        "occurrence": 1,
+        "path": "0-0-9b0caf6fcacd3704a9c4a3f599af39ecc219037c7732c94869e1872a50678e54.png",
+        "sha256": "9b0caf6fcacd3704a9c4a3f599af39ecc219037c7732c94869e1872a50678e54",
+        "owner": "G05",
+        "page_state": "Review team change modal sheet — reopened presentation",
+        "verdict": "PASS",
+        "notes": "Byte-identical to first review presentation; confirms cancel+reopen idempotency."
+      },
+      {
+        "attachment": "Team create review target before one tap – synthetic fixture",
+        "attachment_index": 1,
+        "bytes": 394570,
+        "dimensions": [
+          1206,
+          2622
+        ],
+        "export_manifest_sha256": "4f291cd7b0a9157fc6ca1685faa612f4e9dfbd540c57dbfb402443dce426d41f",
+        "exported_name": "Team create review target before one tap – synthetic fixture_0_B428FD8C-B3C8-454A-8C41-FF19FF52356C.png",
+        "method": "QuestifyUITests/TeamFlowTests/testCreatePrivateTeamReviewCancelPreservesForm",
+        "occurrence": 1,
+        "path": "0-1-b568fe919b78436d49b4d94d30b467155e4f8e2391233ac32038652cb05a3be4.png",
+        "sha256": "b568fe919b78436d49b4d94d30b467155e4f8e2391233ac32038652cb05a3be4",
+        "owner": "G05",
+        "page_state": "Create a team — scrolled to Review team creation before second tap (occurrence 2)",
+        "verdict": "PASS",
+        "notes": "Review team creation button fully exposed and hittable."
+      },
+      {
+        "attachment": "G05 create activity title after cancel – synthetic fixture",
+        "attachment_index": 2,
+        "bytes": 387838,
+        "dimensions": [
+          1206,
+          2622
+        ],
+        "export_manifest_sha256": "4f291cd7b0a9157fc6ca1685faa612f4e9dfbd540c57dbfb402443dce426d41f",
+        "exported_name": "G05 create activity title after cancel – synthetic fixture_0_FA073332-C4E8-42AB-9C68-602C79B9083B.png",
+        "method": "QuestifyUITests/TeamFlowTests/testCreatePrivateTeamReviewCancelPreservesForm",
+        "occurrence": 1,
+        "path": "0-2-c4102915d9bcc8611589e89ea895f75f416824ba78bd1b95401a6d2901df661e.png",
+        "sha256": "c4102915d9bcc8611589e89ea895f75f416824ba78bd1b95401a6d2901df661e",
+        "owner": "G05",
+        "page_state": "Create a team — after cancelling review sheet",
+        "verdict": "PASS",
+        "notes": "Form state preserved after Cancel (Synthetic harbor activity, Team size 2, Invitation only ON)."
+      },
+      {
+        "attachment": "G05 create review first presentation – synthetic fixture",
+        "attachment_index": 3,
+        "bytes": 199386,
+        "dimensions": [
+          1206,
+          2622
+        ],
+        "export_manifest_sha256": "4f291cd7b0a9157fc6ca1685faa612f4e9dfbd540c57dbfb402443dce426d41f",
+        "exported_name": "G05 create review first presentation – synthetic fixture_0_9DEC87D1-4EBD-40D0-818E-610351D3256C.png",
+        "method": "QuestifyUITests/TeamFlowTests/testCreatePrivateTeamReviewCancelPreservesForm",
+        "occurrence": 1,
+        "path": "0-3-9b0caf6fcacd3704a9c4a3f599af39ecc219037c7732c94869e1872a50678e54.png",
+        "sha256": "9b0caf6fcacd3704a9c4a3f599af39ecc219037c7732c94869e1872a50678e54",
+        "owner": "G05",
+        "page_state": "Review team change modal sheet — first presentation",
+        "verdict": "PASS (minor fixture banner duplicate noted)",
+        "notes": "Activity title, Team size 2, Invitation only, Simulate offline and Cancel buttons clear. Minor note: synthetic fixture notice box repeats Offline example. All people, teams and outcomes are synthetic. twice."
+      },
+      {
+        "attachment": "Team create review target before one tap – synthetic fixture",
+        "attachment_index": 4,
+        "bytes": 372382,
+        "dimensions": [
+          1206,
+          2622
+        ],
+        "export_manifest_sha256": "4f291cd7b0a9157fc6ca1685faa612f4e9dfbd540c57dbfb402443dce426d41f",
+        "exported_name": "Team create review target before one tap – synthetic fixture_0_D7F8A3D8-8D30-4D2C-8E93-63C491983BCD.png",
+        "method": "QuestifyUITests/TeamFlowTests/testCreatePrivateTeamReviewCancelPreservesForm",
+        "occurrence": 2,
+        "path": "0-4-50ab42b986382668ce16ee1f6ba91f17b14b7579ea2e179e1f2532c18a27fde7.png",
+        "sha256": "50ab42b986382668ce16ee1f6ba91f17b14b7579ea2e179e1f2532c18a27fde7",
+        "owner": "G05",
+        "page_state": "Create a team — Invitation only ON, scrolled to Review team creation button (occurrence 1)",
+        "verdict": "PASS",
+        "notes": "Toggle ON, helper text updated to Only players with an invitation can join, Review team creation CTA fully visible."
+      },
+      {
+        "attachment": "G05 create activity title initial – synthetic fixture",
+        "attachment_index": 5,
+        "bytes": 209575,
+        "dimensions": [
+          1206,
+          2622
+        ],
+        "export_manifest_sha256": "4f291cd7b0a9157fc6ca1685faa612f4e9dfbd540c57dbfb402443dce426d41f",
+        "exported_name": "G05 create activity title initial – synthetic fixture_0_B691A018-6CFE-4EEB-AF21-BC8A900009E2.png",
+        "method": "QuestifyUITests/TeamFlowTests/testCreatePrivateTeamReviewCancelPreservesForm",
+        "occurrence": 1,
+        "path": "0-5-896655c6e55c14df7fe3405804475c7d909b2ca6b84a8d19e4048542c370edff.png",
+        "sha256": "896655c6e55c14df7fe3405804475c7d909b2ca6b84a8d19e4048542c370edff",
+        "owner": "G05",
+        "page_state": "Create a team — initial form (Synthetic harbor activity, Team size 2, Invitation only OFF)",
+        "verdict": "PASS",
+        "notes": "Activity title renders in .subheadline.weight(.semibold) without truncation; form controls and notice card clean."
+      },
+      {
+        "attachment": "M04 offline merchant availability pending draft – synthetic fixture",
+        "attachment_index": 0,
+        "bytes": 325104,
+        "dimensions": [
+          1206,
+          2622
+        ],
+        "export_manifest_sha256": "9bff82217b2f456bbb2920309298d6338e5b89c05438893dc5ead6730dd14ec6",
+        "exported_name": "M04 offline merchant availability pending draft – synthetic fixture_0_8DCD4F3B-5C2C-4537-8146-3D843801A23B.png",
+        "method": "QuestifyUITests/MerchantRegistrationAvailabilityFlowTests/testCancelAndRestorePreserveOriginalUnrecognizedSource",
+        "occurrence": 1,
+        "path": "1-0-6ad07eafdb5f2cc741eb8b844b1367f77f54de7db6f565d32fb53ce1dfe43e97.png",
+        "sha256": "6ad07eafdb5f2cc741eb8b844b1367f77f54de7db6f565d32fb53ce1dfe43e97",
+        "owner": "M04",
+        "page_state": "Registration detail — pending draft after Apply to draft (scrolled into viewport)",
+        "verdict": "PASS",
+        "notes": "Shows both preserved Saved values (source civil time / Not provided) and New draft values (2026-11-04, 09:00-18:00), draft-only notice, and Restore saved availability button."
+      },
+      {
+        "attachment": "M04 offline merchant availability hours – synthetic fixture",
+        "attachment_index": 1,
+        "bytes": 383798,
+        "dimensions": [
+          1206,
+          2622
+        ],
+        "export_manifest_sha256": "9bff82217b2f456bbb2920309298d6338e5b89c05438893dc5ead6730dd14ec6",
+        "exported_name": "M04 offline merchant availability hours – synthetic fixture_0_87599264-AC0A-4ACA-86CE-4A1BAFE88563.png",
+        "method": "QuestifyUITests/MerchantRegistrationAvailabilityFlowTests/testCancelAndRestorePreserveOriginalUnrecognizedSource",
+        "occurrence": 1,
+        "path": "1-1-dcaa47498d75cc8ef9213d3da7eef9010d646b93faaf9576165fb9302ccaedca.png",
+        "sha256": "dcaa47498d75cc8ef9213d3da7eef9010d646b93faaf9576165fb9302ccaedca",
+        "owner": "M04",
+        "page_state": "MerchantRegistrationAvailabilityPicker sheet — scrolled to civil-time footer",
+        "verdict": "ISSUE_FOUND (inline navigation title truncation)",
+        "notes": "Footer copy (calendar dates and same-day hours) and Hour/Minute pickers are clear; inline navigation title truncates as Choose date... between Cancel and Apply to draft."
+      },
+      {
+        "attachment": "M04 offline merchant availability dates – synthetic fixture",
+        "attachment_index": 2,
+        "bytes": 230012,
+        "dimensions": [
+          1206,
+          2622
+        ],
+        "export_manifest_sha256": "9bff82217b2f456bbb2920309298d6338e5b89c05438893dc5ead6730dd14ec6",
+        "exported_name": "M04 offline merchant availability dates – synthetic fixture_0_1D86FF5E-1108-481F-98AD-6506BCC7E5D4.png",
+        "method": "QuestifyUITests/MerchantRegistrationAvailabilityFlowTests/testCancelAndRestorePreserveOriginalUnrecognizedSource",
+        "occurrence": 1,
+        "path": "1-2-ba60cd7cffffaf72d42237f5c316577f350b3d687a0053a6f0272dfa69b5240f.png",
+        "sha256": "ba60cd7cffffaf72d42237f5c316577f350b3d687a0053a6f0272dfa69b5240f",
+        "owner": "M04",
+        "page_state": "MerchantRegistrationAvailabilityPicker sheet — Inclusive date range & Daily start/end time",
+        "verdict": "ISSUE_FOUND (large navigation title truncation)",
+        "notes": "Date pickers (Nov 4, 2026) and Hour/Minute pickers (09:00 - 18:00) render cleanly, but large navigation title Choose dates and daily hours truncates as Choose dates and dail... on 402pt width."
+      },
+      {
+        "attachment": "M04 offline merchant availability source – synthetic fixture",
+        "attachment_index": 3,
+        "bytes": 234285,
+        "dimensions": [
+          1206,
+          2622
+        ],
+        "export_manifest_sha256": "9bff82217b2f456bbb2920309298d6338e5b89c05438893dc5ead6730dd14ec6",
+        "exported_name": "M04 offline merchant availability source – synthetic fixture_0_CFA79F89-378E-4BCC-B9C8-3858C51EE65B.png",
+        "method": "QuestifyUITests/MerchantRegistrationAvailabilityFlowTests/testCancelAndRestorePreserveOriginalUnrecognizedSource",
+        "occurrence": 1,
+        "path": "1-3-b88e678d0e3efb4571b77ad4381a98fd269eeb5d49bc7bfbb814ea2dbddbbc74.png",
+        "sha256": "b88e678d0e3efb4571b77ad4381a98fd269eeb5d49bc7bfbb814ea2dbddbbc74",
+        "owner": "M04",
+        "page_state": "Registration detail — initial unrecognized source state before scrolling",
+        "verdict": "ISSUE_FOUND (test capture timing before scroll)",
+        "notes": "MerchantRegistrationAvailabilityFlowTests.swift:31 captures M04 offline merchant availability source before revealFixtureElement(open, in: app) scrolls to the Registration availability section; only the section header is visible at the bottom edge while Saved first/last day rows are below the fold."
+      },
+      {
+        "attachment": "CL02 type choice sheet current fixture selection – synthetic fixture",
+        "attachment_index": 0,
+        "bytes": 452292,
+        "dimensions": [
+          1206,
+          2622
+        ],
+        "export_manifest_sha256": "5c6b9169a3c5e7562fa65e54e6d0a140c96a2062198076b4ac8ffc282aff1f70",
+        "exported_name": "CL02 type choice sheet current fixture selection – synthetic fixture_0_0C03637D-AEC2-486A-BFDD-450B7512BB44.png",
+        "method": "QuestifyUITests/ClubProfileScopeFlowTests/testCaptureCL02TypeChoiceSheetWithoutApplying",
+        "occurrence": 1,
+        "path": "2-0-a5a441bf3058a9f053f4a26b679d24bea60bb700b7f64fa6c331c1b4f2406d1a.png",
+        "sha256": "a5a441bf3058a9f053f4a26b679d24bea60bb700b7f64fa6c331c1b4f2406d1a",
+        "owner": "CL02",
+        "page_state": "ClubProfileChoiceEditor — Choose club category sheet",
+        "verdict": "ISSUE_FOUND (.medium sheet detent clips lower options)",
+        "notes": "Opens at .medium half-height detent over Club workspace; shows Campus club, Travel group, Interest community (checked), and Commercial event organizer, while clipping the 5th option at the bottom."
+      },
+      {
+        "attachment": "CL02 directions sheet current fixture selection – synthetic fixture",
+        "attachment_index": 0,
+        "bytes": 585401,
+        "dimensions": [
+          1206,
+          2622
+        ],
+        "export_manifest_sha256": "52416685092914e1d11c051f0543bf813026289a37251f2d782b944f68f1b6ad",
+        "exported_name": "CL02 directions sheet current fixture selection – synthetic fixture_0_963CC4E8-B2F6-40DF-87AD-10D149A0D355.png",
+        "method": "QuestifyUITests/ClubProfileScopeFlowTests/testCaptureCL02DirectionsSheetWithoutApplying",
+        "occurrence": 1,
+        "path": "3-0-5b2b10cc27beaabafc0c9bae40c7f1a48936671195e4685d05df9cc15f8c8e0b.png",
+        "sha256": "5b2b10cc27beaabafc0c9bae40c7f1a48936671195e4685d05df9cc15f8c8e0b",
+        "owner": "CL02",
+        "page_state": "ClubProfileChoiceEditor — Choose activity preferences sheet",
+        "verdict": "ISSUE_FOUND (.medium sheet detent + large title truncation)",
+        "notes": "Opens at .medium half-height detent; large title Choose activity preferences truncates as Choose activity prefer..., and only 4 of the direction toggles fit above the bottom fold."
+      },
+      {
+        "attachment": "CL02 profile review target and edited display values before confirm – synthetic fixture",
+        "attachment_index": 0,
+        "bytes": 217628,
+        "dimensions": [
+          1206,
+          2622
+        ],
+        "export_manifest_sha256": "f260ebf8943105722a4ce3096c6e96ceffc7f102a5eb5bfb3a3a9aa2be01517a",
+        "exported_name": "CL02 profile review target and edited display values before confirm – synthetic fixture_0_B2ACE9E6-CD6C-48A7-B82E-C318E0967DF6.png",
+        "method": "QuestifyUITests/ClubProfileScopeFlowTests/testCaptureCL02ProfileReviewWithoutSubmitting",
+        "occurrence": 1,
+        "path": "4-0-cc708db1e3289b91c969bf45865f5bd7695f33ecaf74cdaf5c7c5c936d587120.png",
+        "sha256": "cc708db1e3289b91c969bf45865f5bd7695f33ecaf74cdaf5c7c5c936d587120",
+        "owner": "CL02",
+        "page_state": "ClubOperationsReviewView — Review changes sheet before confirm",
+        "verdict": "PASS",
+        "notes": "Full-screen sheet with stacked VStack labels/values (Club: Fixture club (#81), Signed-in account: #701, Name: Fixture club edited, City: Fixture city, Club type: Interest community, Introduction, Style, Light social). Clean layout."
+      },
+      {
+        "attachment": "CL02 role picker staged selection viewport before review – synthetic fixture",
+        "attachment_index": 0,
+        "bytes": 270836,
+        "dimensions": [
+          1206,
+          2622
+        ],
+        "export_manifest_sha256": "497e24cff571a761a78219008ea8f185eb7c818f69417bd9b180f95a0b559ad8",
+        "exported_name": "CL02 role picker staged selection viewport before review – synthetic fixture_0_3A701A98-6865-4DAB-92C6-A48645C69556.png",
+        "method": "QuestifyUITests/ClubGovernanceFlowTests/testCaptureCL02RolePickerWithoutPreparing",
+        "occurrence": 1,
+        "path": "5-0-679f3409d9ad92e14d407507991295deb8072c06caa25320fb7777000aaf622c.png",
+        "sha256": "679f3409d9ad92e14d407507991295deb8072c06caa25320fb7777000aaf622c",
+        "owner": "CL02",
+        "page_state": "ClubRoleAssignmentPicker — staged member & role selection before review",
+        "verdict": "PASS",
+        "notes": "Choose a member: Fixture member (Member 704), Choose a role: Check-in, Refresh and Review exact changes both enabled and clearly aligned."
+      },
+      {
+        "attachment": "CL02 role picker expanded existing event role options – synthetic fixture",
+        "attachment_index": 1,
+        "bytes": 283362,
+        "dimensions": [
+          1206,
+          2622
+        ],
+        "export_manifest_sha256": "497e24cff571a761a78219008ea8f185eb7c818f69417bd9b180f95a0b559ad8",
+        "exported_name": "CL02 role picker expanded existing event role options – synthetic fixture_0_EF6C4086-D4A9-4FCD-B892-A239B6642159.png",
+        "method": "QuestifyUITests/ClubGovernanceFlowTests/testCaptureCL02RolePickerWithoutPreparing",
+        "occurrence": 1,
+        "path": "5-1-345699b397e8992db87cd546b762c762ce40a61fd9b3c3316b48b895886c07c4.png",
+        "sha256": "345699b397e8992db87cd546b762c762ce40a61fd9b3c3316b48b895886c07c4",
+        "owner": "CL02",
+        "page_state": "ClubRoleAssignmentPicker — expanded role DisclosureGroup",
+        "verdict": "ISSUE_FOUND (role summary multiline centering inside Button)",
+        "notes": "In ClubRoleAssignmentPicker.swift:155, Text(LocalizedStringKey(role.summaryKey)) inside the Button label lacks .multilineTextAlignment(.leading), causing line 2 (management or financial permissions.) to center-align under line 1."
+      },
+      {
+        "attachment": "CL02 role picker expanded existing member options – synthetic fixture",
+        "attachment_index": 2,
+        "bytes": 269641,
+        "dimensions": [
+          1206,
+          2622
+        ],
+        "export_manifest_sha256": "497e24cff571a761a78219008ea8f185eb7c818f69417bd9b180f95a0b559ad8",
+        "exported_name": "CL02 role picker expanded existing member options – synthetic fixture_0_6E29E821-E0DA-4405-92EB-CC5F2CB047A6.png",
+        "method": "QuestifyUITests/ClubGovernanceFlowTests/testCaptureCL02RolePickerWithoutPreparing",
+        "occurrence": 1,
+        "path": "5-2-ab4d24bf3ec9331a981761f7414f592a1eee07626baf5cd4641ec66e7ab33ad2.png",
+        "sha256": "ab4d24bf3ec9331a981761f7414f592a1eee07626baf5cd4641ec66e7ab33ad2",
+        "owner": "CL02",
+        "page_state": "ClubRoleAssignmentPicker — expanded member DisclosureGroup",
+        "verdict": "PASS",
+        "notes": "Fixture member / Member 704 and Cancel button clearly rendered with 44pt min height."
+      },
+      {
+        "attachment": "CL02 role picker current collapsed values – synthetic fixture",
+        "attachment_index": 3,
+        "bytes": 267257,
+        "dimensions": [
+          1206,
+          2622
+        ],
+        "export_manifest_sha256": "497e24cff571a761a78219008ea8f185eb7c818f69417bd9b180f95a0b559ad8",
+        "exported_name": "CL02 role picker current collapsed values – synthetic fixture_0_9E8720AB-D50F-428B-9C6F-3013F67462A8.png",
+        "method": "QuestifyUITests/ClubGovernanceFlowTests/testCaptureCL02RolePickerWithoutPreparing",
+        "occurrence": 1,
+        "path": "5-3-41ab50e75be49b32d793c047644981c2dc2d928f54c68efc7d6f2c8d5477b8e8.png",
+        "sha256": "41ab50e75be49b32d793c047644981c2dc2d928f54c68efc7d6f2c8d5477b8e8",
+        "owner": "CL02",
+        "page_state": "ClubRoleAssignmentPicker — Assign a fixed role collapsed initial state",
+        "verdict": "PASS",
+        "notes": "Event #101, Choose a member: Not selected, Choose a role: Not selected, Refresh enabled, Review exact changes disabled."
+      }
+    ]
+  },
+  "bucket2_export_current_ui_audit_wanted": {
+    "method_count": 23,
+    "image_count": 28,
+    "methods": [
+      {
+        "method": "QuestifyUITests/HomeFeedFlowTests/testTypedDestinationsAndPriceCurrencyDisclosure",
+        "attachments": [
+          "Home feed initial content"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/HomeFeedFlowTests/testEmptyStateIsNotAnError",
+        "attachments": [
+          "Home feed known empty state"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/HomeFeedFlowTests/testPageFailureRetriesAndDuplicateFullPageStillPaginates",
+        "attachments": [
+          "Home feed page failure before retry"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/ActivityFlowTests/testNullableTicketValuesStayUnknownAndDetailCannotBook",
+        "attachments": [
+          "Activity detail ticket information"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/TicketWalletFlowTests/testWalletDetailEntitlementsBackAndReopenNeverOffersCodeOrPayment",
+        "attachments": [
+          "Ticket wallet initial content",
+          "Ticket detail entitlements"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/AccessibilityPresentationFlowTests/testHomeChineseDarkLargeTextRemainsNavigable",
+        "attachments": [
+          "Home Chinese dark accessibility3 reduced-motion"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/AccessibilityPresentationFlowTests/testTicketWalletChineseDarkLargeTextKeepsDetailEntry",
+        "attachments": [
+          "Ticket wallet Chinese dark accessibility3 reduced-motion",
+          "Ticket detail Chinese dark accessibility3 reduced-motion"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/ReferenceChatTaskFlowTests/testMessageKeyboardKeepsSendActionReachable",
+        "attachments": [
+          "IM long draft with keyboard visible",
+          "IM long draft and pinned composer"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/ReferenceChatTaskFlowTests/testMessageEarlierPageAndDetailReturnRetainHistory",
+        "attachments": [
+          "IM earlier history retained after detail return"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/MerchantOnboardingFlowTests/testRejectedBackfillNeedsConfirmationAndReadsPendingState",
+        "attachments": [
+          "Merchant reapply native form",
+          "Merchant native confirmation before Cancel",
+          "Merchant application acknowledged with pending server status"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/NativePresentationPatternFlowTests/testGalleryEnglishPagesClosesAndReopensAtSelectedImage",
+        "attachments": [
+          "Media fullscreen English light reopened"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/NativePresentationPatternFlowTests/testGalleryChineseMaximumTextDarkReducedMotionKeepsPagingAndClose",
+        "attachments": [
+          "Media fullscreen Chinese accessibility5 dark reduced-motion"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/SocialAccountFlowTests/testDraftSurvivesNestedReviewAndCancelThenDiscardReopensEmpty",
+        "attachments": [
+          "Social draft preserved after nested review and cancel"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/SocialAccountFlowTests/testChineseLargeTextDraftCancelKeepsTextAndKeyboardDismisses",
+        "attachments": [
+          "Chinese social draft large text dark mode after keyboard dismissal"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/NativeSettingsReuseFlowTests/testMaximumTextLegalMissingStateBackAndReopenInBothLanguages",
+        "attachments": [
+          "Settings legal missing accessibility5 zh-Hans"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/PlayRouteMapCameraFlowTests/testOverviewCurrentAndOtherStopPreviewFormCompleteInspectionJourney",
+        "attachments": [
+          "Route overview current and inspected stop remain separate"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/AccessibilityPresentationFlowTests/testRouteMapChineseDarkLargeTextMarksPreviewedPinAndKeepsEquivalentList",
+        "attachments": [
+          "Route map Chinese dark accessibility3 reduced-motion previewed pin"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/ModuleFlowTests/testProfileOrderReadbackAndBack",
+        "attachments": [
+          "Order detail – synthetic data"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/PlayRouteMapContinuationFlowTests/testChineseMaximumTextUsesFullListAndExplicitRouteDisclaimer",
+        "attachments": [
+          "Chinese maximum-text route navigation"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/PlayExperienceFlowTests/testOrdinaryReadFallbackUsesFreeStoreCardsAndNoOrientationAnswerForm",
+        "attachments": [
+          "Normal read fallback retains free-exploration store UI"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/NonCashRewardFlowTests/testNormalAccountRewardDetailCloseReopenAndBack",
+        "attachments": [
+          "Synthetic My Rewards normal account journey"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/TemplateOwnShelfFlowTests/testOwnedCardShowsZeroDurationAndNoMarketplacePublishButton",
+        "attachments": [
+          "Owned template card with known zero duration"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/TemplateOwnShelfFlowTests/testDeleteReviewShowsSourceDangerCopyAndCancelDoesNotSubmit",
+        "attachments": [
+          "Owned template deletion review danger copy"
+        ]
+      }
+    ]
+  },
+  "bucket3_additional_existing_uitest_screenshot_methods": {
+    "method_count": 75,
+    "methods": [
+      {
+        "method": "QuestifyUITests/AccessibilityPresentationFlowTests/testWalkingStepsChineseDarkLargeTextSelectedTraitMatchesNextStepCue",
+        "attachment_expressions": [
+          "\"Walking steps Chinese dark accessibility3 reduced-motion\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/AccountCollectionFlowTests/testCouponFiltersMetadataDetailBackAndReopen",
+        "attachment_expressions": [
+          "\"Owned coupon collection\"",
+          "\"Read-only coupon detail\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/AccountCollectionFlowTests/testFavoritePaginationRoutesToRealTopicAndReturnsToSavedCollection",
+        "attachment_expressions": [
+          "\"Favorite topic full-bleed cards\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/AccountCollectionFlowTests/testLargeTypeDarkModeKeepsCardsAndCouponDetailsReachable",
+        "attachment_expressions": [
+          "\"Favorite card large text dark mode\"",
+          "\"Coupon detail large text dark mode\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/ClubFeedReadFlowTests/testChineseLargeTextGalleryUsesThreeImagesAndReturnsToSameSource",
+        "attachment_expressions": [
+          "\"Club feed Chinese large-text source detail\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/ClubGovernanceFlowTests/testAudienceUnknownIsNotZeroAndReviewRequiresContent",
+        "attachment_expressions": [
+          "\"Club notification rejects missing content\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/ClubOperationsFlowTests/testPopulatedMemberQuotaKeepsItsVisibleLabelInBothLanguages",
+        "attachment_expressions": [
+          "chinese ? \"Populated member quota Chinese\" : \"Populated member quota English\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/CooperationFlowUITests/testInvitationReviewRetainsReadableBoundIdentityAndTermsInBothLanguages",
+        "attachment_expressions": [
+          "\"Typed invitation recipient and terms \\(language"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/CooperationFlowUITests/testNormalNearbyEntryExplainsUnavailableLocationWithoutPermissionPrompt",
+        "attachment_expressions": [
+          "\"Nearby purpose gate \\(language"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/CooperationFlowUITests/testReceivedApplicationOpensDraftAndReviewBackPreservesText",
+        "attachment_expressions": [
+          "\"Cooperation invitation composer after keyboard dismissal\"",
+          "\"Cooperation invitation local review\"",
+          "\"Cooperation unsaved draft discard decision\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/EntryFlowTests/testChinesePreferenceSurvivesRelaunchAndSwitchesBack",
+        "attachment_expressions": [
+          "let screenshot = XCTAttachment(screenshot: app.screenshot())"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/GroupPollUITests/testNormalGroupMessageRendersAndVoteRequiresConfirmation",
+        "attachment_expressions": [
+          "let shot = XCTAttachment(screenshot: app.screenshot()); shot.name = \"Synthetic group poll acknowledged vote\"; shot.lifetime = .keepAlways; add(shot)"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/GrowthCenterFlowTests/testChineseAndAccessibilityLayoutsRemainReachable",
+        "attachment_expressions": [
+          "\"Growth leaderboard Chinese large text dark mode\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/MerchantBrandImagesFlowTests/testSavedGalleryNavigationZoomResetAndCloseLeaveEditorClean",
+        "attachment_expressions": [
+          "\"Synthetic brand gallery closed without editing profile\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/MerchantBusinessFlowTests/testBatchDetailKeepsNegativeAdjustments",
+        "attachment_expressions": [
+          "let screenshot = XCTAttachment(screenshot: app.screenshot())"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/MerchantCityTemplateHandoffFlowTests/testConfigurationOpensFullEditorAndCannotReturnAnUnsavedID",
+        "attachment_expressions": [
+          "\"City template editor after one configuration tap\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/MerchantEngagementFlowTests/testChineseOrdinaryHTTPProductionReviewCanBeCancelled",
+        "attachment_expressions": [
+          "\"Chinese CRM review canceled without receipt\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/MerchantMarketingUITests/testNormalMerchantWorkbenchOpensDormantMarketingInBothLanguages",
+        "attachment_expressions": [
+          "let screen = XCTAttachment(screenshot: app.screenshot())"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/MerchantMarketingUITests/testPredictionReviewLargeTextKeepsFixtureControlsClearOfOptions",
+        "attachment_expressions": [
+          "\"Marketing options clear of fixture controls – root-verified dark accessibility3\"",
+          "\"Marketing acknowledgement remains required – root-verified dark accessibility3\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/MerchantNPCFlowTests/testBackgroundClearsChat",
+        "attachment_expressions": [
+          "\"Merchant NPC before first chat entry\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/MerchantProjectBrowserFlowTests/testFulfillmentFactsAndSummaryReturnKeepSelectedType",
+        "attachment_expressions": [
+          "\"Merchant summary after single activation failure\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/MerchantProjectBrowserFlowTests/testTypeSwitchUsesSameLoadedPageAndPendingPriority",
+        "attachment_expressions": [
+          "\"Synthetic merchant project type browser and priority\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/MerchantRegistrationAvailabilityFlowTests/testGroupReviewCancelAndExistingSaveReadBackServerValues",
+        "attachment_expressions": [
+          "\"Synthetic registration availability source readback\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/MerchantStoreIndustryFlowTests/testIndustryChangeReviewCancelDiscardSaveAndSourceReadback",
+        "attachment_expressions": [
+          "\"Synthetic store industry after source readback\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/MerchantTemplateAssistFlowTests/testCancelReviewDoesNotFillAndReopenHasNoCandidate",
+        "attachment_expressions": [
+          "\"AI template canceled and reopened without candidate\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/MerchantTemplateBrowserFlowTests/testAppendFailureRetryAndExactPageTwoEditorReturnRefresh",
+        "attachment_expressions": [
+          "\"Synthetic paged merchant template list after editor return\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/MerchantTemplateCategoryFlowTests/testSelectionOrderFrozenReviewCancelSaveAndReadback",
+        "attachment_expressions": [
+          "\"Synthetic categories after source readback\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/MerchantTemplateExitPlanFlowTests/testExitInstructionsReviewRemainsLocalAndCancelKeepsExactText",
+        "attachment_expressions": [
+          "\"Merchant local exit instructions retained after review\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/MerchantTemplateHintsFlowTests/testThreeStagePreviewResetsAfterEditAndSaveReadbackRetainsHints",
+        "attachment_expressions": [
+          "\"Synthetic progressive hints saved and read back\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/MerchantTemplateMetadataFlowTests/testExistingMetadataReviewAndSyntheticSaveReadsCanonicalFields",
+        "attachment_expressions": [
+          "\"Merchant template metadata read back from synthetic source\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/MerchantTemplateParticipationPlanFlowTests/testCompletePlanReviewCannotSubmitAndCancelRetainsLocalFields",
+        "attachment_expressions": [
+          "\"Merchant participation plan retained after local review\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/MerchantTemplatePreparationFlowTests/testVenueSelectionMaterialsReviewCancelAndSourceReadback",
+        "attachment_expressions": [
+          "\"Merchant preparation fields retained by synthetic source\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/MerchantTemplateRuleStepsFlowTests/testAddRemoveReviewCancelAndAuthoritativeFixtureReadback",
+        "attachment_expressions": [
+          "\"Persisted synthetic player instructions\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/MerchantTemplateStoryTimelineFlowTests/testTimelineCreateReorderPreviewCancelSaveAndReadback",
+        "attachment_expressions": [
+          "\"Synthetic template story timeline after authoritative readback\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/NonCashRewardFlowTests/testDetailDisclosesFrozenTermsExactMapOriginAndUnavailableClaimFacts",
+        "attachment_expressions": [
+          "\"Synthetic frozen reward terms and unavailable claim facts\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/OfficialEventFlowTests/testBlankWarningReasonUsesHonestChineseFallbackAtLargeText",
+        "attachment_expressions": [
+          "let attachment = XCTAttachment(screenshot: app.screenshot())"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/OfficialEventFlowTests/testChineseAndLargeTextDarkReduceMotionSyntheticPresentation",
+        "attachment_expressions": [
+          "let attachment = XCTAttachment(screenshot: app.screenshot())"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/OwnedCouponCodeJourneyUITests/testOwnedListDetailCancelConfirmBackAndReopenRequireFreshConsent",
+        "attachment_expressions": [
+          "\"Owned coupon reopened with fresh review and no retained code\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/PlayBranchHistoryFlowTests/testChineseMaximumTextUnknownNodeAndRefreshReplaceOldHistory",
+        "attachment_expressions": [
+          "\"Branch history Chinese maximum text neutral unknowns\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/PlayBranchHistoryFlowTests/testSummaryHistoryReturnReopenPreservesOrderWithoutActionControls",
+        "attachment_expressions": [
+          "\"Branch history English server sequence\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/PlayExperienceFlowTests/testChineseFreePackKeepsStoreChoiceAfterBackAndRefresh",
+        "attachment_expressions": [
+          "\"Chinese free exploration after refresh\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/PlayExperienceFlowTests/testClassicReviewCancelDoesNotCompleteTask",
+        "attachment_expressions": [
+          "\"Classic review cancelled with answer retained\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/PlayExperienceFlowTests/testMode2ShowsSeparateVerificationStep",
+        "attachment_expressions": [
+          "\"Free exploration store proof is separate from orientation\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/PlayRouteMapCameraFallbackFlowTests/testChineseMaximumTextPreviewControlsRetainFullMeaningAndReturnToOverview",
+        "attachment_expressions": [
+          "\"Chinese maximum text camera overview and preview\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/PlayRouteMapFlowTests/testCurrentCompletedAndOldTaskEntrancesRemainReachable",
+        "attachment_expressions": [
+          "\"Orientation map returns to existing task\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/PlayRouteMapFlowTests/testLockedAndHiddenStopsCannotLeakOrOpenFromMap",
+        "attachment_expressions": [
+          "\"Map locked placeholder with no future content\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/PlayStoreDayMerchantFlowTests/testArrivalQuizPhotoAndScopedConsentHandOff",
+        "attachment_expressions": [
+          "\"Store day merchant consent hand-off\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/PlayStoreDayMerchantFlowTests/testChineseUncertainArrivalIsReadBackNotResent",
+        "attachment_expressions": [
+          "\"Chinese store day readback\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/PrivateHomeMapPickerFlowTests/testBothLanguagesMaximumTextKeepPreviewAndCancellationReachable",
+        "attachment_expressions": [
+          "\"Private game-home synthetic point \\(language"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/ReferenceChatTaskFlowTests/testChineseServerCompletedHasNoCurrentAction",
+        "attachment_expressions": [
+          "\"Journey Chinese completed server snapshot reduced motion\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/ReferenceChatTaskFlowTests/testNPCCancelReviewRetainsDraftAndCanReopen",
+        "attachment_expressions": [
+          "\"NPC review reopened without transmission\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/ReferenceChatTaskFlowTests/testNPCChineseMaximumTextKeyboardAndReduceMotion",
+        "attachment_expressions": [
+          "\"NPC Chinese maximum text dark Reduce Motion\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/ReferenceChatTaskFlowTests/testUnknownTotalShowsPhaseWithoutPercentage",
+        "attachment_expressions": [
+          "\"Journey unknown denominator phase-only\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/ReferenceMapCardFlowTests/testFullBilingualCardTextAndMissingArtworkAtBothAppearancesAndSizes",
+        "attachment_expressions": [
+          "\"Image card top \\(chinese ? \"Chinese\" : \"English\"",
+          "\"Image card full subtitle \\(chinese ? \"Chinese\" : \"English\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/RegionalEntryFlowTests/testUSDefaultsEnglishAndCannotUseChinaCredentialForms",
+        "attachment_expressions": [
+          "let shot=XCTAttachment(screenshot:app.screenshot());shot.name=\"US login contract pending – no China credential form\";shot.lifetime = .keepAlways;add(shot)"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/RoamExperienceFlowTests/testOfflineLiveExplicitStartPauseResumeAndConfirmedFinish",
+        "attachment_expressions": [
+          "\"Roam explicit finish native confirmation\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/SettingsNativeFlowTests/testCNEnglishInterfacePreservesChineseSourceAndVersion",
+        "attachment_expressions": [
+          "\"CN legal source with English interface and provenance\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/SettingsNativeFlowTests/testChineseLargeTextContactCopyFailureOffersManualRecovery",
+        "attachment_expressions": [
+          "\"Settings local copy failure Chinese large text dark mode\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/SettingsNativeFlowTests/testChineseMaximumTextAttributionCopyResetsAfterAboutNavigation",
+        "attachment_expressions": [
+          "\"Chinese attribution local copy at maximum text size\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/SettingsNativeFlowTests/testContactCopyFeedbackClearsOnBackAndReopenWithoutCalling",
+        "attachment_expressions": [
+          "\"Settings contact explicit local copy feedback\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/SettingsNativeFlowTests/testLargeTextChineseSoundControlsStayNativeAndAccessible",
+        "attachment_expressions": [
+          "\"Chinese sound preferences at maximum accessibility text size\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/SignedInContentDetailFlowTests/testActivityTopicRouteClearsOnRoleChangeAndSignOut",
+        "attachment_expressions": [
+          "\"Activity topic refreshed after role change\"",
+          "\"Activity topic cleared after sign-out\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/SocialAccountFlowTests/testChineseLargeTextArticleReplacesOldContentAfterAccountSwitch",
+        "attachment_expressions": [
+          "\"Chinese article large text after identity replacement\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/SquareReportFlowTests/testChangedContentRefreshesQualifiedTargetAndRequiresAnotherReview",
+        "attachment_expressions": [
+          "\"Changed Square content refreshed with saved draft and cleared reason - synthetic\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/SquareReportFlowTests/testChangedPolicyClearsReasonAndDoesNotAcknowledgeSubmission",
+        "attachment_expressions": [
+          "\"Changed report policy requires fresh reason selection - synthetic\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/SquareReportFlowTests/testChineseLargeTextReasonSheetCancelsWithoutSelecting",
+        "attachment_expressions": [
+          "\"Chinese report reason nested sheet large text dark mode - synthetic\"",
+          "\"Chinese report review large text dark mode - synthetic\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/SquareReportFlowTests/testNormalEntryRequiresReasonAndFactsAndReviewBackPreservesBoth",
+        "attachment_expressions": [
+          "\"Versioned Square report immutable reason-policy review - synthetic\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/SquareReportFlowTests/testSyntheticAcknowledgementReadsBackExactCaseWithoutResubmission",
+        "attachment_expressions": [
+          "\"Versioned Square report case readback - synthetic IN_REVIEW\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/SquareReportFlowTests/testUnknownOutcomeRemainsLockedAfterCloseAndReopen",
+        "attachment_expressions": [
+          "\"Unconfirmed report stays locked after reopening - synthetic\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/SquareWorkspaceFlowTests/testSuspendedRecoveryDisablesNewDraftTypingAndCompetingResume",
+        "attachment_expressions": [
+          "\"Saved draft recovery serializes New Draft and text edits - synthetic suspended read\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/TeamFlowTests/testChineseLargeTextDarkModeReviewAndCancelRemainReachable",
+        "attachment_expressions": [
+          "let screenshot = XCTAttachment(screenshot: app.screenshot()); screenshot.name = \"Synthetic teams Chinese large text\"; screenshot.lifetime = .deleteOnSuccess; add(screenshot)"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/TopicFlowTests/testChapterItineraryEstimateUsesChineseLabels",
+        "attachment_expressions": [
+          "\"Second review route before exact card activation\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/TopicFlowTests/testPagedRouteDetailChapterAndBack",
+        "attachment_expressions": [
+          "let attachment = XCTAttachment(screenshot: app.screenshot())"
+        ]
+      },
+      {
+        "method": "QuestifyUITests/WalkingNavigationFlowTests/testMaximumBilingualSummaryAndNativeStepsCanCloseAndReopen",
+        "attachment_expressions": [
+          "\"Walking summary maximum text \\(chinese ? \"Chinese\" : \"English\"",
+          "\"Walking large native steps \\(chinese ? \"Chinese\" : \"English\""
+        ]
+      },
+      {
+        "method": "QuestifyUITests/WalkingNavigationFlowTests/testNearDestinationKeepsVerificationBoundary",
+        "attachment_expressions": [
+          "\"Walking near destination with verification boundary\""
+        ]
+      }
+    ]
+  },
+  "codex_ui_public_20261103_owner_branches": {
+    "branch_count": 25,
+    "branches": [
+      {
+        "owner": "B02",
+        "branch": "codex/ui-public-20261103-b02",
+        "sha": "83221a2cb5e363dc9b94fece7dcbeae31b7a38fd",
+        "subject": "style(ios): improve reward facts and invite points readability [skip ci]",
+        "files": [
+          "App/NonCashRewardDetailReadSupport.swift",
+          "App/ProfileInviteRewardReviewSection.swift"
+        ],
+        "status": "READY_FOR_OWNER_BRANCH_BATCH_CAPTURE"
+      },
+      {
+        "owner": "B03",
+        "branch": "codex/ui-public-20261103-b03",
+        "sha": "3db8cb9bf0604d095a03b77dbe5a487057ad9c32",
+        "subject": "feat(ui): 改善工坊免费库状态与包详情提示 [skip ci]",
+        "files": [
+          "App/WorkshopOwnedLibraryView.swift",
+          "App/WorkshopOwnedPackageView.swift"
+        ],
+        "status": "READY_FOR_OWNER_BRANCH_BATCH_CAPTURE"
+      },
+      {
+        "owner": "CL01",
+        "branch": "codex/ui-public-20261103-cl01",
+        "sha": "1c52eb0a5a29fefd9d6cabb64eb720125c4f08d3",
+        "subject": "style(club): clarify rules and time-operation status controls [skip ci]",
+        "files": [
+          "App/ClubContextualViews.swift"
+        ],
+        "status": "READY_FOR_OWNER_BRANCH_BATCH_CAPTURE"
+      },
+      {
+        "owner": "CL02",
+        "branch": "codex/ui-public-20261103-cl02",
+        "sha": "e800f2751ef044c054fdf19062d00d0ef4713cf4",
+        "subject": "fix(ui): 改善俱乐部选择与反馈文字布局 [skip ci]",
+        "files": [
+          "App/ClubAIDesignFeedbackViews.swift",
+          "App/ClubOperationsReviewView.swift",
+          "App/ClubProfileChoiceEditor.swift",
+          "App/ClubRoleAssignmentPicker.swift"
+        ],
+        "status": "CAPTURED_IN_BATCH_1_PILOT"
+      },
+      {
+        "owner": "CL03",
+        "branch": "codex/ui-public-20261103-cl03",
+        "sha": "253106e668fb32c387a67ab3974b29a9fc3c0694",
+        "subject": "fix(ui): Improve club session and merchant text wrapping [skip ci]",
+        "files": [
+          "App/ClubSeriesOccurrenceBrowser.swift",
+          "App/ClubTopicMerchantContent.swift"
+        ],
+        "status": "READY_FOR_OWNER_BRANCH_BATCH_CAPTURE"
+      },
+      {
+        "owner": "D01",
+        "branch": "codex/ui-public-20261103-d01",
+        "sha": "e46c1c20c13d98846967d3613048788abc5ff054",
+        "subject": "style(ios): 优化主题错误重试和评价展示 [skip ci]",
+        "files": [
+          "App/TopicComponents.swift",
+          "App/TopicReviewsContent.swift"
+        ],
+        "status": "READY_FOR_OWNER_BRANCH_BATCH_CAPTURE"
+      },
+      {
+        "owner": "G01",
+        "branch": "codex/ui-public-20261103-g01",
+        "sha": "e9943dc784402dbc487c66b0155860b8df272878",
+        "subject": "style(ui): 优化参与和游玩页面排版 [skip ci]",
+        "files": [
+          "App/FreeExplorationViews.swift",
+          "App/ParticipationSupportView.swift",
+          "App/PlayExperienceView.swift",
+          "App/PlaySessionView.swift",
+          "App/PrivateHomeMapPicker.swift",
+          "App/PrivateHomeView.swift",
+          "App/TopicSelfPlaySheet.swift"
+        ],
+        "status": "READY_FOR_OWNER_BRANCH_BATCH_CAPTURE"
+      },
+      {
+        "owner": "G02",
+        "branch": "codex/ui-public-20261103-g02",
+        "sha": "c4de07bf0e498f1442a065e09f7fc64a2d4b95b6",
+        "subject": "style(ios): 展开证据复核失效说明 [skip ci]",
+        "files": [
+          "App/PlayerTaskEvidenceReview.swift"
+        ],
+        "status": "READY_FOR_OWNER_BRANCH_BATCH_CAPTURE"
+      },
+      {
+        "owner": "G05",
+        "branch": "codex/ui-public-20261103-g05",
+        "sha": "884ea88325e46b363509199b3cb433b8677ffac9",
+        "subject": "调整建队活动标题字号与换行 [skip ci]",
+        "files": [
+          "App/TeamCreateView.swift"
+        ],
+        "status": "CAPTURED_IN_BATCH_1_PILOT"
+      },
+      {
+        "owner": "G08",
+        "branch": "codex/ui-public-20261103-g08",
+        "sha": "d0728a2657760bf0fb5b9f5848012b435d8aa058",
+        "subject": "fix(ui): 改善地图状态提示与标题层级 [skip ci]",
+        "files": [
+          "App/SearchMapComponents.swift",
+          "App/SearchMapExplorerView.swift",
+          "App/WalkingNavigationView.swift"
+        ],
+        "status": "READY_FOR_OWNER_BRANCH_BATCH_CAPTURE"
+      },
+      {
+        "owner": "G09",
+        "branch": "codex/ui-public-20261103-g09",
+        "sha": "d369457f74e3e85abe6458ddfd8685f86d6df1a4",
+        "subject": "style(ui): 调整问题复用按钮与脚本导览排版 [skip ci]",
+        "files": [
+          "App/ShopNPCQuestionReuseButton.swift",
+          "App/ShopNPCScriptedGuideView.swift"
+        ],
+        "status": "READY_FOR_OWNER_BRANCH_BATCH_CAPTURE"
+      },
+      {
+        "owner": "I02",
+        "branch": "codex/ui-public-20261103-i02",
+        "sha": "04b510cea844b4bbc612e5eb78c3f01007bf2351",
+        "subject": "fix(ui): 改善资料草稿前后值的长文排版 [skip ci]",
+        "files": [
+          "App/ProfileDraftReviewSection.swift"
+        ],
+        "status": "READY_FOR_OWNER_BRANCH_BATCH_CAPTURE"
+      },
+      {
+        "owner": "M02",
+        "branch": "codex/ui-public-20261103-m02",
+        "sha": "9d6d143e2fb250dd32c5b16e077a333dd0cd20af",
+        "subject": "fix(ui): 优化商家评价照片、券表单和公开信息布局 [skip ci]",
+        "files": [
+          "App/CouponManagementView.swift",
+          "App/CouponValidityRangeEditor.swift",
+          "App/MerchantReviewPhotoGallery.swift",
+          "App/PublicMerchantFeaturedCard.swift",
+          "App/PublicMerchantHomeView.swift",
+          "App/PublicMerchantReviewEditor.swift",
+          "App/PublicMerchantReviewsView.swift"
+        ],
+        "status": "EXCLUDED_UNRECEIVED_UI_PATCH"
+      },
+      {
+        "owner": "M04",
+        "branch": "codex/ui-public-20261103-m04",
+        "sha": "76e72fd833140f56344ef5ab9d0085a7e24250c7",
+        "subject": "ui: 改善商家报名时段选择展示 [skip ci]",
+        "files": [
+          "App/MerchantRegistrationAvailabilityPicker.swift"
+        ],
+        "status": "CAPTURED_IN_BATCH_1_PILOT"
+      },
+      {
+        "owner": "M06",
+        "branch": "codex/ui-public-20261103-m06",
+        "sha": "f354c399669791e8953b130942e159fe54e466b8",
+        "subject": "style(ios): refine merchant template browsing and suggestion editing [skip ci]",
+        "files": [
+          "App/MerchantTemplateBrowserView.swift",
+          "App/MerchantTemplateCategoryPicker.swift",
+          "App/MerchantTemplateSuggestionEditSheet.swift"
+        ],
+        "status": "READY_FOR_OWNER_BRANCH_BATCH_CAPTURE"
+      },
+      {
+        "owner": "P02",
+        "branch": "codex/ui-public-20261103-p02",
+        "sha": "15442058cf0c34be8f156bfa287cc7b59af7c315",
+        "subject": "Improve editor form layout and accessibility [skip ci]",
+        "files": [
+          "App/OwnedTopicCoverImageView.swift",
+          "App/ProjectAlbumPhotoRemovalButton.swift",
+          "App/ProjectCategoryPicker.swift",
+          "App/ProjectDraftNodeOverview.swift",
+          "App/ProjectEndingConditionPicker.swift",
+          "App/ProjectMerchantDraftViews.swift",
+          "App/ProjectNodeBusinessHoursField.swift",
+          "App/ProjectNodePlacePicker.swift",
+          "App/ProjectNodeRouteMappingEditor.swift",
+          "App/ProjectStoryTextField.swift",
+          "App/ProjectStoryVariablePicker.swift",
+          "App/ProjectTeamConfigurationEditor.swift",
+          "App/ProjectTicketMeetingPointFields.swift"
+        ],
+        "status": "EXCLUDED_UNRECEIVED_UI_PATCH"
+      },
+      {
+        "owner": "P04",
+        "branch": "codex/ui-public-20261103-p04",
+        "sha": "5f5f42fe755acc400299c7a08a485869265d7412",
+        "subject": "ui: improve review and release text layout [skip ci]",
+        "files": [
+          "App/ApprovedReleasePublicationConfirmationView.swift",
+          "App/ApprovedReleaseSummarySection.swift",
+          "App/ApprovedTopicReviewRequestView.swift"
+        ],
+        "status": "READY_FOR_OWNER_BRANCH_BATCH_CAPTURE"
+      },
+      {
+        "owner": "S01",
+        "branch": "codex/ui-public-20261103-s01",
+        "sha": "4f703a019c38aa3f7ed1877104e0b52705f9ce17",
+        "subject": "fix(ui): improve message media and local preview presentation [skip ci]",
+        "files": [
+          "App/SocialMessageMediaView.swift",
+          "App/SquarePostLocalMediaPresentation.swift"
+        ],
+        "status": "READY_FOR_OWNER_BRANCH_BATCH_CAPTURE"
+      },
+      {
+        "owner": "S02",
+        "branch": "codex/ui-public-20261103-s02",
+        "sha": "9e5fe6d01e63a13b45a7df3416a0e64379c1d419",
+        "subject": "fix(ui): improve message hint wrapping and list row sizing [skip ci]",
+        "files": [
+          "App/IMConversationReadAllView.swift",
+          "App/MessagingComponents.swift",
+          "App/MessagingMessageDetailView.swift"
+        ],
+        "status": "READY_FOR_OWNER_BRANCH_BATCH_CAPTURE"
+      },
+      {
+        "owner": "S04",
+        "branch": "codex/ui-public-20261103-s04",
+        "sha": "cbcc46f9412bc6935a24fcac36437091e821e897",
+        "subject": "fix(ui): improve poll option touch target and selection accessibility [skip ci]",
+        "files": [
+          "App/GroupPollViews.swift"
+        ],
+        "status": "READY_FOR_OWNER_BRANCH_BATCH_CAPTURE"
+      },
+      {
+        "owner": "T01",
+        "branch": "codex/ui-public-20261103-t01",
+        "sha": "e9ac9ff91130f154d38836be4e387902d0d46ce2",
+        "subject": "样式：完善模板表单与预演的可读性和无障碍 [skip ci]",
+        "files": [
+          "App/TemplateAuthoringRuleFields.swift",
+          "App/TemplateChoiceOptionRowsEditor.swift",
+          "App/TemplateCreatorRehearsalView.swift",
+          "App/TemplateQAAnswerEditor.swift",
+          "App/TemplateSensorDraftConfigurationView.swift",
+          "App/TemplateTimerRehearsalView.swift"
+        ],
+        "status": "EXCLUDED_UNRECEIVED_UI_PATCH"
+      },
+      {
+        "owner": "T02",
+        "branch": "codex/ui-public-20261103-t02",
+        "sha": "d7756eaede691172b43770c4d0dd4f27ac5a973d",
+        "subject": "fix(ui): 优化模板只读配置与传感参数显示 [skip ci]",
+        "files": [
+          "App/OwnedTemplateConfigurationView.swift",
+          "App/OwnedTemplateSensorConfigurationView.swift"
+        ],
+        "status": "READY_FOR_OWNER_BRANCH_BATCH_CAPTURE"
+      },
+      {
+        "owner": "W01",
+        "branch": "codex/ui-public-20261103-w01",
+        "sha": "fb41609c5cf5fb444c86521df2f52d6164cc7d04",
+        "subject": "fix(ui): improve creator text wrapping and selection accessibility [skip ci]",
+        "files": [
+          "App/WorkshopCreatorConsentView.swift",
+          "App/WorkshopCreatorPendingView.swift"
+        ],
+        "status": "READY_FOR_OWNER_BRANCH_BATCH_CAPTURE"
+      },
+      {
+        "owner": "W02",
+        "branch": "codex/ui-public-20261103-w02",
+        "sha": "5a434eb53964e75f433000923ffe96861983cf24",
+        "subject": "fix(ui): 为空快照字段显示说明 [skip ci]",
+        "files": [
+          "App/WorkshopPaidInstalledTextView.swift",
+          "App/WorkshopPaidProfessionalView.swift"
+        ],
+        "status": "READY_FOR_OWNER_BRANCH_BATCH_CAPTURE"
+      },
+      {
+        "owner": "X01",
+        "branch": "codex/ui-public-20261103-x01",
+        "sha": "708690f4f638ae9ad8164a6ee45fb4f477d42c92",
+        "subject": "style(ios): improve cooperation form and calendar readability [skip ci]",
+        "files": [
+          "App/CoopPoolApplicationEditor.swift",
+          "App/CooperationBrowserView.swift",
+          "App/MerchantPerkValidityCalendar.swift"
+        ],
+        "status": "READY_FOR_OWNER_BRANCH_BATCH_CAPTURE"
+      }
+    ]
+  },
+  "bucket4_excluded_unreceived_ui_patches": [
+    {
+      "owner": "P02",
+      "reason": "Explicitly excluded per #issuecomment-6622662213 (unreceived UI patch; public branch 15442058cf touches 13 Project* files without verified native capture)"
+    },
+    {
+      "owner": "T01",
+      "reason": "Explicitly excluded per #issuecomment-6622662213 (unreceived UI patch; public branch e9ac9ff911 touches 6 Template* files)"
+    },
+    {
+      "owner": "G07",
+      "reason": "Explicitly excluded per #issuecomment-6622662213 (unreceived UI patch; no codex/ui-public-20261103-g07 branch)"
+    },
+    {
+      "owner": "M01",
+      "reason": "Explicitly excluded per #issuecomment-6622662213 (unreceived UI patch; no codex/ui-public-20261103-m01 branch)"
+    },
+    {
+      "owner": "M07",
+      "reason": "Explicitly excluded per #issuecomment-6622662213 (unreceived UI patch; no codex/ui-public-20261103-m07 branch)"
+    },
+    {
+      "owner": "M02",
+      "reason": "Explicitly excluded per #issuecomment-6622662213 (unreceived UI patch; public branch 9d6d143e2f touches 7 Coupon/PublicMerchant files)"
+    },
+    {
+      "owner": "CL02 (later 11-file / 21,282B batch)",
+      "reason": "Explicitly excluded per #issuecomment-6622662213; only the 4-file e800f2751e + 2 test postimages in 57a62ae4 are included in Batch 1"
+    }
+  ],
+  "inventory_version": "v2_per_issuecomment_6623429218",
+  "policy_note_unreceived_patches": "Per #issuecomment-6623429218, the 7 unreceived UI patches (P02, T01, G07, M01, M07, M02, and CL02 later 11-file / 21,282B batch) are NOT excluded; they remain in full audit scope with status PENDING_RECEIPT / UNCOVERED / NOT_RUN.",
+  "pending_receipt_unreceived_ui_patches": []
+}
