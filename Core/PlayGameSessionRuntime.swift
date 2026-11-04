@@ -46,13 +46,28 @@ public struct PlayPlayerGameProjection: Equatable {
         switch command.action {
         case .choice: return node.choices.contains(where: { $0["id"].text == command.payload["choiceId"]?.text })
         case .submit:
-            let prior = submissions.first { $0["nodeId"].integer == node.id }
-            guard prior == nil || prior?["status"].text == "REJECTED" else { return false }
-            return node.task["taskCode"].text == command.payload["taskCode"]?.text
+            guard canSubmitTask(nodeID: node.id), let taskCode = node.task["taskCode"].text,
+                  let requestedCode = command.payload["taskCode"]?.text else { return false }
+            return taskCode.utf8.elementsEqual(requestedCode.utf8)
         case .hint:
             return node.hint["nextLevel"].integer == command.payload["level"]?.integer && node.hint["nextImpactLabel"].text?.isEmpty == false
         case .reveal: return node.hint["revealAvailable"].bool == true && node.hint["revealImpactLabel"].text?.isEmpty == false
         case .confirmRole: return false
+        }
+    }
+    /// Only a confirmed empty history or the newest rejection for this exact task
+    /// can admit another submission. A missing/malformed array, unknown status,
+    /// duplicate identity or another task's rejection is not an empty history.
+    /// Reuse the existing server-order reader so text, scan and photo agree.
+    func canSubmitTask(nodeID: Int) -> Bool {
+        switch PlayPlayerSubmissionRecord.read(projection: self, nodeID: nodeID) {
+        case .none: return true
+        case .record(let record):
+            guard record.status == .rejected,
+                  let newest = submissions.first(where: { $0["nodeId"].integer == nodeID }),
+                  let taskCode = newest["taskCode"].text else { return false }
+            return taskCode.utf8.elementsEqual(record.taskCode.utf8)
+        case .unconfirmed: return false
         }
     }
 }
@@ -148,9 +163,13 @@ extension PlayExperienceService {
                 journal: (any PlayGameCommandJournal)? = nil) {
         self.activityID = activityID; self.service = service; self.currentSession = currentSession; self.journal = journal
     }
-    public var hasCurrentProjection: Bool { owner != nil && owner == currentSession() }
+    public var hasCurrentProjection: Bool {
+        owner != nil && owner == currentSession() && service.enabled.contains(.reads)
+            && service.hasCurrentReadLifetime
+    }
     public func load() async {
-        guard phase != "submitting", let session = currentSession() else { return }
+        guard !Task.isCancelled, service.hasCurrentReadLifetime,
+              phase != "submitting", let session = currentSession() else { return }
         if owner != nil && owner != session { projection = nil; receipt = nil; phase = "stale"; return }
         owner = session; generation &+= 1; let generation = generation; phase = "loading"; issue = nil
         do {
@@ -173,7 +192,8 @@ extension PlayExperienceService {
         } catch { fail(error, session, generation) }
     }
     public func submit(_ command: PlayPlayerCommand) async {
-        guard !Task.isCancelled, pending == nil, phase == "ready", projection?.allows(command) == true, owner == currentSession() else { return }
+        guard !Task.isCancelled, pending == nil, phase == "ready", hasCurrentProjection,
+              projection?.allows(command) == true else { return }
         // A disabled first dispatch has no unknown result. Once an attempt exists,
         // however, a later read/dispatch denial is never evidence it did not apply.
         guard service.enabled.contains(.playerCommands) else { issue = .disabled; phase = "disabled"; return }
@@ -193,6 +213,10 @@ extension PlayExperienceService {
             }
             // The lock now exists for the original owner; a switched session leaves it untouched.
             guard self.generation == generation, currentSession() == session else { projection = nil; receipt = nil; phase = "stale"; return }
+            // A journal may suspend. Recheck the original read lease before dispatch,
+            // retaining its exact lock if that lease expired during persistence.
+            do { try check(session, generation) }
+            catch { fail(error, session, generation); return }
         }
         await sendExact()
     }
@@ -250,6 +274,7 @@ extension PlayExperienceService {
     }
     private func check(_ session: PlayExperienceSession, _ generation: UInt64) throws {
         guard self.generation == generation, currentSession() == session, !Task.isCancelled else { throw PlayExperienceError.staleSession }
+        try service.checkReadLifetime()
     }
     private func fail(_ error: Error, _ session: PlayExperienceSession, _ generation: UInt64) {
         guard self.generation == generation else { return }

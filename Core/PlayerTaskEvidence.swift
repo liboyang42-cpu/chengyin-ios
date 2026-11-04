@@ -44,15 +44,16 @@ extension PlayPlayerGameCoordinator {
               projection.sessionID == target.sessionID, projection.activityID == target.activityID,
               projection.revision == target.revision,
               let node = projection.nodes.first(where: { $0.id == target.nodeID }) else { return false }
-        return canCollectEvidence(projection: projection, node: node) && node.task["taskCode"].text == target.taskCode && node.task["inputType"].text == target.kind.rawValue
+        return canCollectEvidence(projection: projection, node: node)
+            && node.task["taskCode"].text?.utf8.elementsEqual(target.taskCode.utf8) == true
+            && node.task["inputType"].text == target.kind.rawValue
     }
     private func canCollectEvidence(projection: PlayPlayerGameProjection, node: PlayPlayerGameProjection.Node) -> Bool {
         guard projection.roleConfirmed, projection.status == "RUNNING",
               projection.availableActions.contains(PlayPlayerCommand.Action.submit.rawValue),
               !["PAUSED", "COMPLETED", "FALLBACK_COMPLETED", "HIDDEN", "LOCKED"].contains(node.state ?? "HIDDEN"),
               node.stationState != "PAUSED" else { return false }
-        let prior = projection.submissions.first { $0["nodeId"].integer == node.id }
-        return prior == nil || prior?["status"].text == "REJECTED"
+        return projection.canSubmitTask(nodeID: node.id)
     }
     public func reviewEvidence(_ target: PlayerTaskEvidenceTarget, scan: String? = nil, photo: PlayCompletionEvidence? = nil) throws -> PlayPlayerCommand {
         guard acceptsEvidence(target) else { throw PlayExperienceError.staleSession }
