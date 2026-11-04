@@ -105,3 +105,69 @@ journal tests are not a claim of device relaunch or two-account acceptance.
 Implementation commit: `269ee4dd` (full SHA and remote byte-verification receipt are
 reported by the coordinator after publication). Validation is limited as above;
 this is not launch acceptance or real-backend completion.
+
+## Follow-up group: current snapshot and action selection boundaries
+
+Ownership was rechecked before this group: #136 still has no assignee/comments,
+public integration is still `eec839502b11f1119a6ede212c768bb3f2de4f29`, and the
+only public L10 iOS lane branch found is this task's branch. G06 UI ownership is
+unchanged and still not independently identifiable from public metadata.
+
+The existing public backend source `cursor/w20-f-city-board` at
+`36071cdfd55513b59966c5185153eac692a9753d` was inspected without altering it.
+It already contains `ApiCityGameReadController` and publication classes. That
+controller identifies itself as a candidate, is not approved for transport, and
+explicitly states participation/points are unavailable without their real sources.
+It is outside the frozen backend contract. This work does not duplicate its port,
+change auth, or enable it; coordination still needs the missing writer/receipt
+contract and the appropriate backend port owner before live integration.
+
+Exact additional group whitelist:
+
+- `Core/CityGameBoardProjection.swift`
+- `Core/CityGameCoordinator.swift`
+- `Tests/CoreTests/CityGameProjectionTests.swift`
+- `Tests/CoreTests/CityGameCoordinatorTests.swift`
+- `tools/test_l10_city_recovery.py`
+- `docs/launch/l10-city-recovery.md`
+
+Snapshots now reject invalid/incomplete read context (including missing point
+projection, unavailable membership, invalid participation, duplicate/invalid points,
+and non-member "mine" facts). Selection must match the current complete property
+value and its published service value, preventing stale objects or unpublished fees
+from being accepted as action inputs. The coordinator retains a version/sequence
+watermark across failed reloads, so failure does not permit an older snapshot to
+become actionable. The watermark is cleared on session/screen invalidation.
+
+Validation for this group:
+
+- `SWIFT_EXECUTABLE=<official Swift 6.2.1>/usr/bin/swift python3
+  tools/test_l10_city_recovery.py --suite projection`: **11 XCTest executed, 0
+  failures** on Linux. This suite uses the unchanged production projection, action,
+  delta and capability sources plus extracted existing read declarations. It has no
+  Observation dependency, network service, production fixture fallback or replaced
+  runtime implementation. This is a selected domain suite, not a full app build.
+- `--suite recovery`: production subset and all **16 coordinator XCTest sources**
+  compile, then the same Observation linker failure prevents execution. Two added
+  integration tests cover coordinator selection rejection and watermark retention.
+  They are authored/compiled, not reported as passed.
+- The pinned Swift syntax check passes for the four affected Swift files.
+- `python3 -m unittest Tests.ContractChecks.test_city_player_recovery
+  Tests.ContractChecks.test_city_point_selection`: **13 passed**.
+- `git diff --check`: PASS. No UI or shared runtime/PBX changes. New CoreTests are
+  discovered by SwiftPM; L1 must refresh its shared audit manifest at integration.
+
+This group does not close the remaining launch blockers above. In particular, no
+normal-entry real-writer flow, two-account season play or device restart acceptance
+has been demonstrated. No CI, PR, production write, award or transaction was run.
+
+After both public pushes and byte verification, this task's dedicated iOS checkout,
+its downloaded temporary toolchains and matching local test logs may be removed as
+recoverable task files. The pre-existing `/workspace/hengyin` workspace is not part
+of that cleanup. Public source, test scripts and this record remain on the lane.
+
+Follow-up implementation commit: `17c98bb0279ab589ea1f04501c1750929044af9a`.
+Projection run log SHA-256:
+`d6e8df86ea1edc810c0c27bcb59bac3404e9b3b24e95b0d6dd0f3b6d7b85c97b`.
+Coordinator compile/link attempt log SHA-256:
+`2ee48e5be34583cae0cee6f323c77da09d0cf7642dfdea01a0f7e0ff9e89df11`.
