@@ -17,6 +17,118 @@
         }
       }
     },
+    "channelText.pendingMentions %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mentioned: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已提及：%@"
+          }
+        }
+      }
+    },
+    "channelText.mentions %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Will mention: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将提及：%@"
+          }
+        }
+      }
+    },
+    "channelText.replying": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replying to a message"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在回复一条消息"
+          }
+        }
+      }
+    },
+    "channelText.cancelReply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel reply and mentions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消回复和提及"
+          }
+        }
+      }
+    },
+    "channelText.replyUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That message is no longer available. Cancel the reply, or go back and pull to refresh."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条消息已不可用。请取消回复，或返回频道下拉刷新。"
+          }
+        }
+      }
+    },
+    "channelText.sendMentions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send with mentions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送并提及"
+          }
+        }
+      }
+    },
+    "channelText.sendReply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send reply"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送回复"
+          }
+        }
+      }
+    },
     "channelText.send": {
       "localizations": {
         "en": {
