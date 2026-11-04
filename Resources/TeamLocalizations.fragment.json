@@ -585,13 +585,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Offline example. All people, teams and outcomes are synthetic."
+            "value": "Example content. People, teams and outcomes here aren't real."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "离线示例。人物、队伍与结果均为虚构测试数据。"
+            "value": "示例内容，人物、队伍与结果均非真实。"
           }
         }
       }
@@ -602,13 +602,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Live team changes and invitation sharing are disabled pending backend verification."
+            "value": "Team changes and invite sharing aren't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "真实队伍变更和邀请分享暂未开放，需先完成后端核验。"
+            "value": "队伍修改和邀请分享暂不可用。"
           }
         }
       }

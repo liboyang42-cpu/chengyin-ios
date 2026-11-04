@@ -4323,13 +4323,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Structured authoring covers all 37 active configuration families. Unknown extensions are retained and block submission; provider-dependent previews explain their limits."
+          "value": "All 37 setting types can be edited here. Unrecognized settings are kept but must be removed before you can submit. Some previews explain their limits."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "已覆盖全部 37 个有效配置模块的结构化编辑。未知扩展会保留并阻止提交；依赖外部能力的预演会说明限制。"
+          "value": "可在此编辑全部 37 类设置。无法识别的设置会保留，但需移除后才能提交；部分预览会说明其限制。"
         }
       }
     }

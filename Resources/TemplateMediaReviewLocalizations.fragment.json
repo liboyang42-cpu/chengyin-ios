@@ -86,13 +86,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review this local image crop. The source aspect ratio is retained."
+            "value": "Check the image crop. The original aspect ratio is kept."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "检查本地图片裁剪，保持原图宽高比。"
+            "value": "检查图片裁剪，保持原图宽高比。"
           }
         }
       }

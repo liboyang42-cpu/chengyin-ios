@@ -84,13 +84,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Text only. Evidence attachments are not supported by this report contract."
+          "value": "Text only. Attachments aren't supported for reports."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "仅可提交文字。此举报接口暂不支持证据附件。"
+          "value": "仅可提交文字，举报暂不支持附件。"
         }
       }
     }
@@ -116,13 +116,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Offline report example. Reasons, cases and outcomes are synthetic; nothing is sent externally."
+          "value": "Example report. Reasons, cases and outcomes aren't real; nothing is sent."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "离线举报示例。原因、案件与结果为模拟数据，不会向外部发送。"
+          "value": "举报示例。原因、案件与结果均非真实，不会实际发送。"
         }
       }
     }
@@ -260,13 +260,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Synthetic case receipt. No real report was sent."
+          "value": "Example confirmation. No real report was sent."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "模拟案件回执，未发送真实举报。"
+          "value": "示例确认，未发送真实举报。"
         }
       }
     }
@@ -708,13 +708,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Bookmarks use the versioned community contract. Legacy post IDs cannot be mapped to it safely."
+          "value": "This older post can't be bookmarked."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "收藏使用新版社区接口，旧版动态编号不能安全地映射到该接口。"
+          "value": "此旧版动态无法收藏。"
         }
       }
     }
