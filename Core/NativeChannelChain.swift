@@ -89,6 +89,10 @@ public struct NativeChannelChainPage: Decodable {
         guard last >= 0 else { throw APIError.invalidRequest }
         for entry in list { try entry.validate(chain: chain.id); guard let position = Int64(entry.position), position > last else { throw APIError.malformedResponse }; last = position }
         if let mine { try mine.validate(chain: chain.id); guard mine.memberId == actor, mine.status != "ACTIVE" || chain.activeCount > 0 else { throw APIError.malformedResponse } }
+        // A withdrawn personal row must never coexist with an older visible copy.
+        if let personal = list.first(where: { $0.memberId == actor || $0.id == mine?.id }) {
+            guard personal == mine else { throw APIError.malformedResponse }
+        }
     }
 }
 private struct NativeChannelChainReceipt: Decodable {
@@ -111,7 +115,7 @@ private struct NativeChannelChainReceipt: Decodable {
         guard operation == command.operation.rawValue, requestHash == command.digest else { throw APIError.malformedResponse }
         if state == "PENDING" { guard result == nil, resultRedacted == nil else { throw APIError.malformedResponse }; return }
         if resultRedacted == true { guard result == nil else { throw APIError.malformedResponse }; return }
-        guard resultRedacted == false, let result, validChainID(result.chainVersion), result.activeCount >= 0,
+        guard resultRedacted == false, let result, validChainID(result.chainVersion), (0...Int(Int32.max)).contains(result.activeCount),
               command.chainId == nil || command.chainId == result.chainId else { throw APIError.malformedResponse }
         _ = try result.reference(conversation: command.conversationId)
         switch command.operation {
@@ -312,7 +316,11 @@ public struct NativeChannelChainConfirmedRequest: Equatable {
                 guard current(run) else { return }; page = fresh; entries = fresh.list
             } else {
                 let oldIDs = Set(entries.map(\.id))
-                guard !more || value.list.allSatisfy({ !oldIDs.contains($0.id) }) else { throw APIError.malformedResponse }
+                let oldMembers = Set(entries.map(\.memberId))
+                guard !more || value.list.allSatisfy({ !oldIDs.contains($0.id) && !oldMembers.contains($0.memberId) }) else { throw APIError.malformedResponse }
+                if more, let personal = entries.first(where: { $0.memberId == service.actorID || $0.id == value.mine?.id }) {
+                    guard personal == value.mine else { throw APIError.malformedResponse }
+                }
                 page = value; entries = more ? entries + value.list : value.list
             }
             if pending == nil { phase = .idle }
@@ -399,7 +407,7 @@ public struct NativeChannelChainConfirmedRequest: Equatable {
             guard current(run) else { return }
             if receipt.state == "APPLIED" { try settle(receipt, command: command); return }
             guard receipt.state == "NOT_FOUND" else { phase = .unknown; return }
-            guard current(run), try journal.restore()?.digest == command.digest else { throw APIError.invalidRequest }
+            guard current(run), let saved = try journal.restore(), saved == command, saved.digest == command.digest else { throw APIError.invalidRequest }
             phase = .submitting; await dispatch(command, run: run, retry: true)
         } catch { if current(run) { phase = .unknown } }
     }
