@@ -109,6 +109,13 @@ public struct WorkshopPaidInstallApproval {
             return outcome
         } catch {
             try check(lifetime)
+            if let rejection = error as? WorkshopPaidInstallIssue,
+               rejection == .unauthorized || rejection == .disabled || rejection == .staleSession {
+                // Preserve the existing rejection for local presentation retirement.
+                // This says nothing about whether the dispatched write committed;
+                // the saved original request still requires status reconciliation.
+                throw rejection
+            }
             // Even a post-dispatch decode/transport error may follow a committed copy. Keep UUID.
             throw WorkshopPaidInstallIssue.outcomeUnknown
         }

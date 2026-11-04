@@ -77,8 +77,12 @@ public enum QmodServerSubmission: Equatable, Sendable {
     case notAttempted
 }
 
-/// Foundation JSON objects keep the last duplicate key. This report does not claim to find them.
-public enum QmodDuplicateJSONKeyPolicy: Equatable, Sendable { case notDetectedServerCheck }
+/// Local inspection checks all JSON entries before decoding. Server validation is
+/// still required; a local pass is neither compilation nor acceptance.
+public enum QmodDuplicateJSONKeyPolicy: Equatable, Sendable {
+    case notDetectedServerCheck
+    case rejectedLocallyServerCheckRequired
+}
 
 public struct QmodExpansionGuard: Equatable, Sendable {
     public let numerator: Int64
@@ -193,7 +197,7 @@ public struct QmodLocalInspectionReport: Equatable, Sendable {
         self.limitProfileIsProposal = limits.isProposal
         self.expansionNumerator = expansionGuard.numerator
         self.expansionDenominator = expansionGuard.denominator
-        self.duplicateJSONKeys = .notDetectedServerCheck
+        self.duplicateJSONKeys = .rejectedLocallyServerCheckRequired
         self.limitsAreBusinessRules = false
         self.localReadBudgetBytes = readBudget.maxBytes
         self.localReadBudgetIsProposal = readBudget.isProposal
@@ -377,6 +381,15 @@ public enum QmodArchiveInspection {
             guard crc == record.crc else {
                 issues.append(QmodArchiveIssue(code: .corrupt(detail: "crc32"), entryIndex: record.index, headerOffset: record.localOffset, path: record.name))
                 continue
+            }
+            if record.name.lowercased().hasSuffix(".json") {
+                do { try QmodJSONInspection.validate(payload) }
+                catch {
+                    // Never echo the JSON value (answers may be author-private).
+                    let reason = (error as? QmodJSONInspection.Failure)?.rawValue ?? "malformed"
+                    issues.append(QmodArchiveIssue(code: .corrupt(detail: "json-" + reason), entryIndex: record.index, headerOffset: record.localOffset, path: record.name))
+                    continue
+                }
             }
             guard let digest = QmodZip.sha256Hex(payload) else {
                 return finish([QmodArchiveIssue(code: .checkCancelled, entryIndex: nil, headerOffset: nil, path: nil)])

@@ -259,7 +259,7 @@ import Observation
             do { let value = try await self.service.submit(consent); try life.check(); try self.accept(value, expected: confirmation); self.phase = .installed }
             catch {
                 guard action.live, self.current(displayed) else { return }
-                self.issue = (error as? WorkshopPaidInstallIssue) ?? .outcomeUnknown; self.phase = .ready
+                self.handleCurrentFailure(error, fallback: .outcomeUnknown)
             }
         }
     }
@@ -270,7 +270,20 @@ import Observation
             guard let self, action.claim(), self.current(displayed) else { return }
             self.phase = .loading; self.issue = nil
             do { let value = try await self.service.status(command: pending, lifetime: life); try life.check(); try self.accept(value, expected: pending); self.phase = value.state == .installed ? .installed : .ready }
-            catch { guard action.live, self.current(displayed) else { return }; self.issue = (error as? WorkshopPaidInstallIssue) ?? .unavailable; self.phase = .ready }
+            catch { guard action.live, self.current(displayed) else { return }; self.handleCurrentFailure(error, fallback: .unavailable) }
+        }
+    }
+    private func handleCurrentFailure(_ error: Error, fallback: WorkshopPaidInstallIssue) {
+        let failure = (error as? WorkshopPaidInstallIssue) ?? fallback
+        if failure == .unauthorized || failure == .staleSession || failure == .disabled {
+            // Same retirement rule as load/paging. A current rejection must not
+            // leave protected history or queued actions usable. invalidate()
+            // deliberately keeps the durable original request for later recovery.
+            invalidate()
+            issue = failure
+        } else {
+            issue = failure
+            phase = .ready
         }
     }
     private func accept(_ value: WorkshopPaidInstallOutcome, expected: WorkshopPaidInstallCommand) throws {
