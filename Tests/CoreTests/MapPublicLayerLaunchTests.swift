@@ -78,7 +78,7 @@ final class MapPublicLayerLaunchTests: XCTestCase {
         MapPublicLayerService(configuration: try APIConfiguration(baseURL: baseURL), transport: wire)
     }
 
-    func testBBoxLimitsLayerOrderAndRequestCanonicalization() throws {
+    func testBBoxLimitsLayerOrderAndRequestCanonicalization() async throws {
         let session = try opened(layers: ["store", "roam_poi", "theme", "story_node"])
         let request = MapPublicLayerAdapter.request(session).request
         let body = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(request.body.utf8)) as? [String: Any])
@@ -96,7 +96,7 @@ final class MapPublicLayerLaunchTests: XCTestCase {
         XCTAssertThrowsError(try MapPublicLayerBoundingBox(minLat: "31", maxLat: "32", minLng: "121", maxLng: "122", datum: .wgs84))
     }
 
-    func testFailedPageRetriesSameCursorWithoutDiscardingOtherLayers() throws {
+    func testFailedPageRetriesSameCursorWithoutDiscardingOtherLayers() async throws {
         var session = try accept(opened(layers: ["store", "activity"]), page([
             layer(items: [store(7)]), layer("activity")
         ], cursor: "page-2"))
@@ -116,7 +116,7 @@ final class MapPublicLayerLaunchTests: XCTestCase {
         XCTAssertEqual(MapPublicLayerAdapter.readyItems(in: session).map(\.key.id), ["7", "8"])
     }
 
-    func testUnavailableAndExplicitReadRevocationCannotResurrectCachedItems() throws {
+    func testUnavailableAndExplicitReadRevocationCannotResurrectCachedItems() async throws {
         for status in ["UNAVAILABLE", "FAILED", "OK"] {
             var session = try accept(opened(), page([layer(items: [store(7)])], cursor: "page-2"))
             session = try accept(session, page([layer(status: status, read: false)]))
@@ -131,7 +131,7 @@ final class MapPublicLayerLaunchTests: XCTestCase {
         XCTAssertTrue(session.pages[0].items.isEmpty)
     }
 
-    func testCursorStallOversizedPageAndReorderedLayersDoNotAdvanceSession() throws {
+    func testCursorStallOversizedPageAndReorderedLayersDoNotAdvanceSession() async throws {
         let session = try accept(opened(layers: ["store", "activity"], limit: 1), page([
             layer(items: [store(7)]), layer("activity")
         ], cursor: "page-2"))
