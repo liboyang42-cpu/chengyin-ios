@@ -177,7 +177,6 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                         installText("chooseRegion").tag(String?.none)
                         ForEach(controller.item.allowedRegions, id: \.self) { region in Text(verbatim: region).tag(Optional(region)) }
                     } label: { installText("region") }
-                    installText("regionPlanningOnly").font(.footnote)
                     Toggle(isOn: Binding(get: { controller.commercialUse }, set: { controller.chooseCommercialUse($0, appearance: displayed) })) { installText("commercial") }
                         .disabled(controller.item.commercialUse != .allowed)
                     Button { controller.review(appearance: displayed) } label: { installText("review") }

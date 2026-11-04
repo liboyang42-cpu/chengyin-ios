@@ -31,7 +31,6 @@ struct WorkshopPurchasedAccountLink: View {
         let displayed = navigation.listAppearance
         let rendered = displayed.permit
         List {
-            Section { purchasedText("scope").font(.footnote).fixedSize(horizontal: false, vertical: true) }
             switch browser.phase {
             case .idle, .loading: ProgressView { purchasedText("loading") }
             case .notEnabled: PurchasedUnavailableView()
