@@ -49,6 +49,7 @@ struct RoamBrowserView: View {
     @State private var issue: RoamScreenIssue?
     @State private var generation = 0
     @State private var retainedRead = RoamRetainedRead()
+    @State private var toolbarRoute: RoamBrowserToolbarRoute?
 
     private var effectiveReader: any RoamReading {
         if layer == .events, let nearbyEventsReader { return nearbyEventsReader }
@@ -164,21 +165,6 @@ struct RoamBrowserView: View {
                 RoamItemDetailView(item: item, reader: reader, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, stampDestination: stampDestination, posterDestination: posterDestination, eventDestination: eventDestination, playerProfileDestination: playerProfileDestination, couponWalletDestination: couponWalletDestination)
             }
             .toolbar {
-                if let onOpenAccount {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button("account.title", systemImage: "person.crop.circle", action: onOpenAccount)
-                            .accessibilityIdentifier("roam.account.open")
-                    }
-                }
-                if let cityDestination { ToolbarItem(placement: .topBarTrailing) { NavigationLink("city.read.title", destination: cityDestination) } }
-                if let nearbyTeamsDestination { ToolbarItem(placement: .topBarTrailing) { NavigationLink("nearby.title", destination: nearbyTeamsDestination) } }
-                if let experienceReader {
-                    ToolbarItem(placement: .topBarLeading) {
-                        NavigationLink { RoamExperienceHubView(reader: experienceReader, albumMetadataReader: albumMetadataReader, tileMemoryReader: tileMemoryReader, sessionFactReader: sessionFactReader, stampDestination: stampDestination, liveDestination: liveDestination, toolsReader: passportToolsReader ?? toolsReader, privateToolsReader: privateToolsReader) } label: {
-                            Label("roam.experience.title", systemImage: "book.closed")
-                        }.accessibilityIdentifier("roam.experience.open")
-                    }
-                }
                 if let onChooseArea {
                     ToolbarItem(placement:.topBarLeading) {
                         Button("roam.area.title",systemImage:"mappin.and.ellipse",action:onChooseArea)
@@ -191,10 +177,40 @@ struct RoamBrowserView: View {
                     }
                     .accessibilityIdentifier("roam.display.toggle")
                 }
+                // More than two actions go in one menu; every destination stays reachable.
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { startLoad() } label: { Label("action.retry", systemImage: "arrow.clockwise") }
-                        .disabled(loading || !reader.isConfigured || reader.identity == nil || reader.searchArea == nil)
-                        .accessibilityIdentifier("roam.refresh")
+                    Menu {
+                        if let onOpenAccount {
+                            Button("account.title", systemImage: "person.crop.circle", action: onOpenAccount)
+                                .accessibilityIdentifier("roam.account.open")
+                        }
+                        if experienceReader != nil {
+                            Button { toolbarRoute = .experience } label: {
+                                Label("roam.experience.title", systemImage: "book.closed")
+                            }.accessibilityIdentifier("roam.experience.open")
+                        }
+                        if cityDestination != nil {
+                            Button { toolbarRoute = .city } label: { Label("city.read.title", systemImage: "building.2") }
+                        }
+                        if nearbyTeamsDestination != nil {
+                            Button { toolbarRoute = .nearbyTeams } label: { Label("nearby.title", systemImage: "person.3") }
+                        }
+                        Button { startLoad() } label: { Label("action.retry", systemImage: "arrow.clockwise") }
+                            .disabled(loading || !reader.isConfigured || reader.identity == nil || reader.searchArea == nil)
+                            .accessibilityIdentifier("roam.refresh")
+                    } label: {
+                        Label("roam.toolbar.more", systemImage: "ellipsis.circle")
+                    }
+                }
+            }
+            .navigationDestination(item: $toolbarRoute) { route in
+                switch route {
+                case .experience:
+                    if let experienceReader {
+                        RoamExperienceHubView(reader: experienceReader, albumMetadataReader: albumMetadataReader, tileMemoryReader: tileMemoryReader, sessionFactReader: sessionFactReader, stampDestination: stampDestination, liveDestination: liveDestination, toolsReader: passportToolsReader ?? toolsReader, privateToolsReader: privateToolsReader)
+                    }
+                case .city: cityDestination?()
+                case .nearbyTeams: nearbyTeamsDestination?()
                 }
             }
         }
@@ -427,4 +443,10 @@ struct RoamItemRow: View {
         .padding(.vertical, 8).contentShape(Rectangle())
         .accessibilityElement(children: .combine)
     }
+}
+
+/// Toolbar menu destinations; the menu cannot host NavigationLinks directly.
+private enum RoamBrowserToolbarRoute: Hashable, Identifiable {
+    case experience, city, nearbyTeams
+    var id: Self { self }
 }
