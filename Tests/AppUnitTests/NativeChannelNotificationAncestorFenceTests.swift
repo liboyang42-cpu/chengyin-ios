@@ -66,7 +66,7 @@ import SwiftUI
         try seedJournal.persist(original); return original
     }
     func make(scope: NativeChannelNotificationScope?) throws -> NativeChannelNotificationCoordinator {
-        try NativeChannelAncestorNotificationBinding.make(context: context, storage: storage, scope: scope, makeDispatcher: { journal in
+        try NativeChannelNotificationBinding.make(context: context, storage: storage, scope: scope, makeDispatcher: { journal in
             self.wire.journal = journal
             return try .init(context: self.context, viewerRevision: 2, source: self.source, journal: journal,
                              underlying: self.wire, current: { self.currentVisit() ? self.context : nil }, viewer: { 2 }, selected: { self.source })

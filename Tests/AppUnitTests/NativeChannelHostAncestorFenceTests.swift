@@ -69,7 +69,7 @@ import SwiftUI
     let context: RuntimeDependencyContext
     let binding: NativeChannelMessageBinding
     let source: RouteMessageHostSource
-    let host: NativeChannelRouteMessageHostAuthority
+    let host: NativeChannelMessageHostAuthority
     let outer: CompositionHTTPTransport
     let wire: RouteMessageHostWire
     let storage = RouteMessageHostStorage()
@@ -102,8 +102,8 @@ import SwiftUI
             from: Data(#"{"conversationId":9,"type":4,"counterparty":{"bizKey":"club_7"}}"#.utf8))
         outer.current = { .init(epoch: 1, accountID: 3, role: "player", token: "fixture-token", viewerRevision: 1) }
     }
-    func make() throws -> NativeChannelRouteMessageHostFlow {
-        try NativeChannelRouteMessageHostBinding.make(context: context, conversation: conversation, authority: host, storage: storage,
+    func make() throws -> NativeChannelMessageHostFlow {
+        try NativeChannelMessageHostBinding.make(context: context, conversation: conversation, authority: host, storage: storage,
             current: { self.sourceCurrent() && self.host.identity != nil }, onUnauthorized: { self.unauthorized += 1 },
             makeOriginal: { current, unauthorized in
                 try self.outer.makeNativeChannelMessageOriginalAdapters(context: self.context, binding: self.binding,
