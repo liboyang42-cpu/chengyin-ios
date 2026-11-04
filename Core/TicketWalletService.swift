@@ -40,10 +40,17 @@ public struct TicketWalletService {
         case (.failure(let routeError), .failure): throw routeError
         }
     }
-    public func detail(id: Int, token: String) async throws -> TicketWalletTicket {
+    public func detail(id: Int, token: String, expectedAccountID: Int? = nil) async throws -> TicketWalletTicket {
         guard id > 0 else { throw APIError.invalidRequest }
+        if let expectedAccountID, expectedAccountID <= 0 { throw APIError.invalidRequest }
         let data = try await post("api/registration/info", fields: ["id": String(id)], token: token)
         guard let result = try decode(DetailEnvelope.self, data).data, result.id == id else { throw TicketWalletReadFailure.unavailable }
+        // Bind the buyer before returning the display projection, which intentionally
+        // does not retain memberId. Nested topic/activity publishers are not buyers.
+        if let expectedAccountID {
+            guard let owner = try decode(DetailOwnershipEnvelope.self, data).data,
+                  owner.memberId == expectedAccountID else { throw APIError.malformedResponse }
+        }
         return result
     }
     private func outcome(lane: TicketWalletLane, token: String) async -> Result<[TicketWalletTicket], Error> {
@@ -80,6 +87,10 @@ public struct TicketWalletService {
     }
     private struct ActivityEnvelope: Decodable { let data: [TicketWalletTicket]? }
     private struct DetailEnvelope: Decodable { let data: TicketWalletTicket? }
+    private struct DetailOwnershipEnvelope: Decodable {
+        struct Owner: Decodable { let memberId: Int }
+        let data: Owner?
+    }
     private struct RouteEnvelope: Decodable {
         let rows: [TicketWalletTicket]
         enum CodingKeys: String, CodingKey { case data }

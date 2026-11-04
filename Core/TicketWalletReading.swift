@@ -42,18 +42,18 @@ public struct TicketWalletReadSession: Equatable {
         snapshot = currentSession()
     }
     public func ticketWallet() async throws -> TicketWalletSnapshot {
-        try await read { try await $0.wallet(token: $1) }
+        try await read { try await $0.wallet(token: $1.token) }
     }
     public func ticketDetail(id: Int) async throws -> TicketWalletTicket {
-        try await read { try await $0.detail(id: id, token: $1) }
+        try await read { try await $0.detail(id: id, token: $1.token, expectedAccountID: $1.accountID) }
     }
-    private func read<T>(_ operation: (TicketWalletService, String) async throws -> T) async throws -> T {
+    private func read<T>(_ operation: (TicketWalletService, TicketWalletReadSession) async throws -> T) async throws -> T {
         guard let session = currentSession() else { throw APIError.unauthorized }
         guard let service else { throw APIError.notConfigured }
         let captured = scope
         try Task.checkCancellation()
         do {
-            let value = try await operation(service, session.token)
+            let value = try await operation(service, session)
             try Task.checkCancellation()
             guard currentSession() == session, scope == captured else { throw CancellationError() }
             return value
