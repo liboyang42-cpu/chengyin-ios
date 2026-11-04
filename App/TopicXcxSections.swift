@@ -8,6 +8,22 @@ enum TopicXcxTab: Int, CaseIterable, Identifiable {
     var anchor: String { "topicXcx.anchor.\(rawValue)" }
 }
 
+/// Mini-program 详情 / 故事 / 路线 tabs as a native segmented control; it jumps to that part of the page
+/// so every existing row stays reachable.
+struct TopicXcxTabs: View {
+    let proxy: ScrollViewProxy
+    @State private var selection: TopicXcxTab = .details
+    var body: some View {
+        Picker("topicXcx.tabs", selection: $selection) {
+            ForEach(TopicXcxTab.allCases) { tab in Text(tab.titleKey).tag(tab) }
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .accessibilityIdentifier("topic.tabs")
+        .onChange(of: selection) { _, tab in withAnimation { proxy.scrollTo(tab.anchor, anchor: .top) } }
+    }
+}
+
 struct TopicXcxHero: View {
     let topic: TopicDetail
     var body: some View {
@@ -129,8 +145,13 @@ struct TopicXcxActionBar: View {
                     Button(action: openSessions) { Text("topicXcx.cta.signUp").frame(maxWidth: .infinity) }.buttonStyle(.questifyPrimary)
                         .disabled(topic.merchantClosed)
                 }
-            }.accessibilityIdentifier("topic.actionBar")
+            }
+            .controlSize(.large)
+            .accessibilityIdentifier("topic.actionBar")
         }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, Theme.Space.pageX)
+        .padding(.vertical, Theme.Space.s2)
     }
 }
 
