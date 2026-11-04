@@ -146,7 +146,6 @@ import UIKit
     let copyText: (String) throws -> Void
     var body: some View {
         Section("settingsNative.attribution.title") {
-            Text("settingsNative.attribution.context").font(.footnote).foregroundStyle(.secondary)
             ForEach(SettingsSourceAttribution.all) { attribution in
                 VStack(alignment: .leading, spacing: 8) {
                     // Keep the row anchor on this leaf. A container identifier can
