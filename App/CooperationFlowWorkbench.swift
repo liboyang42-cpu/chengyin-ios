@@ -7,6 +7,10 @@ import SwiftUI
     @Environment(\.merchantOfficialRecruitmentDestination) private var officialRecruitmentDestination
     var body: some View {
         List {
+            // Source pages/merchant/relation is the 合作 tab: partners come first.
+            Section {
+                link("coopflow.relations", resource: .relations)
+            }
             if operationScope == "MERCHANT", let officialRecruitmentDestination {
                 Section {
                     NavigationLink { officialRecruitmentDestination(reader) } label: {
@@ -17,7 +21,6 @@ import SwiftUI
             Section("coopflow.business") {
                 link("coopflow.finance", resource: .finance)
                 link("coopflow.mybiz", resource: .myBusiness)
-                link("coopflow.relations", resource: .relations)
                 link("coopflow.clubs", resource: .clubs(name: nil))
                 NavigationLink { CoopFlowNearbyGate(reader: reader) } label: { Text("coopflow.nearby") }
                     .accessibilityIdentifier("coopflow.route.coopflow.nearby")
