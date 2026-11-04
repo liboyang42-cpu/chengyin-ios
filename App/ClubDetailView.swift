@@ -168,7 +168,6 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                             Text("club.detail.leaderboard.unavailable").foregroundStyle(.secondary).accessibilityIdentifier("club.detail.leaderboard.unavailable")
                         } else {
                             Text("club.detail.leaderboard.locked").accessibilityIdentifier("club.detail.leaderboard.locked")
-                            Text("club.detail.leaderboard.lockedHint").font(.footnote).foregroundStyle(.secondary)
                         }
                     }
                     Section("club.detail.governanceHelp.title") {
