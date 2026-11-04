@@ -153759,13 +153759,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "In-app walking navigation"
+            "value": "Walking navigation"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "App 内步行导航"
+            "value": "步行导航"
           }
         }
       }

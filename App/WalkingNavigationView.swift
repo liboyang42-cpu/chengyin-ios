@@ -61,6 +61,7 @@ import Observation
                 }
         }
         .appNavigationTitle("walking.title")
+        .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showsSteps, onDismiss: { stepsFocused = model?.route != nil }) {
             NavigationStack {
                 if let model { WalkingStepsDetail(model: model) }
@@ -309,6 +310,7 @@ import Observation
             .accessibilityValue(Text(verbatim: typeSize == .accessibility5 ? "dynamicTypeSize=accessibility5" : "dynamicTypeSize=other"))
             #endif
             .appNavigationTitle("walking.steps")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("walking.closeSteps") { dismiss() }.accessibilityIdentifier("walking.steps.close")
