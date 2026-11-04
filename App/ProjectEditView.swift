@@ -312,7 +312,6 @@ import SwiftUI
                 if model.coordinator.isReadOnly {
                     Label("roam.experience.readOnly", systemImage: "lock.fill")
                         .accessibilityIdentifier("projectRemote.readOnly")
-                    Text(verbatim: ProjectEditScope.sellingFrozen.rawValue).font(.caption)
                 } else {
                     QuestifyStatusBadge(title: LocalizedStringKey(model.coordinator.canSimulate ? "projectEdit.fixtureBadge" : "projectEdit.localBadge"), systemImage: "square.and.pencil")
                     Text(LocalizedStringKey(model.coordinator.canSimulate ? "projectEdit.fixtureNotice" : "projectEdit.unconfigured"))
@@ -332,7 +331,6 @@ import SwiftUI
                         ProjectRemoteVersionRow(revision: model.draft.baseRevision)
                         Text(LocalizedStringKey(model.draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore"))
                             .accessibilityIdentifier("projectRemote.mode")
-                        Text("projectRemote.freshSource").font(.caption)
                     }
                 }
                 ProjectSubmissionEvidenceSection(model: model)
@@ -346,11 +344,15 @@ import SwiftUI
                             .accessibilityIdentifier("projectRemote.continue")
                     }
                 }
-                Section {
-                    Button("contextPublish.mode.choose") { modeReview.open() }
-                        .disabled(!model.fullEdit || model.coordinator.session == nil || model.draft.owner == .merchant).accessibilityIdentifier("contextPublish.mode.open")
-                    if model.draft.owner == .merchant { Text("contextPublish.mode.merchantLocked").font(.caption) }
-                    if modeCopyFailed { Text("contextPublish.mode.failed") }
+                // Merchant route mode is fixed, so its entry is hidden rather than shown disabled.
+                if model.draft.owner != .merchant || modeCopyFailed {
+                    Section {
+                        if model.draft.owner != .merchant {
+                            Button("contextPublish.mode.choose") { modeReview.open() }
+                                .disabled(!model.fullEdit || model.coordinator.session == nil || model.draft.owner == .merchant).accessibilityIdentifier("contextPublish.mode.open")
+                        }
+                        if modeCopyFailed { Text("contextPublish.mode.failed").foregroundStyle(.red) }
+                    }
                 }
                 if model.hasRestore {
                     Section("projectEdit.restoreTitle") {
@@ -378,11 +380,7 @@ import SwiftUI
                 NativeRpgEnvironmentAuthorEntry(model: model)
                 NativeRpgGrowthAuthorEntrySection(model: model)
                 NativeRpgPassiveRulesAuthorEntry(model: model)
-                ProjectEditPendingSection(model: model, controller: pending)
-                ProjectDraftStoryPreviewEntry(model: model)
-                chapterStructure(opening: opening).id("project-issue-anchor-chapters")
-                ProjectTeamConfigurationEntry(model: model)
-                ProjectClubLeadFields(model: model).id("project-issue-anchor-clubLead")
+                // Mini-program order: topic details, then mode and tickets, then chapters.
                 Section("projectEdit.tickets") {
                     ForEach(model.draft.tickets) { ticket in
                         NavigationLink { ProjectEditTicketView(model: model, ticketID: ticket.id) } label: {
@@ -392,22 +390,26 @@ import SwiftUI
                     Button("projectEdit.addTicket", systemImage: "plus") { model.draft.tickets.append(.init()) }
                         .disabled(!model.fullEdit).accessibilityIdentifier("projectEdit.addTicket")
                 }
+                ProjectEditPendingSection(model: model, controller: pending)
+                ProjectDraftStoryPreviewEntry(model: model)
+                chapterStructure(opening: opening).id("project-issue-anchor-chapters")
+                ProjectTeamConfigurationEntry(model: model)
+                ProjectClubLeadFields(model: model).id("project-issue-anchor-clubLead")
                 ProjectEditCompletionRulesForm(rules: model.completionRules, city: model.draft.product == .city, fullEdit: model.fullEdit, totalNodes: model.draft.chapters.reduce(0) { $0 + $1.nodes.count }).id("project-issue-anchor-completionRules")
                 PublishingTopicRewardsForm(rewards: model.rewards, fullEdit: model.fullEdit).id("project-issue-anchor-topicRewards")
                 Section("projectEdit.visibility") {
                     Toggle("projectEdit.publishToCreative", isOn: $model.draft.publishToCreative)
                         .disabled(!model.fullEdit || model.coordinator.snapshot?.topicID != nil)
-                    Text("projectEdit.advancedPreserved").foregroundStyle(.secondary)
                 }
                 if !model.coordinator.issues.isEmpty {
                     Section("projectEdit.fixBeforeReview") {
                         ForEach(issueRows) { row in
                             if let capture = row.capture {
                                 Button { focusedField = nil; issueNavigation.open(capture) } label: {
-                                    Label(LocalizedStringKey(row.issue.key), systemImage: "exclamationmark.circle")
+                                    Label(LocalizedStringKey(row.issue.key), systemImage: "exclamationmark.circle").foregroundStyle(.red)
                                 }.accessibilityIdentifier("projectEdit.issue." + row.issue.id)
                             } else {
-                                Label(LocalizedStringKey(row.issue.key), systemImage: "exclamationmark.circle")
+                                Label(LocalizedStringKey(row.issue.key), systemImage: "exclamationmark.circle").foregroundStyle(.red)
                                     .accessibilityIdentifier("projectEdit.issue." + row.issue.id)
                             }
                         }
@@ -580,13 +582,11 @@ struct ProjectEditReferenceField: View {
     let title: LocalizedStringKey
     @Binding var value: String
     let identifier: String
-    var showsDeferredHint = true
+    /// Kept for call sites; the deferred-media caption is no longer shown.
+    var showsDeferredHint = false
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            TextField(title, text: $value).textInputAutocapitalization(.never).autocorrectionDisabled()
-                .accessibilityIdentifier(identifier)
-            if showsDeferredHint { Text("projectEdit.mediaDeferred").font(.caption).foregroundStyle(.secondary) }
-        }
+        TextField(title, text: $value).textInputAutocapitalization(.never).autocorrectionDisabled()
+            .accessibilityIdentifier(identifier)
     }
 }
 /// Manual IDs remain available when the scoped category reader is unavailable.
@@ -608,7 +608,7 @@ struct ProjectEditReferenceField: View {
                     // Invalid text clears selection; review must not silently send old IDs.
                     selection = invalid ? [] : ids
                 }
-            Text(LocalizedStringKey(invalid ? "projectEdit.validation.categories" : "projectEdit.categoriesHint")).font(.caption).foregroundStyle(.secondary)
+            Text(LocalizedStringKey(invalid ? "projectEdit.validation.categories" : "projectEdit.categoriesHint")).font(.caption).foregroundStyle(invalid ? Color.red : Color.secondary)
             if let categoryModel { ProjectCategoryPickerEntry(model: categoryModel) }
         }.onAppear { text = selection.map(String.init).joined(separator: ",") }
             .onChange(of: selection) { _, value in if !focused { text = value.map(String.init).joined(separator: ",") } }
@@ -626,7 +626,6 @@ struct ProjectEditReferenceField: View {
         VStack(alignment: .leading, spacing: 4) {
             TextField(title, text: $value).textInputAutocapitalization(.never).autocorrectionDisabled()
                 .accessibilityIdentifier(identifier)
-            Text("projectEdit.dateFormat").font(.caption).foregroundStyle(.secondary)
             if let dateContext { ProjectEditDatePickerEntry(context: dateContext).id(dateContext.id) }
         }
     }

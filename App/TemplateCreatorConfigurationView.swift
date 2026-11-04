@@ -32,13 +32,11 @@ import Combine
                 }
                 Section("creator.review") {
                     NavigationLink("creator.rehearse") { TemplateCreatorRehearsalView(draft: model.draft.advanced, family: family) }.disabled(!issues.isEmpty)
-                    Text("creator.localOnly").font(.footnote)
                 }
                 if !issues.isEmpty {
                     Section("templateAuthor.validationTitle") {
                         ForEach(issues) { issue in VStack(alignment: .leading) {
-                            Text(LocalizedStringKey(issue.labelKey))
-                            Text(verbatim: issue.path).font(.caption).foregroundStyle(.secondary)
+                            Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(.red)
                         } }
                     }
                 }

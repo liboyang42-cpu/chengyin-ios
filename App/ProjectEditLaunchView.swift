@@ -28,7 +28,6 @@ import SwiftUI
             Section {
                 NavigationLink { SessionCreatorProjectsView(session: session) } label: { Text("creatorContent.projects") }
                     .accessibilityIdentifier("projectRemote.myProjects")
-                Text("projectRemote.chooseOwned").foregroundStyle(.secondary)
             }
         }.appNavigationTitle("projectEdit.title")
     }

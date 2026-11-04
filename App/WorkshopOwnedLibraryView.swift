@@ -186,13 +186,9 @@ private struct WorkshopOwnedUnavailableView: View {
         }
     }
 }
+/// Placeholder notices are hidden by the UI rules; the slot stays so both list states keep their layout.
 private struct WorkshopOwnedScopeSection: View {
-    var body: some View {
-        Section {
-            workshopText("scope").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            workshopText("purchasesUnavailable").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-        }
-    }
+    var body: some View { EmptyView() }
 }
 private struct WorkshopOwnedValueRow: View {
     let key: String

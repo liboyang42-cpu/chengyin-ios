@@ -123,7 +123,6 @@ struct DiscoveryTemplateBrowserView: View {
                 Button("discovery.searchAction") { applyTopicSearch() }
                     .accessibilityIdentifier("discovery.topicNameSearch.submit")
             }
-            Text("discovery.topicNameSearchScope").font(.caption).foregroundStyle(.secondary)
             if appliedTopicSearch.isActive {
                 Text(verbatim: appliedTopicSearch.keyword)
                     .accessibilityIdentifier("discovery.topicNameSearch.applied")

@@ -18,7 +18,6 @@ import SwiftUI
         let presentation = displayed.permit
         Form {
           if navigation.isCurrentPackageVisit(route) {
-            Section { packageText("scope").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
             switch browser.phase {
             case .idle, .loading: ProgressView { packageText("loading") }.accessibilityIdentifier("workshopOwned.package.loading")
             case .unavailable: packageText("unavailable").fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("workshopOwned.package.unavailable")

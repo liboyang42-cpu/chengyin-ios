@@ -148,7 +148,6 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
             if controller.nextTargetCursor != nil {
                 Button { schedule(controller.offerMoreTargets(displayed)) } label: { professionalText(controller.issue == nil ? "moreTargets" : "retry") }
             }
-            professionalText("targetScope").font(.footnote)
             Button { schedule(controller.offerRecovery(displayed)) } label: { professionalText("cancelReview") }
         } header: { professionalText("chooseTarget") }
     }
@@ -177,7 +176,6 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
                         }
                     }
                 }
-                professionalText("verbatimFields").font(.footnote)
             } header: { professionalText("original") }
             Section {
                 professionalText("creationLimits")

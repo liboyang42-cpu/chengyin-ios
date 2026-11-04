@@ -29,7 +29,6 @@ struct TemplateRootRehearsalView: View {
                         if let applied { HStack { Text("creatorRoot.matchedRule"); Text(verbatim: String(applied + 1)) } }
                         else { Text("creatorRoot.noMatch") }
                         ForEach(changes.keys.sorted(), id: \.self) { key in LabeledContent(LocalizedStringKey("creatorRoot.relax." + key), value: changes[key] ?? "") }
-                        Text("creatorRoot.frozenPreview").font(.footnote)
                     }
                 }
             }
@@ -44,7 +43,6 @@ struct TemplateRootRehearsalView: View {
                             VStack(alignment: .leading) { Text(verbatim: item.object?["label"]?.string ?? "").font(.headline); Text(verbatim: item.object?["text"]?.string ?? "") }
                         }
                     }
-                    Text("creatorRoot.roleViewsLimit").font(.footnote)
                 }
             }
             Button("creator.reset") { sample = .init(); role = "A"; applied = nil; changes = [:]; evaluated = false }

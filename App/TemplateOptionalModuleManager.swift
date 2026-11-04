@@ -81,7 +81,6 @@ import Combine
         let presented = editor.currentReview
         Form {
             Section {
-                Text("templateModules.instructions").font(.callout)
                 if editor.needsReload {
                     Text("templateModules.changed").font(.caption)
                     Button("templateModules.reload") { editor.reload() }.disabled(!editor.canReload)
@@ -102,7 +101,6 @@ import Combine
             Section {
                 Button("templateAuthor.saveLocal", action: editor.saveAction()).disabled(!editor.canEdit || !model.draft.canSave)
                     .accessibilityIdentifier("templateModules.saveLocal")
-                Text("templateModules.savedScope").font(.caption)
             }
         }.navigationTitle("templateModules.title")
             .sheet(item: Binding(get: { editor.currentReview }, set: { _ in editor.dismiss(presented) })) { original in
