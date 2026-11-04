@@ -7,13 +7,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server returned an immutable release ID for this captured manifest."
+            "value": "Your release has been created and can no longer be changed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已为本次捕获的清单返回不可变发布版本 ID。"
+            "value": "发布版本已创建，之后无法再修改。"
           }
         }
       }
@@ -75,13 +75,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Create this immutable release"
+            "value": "Create this release"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "创建此不可变发布版本"
+            "value": "创建此发布版本"
           }
         }
       }
@@ -92,13 +92,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm the exact server-approved snapshot below. The server will check this audit version, manifest hash and release-head revision again before allocating an immutable release."
+            "value": "Confirm the approved version below. We'll check it once more before publishing."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请确认下方准确的服务端已审核快照。在分配不可变发布版本前，服务端会再次核对审核版本、清单哈希和当前发布头版本。"
+            "value": "请确认下方已通过审核的版本，发布前我们会再核对一次。"
           }
         }
       }
@@ -177,13 +177,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approved at the last server check"
+            "value": "Approved at last check"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "最近一次服务端检查时已审核通过"
+            "value": "最近一次核对时已通过审核"
           }
         }
       }
@@ -194,13 +194,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The last server check did not confirm current approval"
+            "value": "Approval couldn't be confirmed at last check"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "最近一次服务端检查未确认当前审核仍有效"
+            "value": "最近一次核对未能确认审核仍有效"
           }
         }
       }
@@ -228,13 +228,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review immutable release"
+            "value": "Review release"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "审核不可变发布版本"
+            "value": "确认发布版本"
           }
         }
       }

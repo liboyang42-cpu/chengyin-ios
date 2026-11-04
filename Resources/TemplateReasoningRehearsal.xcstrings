@@ -134,13 +134,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This practice is no longer current, or the question needs editing. Reload the current draft, or return to the editor."
+            "value": "This practice has expired, or the question isn't finished. Reload the draft or go back to editing."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本次试答已失效，或题目尚未配置完整。请重新读取当前草稿，或返回编辑。"
+            "value": "本次试答已失效，或题目尚未填写完整。请重新加载草稿，或返回编辑。"
           }
         }
       }

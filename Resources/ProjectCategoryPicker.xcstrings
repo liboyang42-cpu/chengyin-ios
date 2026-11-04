@@ -70,13 +70,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Category reading is not configured for this context. The existing manual ID field remains available."
+            "value": "Categories can't be loaded right now. You can still enter a category ID manually."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前上下文未配置分类读取，仍可使用原有手工ID输入。"
+            "value": "分类暂时无法加载，仍可手动输入分类ID。"
           }
         }
       }

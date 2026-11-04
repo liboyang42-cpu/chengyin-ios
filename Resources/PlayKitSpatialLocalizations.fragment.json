@@ -25,13 +25,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preparing approved AR images"
+            "value": "Preparing AR images"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在准备已批准的 AR 图片"
+            "value": "正在准备 AR 图片"
           }
         }
       }
@@ -127,13 +127,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Spatial display is visual only; task acceptance remains on the server"
+            "value": "Spatial display is for viewing only and doesn't affect whether the task passes"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "空间展示仅用于观看，任务是否通过仍由服务端决定"
+            "value": "空间展示仅供观看，不影响任务是否通过"
           }
         }
       }

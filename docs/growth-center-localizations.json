@@ -4,16 +4,16 @@
     "zh-Hans": "成长中心"
   },
   "growth.offlineExample": {
-    "en": "Offline synthetic example",
-    "zh-Hans": "离线合成示例"
+    "en": "Example content",
+    "zh-Hans": "示例内容"
   },
   "growth.signInRequired": {
     "en": "Sign in to see your growth and rankings",
     "zh-Hans": "登录后查看成长与排名"
   },
   "growth.notConfigured": {
-    "en": "Growth service is not configured",
-    "zh-Hans": "成长服务尚未配置"
+    "en": "Growth isn't available right now",
+    "zh-Hans": "成长功能暂不可用"
   },
   "growth.unavailable": {
     "en": "This growth information is temporarily unavailable",

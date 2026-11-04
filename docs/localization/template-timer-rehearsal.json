@@ -102,13 +102,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only pristine fields in a temporary copy receive source examples. Actual target values below are read from your configuration; your draft is unchanged."
+            "value": "Example values fill only fields you haven't changed. The target values below are your current settings; your draft stays the same."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅在临时副本的默认字段中填入原样例。下方目标值读取实际配置，原稿不变。"
+            "value": "仅在未修改的字段中填入示例。下方目标值为你当前的设置，草稿不会改变。"
           }
         }
       }

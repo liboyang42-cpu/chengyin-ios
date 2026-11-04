@@ -55,13 +55,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This node is temporary until you add it to the chapter. Enter a name and usable coordinates. Cancel keeps the chapter and discards this node. Incomplete-material storage is not connected yet."
+            "value": "This location isn't saved until you add it to the chapter. Enter a name and valid coordinates. Cancel keeps the chapter and discards this location. Saving unfinished material isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "加入章节前，此节点仅暂存在当前表单。请填写名称和有效坐标。取消会保留章节并放弃此节点；待编排素材保存尚未接入。"
+            "value": "加入章节前，此地点仅暂存在当前表单。请填写名称和有效坐标。取消会保留章节并放弃此地点；暂不支持保存未完成的素材。"
           }
         }
       }

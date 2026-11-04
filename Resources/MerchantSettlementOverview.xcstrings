@@ -166,13 +166,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server batch total"
+            "value": "Batch total"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端批次总额"
+            "value": "批次总额"
           }
         }
       }

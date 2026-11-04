@@ -24,16 +24,16 @@
     "zh-Hans": "关闭"
   },
   "ownedCover.selectedNotice": {
-    "en": "The server selected this cover for the next review. Existing release images remain unchanged.",
-    "zh-Hans": "服务端已为下一次审核选用此封面，现有发布版本的图片保持原样。"
+    "en": "This cover will be used for the next review. Images in the current release stay unchanged.",
+    "zh-Hans": "此封面将用于下一次审核，当前发布版本的图片保持不变。"
   },
   "ownedCover.open": {
     "en": "Choose a cover for review",
     "zh-Hans": "选择用于审核的封面"
   },
   "ownedCover.unconfigured": {
-    "en": "Author cover selection is not configured for this account or saved submission.",
-    "zh-Hans": "此账号或已保存的提交尚未配置作者封面选择能力。"
+    "en": "Choosing a cover isn't available right now.",
+    "zh-Hans": "选择封面暂不可用。"
   },
   "ownedCover.scope": {
     "en": "Choose a cover for a future reviewed release. Picking a photo stays local. Uploading and selecting are separate explicit actions; existing releases keep their original image.",
@@ -68,8 +68,8 @@
     "zh-Hans": "读取当前封面详情"
   },
   "ownedCover.editBeforeChange": {
-    "en": "An unresolved review or release must be recovered first. After requesting review, continue editing and save a new server version before changing its cover.",
-    "zh-Hans": "请先恢复结果未明的审核或发布请求。提交审核后，需要继续编辑并保存新的服务端版本，才能更改其封面。"
+    "en": "Resolve any pending review or release first. After submitting for review, keep editing and save a new version before changing the cover.",
+    "zh-Hans": "请先处理结果未明的审核或发布。提交审核后，需要继续编辑并保存新版本，才能更改封面。"
   },
   "ownedCover.choose": {
     "en": "Choose an image",
@@ -88,12 +88,12 @@
     "zh-Hans": "取消这张本地图片"
   },
   "ownedCover.uploadUnknown": {
-    "en": "An upload has no saved asset receipt. It may have reached the server, and no upload-status API is available. Choosing and uploading another image creates a separate upload; no automatic retry will occur.",
-    "zh-Hans": "有一次上传没有已保存的素材回执，可能已经到达服务端，且目前没有上传状态查询接口。另选并上传图片会创建独立上传，不会自动重试原上传。"
+    "en": "An earlier upload may not have finished, and we can't check its status. Choosing and uploading another image starts a new upload; the earlier one won't be retried automatically.",
+    "zh-Hans": "之前有一次上传可能未完成，且暂无法查询其状态。另选并上传图片会开始新的上传，不会自动重试之前的上传。"
   },
   "ownedCover.receiptUnstored": {
-    "en": "The server returned an asset receipt, but this device could not save it. Keep this screen open and retry saving the receipt before selecting the cover.",
-    "zh-Hans": "服务端已返回素材回执，但本机未能保存。请保持此页面打开，重试保存回执后再选择封面。"
+    "en": "Your image was uploaded, but couldn't be saved on this device. Keep this screen open and try saving again before choosing the cover.",
+    "zh-Hans": "图片已上传，但未能保存到本机。请保持此页面打开，重试保存后再选择封面。"
   },
   "ownedCover.saveReceipt": {
     "en": "Save the received asset receipt",
@@ -112,8 +112,8 @@
     "zh-Hans": "审阅此封面选择"
   },
   "ownedCover.selectionReceiptUnstored": {
-    "en": "The server confirmed this selection, but its receipt could not be saved on this device. Save that exact receipt before continuing to review.",
-    "zh-Hans": "服务端已确认此次选择，但本机未能保存回执。请保存这份精确回执后再继续审核。"
+    "en": "Your cover choice was confirmed, but couldn't be saved on this device. Save it before continuing to review.",
+    "zh-Hans": "封面选择已确认，但未能保存到本机。请先保存，再继续审核。"
   },
   "ownedCover.saveSelectionReceipt": {
     "en": "Save the received selection receipt",

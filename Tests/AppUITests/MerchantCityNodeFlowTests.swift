@@ -1,6 +1,6 @@
 import XCTest
 
-/// Synthetic fixtures only; lead registers `--uitesting-module merchant-city-npc --w2-19-page cityNode|cityNodeCreate`.
+/// Examples only; lead registers `--uitesting-module merchant-city-npc --w2-19-page cityNode|cityNodeCreate`.
 final class MerchantCityNodeFlowTests: XCTestCase {
     private var app: XCUIApplication!
     override func setUpWithError() throws { continueAfterFailure = false; app = XCUIApplication() }

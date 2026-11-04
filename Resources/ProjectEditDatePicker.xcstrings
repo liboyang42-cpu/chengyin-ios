@@ -86,13 +86,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm only after checking the Beijing time. Server validation remains authoritative for deadlines and availability."
+            "value": "Check the Beijing time before confirming. Deadlines and availability are checked again when you submit."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请核对对应北京时间后再确认。截止规则和可用性仍以服务端校验为准。"
+            "value": "请核对对应北京时间后再确认。截止时间和可用性以提交时的校验为准。"
           }
         }
       }

@@ -166,13 +166,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This returned draft could not be verified as current, owned ordinary gameplay. The node is unchanged. Retry reads only the same ID and never saves another template."
+            "value": "We couldn't confirm this gameplay draft. The stop wasn't changed. Retrying won't create another copy."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无法确认该返回草稿仍是本人的有效普通玩法，节点未改。重试只读取同一个 ID，不会另存一份模板。"
+            "value": "无法确认该玩法草稿，站点未改动。重试不会另存一份模板。"
           }
         }
       }

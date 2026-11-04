@@ -1,6 +1,6 @@
 import XCTest
 
-/// Synthetic fixture flows; execution requires the Apple simulator pipeline.
+/// Example flows; execution requires the Apple simulator pipeline.
 @MainActor final class TemplateCompositionFlowTests: XCTestCase {
     private var app: XCUIApplication?
     override func setUpWithError() throws { continueAfterFailure = false }

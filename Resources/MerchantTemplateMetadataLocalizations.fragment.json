@@ -107,13 +107,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Save acknowledged. The template was reloaded from the server; this does not establish separate publication or review approval."
+          "value": "Saved, and the template has been refreshed. This doesn't mean it's published or approved."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端已确认保存，并已重新读取模板；这不代表另行发布或审核已获批准。"
+          "value": "已保存，模板已刷新。这不代表已发布或已通过审核。"
         }
       }
     }
@@ -124,13 +124,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Save was acknowledged, but current template details could not be verified. The submitted copy is hidden. Reload to read again; this does not resend the save."
+          "value": "Saved, but the latest template details couldn't be loaded. Reload to check; this won't save again."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端已确认保存，但当前模板详情尚未核实，已隐藏提交副本。重新加载只会再次读取，不会重复保存。"
+          "value": "已保存，但最新模板详情未能加载。重新加载可查看，不会重复保存。"
         }
       }
     }

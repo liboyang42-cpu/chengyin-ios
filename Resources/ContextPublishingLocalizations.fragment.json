@@ -109,13 +109,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "AI generation needs an independently approved provider and account. Manual creation is available."
+            "value": "AI generation isn't available right now. You can still create manually."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "AI 生成需通过独立的服务与账号验收。仍可手动创建。"
+            "value": "AI 生成暂不可用，仍可手动创建。"
           }
         }
       }
@@ -415,13 +415,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This receipt does not confirm review approval or public availability."
+            "value": "This doesn't mean it has passed review or is publicly listed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此回执不代表审核通过或已对外上架。"
+            "value": "这不代表已通过审核或已上架。"
           }
         }
       }
@@ -466,13 +466,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pass checkout needs approved account, signup notice and payment configuration. Check existing orders before trying again."
+            "value": "Pass purchase isn't available right now. Check your existing orders before trying again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "通行证购买需通过账号、报名告知与支付配置验收，请先检查已有订单。"
+            "value": "通行证购买暂不可用，请先查看已有订单。"
           }
         }
       }
@@ -483,7 +483,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The source pass is valid for 90 days. Follow the route’s safety guidance and take care around traffic."
+            "value": "The pass is valid for 90 days. Follow the route's safety guidance and take care around traffic."
           }
         },
         "zh-Hans": {
@@ -500,13 +500,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "One-time CNY order for this route. Any payment uses the approved WeChat app-payment provider. Review the current notice before confirming."
+            "value": "One-time payment in CNY for this route, paid with WeChat Pay. Please read the notice before confirming."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本路线为人民币单次订单。付款仅使用已验收的微信 App 支付服务，确认前请阅读当前告知。"
+            "value": "本路线为人民币一次性付款，使用微信支付。确认前请阅读购买须知。"
           }
         }
       }
@@ -823,13 +823,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The order is retained. Native payment is not configured; check the order or ticket wallet."
+            "value": "Your order has been kept. Payment isn't available right now; check your orders or ticket wallet."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "订单已保留，原生支付尚未配置。请查看订单或票夹。"
+            "value": "订单已保留，支付暂不可用。请查看订单或票夹。"
           }
         }
       }

@@ -230,13 +230,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Full decoded AI result · read-only"
+            "value": "Full AI result"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "完整解码后的 AI 结果 · 只读"
+            "value": "完整 AI 结果"
           }
         }
       }

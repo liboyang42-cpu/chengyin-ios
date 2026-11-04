@@ -66,8 +66,8 @@
   },
   {
     "key": "profile.edit.unavailable",
-    "en": "Profile editing is not configured.",
-    "zh-Hans": "资料编辑尚未配置。"
+    "en": "Profile editing isn't available right now.",
+    "zh-Hans": "资料编辑暂不可用。"
   },
   {
     "key": "profile.edit.saved",

@@ -70,13 +70,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A source example is filled only in this temporary copy where the title is still pristine."
+            "value": "Example text fills the title only if you haven't changed it. Your draft stays the same."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "源样例只填入此临时副本中仍为初始值的标题。"
+            "value": "仅在标题未修改时填入示例文字，你的草稿不会改变。"
           }
         }
       }
@@ -246,13 +246,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This draft changed or cannot be rehearsed. Check the title (up to 32 units), whole rounds (1–10) and source-supported target (120–2000 ms), then reload."
+            "value": "This draft has changed or can't be tried out. Check the title (up to 32 characters), rounds (whole number, 1–10) and target time (120–2000 ms), then reload."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "草稿已变化或暂不能预演。请检查标题（最多32单位）、整数轮数（1–10）和源端支持的目标（120–2000毫秒），再重新读取。"
+            "value": "草稿已变更或暂时无法试玩。请检查标题（最多32个字）、轮数（1–10的整数）和目标时间（120–2000毫秒），然后重新加载。"
           }
         }
       }

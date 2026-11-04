@@ -124,13 +124,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Rejected, draft and pending projects appear first, followed by the remaining server order. Statuses remain server facts."
+          "value": "Rejected, draft and in-review projects are shown first, followed by the rest."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "未通过、草稿、审核中的项目依次置顶，其余保留服务端顺序。状态以服务端为准。"
+          "value": "未通过、草稿、审核中的项目依次置顶，其余按原顺序显示。"
         }
       }
     }

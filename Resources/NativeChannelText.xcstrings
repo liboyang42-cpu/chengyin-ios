@@ -150,13 +150,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check original server receipt"
+            "value": "Check message status"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查询原消息回执"
+            "value": "查看消息状态"
           }
         }
       }
@@ -326,13 +326,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server received the original message. This is not a recipient read receipt."
+            "value": "Message sent. This doesn't mean others have read it."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已接收原消息，不代表其他成员已读。"
+            "value": "消息已发送，不代表其他成员已读。"
           }
         }
       }
@@ -358,13 +358,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server has withheld this message. Its content is not displayed."
+            "value": "This message has been hidden."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已隐藏此消息，不显示原内容。"
+            "value": "此消息已被隐藏。"
           }
         }
       }

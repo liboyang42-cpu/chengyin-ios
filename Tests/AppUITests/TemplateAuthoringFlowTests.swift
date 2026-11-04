@@ -51,7 +51,7 @@ import XCTest
         let app = app(["--template-author-unknown"]); edit(app); tap("templateAuthor.reviewPublish", in: app); tap("templateAuthor.confirmSimulation", in: app)
         let status = app.staticTexts["templateAuthor.status"]
         XCTAssertTrue(revealFixtureElement(status, in: app, requiresHittable: false))
-        let unknown = "The submission outcome is unknown. Retrying and deleting this draft are blocked. No receipt lookup contract is available."
+        let unknown = "We're not sure your submission went through. You can't retry or delete this draft for now."
         XCTAssertEqual(status.label, unknown)
         tap("templateAuthor.fixture.reopen", in: app)
         let restore = app.buttons["templateAuthor.restore"]

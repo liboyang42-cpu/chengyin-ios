@@ -36,13 +36,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Return is available only after the existing save confirmation and authoritative template readback. Unsaved changes cannot be used."
+          "value": "You can go back only after the game has been saved and confirmed. Unsaved changes can't be used."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "完成既有保存确认并回读真实模板后才能返回，未保存的内容不能用于投放。"
+          "value": "玩法保存并确认后才能返回，未保存的内容不能使用。"
         }
       }
     }
@@ -84,13 +84,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The store, draft or source changed. Close this handoff and open it again."
+          "value": "The store or draft has changed. Close this and open it again."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "门店、草稿或来源已变化，请关闭后重新打开。"
+          "value": "门店或草稿已变化，请关闭后重新打开。"
         }
       }
     }
@@ -148,13 +148,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The saved game could not be read back. Your location fields are unchanged."
+          "value": "The saved game couldn't be loaded. Your location details are unchanged."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "未能回读已保存的玩法，点位信息保持不变。"
+          "value": "未能加载已保存的玩法，点位信息保持不变。"
         }
       }
     }

@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Anonymous rankings are not enabled for this configuration. Your personal growth records are shown separately."
+            "value": "Anonymous rankings aren't available right now. Your personal growth records are shown separately."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前配置尚未开通匿名排行。个人成长记录独立展示。"
+            "value": "匿名排行暂不可用，个人成长记录单独展示。"
           }
         }
       }

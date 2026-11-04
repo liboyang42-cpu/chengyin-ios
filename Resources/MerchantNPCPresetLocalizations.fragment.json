@@ -55,13 +55,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This saved preset is not supported by this app version. It is kept unchanged until you choose another avatar."
+            "value": "This saved avatar can't be shown in this version of the app. It stays unchanged until you choose another avatar."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此版本无法显示已保存的预设形象。选择其他形象前，原值会保留。"
+            "value": "当前版本无法显示已保存的形象。选择其他形象前，原形象会保留。"
           }
         }
       }

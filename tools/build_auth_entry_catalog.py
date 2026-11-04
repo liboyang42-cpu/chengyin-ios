@@ -11,7 +11,7 @@ S={
 "authEntry.gate.decline":("Not now","暂不同意"),
 "authEntry.gate.agree":("Agree and continue","同意并继续"),
 "authEntry.gate.checkRequired":("Please read and check the User Service Agreement first.","请先阅读并勾选用户服务协议"),
-"authEntry.gate.localOnly":("Your choice is saved on this device. The consent record has not been sent to the server yet.","你的选择已保存在本机，同意记录尚未提交到服务端。"),
+"authEntry.gate.localOnly":("Your choice is saved on this device but hasn't been submitted yet.","你的选择已保存在本机，但尚未提交。"),
 "authEntry.gate.requiredForSignIn":("Before signing in, please agree to the User Service Agreement and the privacy protection guidelines. You can keep browsing without signing in.","登录前需要先同意《用户服务协议》及隐私保护指引；不登录也可以继续浏览。"),
 "authEntry.gate.review":("Review and agree","阅读并同意"),
 "authEntry.privacy.title":("Privacy protection","隐私保护"),
@@ -30,7 +30,7 @@ S={
 "authEntry.deregister.executeAfter":("Scheduled execution","预计执行时间"),
 "authEntry.deregister.beijingTime":("Beijing time","北京时间"),
 "authEntry.deregister.timePending":("Execution time to be confirmed","执行时间待确认"),
-"authEntry.deregister.serverDecides":("The cooling-off deadline is Beijing time and is decided by the server.","冷静期截止按北京时间计算，以服务端为准。"),
+"authEntry.deregister.serverDecides":("The cooling-off deadline is in Beijing time and is set by Questify.","冷静期截止时间按北京时间计算，以城瘾确认为准。"),
 }
 out={"sourceLanguage":"en","strings":{k:{"localizations":{"en":{"stringUnit":{"state":"translated","value":en}},"zh-Hans":{"stringUnit":{"state":"translated","value":zh}}}} for k,(en,zh) in sorted(S.items())},"version":"1.0"}
 open(sys.argv[1] if len(sys.argv)>1 else pathlib.Path(__file__).resolve().parents[1]/'Resources/AuthEntry.xcstrings','w').write(json.dumps(out,ensure_ascii=False,indent=2)+"\n")

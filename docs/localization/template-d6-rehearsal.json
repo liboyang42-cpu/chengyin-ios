@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose example die values to inspect this configuration. These local samples are not actual rolls, scores, rewards or server receipts."
+            "value": "Pick example die values to see how this setup works. These are examples only, not real rolls, scores or rewards."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "选择示例点数，检查当前配置。这里仅展示本地样例，不代表正式掷骰、得分、奖励或服务端回执。"
+            "value": "选择示例点数，查看当前设置的效果。这里仅为示例，不代表正式掷骰、得分或奖励。"
           }
         }
       }

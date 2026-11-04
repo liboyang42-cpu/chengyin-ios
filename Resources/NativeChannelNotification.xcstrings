@@ -742,13 +742,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "系统允许提醒后，实际送达仍取决于频道偏好和服务端投递状态。"
+            "value": "系统允许提醒后，是否收到通知还取决于频道设置。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Even when system alerts are allowed, delivery still depends on channel preferences and server delivery status."
+            "value": "Even with system alerts allowed, whether you get a notification also depends on your channel settings."
           }
         }
       }

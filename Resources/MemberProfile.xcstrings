@@ -230,13 +230,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Benefits aren't available in this build yet."
+            "value": "Benefits aren't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前配置暂不能读取权益。"
+            "value": "权益暂不可用。"
           }
         }
       }
@@ -454,13 +454,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Profile details aren't available in this build. Name and level come from your signed-in account."
+            "value": "Profile details aren't available right now. Name and level come from your account."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前配置暂不能读取主页资料，名称与等级来自已登录账号。"
+            "value": "主页资料暂不可用，名称与等级来自你的账号。"
           }
         }
       }
@@ -806,13 +806,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Media review status isn't available in this build yet."
+            "value": "Media review status isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前配置暂不能读取本人媒体。"
+            "value": "媒体审核状态暂不可用。"
           }
         }
       }
@@ -902,13 +902,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This build can't submit this change yet. Nothing has been changed."
+            "value": "This change can't be made right now. Nothing has been changed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前版本暂不能提交此操作，尚未做任何更改。"
+            "value": "暂不能提交此操作，尚未做任何更改。"
           }
         }
       }

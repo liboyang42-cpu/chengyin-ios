@@ -6,13 +6,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This captured asset will replace the legacy cover only in a newly approved release. This request still needs review. Player access requires an authorized run pinned to that release."
+            "value": "This image will replace the current cover once the new version passes review. Only players who have joined that version can see it."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此快照中的资产仅用于新审核通过版本的封面替换。本请求仍需审核；玩家只能通过获授权且固定到该版本的开局读取。"
+            "value": "新版本审核通过后，此图片将替换当前封面，仅报名该版本的玩家可见。"
           }
         }
       }
@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This selected asset is frozen in the captured approved manifest. New players can read it only through their authorized, pinned run. The author-only locator is not a public image URL."
+            "value": "This cover is part of the approved version. Only players who have joined can see it; the link isn't public."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "所选资产已冻结在当前捕获的已审核清单中。新玩家只能通过其获授权且固定版本的开局读取。作者专用地址并非公开图片链接。"
+            "value": "此封面已包含在通过审核的版本中，仅已报名的玩家可见，链接不对外公开。"
           }
         }
       }

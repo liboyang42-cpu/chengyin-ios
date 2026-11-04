@@ -32,7 +32,7 @@ final class MemberHomeFlowTests: XCTestCase {
     }
     func testDormantBuildExplainsUnavailableStateInChinese() {
         launch("dormant", language: "zh-Hans")
-        XCTAssertTrue(app.staticTexts["当前配置暂不能读取权益。"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["权益暂不可用。"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.staticTexts["Synthetic account"].exists)
         XCTAssertFalse(app.buttons["member.card.retry"].exists)
     }

@@ -141,13 +141,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "These loaded records are outside the current employee and pending invitation counts. Their statuses come from the server."
+          "value": "These records aren't counted in current employees or pending invitations."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "以下已加载记录不计入当前员工和待接受邀请数量，状态以服务端返回为准。"
+          "value": "以下记录不计入当前员工和待接受邀请数量。"
         }
       }
     }

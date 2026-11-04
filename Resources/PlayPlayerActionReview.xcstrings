@@ -118,13 +118,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm once. The receipt and fresh server state determine the result. An unknown result must be checked before another action."
+            "value": "Confirm once. If the result is unclear, check it before doing anything else."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅确认一次。结果以回执及服务器最新状态为准；结果未知时，请先核对再进行其他操作。"
+            "value": "仅确认一次。结果未知时，请先核对再进行其他操作。"
           }
         }
       }

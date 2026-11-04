@@ -148,13 +148,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This removes only unsubmitted text and correction selections. Saved notes and pending server requests are unaffected."
+          "value": "This only clears unsubmitted text and corrections. Saved notes and requests already sent aren't affected."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "仅清除尚未提交的正文和更正选择，不影响已保存备注或服务端待处理请求。"
+          "value": "仅清除未提交的正文和更正，不影响已保存的备注或已提交的请求。"
         }
       }
     }

@@ -8,8 +8,8 @@
     "zh-Hans": "已记录的尝试"
   },
   "playkit.bingo.authority": {
-    "en": "Tiles and line progress come from the server. Reward labels describe the configured rewards, not a claim or payout receipt.",
-    "zh-Hans": "格子与连线进度由服务端返回。奖励文案是配置说明，不代表已兑换或已到账。"
+    "en": "Tile and line progress are updated as you play. Reward labels describe the available rewards; they don't mean a reward has been claimed or paid out.",
+    "zh-Hans": "格子与连线进度会随游玩更新。奖励文案仅为说明，不代表已兑换或已到账。"
   },
   "playkit.bingo.empty": {
     "en": "Not completed",
@@ -40,8 +40,8 @@
     "zh-Hans": "已到达这段故事的终点"
   },
   "playkit.camera.gated": {
-    "en": "Camera access is not configured for this session",
-    "zh-Hans": "当前会话尚未配置相机能力"
+    "en": "Camera isn't available right now",
+    "zh-Hans": "相机暂不可用"
   },
   "playkit.camera.photoPurpose": {
     "en": "Take a photo for this task. Nothing is uploaded until you review the separate upload step.",
@@ -52,8 +52,8 @@
     "zh-Hans": "为当前任务使用相机？"
   },
   "playkit.camera.scanPurpose": {
-    "en": "Read the task’s QR code with the camera. Review the captured code before sending it for server validation.",
-    "zh-Hans": "使用相机读取任务二维码。识别后先核对，再发送给服务端验证。"
+    "en": "Scan the task's QR code with your camera. Check the code before sending it to be verified.",
+    "zh-Hans": "使用相机扫描任务二维码。识别后先核对，再提交验证。"
   },
   "playkit.cancel": {
     "en": "Cancel",
@@ -64,8 +64,8 @@
     "zh-Hans": "放弃本次尝试"
   },
   "playkit.challenge.authority": {
-    "en": "Start is confirmed by the server first. Local measurements do not award a result or reward.",
-    "zh-Hans": "先由服务端确认开局。本地测量不代表通过或获得奖励。"
+    "en": "The start must be confirmed first. Your device's measurements alone don't earn a result or reward.",
+    "zh-Hans": "需先确认开局。设备测量本身不代表通过或获得奖励。"
   },
   "playkit.challenge.clock": {
     "en": "Challenge clock",
@@ -80,8 +80,8 @@
     "zh-Hans": "本次尝试已中断，请重新开始计量。"
   },
   "playkit.challenge.measurementOnly": {
-    "en": "This is your device measurement. Submit it for the server’s decision.",
-    "zh-Hans": "这是设备测量值，提交后由服务端判定。"
+    "en": "This is your device's measurement. Submit it to get the result.",
+    "zh-Hans": "这是设备测量值，提交后判定结果。"
   },
   "playkit.challenge.start": {
     "en": "Review and start",
@@ -116,8 +116,8 @@
     "zh-Hans": "抛硬币"
   },
   "playkit.coin.waiting": {
-    "en": "The result will appear after the server responds",
-    "zh-Hans": "服务端返回后显示结果"
+    "en": "The result will appear shortly",
+    "zh-Hans": "稍后显示结果"
   },
   "playkit.configurationInvalid": {
     "en": "The task configuration is incomplete. Refresh or return to the task.",
@@ -128,8 +128,8 @@
     "zh-Hans": "确认提交"
   },
   "playkit.daily.audience": {
-    "en": "Your message may be shown to the next visitor. Completion still depends on the server response.",
-    "zh-Hans": "这句话可能展示给下一位来访者，是否完成以服务端回执为准。"
+    "en": "Your message may be shown to the next visitor. Completion is confirmed after you submit.",
+    "zh-Hans": "这句话可能展示给下一位来访者，提交后确认是否完成。"
   },
   "playkit.daily.message": {
     "en": "Leave a line for the next visitor",
@@ -148,8 +148,8 @@
     "zh-Hans": "难度值"
   },
   "playkit.dice.total": {
-    "en": "Server total",
-    "zh-Hans": "服务端合计"
+    "en": "Total",
+    "zh-Hans": "合计"
   },
   "playkit.dice.waiting": {
     "en": "Dice results have not arrived yet",
@@ -160,8 +160,8 @@
     "zh-Hans": "放弃并返回"
   },
   "playkit.discardBoundary": {
-    "en": "Unsubmitted input and this attempt’s local measurements will be discarded. Any already-sent request still needs its server readback.",
-    "zh-Hans": "未提交的输入和本次本地测量将被清除。已经发出的请求仍需核对服务端结果。"
+    "en": "Unsubmitted input and this attempt's measurements will be cleared. Anything already submitted still needs its result checked.",
+    "zh-Hans": "未提交的输入和本次测量将被清除。已提交的内容仍需核对结果。"
   },
   "playkit.discardQuestion": {
     "en": "Discard unsubmitted changes?",
@@ -176,8 +176,8 @@
     "zh-Hans": "你的估计"
   },
   "playkit.hidden.boundary": {
-    "en": "Only your chosen position is submitted. Target locations and hit decisions remain on the server.",
-    "zh-Hans": "只提交你点选的位置，目标位置与命中判定由服务端保管。"
+    "en": "Only the position you choose is submitted. Target locations and hit results stay hidden.",
+    "zh-Hans": "只提交你点选的位置，目标位置与命中结果不会公开。"
   },
   "playkit.hidden.center": {
     "en": "Select the image center",
@@ -196,8 +196,8 @@
     "zh-Hans": "任务图片"
   },
   "playkit.imageGated": {
-    "en": "This task’s image host is not approved yet",
-    "zh-Hans": "任务图片来源尚未获准加载"
+    "en": "This task's images aren't available right now",
+    "zh-Hans": "任务图片暂不可用"
   },
   "playkit.imageLoading": {
     "en": "Loading image",
@@ -232,8 +232,8 @@
     "zh-Hans": "拍摄照片"
   },
   "playkit.photo.fallbackRecorded": {
-    "en": "The server recorded a fallback outcome. Its completion state controls the next step.",
-    "zh-Hans": "服务端已记录兜底结果，下一步由服务端完成状态决定。"
+    "en": "Your result has been recorded. The next step depends on whether the task is complete.",
+    "zh-Hans": "已记录你的结果，下一步取决于任务是否完成。"
   },
   "playkit.photo.frameGuide": {
     "en": "Framing reference. The native camera framing overlay still requires acceptance.",
@@ -252,8 +252,8 @@
     "zh-Hans": "剩余重拍次数"
   },
   "playkit.photo.serverOnly": {
-    "en": "Only the uploaded image address is submitted. The server performs the visual check; no local score is sent.",
-    "zh-Hans": "仅提交上传后的图片地址。由服务端进行视觉审核，不上报本地分数。"
+    "en": "Only your uploaded photo is submitted, and we'll check it for you.",
+    "zh-Hans": "仅提交你上传的照片，由我们进行审核。"
   },
   "playkit.photo.tooLarge": {
     "en": "This photo exceeds the 10 MB task upload limit",
@@ -268,8 +268,8 @@
     "zh-Hans": "选中的照片将发送给已配置的服务。上传和任务提交是两个步骤，上传不代表完成任务。"
   },
   "playkit.photo.uploadGate": {
-    "en": "Photo upload is not configured, or this photo no longer belongs to the current task version",
-    "zh-Hans": "尚未配置图片上传，或这张照片已不属于当前任务版本"
+    "en": "Photo upload isn't available right now, or this photo no longer applies to this task",
+    "zh-Hans": "照片上传暂不可用，或这张照片已不适用于当前任务"
   },
   "playkit.photo.uploadReview": {
     "en": "Upload this photo?",
@@ -292,8 +292,8 @@
     "zh-Hans": "已公布答案"
   },
   "playkit.predict.lost": {
-    "en": "The server settled this prediction as incorrect",
-    "zh-Hans": "服务端已结算：未猜中"
+    "en": "Your prediction was incorrect",
+    "zh-Hans": "未猜中"
   },
   "playkit.predict.mine": {
     "en": "Your prediction",
@@ -316,8 +316,8 @@
     "zh-Hans": "等待商家公布并结算答案"
   },
   "playkit.predict.won": {
-    "en": "The server settled this prediction as correct",
-    "zh-Hans": "服务端已结算：猜中"
+    "en": "Your prediction was correct",
+    "zh-Hans": "猜中了"
   },
   "playkit.profile.answer": {
     "en": "Your answer",
@@ -328,8 +328,8 @@
     "zh-Hans": "头像已上传"
   },
   "playkit.profile.lockNotice": {
-    "en": "Registration is locked after the server accepts it. Check every answer and the avatar before submitting.",
-    "zh-Hans": "服务端接受后将锁定档案，请在提交前核对所有回答和头像。"
+    "en": "Your registration can't be changed once submitted. Check every answer and your avatar before submitting.",
+    "zh-Hans": "提交后档案将锁定，请在提交前核对所有回答和头像。"
   },
   "playkit.qa.answer": {
     "en": "Your answer",
@@ -340,8 +340,8 @@
     "zh-Hans": "选择所有要提交的选项"
   },
   "playkit.qa.revealedAnswer": {
-    "en": "Answer revealed by the server",
-    "zh-Hans": "服务端公布的答案"
+    "en": "Revealed answer",
+    "zh-Hans": "公布的答案"
   },
   "playkit.random.draw": {
     "en": "Draw the next card",
@@ -376,8 +376,8 @@
     "zh-Hans": "等待提示"
   },
   "playkit.reasoning.serverOnly": {
-    "en": "Only the overall decision comes back from the server. No individual answer is revealed or guessed here.",
-    "zh-Hans": "这里只显示服务端的整体判定，不揭露或猜测每一项答案。"
+    "en": "Only the overall result is shown. Individual answers aren't revealed.",
+    "zh-Hans": "这里只显示整体判定结果，不公布每一项的答案。"
   },
   "playkit.reasoning.tryAgain": {
     "en": "The last arrangement did not pass. You can revise it while the task remains open.",
@@ -388,24 +388,24 @@
     "zh-Hans": "核对待确认请求"
   },
   "playkit.refresh": {
-    "en": "Refresh server state",
-    "zh-Hans": "刷新服务端状态"
+    "en": "Refresh status",
+    "zh-Hans": "刷新状态"
   },
   "playkit.result.authority": {
-    "en": "Completion and rewards are based only on the server’s returned state",
-    "zh-Hans": "是否完成及奖励仅以服务端返回状态为准"
+    "en": "Completion and rewards are based on the official result",
+    "zh-Hans": "是否完成及奖励以最终判定为准"
   },
   "playkit.result.notPassed": {
-    "en": "Server result: not passed",
-    "zh-Hans": "服务端判定：未通过"
+    "en": "Result: not passed",
+    "zh-Hans": "判定：未通过"
   },
   "playkit.result.passed": {
-    "en": "Server result: passed",
-    "zh-Hans": "服务端判定：已通过"
+    "en": "Result: passed",
+    "zh-Hans": "判定：已通过"
   },
   "playkit.result.recorded": {
-    "en": "Recorded by the server",
-    "zh-Hans": "服务端已记录"
+    "en": "Recorded",
+    "zh-Hans": "已记录"
   },
   "playkit.retryExact": {
     "en": "Retry the exact reviewed request",
@@ -440,8 +440,8 @@
     "zh-Hans": "选择"
   },
   "playkit.sending": {
-    "en": "Waiting for server response",
-    "zh-Hans": "等待服务端回应"
+    "en": "Waiting for result",
+    "zh-Hans": "等待结果"
   },
   "playkit.sessionChanged": {
     "en": "Your session changed. Return to the task and reopen it.",
@@ -516,8 +516,8 @@
     "zh-Hans": "经验证的步数进度"
   },
   "playkit.walk.providerGate": {
-    "en": "The service requires WeChat encrypted step proof. Native device steps cannot replace that proof without an approved contract.",
-    "zh-Hans": "当前服务需要微信运动的加密步数凭证。原生设备步数不能在未经契约批准的情况下替代该凭证。"
+    "en": "This task requires WeChat step counts. Steps from your phone can't be used instead.",
+    "zh-Hans": "此任务需使用微信运动步数，暂不支持使用手机计步代替。"
   },
   "playkit.walk.remaining": {
     "en": "Steps remaining",
@@ -668,8 +668,8 @@
     "zh-Hans": "室内磁场干扰可能造成罗盘偏差。此读数不能作为到店凭证。"
   },
   "playkit.sensor.error.configurationUnavailable": {
-    "en": "This sensor activity is not enabled for this build.",
-    "zh-Hans": "此版本尚未启用该传感器玩法。"
+    "en": "This sensor activity isn't available right now.",
+    "zh-Hans": "该传感器玩法暂不可用。"
   },
   "playkit.sensor.error.permissionDenied": {
     "en": "Sensor permission was denied. You can change it in system Settings, then try again.",
@@ -844,12 +844,12 @@
     "zh-Hans": "已记录提交次数"
   },
   "playkit.compare.correct": {
-    "en": "The server marked the complete selection correct.",
-    "zh-Hans": "服务端判定整组标记正确。"
+    "en": "Your whole selection is correct.",
+    "zh-Hans": "整组标记正确。"
   },
   "playkit.compare.incorrect": {
-    "en": "The server marked the complete selection incorrect. Individual answers are not revealed.",
-    "zh-Hans": "服务端判定整组标记有误，不揭示单条答案。"
+    "en": "Your selection isn't fully correct. Individual answers aren't revealed.",
+    "zh-Hans": "整组标记有误，不揭示单条答案。"
   },
   "playkit.compare.changed": {
     "en": "The session has changed. Your selection has not been submitted for this version. Load the latest receipt before editing again.",
@@ -860,16 +860,16 @@
     "zh-Hans": "用最新回执替换选择"
   },
   "playkit.compare.reloadQuestion": {
-    "en": "Replace your unsent selection with the server’s last recorded selection?",
-    "zh-Hans": "用服务端最近记录的选择替换未提交的选择？"
+    "en": "Replace your unsent selection with your last submitted selection?",
+    "zh-Hans": "用最近提交的选择替换未提交的选择？"
   },
   "playkit.compare.marked": {
     "en": "Entries marked",
     "zh-Hans": "已标记条目"
   },
   "playkit.compare.invalid": {
-    "en": "The comparison question is incomplete or inconsistent. Refresh the server state before continuing.",
-    "zh-Hans": "对照题数据不完整或不一致，请刷新服务端状态后继续。"
+    "en": "This comparison question is incomplete. Refresh before continuing.",
+    "zh-Hans": "对照题内容不完整，请刷新后继续。"
   },
   "playkit.compare.selected": {
     "en": "Marked",
@@ -880,8 +880,8 @@
     "zh-Hans": "未标记"
   },
   "playkit.compare.reviewBoundary": {
-    "en": "These exact entries will be submitted together. One submission is recorded; only the server decides the result.",
-    "zh-Hans": "将一起提交以下条目并计作一次作答，结果仅由服务端判定。"
+    "en": "These entries will be submitted together as one answer.",
+    "zh-Hans": "以下条目将一起提交，计作一次作答。"
   },
   "playkit.compare.none": {
     "en": "No entries marked. Submitting still counts as an attempt.",

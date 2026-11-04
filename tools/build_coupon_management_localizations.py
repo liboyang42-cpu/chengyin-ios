@@ -3,7 +3,7 @@ from pathlib import Path
 import json
 root = Path(__file__).resolve().parents[1]
 values = {
-'unavailable': ('Coupon management is not configured', '优惠券管理尚未配置'),
+'unavailable': ('Coupon management isn\'t available right now', '优惠券管理暂不可用'),
 'invalid': ('Check the coupon details', '请检查优惠券信息'),
 'malformed': ('Coupon data could not be confirmed', '无法确认优惠券数据'),
 'signIn': ('Sign in to manage your coupons', '请登录后管理优惠券'),
@@ -11,7 +11,7 @@ values = {
 'forbidden': ('This action is not available for the current account or coupon', '当前账号或优惠券不支持此操作'),
 'storage': ('The safety record could not be saved. Nothing was submitted.', '无法保存安全记录，尚未提交'),
 'unknownOutcome': ('The result is unknown. Resubmission is locked until the original outcome can be verified.', '结果尚未确认。确认原操作结果前不能重复提交'),
-'serverError': ('The server returned a message', '服务端返回了提示'),
+'serverError': ('There\'s a message for you', '有一条提示'),
 'scheduled': ('Not started', '未开始'), 'active': ('Active', '进行中'), 'ended': ('Ended', '已结束'),
 'invalidated': ('Invalidated', '已失效'), 'stopped': ('Distribution stopped', '已停发'), 'unknownStatus': ('Status unconfirmed', '状态待确认'),
 'nameRequired': ('Enter a coupon name', '请输入优惠券名称'), 'datesRequired': ('Select coupon dates', '请选择优惠券日期'),
@@ -20,10 +20,10 @@ values = {
 'gift': ('Gift coupon', '礼品券'), 'tenPercent': ('10% off coupon', '9折券'), 'twentyPercent': ('20% off coupon', '8折券'), 'experience': ('Experience pass', '体验卡'), 'coupon': ('Coupon', '优惠券'),
 'loading': ('Loading coupons', '正在加载优惠券'), 'empty': ('No published coupons', '暂无已发布优惠券'),
 'create': ('Create coupon', '创建优惠券'), 'title': ('Published coupons', '我发布的券'),
-'dormant': ('Live publication and stopping distribution are disabled in this build.', '此版本未开放真实发布和停发'),
-'synthetic': ('Synthetic test data only', '仅为合成测试数据'), 'simulated': ('Simulation finished. No real coupon changed.', '模拟已完成，未更改真实优惠券'),
+'dormant': ('Publishing and stopping coupon distribution aren\'t available right now.', '优惠券发布和停发暂不可用'),
+'synthetic': ('Example content', '示例内容'), 'simulated': ('Simulation finished. No real coupon changed.', '模拟已完成，未更改真实优惠券'),
 'noDescription': ('No description provided', '未填写说明'), 'status': ('Status', '状态'), 'type': ('Coupon type', '券类型'),
-'start': ('Valid from', '开始时间'), 'end': ('Valid until', '结束时间'), 'dateNotice': ('Dates are display information. The server confirms eligibility and status.', '日期仅供展示，资格和状态由服务端确认'),
+'start': ('Valid from', '开始时间'), 'end': ('Valid until', '结束时间'), 'dateNotice': ('Dates are for reference only. Eligibility and status are confirmed by Questify.', '日期仅供参考，资格和状态以城瘾确认为准'),
 'counts': ('Distribution details', '发放信息'), 'published': ('Published', '投放数量'), 'received': ('Claimed', '已领取'), 'used': ('Redeemed', '已核销'), 'remaining': ('Remaining', '库存'),
 'perLimit': ('Claim limit, if provided', '领取限制（如有）'), 'amount': ('Amount, if provided', '金额（如有）'), 'currency': ('Currency, if provided', '币种（如有）'),
 'stopPolicy': ('Stopping distribution cannot be undone. New claims and issuance stop; already claimed coupons remain usable and redeemable.', '停发不可撤销。停发后不能再被领取、发放；已领到的券照常可用、可核销'),

@@ -245,13 +245,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Public map layers are not approved in this deployment."
+            "value" : "Public map layers aren't available right now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前环境未开启公共地图图层读取授权"
+            "value" : "公共地图图层暂不可用"
           }
         }
       }
@@ -262,13 +262,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Public map layer response did not match the wire contract."
+            "value" : "Couldn't load public map layers. Please try again later."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "公共地图图层响应不符合契约要求"
+            "value" : "公共地图图层加载失败，请稍后重试"
           }
         }
       }
@@ -551,13 +551,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Read-only public map preview · Opening a story node does not start a play run or unlock tasks."
+            "value" : "Browsing only · Opening a story spot doesn't start a game or unlock tasks."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "公共地图只读详情 · 浏览剧情节点不会开启游玩实例或触发闯关动作"
+            "value" : "仅供浏览 · 查看剧情点不会开始游戏或解锁任务"
           }
         }
       }

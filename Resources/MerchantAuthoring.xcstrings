@@ -1462,13 +1462,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server action rules"
+            "value": "Action rules"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端动作规则"
+            "value": "动作规则"
           }
         }
       }
@@ -1862,13 +1862,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approved environment evidence is valid."
+            "value": "Weather and conditions info is up to date."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "批准的环境信息有效。"
+            "value": "天气与环境信息正常。"
           }
         }
       }
@@ -1926,13 +1926,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Environment evidence is missing, expired or unapproved."
+            "value": "Weather and conditions info isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "环境信息缺失、过期或未经批准。"
+            "value": "天气与环境信息暂不可用"
           }
         }
       }
@@ -1990,13 +1990,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rain observed; no approved safe alternative."
+            "value": "It's raining and there's no approved rain-safe alternative."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "观测到雨天，且没有已审核安全替代分支。"
+            "value": "当前有雨，且没有已通过审核的雨天备选分支。"
           }
         }
       }
@@ -2246,13 +2246,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The model returned an incomplete draft. Nothing was approved or published."
+            "value": "The generated draft is incomplete. Nothing was submitted or published."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "模型返回的草稿不完整，未审核或发布任何内容。"
+            "value": "生成的草稿不完整，未提交或发布任何内容。"
           }
         }
       }
@@ -2262,13 +2262,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Store facts changed. Read the latest facts before starting a new draft."
+            "value": "Your store details have changed. Refresh them before starting a new draft."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "店铺事实已变化，请回读最新事实后新建草稿。"
+            "value": "店铺信息已变化，请刷新后再新建草稿。"
           }
         }
       }
@@ -3078,13 +3078,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "These source facts belong to this saved revision."
+            "value": "These details belong to this saved version."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "以上来源事实属于此已保存版本。"
+            "value": "以上信息属于此已保存版本。"
           }
         }
       }
@@ -4118,13 +4118,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The approved in-flight limit is reached. Review the original requests; unknown requests still hold capacity."
+            "value": "You've reached the limit for requests in progress. Check your earlier requests; ones still pending count toward the limit."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已达批准的在途上限。请查看原请求；未知请求仍占用名额。"
+            "value": "进行中的请求已达上限。请查看之前的请求，处理中的请求也会占用名额。"
           }
         }
       }

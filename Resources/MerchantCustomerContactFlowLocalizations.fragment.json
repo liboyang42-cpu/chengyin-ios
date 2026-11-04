@@ -90,13 +90,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Device contact is not enabled for this request."
+          "value": "Contacting from this device isn't available for this request."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "此请求未获设备联系授权。"
+          "value": "此请求暂不支持在本机联系。"
         }
       }
     }

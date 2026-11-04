@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Session status reading is not configured"
+            "value": "Session status isn't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "场次状态读取尚未接入"
+            "value": "场次状态暂不可用"
           }
         }
       }

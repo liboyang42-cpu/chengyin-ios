@@ -1,7 +1,7 @@
 {
   "sensorDraft.scope": {
-    "en": "Local configuration preview only. No sensor runs, recordings, step counting, permissions, uploads or remote publishing.",
-    "zh-Hans": "仅编辑和预览本地配置。不会运行传感器、录音、计步、申请权限、上传或远端发布。"
+    "en": "Settings preview only. Nothing is recorded, counted, uploaded or published, and no permissions are requested.",
+    "zh-Hans": "仅预览设置。不会录音、计步、上传或发布，也不会申请权限。"
   },
   "sensorDraft.type": {
     "en": "Sensor challenge type",
@@ -44,8 +44,8 @@
     "zh-Hans": "请输入所示范围内的整数。空白值会保持缺失状态。"
   },
   "sensorDraft.preserved": {
-    "en": "This saved configuration is unsupported or ambiguous. Its original contents are preserved read-only.",
-    "zh-Hans": "此历史配置包含不支持或有歧义的内容。原始内容完整保留，目前只读。"
+    "en": "This saved setting isn't supported and can't be edited. It's kept as is.",
+    "zh-Hans": "此已保存的设置暂不支持，无法编辑，已原样保留。"
   },
   "sensorDraft.preview": {
     "en": "Preview sensor configuration",

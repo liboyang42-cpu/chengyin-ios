@@ -166,13 +166,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Object card reads are not enabled in this build"
+            "value": "Object cards aren't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此版本尚未启用物件卡读取"
+            "value": "物件卡暂不可用"
           }
         }
       }
@@ -390,13 +390,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Image loading is not enabled"
+            "value": "Images aren't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "尚未启用图片加载"
+            "value": "图片暂不可用"
           }
         }
       }
@@ -646,13 +646,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Source image host"
+            "value": "Image from"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "来源图片域名"
+            "value": "图片出处"
           }
         }
       }

@@ -343,13 +343,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Explain the facts you would like reviewed. No evidence upload is supported by this source flow."
+            "value": "Explain what you'd like us to review. Evidence uploads aren't supported."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "说明需要复核的事实。此来源流程不支持上传申诉证据。"
+            "value": "说明需要复核的情况。暂不支持上传申诉证据。"
           }
         }
       }
@@ -455,13 +455,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review the account, target and exact change. Confirmation checks fresh server facts again. Acknowledgement does not establish the final moderation outcome."
+            "value": "Check the account, target and exact change. Details are checked again when you confirm. A received request isn't the final moderation decision."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请核对账号、对象和具体更改。确认前将重新检查服务端事实。请求受理不代表最终处置结果。"
+            "value": "请核对账号、对象和具体更改。确认时将重新核对信息。请求受理不代表最终处置结果。"
           }
         }
       }
@@ -599,13 +599,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Request acknowledged. Refresh to verify status; this is not proof of an approved appeal or deleted comment."
+            "value": "Request received. Refresh to check its status; this doesn't mean the appeal succeeded or the comment was deleted."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请求已受理。请刷新核实状态；这不代表申诉成功或评论已删除。"
+            "value": "请求已受理。请刷新查看状态；这不代表申诉成功或评论已删除。"
           }
         }
       }

@@ -73,13 +73,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This feature is not configured"
+          "value": "This feature isn't available right now"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "此功能尚未配置"
+          "value": "此功能暂不可用"
         }
       }
     }
@@ -141,13 +141,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The server data could not be confirmed"
+          "value": "This information couldn't be loaded"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "无法确认服务端数据"
+          "value": "信息加载失败"
         }
       }
     }
@@ -226,13 +226,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The server returned a message"
+          "value": "Something went wrong"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端返回了提示"
+          "value": "出现问题"
         }
       }
     }
@@ -243,13 +243,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Live service access, AI processing and prediction settlement require separate activation."
+          "value": "AI analysis and prediction settlement aren't available right now."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "真实服务、AI 分析和竞猜结算需分别开通"
+          "value": "AI 分析和竞猜结算暂不可用。"
         }
       }
     }
@@ -311,13 +311,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Server acknowledgement"
+          "value": "Confirmation"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端确认"
+          "value": "确认结果"
         }
       }
     }
@@ -940,13 +940,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Capabilities and quotas"
+          "value": "Features and quotas"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "能力与额度"
+          "value": "功能与额度"
         }
       }
     }
@@ -1110,13 +1110,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Settlement is one-time and cannot be undone. The server may issue coupons to winners according to the merchant rules."
+          "value": "Settlement happens only once and can't be undone. Coupons may be issued to winners according to your rules."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "结算只能进行一次且不可撤销，服务端可能按商家规则向猜中者发券"
+          "value": "结算只能进行一次且不可撤销，可能按商家规则向猜中者发券"
         }
       }
     }
@@ -1127,13 +1127,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The source allows 48 hours to answer. The platform voids overdue rounds; no one receives a reward. Follow the server deadline."
+          "value": "You have 48 hours to reveal the answer. Overdue rounds are voided and no one receives a reward. Follow the deadline shown."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "源规则要求 48 小时内给出答案，超时由平台作废且无人获奖，请以服务端期限为准"
+          "value": "需在 48 小时内公布答案，超时将作废，且无人获奖。请以页面显示的截止时间为准。"
         }
       }
     }

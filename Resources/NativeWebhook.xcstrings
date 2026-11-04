@@ -205,19 +205,19 @@
         }
       }
     },
-    "仅回读服务端当前仍允许的原事件快照。": {
+    "仅显示当前仍可查看的原事件。": {
       "extractionState": "manual",
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅回读服务端当前仍允许的原事件快照。"
+            "value": "仅显示当前仍可查看的原事件。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read only the original event snapshot that the server currently permits."
+            "value": "Only events that can still be viewed are shown."
           }
         }
       }
@@ -347,13 +347,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "入站端点"
+            "value": "Webhook 地址"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inbound endpoints"
+            "value": "Webhook URLs"
           }
         }
       }
@@ -483,13 +483,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原公开事件快照"
+            "value": "原公开事件"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original public event snapshot"
+            "value": "Original public event"
           }
         }
       }
@@ -1463,19 +1463,19 @@
         }
       }
     },
-    "操作结果未知。请恢复原请求并回读资源，不要新建相同操作。": {
+    "操作结果未知。请查看原请求并刷新，不要重复相同操作。": {
       "extractionState": "manual",
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "操作结果未知。请恢复原请求并回读资源，不要新建相同操作。"
+            "value": "操作结果未知。请查看原请求并刷新，不要重复相同操作。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The operation outcome is unknown. Recover the original request and read the resource again instead of creating the same operation anew."
+            "value": "The result is unknown. Check the original request and refresh instead of repeating the same action."
           }
         }
       }
@@ -1503,13 +1503,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "新建端点"
+            "value": "新建 Webhook"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Create endpoint"
+            "value": "Add webhook"
           }
         }
       }
@@ -2030,13 +2030,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "端点设置"
+            "value": "Webhook 设置"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Endpoint settings"
+            "value": "Webhook settings"
           }
         }
       }
@@ -2166,13 +2166,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "编辑端点"
+            "value": "编辑 Webhook"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Edit endpoint"
+            "value": "Edit webhook"
           }
         }
       }
@@ -2432,36 +2432,36 @@
         }
       }
     },
-    "这会请求服务端排队测试投递，排队不代表已送达。": {
+    "这会排队发送一次测试投递，排队不代表已送达。": {
       "extractionState": "manual",
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这会请求服务端排队测试投递，排队不代表已送达。"
+            "value": "这会排队发送一次测试投递，排队不代表已送达。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This asks the server to queue a test delivery. Queuing does not mean it has been delivered."
+            "value": "This queues a test delivery. Queued doesn't mean delivered."
           }
         }
       }
     },
-    "远端是否已接收尚未确认。此记录不会自动重新发送。": {
+    "尚未确认是否送达，此记录不会自动重新发送。": {
       "extractionState": "manual",
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "远端是否已接收尚未确认。此记录不会自动重新发送。"
+            "value": "尚未确认是否送达，此记录不会自动重新发送。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Receipt by the remote endpoint is unconfirmed. This record will not be resent automatically."
+            "value": "Delivery hasn't been confirmed yet. This won't be resent automatically."
           }
         }
       }
@@ -2602,19 +2602,19 @@
         }
       }
     },
-    "频道 Webhook 管理尚未接入当前账号的真实频道、原生管理权限和事件目录。": {
+    "频道 Webhook 管理暂不可用": {
       "extractionState": "manual",
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "频道 Webhook 管理尚未接入当前账号的真实频道、原生管理权限和事件目录。"
+            "value": "频道 Webhook 管理暂不可用"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Webhook management is not connected to this account's channel, native management permissions, and event catalog yet."
+            "value": "Webhook management isn't available right now."
           }
         }
       }
@@ -2687,19 +2687,19 @@
         }
       }
     },
-    "原请求或版本冲突（%@），请回读核对，不会覆盖。": {
+    "与之前的修改冲突（%@），请刷新核对，不会覆盖。": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original request or revision conflicts (%@). Read back the result; no overwrite will occur."
+            "value": "This conflicts with an earlier change (%@). Refresh and check; nothing will be overwritten."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原请求或版本冲突（%@），请回读核对，不会覆盖。"
+            "value": "与之前的修改冲突（%@），请刷新核对，不会覆盖。"
           }
         }
       }
@@ -2721,19 +2721,19 @@
         }
       }
     },
-    "投递请求回执：%@。请回读原日志核对最终状态。": {
+    "投递请求：%@。请查看日志核对最终状态。": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Delivery request receipt: %@. Read the original log to confirm its final state."
+            "value": "Delivery request: %@. Check the log for its final status."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "投递请求回执：%@。请回读原日志核对最终状态。"
+            "value": "投递请求：%@。请查看日志核对最终状态。"
           }
         }
       }

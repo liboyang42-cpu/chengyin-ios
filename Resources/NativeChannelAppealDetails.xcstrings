@@ -109,13 +109,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端处理期限"
+            "value": "处理期限"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server-provided processing deadline"
+            "value": "Processing deadline"
           }
         }
       }
@@ -143,13 +143,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端材料条数"
+            "value": "材料条数"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server-reported evidence count"
+            "value": "Evidence count"
           }
         }
       }
@@ -500,13 +500,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "刷新只读取原进度，不会重新提交申诉。"
+            "value": "刷新仅更新进度，不会重复提交申诉。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh only reads original progress; it does not submit another appeal."
+            "value": "Refreshing only updates the progress. It won't submit another appeal."
           }
         }
       }
@@ -653,13 +653,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此为当前服务端终态；可查看原材料和处理记录。"
+            "value": "此为最终状态；仍可查看原材料和处理记录。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This is the current final server status. Original materials and history remain available."
+            "value": "This is the final status. Original materials and history are still available."
           }
         }
       }
@@ -687,13 +687,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "处置状态"
+            "value": "状态"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Action status"
+            "value": "Status"
           }
         }
       }
@@ -857,7 +857,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂未提供"
+            "value": "未提供"
           }
         },
         "en": {
@@ -908,13 +908,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "回读原结果"
+            "value": "查看原结果"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read original result"
+            "value": "Check original result"
           }
         }
       }
@@ -1163,13 +1163,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "先回读原结果；仅服务端确认原请求尚未找到时才重试相同内容。"
+            "value": "请先查看原结果；仅在原请求未被收到时，才以相同内容重试。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read the original result first. Retry the same content only if the server confirms that the original request was not found."
+            "value": "Check the original result first. Only retry with the same content if the original request wasn't received."
           }
         }
       }
@@ -1197,13 +1197,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端原状态"
+            "value": "原状态"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original server status"
+            "value": "Original status"
           }
         }
       }
@@ -1265,13 +1265,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前申诉进度尚未读回。请刷新原进度；不会重新提交已确认的请求。"
+            "value": "暂未获取当前申诉进度，请刷新重试；不会重复提交申诉。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Current appeal progress has not been read back. Refresh the original progress; the confirmed request will not be resubmitted."
+            "value": "We couldn't load your current appeal progress. Refresh to try again; your appeal won't be submitted twice."
           }
         }
       }

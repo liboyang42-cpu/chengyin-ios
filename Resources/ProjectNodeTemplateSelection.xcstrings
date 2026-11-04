@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose one of your saved personal gameplay drafts. Its exact source is checked again when you confirm. Only the existing place node’s local reference changes; this grants no publishing or usage rights."
+            "value": "Choose one of your saved gameplay drafts. We'll check it again when you confirm. This only changes the gameplay for this stop and doesn't publish anything or grant any rights."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "选择本人已保存的玩法草稿，确认时会再次核对同一来源。这里只改当前地点节点的本地引用，不授予发布或使用权限。"
+            "value": "选择你已保存的玩法草稿，确认时会再次核对。此操作只更改当前站点的玩法，不会发布内容或授予任何权限。"
           }
         }
       }
@@ -86,13 +86,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Personal draft reading is not configured or this is not a current ordinary place node. Your existing reference is unchanged."
+            "value": "Your drafts aren't available here right now. Your current selection is unchanged."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本人草稿读取尚未配置，或当前不是普通地点节点；现存引用保持不变。"
+            "value": "此处暂不可使用你的草稿，当前选择保持不变。"
           }
         }
       }
@@ -102,13 +102,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This source cannot be bound as ordinary node gameplay here. Album insertion remains in its existing story flow. Your current reference is unchanged."
+            "value": "This draft can't be used as gameplay for this stop. Photo albums are added in the story editor. Your current choice is unchanged."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此来源不能在这里作为普通节点玩法绑定；相册仍使用原故事插入流程，当前引用保持不变。"
+            "value": "该草稿不能用作此站点的玩法；相册请在故事编辑中添加。当前选择保持不变。"
           }
         }
       }

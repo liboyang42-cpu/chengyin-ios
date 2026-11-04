@@ -246,13 +246,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Publishing AI drafts is not enabled. Nothing will be published."
+            "value": "Publishing AI drafts isn't available right now. Nothing will be published."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "尚未启用 AI 草稿发布，不会发布任何内容。"
+            "value": "AI 草稿发布暂不可用，不会发布任何内容。"
           }
         }
       }
@@ -310,7 +310,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This revision has not been approved."
+            "value": "This version hasn't passed review."
           }
         },
         "zh-Hans": {
@@ -342,13 +342,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "An approval came from a role that cannot approve this part."
+            "value": "An approval came from someone who can't approve this part."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "有审核来自无权批准该部分的角色。"
+            "value": "有审核来自无权批准该部分的人员。"
           }
         }
       }
@@ -806,13 +806,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The save result is not confirmed. Reading the latest details from the server."
+            "value": "We couldn't confirm the save. Loading the latest details."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "保存结果未确认，正在从服务端读取最新资料。"
+            "value": "保存结果未确认，正在加载最新资料。"
           }
         }
       }
@@ -838,13 +838,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "After saving, the point is read back from the server."
+            "value": "After saving, the map point will refresh."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "保存后会从服务端重新读取落点。"
+            "value": "保存后会刷新地图落点。"
           }
         }
       }
@@ -918,13 +918,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The map point save is not confirmed. The server point was read again."
+            "value": "We couldn't confirm the map point was saved. The latest map point is shown."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "落点保存结果未确认，已重新读取服务端落点。"
+            "value": "落点保存结果未确认，已显示最新落点。"
           }
         }
       }
@@ -966,13 +966,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photo looks are cropped and pixelated on the device. This is not available in this version."
+            "value": "Photo looks aren't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "照片形象需在端上裁剪并处理成像素画，此版本暂未开放。"
+            "value": "照片形象暂不可用。"
           }
         }
       }
@@ -982,13 +982,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Save confirmed. The latest character details were read from the server."
+            "value": "Saved. Showing the latest character details."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "保存已确认，已从服务端读取最新角色资料。"
+            "value": "已保存，显示最新角色资料。"
           }
         }
       }
@@ -998,13 +998,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This save could not be confirmed. The latest server details are shown; check them before saving again."
+            "value": "We couldn't confirm this save. The latest details are shown; check them before saving again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未能确认本次保存，当前显示服务端最新资料，请核对后再保存。"
+            "value": "未能确认本次保存，当前显示最新资料，请核对后再保存。"
           }
         }
       }
@@ -1238,13 +1238,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Generation is off; approved fixed content is used."
+            "value": "AI generation is off; approved preset content is used."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未启用生成，使用已审核的固定内容。"
+            "value": "未开启 AI 生成，使用已审核的固定内容。"
           }
         }
       }
@@ -1254,13 +1254,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scene scopes (not enabled)"
+            "value": "Scene scopes (unavailable)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "场景范围（未启用）"
+            "value": "场景范围（暂不可用）"
           }
         }
       }
@@ -1334,13 +1334,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not bound to a theme. A binding can only come from the server."
+            "value": "Not linked to a theme yet."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未绑定主题，绑定只能由服务端下发。"
+            "value": "尚未关联主题。"
           }
         }
       }
@@ -1654,13 +1654,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Playback is not available in this version."
+            "value": "Playback isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此版本暂不支持试听。"
+            "value": "试听暂不可用。"
           }
         }
       }
@@ -1750,13 +1750,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This version does not access the microphone, so recording is not available."
+            "value": "Recording isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此版本不会访问麦克风，暂不能录音。"
+            "value": "录音暂不可用。"
           }
         }
       }

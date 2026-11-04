@@ -1,6 +1,6 @@
 import XCTest
 
-/// Synthetic fixture only. No template/provider/payment/reward writes.
+/// Example only. No template/provider/payment/reward writes.
 final class MerchantTemplateParticipationPlanFlowTests: XCTestCase {
     private var app: XCUIApplication?
     override func setUp() { super.setUp(); continueAfterFailure = false }

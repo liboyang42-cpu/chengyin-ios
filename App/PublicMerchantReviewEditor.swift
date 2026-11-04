@@ -107,7 +107,6 @@ import SwiftUI
                     .accessibilityValue(Text(verbatim: receipt.status))
                     .accessibilityIdentifier("merchant.publicHome.status")
                 LabeledContent("merchant.publicHome.reviewID", value: String(receipt.reviewId))
-                if let audit = receipt.auditTaskId { LabeledContent("merchant.publicHome.auditTaskID", value: String(audit)) }
             }
         }
         .navigationTitle(reportItem == nil ? "merchant.publicHome.createReview" : "merchant.publicHome.report")

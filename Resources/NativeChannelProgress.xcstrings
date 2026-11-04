@@ -1254,13 +1254,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未知结果保留原请求，不重发、不伪造完成。频道撤权后可从本人设置回读同一执行凭据，不恢复频道权限。"
+            "value": "结果未知时会保留原请求，不会重发，也不会标记为完成。频道权限被撤销后，仍可在个人设置中查看此结果，但不会恢复频道权限。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "An unknown outcome retains the original request without resending or claiming completion. After channel access is revoked, you can read the same execution receipt from your own settings; this does not restore channel access."
+            "value": "If the result is unknown, your request is kept and won't be resent or marked as done. If you lose channel access, you can still check this result from your settings; this won't restore channel access."
           }
         }
       }
@@ -1270,13 +1270,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "只读取原请求回执"
+            "value": "查看原请求结果"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read the original receipt only"
+            "value": "Check the original request"
           }
         }
       }
@@ -1446,13 +1446,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原好友进度消费者已回读确认此总览因子。最终可见性仍需结合当前查看者、好友单独设置及实际频道和场次。"
+            "value": "此总览设置已确认。实际可见范围还取决于查看者、好友单独设置及所在频道和场次。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original friend-progress consumer confirmed this overview factor. Final visibility still depends on the current viewer, per-friend settings, and the actual channel and session."
+            "value": "This overview setting is confirmed. Who can actually see it still depends on the viewer, your per-friend settings, and the channel and session."
           }
         }
       }
@@ -1606,13 +1606,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前独立来源或授权未配置、已过期或已撤回。"
+            "value": "暂不可用，或授权已过期、已撤回。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The independent source or authorization is not configured, has expired, or has been revoked."
+            "value": "This isn't available right now, or your permission has expired or been withdrawn."
           }
         }
       }
@@ -1638,13 +1638,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前原来源不可确认，未使用默认值替代。"
+            "value": "无法加载当前设置，未做任何更改。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current original source could not be confirmed. No default value was substituted."
+            "value": "Couldn't load your current setting. Nothing has been changed."
           }
         }
       }

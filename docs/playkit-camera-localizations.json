@@ -8,8 +8,8 @@
     "zh-Hans": "在相机画面上查看"
   },
   "playkitCamera.configGate": {
-    "en": "Camera overlay is not enabled for this session",
-    "zh-Hans": "当前会话尚未启用相机叠图"
+    "en": "Camera overlay isn't available right now",
+    "zh-Hans": "相机叠图暂不可用"
   },
   "playkitCamera.failedFallback": {
     "en": "The camera did not open. You can still view the returned image below.",
@@ -24,8 +24,8 @@
     "zh-Hans": "为当前视图使用相机？"
   },
   "playkitCamera.overlayPurpose": {
-    "en": "Show the server-returned image over the rear-camera preview. No photo or video is saved or uploaded, and this does not submit task completion.",
-    "zh-Hans": "将服务端返回的图片叠在后置相机预览上。不会保存或上传照片、视频，也不会提交任务完成状态。"
+    "en": "Shows the task image over your rear-camera view. No photo or video is saved or uploaded, and this doesn't complete the task.",
+    "zh-Hans": "将任务图片叠加在后置相机画面上。不会保存或上传照片、视频，也不会提交任务完成。"
   },
   "playkitCamera.screenSpaceOnly": {
     "en": "Screen-space overlay, not spatial AR",

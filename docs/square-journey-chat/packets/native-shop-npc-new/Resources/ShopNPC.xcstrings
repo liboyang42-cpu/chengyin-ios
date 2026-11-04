@@ -7,13 +7,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Shop conversation is not enabled."
+            "value": "Shop chat isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "店铺分身对话还没开放"
+            "value": "店铺分身对话暂不可用"
           }
         }
       }

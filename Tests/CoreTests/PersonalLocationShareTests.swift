@@ -4,7 +4,7 @@ import XCTest
 import FoundationNetworking
 #endif
 
-/// Synthetic fixtures only. These values are NOT production policy or approved defaults.
+/// Examples only. These values are NOT production policy or approved defaults.
 private enum PSFixture {
     static let now: Int64 = 1_800_000_000_000
     static let key = "00000000-0000-4000-8000-000000000001"

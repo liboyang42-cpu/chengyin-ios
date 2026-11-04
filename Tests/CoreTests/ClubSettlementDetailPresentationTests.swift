@@ -18,7 +18,7 @@ final class ClubSettlementDetailPresentationTests: XCTestCase {
             "roleCodes": .array([]), "permissions": .array(permitted ? [.string("club:finance:read")] : []), "canManageRoles": .bool(false)]), scope: scope)
         let missing = rows.filter { $0["amountStatus"] == .string("unverified") }.count
         return .init(operation: .settlement, scope: scope, permissions: permission, value: .object([
-            "settledAmountStatus": .string(missing > 0 ? "unverified" : "verified"), "settledAmountText": missing > 0 ? .null : .string("Server total"),
+            "settledAmountStatus": .string(missing > 0 ? "unverified" : "verified"), "settledAmountText": missing > 0 ? .null : .string("Total"),
             "unverifiedSettledCount": .integer(missing), "topics": .array(rows)]))
     }
     private func presentation(_ rows: [ClubGovernanceValue]) throws -> ClubSettlementDetailPresentation { try .init(snapshot: snapshot(rows), context: context()) }

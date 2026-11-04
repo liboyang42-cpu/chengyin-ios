@@ -24,13 +24,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Requires verified WeChat setup, legal approval and an available Apple sign-in alternative"
+            "value": "WeChat sign-in isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "需要完成微信配置、法律审核并提供可用的 Apple 登录方式"
+            "value": "微信登录暂不可用"
           }
         }
       }
@@ -58,13 +58,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "WeChat sign-in is not configured for this build"
+            "value": "WeChat sign-in isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此版本尚未配置微信登录"
+            "value": "微信登录暂不可用"
           }
         }
       }

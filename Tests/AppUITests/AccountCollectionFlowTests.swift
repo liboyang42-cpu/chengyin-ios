@@ -84,7 +84,7 @@ final class AccountCollectionFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Sample weekend benefit"].waitForExistence(timeout: 5))
         let notice = app.staticTexts["accountCollection.coupon.readOnly"]
         reveal(notice)
-        XCTAssertTrue(app.staticTexts["Read-only coupon details. Redemption codes are not available here yet."].exists)
+        XCTAssertTrue(app.staticTexts["Coupon details. Redemption codes aren't available here yet."].exists)
         XCTAssertFalse(app.buttons["Show code"].exists); XCTAssertFalse(app.buttons["Redeem"].exists)
         XCTAssertFalse(app.images["qrcode"].exists)
         attachFixtureScreenshot(self, app: app, name: "Read-only coupon detail")
@@ -127,7 +127,7 @@ final class AccountCollectionFlowTests: XCTestCase {
         XCTAssertFalse(app.staticTexts["Sample weekend benefit"].exists)
     }
     func testGuestEmptyFailureAndConfigurationAreDistinct() {
-        for (scenario, expected) in [("guest", "Sign in to see your saved collections"), ("empty", "No coupons yet"), ("failure", "These items could not be loaded"), ("unconfigured", "Collection service is not configured")] {
+        for (scenario, expected) in [("guest", "Sign in to see your saved collections"), ("empty", "No coupons yet"), ("failure", "These items could not be loaded"), ("unconfigured", "Collections aren't available right now.")] {
             launch(scenario); open("accountCollection.openCoupons")
             XCTAssertTrue(app.staticTexts[expected].waitForExistence(timeout: 10), scenario)
             XCTAssertFalse(app.staticTexts["Sample weekend benefit"].exists)

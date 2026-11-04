@@ -59,13 +59,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check original result (read-only)"
+            "value": "Check whether it was sent (won't resend)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "读取原消息结果（不重发）"
+            "value": "查看发送结果（不会重发）"
           }
         }
       }
@@ -110,13 +110,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original ID and content will not change. We check once more first: if found, only the original result is merged; if unknown, nothing is sent. Images are not uploaded again."
+            "value": "The message and its content won't change. We'll check once more first: if it was sent, we'll show that; if we can't tell, nothing is sent. Images won't be uploaded again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "保持原消息ID与原内容不变。先再次回读：找到则仅合并原结果，无法确认则不发送；图片不会重新上传。"
+            "value": "原消息与内容保持不变。先再次核对：已发送则显示原结果，无法确认则不发送；图片不会重新上传。"
           }
         }
       }

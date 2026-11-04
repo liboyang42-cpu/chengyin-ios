@@ -182,13 +182,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The source policy may cancel linked tickets in the same order. A refund amount is not quoted here; an already checked-in ticket may require manual review."
+            "value": "Other tickets in the same order may also be cancelled. The refund amount isn't shown here, and tickets already checked in may need manual review."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "来源政策可能影响同单关联票。这里不承诺退款金额；同单有票已核销时可能转人工处理。"
+            "value": "同一订单中的其他票可能一并取消。此处不显示退款金额；已核销的票可能转人工处理。"
           }
         }
       }
@@ -214,13 +214,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You can review the request. Sending refunds is disabled in this native build."
+            "value": "You can review the request. Sending refunds isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "可核对请求。当前原生版本的退款提交功能尚未启用。"
+            "value": "可查看请求，退款提交暂不可用。"
           }
         }
       }
@@ -390,13 +390,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The source reports a parent-order cancellation."
+            "value": "This also cancels the related main order."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "来源回执显示本次影响关联父订单。"
+            "value": "本次将同时取消关联的主订单。"
           }
         }
       }
@@ -1062,13 +1062,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server message (not confirmation)"
+            "value": "Message (not a confirmation)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端消息（不代表结果确认）"
+            "value": "提示信息（不代表处理结果）"
           }
         }
       }

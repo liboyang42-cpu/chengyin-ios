@@ -396,13 +396,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This replaces the saved date range and daily hours together. Saving does not mean the application is approved; server eligibility still applies."
+          "value": "This replaces the saved date range and daily hours together. Saving doesn't mean your application is approved; eligibility rules still apply."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "本次将一并替换已保存的日期区间及每日时段。保存不代表报名获批，仍以服务端资格校验为准。"
+          "value": "本次将一并替换已保存的日期区间及每日时段。保存不代表报名获批，仍需符合报名资格。"
         }
       }
     }

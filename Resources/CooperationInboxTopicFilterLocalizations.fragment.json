@@ -52,13 +52,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Filters loaded invitations, applications and registrations only. Source failures and pagination still apply."
+          "value": "Filters only the invitations, applications and registrations loaded so far."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "仅筛选已加载的邀约、申请和报名；原数据源错误及分页范围仍然适用。"
+          "value": "仅筛选已加载的邀约、申请和报名。"
         }
       }
     }
