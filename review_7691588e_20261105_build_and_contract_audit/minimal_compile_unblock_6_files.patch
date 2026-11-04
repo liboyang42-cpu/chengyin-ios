@@ -1,0 +1,104 @@
+diff --git a/App/AppSession.swift b/App/AppSession.swift
+index e390f931..b475e4c3 100644
+--- a/App/AppSession.swift
++++ b/App/AppSession.swift
+@@ -1721,7 +1721,7 @@ final class AppSession: ObservableObject {
+             self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+         })
+     }
+-    private var currentRuntimeDependencyContext: RuntimeDependencyContext? {
++    var currentRuntimeDependencyContext: RuntimeDependencyContext? {
+         guard !committingAuthenticatedSession, let regionalConfiguration, let api = regionalConfiguration.apiConfiguration,
+               let session = currentPlayRuntimeSession, let account else { return nil }
+         return RuntimeDependencyContext(market: regionalConfiguration.market, baseURL: api.baseURL,
+@@ -3526,12 +3526,12 @@ final class AppSession: ObservableObject {
+                   ContentDraftContextFence.matches(captured, current) else { return }
+             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+         })
+-    func makeProfilePublicInfoReader(memberID: Int) -> ProfilePublicInfoReader? {
+-        guard let context = currentRuntimeDependencyContext else { return nil }
++    func makeProfilePublicInfoReader(memberID: Int, isCurrent: @escaping () -> Bool = { true }) -> ProfilePublicInfoReader? {
++        guard isCurrent(), let context = currentRuntimeDependencyContext else { return nil }
+         let viewer = compositionViewerRevision
+         guard let target = try? ProfilePublicInfoTarget(memberID: memberID, context: context, viewerRevision: viewer,
+             current: { [weak self] in
+-                guard let self, let current = self.currentRuntimeDependencyContext else { return false }
++                guard isCurrent(), let self, let current = self.currentRuntimeDependencyContext else { return false }
+                 return self.compositionViewerRevision == viewer && ContentDraftContextFence.matches(context, current)
+             }) else { return nil }
+         return ProfilePublicInfoReader(target: target, configuration: regionalConfiguration?.apiConfiguration,
+diff --git a/App/GrowthLeaderboardView.swift b/App/GrowthLeaderboardView.swift
+index 8326be0b..9a1f9d7e 100644
+--- a/App/GrowthLeaderboardView.swift
++++ b/App/GrowthLeaderboardView.swift
+@@ -71,7 +71,7 @@ import SwiftUI
+         .appNavigationTitle("growth.board.title")
+         .toolbar {
+             ToolbarItem(placement: .primaryAction) {
+-                Button(action: reload) label: { Label("growth.refresh", systemImage: "arrow.clockwise") }
++                Button(action: reload) { Label("growth.refresh", systemImage: "arrow.clockwise") }
+                     .disabled(model.isLoading || !reader.isAuthenticated || !reader.isConfigured)
+                     .accessibilityIdentifier("growth.board.refresh")
+             }
+diff --git a/App/PublishingContextHandoffViews.swift b/App/PublishingContextHandoffViews.swift
+index 47edb013..b1cdbab1 100644
+--- a/App/PublishingContextHandoffViews.swift
++++ b/App/PublishingContextHandoffViews.swift
+@@ -84,7 +84,7 @@ struct QuickPublishingInterestPicker: View {
+ /// tokens keep light/dark and increased contrast behavior; no global token edits.
+ struct QuickPublishingCanvas: View {
+     @Environment(\.themeDomain) private var domain
+-    @Environment(\.accessibilityContrast) private var contrast
++    @Environment(\.colorSchemeContrast) private var contrast
+     var body: some View {
+         GeometryReader { geometry in
+             ZStack {
+diff --git a/App/SocialPublicProfileView.swift b/App/SocialPublicProfileView.swift
+index 232772ee..932ed5f5 100644
+--- a/App/SocialPublicProfileView.swift
++++ b/App/SocialPublicProfileView.swift
+@@ -16,6 +16,7 @@ import SwiftUI
+     var selfEditAccess: ProfileSelfEditAccess? = nil
+     var selfEditDiagnostics: (@MainActor (ProfileSelfEditTicket?, ProfileSelfEditTicket, ProfileSelfEditContext?) -> String)? = nil
+     var localCoverOwner: ProfileLocalCoverOwner? = nil
++    var showsStartChat: Bool = true
+     var isCurrent: @MainActor () -> Bool = { true }
+     @Environment(\.dismiss) private var dismiss
+     private enum Tab: String, CaseIterable { case posts, achievements, about, projects, orders }
+diff --git a/Tests/AppUnitTests/NativeChannelHostAncestorFenceTests.swift b/Tests/AppUnitTests/NativeChannelHostAncestorFenceTests.swift
+index 0b644c96..b1e926c4 100644
+--- a/Tests/AppUnitTests/NativeChannelHostAncestorFenceTests.swift
++++ b/Tests/AppUnitTests/NativeChannelHostAncestorFenceTests.swift
+@@ -69,7 +69,7 @@ import SwiftUI
+     let context: RuntimeDependencyContext
+     let binding: NativeChannelMessageBinding
+     let source: RouteMessageHostSource
+-    let host: NativeChannelRouteMessageHostAuthority
++    let host: NativeChannelMessageHostAuthority
+     let outer: CompositionHTTPTransport
+     let wire: RouteMessageHostWire
+     let storage = RouteMessageHostStorage()
+@@ -102,8 +102,8 @@ import SwiftUI
+             from: Data(#"{"conversationId":9,"type":4,"counterparty":{"bizKey":"club_7"}}"#.utf8))
+         outer.current = { .init(epoch: 1, accountID: 3, role: "player", token: "fixture-token", viewerRevision: 1) }
+     }
+-    func make() throws -> NativeChannelRouteMessageHostFlow {
+-        try NativeChannelRouteMessageHostBinding.make(context: context, conversation: conversation, authority: host, storage: storage,
++    func make() throws -> NativeChannelMessageHostFlow {
++        try NativeChannelMessageHostBinding.make(context: context, conversation: conversation, authority: host, storage: storage,
+             current: { self.sourceCurrent() && self.host.identity != nil }, onUnauthorized: { self.unauthorized += 1 },
+             makeOriginal: { current, unauthorized in
+                 try self.outer.makeNativeChannelMessageOriginalAdapters(context: self.context, binding: self.binding,
+diff --git a/Tests/AppUnitTests/NativeChannelNotificationAncestorFenceTests.swift b/Tests/AppUnitTests/NativeChannelNotificationAncestorFenceTests.swift
+index 5b083c07..322906d7 100644
+--- a/Tests/AppUnitTests/NativeChannelNotificationAncestorFenceTests.swift
++++ b/Tests/AppUnitTests/NativeChannelNotificationAncestorFenceTests.swift
+@@ -66,7 +66,7 @@ import SwiftUI
+         try seedJournal.persist(original); return original
+     }
+     func make(scope: NativeChannelNotificationScope?) throws -> NativeChannelNotificationCoordinator {
+-        try NativeChannelAncestorNotificationBinding.make(context: context, storage: storage, scope: scope, makeDispatcher: { journal in
++        try NativeChannelNotificationBinding.make(context: context, storage: storage, scope: scope, makeDispatcher: { journal in
+             self.wire.journal = journal
+             return try .init(context: self.context, viewerRevision: 2, source: self.source, journal: journal,
+                              underlying: self.wire, current: { self.currentVisit() ? self.context : nil }, viewer: { 2 }, selected: { self.source })

@@ -1,0 +1,151 @@
+{
+  "source_identity": {
+    "repository": "https://github.com/liboyang42-cpu/chengyin-ios",
+    "branch": "codex/claude-review-61cfe710-20261104",
+    "commit_sha": "7691588efe5f66c32af5001ebcb6bd3b3de49d05",
+    "root_tree_sha": "f381e903f87ea5bec76565ec295d35644ad66454",
+    "parent_commit_sha": "ab2d3905ec0b0fb17b58ba6b53ec433d83164701",
+    "parent_tree_sha": "1256f3ff67514b04cd783b5e72b843de55fc6f53",
+    "tracked_files": 7086,
+    "changed_files_vs_parent": 618,
+    "worktree_dirty_count": 0
+  },
+  "toolchain": {
+    "xcode": "Xcode 27.1 (Build 27A9275)",
+    "swift": "Apple Swift version 6.2.1 (swiftlang-6.2.1.4.8 clang-1700.4.4.1)",
+    "macos": "15.1.1 (24B2091)",
+    "simulator_destination": "Questify-iPhone17 (25316F87-058C-46CE-8825-617906638207, iOS 27.1)"
+  },
+  "unmodified_snapshot_build_status": {
+    "default_xcodebuild_build_for_testing": {
+      "status": "FAIL",
+      "exit_code": 65,
+      "first_blocker": "Vendor/GLTFKit2/GLTFKit2.xcodeproj/project.pbxproj:317,379 (IPHONEOS_DEPLOYMENT_TARGET = 12.1; unsupported by Xcode 27.1 range 15.0..27.1.x)"
+    },
+    "xcodebuild_build_for_testing_with_deployment_target_17_0": {
+      "status": "FAIL",
+      "exit_code": 65,
+      "first_blocker": "App/GrowthLeaderboardView.swift:74:39 (Button(action: reload) label: { ... } syntax error)"
+    }
+  },
+  "affected_file_blobs": {
+    "Vendor/GLTFKit2/GLTFKit2.xcodeproj/project.pbxproj": {
+      "git_blob_sha1": "f8ac472100e0fb7ce91d6dfff66e7e81e6c5e2e0",
+      "file_sha256": "30b4ca5ada1cec58ee2ac11e9514691e54d2eeba5d3985f4935111de1b55bf00"
+    },
+    "App/GrowthLeaderboardView.swift": {
+      "git_blob_sha1": "8326be0bd0e27b2cf23bbb4021e516640fa55d65",
+      "file_sha256": "1ae394ce3300352cc6d238e0f2b2f155a75c2172e242be1dcf39740028fe4761"
+    },
+    "App/PublishingContextHandoffViews.swift": {
+      "git_blob_sha1": "47edb01379165c8f4adde5fc59e40d24b21617e6",
+      "file_sha256": "82cd191e32473ad73465b37f8843fb2125e4b78eb944d60344780e192c916bf0"
+    },
+    "App/SessionTeamViews.swift": {
+      "git_blob_sha1": "e92449a3fce0ff8b57d5acac07d7763b2887e797",
+      "file_sha256": "9d99d2671d99afd5cfb4f4437d66651570e7f7628e0cabd9d6d3ae539d707c16"
+    },
+    "App/AppSession.swift": {
+      "git_blob_sha1": "e390f931138e7898651ec95a3d7f4d1b60e7260b",
+      "file_sha256": "4f651620bc0b11d9a0995a5ded1a59ca32cec82513a12cfcd5200a58c01f2b2a"
+    },
+    "App/NativeFriendSessionEntry.swift": {
+      "git_blob_sha1": "4ecc8f3c686534de423c25e56899226135eeefab",
+      "file_sha256": "98e805a1d231da421d3d0f71e7d553e5216120bffb778e2bac6efac57639d340"
+    },
+    "App/SocialPublicProfileView.swift": {
+      "git_blob_sha1": "232772eea50569d47cf9e58b4785c1d7f42b671a",
+      "file_sha256": "28ad2c464c402161aa3fe46ed68899edb72844b0b771d510bec2b8c009cc20af"
+    },
+    "Tests/AppUnitTests/NativeFriendDirectoryNavigationHostingTests.swift": {
+      "git_blob_sha1": "0134499daf5f17724e95fede9a348f5d33471078",
+      "file_sha256": "d8903aa7448e800551d06bc283e5cae968bd5f25ce5befd42dd77eea7769a17e"
+    },
+    "Tests/AppUnitTests/NativeChannelHostAncestorFenceTests.swift": {
+      "git_blob_sha1": "0b644c965b8d83ec0140fe2fbb8283b902d280cf",
+      "file_sha256": "259d6da6587b354bd11a31ac8baa88ab400bee7e00fd59779fd77bfdd44ee1ed"
+    },
+    "Tests/AppUnitTests/NativeChannelNotificationAncestorFenceTests.swift": {
+      "git_blob_sha1": "5b083c072acb29491c25043350087bab307faee4",
+      "file_sha256": "57030c43da26db9bbbe1ddb325b4c0f064e2211161f009ad995c24268a870f1f"
+    },
+    "App/NativeChannelNotificationConversationView.swift": {
+      "git_blob_sha1": "78fce43bc26a8d0a4385faac641e457f51b05c95",
+      "file_sha256": "97a43ac3f55b3019f0ce514cd5c34a979e1893db199d77208440c491f95fd9ff"
+    },
+    "Tests/ContractChecks/test_native_channel_notification_presentation.py": {
+      "git_blob_sha1": "9fab81d5dc0850982c8b8fac26ab335c8e422d36",
+      "file_sha256": "807a4b023daa6aa9c4b5533441c59cca3f691fbd4c14ea78ab5e341b53fd5f43"
+    },
+    "Tests/ContractChecks/test_composed_session_invalidation.py": {
+      "git_blob_sha1": "f4958749b030588f4101e869d161f7b69e2e8666",
+      "file_sha256": "1fd3de94e2f4e7cc7963e3f63292561e9d1e6c97660e72727ee5d1e41f646bba"
+    },
+    "tools/check_team_channel_entry.py": {
+      "git_blob_sha1": "e0c244dcc1fa9785ef3bc2455fb4669687ea76b6",
+      "file_sha256": "0c5b234b3d6d7608d3b25e71601fbe802a1eadc7dd09dff6df6751767d9d4a99"
+    }
+  },
+  "evidence_files": [
+    {
+      "path": "review_7691588e_20261105_build_and_contract_audit/logs/01_unmodified_build_default_deployment_target_exit65.stdout.txt",
+      "bytes": 38063,
+      "lines": 286,
+      "sha256": "8d1ff826386e5e840c019b0a92eb808fe08cdbd82601f047b5aeca3fadf584d0"
+    },
+    {
+      "path": "review_7691588e_20261105_build_and_contract_audit/logs/02_unmodified_build_deployment_target_17_0_exit65.stdout.txt",
+      "bytes": 496693,
+      "lines": 2859,
+      "sha256": "f7225a8b0e0f681f827245b23c10869a71d92dafbd3a9101218b84b16ec957b6"
+    },
+    {
+      "path": "review_7691588e_20261105_build_and_contract_audit/logs/03_scratch_typecheck_step1_past_growth_leaderboard_line74_exit65.stdout.txt",
+      "bytes": 1308511,
+      "lines": 11104,
+      "sha256": "17aa2597730b448fd3018c94cc6e8c26e164b49422a95f3b0700b6d508621696"
+    },
+    {
+      "path": "review_7691588e_20261105_build_and_contract_audit/logs/04_scratch_typecheck_step2_past_publishing_canvas_line87_exit65.stdout.txt",
+      "bytes": 234238,
+      "lines": 2154,
+      "sha256": "5856597bb6cfdf15bf77fcf96d4350b08ea4f00d2a66e5b3d3e5ef5e64587c6a"
+    },
+    {
+      "path": "review_7691588e_20261105_build_and_contract_audit/logs/05_scratch_typecheck_step3_past_session_team_views_line38_exit65.stdout.txt",
+      "bytes": 1072380,
+      "lines": 11364,
+      "sha256": "a3239bd0a35b6e86692ec1b38525214e766f1bf065e096eeee5d2f647e0fb782"
+    },
+    {
+      "path": "review_7691588e_20261105_build_and_contract_audit/logs/06_scratch_typecheck_step4_questify_and_uitests_build_succeeded_exit0.stdout.txt",
+      "bytes": 2823777,
+      "lines": 29037,
+      "sha256": "2a9bd58e578c431a1c05928e3ddd9060024f264cdc8689ce1c0b638601ad0d69"
+    },
+    {
+      "path": "review_7691588e_20261105_build_and_contract_audit/logs/07_scratch_typecheck_step5_app_unit_tests_initial_exit65.stdout.txt",
+      "bytes": 187950,
+      "lines": 1431,
+      "sha256": "b5c030b389d0e42f481eaf9f803b29248044ffa62c3d4b94c93ef710a7e5462e"
+    },
+    {
+      "path": "review_7691588e_20261105_build_and_contract_audit/logs/08_scratch_typecheck_step6_app_unit_tests_build_succeeded_exit0.stdout.txt",
+      "bytes": 754696,
+      "lines": 6427,
+      "sha256": "cb7ba7d3e34f2fc231de6f783c52454066dee30ef924569b5ed400f861e2602d"
+    },
+    {
+      "path": "review_7691588e_20261105_build_and_contract_audit/minimal_compile_unblock_6_files.patch",
+      "bytes": 7054,
+      "lines": 104,
+      "sha256": "fded90f5943d579a3d22cf8b5bec701d91050032dfbf3efc6afcea36b7ef07b1"
+    },
+    {
+      "path": "review_7691588e_20261105_build_and_contract_audit/BUILD_AND_CONTRACT_AUDIT_REPORT_7691588E.md",
+      "bytes": 10390,
+      "lines": 58,
+      "sha256": "4ed27d73dfef290c7030c37f1688d27db9022fced3fa5eeabf9149c9cd6636d6"
+    }
+  ]
+}

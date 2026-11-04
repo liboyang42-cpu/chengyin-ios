@@ -1,0 +1,1431 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild build-for-testing -project Questify.xcodeproj -scheme QuestifyAppUnitTests -destination "generic/platform=iOS Simulator" -derivedDataPath <DERIVED_DATA_7691588E> CODE_SIGNING_ALLOWED=NO IPHONEOS_DEPLOYMENT_TARGET=17.0 "OTHER_SWIFT_FLAGS=$(inherited) -continue-building-after-errors"
+
+Build settings from command line:
+    CODE_SIGNING_ALLOWED = NO
+    IPHONEOS_DEPLOYMENT_TARGET = 17.0
+    OTHER_SWIFT_FLAGS = $(inherited) -continue-building-after-errors
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (3 targets)
+    Target 'QuestifyAppUnitTests' in project 'Questify'
+        ➜ Explicit dependency on target 'Questify' in project 'Questify'
+    Target 'Questify' in project 'Questify'
+        ➜ Explicit dependency on target 'GLTFKit2' in project 'GLTFKit2'
+    Target 'GLTFKit2' in project 'GLTFKit2' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ActivityPublishingWizardValidation.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk -x objective-c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/NativeBlacklist.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk -x objective-c++ -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/NativeFriendDirectory.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/NativeFriendMetadata.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/NativeFriendRemoval.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/NativeChannelManagement.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/NativeChannelProgress.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/NativeFriend.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/NativeWebhook.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/NativeChannel.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch x86_64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/NativeChannelAttachmentPreview.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch x86_64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk -x objective-c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch x86_64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk -x objective-c++ -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/NativeChannelText.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/NativeChannelMessage.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/NativeChannelNotification.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/NativeChannelReport.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/NativeNotificationPermissionStatus.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/OrdinaryIMSendReceipt.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/GrowthNormalEntry.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/NativeChannelAppealDetails.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProfileParticipantRecovery.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/PersonalLocationShare.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/AccountCompliance.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ActivityCoverAuthoring.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ActivityEditing.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ActivityTemplateSelection.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ApprovedMerchantReviewSources.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/AuthEntry.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/CityFairness.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/CityGame.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ClubHostApplicationMaterials.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ClubNotificationAudience.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ClubOpsCustomer.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ClubOpsEvent.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ClubOpsGovernance.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ClubOpsJoinNotify.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ClubSeriesSchedule.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/CreatorAIPrompts.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/CreatorExitGuard.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/CreatorIntroExamples.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/CreatorPublishResult.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/CreatorSavedResult.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/InfoPlist.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/Localizable.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/MapCoreEntry.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/MapPublicLayers.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/MerchantAuthoring.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/MemberProfile.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/MerchantAICommerce.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/MerchantCityNode.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/MerchantCoopCenter.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/MerchantGameNode.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/MerchantLedgerSettlement.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/MerchantOps.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/MerchantReviewAndCustomerDetail.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/MerchantSettlementOverview.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/MyProjectActivityEditor.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/NPCChatLogDeletion.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/OpsSafety.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/PlayAnswerReview.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/PlayBranchHistory.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/PlayPlayerActionReview.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/PlayStoreDay.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/PlayTaskOutcome.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/PlayTimedDisplayLocalization.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/PlayerTaskEvidenceReview.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProfileSettingsFavorites.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectAlbumImageAuthor.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectAlbumPhotoOrder.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectAlbumPhotoRemoval.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectCategoryPicker.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectChapterAudio.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectCityStoryNodeRemoval.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectDraftNodeOverview.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectDraftStoryPreview.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectEditDatePicker.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectEditExitGuard.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectEditorAudioPreview.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectEndingConditionPicker.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectInitialAttributes.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectInitialState.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectMerchantDraft.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectNodeBusinessHours.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectNodeDuration.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectNodeGameplayRemoval.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectNodeImageAuthor.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectNodePhotoRemoval.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectNodePlacePicker.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectNodeRouteMapping.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectNodeTemplateCreation.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectNodeTemplateSelection.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectPendingNodeRemoval.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectRichStoryInsertion.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectStoryTextField.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectStoryTextInsertion.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectStoryVariableInsertion.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectTeamConfiguration.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/ProjectThoughtDefinitions.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/PublisherIdentityRegistration.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/StoreCharacter.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/TemplateConfiguredRehearsal.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/TemplateLocalCategoryRemoval.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/TemplatePreferenceRemoval.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/TemplateProfileOverride.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/TemplateReasoningRehearsal.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/TemplateSensorRehearsal.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/TicketPendingOrder.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/WalletEarningsOverview.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/WalletNumberLocalization.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/WorkshopCreatorConsent.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/WorkshopCreatorPending.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/WorkshopOwned.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/WorkshopPaidInstall.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/WorkshopPaidInstalledText.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/WorkshopPaidProfessional.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/WorkshopPurchased.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/WalletIncomeAnalysis.xcstrings
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile --dry-run --output-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify.build <SCRATCH_TYPECHECK_7691588E>/Resources/WalletIncomeAnalysisRead.xcstrings
+
+Build description signature: 76c3edacc519eab2f2ebce174a80200c
+Build description path: <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/XCBuildData/76c3edacc519eab2f2ebce174a80200c.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk <DERIVED_DATA_7691588E>/SDKStatCaches.noindex/iphonesimulator27.1-24A94232-35d3147121984ba087c28d913653d626.sdkstatcache
+    cd <SCRATCH_TYPECHECK_7691588E>/Questify.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk -o <DERIVED_DATA_7691588E>/SDKStatCaches.noindex/iphonesimulator27.1-24A94232-35d3147121984ba087c28d913653d626.sdkstatcache
+
+ProcessInfoPlistFile <DERIVED_DATA_7691588E>/Build/Products/Debug-iphonesimulator/GLTFKit2.framework/Info.plist <SCRATCH_TYPECHECK_7691588E>/Vendor/GLTFKit2/GLTFKit2/Info.plist (in target 'GLTFKit2' from project 'GLTFKit2')
+    cd <SCRATCH_TYPECHECK_7691588E>/Vendor/GLTFKit2
+    builtin-infoPlistUtility <SCRATCH_TYPECHECK_7691588E>/Vendor/GLTFKit2/GLTFKit2/Info.plist -producttype com.apple.product-type.framework -expandbuildsettings -format binary -platform iphonesimulator -o <DERIVED_DATA_7691588E>/Build/Products/Debug-iphonesimulator/GLTFKit2.framework/Info.plist
+
+WriteAuxiliaryFile <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/empty-QuestifyAppUnitTests.plist (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    write-file <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/empty-QuestifyAppUnitTests.plist
+
+WriteAuxiliaryFile <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests.hmap (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    write-file <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests.hmap
+
+WriteAuxiliaryFile <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests-project-headers.hmap (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    write-file <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests-project-headers.hmap
+
+WriteAuxiliaryFile <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests-all-target-headers.hmap (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    write-file <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests-all-target-headers.hmap
+
+WriteAuxiliaryFile <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests-all-non-framework-target-headers.hmap (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    write-file <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests-all-non-framework-target-headers.hmap
+
+WriteAuxiliaryFile <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests-own-target-headers.hmap (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    write-file <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests-own-target-headers.hmap
+
+WriteAuxiliaryFile <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests-generated-files.hmap (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    write-file <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests-generated-files.hmap
+
+WriteAuxiliaryFile <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests.DependencyStaticMetadataFileList (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    write-file <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests.DependencyStaticMetadataFileList
+
+WriteAuxiliaryFile <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/x86_64/QuestifyAppUnitTests_const_extract_protocols.json (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    write-file <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/x86_64/QuestifyAppUnitTests_const_extract_protocols.json
+
+WriteAuxiliaryFile <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests.DependencyMetadataFileList (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    write-file <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests.DependencyMetadataFileList
+
+WriteAuxiliaryFile <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/x86_64/QuestifyAppUnitTests.SwiftFileList (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    write-file <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/x86_64/QuestifyAppUnitTests.SwiftFileList
+
+WriteAuxiliaryFile <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/x86_64/QuestifyAppUnitTests.SwiftConstValuesFileList (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    write-file <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/x86_64/QuestifyAppUnitTests.SwiftConstValuesFileList
+
+WriteAuxiliaryFile <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/x86_64/QuestifyAppUnitTests.LinkFileList (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    write-file <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/x86_64/QuestifyAppUnitTests.LinkFileList
+
+WriteAuxiliaryFile <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/x86_64/QuestifyAppUnitTests-OutputFileMap.json (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    write-file <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/x86_64/QuestifyAppUnitTests-OutputFileMap.json
+
+WriteAuxiliaryFile <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests.SwiftFileList (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    write-file <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests.SwiftFileList
+
+WriteAuxiliaryFile <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests_const_extract_protocols.json (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    write-file <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests_const_extract_protocols.json
+
+WriteAuxiliaryFile <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests.SwiftConstValuesFileList (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    write-file <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests.SwiftConstValuesFileList
+
+WriteAuxiliaryFile <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests.LinkFileList (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    write-file <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests.LinkFileList
+
+WriteAuxiliaryFile <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests-OutputFileMap.json (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    write-file <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests-OutputFileMap.json
+
+MkDir <DERIVED_DATA_7691588E>/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    /bin/mkdir -p <DERIVED_DATA_7691588E>/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns/QuestifyAppUnitTests.xctest
+
+MkDir <DERIVED_DATA_7691588E>/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns (in target 'Questify' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    /bin/mkdir -p <DERIVED_DATA_7691588E>/Build/Products/Debug-iphonesimulator/Questify.app/PlugIns
+
+VerifyModule <DERIVED_DATA_7691588E>/Build/Products/Debug-iphonesimulator/GLTFKit2.framework (in target 'GLTFKit2' from project 'GLTFKit2')
+    cd <SCRATCH_TYPECHECK_7691588E>/Vendor/GLTFKit2
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/modules-verifier <DERIVED_DATA_7691588E>/Build/Products/Debug-iphonesimulator/GLTFKit2.framework --clang /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang --diagnostic-filename-map <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/GLTFKit2.build/Debug-iphonesimulator/GLTFKit2.build/GLTFKit2-diagnostic-filename-map.json --sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk --intermediates-directory <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/GLTFKit2.build/Debug-iphonesimulator/GLTFKit2.build/VerifyModule --target arm64-apple-ios17.0-simulator --target x86_64-apple-ios17.0-simulator --language objective-c --language objective-c++ --standard gnu17 --standard c++11
+
+SwiftDriver QuestifyAppUnitTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name QuestifyAppUnitTests -Onone @<DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests.SwiftFileList -DDEBUG -continue-building-after-errors -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path <DERIVED_DATA_7691588E>/ModuleCache.noindex -Xfrontend -serialize-debugging-options -index-store-path <DERIVED_DATA_7691588E>/Index.noindex/DataStore -swift-version 5 -I <DERIVED_DATA_7691588E>/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F <DERIVED_DATA_7691588E>/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk/Developer/Library/Frameworks -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc <DERIVED_DATA_7691588E>/SDKStatCaches.noindex/iphonesimulator27.1-24A94232-35d3147121984ba087c28d913653d626.sdkstatcache -output-file-map <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path <DERIVED_DATA_7691588E>/ModuleCache.noindex -sdk-module-cache-path <DERIVED_DATA_7691588E>/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file <DERIVED_DATA_7691588E>/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests_const_extract_protocols.json -Xcc -iquote -Xcc <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests-generated-files.hmap -Xcc -I<DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests-own-target-headers.hmap -Xcc -I<DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify-ef28c60dc4daa507f57df7fab0e5b529-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests-project-headers.hmap -Xcc -I<DERIVED_DATA_7691588E>/Build/Products/Debug-iphonesimulator/include -Xcc -I<DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/DerivedSources-normal/arm64 -Xcc -I<DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/DerivedSources/arm64 -Xcc -I<DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/DerivedSources -emit-objc-header -emit-objc-header-path <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests-Swift.h -working-directory <SCRATCH_TYPECHECK_7691588E> -experimental-emit-module-separately -disable-cmo
+
+SwiftDriver QuestifyAppUnitTests normal x86_64 com.apple.xcode.tools.swift.compiler (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name QuestifyAppUnitTests -Onone @<DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/x86_64/QuestifyAppUnitTests.SwiftFileList -DDEBUG -continue-building-after-errors -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk -target x86_64-apple-ios17.0-simulator -g -module-cache-path <DERIVED_DATA_7691588E>/ModuleCache.noindex -Xfrontend -serialize-debugging-options -index-store-path <DERIVED_DATA_7691588E>/Index.noindex/DataStore -swift-version 5 -I <DERIVED_DATA_7691588E>/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F <DERIVED_DATA_7691588E>/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk/Developer/Library/Frameworks -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc <DERIVED_DATA_7691588E>/SDKStatCaches.noindex/iphonesimulator27.1-24A94232-35d3147121984ba087c28d913653d626.sdkstatcache -output-file-map <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/x86_64/QuestifyAppUnitTests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path <DERIVED_DATA_7691588E>/ModuleCache.noindex -sdk-module-cache-path <DERIVED_DATA_7691588E>/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/x86_64/QuestifyAppUnitTests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/x86_64/QuestifyAppUnitTests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file <DERIVED_DATA_7691588E>/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/x86_64/QuestifyAppUnitTests_const_extract_protocols.json -Xcc -iquote -Xcc <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests-generated-files.hmap -Xcc -I<DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests-own-target-headers.hmap -Xcc -I<DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify-ef28c60dc4daa507f57df7fab0e5b529-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests-project-headers.hmap -Xcc -I<DERIVED_DATA_7691588E>/Build/Products/Debug-iphonesimulator/include -Xcc -I<DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/DerivedSources-normal/x86_64 -Xcc -I<DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/DerivedSources/x86_64 -Xcc -I<DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/DerivedSources -emit-objc-header -emit-objc-header-path <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/x86_64/QuestifyAppUnitTests-Swift.h -working-directory <SCRATCH_TYPECHECK_7691588E> -experimental-emit-module-separately -disable-cmo
+
+SwiftCompile normal arm64 Compiling\ WorkshopPaidInstallReentryTests.swift,\ ActivityPublishingWizardValidationPresentationTests.swift,\ PublishingAIDraftInitialIdeaTests.swift,\ NativeChannelProgressCompositionTests.swift,\ NativeChannelProgressUIJourneyTests.swift,\ NativeBlacklistEntryHostingTests.swift,\ NativeFriendDirectoryNavigationHostingTests.swift,\ NativeFriendRemovalPresentationTests.swift,\ NativeFriendRequestReviewHostingTests.swift,\ NativeChannelHostAncestorFenceTests.swift,\ NativeChannelManagementEntryTests.swift,\ NativeChannelManagementRouteStateTests.swift,\ NativeChannelManagementVisitIsolationTests.swift,\ NativeChannelNotificationAncestorFenceTests.swift,\ NativeWebhookCompositionTests.swift,\ NativeWebhookPresentationTests.swift,\ NativeWebhookVisitBindingTests.swift,\ NativeChannelAttachmentPreviewAssemblyTests.swift,\ NativeChannelAttachmentPreviewRetirementTests.swift,\ NativeChannelMessageHostBindingTests.swift,\ NativeChannelPinLocalizationTests.swift,\ IMChannelSourceCardSubmissionTests.swift,\ NativeChannelHostUIRecoveryGateTests.swift,\ NativeChannelNotificationBindingTests.swift,\ NativeChannelNotificationGlobalNavigationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/WorkshopPaidInstallReentryTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ActivityPublishingWizardValidationPresentationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/PublishingAIDraftInitialIdeaTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelProgressCompositionTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelProgressUIJourneyTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeBlacklistEntryHostingTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeFriendDirectoryNavigationHostingTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeFriendRemovalPresentationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeFriendRequestReviewHostingTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelHostAncestorFenceTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelManagementEntryTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelManagementRouteStateTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelManagementVisitIsolationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelNotificationAncestorFenceTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeWebhookCompositionTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeWebhookPresentationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeWebhookVisitBindingTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelAttachmentPreviewAssemblyTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelAttachmentPreviewRetirementTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelMessageHostBindingTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelPinLocalizationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/IMChannelSourceCardSubmissionTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelHostUIRecoveryGateTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelNotificationBindingTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelNotificationGlobalNavigationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+<SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelProgressUIJourneyTests.swift:63:18: warning: weak variable 'weakOwner' was never mutated; consider changing to 'let' constant [#VariableNeverMutated::WeakMutability]
+ 61 |     func testDroppedEntryOwnerIsNotRetainedByItsCapturedSource() async throws {
+ 62 |         var owner: NativeChannelProgressVisitOwner? = .init()
+ 63 |         weak var weakOwner = owner
+    |                  `- warning: weak variable 'weakOwner' was never mutated; consider changing to 'let' constant [#VariableNeverMutated::WeakMutability]
+ 64 |         let route = NativeChannelManagementRouteState(); route.isPresented = true; let binding = route.binding
+ 65 |         var source: (@MainActor () -> Bool)?
+
+<SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelHostAncestorFenceTests.swift:72:15: error: cannot find type 'NativeChannelRouteMessageHostAuthority' in scope
+ 70 |     let binding: NativeChannelMessageBinding
+ 71 |     let source: RouteMessageHostSource
+ 72 |     let host: NativeChannelRouteMessageHostAuthority
+    |               `- error: cannot find type 'NativeChannelRouteMessageHostAuthority' in scope
+ 73 |     let outer: CompositionHTTPTransport
+ 74 |     let wire: RouteMessageHostWire
+
+<SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelHostAncestorFenceTests.swift:105:27: error: cannot find type 'NativeChannelRouteMessageHostFlow' in scope
+103 |         outer.current = { .init(epoch: 1, accountID: 3, role: "player", token: "fixture-token", viewerRevision: 1) }
+104 |     }
+105 |     func make() throws -> NativeChannelRouteMessageHostFlow {
+    |                           `- error: cannot find type 'NativeChannelRouteMessageHostFlow' in scope
+106 |         try NativeChannelRouteMessageHostBinding.make(context: context, conversation: conversation, authority: host, storage: storage,
+107 |             current: { self.sourceCurrent() && self.host.identity != nil }, onUnauthorized: { self.unauthorized += 1 },
+
+<SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelHostAncestorFenceTests.swift:96:21: error: cannot infer contextual base in reference to member 'init'
+ 94 |             baseURL: c.baseURL, binding: b, authorityRevision: "explicit-source-v1", token: c.session.token))
+ 95 |         source = original
+ 96 |         host = try .init(context: c, viewerRevision: 1, binding: b, source: original, current: { c }, viewer: { 1 }, selected: { original })
+    |                     `- error: cannot infer contextual base in reference to member 'init'
+ 97 |         let hg = try MessagingHistoryReadApproval(context: c, expiresAt: Date().addingTimeInterval(300)); historyGrant = hg
+ 98 |         receiptGrant = try .init(context: c, operation: .receipt, conversationIDs: [9], expiresAt: Date().addingTimeInterval(300))
+
+<SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelHostAncestorFenceTests.swift:106:13: error: cannot find 'NativeChannelRouteMessageHostBinding' in scope
+104 |     }
+105 |     func make() throws -> NativeChannelRouteMessageHostFlow {
+106 |         try NativeChannelRouteMessageHostBinding.make(context: context, conversation: conversation, authority: host, storage: storage,
+    |             `- error: cannot find 'NativeChannelRouteMessageHostBinding' in scope
+107 |             current: { self.sourceCurrent() && self.host.identity != nil }, onUnauthorized: { self.unauthorized += 1 },
+108 |             makeOriginal: { current, unauthorized in
+
+<SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelManagementRouteStateTests.swift:19:18: warning: weak variable 'weakRoot' was never mutated; consider changing to 'let' constant [#VariableNeverMutated::WeakMutability]
+17 |         root?.isPresented = true
+18 |         let binding = root!.binding
+19 |         weak var weakRoot = root
+   |                  `- warning: weak variable 'weakRoot' was never mutated; consider changing to 'let' constant [#VariableNeverMutated::WeakMutability]
+20 |         XCTAssertTrue(binding.wrappedValue)
+21 |         root = nil
+
+<SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelManagementVisitIsolationTests.swift:103:18: warning: weak variable 'weakOwner' was never mutated; consider changing to 'let' constant [#VariableNeverMutated::WeakMutability]
+101 |         let route = selection!.route(for: 9, parentCurrent: { true })
+102 |         let path = selection!.binding
+103 |         weak var weakOwner = selection
+    |                  `- warning: weak variable 'weakOwner' was never mutated; consider changing to 'let' constant [#VariableNeverMutated::WeakMutability]
+104 |         selection = nil
+105 |         XCTAssertNil(weakOwner)
+
+<SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelNotificationAncestorFenceTests.swift:69:13: error: cannot find 'NativeChannelAncestorNotificationBinding' in scope
+ 67 |     }
+ 68 |     func make(scope: NativeChannelNotificationScope?) throws -> NativeChannelNotificationCoordinator {
+ 69 |         try NativeChannelAncestorNotificationBinding.make(context: context, storage: storage, scope: scope, makeDispatcher: { journal in
+    |             `- error: cannot find 'NativeChannelAncestorNotificationBinding' in scope
+ 70 |             self.wire.journal = journal
+ 71 |             return try .init(context: self.context, viewerRevision: 2, source: self.source, journal: journal,
+
+<SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelNotificationAncestorFenceTests.swift:71:25: error: cannot infer contextual base in reference to member 'init'
+ 69 |         try NativeChannelAncestorNotificationBinding.make(context: context, storage: storage, scope: scope, makeDispatcher: { journal in
+ 70 |             self.wire.journal = journal
+ 71 |             return try .init(context: self.context, viewerRevision: 2, source: self.source, journal: journal,
+    |                         `- error: cannot infer contextual base in reference to member 'init'
+ 72 |                              underlying: self.wire, current: { self.currentVisit() ? self.context : nil }, viewer: { 2 }, selected: { self.source })
+ 73 |         })
+
+<SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeWebhookVisitBindingTests.swift:23:18: warning: weak variable 'weakOwner' was never mutated; consider changing to 'let' constant [#VariableNeverMutated::WeakMutability]
+21 |         var owner: NativeWebhookCoordinator? = makeOwner(provider: provider, transport: transport, journal: journal)
+22 |         XCTAssertTrue(visit.bind(try XCTUnwrap(owner)))
+23 |         weak var weakOwner = owner
+   |                  `- warning: weak variable 'weakOwner' was never mutated; consider changing to 'let' constant [#VariableNeverMutated::WeakMutability]
+24 |         owner = nil
+25 |         XCTAssertNil(weakOwner); XCTAssertFalse(visit.isCurrent)
+
+<SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/IMChannelSourceCardSubmissionTests.swift:12:41: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 10 |             ? .staticLocation(try .init(name: "Fixture", address: "", latitude: 31, longitude: 121, datum: "WGS84"))
+ 11 |             : .route(topicID: 11)
+ 12 |         let model = IMExpandedViewModel(try IMExpandedCoordinator(scope: scope, writer: writer))
+    |                                         `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 13 |         model.observe()
+ 14 |         return (model, .send(try IMOutgoingIntent(scope: scope, payload: payload)))
+
+[#UnnecessaryEffectMarker]: <https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker>
+[#VariableNeverMutated]: <https://docs.swift.org/compiler/documentation/diagnostics/variable-never-mutated>
+[#WeakMutability]: <https://docs.swift.org/compiler/documentation/diagnostics/weak-mutability>
+Failed frontend command:
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/WorkshopPaidInstallReentryTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile WorkshopPaidInstallReentryTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ActivityPublishingWizardValidationPresentationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ActivityPublishingWizardValidationPresentationTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/PublishingAIDraftInitialIdeaTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile PublishingAIDraftInitialIdeaTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelProgressCompositionTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile NativeChannelProgressCompositionTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelProgressUIJourneyTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile NativeChannelProgressUIJourneyTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeBlacklistEntryHostingTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile NativeBlacklistEntryHostingTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeFriendDirectoryNavigationHostingTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile NativeFriendDirectoryNavigationHostingTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeFriendRemovalPresentationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile NativeFriendRemovalPresentationTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeFriendRequestReviewHostingTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile NativeFriendRequestReviewHostingTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelHostAncestorFenceTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile NativeChannelHostAncestorFenceTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelManagementEntryTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile NativeChannelManagementEntryTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelManagementRouteStateTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile NativeChannelManagementRouteStateTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelManagementVisitIsolationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile NativeChannelManagementVisitIsolationTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelNotificationAncestorFenceTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile NativeChannelNotificationAncestorFenceTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeWebhookCompositionTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile NativeWebhookCompositionTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeWebhookPresentationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile NativeWebhookPresentationTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeWebhookVisitBindingTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile NativeWebhookVisitBindingTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelAttachmentPreviewAssemblyTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile NativeChannelAttachmentPreviewAssemblyTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelAttachmentPreviewRetirementTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile NativeChannelAttachmentPreviewRetirementTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelMessageHostBindingTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile NativeChannelMessageHostBindingTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelPinLocalizationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile NativeChannelPinLocalizationTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/IMChannelSourceCardSubmissionTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile IMChannelSourceCardSubmissionTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelHostUIRecoveryGateTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile NativeChannelHostUIRecoveryGateTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelNotificationBindingTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile NativeChannelNotificationBindingTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelNotificationGlobalNavigationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile NativeChannelNotificationGlobalNavigationTests.swift
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend -frontend -c -filelist <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/sources-2 -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/WorkshopPaidInstallReentryTests.swift -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ActivityPublishingWizardValidationPresentationTests.swift -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/PublishingAIDraftInitialIdeaTests.swift -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelProgressCompositionTests.swift -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelProgressUIJourneyTests.swift -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeBlacklistEntryHostingTests.swift -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeFriendDirectoryNavigationHostingTests.swift -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeFriendRemovalPresentationTests.swift -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeFriendRequestReviewHostingTests.swift -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelHostAncestorFenceTests.swift -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelManagementEntryTests.swift -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelManagementRouteStateTests.swift -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelManagementVisitIsolationTests.swift -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelNotificationAncestorFenceTests.swift -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeWebhookCompositionTests.swift -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeWebhookPresentationTests.swift -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeWebhookVisitBindingTests.swift -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelAttachmentPreviewAssemblyTests.swift -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelAttachmentPreviewRetirementTests.swift -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelMessageHostBindingTests.swift -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelPinLocalizationTests.swift -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/IMChannelSourceCardSubmissionTests.swift -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelHostUIRecoveryGateTests.swift -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelNotificationBindingTests.swift -primary-file <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelNotificationGlobalNavigationTests.swift -supplementary-output-file-map <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/supplementaryOutputs-2 -target arm64-apple-ios17.0-simulator -module-can-import Questify -disable-cross-import-overlay-search -swift-module-cross-import Darwin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr/include/Darwin.swiftcrossimport/xlocale.swiftoverlay -swift-module-cross-import PhotosUI /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Library/Frameworks/PhotosUI.framework/Modules/PhotosUI.swiftcrossimport/SwiftUI.swiftoverlay -swift-module-cross-import PhotosUI /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Library/Frameworks/PhotosUI.framework/Modules/PhotosUI.swiftcrossimport/WidgetKit.swiftoverlay -swift-module-cross-import PhotosUI /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk/System/Library/Frameworks/PhotosUI.framework/Modules/PhotosUI.swiftcrossimport/SwiftUI.swiftoverlay -swift-module-cross-import PhotosUI /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk/System/Library/Frameworks/PhotosUI.framework/Modules/PhotosUI.swiftcrossimport/WidgetKit.swiftoverlay -swift-module-cross-import SceneKit /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Library/Frameworks/SceneKit.framework/Modules/SceneKit.swiftcrossimport/SwiftUI.swiftoverlay -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libAppIntentsMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#AppIntentsMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libFoundationMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#FoundationMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libObservationMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#ObservationMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libPreviewsMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#PreviewsMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libSwiftMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#SwiftMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libSwiftUIMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#SwiftUIMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libTipKitMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#TipKitMacros -disable-implicit-swift-modules -Xcc -fno-implicit-modules -Xcc -fno-implicit-module-maps -explicit-swift-module-map-file <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests-dependencies-1.json -Xllvm -aarch64-use-tbi -enable-objc-interop -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk -I <DERIVED_DATA_7691588E>/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F <DERIVED_DATA_7691588E>/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk/Developer/Library/Frameworks -module-cache-path <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -no-color-diagnostics -Xcc -fno-color-diagnostics -g -debug-info-format\=dwarf -dwarf-version\=4 -swift-version 5 -Onone -D DEBUG -serialize-debugging-options -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -empty-abi-descriptor -validate-clang-modules-once -clang-build-session-file <DERIVED_DATA_7691588E>/ModuleCache.noindex/Session.modulevalidation -Xcc -working-directory -Xcc <SCRATCH_TYPECHECK_7691588E> -enable-anonymous-context-mangled-names -file-compilation-dir <SCRATCH_TYPECHECK_7691588E> -Xcc -ivfsstatcache -Xcc <DERIVED_DATA_7691588E>/SDKStatCaches.noindex/iphonesimulator27.1-24A94232-35d3147121984ba087c28d913653d626.sdkstatcache -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -Xcc -iquote -Xcc <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests-generated-files.hmap -Xcc -I<DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests-own-target-headers.hmap -Xcc -I<DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/Questify-ef28c60dc4daa507f57df7fab0e5b529-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/QuestifyAppUnitTests-project-headers.hmap -Xcc -I<DERIVED_DATA_7691588E>/Build/Products/Debug-iphonesimulator/include -Xcc -I<DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/DerivedSources-normal/arm64 -Xcc -I<DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/DerivedSources/arm64 -Xcc -I<DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/DerivedSources -no-auto-bridging-header-chaining -module-name QuestifyAppUnitTests -const-gather-protocols-file <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests_const_extract_protocols.json -disable-clang-spi -clang-target arm64-apple-ios27.1-simulator -target-sdk-version 27.1 -target-sdk-name iphonesimulator27.1 -in-process-plugin-server-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/libSwiftInProcPluginServer.dylib -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/WorkshopPaidInstallReentryTests.o -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/ActivityPublishingWizardValidationPresentationTests.o -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/PublishingAIDraftInitialIdeaTests.o -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelProgressCompositionTests.o -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelProgressUIJourneyTests.o -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeBlacklistEntryHostingTests.o -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeFriendDirectoryNavigationHostingTests.o -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeFriendRemovalPresentationTests.o -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeFriendRequestReviewHostingTests.o -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelHostAncestorFenceTests.o -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelManagementEntryTests.o -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelManagementRouteStateTests.o -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelManagementVisitIsolationTests.o -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelNotificationAncestorFenceTests.o -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeWebhookCompositionTests.o -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeWebhookPresentationTests.o -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeWebhookVisitBindingTests.o -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelAttachmentPreviewAssemblyTests.o -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelAttachmentPreviewRetirementTests.o -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelMessageHostBindingTests.o -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelPinLocalizationTests.o -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/IMChannelSourceCardSubmissionTests.o -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelHostUIRecoveryGateTests.o -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelNotificationBindingTests.o -o <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelNotificationGlobalNavigationTests.o -debug-module-path <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/QuestifyAppUnitTests.swiftmodule -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/WorkshopPaidInstallReentryTests.o -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/ActivityPublishingWizardValidationPresentationTests.o -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/PublishingAIDraftInitialIdeaTests.o -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelProgressCompositionTests.o -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelProgressUIJourneyTests.o -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeBlacklistEntryHostingTests.o -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeFriendDirectoryNavigationHostingTests.o -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeFriendRemovalPresentationTests.o -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeFriendRequestReviewHostingTests.o -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelHostAncestorFenceTests.o -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelManagementEntryTests.o -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelManagementRouteStateTests.o -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelManagementVisitIsolationTests.o -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelNotificationAncestorFenceTests.o -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeWebhookCompositionTests.o -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeWebhookPresentationTests.o -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeWebhookVisitBindingTests.o -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelAttachmentPreviewAssemblyTests.o -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelAttachmentPreviewRetirementTests.o -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelMessageHostBindingTests.o -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelPinLocalizationTests.o -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/IMChannelSourceCardSubmissionTests.o -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelHostUIRecoveryGateTests.o -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelNotificationBindingTests.o -index-unit-output-path /Questify.build/Debug-iphonesimulator/QuestifyAppUnitTests.build/Objects-normal/arm64/NativeChannelNotificationGlobalNavigationTests.o -index-store-path <DERIVED_DATA_7691588E>/Index.noindex/DataStore -index-system-modules
+SwiftCompile normal arm64 Compiling\ GrowthLeaderboardExploreViewTests.swift,\ HapticFeedbackAndMotionReduceSectionViewTests.swift,\ HomeFeedReturnModelTests.swift,\ HomeReturnAndCityDeltaSectionViewTests.swift,\ IMAndSocialSafetyParitySectionViewTests.swift,\ IMConversationReadAllTests.swift,\ IMConversationReplyPolicyAppTests.swift,\ IMConversationRowActionsTests.swift,\ ImageAndVideoDiskCacheBudgetSectionViewTests.swift,\ InAppCustomerSupportAndFeedbackSectionViewTests.swift,\ IntegratedNativeAcceptanceFactoryTests.swift,\ IntegratedReadCompositionTests.swift,\ KeychainAndBiometricSessionSecuritySectionViewTests.swift,\ LBSGeofenceAndBatteryThermalSectionViewTests.swift,\ LocalizationCompletenessSectionViewTests.swift,\ LocalizationPluralAndFormatterConsistencySectionViewTests.swift,\ LocationShareAndSideQuestViewTests.swift,\ ManualMapCompositionTests.swift,\ MapPublicLayerAppIntegrationTests.swift,\ MapVisualAndMerchantGameViewTests.swift,\ MapVisualMV01ToMV41ComplianceSectionViewTests.swift,\ MasterReleaseSignoffDashboardViewTests.swift,\ MasterSevenDayLaunchCommandCenterViewTests.swift,\ MemberSubscriptionAndOrderInvoiceSectionViewTests.swift,\ MerchantAcceptedProjectEntryTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/GrowthLeaderboardExploreViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/HapticFeedbackAndMotionReduceSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/HomeFeedReturnModelTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/HomeReturnAndCityDeltaSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/IMAndSocialSafetyParitySectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/IMConversationReadAllTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/IMConversationReplyPolicyAppTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/IMConversationRowActionsTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ImageAndVideoDiskCacheBudgetSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/InAppCustomerSupportAndFeedbackSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/IntegratedNativeAcceptanceFactoryTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/IntegratedReadCompositionTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/KeychainAndBiometricSessionSecuritySectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/LBSGeofenceAndBatteryThermalSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/LocalizationCompletenessSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/LocalizationPluralAndFormatterConsistencySectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/LocationShareAndSideQuestViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ManualMapCompositionTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MapPublicLayerAppIntegrationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MapVisualAndMerchantGameViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MapVisualMV01ToMV41ComplianceSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MasterReleaseSignoffDashboardViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MasterSevenDayLaunchCommandCenterViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MemberSubscriptionAndOrderInvoiceSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantAcceptedProjectEntryTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/GrowthLeaderboardExploreViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile GrowthLeaderboardExploreViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/HapticFeedbackAndMotionReduceSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile HapticFeedbackAndMotionReduceSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/HomeFeedReturnModelTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile HomeFeedReturnModelTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/HomeReturnAndCityDeltaSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile HomeReturnAndCityDeltaSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/IMAndSocialSafetyParitySectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile IMAndSocialSafetyParitySectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/IMConversationReadAllTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile IMConversationReadAllTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/IMConversationReplyPolicyAppTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile IMConversationReplyPolicyAppTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/IMConversationRowActionsTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile IMConversationRowActionsTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ImageAndVideoDiskCacheBudgetSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ImageAndVideoDiskCacheBudgetSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/InAppCustomerSupportAndFeedbackSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile InAppCustomerSupportAndFeedbackSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/IntegratedNativeAcceptanceFactoryTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile IntegratedNativeAcceptanceFactoryTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/IntegratedReadCompositionTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile IntegratedReadCompositionTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/KeychainAndBiometricSessionSecuritySectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile KeychainAndBiometricSessionSecuritySectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/LBSGeofenceAndBatteryThermalSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile LBSGeofenceAndBatteryThermalSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/LocalizationCompletenessSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile LocalizationCompletenessSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/LocalizationPluralAndFormatterConsistencySectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile LocalizationPluralAndFormatterConsistencySectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/LocationShareAndSideQuestViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile LocationShareAndSideQuestViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ManualMapCompositionTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ManualMapCompositionTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MapPublicLayerAppIntegrationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MapPublicLayerAppIntegrationTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MapVisualAndMerchantGameViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MapVisualAndMerchantGameViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MapVisualMV01ToMV41ComplianceSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MapVisualMV01ToMV41ComplianceSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MasterReleaseSignoffDashboardViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MasterReleaseSignoffDashboardViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MasterSevenDayLaunchCommandCenterViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MasterSevenDayLaunchCommandCenterViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MemberSubscriptionAndOrderInvoiceSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MemberSubscriptionAndOrderInvoiceSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantAcceptedProjectEntryTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantAcceptedProjectEntryTests.swift
+
+SwiftCompile normal arm64 Compiling\ NativeChannelReportRecoveryEntryTests.swift,\ NativeNotificationPermissionStatusPresentationTests.swift,\ ParticipantRecoveryFeedbackTests.swift,\ GrowthNormalContractSelectionTests.swift,\ GrowthAuditAvatarDefaultsTests.swift,\ NativeChannelAppealCompositionTests.swift,\ GrowthNormalReadTransportTests.swift,\ ParticipantFormLateActionTests.swift,\ ProfileParticipantDurableHostTests.swift,\ ProfileParticipantHostAdmissionTests.swift,\ ProfileParticipantHostRecoveryTests.swift,\ PersonalLocationShareNormalEntryTests.swift,\ AccessibilityReadinessSectionViewTests.swift,\ AccountDeletionAndGDPRPIPLSectionViewTests.swift,\ ActivityAssociatedPlaysViewTests.swift,\ ActivityCoverAuthoringOwnerTests.swift,\ ActivityEditingOwnerTests.swift,\ ActivityListScopeRecoveryTests.swift,\ ActivityPublishingLocalClearTests.swift,\ ActivityPublishingTimeRangeTests.swift,\ ActivityRequiredClubSelectionViewTests.swift,\ ActivityTemplateSelectionOwnerTests.swift,\ AppClipAndQRCodeHandshakeSectionViewTests.swift,\ AppCompositionRootTests.swift,\ AppSessionCompositionDiagnosticsSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelReportRecoveryEntryTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeNotificationPermissionStatusPresentationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ParticipantRecoveryFeedbackTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/GrowthNormalContractSelectionTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/GrowthAuditAvatarDefaultsTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelAppealCompositionTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/GrowthNormalReadTransportTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ParticipantFormLateActionTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ProfileParticipantDurableHostTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ProfileParticipantHostAdmissionTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ProfileParticipantHostRecoveryTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/PersonalLocationShareNormalEntryTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AccessibilityReadinessSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AccountDeletionAndGDPRPIPLSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ActivityAssociatedPlaysViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ActivityCoverAuthoringOwnerTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ActivityEditingOwnerTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ActivityListScopeRecoveryTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ActivityPublishingLocalClearTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ActivityPublishingTimeRangeTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ActivityRequiredClubSelectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ActivityTemplateSelectionOwnerTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AppClipAndQRCodeHandshakeSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AppCompositionRootTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AppSessionCompositionDiagnosticsSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelReportRecoveryEntryTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile NativeChannelReportRecoveryEntryTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeNotificationPermissionStatusPresentationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile NativeNotificationPermissionStatusPresentationTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ParticipantRecoveryFeedbackTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ParticipantRecoveryFeedbackTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/GrowthNormalContractSelectionTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile GrowthNormalContractSelectionTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/GrowthAuditAvatarDefaultsTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile GrowthAuditAvatarDefaultsTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelAppealCompositionTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile NativeChannelAppealCompositionTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/GrowthNormalReadTransportTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile GrowthNormalReadTransportTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ParticipantFormLateActionTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ParticipantFormLateActionTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ProfileParticipantDurableHostTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ProfileParticipantDurableHostTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ProfileParticipantHostAdmissionTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ProfileParticipantHostAdmissionTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ProfileParticipantHostRecoveryTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ProfileParticipantHostRecoveryTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/PersonalLocationShareNormalEntryTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile PersonalLocationShareNormalEntryTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AccessibilityReadinessSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile AccessibilityReadinessSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AccountDeletionAndGDPRPIPLSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile AccountDeletionAndGDPRPIPLSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ActivityAssociatedPlaysViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ActivityAssociatedPlaysViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ActivityCoverAuthoringOwnerTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ActivityCoverAuthoringOwnerTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ActivityEditingOwnerTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ActivityEditingOwnerTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ActivityListScopeRecoveryTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ActivityListScopeRecoveryTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ActivityPublishingLocalClearTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ActivityPublishingLocalClearTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ActivityPublishingTimeRangeTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ActivityPublishingTimeRangeTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ActivityRequiredClubSelectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ActivityRequiredClubSelectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ActivityTemplateSelectionOwnerTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ActivityTemplateSelectionOwnerTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AppClipAndQRCodeHandshakeSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile AppClipAndQRCodeHandshakeSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AppCompositionRootTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile AppCompositionRootTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AppSessionCompositionDiagnosticsSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile AppSessionCompositionDiagnosticsSectionViewTests.swift
+
+SwiftCompile normal arm64 Compiling\ ClubOwnerFundsFlowTests.swift,\ ClubPostDiscussionReadTests.swift,\ ClubPostEditExitControlTests.swift,\ ClubPostImagePickerTests.swift,\ ClubProfileChoiceFlowTests.swift,\ ClubProjectLaunchViewTests.swift,\ ClubRoleAssignmentPickerTests.swift,\ ClubRoleManagementReturnTests.swift,\ ClubRosterInteractionTests.swift,\ ClubSeriesLeadPickerTests.swift,\ ClubSeriesOccurrenceBrowserTests.swift,\ ClubSeriesScheduleEditorTests.swift,\ ClubSessionQuickStartViewTests.swift,\ ClubSettlementDetailTests.swift,\ ClubStatsOverviewReadTests.swift,\ ClubStoryNavigationTests.swift,\ ClubTerminalSessionFlowTests.swift,\ ClubTopicMerchantContentTests.swift,\ ClubTopicSettingsReturnTests.swift,\ ColdStartLaunchLatencyAndPrewarmSectionViewTests.swift,\ CommerceAndWalletSafetySectionViewTests.swift,\ CommerceOrderLifecycleSectionViewTests.swift,\ CompleteWave1To3AndReformV9ShowcaseViewTests.swift,\ ContentDraftDeviceStorageAcceptanceTests.swift,\ ContentDraftSystemStorageTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubOwnerFundsFlowTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubPostDiscussionReadTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubPostEditExitControlTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubPostImagePickerTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubProfileChoiceFlowTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubProjectLaunchViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubRoleAssignmentPickerTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubRoleManagementReturnTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubRosterInteractionTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubSeriesLeadPickerTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubSeriesOccurrenceBrowserTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubSeriesScheduleEditorTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubSessionQuickStartViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubSettlementDetailTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubStatsOverviewReadTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubStoryNavigationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubTerminalSessionFlowTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubTopicMerchantContentTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubTopicSettingsReturnTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ColdStartLaunchLatencyAndPrewarmSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CommerceAndWalletSafetySectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CommerceOrderLifecycleSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CompleteWave1To3AndReformV9ShowcaseViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ContentDraftDeviceStorageAcceptanceTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ContentDraftSystemStorageTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubOwnerFundsFlowTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubOwnerFundsFlowTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubPostDiscussionReadTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubPostDiscussionReadTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubPostEditExitControlTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubPostEditExitControlTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubPostImagePickerTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubPostImagePickerTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubProfileChoiceFlowTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubProfileChoiceFlowTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubProjectLaunchViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubProjectLaunchViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubRoleAssignmentPickerTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubRoleAssignmentPickerTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubRoleManagementReturnTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubRoleManagementReturnTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubRosterInteractionTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubRosterInteractionTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubSeriesLeadPickerTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubSeriesLeadPickerTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubSeriesOccurrenceBrowserTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubSeriesOccurrenceBrowserTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubSeriesScheduleEditorTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubSeriesScheduleEditorTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubSessionQuickStartViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubSessionQuickStartViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubSettlementDetailTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubSettlementDetailTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubStatsOverviewReadTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubStatsOverviewReadTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubStoryNavigationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubStoryNavigationTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubTerminalSessionFlowTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubTerminalSessionFlowTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubTopicMerchantContentTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubTopicMerchantContentTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubTopicSettingsReturnTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubTopicSettingsReturnTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ColdStartLaunchLatencyAndPrewarmSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ColdStartLaunchLatencyAndPrewarmSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CommerceAndWalletSafetySectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile CommerceAndWalletSafetySectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CommerceOrderLifecycleSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile CommerceOrderLifecycleSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CompleteWave1To3AndReformV9ShowcaseViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile CompleteWave1To3AndReformV9ShowcaseViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ContentDraftDeviceStorageAcceptanceTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ContentDraftDeviceStorageAcceptanceTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ContentDraftSystemStorageTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ContentDraftSystemStorageTests.swift
+
+SwiftCompile normal arm64 Compiling\ MerchantAftercareDecisionChangeTests.swift,\ MerchantAftercareEvidenceFlowTests.swift,\ MerchantAndPublishAuthoringSectionViewTests.swift,\ MerchantBusinessAccessModelTests.swift,\ MerchantBusinessFixtureOwnershipTests.swift,\ MerchantBusinessListModelTests.swift,\ MerchantCircleSupplyDraftTests.swift,\ MerchantCityAddressChoiceTests.swift,\ MerchantCityTemplateHandoffPresentationTests.swift,\ MerchantCoopFieldSessionTests.swift,\ MerchantCoopStableOwnerTests.swift,\ MerchantCustomerContactFlowTests.swift,\ MerchantCustomerContactSummaryTests.swift,\ MerchantCustomerDetailSectionsTests.swift,\ MerchantCustomerNoteDraftTests.swift,\ MerchantDecorAndShopApplyWizardSectionViewTests.swift,\ MerchantDecorTagPickerTests.swift,\ MerchantFeaturedActivityPickerTests.swift,\ MerchantFeaturedClearControlTests.swift,\ MerchantFieldStableOwnerTests.swift,\ MerchantGalleryBatchTests.swift,\ MerchantGalleryGridLayoutTests.swift,\ MerchantImageCropAppTests.swift,\ MerchantInsightProfileSummaryTests.swift,\ MerchantLedgerInboxNavigationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantAftercareDecisionChangeTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantAftercareEvidenceFlowTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantAndPublishAuthoringSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantBusinessAccessModelTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantBusinessFixtureOwnershipTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantBusinessListModelTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantCircleSupplyDraftTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantCityAddressChoiceTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantCityTemplateHandoffPresentationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantCoopFieldSessionTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantCoopStableOwnerTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantCustomerContactFlowTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantCustomerContactSummaryTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantCustomerDetailSectionsTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantCustomerNoteDraftTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantDecorAndShopApplyWizardSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantDecorTagPickerTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantFeaturedActivityPickerTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantFeaturedClearControlTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantFieldStableOwnerTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantGalleryBatchTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantGalleryGridLayoutTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantImageCropAppTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantInsightProfileSummaryTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantLedgerInboxNavigationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantAftercareDecisionChangeTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantAftercareDecisionChangeTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantAftercareEvidenceFlowTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantAftercareEvidenceFlowTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantAndPublishAuthoringSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantAndPublishAuthoringSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantBusinessAccessModelTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantBusinessAccessModelTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantBusinessFixtureOwnershipTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantBusinessFixtureOwnershipTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantBusinessListModelTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantBusinessListModelTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantCircleSupplyDraftTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantCircleSupplyDraftTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantCityAddressChoiceTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantCityAddressChoiceTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantCityTemplateHandoffPresentationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantCityTemplateHandoffPresentationTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantCoopFieldSessionTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantCoopFieldSessionTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantCoopStableOwnerTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantCoopStableOwnerTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantCustomerContactFlowTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantCustomerContactFlowTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantCustomerContactSummaryTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantCustomerContactSummaryTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantCustomerDetailSectionsTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantCustomerDetailSectionsTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantCustomerNoteDraftTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantCustomerNoteDraftTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantDecorAndShopApplyWizardSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantDecorAndShopApplyWizardSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantDecorTagPickerTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantDecorTagPickerTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantFeaturedActivityPickerTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantFeaturedActivityPickerTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantFeaturedClearControlTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantFeaturedClearControlTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantFieldStableOwnerTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantFieldStableOwnerTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantGalleryBatchTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantGalleryBatchTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantGalleryGridLayoutTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantGalleryGridLayoutTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantImageCropAppTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantImageCropAppTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantInsightProfileSummaryTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantInsightProfileSummaryTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/MerchantLedgerInboxNavigationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile MerchantLedgerInboxNavigationTests.swift
+
+SwiftCompile normal arm64 Compiling\ AppStoreConnectMetadataAndScreenshotSectionViewTests.swift,\ AppStorePrivacyManifestSectionViewTests.swift,\ AppStoreReviewDemoAccountAndFixtureSectionViewTests.swift,\ AppStoreReviewRejectionPreventionSectionViewTests.swift,\ AppStoreSubmissionFinalPreflightGateViewTests.swift,\ AppStoreSubmissionReadinessSectionViewTests.swift,\ ApprovedReleaseAuthorPresentationTests.swift,\ ApprovedReleaseCompositionTests.swift,\ ApprovedReleasePublicationPresentationTests.swift,\ ApprovedTopicFrozenCoverPresentationTests.swift,\ ApprovedTopicReviewCompositionTests.swift,\ ApprovedTopicReviewObservationPresentationTests.swift,\ ApprovedTopicReviewPresentationTests.swift,\ ApprovedTopicReviewRouteBudgetTests.swift,\ ApprovedTopicSelectedCoverPresentationTests.swift,\ AssetPointsAndOrderCancellationSectionViewTests.swift,\ AudioAndMediaPipelineSectionViewTests.swift,\ AuthAndSessionAdmissionSectionViewTests.swift,\ BackendRolloutAllowlistSwitchboardSectionViewTests.swift,\ BackendSyncAndContractGateSectionViewTests.swift,\ BackgroundTaskAndScenePhaseLifecycleSectionViewTests.swift,\ Batches24To27ThreeDocsFullClosureAppUnitTests.swift,\ ChannelAdmissionGovernanceEntryTests.swift,\ ChannelDirectoryTransportInjectionTests.swift,\ CityPlayerReadCompositionTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AppStoreConnectMetadataAndScreenshotSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AppStorePrivacyManifestSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AppStoreReviewDemoAccountAndFixtureSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AppStoreReviewRejectionPreventionSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AppStoreSubmissionFinalPreflightGateViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AppStoreSubmissionReadinessSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ApprovedReleaseAuthorPresentationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ApprovedReleaseCompositionTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ApprovedReleasePublicationPresentationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ApprovedTopicFrozenCoverPresentationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ApprovedTopicReviewCompositionTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ApprovedTopicReviewObservationPresentationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ApprovedTopicReviewPresentationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ApprovedTopicReviewRouteBudgetTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ApprovedTopicSelectedCoverPresentationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AssetPointsAndOrderCancellationSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AudioAndMediaPipelineSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AuthAndSessionAdmissionSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/BackendRolloutAllowlistSwitchboardSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/BackendSyncAndContractGateSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/BackgroundTaskAndScenePhaseLifecycleSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/Batches24To27ThreeDocsFullClosureAppUnitTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ChannelAdmissionGovernanceEntryTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ChannelDirectoryTransportInjectionTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CityPlayerReadCompositionTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AppStoreConnectMetadataAndScreenshotSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile AppStoreConnectMetadataAndScreenshotSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AppStorePrivacyManifestSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile AppStorePrivacyManifestSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AppStoreReviewDemoAccountAndFixtureSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile AppStoreReviewDemoAccountAndFixtureSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AppStoreReviewRejectionPreventionSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile AppStoreReviewRejectionPreventionSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AppStoreSubmissionFinalPreflightGateViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile AppStoreSubmissionFinalPreflightGateViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AppStoreSubmissionReadinessSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile AppStoreSubmissionReadinessSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ApprovedReleaseAuthorPresentationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ApprovedReleaseAuthorPresentationTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ApprovedReleaseCompositionTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ApprovedReleaseCompositionTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ApprovedReleasePublicationPresentationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ApprovedReleasePublicationPresentationTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ApprovedTopicFrozenCoverPresentationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ApprovedTopicFrozenCoverPresentationTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ApprovedTopicReviewCompositionTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ApprovedTopicReviewCompositionTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ApprovedTopicReviewObservationPresentationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ApprovedTopicReviewObservationPresentationTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ApprovedTopicReviewPresentationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ApprovedTopicReviewPresentationTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ApprovedTopicReviewRouteBudgetTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ApprovedTopicReviewRouteBudgetTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ApprovedTopicSelectedCoverPresentationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ApprovedTopicSelectedCoverPresentationTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AssetPointsAndOrderCancellationSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile AssetPointsAndOrderCancellationSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AudioAndMediaPipelineSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile AudioAndMediaPipelineSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/AuthAndSessionAdmissionSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile AuthAndSessionAdmissionSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/BackendRolloutAllowlistSwitchboardSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile BackendRolloutAllowlistSwitchboardSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/BackendSyncAndContractGateSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile BackendSyncAndContractGateSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/BackgroundTaskAndScenePhaseLifecycleSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile BackgroundTaskAndScenePhaseLifecycleSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/Batches24To27ThreeDocsFullClosureAppUnitTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile Batches24To27ThreeDocsFullClosureAppUnitTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ChannelAdmissionGovernanceEntryTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ChannelAdmissionGovernanceEntryTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ChannelDirectoryTransportInjectionTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ChannelDirectoryTransportInjectionTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CityPlayerReadCompositionTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile CityPlayerReadCompositionTests.swift
+
+SwiftCompile normal arm64 Compiling\ ContextualOperationFactoryAppTests.swift,\ CoopFinancePresentationClosureTests.swift,\ CoopInvitationReadRecoveryTests.swift,\ CoopPerkPickerReadReturnTests.swift,\ CoopPoolApplicationEditorTests.swift,\ CoopRelationDiscoveryInitializationTests.swift,\ CoopRelationPresentationOwnerTests.swift,\ CoopRelationProfileReadTests.swift,\ CouponAndSponsoredRewardSafetySectionViewTests.swift,\ CouponRuntimeCompositionTests.swift,\ CouponValidityRangeEditorTests.swift,\ CrashResilienceAndMetricKitDiagnosticsSectionViewTests.swift,\ CreatorCropExportAppTests.swift,\ DeepLinkSafetyDiagnosticsSectionViewTests.swift,\ DeepLinkToMiniProgramPathTranslatorSectionViewTests.swift,\ DeviceOrientationAndSplitViewAdaptationSectionViewTests.swift,\ EndToEndReleaseCandidateGateSectionViewTests.swift,\ EnvironmentBranchAndRewardLedgerViewTests.swift,\ ExplorationPrivateToolsAndCapsuleSectionViewTests.swift,\ FinalReleaseSignoffAndZeroGapCertificateViewTests.swift,\ FinalThreeDocumentAndSevenDayGoalCompletionViewTests.swift,\ FinalTwentyBatchMasterCompletionViewTests.swift,\ GameJournalCompositionAndPlaySummarySectionViewTests.swift,\ GrowthAndLeaderboardParitySectionViewTests.swift,\ GrowthBadgeExploreViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ContextualOperationFactoryAppTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CoopFinancePresentationClosureTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CoopInvitationReadRecoveryTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CoopPerkPickerReadReturnTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CoopPoolApplicationEditorTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CoopRelationDiscoveryInitializationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CoopRelationPresentationOwnerTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CoopRelationProfileReadTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CouponAndSponsoredRewardSafetySectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CouponRuntimeCompositionTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CouponValidityRangeEditorTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CrashResilienceAndMetricKitDiagnosticsSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CreatorCropExportAppTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/DeepLinkSafetyDiagnosticsSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/DeepLinkToMiniProgramPathTranslatorSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/DeviceOrientationAndSplitViewAdaptationSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/EndToEndReleaseCandidateGateSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/EnvironmentBranchAndRewardLedgerViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ExplorationPrivateToolsAndCapsuleSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/FinalReleaseSignoffAndZeroGapCertificateViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/FinalThreeDocumentAndSevenDayGoalCompletionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/FinalTwentyBatchMasterCompletionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/GameJournalCompositionAndPlaySummarySectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/GrowthAndLeaderboardParitySectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/GrowthBadgeExploreViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ContextualOperationFactoryAppTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ContextualOperationFactoryAppTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CoopFinancePresentationClosureTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile CoopFinancePresentationClosureTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CoopInvitationReadRecoveryTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile CoopInvitationReadRecoveryTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CoopPerkPickerReadReturnTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile CoopPerkPickerReadReturnTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CoopPoolApplicationEditorTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile CoopPoolApplicationEditorTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CoopRelationDiscoveryInitializationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile CoopRelationDiscoveryInitializationTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CoopRelationPresentationOwnerTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile CoopRelationPresentationOwnerTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CoopRelationProfileReadTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile CoopRelationProfileReadTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CouponAndSponsoredRewardSafetySectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile CouponAndSponsoredRewardSafetySectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CouponRuntimeCompositionTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile CouponRuntimeCompositionTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CouponValidityRangeEditorTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile CouponValidityRangeEditorTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CrashResilienceAndMetricKitDiagnosticsSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile CrashResilienceAndMetricKitDiagnosticsSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CreatorCropExportAppTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile CreatorCropExportAppTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/DeepLinkSafetyDiagnosticsSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile DeepLinkSafetyDiagnosticsSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/DeepLinkToMiniProgramPathTranslatorSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile DeepLinkToMiniProgramPathTranslatorSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/DeviceOrientationAndSplitViewAdaptationSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile DeviceOrientationAndSplitViewAdaptationSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/EndToEndReleaseCandidateGateSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile EndToEndReleaseCandidateGateSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/EnvironmentBranchAndRewardLedgerViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile EnvironmentBranchAndRewardLedgerViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ExplorationPrivateToolsAndCapsuleSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ExplorationPrivateToolsAndCapsuleSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/FinalReleaseSignoffAndZeroGapCertificateViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile FinalReleaseSignoffAndZeroGapCertificateViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/FinalThreeDocumentAndSevenDayGoalCompletionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile FinalThreeDocumentAndSevenDayGoalCompletionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/FinalTwentyBatchMasterCompletionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile FinalTwentyBatchMasterCompletionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/GameJournalCompositionAndPlaySummarySectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile GameJournalCompositionAndPlaySummarySectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/GrowthAndLeaderboardParitySectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile GrowthAndLeaderboardParitySectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/GrowthBadgeExploreViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile GrowthBadgeExploreViewTests.swift
+
+SwiftCompile normal arm64 Compiling\ CitySwitchAndCrossCityRoamingSectionViewTests.swift,\ CloudCIShardStatusSectionViewTests.swift,\ ClubAIDesignCandidateRetentionTests.swift,\ ClubAIDesignFeedbackViewTests.swift,\ ClubAccessAndSettlementSectionViewTests.swift,\ ClubActivityOverviewReadTests.swift,\ ClubActivityReportFlowTests.swift,\ ClubAndTeamCoopGovernanceSectionViewTests.swift,\ ClubAttendanceCorrectionReturnTests.swift,\ ClubBanRemovalReturnTests.swift,\ ClubCaseSubmissionReturnTests.swift,\ ClubCommunityLifecycleTests.swift,\ ClubCommunityReadCompositionTests.swift,\ ClubCustomerKeywordDebounceTests.swift,\ ClubEnrollmentNavigationTests.swift,\ ClubEventCalendarReadTests.swift,\ ClubHostApplicationMaterialsTests.swift,\ ClubInvitationFeedbackViewTests.swift,\ ClubLeadPrimaryActionFlowTests.swift,\ ClubLeadProgressViewTests.swift,\ ClubLeaderboardMemberRouteTests.swift,\ ClubManagementReviewOwnerTests.swift,\ ClubMemberCountLocalizationTests.swift,\ ClubMerchantProfileReadTests.swift,\ ClubNotificationAudienceTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CitySwitchAndCrossCityRoamingSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CloudCIShardStatusSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubAIDesignCandidateRetentionTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubAIDesignFeedbackViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubAccessAndSettlementSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubActivityOverviewReadTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubActivityReportFlowTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubAndTeamCoopGovernanceSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubAttendanceCorrectionReturnTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubBanRemovalReturnTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubCaseSubmissionReturnTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubCommunityLifecycleTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubCommunityReadCompositionTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubCustomerKeywordDebounceTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubEnrollmentNavigationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubEventCalendarReadTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubHostApplicationMaterialsTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubInvitationFeedbackViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubLeadPrimaryActionFlowTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubLeadProgressViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubLeaderboardMemberRouteTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubManagementReviewOwnerTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubMemberCountLocalizationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubMerchantProfileReadTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubNotificationAudienceTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CitySwitchAndCrossCityRoamingSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile CitySwitchAndCrossCityRoamingSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/CloudCIShardStatusSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile CloudCIShardStatusSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubAIDesignCandidateRetentionTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubAIDesignCandidateRetentionTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubAIDesignFeedbackViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubAIDesignFeedbackViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubAccessAndSettlementSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubAccessAndSettlementSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubActivityOverviewReadTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubActivityOverviewReadTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubActivityReportFlowTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubActivityReportFlowTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubAndTeamCoopGovernanceSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubAndTeamCoopGovernanceSectionViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubAttendanceCorrectionReturnTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubAttendanceCorrectionReturnTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubBanRemovalReturnTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubBanRemovalReturnTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubCaseSubmissionReturnTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubCaseSubmissionReturnTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubCommunityLifecycleTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubCommunityLifecycleTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubCommunityReadCompositionTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubCommunityReadCompositionTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubCustomerKeywordDebounceTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubCustomerKeywordDebounceTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubEnrollmentNavigationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubEnrollmentNavigationTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubEventCalendarReadTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubEventCalendarReadTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubHostApplicationMaterialsTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubHostApplicationMaterialsTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubInvitationFeedbackViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubInvitationFeedbackViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubLeadPrimaryActionFlowTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubLeadPrimaryActionFlowTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubLeadProgressViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubLeadProgressViewTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubLeaderboardMemberRouteTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubLeaderboardMemberRouteTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubManagementReviewOwnerTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubManagementReviewOwnerTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubMemberCountLocalizationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubMemberCountLocalizationTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubMerchantProfileReadTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubMerchantProfileReadTests.swift
+
+SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ClubNotificationAudienceTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ClubNotificationAudienceTests.swift
+
+SwiftEmitModule normal x86_64 Emitting\ module\ for\ QuestifyAppUnitTests (in target 'QuestifyAppUnitTests' from project 'Questify')
+
+SwiftCompile normal x86_64 (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    
+
+<SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelHostAncestorFenceTests.swift:72:15: error: cannot find type 'NativeChannelRouteMessageHostAuthority' in scope
+ 70 |     let binding: NativeChannelMessageBinding
+ 71 |     let source: RouteMessageHostSource
+ 72 |     let host: NativeChannelRouteMessageHostAuthority
+    |               `- error: cannot find type 'NativeChannelRouteMessageHostAuthority' in scope
+ 73 |     let outer: CompositionHTTPTransport
+ 74 |     let wire: RouteMessageHostWire
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ QuestifyAppUnitTests (in target 'QuestifyAppUnitTests' from project 'Questify')
+
+SwiftCompile normal arm64 (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    
+
+SwiftCompile normal x86_64 Compiling\ TemplateTimerRehearsalViewTests.swift,\ TestFlightInternalAndExternalSmokeSectionViewTests.swift,\ ThreeDocumentMasterCrosswalkSectionViewTests.swift,\ TicketWalletListCompositionTests.swift,\ TicketWalletPendingOrderNavigationTests.swift,\ TicketWalletPlayEntryTests.swift,\ TicketWalletTeamTests.swift,\ TopicLikeAndSquareEvictionSectionViewTests.swift,\ UITestFlowReadinessAnchorSectionViewTests.swift,\ UITestShardDiagnosticsSectionViewTests.swift,\ UltimateReleaseReadinessExecutiveSummaryViewTests.swift,\ UnifiedDecisionsU01ToU08SectionViewTests.swift,\ UnifiedReleaseAuditHubViewTests.swift,\ UnifiedTicketExecutionMatrixSectionViewTests.swift,\ VerificationPresentationAppTests.swift,\ WalkingNavigationAppTests.swift,\ WalletCivilDateLocalizationTests.swift,\ WalletEarningsOverviewTests.swift,\ WalletHistoryCompositionTests.swift,\ WalletNumberLocalizationTests.swift,\ Wave3HandoffStatusSectionViewTests.swift,\ WeChatAndAppleSignInNonceStateSectionViewTests.swift,\ WeChatNativePaymentDriverTests.swift,\ WeChatNativeSDKDriverTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/TemplateTimerRehearsalViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/TestFlightInternalAndExternalSmokeSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ThreeDocumentMasterCrosswalkSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/TicketWalletListCompositionTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/TicketWalletPendingOrderNavigationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/TicketWalletPlayEntryTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/TicketWalletTeamTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/TopicLikeAndSquareEvictionSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/UITestFlowReadinessAnchorSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/UITestShardDiagnosticsSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/UltimateReleaseReadinessExecutiveSummaryViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/UnifiedDecisionsU01ToU08SectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/UnifiedReleaseAuditHubViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/UnifiedTicketExecutionMatrixSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/VerificationPresentationAppTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/WalkingNavigationAppTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/WalletCivilDateLocalizationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/WalletEarningsOverviewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/WalletHistoryCompositionTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/WalletNumberLocalizationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/Wave3HandoffStatusSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/WeChatAndAppleSignInNonceStateSectionViewTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/WeChatNativePaymentDriverTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/WeChatNativeSDKDriverTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+
+SwiftCompile normal x86_64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/TemplateTimerRehearsalViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile TemplateTimerRehearsalViewTests.swift
+
+SwiftCompile normal x86_64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/TestFlightInternalAndExternalSmokeSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile TestFlightInternalAndExternalSmokeSectionViewTests.swift
+
+SwiftCompile normal x86_64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ThreeDocumentMasterCrosswalkSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile ThreeDocumentMasterCrosswalkSectionViewTests.swift
+
+SwiftCompile normal x86_64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/TicketWalletListCompositionTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile TicketWalletListCompositionTests.swift
+
+SwiftCompile normal x86_64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/TicketWalletPendingOrderNavigationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile TicketWalletPendingOrderNavigationTests.swift
+
+SwiftCompile normal x86_64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/TicketWalletPlayEntryTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile TicketWalletPlayEntryTests.swift
+
+SwiftCompile normal x86_64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/TicketWalletTeamTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile TicketWalletTeamTests.swift
+
+SwiftCompile normal x86_64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/TopicLikeAndSquareEvictionSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile TopicLikeAndSquareEvictionSectionViewTests.swift
+
+SwiftCompile normal x86_64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/UITestFlowReadinessAnchorSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile UITestFlowReadinessAnchorSectionViewTests.swift
+
+SwiftCompile normal x86_64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/UITestShardDiagnosticsSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile UITestShardDiagnosticsSectionViewTests.swift
+
+SwiftCompile normal x86_64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/UltimateReleaseReadinessExecutiveSummaryViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile UltimateReleaseReadinessExecutiveSummaryViewTests.swift
+
+SwiftCompile normal x86_64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/UnifiedDecisionsU01ToU08SectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile UnifiedDecisionsU01ToU08SectionViewTests.swift
+
+SwiftCompile normal x86_64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/UnifiedReleaseAuditHubViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile UnifiedReleaseAuditHubViewTests.swift
+
+SwiftCompile normal x86_64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/UnifiedTicketExecutionMatrixSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile UnifiedTicketExecutionMatrixSectionViewTests.swift
+
+SwiftCompile normal x86_64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/VerificationPresentationAppTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile VerificationPresentationAppTests.swift
+
+SwiftCompile normal x86_64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/WalkingNavigationAppTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile WalkingNavigationAppTests.swift
+
+SwiftCompile normal x86_64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/WalletCivilDateLocalizationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile WalletCivilDateLocalizationTests.swift
+
+SwiftCompile normal x86_64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/WalletEarningsOverviewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile WalletEarningsOverviewTests.swift
+
+SwiftCompile normal x86_64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/WalletHistoryCompositionTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile WalletHistoryCompositionTests.swift
+
+SwiftCompile normal x86_64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/WalletNumberLocalizationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile WalletNumberLocalizationTests.swift
+
+SwiftCompile normal x86_64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/Wave3HandoffStatusSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile Wave3HandoffStatusSectionViewTests.swift
+
+SwiftCompile normal x86_64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/WeChatAndAppleSignInNonceStateSectionViewTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile WeChatAndAppleSignInNonceStateSectionViewTests.swift
+
+SwiftCompile normal x86_64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/WeChatNativePaymentDriverTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile WeChatNativePaymentDriverTests.swift
+
+SwiftCompile normal x86_64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/WeChatNativeSDKDriverTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+    cd <SCRATCH_TYPECHECK_7691588E>
+    builtin-SwiftPerFileCompile WeChatNativeSDKDriverTests.swift
+
+PruneExplicitPrecompiledModules <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules <DERIVED_DATA_7691588E>/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules <DERIVED_DATA_7691588E>/SDKExplicitPrecompiledModules
+
+** TEST BUILD FAILED **
+
+
+The following build commands failed:
+	SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelHostAncestorFenceTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+	SwiftCompile normal arm64 <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelNotificationAncestorFenceTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+	SwiftCompile normal arm64 Compiling\ WorkshopPaidInstallReentryTests.swift,\ ActivityPublishingWizardValidationPresentationTests.swift,\ PublishingAIDraftInitialIdeaTests.swift,\ NativeChannelProgressCompositionTests.swift,\ NativeChannelProgressUIJourneyTests.swift,\ NativeBlacklistEntryHostingTests.swift,\ NativeFriendDirectoryNavigationHostingTests.swift,\ NativeFriendRemovalPresentationTests.swift,\ NativeFriendRequestReviewHostingTests.swift,\ NativeChannelHostAncestorFenceTests.swift,\ NativeChannelManagementEntryTests.swift,\ NativeChannelManagementRouteStateTests.swift,\ NativeChannelManagementVisitIsolationTests.swift,\ NativeChannelNotificationAncestorFenceTests.swift,\ NativeWebhookCompositionTests.swift,\ NativeWebhookPresentationTests.swift,\ NativeWebhookVisitBindingTests.swift,\ NativeChannelAttachmentPreviewAssemblyTests.swift,\ NativeChannelAttachmentPreviewRetirementTests.swift,\ NativeChannelMessageHostBindingTests.swift,\ NativeChannelPinLocalizationTests.swift,\ IMChannelSourceCardSubmissionTests.swift,\ NativeChannelHostUIRecoveryGateTests.swift,\ NativeChannelNotificationBindingTests.swift,\ NativeChannelNotificationGlobalNavigationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/WorkshopPaidInstallReentryTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/ActivityPublishingWizardValidationPresentationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/PublishingAIDraftInitialIdeaTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelProgressCompositionTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelProgressUIJourneyTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeBlacklistEntryHostingTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeFriendDirectoryNavigationHostingTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeFriendRemovalPresentationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeFriendRequestReviewHostingTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelHostAncestorFenceTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelManagementEntryTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelManagementRouteStateTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelManagementVisitIsolationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelNotificationAncestorFenceTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeWebhookCompositionTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeWebhookPresentationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeWebhookVisitBindingTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelAttachmentPreviewAssemblyTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelAttachmentPreviewRetirementTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelMessageHostBindingTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelPinLocalizationTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/IMChannelSourceCardSubmissionTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelHostUIRecoveryGateTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelNotificationBindingTests.swift <SCRATCH_TYPECHECK_7691588E>/Tests/AppUnitTests/NativeChannelNotificationGlobalNavigationTests.swift (in target 'QuestifyAppUnitTests' from project 'Questify')
+	Building project Questify for testing with scheme QuestifyAppUnitTests
+(4 failures)
