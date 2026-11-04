@@ -316,16 +316,16 @@
     "zh-Hans": "保留名额必须为非负整数。"
   },
   "club.ops.error.mediaUnavailable": {
-    "en": "Image upload isn't available right now. Your current logo and cover are kept.",
-    "zh-Hans": "图片上传暂不可用，将保留现有标志和封面。"
+    "en": "Media uploads are not connected. Existing logo and cover references are preserved.",
+    "zh-Hans": "图片上传尚未接入，将保留现有标志和封面。"
   },
   "club.ops.error.signedOut": {
     "en": "Sign in to manage clubs.",
     "zh-Hans": "登录后管理俱乐部。"
   },
   "club.ops.error.unavailable": {
-    "en": "Club operations aren't available right now.",
-    "zh-Hans": "俱乐部运营暂不可用"
+    "en": "Club operations are not configured.",
+    "zh-Hans": "俱乐部运营服务尚未配置。"
   },
   "club.ops.error.createUnavailable": {
     "en": "The current account cannot create another club.",

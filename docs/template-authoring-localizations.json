@@ -204,8 +204,8 @@
     "zh-Hans": "使用基础完成方式"
   },
   "templateAuthor.advancedScope": {
-    "en": "Seven source-enabled game panels are available. Other stored sections are preserved and block submission until supported.",
-    "zh-Hans": "支持真源已开放的七种玩法面板。其他已存配置会保留，未支持前阻止提交。"
+    "en": "All 37 setting types can be edited here. Unrecognized settings are kept but must be removed before you can submit. Some previews explain their limits.",
+    "zh-Hans": "可在此编辑全部 37 类设置。无法识别的设置会保留，但需移除后才能提交；部分预览会说明其限制。"
   },
   "templateAuthor.timer": {
     "en": "Time limit",

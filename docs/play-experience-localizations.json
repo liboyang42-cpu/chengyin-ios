@@ -20,8 +20,8 @@
     "zh-Hans": "正在加载…"
   },
   "playx.refresh": {
-    "en": "Refresh source review",
-    "zh-Hans": "重新核对原文"
+    "en": "Refresh",
+    "zh-Hans": "刷新"
   },
   "playx.unknown.title": {
     "en": "Result needs checking",
@@ -1320,15 +1320,15 @@
     "zh-Hans": "登录会话已变更"
   },
   "playx.phase.unsupported": {
-    "en": "Provider unavailable",
-    "zh-Hans": "供应商尚不可用"
+    "en": "Unavailable",
+    "zh-Hans": "暂不可用"
   },
   "playx.phase.rejected": {
     "en": "Rejected by server",
     "zh-Hans": "服务端已拒绝"
   },
   "playx.phase.disabled": {
-    "en": "Provider unavailable",
+    "en": "Not enabled",
     "zh-Hans": "尚未启用"
   },
   "playx.phase.unknownOpen": {

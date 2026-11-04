@@ -107,7 +107,7 @@ class RecoveryPresentationSourceChecks(unittest.TestCase):
 
     def test_unavailable_and_profile_entry_use_dedicated_catalog(self):
         entry = HOST.split('@MainActor struct PersonalLocationShareEntry:', 1)[1]
-        self.assertNotIn('ContentUnavailableView("尚无当前有效、已批准的共享政策，所有共享选择均不可用。"', entry)
+        self.assertNotIn('ContentUnavailableView("位置共享暂不可用"', entry)
         self.assertIn('personalLocationShare.unavailable.title', entry)
         self.assertIn('personalLocationShare.unavailable.description', entry)
         self.assertIn('ScrollView {', entry)

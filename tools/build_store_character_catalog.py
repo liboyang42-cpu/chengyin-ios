@@ -96,7 +96,7 @@ ROWS = {
  'voice.progress': ('Three-sentence recording progress', '三句录音进度'),
  'voice.sentence1': ('Hello, welcome to my little shop. I am glad to chat with you in my own voice today.', '你好，欢迎来到我的小店，很高兴今天能用我的声音和你聊聊。'),
  'voice.hold': ('Hold to talk', '按住说话'),
- 'voice.recordingUnavailable': ('Recording unavailable. Server availability and an approved capture provider are required.', '录音不可用，需确认服务器可用性并接入获准的录音服务。'),
+ 'voice.recordingUnavailable': ('Recording isn\'t available right now.', '录音暂不可用。'),
  'voice.useSample': ('Use offline sample recording', '使用离线示例录音'),
  'voice.recordedTitle': ('All three sentences recorded', '三句已录好'),
  'voice.recordedHint': (' s · Make sure the voice is clear with no background music', ' 秒 · 确认声音清晰、没有背景音乐'),

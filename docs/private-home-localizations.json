@@ -92,7 +92,7 @@
     "zh-Hans": "原样重试请求"
   },
   "privateHome.phase.disabled": {
-    "en": "Provider unavailable",
+    "en": "Not enabled",
     "zh-Hans": "未启用"
   },
   "privateHome.phase.idle": {

@@ -4,8 +4,8 @@
     "zh-Hans": "会话操作"
   },
   "im.full.disabled": {
-    "en": "This service is not configured.",
-    "zh-Hans": "此服务尚未配置"
+    "en": "This feature isn't available right now.",
+    "zh-Hans": "此功能暂不可用"
   },
   "im.full.conversation": {
     "en": "Conversation",

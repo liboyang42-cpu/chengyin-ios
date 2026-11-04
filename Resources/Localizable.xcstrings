@@ -10424,13 +10424,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The approved service address is not configured for this build."
+            "value": "This feature isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此构建尚未配置已批准的服务地址。"
+            "value": "此功能暂不可用"
           }
         }
       }
@@ -20095,13 +20095,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This service has not been configured"
+            "value": "This feature isn't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此服务尚未配置"
+            "value": "此功能暂不可用"
           }
         }
       }
@@ -21728,13 +21728,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Image upload isn't available right now. Your current logo and cover are kept."
+            "value": "Media uploads are not connected. Existing logo and cover references are preserved."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "图片上传暂不可用，将保留现有标志和封面。"
+            "value": "图片上传尚未接入，将保留现有标志和封面。"
           }
         }
       }
@@ -21824,13 +21824,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Club operations aren't available right now."
+            "value": "Club operations are not configured."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "俱乐部运营暂不可用"
+            "value": "俱乐部运营服务尚未配置。"
           }
         }
       }
@@ -42793,13 +42793,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This feature is not enabled in this build."
+            "value": "This feature isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前版本尚未启用此功能。"
+            "value": "此功能暂不可用"
           }
         }
       }
@@ -45056,13 +45056,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This connection is not configured."
+            "value": "This feature isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "尚未配置连接。"
+            "value": "此功能暂不可用"
           }
         }
       }
@@ -71977,7 +71977,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此连接尚未启用"
+            "value": "暂不可用"
           }
         }
       }
@@ -76948,7 +76948,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Example content"
+            "value": "Synthetic test data only"
           }
         },
         "zh-Hans": {
@@ -76999,13 +76999,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This feature is not configured"
+            "value": "This feature isn't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此功能尚未配置"
+            "value": "此功能暂不可用"
           }
         }
       }
@@ -77732,7 +77732,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "不可用或尚未配置"
+            "value": "暂不可用"
           }
         }
       }
@@ -78713,13 +78713,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recording is off until the deployment confirms audio format, duration, size limits and recipient hosts."
+            "value": "Recording isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "录音暂未启用，需先确认部署的音频格式、时长、大小限制及接收域名。"
+            "value": "录音暂不可用。"
           }
         }
       }
@@ -81581,13 +81581,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This native feature awaits service and privacy approval."
+            "value": "This feature isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此原生功能尚待服务与隐私审核通过。"
+            "value": "此功能暂不可用。"
           }
         }
       }
@@ -85314,7 +85314,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Example content"
+            "value": "Synthetic offline example"
           }
         },
         "zh-Hans": {
@@ -86398,7 +86398,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No rewards yet"
+            "value": "No rewards configured"
           }
         },
         "zh-Hans": {
@@ -94078,7 +94078,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务尚未配置"
+            "value": "暂不可用"
           }
         }
       }
@@ -133250,7 +133250,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此控制尚未接入"
+            "value": "暂不可用"
           }
         }
       }
@@ -194009,13 +194009,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Some team actions aren't available right now."
+            "value": "Offline example of a planned flow. Nothing is sent, scanned or verified for real."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "部分队伍操作暂不可用。"
+            "value": "这是规划中流程的离线示例，不会真实发送、扫码或核验。"
           }
         }
       }

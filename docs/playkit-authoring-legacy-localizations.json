@@ -232,8 +232,8 @@
     "zh-Hans": "方位提示"
   },
   "templateAuthor.advancedScope": {
-    "en": "Seven Flutter scalar panels and five newer source-backed reasoning/sensor panels are available. Other sections are preserved, but unsupported enabled sections still block publishing.",
-    "zh-Hans": "已提供七个 Flutter 参数面板和五个新增的推理／传感器配置面板。其他配置会保留，但启用未支持的配置仍会阻止发布。"
+    "en": "All 37 setting types can be edited here. Unrecognized settings are kept but must be removed before you can submit. Some previews explain their limits.",
+    "zh-Hans": "可在此编辑全部 37 类设置。无法识别的设置会保留，但需移除后才能提交；部分预览会说明其限制。"
   },
   "playkit.kind.blindTaste": {
     "en": "Blind tasting",

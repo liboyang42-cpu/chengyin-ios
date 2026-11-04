@@ -550,13 +550,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not enabled"
+            "value": "Unavailable"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未开放"
+            "value": "暂不可用"
           }
         }
       }
@@ -1670,13 +1670,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not enabled"
+            "value": "Unavailable"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未开放"
+            "value": "暂不可用"
           }
         }
       }

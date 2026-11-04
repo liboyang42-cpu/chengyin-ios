@@ -806,13 +806,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "缺少可信服务端时钟，暂不显示倒计时。处置是否仍生效以服务端为准。"
+            "value": "时间按服务端原值展示，不据此推断权限或处置是否已结束。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A countdown is unavailable without a trusted server clock. The server determines whether the action is still in effect."
+            "value": "Times are shown as returned by the server, not as proof of permissions or expiry."
           }
         }
       }

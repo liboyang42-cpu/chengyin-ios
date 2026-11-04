@@ -7,13 +7,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Some team actions aren't available right now."
+            "value": "Offline example of a planned flow. Nothing is sent, scanned or verified for real."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "部分队伍操作暂不可用。"
+            "value": "这是规划中流程的离线示例，不会真实发送、扫码或核验。"
           }
         }
       }

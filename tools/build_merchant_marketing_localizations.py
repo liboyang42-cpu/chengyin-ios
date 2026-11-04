@@ -4,7 +4,7 @@ import json
 root=Path(__file__).resolve().parents[1]
 values={
 'dashboard':('Marketing','营销概览'),'insight':('Shop insights','店铺参谋'),'subscriptions':('Entitlements','付费权益'),'predictions':('Prediction inbox','竞猜待答'),
-'unavailable':('This service is not configured','此服务尚未配置'),'signIn':('Sign in to continue','请登录后继续'),'stale':('The account, permission or round changed. Review again.','账号、权限或轮次已变化，请重新确认'),
+'unavailable':('This feature isn\'t available right now','此功能暂不可用'),'signIn':('Sign in to continue','请登录后继续'),'stale':('The account, permission or round changed. Review again.','账号、权限或轮次已变化，请重新确认'),
 'denied':('Your current merchant role does not grant this permission','当前商家岗位没有此权限'),'malformed':('This information couldn\'t be loaded','信息加载失败'),'invalid':('Review the selected answer and acknowledge its effects','请核对答案并确认操作后果'),
 'locked':('This round has a submission record. Further settlement is blocked.','此轮已有提交记录，已禁止再次结算'),
 'unknown':('The outcome is unconfirmed. Resubmission is locked; do not settle this round again.','结果尚未确认，已锁定重复提交，请勿再次结算此轮'),

@@ -214,13 +214,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unavailable or invalid input. Your current draft is retained."
+            "value": "Choosing or uploading a cover photo isn't available right now. You can keep editing the draft."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂不可用或输入无效，当前草稿已保留。"
+            "value": "封面选图和上传暂不可用，仍可继续编辑草稿。"
           }
         }
       }

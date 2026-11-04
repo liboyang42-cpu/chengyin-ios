@@ -73,13 +73,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This feature is not configured"
+          "value": "This feature isn't available right now"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "此功能尚未配置"
+          "value": "此功能暂不可用"
         }
       }
     }
@@ -1348,7 +1348,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Example content"
+          "value": "Synthetic test data only"
         }
       },
       "zh-Hans": {
