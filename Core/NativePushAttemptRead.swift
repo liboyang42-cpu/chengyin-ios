@@ -61,27 +61,35 @@ public struct NativePushAttempt: Decodable, Identifiable {
     public func load(more:Bool=false) async {
         guard current(),!busy,!more || next != "0" else { return }
         if !more { items=[];next="0" };issue=nil;busy=true;let stamp=generation
+        let before = more ? next : "0"
         defer{if stamp==generation{busy=false}}
         do {
             var parts=URLComponents(url:configuration.baseURL.appendingPathComponent("api/im/device/attempts"),resolvingAgainstBaseURL:false)
-            parts?.queryItems=[.init(name:"installation_id",value:installation),.init(name:"before",value:more ? next : "0")]
+            parts?.queryItems=[.init(name:"installation_id",value:installation),.init(name:"before",value:before)]
             guard let url=parts?.url else { throw APIError.invalidConfiguration }
             var request=try AuthRequestBuilder.makeFormRequest(url:url,fields:[:],token:credential,includesBody:false)
             request.httpMethod="GET";request.httpShouldHandleCookies=false;request.cachePolicy = .reloadIgnoringLocalCacheData
             let (data,status)=try await transport.send(request)
             guard current(),generation==stamp,!Task.isCancelled else { return }
             if status==401 { unauthorized();throw APIError.unauthorized }
-            guard status==200 else { throw APIError.malformedResponse }
+            guard status==200,data.count<=1_048_576 else { throw APIError.malformedResponse }
             struct Code: Decodable { let code:Int }
             if try JSONDecoder().decode(Code.self,from:data).code==401 { unauthorized();throw APIError.unauthorized }
             let response=try JSONDecoder().decode(Envelope.self,from:data)
             if response.code==401{unauthorized();throw APIError.unauthorized}
             let page=response.data
             guard response.code==200,page.source=="original-im-push-attempts-v1",page.installation_id==installation,!page.delivery_proven,
-                  page.items.count<=50,Int64(page.next_before).map({$0>=0})==true,
-                  page.items.allSatisfy({Int64($0.id).map({$0>0})==true && ($0.attempt_id==nil || UUID(uuidString:$0.attempt_id!) != nil)
-                    && ($0.badge_snapshot.map { $0.generation >= 0 && $0.count >= 0 } ?? true)
-                    && ($0.badge_snapshot == nil || $0.attempt_id != nil)}) else { throw APIError.malformedResponse }
+                  page.items.count<=50,Set(page.items.map(\.id)).count==page.items.count,
+                  let nextID=Int64(page.next_before),nextID>=0,String(nextID)==page.next_before,
+                  let beforeID=Int64(before),beforeID>=0,
+                  page.items.allSatisfy({ row in
+                    guard let id=Int64(row.id),id>0,String(id)==row.id,beforeID==0 || id<beforeID else { return false }
+                    return (row.attempt_id==nil || UUID(uuidString:row.attempt_id!) != nil)
+                        && (row.badge_snapshot.map { $0.generation >= 0 && $0.count >= 0 } ?? true)
+                        && (row.badge_snapshot == nil || row.attempt_id != nil)
+                  }),
+                  nextID==0 || (!page.items.isEmpty && (beforeID==0 || nextID<beforeID)
+                    && page.items.allSatisfy({ Int64($0.id).map { nextID <= $0 } == true })) else { throw APIError.malformedResponse }
             let existing=Set(items.map(\.id));items+=page.items.filter{!existing.contains($0.id)};next=page.next_before
         }catch{if current(),stamp==generation{items=[];issue="原投递结果暂不可读；没有当作成功或零条"}}
     }

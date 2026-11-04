@@ -368,6 +368,12 @@ import Foundation
             if prior.outcome != "UNKNOWN" { try resolve(prior, record: record, service: service) }
             else {
                 try requireCurrentVisit(stamp)
+                // An independent recovery page may have settled the original while
+                // its receipt read was suspended. A cached UNKNOWN is not authority
+                // to send after the durable original has disappeared or changed.
+                guard pending == record,
+                      try journal.pending(ownerKey: ownerKey, targetKey: record.targetKey) == record,
+                      try intentJournal.restore() == command else { throw NativeFriendFailure.unknown }
                 let receipt = try await service.write(command)
                 guard generation == stamp, service.isCurrent, !Task.isCancelled else { return }
                 try resolve(receipt, record: record, service: service)

@@ -25,16 +25,16 @@ import SwiftUI
                     LabeledContent(n("permission.sounds"), value: label(snapshot.sounds))
                     LabeledContent(n("permission.badges"), value: label(snapshot.badges))
                     if snapshot.authorization == .notDetermined {
-                        Button(n("permission.request")) { Task { await model.requestFromUserAction() } }
+                        Button(n("permission.request")) { let revision = model.revision; Task { await model.requestFromUserAction(expectedRevision: revision) } }
                             .accessibilityIdentifier("notification.permission.request")
                     } else {
-                        Button(n("permission.settings")) { Task { await model.openSettingsFromUserAction() } }
+                        Button(n("permission.settings")) { let revision = model.revision; Task { await model.openSettingsFromUserAction(expectedRevision: revision) } }
                             .accessibilityIdentifier("notification.permission.settings")
                     }
                 }
             } footer: { Text(n("permission.delivery")) }
             if let issue = model.issue { Section { Text(NativeChannelNotificationPresentation.permissionIssue(issue, locale: locale)).foregroundStyle(Theme.Color.textSecondary(in: domain)) } }
-            Button(n("permission.refresh")) { Task { await model.refresh() } }
+            Button(n("permission.refresh")) { let revision = model.revision; Task { await model.refresh(expectedRevision: revision) } }
         }
         .formStyle(.grouped)
         .font(Theme.Font.body)
@@ -43,8 +43,9 @@ import SwiftUI
         .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .disabled(model.busy)
         .navigationTitle(NativeChannelNotificationPresentation.localized("notification.permission.title", locale: locale))
-        .task { await model.refresh() }
-        .onChange(of: scenePhase) { _, phase in if phase == .active { Task { await model.refresh() } } }
+        .task { await model.refresh(expectedRevision: model.revision) }
+        .onChange(of: scenePhase) { _, phase in if phase == .active { let revision = model.revision; Task { await model.refresh(expectedRevision: revision) } } }
+        .onDisappear { model.retire() }
         .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
