@@ -23,6 +23,13 @@ final class BeijingBusinessTimeTests: XCTestCase {
         XCTAssertEqual(try instant("2026-10-19T12:00:00.000Z"), try instant("2026-10-19 20:00:00"))
     }
 
+    func testInvalidOffsetCalendarValuesCannotBecomeDeadlineFacts() {
+        for raw in ["2026-02-30T10:00:00Z", "2026-10-19T24:00:00Z", "2026-10-19T12:00:00+14:30"] {
+            XCTAssertEqual(BeijingServerTime(raw), .unknown)
+            XCTAssertEqual(BusinessDeadline(raw).hint(anchor: ServerClockAnchor(serverDate: .distantPast, uptime: 0), uptime: 1), .unverified)
+        }
+    }
+
     func testImpossibleOrAmbiguousValuesStayUnknown() {
         for raw in [nil, "", " ", "2026-02-30 10:00:00", "2026-10-19 24:00:00", "19/10/2026", "1792411200000", "2026-10-19 8:00:00", "tomorrow"] {
             XCTAssertEqual(BeijingServerTime(raw), .unknown, String(describing: raw))
