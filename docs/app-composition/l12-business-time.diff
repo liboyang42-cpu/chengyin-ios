@@ -1,0 +1,17 @@
+--- a/Questify.xcodeproj/project.pbxproj
++++ b/Questify.xcodeproj/project.pbxproj
+@@ -7,0 +8,10 @@
++		"0551ADF17C19AC88BAEDDE3F" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/MarketBusinessTime.swift";
++			"sourceTree" = "<group>";
++		};
++		"A51EFA9DEEDDAF66A22883C4" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "0551ADF17C19AC88BAEDDE3F";
++		};
+@@ -27530,0 +27541 @@
++				"0551ADF17C19AC88BAEDDE3F",
+@@ -31116,0 +31128 @@
++				"A51EFA9DEEDDAF66A22883C4",
