@@ -84,13 +84,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The store, draft or source changed. Close this handoff and open it again."
+          "value": "The store or draft has changed. Close this and open it again."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "门店、草稿或来源已变化，请关闭后重新打开。"
+          "value": "门店或草稿已变化，请关闭后重新打开。"
         }
       }
     }

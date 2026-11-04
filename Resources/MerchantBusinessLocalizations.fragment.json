@@ -212,13 +212,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Read current records and review actions. Availability depends on scoped approval and current permissions."
+          "value": "View records and review actions. What you can submit depends on your permissions."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "读取当前记录并预览操作。是否可提交取决于限定授权和当前权限。"
+          "value": "查看记录并预览操作。能否提交取决于你的权限。"
         }
       }
     }
@@ -516,13 +516,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Only the source evidence object-key format is accepted. Native image upload is not enabled."
+          "value": "Image upload isn't available right now."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "仅接受源协议规定的凭证对象键格式。原生图片上传尚未启用。"
+          "value": "图片上传暂不可用"
         }
       }
     }
@@ -1892,13 +1892,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Source ID"
+          "value": "Related ID"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "来源ID"
+          "value": "关联编号"
         }
       }
     }
@@ -1908,13 +1908,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Source type"
+          "value": "Related type"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "来源类型"
+          "value": "关联类型"
         }
       }
     }
@@ -2740,13 +2740,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Before synthetic dispatch, access, store identity, target and version are fetched and checked again."
+          "value": "Before submitting, permissions, store, target and version are checked again."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "模拟提交前会重新读取并核对权限、门店身份、目标和版本。"
+          "value": "提交前会重新核对权限、门店、目标和版本。"
         }
       }
     }
@@ -3300,13 +3300,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Preview a code's source route without opening a camera or redeeming it."
+          "value": "Preview where a code leads without opening the camera or redeeming it."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "仅预览码的源路由，不打开摄像头，也不执行核销。"
+          "value": "预览码的跳转内容，不打开摄像头，也不执行核销。"
         }
       }
     }
@@ -3812,13 +3812,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Source end date (YYYY-MM-DD)"
+          "value": "End date (YYYY-MM-DD)"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "来源结束日期（YYYY-MM-DD）"
+          "value": "结束日期（YYYY-MM-DD）"
         }
       }
     }
@@ -3828,13 +3828,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Source start date (YYYY-MM-DD)"
+          "value": "Start date (YYYY-MM-DD)"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "来源开始日期（YYYY-MM-DD）"
+          "value": "开始日期（YYYY-MM-DD）"
         }
       }
     }
@@ -3844,13 +3844,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Source type"
+          "value": "Channel"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "来源类型"
+          "value": "渠道"
         }
       }
     }
@@ -4548,13 +4548,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Offline example. All people, records and outcomes are synthetic."
+          "value": "Example content. All people, records and outcomes are made up."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "离线示例。人物、记录与结果均为虚构测试数据。"
+          "value": "示例内容。人物、记录与结果均为虚构。"
         }
       }
     }
@@ -4564,13 +4564,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Synthetic response received"
+          "value": "Example submitted"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "已收到模拟回执"
+          "value": "示例已提交"
         }
       }
     }

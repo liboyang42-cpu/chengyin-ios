@@ -230,13 +230,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current activity differs from your source. Keep your draft or explicitly use the latest readback."
+            "value": "This activity was changed elsewhere. Keep your draft or switch to the latest version."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前活动与原稿已不同。可保留草稿，或显式使用最新读回。"
+            "value": "该活动已在别处修改。可保留你的草稿，或改用最新版本。"
           }
         }
       }

@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Create an unreviewed proposal from your eligible original CMS source. Authoring does not consent, approve, list, charge or issue a buyer licence. Existing purchases keep their frozen rights."
+            "value": "Create a proposal from your own eligible original template. It will need review. Creating a proposal doesn't grant permission, approve, list, charge or license anything to buyers. Existing purchases keep their current rights."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "从符合条件的自有原创模板创建未审核提案。填写提案不会表示授权、审核通过、上架、收费或签发买家许可。已有购买保留冻结权利。"
+            "value": "从你符合条件的原创模板创建提案，提案需经审核。创建提案不代表授权、审核通过、上架、收费或向买家授予许可。已有购买的权益不变。"
           }
         }
       }
@@ -70,13 +70,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This complete command was securely retained before sending. If the result is unknown, retry only this identical request. There is no separate author-status endpoint."
+            "value": "Your request was saved before sending. If you're not sure it went through, retry the same request."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "完整指令已在发送前安全保存。结果不确定时仅可重试这一份完全相同的请求。没有独立的提案状态接口。"
+            "value": "请求已在发送前保存。如不确定是否成功，请重试同一请求。"
           }
         }
       }
@@ -118,13 +118,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This receipt may be historical. Current source eligibility and terms must be loaded again before a separate explicit declaration."
+            "value": "This record may be out of date. Refresh to load your current eligibility and terms before confirming your declaration."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此回执可能属于历史请求。必须重新读取当前来源资格和条款后，才能单独明确声明授权。"
+            "value": "此记录可能已过期。请刷新获取最新资格与条款后，再单独确认声明。"
           }
         }
       }
@@ -198,13 +198,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reload current source and proposals"
+            "value": "Refresh proposals"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新读取当前来源与提案"
+            "value": "刷新提案"
           }
         }
       }
@@ -486,13 +486,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enter a future ISO-8601 instant, at most 30 days from creation and up to six fractional-second digits. Expiry is not review approval."
+            "value": "Choose a future time within 30 days of creation. The expiry date doesn't mean the proposal has passed review."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请填写未来的ISO-8601时刻，距离创建时间不超过30天，小数秒最多6位。有效期不表示审核通过。"
+            "value": "请选择创建后30天内的未来时间。有效期不代表已通过审核。"
           }
         }
       }
@@ -694,13 +694,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Historical receipt only. This does not prove current source eligibility, review approval, listing or buyer rights."
+            "value": "Earlier record only. It doesn't show your current eligibility, review result, listing status or buyer rights."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅显示历史回执。此回执不能证明当前来源资格、审核通过、已上架或买家权利。"
+            "value": "仅为历史记录，不代表当前资格、审核结果、上架状态或买家权益。"
           }
         }
       }

@@ -3813,13 +3813,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Authoring and content preview are available. Route QR binding, scanning, AR and server evidence require separate runtime providers."
+          "value": "You can set up and preview content. Route QR codes, scanning and AR aren't available right now."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "可以配置和预览内容。路线二维码绑定、扫码、AR 与服务端凭证需要独立运行能力。"
+          "value": "可以配置和预览内容。路线二维码、扫码和 AR 暂不可用。"
         }
       }
     }

@@ -182,13 +182,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "尚无可选择的包版本和完整条款。可以查看原文；完整条款可用后才能确认。"
+            "value": "暂无条款完整的版本。可以先查看原文，条款完整后才能确认。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No package version with complete terms is available. You can review the source; confirmation requires complete terms."
+            "value": "No version with complete terms is available yet. You can review the text now; you can confirm once the terms are complete."
           }
         }
       }
@@ -422,13 +422,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新核对原文"
+            "value": "刷新"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh source review"
+            "value": "Refresh"
           }
         }
       }
@@ -502,13 +502,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无法核对该原创文字源或声明记录。请刷新后重试。"
+            "value": "无法核对你的原创文字或声明，请刷新后重试。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original text source or declaration could not be verified. Refresh to try again."
+            "value": "We couldn't verify your original text or declaration. Refresh to try again."
           }
         }
       }

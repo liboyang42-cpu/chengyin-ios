@@ -214,13 +214,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Offline fixture · no camera or network"
+            "value": "Example · no camera or network used"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "离线示例 · 不使用相机或网络"
+            "value": "示例 · 不使用相机或网络"
           }
         }
       }
@@ -246,7 +246,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Door entry fixture"
+            "value": "Door entry example"
           }
         },
         "zh-Hans": {

@@ -278,13 +278,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Upload this cropped photo using the separately approved node-photo channel. Selection and cropping alone send nothing."
+            "value": "Upload this cropped photo for this stop. Choosing and cropping alone doesn't upload anything."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "通过单独授权的节点照片通道上传此裁剪结果。仅选择和裁剪不会发送照片。"
+            "value": "上传此裁剪后的站点照片。仅选择和裁剪不会上传照片。"
           }
         }
       }

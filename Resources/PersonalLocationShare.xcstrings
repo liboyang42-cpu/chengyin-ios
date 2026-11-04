@@ -38,13 +38,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "系统定位授权不等于共享同意。设备最新位置会上传服务端；粗略模式只改变接收方投影，原点按获批策略暂存。仅限前台，已看见的信息无法收回。"
+            "value": "允许定位不等于同意共享。你的最新位置会上传至城瘾；模糊模式下对方只能看到大致区域，精确位置会按隐私政策短暂保存。仅在应用打开时共享，对方已看到的信息无法收回。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "System location permission is not sharing consent. The latest device location is uploaded; coarse mode changes the recipient projection, while the original point is retained under the approved policy. Foreground only. Information already seen cannot be recalled."
+            "value": "Allowing location access isn't the same as agreeing to share. Your latest location is sent to Questify; in approximate mode the recipient sees a less precise area, while your exact location is kept temporarily under our privacy policy. Only while the app is open. What the recipient has already seen can't be taken back."
           }
         }
       }
@@ -54,13 +54,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The dedicated capture purpose or read/write endpoints are not approved. No location will be collected or sent."
+            "value": "Location sharing isn't available right now. Your location won't be collected or sent."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "独立采集用途或读写端点尚未批准；不会采集或发送位置。"
+            "value": "位置共享暂不可用，不会采集或发送位置。"
           }
         }
       }
@@ -230,13 +230,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Both modes upload the latest device location. In coarse mode, the server projects it onto the approved grid for the recipient. The original point is temporarily retained under the approved latest-point policy and grant duration; uploading is not limited to a blurred point. The original sample does not guarantee meter-level accuracy."
+            "value": "Both modes send your latest location. In approximate mode, the recipient sees only a general area. Your exact location is kept temporarily under our privacy policy and for the sharing period—not just the blurred area. Location may not be accurate to the meter."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "两种模式都会上传设备最新位置。粗略模式由服务端按获批网格投影后给接收方；原点仅按已批准的最新点保留策略与授权期限暂存，不是只上传模糊点。原采样点也不保证米级测量精度。"
+            "value": "两种模式都会上传你的最新位置。模糊模式下对方只能看到大致区域；精确位置会按隐私政策在共享期间短暂保存，并非只上传模糊位置。定位不一定精确到米。"
           }
         }
       }
@@ -966,13 +966,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recipient %@, mode %@, up to %@ seconds; policy %@ v%@. Confirmation and capture share this time limit, so waiting reduces the remaining time. The latest device location is uploaded to the server. The recipient sees only the selected precision projection; the original point is retained temporarily under the approved policy. Sharing is foreground-only, and information already seen cannot be recalled. Reduced system accuracy cannot be shared as EXACT. If the permission prompt takes the app out of the foreground, recheck and confirm after returning; sharing will not resume automatically."
+            "value": "Sharing with %@, mode %@, for up to %@ seconds; policy %@ v%@. The time limit starts now, so waiting to confirm uses it up. Your latest location is sent to Questify. The recipient only sees the precision you chose; your exact location is kept temporarily under our privacy policy. Sharing works only while the app is open, and what the recipient has already seen can't be taken back. If your phone limits location accuracy, you can't share an exact location. If a permission prompt takes you out of the app, check and confirm again when you return; sharing won't restart on its own."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "接收成员 %@，模式 %@，最多 %@ 秒；政策 %@ v%@。确认窗口与采集共用此时长上限，等待会缩短可用时间。设备最新位置会上传服务端；接收方仅看到所选精度投影，原点按获批策略暂存。仅前台共享，已看见的信息无法收回。系统降低精度时不能按 EXACT 共享。若权限窗口使应用离开前台，返回后须重新核验与确认，不会自动恢复。"
+            "value": "接收成员 %@，模式 %@，最多 %@ 秒；政策 %@ v%@。时长从现在开始计算，等待确认也会占用时间。你的最新位置会上传至城瘾；接收方只能看到你选择的精度，精确位置会按隐私政策短暂保存。仅在应用打开时共享，对方已看到的信息无法收回。如手机限制了定位精度，则无法共享精确位置。若权限弹窗让你离开了应用，返回后需重新检查并确认，不会自动恢复共享。"
           }
         }
       }
@@ -982,13 +982,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approved location sharing has not been configured."
+            "value": "Location sharing isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "尚未配置已批准的位置共享能力。"
+            "value": "位置共享暂不可用"
           }
         }
       }
@@ -1014,13 +1014,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "There is no currently valid, approved sharing policy. All sharing options are unavailable."
+            "value": "Location sharing isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "尚无当前有效、已批准的共享政策，所有共享选择均不可用。"
+            "value": "位置共享暂不可用"
           }
         }
       }
@@ -1062,13 +1062,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The selection policy is available, but the dedicated capture purpose or endpoints are not approved. Sharing cannot start."
+            "value": "Location sharing isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已取得选择政策，但独立采集用途或端点尚未批准；不能开始共享。"
+            "value": "位置共享暂不可用"
           }
         }
       }
@@ -1078,13 +1078,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approved location-sharing reads are not configured for this session."
+            "value": "Location sharing isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前会话未配置已批准的位置共享读取能力。"
+            "value": "位置共享暂不可用"
           }
         }
       }
@@ -1286,13 +1286,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This foreground location was published. Updates continue only at the approved interval and stop when offline or outside the foreground."
+            "value": "Your location was shared. It updates only at set intervals and stops when you go offline or leave the app."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已发布本次前台位置。仅按获批间隔继续；离线或离开前台会停止。"
+            "value": "已共享当前位置。之后按固定间隔更新；断网或离开应用时会停止。"
           }
         }
       }
@@ -1366,13 +1366,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The read endpoint is not approved. No network read was sent."
+            "value": "Location sharing isn't available right now. Nothing was sent."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "读取端点尚未批准；未发起网络读取。"
+            "value": "位置共享暂不可用，未发送任何信息。"
           }
         }
       }
@@ -1382,13 +1382,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The write endpoint is not approved. No location-sharing write was sent."
+            "value": "Location sharing isn't available right now. Your location wasn't sent."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "写入端点尚未批准；未发起位置共享写入。"
+            "value": "位置共享暂不可用，未发送位置。"
           }
         }
       }
@@ -1398,13 +1398,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This policy requires recipient acceptance, but the acceptance flow is not connected. Sharing is blocked."
+            "value": "The recipient needs to accept first, but that isn't available right now. Sharing is off."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "该政策要求接收者接受，但接受流程尚未接通，已禁止共享。"
+            "value": "需要对方先接受，但此功能暂不可用，无法共享。"
           }
         }
       }
@@ -1414,13 +1414,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dedicated capture is not enabled. Test or simulated locations cannot be sent to the live service."
+            "value": "Location sharing isn't available right now. Simulated locations can't be shared."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "独立采集能力尚未启用；测试或模拟位置不能发送到真实服务。"
+            "value": "位置共享暂不可用，模拟位置无法共享。"
           }
         }
       }
@@ -1462,13 +1462,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The dedicated purpose description for personal sharing is not approved or does not match the installed app. Capture is blocked."
+            "value": "Location sharing isn't available on this version of the app. Your location won't be collected."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "个人共享的独立用途说明尚未批准或与安装包不符，已禁止采集。"
+            "value": "当前版本应用暂不支持位置共享，不会采集位置。"
           }
         }
       }
@@ -1494,13 +1494,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No approved sharing policy is currently available."
+            "value": "Location sharing isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前没有可用的已批准共享政策。"
+            "value": "位置共享暂不可用"
           }
         }
       }
@@ -1990,13 +1990,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "需要有效登录会话、独立的端点批准与已批准政策。默认不会请求系统定位权限或发送位置；启用后也须逐项确认。"
+            "value": "位置共享暂不可用，需先登录。除非你开启共享，否则不会请求定位权限或发送位置；开启后也需逐项确认。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A valid signed-in session, independent endpoint approval, and an approved policy are required. No location permission is requested or location sent by default. Each disclosure must still be confirmed before sharing."
+            "value": "Location sharing isn't available right now. You need to be signed in. We won't ask for location access or send your location unless you turn sharing on, and you'll confirm each step before sharing."
           }
         }
       }

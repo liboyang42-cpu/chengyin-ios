@@ -396,13 +396,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Named state keys use clue., relation. or counter. prefixes. System state is read-only; node references still require server topic checks."
+          "value": "Named state keys start with clue., relation. or counter. System states can't be edited."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "具名状态键使用 clue.、relation. 或 counter. 前缀。系统状态只读；节点引用仍需服务端核对所属主题。"
+          "value": "具名状态键需以 clue.、relation. 或 counter. 开头。系统状态不可修改。"
         }
       }
     }

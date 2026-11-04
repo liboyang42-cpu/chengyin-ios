@@ -230,13 +230,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Saved selection; its source option is not currently available."
+            "value": "Saved choice; this option is no longer available."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已保存的选择，当前找不到其来源选项。"
+            "value": "已保存的选择，该选项当前不可用。"
           }
         }
       }

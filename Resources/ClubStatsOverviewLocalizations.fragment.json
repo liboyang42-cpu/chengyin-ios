@@ -167,13 +167,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Showing the first five projects in source order."
+            "value": "Showing the first five projects."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "按来源顺序展示前5个项目。"
+            "value": "展示前 5 个项目。"
           }
         }
       }

@@ -109,13 +109,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已归档，只读"
+            "value": "已归档，无法修改"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Archived, read only"
+            "value": "Archived. No new changes can be made."
           }
         }
       }
@@ -789,13 +789,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "频道入口尚未开放，或当前会话已失效。请返回来源页面后重新进入。"
+            "value": "频道暂不可用，或登录已过期。请返回后重新进入。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Channel access is unavailable or this session has expired. Return to the source screen and open it again."
+            "value": "This channel isn't available right now, or your sign-in has expired. Go back and open it again."
           }
         }
       }

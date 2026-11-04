@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Asset source version"
+            "value": "Image version"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "资产来源版本"
+            "value": "图片版本"
           }
         }
       }

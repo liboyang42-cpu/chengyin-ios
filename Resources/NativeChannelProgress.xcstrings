@@ -1270,13 +1270,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "只读取原请求回执"
+            "value": "查看原请求结果"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read the original receipt only"
+            "value": "Check the original request"
           }
         }
       }
@@ -1606,13 +1606,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前独立来源或授权未配置、已过期或已撤回。"
+            "value": "暂不可用，或授权已过期、已撤回。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The independent source or authorization is not configured, has expired, or has been revoked."
+            "value": "This isn't available right now, or your permission has expired or been withdrawn."
           }
         }
       }
@@ -1638,13 +1638,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前原来源不可确认，未使用默认值替代。"
+            "value": "无法加载当前设置，未做任何更改。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current original source could not be confirmed. No default value was substituted."
+            "value": "Couldn't load your current setting. Nothing has been changed."
           }
         }
       }
@@ -1670,13 +1670,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "频道总览隐私原来源不可用"
+            "value": "频道隐私设置暂不可用"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original channel overview privacy source is unavailable."
+            "value": "Channel privacy settings aren't available right now."
           }
         }
       }

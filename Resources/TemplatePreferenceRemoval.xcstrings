@@ -198,13 +198,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Removal is unavailable for this JSON or the review is no longer current. The source has not been changed."
+            "value": "This can't be removed right now, or the page is out of date. Nothing was changed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此 JSON 暂不支持删除，或当前预览已失效。原文未被修改。"
+            "value": "暂时无法删除，或页面已过期。内容未被修改。"
           }
         }
       }

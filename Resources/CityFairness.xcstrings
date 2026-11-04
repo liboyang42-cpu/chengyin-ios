@@ -310,13 +310,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read only. This does not allow changes."
+            "value": "View only. Changes can't be made here."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "只读，不能修改"
+            "value": "仅供查看，不能修改"
           }
         }
       }

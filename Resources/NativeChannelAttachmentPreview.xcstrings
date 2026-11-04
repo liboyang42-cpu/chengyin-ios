@@ -230,13 +230,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前消息的独立预览授权或媒体来源尚未配置；不会读取附件。"
+            "value": "附件预览暂不可用"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Independent preview approval or an approved media origin is not configured for this message. The attachment will not be fetched."
+            "value": "Attachment preview isn't available right now."
           }
         }
       }

@@ -324,13 +324,13 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "政策编号、版本和截止时间来自订单快照；不据此推断已核准退款、退款金额或到账时间。"
+          "value": "政策编号、版本和截止时间来自订单，不代表退款已通过，也不代表退款金额或到账时间。"
         }
       },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Policy code, version and deadline come from the order snapshot. They do not establish an approved refund, refund amount or arrival time."
+          "value": "Policy, version and deadline are taken from the order. They don't mean a refund is approved, or indicate the amount or arrival time."
         }
       }
     }

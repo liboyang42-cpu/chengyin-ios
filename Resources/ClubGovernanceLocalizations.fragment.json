@@ -976,13 +976,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Host submission requires an approved identity-registration flow. Identity documents are not collected here"
+            "value": "Host submission isn't available right now. ID documents aren't collected here."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "主理人提交需要已批准的实名登记流程，此处不采集证件号码"
+            "value": "主理人提交暂不可用，此处不采集证件号码。"
           }
         }
       }
@@ -993,13 +993,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Financial actions require separate exact-action approval. These records do not prove funds have settled"
+            "value": "Financial actions need separate authorization. These records don't mean funds have been settled."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "资金操作需要单独的具体操作授权。这些记录不代表资金已结清"
+            "value": "资金操作需单独授权。这些记录不代表资金已结清。"
           }
         }
       }
@@ -1010,13 +1010,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reported hours and evidence require platform review. No confirmation or reconciliation endpoint is available in the source"
+            "value": "Reported hours and evidence are reviewed by Questify. Confirmation and reconciliation aren't available here yet."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "自报工时与证据需要平台审核，源代码未提供确认或对账接口"
+            "value": "自报工时与证明材料需经城瘾平台审核，此处暂不支持确认或对账。"
           }
         }
       }
@@ -1044,13 +1044,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Administrative changes require exact-action approval and current server permissions"
+            "value": "Management changes need authorization and the right permissions."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "管理操作需要具体操作授权及当前服务端权限"
+            "value": "管理操作需要授权及相应权限。"
           }
         }
       }
@@ -1418,13 +1418,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm synthetic operation"
+            "value": "Confirm (example)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "确认模拟操作"
+            "value": "确认（示例）"
           }
         }
       }

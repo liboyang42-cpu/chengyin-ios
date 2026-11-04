@@ -107,13 +107,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Read-only summaries from this activity response."
+          "value": "Plays included in this activity."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "本次活动详情中的只读玩法概览。"
+          "value": "本活动包含的玩法概览。"
         }
       }
     }

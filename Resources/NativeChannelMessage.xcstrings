@@ -6,13 +6,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在核对当前频道消息来源"
+            "value": "正在加载频道消息…"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Checking current channel message source"
+            "value": "Checking channel messages…"
           }
         }
       }
@@ -326,13 +326,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "消息或权限已变更，请重新读取；草稿保留"
+            "value": "消息或权限已变更，请刷新后继续；草稿已保留"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The message or access changed. Reload the source; your draft is retained."
+            "value": "The message or your permissions have changed. Reload to continue; your draft is kept."
           }
         }
       }
@@ -694,13 +694,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此类型的完整生产与访问合同待接入"
+            "value": "暂不支持此类消息"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The complete producer and access contract for this type is pending"
+            "value": "This message type isn't supported yet."
           }
         }
       }

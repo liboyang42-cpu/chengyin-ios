@@ -262,13 +262,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "选择专业目标并审阅原文"
+            "value": "选择方案并查看原文"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose a professional target and review source"
+            "value": "Choose a plan and review the text"
           }
         }
       }

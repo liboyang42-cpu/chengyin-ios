@@ -6,13 +6,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Current review task"
+            "value": "Review status"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前审核任务"
+            "value": "审核状态"
           }
         }
       }
@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This is the task state read from the server, separate from the status saved when you submitted. Even an approved task still needs independent release preparation and permission checks."
+            "value": "This is the latest review status, which may differ from the status when you submitted. Passing review doesn't publish the topic automatically."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这里显示服务器本次读取的任务状态，与提交时保存的回执状态不同。即使任务已通过，发布前仍需独立核验快照与权限。"
+            "value": "这里是最新审核状态，可能与提交时不同。审核通过后不会自动发布。"
           }
         }
       }
@@ -54,13 +54,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Observed task ID"
+            "value": "Reference number"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本次读取的任务ID"
+            "value": "编号"
           }
         }
       }
@@ -150,13 +150,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check current review task"
+            "value": "Check review status"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看当前审核任务"
+            "value": "查看审核状态"
           }
         }
       }
@@ -182,13 +182,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review task approved"
+            "value": "Review passed"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "审核任务已通过"
+            "value": "审核已通过"
           }
         }
       }
@@ -198,13 +198,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review task rejected"
+            "value": "Review not passed"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "审核任务已退回"
+            "value": "审核未通过"
           }
         }
       }
@@ -214,13 +214,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review task cancelled"
+            "value": "Review cancelled"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "审核任务已取消"
+            "value": "审核已取消"
           }
         }
       }

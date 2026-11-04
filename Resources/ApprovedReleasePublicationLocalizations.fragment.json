@@ -24,13 +24,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No current approved snapshot could be verified. Review may be pending, changed, unsupported or unavailable. This check did not create or retry a release; any saved request is retained."
+            "value": "We couldn't confirm an approved version right now. Review may still be in progress, or the content may have changed. Nothing was published, and your saved request is kept."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无法核实当前已审核快照。审核可能仍在等待、已变更，或内容暂不支持、服务不可用。本次查询未创建或重试发布版本；已保存的请求继续保留。"
+            "value": "暂时无法确认已通过审核的版本。审核可能仍在进行中，或内容已有变更。本次未发布任何内容，已保存的申请仍会保留。"
           }
         }
       }
@@ -92,13 +92,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm the exact server-approved snapshot below. The server will check this audit version, manifest hash and release-head revision again before allocating an immutable release."
+            "value": "Confirm the approved version below. We'll check it once more before publishing."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请确认下方准确的服务端已审核快照。在分配不可变发布版本前，服务端会再次核对审核版本、清单哈希和当前发布头版本。"
+            "value": "请确认下方已通过审核的版本，发布前我们会再核对一次。"
           }
         }
       }
@@ -160,13 +160,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Creating an immutable release records this exact approved version. It does not by itself prove public listing, player eligibility or successful play."
+            "value": "Publishing saves this approved version. It doesn't by itself mean it's publicly listed or that players can join yet."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "创建不可变发布版本会记录这份已审核的准确内容。此回执本身不代表已公开展示、玩家具备参与资格或已成功游玩。"
+            "value": "发布将保存这一已通过审核的版本，但不代表已公开展示或玩家已可参与。"
           }
         }
       }
@@ -177,13 +177,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approved at the last server check"
+            "value": "Approved at last check"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "最近一次服务端检查时已审核通过"
+            "value": "最近一次核对时已通过审核"
           }
         }
       }
@@ -194,13 +194,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The last server check did not confirm current approval"
+            "value": "Approval couldn't be confirmed at last check"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "最近一次服务端检查未确认当前审核仍有效"
+            "value": "最近一次核对未能确认审核仍有效"
           }
         }
       }

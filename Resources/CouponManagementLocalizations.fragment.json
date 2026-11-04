@@ -515,13 +515,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Synthetic test data only"
+          "value": "Example content"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "仅为合成测试数据"
+          "value": "示例内容"
         }
       }
     }
@@ -821,13 +821,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Claiming is unavailable: the source contract does not define a claim operation. Claimed coupons remain in your coupon wallet."
+          "value": "Claiming isn't available right now. Coupons you've claimed stay in your coupon wallet."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "暂不支持领取：源接口尚未定义领取操作。已领券仍可在券包中查看"
+          "value": "领取暂不可用。已领取的券仍可在券包中查看。"
         }
       }
     }

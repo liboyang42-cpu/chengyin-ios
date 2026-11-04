@@ -7,13 +7,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check selected sources and prepare review"
+            "value": "Check selected merchant details and prepare for review"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核对选定来源并准备审核"
+            "value": "核对所选商家信息并准备提交审核"
           }
         }
       }
@@ -24,13 +24,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "These exact merchant confirmations are included in this review request. Approval is checked separately."
+            "value": "These merchant confirmations are included in your review request. Whether it's approved will be decided during review."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本次审核请求包含以下确切的商家事实确认。是否批准将另行审核。"
+            "value": "以下商家确认信息已包含在本次审核申请中，是否通过以审核结果为准。"
           }
         }
       }

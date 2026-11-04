@@ -4,13 +4,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Refreshing. Previously loaded results stay visible until the sources reply."
+          "value": "Refreshing. Earlier results stay visible until new ones load."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "正在更新。此前加载的结果会保留显示，等待各来源返回。"
+          "value": "正在更新，新结果加载前会保留此前的结果。"
         }
       }
     }
@@ -20,13 +20,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "These sources could not be refreshed. Their previously loaded results are shown and may be out of date."
+          "value": "Some results couldn't be refreshed and may be out of date."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "以下来源未能更新，当前显示此前加载的结果，内容可能已过时。"
+          "value": "部分结果未能更新，内容可能已过时。"
         }
       }
     }

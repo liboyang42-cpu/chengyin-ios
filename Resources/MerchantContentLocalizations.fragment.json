@@ -100,13 +100,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The source acknowledged this request. Reload to inspect its current state."
+          "value": "Request received. Refresh to see its current status."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端已确认收到请求，请刷新核对当前状态。"
+          "value": "已收到请求，请刷新查看当前状态。"
         }
       }
     }
@@ -180,13 +180,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This step applies for the chapter. After the source refreshes, configure the node from My chapter applications. The two submissions are separate."
+          "value": "This step applies for the chapter. Once it updates, set up the stop from My chapter applications. The two are submitted separately."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "此步骤提交章节申请。源数据更新后，请在“我的章节申请”配置点位。两次提交分别处理。"
+          "value": "此步骤提交章节申请。更新后，请在“我的章节申请”中配置点位。两次提交分别处理。"
         }
       }
     }
@@ -244,7 +244,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Approval controls admission; it is not a platform endorsement."
+          "value": "Approval means admission only; it isn't an endorsement by Questify."
         }
       },
       "zh-Hans": {
@@ -404,13 +404,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Enter the service civil time as YYYY-MM-DD HH:mm. The source provides no timezone; the server validates eligibility."
+          "value": "Enter the service time as YYYY-MM-DD HH:mm (local time). We'll check whether it's eligible."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "请输入服务端本地时间 YYYY-MM-DD HH:mm。源数据未提供时区，时间资格由服务端校验。"
+          "value": "请按 YYYY-MM-DD HH:mm 输入服务时间（当地时间），我们会校验是否符合要求。"
         }
       }
     }
@@ -436,13 +436,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The source returned an application ID but no verified place ID. Claim withdrawal is unavailable."
+          "value": "This place couldn't be verified, so the claim can't be withdrawn right now."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "源数据仅返回申请编号，没有已核实的地点编号，暂不能撤回认领。"
+          "value": "该地点尚未核实，暂不能撤回认领。"
         }
       }
     }
@@ -484,13 +484,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Complete the source-required fields before review"
+          "value": "Complete the required fields before review"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "请完成源契约要求的字段后再预览"
+          "value": "请先填写必填项再预览"
         }
       }
     }
@@ -532,13 +532,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The source changed after review. Reload and review again."
+          "value": "This content changed after you reviewed it. Reload and review again."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "预览后源数据已发生变化，请重新加载并确认。"
+          "value": "预览后内容已发生变化，请重新加载并确认。"
         }
       }
     }

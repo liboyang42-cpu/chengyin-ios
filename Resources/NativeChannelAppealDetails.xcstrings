@@ -500,13 +500,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "刷新只读取原进度，不会重新提交申诉。"
+            "value": "刷新仅更新进度，不会重复提交申诉。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh only reads original progress; it does not submit another appeal."
+            "value": "Refreshing only updates the progress. It won't submit another appeal."
           }
         }
       }

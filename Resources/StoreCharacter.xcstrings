@@ -310,7 +310,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This revision has not been approved."
+            "value": "This version hasn't passed review."
           }
         },
         "zh-Hans": {
@@ -342,13 +342,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "An approval came from a role that cannot approve this part."
+            "value": "An approval came from someone who can't approve this part."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "有审核来自无权批准该部分的角色。"
+            "value": "有审核来自无权批准该部分的人员。"
           }
         }
       }
@@ -1238,13 +1238,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Generation is off; approved fixed content is used."
+            "value": "AI generation is off; approved preset content is used."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未启用生成，使用已审核的固定内容。"
+            "value": "未开启 AI 生成，使用已审核的固定内容。"
           }
         }
       }

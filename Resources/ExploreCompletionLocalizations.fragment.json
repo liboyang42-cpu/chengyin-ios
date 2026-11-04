@@ -116,13 +116,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The source journey is unavailable. No completion progress can be shown."
+          "value": "This journey isn't available right now, so completion progress can't be shown."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "暂未取得关联主题，无法展示完成进度。"
+          "value": "暂未找到关联路线，无法展示完成进度。"
         }
       }
     }

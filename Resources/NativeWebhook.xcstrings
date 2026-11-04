@@ -347,13 +347,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "入站端点"
+            "value": "Webhook 地址"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inbound endpoints"
+            "value": "Webhook URLs"
           }
         }
       }
@@ -1503,13 +1503,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "新建端点"
+            "value": "新建 Webhook"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Create endpoint"
+            "value": "Add webhook"
           }
         }
       }
@@ -2030,13 +2030,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "端点设置"
+            "value": "Webhook 设置"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Endpoint settings"
+            "value": "Webhook settings"
           }
         }
       }
@@ -2166,13 +2166,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "编辑端点"
+            "value": "编辑 Webhook"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Edit endpoint"
+            "value": "Edit webhook"
           }
         }
       }
@@ -2455,13 +2455,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "远端是否已接收尚未确认。此记录不会自动重新发送。"
+            "value": "尚未确认是否送达，此记录不会自动重新发送。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Receipt by the remote endpoint is unconfirmed. This record will not be resent automatically."
+            "value": "Delivery hasn't been confirmed yet. This won't be resent automatically."
           }
         }
       }
@@ -2608,13 +2608,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "频道 Webhook 管理尚未接入当前账号的真实频道、原生管理权限和事件目录。"
+            "value": "频道 Webhook 管理暂不可用"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Webhook management is not connected to this account's channel, native management permissions, and event catalog yet."
+            "value": "Webhook management isn't available right now."
           }
         }
       }
@@ -2642,13 +2642,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The required source is unavailable (%@)."
+            "value": "This isn't available right now (%@)."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前来源尚不可用（%@）"
+            "value": "暂不可用（%@）"
           }
         }
       }
