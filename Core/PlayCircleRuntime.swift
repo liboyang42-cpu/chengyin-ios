@@ -35,6 +35,8 @@ public struct PlayCircleCard: Equatable {
             return true
         }
     }
+    /// Shared card fact presence only. The server removes actor IDs, so this
+    /// cannot prove that an unacknowledged personal mutation was applied.
     public func confirms(_ intent: PlayCircleIntent) -> Bool {
         switch intent {
         case .record(let offerID, _): return records.contains { Self.identifier($0["offerId"]) == offerID }
@@ -95,6 +97,7 @@ extension PlayExperienceService {
     private var generation: UInt64 = 0
     private var openingUnresolved = false
     private var openedSessionID: String?
+    private var pendingWriteAcknowledged = false
     public init(topicID: Int, service: PlayExperienceService, currentSession: @escaping () -> PlayExperienceSession?) { self.topicID = topicID; self.service = service; self.currentSession = currentSession }
     public func loadOffers() async {
         guard phase != "submitting", let session = currentSession() else { return }
@@ -129,8 +132,12 @@ extension PlayExperienceService {
         case .record(let offerID, _): guard offers.contains(where: { (PlayCircleCard.identifier($0["id"]) ?? PlayCircleCard.identifier($0["offerId"])) == offerID }) else { return }
         case .answer(let stage, _): guard card.stages.contains(stage) else { return }
         }
-        let generation = generation; pending = intent; phase = "submitting"
-        do { try await service.circleWrite(sessionID: card.sessionID, intent: intent, token: session.token); try check(session, generation); phase = "unknown"; await recover() }
+        let generation = generation; pending = intent; pendingWriteAcknowledged = false; phase = "submitting"
+        do {
+            try await service.circleWrite(sessionID: card.sessionID, intent: intent, token: session.token)
+            try check(session, generation); pendingWriteAcknowledged = true
+            phase = "unknown"; await recover()
+        }
         catch {
             if case PlayExperienceError.rejected = error { pending = nil }
             if case PlayExperienceError.disabled = error { pending = nil }
@@ -142,7 +149,13 @@ extension PlayExperienceService {
         let generation = generation; phase = "loading"; issue = nil
         do {
             let value = try await service.circleCard(sessionID: card.sessionID, token: session.token); try check(session, generation)
-            self.card = value; if let pending, value.confirms(pending) { self.pending = nil }
+            self.card = value
+            // A group member can record the same offer or submit the same shared
+            // answer. A card read is not an original-command receipt. Retain
+            // UNKNOWN unless this exact writer already returned success.
+            if pendingWriteAcknowledged, let pending, value.confirms(pending) {
+                self.pending = nil; pendingWriteAcknowledged = false
+            }
             phase = pending == nil ? "ready" : "unknown"
         } catch { fail(error, session, generation) }
     }
