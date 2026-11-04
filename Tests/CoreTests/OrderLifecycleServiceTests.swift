@@ -101,4 +101,117 @@ final class OrderLifecycleServiceTests: XCTestCase {
         do { _ = try await task.value; XCTFail("Unexpected success") } catch { XCTAssertTrue(error is CancellationError) }
         XCTAssertEqual(expired, 0)
     }
+    @MainActor func testSessionReaderAcceptsBuyerForBothThemePurchaseKindsWithoutChangingReadRequest() async throws {
+        for purchaseKind in [1, 3] {
+            let transport = LifecycleRecordingTransport("{\"code\":200,\"data\":{\"id\":41,\"memberId\":7,\"purchaseKind\":\(purchaseKind),\"cmsActivity\":{\"memberId\":99}}}")
+            let session = try OrderLifecycleSession(accountID: 7, epoch: 1, token: "synthetic-session")
+            let reader = OrderLifecycleSessionReader(service: try service(transport), currentSession: { session })
+            let detail = try await reader.detail(id: 41)
+            XCTAssertEqual(detail.memberID, 7)
+            XCTAssertEqual(detail.ownerMemberID, 99)
+            // Missing server outcomes remain unknown, including after account binding.
+            XCTAssertNil(detail.registrationStatus)
+            XCTAssertNil(detail.paymentStatus)
+            XCTAssertEqual(detail.summary().state, .unknown)
+            let requests = await transport.requests
+            XCTAssertEqual(requests.count, 1)
+            let request = try XCTUnwrap(requests.first)
+            XCTAssertEqual(request.url?.path, "/test/api/registration/info")
+            XCTAssertEqual(request.httpMethod, "POST")
+            let body = String(data: request.httpBody ?? Data(), encoding: .utf8) ?? ""
+            XCTAssertTrue(body.contains("name=\"id\"\r\n\r\n41\r\n"))
+            XCTAssertFalse(body.contains("memberId"))
+            XCTAssertFalse(body.contains("requestId"))
+            XCTAssertFalse(body.contains("quoteSign"))
+        }
+    }
+    @MainActor func testSessionReaderRejectsOtherOrMissingBuyerEvenWhenPublisherMatches() async throws {
+        for body in [
+            #"{"code":200,"data":{"id":41,"memberId":8,"cmsActivity":{"memberId":7}}}"#,
+            #"{"code":200,"data":{"id":41,"memberId":8,"cmsTopic":{"memberId":7}}}"#,
+            #"{"code":200,"data":{"id":41,"cmsActivity":{"memberId":7}}}"#,
+            #"{"code":200,"data":{"id":41,"memberId":null,"cmsTopic":{"memberId":7}}}"#
+        ] {
+            let transport = LifecycleRecordingTransport(body)
+            let session = try OrderLifecycleSession(accountID: 7, epoch: 1, token: "synthetic-session")
+            var expired = 0
+            let reader = OrderLifecycleSessionReader(service: try service(transport), currentSession: { session }, onUnauthorized: { _ in expired += 1 })
+            do { _ = try await reader.detail(id: 41); XCTFail("A different or absent buyer cannot become the current order") }
+            catch { XCTAssertEqual(error as? APIError, .malformedResponse) }
+            XCTAssertEqual(expired, 0)
+            let requests = await transport.requests
+            XCTAssertEqual(requests.count, 1, "Malformed readback must not retry or create a replacement order")
+        }
+    }
+    @MainActor func testSessionReaderRejectsAnotherOrderForTheSameBuyer() async throws {
+        let transport = LifecycleRecordingTransport(#"{"code":200,"data":{"id":42,"memberId":7}}"#)
+        let session = try OrderLifecycleSession(accountID: 7, epoch: 1, token: "synthetic-session")
+        let reader = OrderLifecycleSessionReader(service: try service(transport), currentSession: { session })
+        do { _ = try await reader.detail(id: 41); XCTFail("A matching buyer is not a matching order") }
+        catch { XCTAssertEqual(error as? APIError, .malformedResponse) }
+    }
+    @MainActor func testExplicitRereadAndRecreatedReaderKeepTheSameOrderReadOnly() async throws {
+        let transport = LifecycleRecordingTransport(#"{"code":200,"data":{"id":41,"memberId":7,"registrationStatus":2,"paymentStatus":1}}"#)
+        let session = try OrderLifecycleSession(accountID: 7, epoch: 1, token: "synthetic-session")
+        let originalReader = OrderLifecycleSessionReader(service: try service(transport), currentSession: { session })
+        let first = try await originalReader.detail(id: 41)
+        let repeated = try await originalReader.detail(id: 41)
+        // Reconstruction models a new reader lifetime, not a full app-restart test.
+        let recreatedReader = OrderLifecycleSessionReader(service: try service(transport), currentSession: { session })
+        let recreated = try await recreatedReader.detail(id: 41)
+        XCTAssertEqual(first, repeated)
+        XCTAssertEqual(first, recreated)
+        let requests = await transport.requests
+        XCTAssertEqual(requests.count, 3)
+        for request in requests {
+            XCTAssertEqual(request.url?.path, "/test/api/registration/info")
+            let body = String(data: request.httpBody ?? Data(), encoding: .utf8) ?? ""
+            XCTAssertTrue(body.contains("name=\"id\"\r\n\r\n41\r\n"))
+            XCTAssertFalse(body.contains("requestId"))
+        }
+    }
+    @MainActor func testCurrent401ExpiresCapturedSessionWithoutRetry() async throws {
+        let transport = LifecycleRecordingTransport(#"{"code":401,"data":"bad"}"#)
+        let session = try OrderLifecycleSession(accountID: 7, epoch: 1, token: "synthetic-session")
+        var expired: [OrderLifecycleSession] = []
+        let reader = OrderLifecycleSessionReader(service: try service(transport), currentSession: { session }, onUnauthorized: { expired.append($0) })
+        do { _ = try await reader.detail(id: 41); XCTFail("Unauthorized read must fail") }
+        catch { XCTAssertEqual(error as? APIError, .unauthorized) }
+        XCTAssertEqual(expired, [session])
+        let requests = await transport.requests
+        XCTAssertEqual(requests.count, 1)
+    }
+    @MainActor func testCurrent403DoesNotExpireSessionOrRetry() async throws {
+        let transport = LifecycleRecordingTransport(#"{"code":403,"data":"bad"}"#)
+        let session = try OrderLifecycleSession(accountID: 7, epoch: 1, token: "synthetic-session")
+        var expired = 0
+        let reader = OrderLifecycleSessionReader(service: try service(transport), currentSession: { session }, onUnauthorized: { _ in expired += 1 })
+        do { _ = try await reader.detail(id: 41); XCTFail("Denied read must fail") }
+        catch { XCTAssertEqual(error as? OrderLifecycleFailure, .accessDenied) }
+        XCTAssertEqual(expired, 0)
+        let requests = await transport.requests
+        XCTAssertEqual(requests.count, 1)
+    }
+    @MainActor func testLateOrderForOldBuyerCannotReachReplacementAccount() async throws {
+        let transport = LifecycleSuspendedTransport()
+        var session: OrderLifecycleSession? = try OrderLifecycleSession(accountID: 7, epoch: 1, token: "synthetic-old")
+        let reader = OrderLifecycleSessionReader(service: try service(transport), currentSession: { session })
+        let task = Task { try await reader.detail(id: 41) }
+        while !(await transport.isReady()) { await Task.yield() }
+        session = try OrderLifecycleSession(accountID: 8, epoch: 2, token: "synthetic-new")
+        await transport.finish(#"{"code":200,"data":{"id":41,"memberId":7}}"#)
+        do { _ = try await task.value; XCTFail("Old account read cannot cross the session fence") }
+        catch { XCTAssertTrue(error is CancellationError) }
+    }
+    @MainActor func testLateOrderCannotReachSignedOutReader() async throws {
+        let transport = LifecycleSuspendedTransport()
+        var session: OrderLifecycleSession? = try OrderLifecycleSession(accountID: 7, epoch: 1, token: "synthetic-session")
+        let reader = OrderLifecycleSessionReader(service: try service(transport), currentSession: { session })
+        let task = Task { try await reader.detail(id: 41) }
+        while !(await transport.isReady()) { await Task.yield() }
+        session = nil
+        await transport.finish(#"{"code":200,"data":{"id":41,"memberId":7}}"#)
+        do { _ = try await task.value; XCTFail("Signed-out reader cannot publish retained order data") }
+        catch { XCTAssertTrue(error is CancellationError) }
+    }
 }

@@ -117,7 +117,9 @@ public extension OrderLifecycleReading {
         let captured = scope
         try Task.checkCancellation()
         do {
-            let result = try await service.detail(id: id, token: session.token)
+            // Bind the returned buyer to the captured session, not the activity/topic
+            // publisher. This is a readback check; no identity is added to the request.
+            let result = try await service.detail(id: id, token: session.token, expectedAccountID: session.accountID)
             guard !Task.isCancelled, scope == captured, currentSession() == session else { throw CancellationError() }
             return result
         } catch {
