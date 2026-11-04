@@ -1,0 +1,1455 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test-without-building -xctestrun <RUNNER_TEMP>/remediation-c924bebf-derived-data/Build/Products/Questify_iphonesimulator27.1-arm64.xctestrun -destination "platform=iOS Simulator,id=25316F87-058C-46CE-8825-617906638207" -resultBundlePath <RUNNER_TEMP>/remediation-c924bebf-audit/ui.xcresult -parallel-testing-enabled NO "-only-testing:QuestifyUITests/TeamFlowTests/testCreatePrivateTeamReviewCancelPreservesForm" "-only-testing:QuestifyUITests/MerchantRegistrationAvailabilityFlowTests/testCancelAndRestorePreserveOriginalUnrecognizedSource" "-only-testing:QuestifyUITests/ClubProfileScopeFlowTests/testCaptureCL02TypeChoiceSheetWithoutApplying" "-only-testing:QuestifyUITests/ClubProfileScopeFlowTests/testCaptureCL02DirectionsSheetWithoutApplying" "-only-testing:QuestifyUITests/ClubProfileScopeFlowTests/testCaptureCL02ProfileReviewWithoutSubmitting" "-only-testing:QuestifyUITests/ClubGovernanceFlowTests/testCaptureCL02RolePickerWithoutPreparing" "-only-testing:QuestifyUITests/HomeFeedFlowTests/testTypedDestinationsAndPriceCurrencyDisclosure" "-only-testing:QuestifyUITests/HomeFeedFlowTests/testEmptyStateIsNotAnError" "-only-testing:QuestifyUITests/HomeFeedFlowTests/testPageFailureRetriesAndDuplicateFullPageStillPaginates" "-only-testing:QuestifyUITests/AccessibilityPresentationFlowTests/testHomeChineseDarkLargeTextRemainsNavigable" "-only-testing:QuestifyUITests/ReferenceChatTaskFlowTests/testMessageKeyboardKeepsSendActionReachable" "-only-testing:QuestifyUITests/ReferenceChatTaskFlowTests/testMessageEarlierPageAndDetailReturnRetainHistory" "-only-testing:QuestifyUITests/ModuleFlowTests/testProfileOrderReadbackAndBack" "-only-testing:QuestifyUITests/TemplateOwnShelfFlowTests/testOwnedCardShowsZeroDurationAndNoMarketplacePublishButton" "-only-testing:QuestifyUITests/TemplateOwnShelfFlowTests/testDeleteReviewShowsSourceDangerCopyAndCancelDoesNotSubmit"
+
+Writing result bundle at path:
+	<RUNNER_TEMP>/remediation-c924bebf-audit/ui.xcresult
+
+2026-11-04 15:38:31.947 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:38:32.898470+0800 QuestifyUITests-Runner[71693:104025912] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-11-04 15:38:35.002.
+Test Suite 'QuestifyUITests.xctest' started at 2026-11-04 15:38:35.003.
+Test Suite 'AccessibilityPresentationFlowTests' started at 2026-11-04 15:38:35.003.
+Test Case '-[QuestifyUITests.AccessibilityPresentationFlowTests testHomeChineseDarkLargeTextRemainsNavigable]' started.
+    t =     0.00s Start Test at 2026-11-04 15:38:35.005
+    t =     0.03s Set Up
+    t =     0.03s Open invalid.example.questify.ios
+    t =     0.03s     Launch invalid.example.questify.ios
+2026-11-04 15:38:35.089 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-11-04 15:38:35.089 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: no debugger version
+2026-11-04 15:38:35.197 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+objc[71693]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.5RJUGx/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x102b64398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.5RJUGx/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x106428310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     0.70s         Setting up automation session
+    t =     2.49s         Wait for invalid.example.questify.ios to idle
+    t =     4.35s Waiting 10.0s for "module.fixture.notice" Any to exist
+    t =     5.41s     Checking `Expect predicate `existsNoRetry == 1` for object "module.fixture.notice" Any`
+    t =     5.41s         Checking existence of `"module.fixture.notice" Any`
+    t =     5.43s Waiting 10.0s for "module.fixture.notice" Any to exist
+    t =     6.49s     Checking `Expect predicate `existsNoRetry == 1` for object "module.fixture.notice" Any`
+    t =     6.49s         Checking existence of `"module.fixture.notice" Any`
+    t =     6.51s Waiting 30.0s for "homeFeed.recommended.topic.7" Button to exist
+    t =     7.58s     Checking `Expect predicate `existsNoRetry == 1` for object "homeFeed.recommended.topic.7" Button`
+    t =     7.58s         Checking existence of `"homeFeed.recommended.topic.7" Button`
+    t =     7.68s Find the Target Application 'invalid.example.questify.ios'
+    t =     7.77s Added attachment named 'Home Chinese dark accessibility3 reduced-motion – synthetic fixture'
+    t =     7.77s Find the "homeFeed.recommended.topic.7" Button
+    t =     7.79s Find the "homeFeed.recommended.topic.7" Button
+    t =     7.81s Tap "homeFeed.recommended.topic.7" Button
+    t =     7.81s     Wait for invalid.example.questify.ios to idle
+    t =     7.82s     Find the "homeFeed.recommended.topic.7" Button
+    t =     7.83s     Check for interrupting elements affecting "homeFeed.recommended.topic.7" Button
+    t =     7.85s     Synthesize event
+    t =     8.14s     Wait for invalid.example.questify.ios to idle
+    t =     8.53s Waiting 10.0s for "homeFeed.destination.topic" StaticText to exist
+    t =     9.60s     Checking `Expect predicate `existsNoRetry == 1` for object "homeFeed.destination.topic" StaticText`
+    t =     9.60s         Checking existence of `"homeFeed.destination.topic" StaticText`
+    t =     9.63s Tear Down
+    t =     9.63s     Terminate invalid.example.questify.ios:71699
+2026-11-04 15:38:44.645 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:38:44.646 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:38:44.646 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+Test Case '-[QuestifyUITests.AccessibilityPresentationFlowTests testHomeChineseDarkLargeTextRemainsNavigable]' passed (10.736 seconds).
+Test Suite 'AccessibilityPresentationFlowTests' passed at 2026-11-04 15:38:45.741.
+	 Executed 1 test, with 0 failures (0 unexpected) in 10.736 (10.739) seconds
+Test Suite 'ClubGovernanceFlowTests' started at 2026-11-04 15:38:45.742.
+Test Case '-[QuestifyUITests.ClubGovernanceFlowTests testCaptureCL02RolePickerWithoutPreparing]' started.
+    t =     0.00s Start Test at 2026-11-04 15:38:45.743
+    t =     0.02s Set Up
+    t =     0.03s Open invalid.example.questify.ios
+    t =     0.03s     Launch invalid.example.questify.ios
+2026-11-04 15:38:45.772 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-11-04 15:38:45.772 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: no debugger version
+2026-11-04 15:38:45.814 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+    t =     0.24s         Setting up automation session
+    t =     2.03s         Wait for invalid.example.questify.ios to idle
+    t =     3.54s Waiting 5.0s for "club.gov.synthetic" StaticText to exist
+    t =     4.60s     Checking `Expect predicate `existsNoRetry == 1` for object "club.gov.synthetic" StaticText`
+    t =     4.60s         Checking existence of `"club.gov.synthetic" StaticText`
+    t =     4.71s Waiting 5.0s for "club.gov.fixture.root" CollectionView to exist
+    t =     5.77s     Checking `Expect predicate `existsNoRetry == 1` for object "club.gov.fixture.root" CollectionView`
+    t =     5.77s         Checking existence of `"club.gov.fixture.root" CollectionView`
+    t =     5.82s Find the Target Application 'invalid.example.questify.ios'
+    t =     5.87s Checking existence of `"club.gov.fixture.roles" Button`
+    t =     5.89s Find the "club.gov.fixture.roles" Button
+    t =     5.92s Find the "club.gov.fixture.roles" Button
+    t =     5.97s Checking existence of `"club.gov.fixture.roles" Button`
+    t =     5.99s Find the "club.gov.fixture.roles" Button
+    t =     6.02s Find the "club.gov.fixture.roles" Button
+    t =     6.05s Tap "club.gov.fixture.roles" Button
+    t =     6.05s     Wait for invalid.example.questify.ios to idle
+    t =     6.05s     Find the "club.gov.fixture.roles" Button
+    t =     6.07s     Check for interrupting elements affecting "club.gov.fixture.roles" Button
+    t =     6.10s     Synthesize event
+    t =     6.39s     Wait for invalid.example.questify.ios to idle
+    t =     6.50s Waiting 5.0s for "club.gov.fixture.destination.roles" Any to exist
+    t =     7.56s     Checking `Expect predicate `existsNoRetry == 1` for object "club.gov.fixture.destination.roles" Any`
+    t =     7.56s         Checking existence of `"club.gov.fixture.destination.roles" Any`
+    t =     7.58s Find the Target Application 'invalid.example.questify.ios'
+    t =     7.63s Checking existence of `"club.gov.action.assignRole" Button`
+    t =     7.65s Find the "club.gov.action.assignRole" Button
+    t =     7.68s Find the "club.gov.action.assignRole" Button
+    t =     7.70s Waiting 5.0s for "club.gov.action.assignRole" Button to exist
+    t =     8.76s     Checking `Expect predicate `existsNoRetry == 1` for object "club.gov.action.assignRole" Button`
+    t =     8.76s         Checking existence of `"club.gov.action.assignRole" Button`
+    t =     8.80s Find the "club.gov.action.assignRole" Button
+    t =     8.84s Tap "club.gov.action.assignRole" Button
+    t =     8.84s     Wait for invalid.example.questify.ios to idle
+    t =     8.84s     Find the "club.gov.action.assignRole" Button
+    t =     8.86s     Check for interrupting elements affecting "club.gov.action.assignRole" Button
+    t =     8.88s     Synthesize event
+    t =     9.17s     Wait for invalid.example.questify.ios to idle
+    t =     9.58s Waiting 5.0s for Button (First Match) to exist
+    t =    10.64s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    10.64s         Checking existence of `Button (First Match)`
+    t =    10.81s Waiting 5.0s for Button (First Match) to exist
+    t =    11.90s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    11.93s         Checking existence of `Button (First Match)`
+    t =    12.11s Find the Target Application 'invalid.example.questify.ios'
+    t =    12.19s Checking existence of `Button (First Match)`
+    t =    12.28s Find the Button (First Match)
+    t =    12.38s Press Target Application 'invalid.example.questify.ios'[0.50, 0.77] for 0.1 seconds, then drag to Target Application 'invalid.example.questify.ios'[0.50, 0.44] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    12.38s     Wait for invalid.example.questify.ios to idle
+    t =    12.38s     Find the Target Application 'invalid.example.questify.ios'
+    t =    12.41s     Check for interrupting elements affecting "Questify" Application
+    t =    12.48s     Synthesize event
+    t =    12.49s         Find the Target Application 'invalid.example.questify.ios'
+    t =    12.52s         Find the Target Application 'invalid.example.questify.ios'
+    t =    12.55s         Find the Target Application 'invalid.example.questify.ios'
+    t =    12.58s         Find the Target Application 'invalid.example.questify.ios'
+    t =    12.62s         Find the Target Application 'invalid.example.questify.ios'
+    t =    13.54s     Wait for invalid.example.questify.ios to idle
+    t =    13.93s Find the Target Application 'invalid.example.questify.ios'
+    t =    14.00s Checking existence of `"club.rolePicker.openMembers" Button`
+    t =    14.09s Find the "club.rolePicker.openMembers" Button
+    t =    14.17s Find the "club.rolePicker.openMembers" Button
+    t =    14.26s Find the Target Application 'invalid.example.questify.ios'
+    t =    14.38s Added attachment named 'CL02 role picker current collapsed values – synthetic fixture'
+    t =    14.38s Find the Target Application 'invalid.example.questify.ios'
+    t =    14.44s Checking existence of `"club.rolePicker.openMembers" Button`
+    t =    14.52s Find the "club.rolePicker.openMembers" Button
+    t =    14.60s Find the "club.rolePicker.openMembers" Button
+    t =    14.69s Get number of matches for: Descendants matching type Button
+    t =    14.77s Find the Button (First Match)
+    t =    14.86s Find the Button
+    t =    14.94s Checking existence of `"collapsed" Image`
+    t =    15.04s Tap Button at {{359.7, 577.3}, {10.3, 14.0}}[0.50, 0.50]
+    t =    15.04s     Wait for invalid.example.questify.ios to idle
+    t =    15.19s     Find the Button at {{359.7, 577.3}, {10.3, 14.0}}
+    t =    15.28s     Check for interrupting elements affecting Button
+    t =    15.32s     Synthesize event
+    t =    15.32s         Find the Button at {{359.7, 577.3}, {10.3, 14.0}}
+    t =    15.41s         Find the Button at {{359.7, 577.3}, {10.3, 14.0}}
+    t =    15.50s         Find the Button at {{359.7, 577.3}, {10.3, 14.0}}
+    t =    15.87s     Wait for invalid.example.questify.ios to idle
+    t =    15.87s Waiting 5.0s for "expanded" Image to exist
+    t =    16.94s     Checking `Expect predicate `existsNoRetry == 1` for object "expanded" Image`
+    t =    16.94s         Checking existence of `"expanded" Image`
+    t =    17.05s Find the Target Application 'invalid.example.questify.ios'
+    t =    17.10s Checking existence of `Button (First Match)`
+    t =    17.18s Find the Button (First Match)
+    t =    17.26s Find the "club.rolePicker.openMembers" Button
+    t =    17.35s Get number of matches for: Elements matching predicate 'identifier == "club.rolePicker.member.704" OR (identifier == "club.rolePicker.openMembers" AND label CONTAINS "Fixture member" AND label MATCHES ".*\\b704\\b.*")'
+    t =    17.39s Find the "club.rolePicker.openMembers" Button
+    t =    17.47s Find the Target Application 'invalid.example.questify.ios'
+    t =    17.57s Added attachment named 'CL02 role picker expanded existing member options – synthetic fixture'
+    t =    17.57s Tap "club.rolePicker.openMembers" Button[0.50, 0.50]
+    t =    17.57s     Wait for invalid.example.questify.ios to idle
+    t =    17.58s     Find the "club.rolePicker.openMembers" Button
+    t =    17.66s     Check for interrupting elements affecting "club.rolePicker.openMembers" Button
+    t =    17.69s     Synthesize event
+    t =    17.70s         Find the "club.rolePicker.openMembers" Button
+    t =    17.77s         Find the "club.rolePicker.openMembers" Button
+    t =    17.85s         Find the "club.rolePicker.openMembers" Button
+    t =    18.22s     Wait for invalid.example.questify.ios to idle
+    t =    18.23s Find the "club.rolePicker.openMembers" Button
+    t =    18.33s Find the "club.rolePicker.openMembers" Button
+    t =    18.40s Find the Target Application 'invalid.example.questify.ios'
+    t =    18.46s Checking existence of `Button (First Match)`
+    t =    18.54s Find the Button (First Match)
+    t =    18.62s Find the "club.rolePicker.openRoles" Button
+    t =    18.71s Get number of matches for: Descendants matching type Button
+    t =    18.79s Find the Button (First Match)
+    t =    18.88s Find the Button
+    t =    18.97s Checking existence of `"collapsed" Image`
+    t =    19.05s Tap Button at {{359.7, 642.3}, {10.3, 14.0}}[0.50, 0.50]
+    t =    19.05s     Wait for invalid.example.questify.ios to idle
+    t =    19.05s     Find the Button at {{359.7, 642.3}, {10.3, 14.0}}
+    t =    19.14s     Check for interrupting elements affecting Button
+    t =    19.18s     Synthesize event
+    t =    19.18s         Find the Button at {{359.7, 642.3}, {10.3, 14.0}}
+    t =    19.28s         Find the Button at {{359.7, 642.3}, {10.3, 14.0}}
+    t =    19.36s         Find the Button at {{359.7, 642.3}, {10.3, 14.0}}
+    t =    19.74s     Wait for invalid.example.questify.ios to idle
+    t =    19.74s Waiting 5.0s for "expanded" Image to exist
+    t =    20.78s     Checking `Expect predicate `existsNoRetry == 1` for object "expanded" Image`
+    t =    20.79s         Checking existence of `"expanded" Image`
+    t =    20.89s Find the Target Application 'invalid.example.questify.ios'
+    t =    20.95s Checking existence of `Button (First Match)`
+    t =    21.03s Find the Button (First Match)
+    t =    21.11s Find the "club.rolePicker.openRoles" Button
+    t =    21.19s Get number of matches for: Elements matching predicate 'identifier == "club.rolePicker.role.EVENT_CHECKIN" OR (identifier == "club.rolePicker.openRoles" AND label == "Check-in, Can check in this occurrence only; no member-management or financial permissions.")'
+    t =    21.23s Find the "club.rolePicker.openRoles" Button
+    t =    21.31s Find the Target Application 'invalid.example.questify.ios'
+    t =    21.42s Added attachment named 'CL02 role picker expanded existing event role options – synthetic fixture'
+    t =    21.42s Tap "club.rolePicker.openRoles" Button[0.50, 0.50]
+    t =    21.42s     Wait for invalid.example.questify.ios to idle
+    t =    21.42s     Find the "club.rolePicker.openRoles" Button
+    t =    21.50s     Check for interrupting elements affecting "club.rolePicker.openRoles" Button
+    t =    21.54s     Synthesize event
+    t =    21.54s         Find the "club.rolePicker.openRoles" Button
+    t =    21.62s         Find the "club.rolePicker.openRoles" Button
+    t =    21.69s         Find the "club.rolePicker.openRoles" Button
+    t =    22.06s     Wait for invalid.example.questify.ios to idle
+    t =    22.07s Find the "club.rolePicker.openRoles" Button
+    t =    22.17s Find the Target Application 'invalid.example.questify.ios'
+    t =    22.22s Checking existence of `"club.rolePicker.openMembers" Button`
+    t =    22.30s Find the "club.rolePicker.openMembers" Button
+    t =    22.39s Find the "club.rolePicker.openMembers" Button
+    t =    22.48s Checking existence of `"club.gov.confirm" Button`
+    t =    22.52s Find the Target Application 'invalid.example.questify.ios'
+    t =    22.62s Added attachment named 'CL02 role picker staged selection viewport before review – synthetic fixture'
+    t =    22.62s Tear Down
+    t =    22.62s     Terminate invalid.example.questify.ios:71709
+2026-11-04 15:39:08.374 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:39:08.374 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:39:08.374 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+Test Case '-[QuestifyUITests.ClubGovernanceFlowTests testCaptureCL02RolePickerWithoutPreparing]' passed (23.767 seconds).
+Test Suite 'ClubGovernanceFlowTests' passed at 2026-11-04 15:39:09.510.
+	 Executed 1 test, with 0 failures (0 unexpected) in 23.767 (23.768) seconds
+Test Suite 'ClubProfileScopeFlowTests' started at 2026-11-04 15:39:09.511.
+Test Case '-[QuestifyUITests.ClubProfileScopeFlowTests testCaptureCL02DirectionsSheetWithoutApplying]' started.
+    t =     0.00s Start Test at 2026-11-04 15:39:09.512
+    t =     0.02s Set Up
+    t =     0.02s Open invalid.example.questify.ios
+    t =     0.02s     Launch invalid.example.questify.ios
+2026-11-04 15:39:09.535 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-11-04 15:39:09.535 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: no debugger version
+2026-11-04 15:39:09.640 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+    t =     0.24s         Setting up automation session
+    t =     2.20s         Wait for invalid.example.questify.ios to idle
+    t =     3.85s Waiting 10.0s for "club.ops.fixtureNotice" Any to exist
+    t =     4.91s     Checking `Expect predicate `existsNoRetry == 1` for object "club.ops.fixtureNotice" Any`
+    t =     4.92s         Checking existence of `"club.ops.fixtureNotice" Any`
+    t =     5.01s Get all elements bound by index for: Elements matching predicate '"club.ops.openManage" IN identifiers'
+    t =     5.04s Checking existence of `"club.ops.openManage" Any`
+    t =     5.05s Find the "club.ops.openManage" Any
+    t =     5.10s Get all elements bound by index for: Elements matching predicate '"club.ops.openManage" IN identifiers'
+    t =     5.11s Checking existence of `"club.ops.openManage" Button`
+    t =     5.13s Find the "club.ops.openManage" Button
+    t =     5.15s Find the "club.ops.openManage" Button
+    t =     5.16s Tap "club.ops.openManage" Button
+    t =     5.16s     Wait for invalid.example.questify.ios to idle
+    t =     5.16s     Find the "club.ops.openManage" Button
+    t =     5.18s     Check for interrupting elements affecting "club.ops.openManage" Button
+    t =     5.19s     Synthesize event
+    t =     5.48s     Wait for invalid.example.questify.ios to idle
+    t =     6.81s Checking `Expect predicate `BLOCKPREDICATE(0x105fef750)` for object Target Application 'invalid.example.questify.ios'`
+    t =     6.81s     Get number of matches for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     6.88s     Get all elements bound by index for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     6.91s     Checking existence of `"club.ops.writeCount" StaticText`
+    t =     6.94s     Find the "club.ops.writeCount" StaticText
+    t =     6.99s     Checking existence of `"club.ops.writeCount" StaticText`
+    t =     7.02s     Find the "club.ops.writeCount" StaticText
+    t =     7.06s     Find the Target Application 'invalid.example.questify.ios'
+    t =     7.08s     Find the "club.ops.writeCount" StaticText
+    t =     7.11s     Find the "club.ops.writeCount" StaticText
+    t =     7.15s Get all elements bound by index for: Elements matching predicate '"club.profileChoice.open.directions" IN identifiers'
+    t =     7.18s Swipe up Target Application 'invalid.example.questify.ios'
+    t =     7.18s     Wait for invalid.example.questify.ios to idle
+    t =     7.18s     Find the Target Application 'invalid.example.questify.ios'
+    t =     7.21s     Check for interrupting elements affecting "Questify" Application
+    t =     7.24s     Synthesize event
+    t =     7.66s     Wait for invalid.example.questify.ios to idle
+    t =     9.85s Get all elements bound by index for: Elements matching predicate '"club.profileChoice.open.directions" IN identifiers'
+    t =     9.91s Checking existence of `"club.profileChoice.open.directions" Any`
+    t =     9.96s Find the "club.profileChoice.open.directions" Any
+    t =    10.01s Get all elements bound by index for: Elements matching predicate '"club.profileChoice.open.directions" IN identifiers'
+    t =    10.05s Checking existence of `"club.profileChoice.open.directions" Button`
+    t =    10.08s Find the "club.profileChoice.open.directions" Button
+    t =    10.13s Find the "club.profileChoice.open.directions" Button
+    t =    10.17s Tap "club.profileChoice.open.directions" Button
+    t =    10.17s     Wait for invalid.example.questify.ios to idle
+    t =    10.17s     Find the "club.profileChoice.open.directions" Button
+    t =    10.21s     Check for interrupting elements affecting "club.profileChoice.open.directions" Button
+    t =    10.25s     Synthesize event
+    t =    10.53s     Wait for invalid.example.questify.ios to idle
+    t =    11.99s Checking `Expect predicate `BLOCKPREDICATE(0x105feeca0)` for object Target Application 'invalid.example.questify.ios'`
+    t =    11.99s     Checking existence of `"club.profileChoice.apply" Any`
+    t =    12.05s     Find the "club.profileChoice.apply" Any
+    t =    12.10s Checking existence of `Switch (First Match)`
+    t =    12.21s Find the Target Application 'invalid.example.questify.ios'
+    t =    12.34s Added attachment named 'CL02 directions sheet current fixture selection – synthetic fixture'
+    t =    12.34s Tear Down
+    t =    12.34s     Terminate invalid.example.questify.ios:71731
+2026-11-04 15:39:21.856 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:39:21.856 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:39:21.856 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+Test Case '-[QuestifyUITests.ClubProfileScopeFlowTests testCaptureCL02DirectionsSheetWithoutApplying]' passed (13.425 seconds).
+Test Case '-[QuestifyUITests.ClubProfileScopeFlowTests testCaptureCL02ProfileReviewWithoutSubmitting]' started.
+    t =     0.00s Start Test at 2026-11-04 15:39:22.937
+    t =     0.01s Set Up
+    t =     0.01s Open invalid.example.questify.ios
+    t =     0.02s     Launch invalid.example.questify.ios
+2026-11-04 15:39:22.954 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-11-04 15:39:22.954 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: no debugger version
+2026-11-04 15:39:22.983 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+    t =     0.23s         Setting up automation session
+    t =     2.08s         Wait for invalid.example.questify.ios to idle
+    t =     3.54s Waiting 10.0s for "club.ops.fixtureNotice" Any to exist
+    t =     4.60s     Checking `Expect predicate `existsNoRetry == 1` for object "club.ops.fixtureNotice" Any`
+    t =     4.60s         Checking existence of `"club.ops.fixtureNotice" Any`
+    t =     4.68s Get all elements bound by index for: Elements matching predicate '"club.ops.openManage" IN identifiers'
+    t =     4.70s Checking existence of `"club.ops.openManage" Any`
+    t =     4.72s Find the "club.ops.openManage" Any
+    t =     4.76s Get all elements bound by index for: Elements matching predicate '"club.ops.openManage" IN identifiers'
+    t =     4.77s Checking existence of `"club.ops.openManage" Button`
+    t =     4.78s Find the "club.ops.openManage" Button
+    t =     4.80s Find the "club.ops.openManage" Button
+    t =     4.81s Tap "club.ops.openManage" Button
+    t =     4.81s     Wait for invalid.example.questify.ios to idle
+    t =     4.81s     Find the "club.ops.openManage" Button
+    t =     4.83s     Check for interrupting elements affecting "club.ops.openManage" Button
+    t =     4.84s     Synthesize event
+    t =     5.13s     Wait for invalid.example.questify.ios to idle
+    t =     6.29s Checking `Expect predicate `BLOCKPREDICATE(0x105fef480)` for object Target Application 'invalid.example.questify.ios'`
+    t =     6.29s     Get number of matches for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     6.36s     Get all elements bound by index for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     6.39s     Checking existence of `"club.ops.writeCount" StaticText`
+    t =     6.42s     Find the "club.ops.writeCount" StaticText
+    t =     6.46s     Checking existence of `"club.ops.writeCount" StaticText`
+    t =     6.49s     Find the "club.ops.writeCount" StaticText
+    t =     6.52s     Find the Target Application 'invalid.example.questify.ios'
+    t =     6.55s     Find the "club.ops.writeCount" StaticText
+    t =     6.58s     Find the "club.ops.writeCount" StaticText
+    t =     6.61s Waiting 5.0s for "club.ops.field.name" Any to exist
+    t =     7.62s     Checking `Expect predicate `existsNoRetry == 1` for object "club.ops.field.name" Any`
+    t =     7.62s         Checking existence of `"club.ops.field.name" Any`
+    t =     7.77s Tap "club.ops.field.name" Any
+    t =     7.77s     Wait for invalid.example.questify.ios to idle
+    t =     7.77s     Find the "club.ops.field.name" Any
+    t =     7.88s     Check for interrupting elements affecting "club.ops.field.name" TextField
+    t =     7.92s     Synthesize event
+    t =     8.21s     Wait for invalid.example.questify.ios to idle
+    t =     8.87s Type ' edited' into "club.ops.field.name" TextField
+    t =     8.87s     Wait for invalid.example.questify.ios to idle
+    t =     9.25s     Find the "club.ops.field.name" TextField
+    t =     9.45s     Check for interrupting elements affecting "club.ops.field.name" TextField
+    t =     9.55s     Synthesize event
+    t =     9.88s     Wait for invalid.example.questify.ios to idle
+    t =    10.03s Find the Target Application 'invalid.example.questify.ios'
+    t =    10.12s Checking existence of `"club.ops.reviewProfile" Button`
+    t =    10.21s Press Target Application 'invalid.example.questify.ios'[0.50, 0.54] for 0.1 seconds, then drag to Target Application 'invalid.example.questify.ios'[0.50, 0.31] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    10.21s     Wait for invalid.example.questify.ios to idle
+    t =    10.21s     Find the Target Application 'invalid.example.questify.ios'
+    t =    10.24s     Check for interrupting elements affecting "Questify" Application
+    t =    10.27s     Synthesize event
+    t =    10.27s         Find the Target Application 'invalid.example.questify.ios'
+    t =    10.30s         Find the Target Application 'invalid.example.questify.ios'
+    t =    10.33s         Find the Target Application 'invalid.example.questify.ios'
+    t =    10.36s         Find the Target Application 'invalid.example.questify.ios'
+    t =    10.39s         Find the Target Application 'invalid.example.questify.ios'
+    t =    11.11s     Wait for invalid.example.questify.ios to idle
+    t =    12.66s Find the Target Application 'invalid.example.questify.ios'
+    t =    12.77s Checking existence of `"club.ops.reviewProfile" Button`
+    t =    12.88s Press Target Application 'invalid.example.questify.ios'[0.50, 0.54] for 0.1 seconds, then drag to Target Application 'invalid.example.questify.ios'[0.50, 0.31] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    12.88s     Wait for invalid.example.questify.ios to idle
+    t =    12.88s     Find the Target Application 'invalid.example.questify.ios'
+    t =    12.91s     Check for interrupting elements affecting "Questify" Application
+    t =    12.95s     Synthesize event
+    t =    12.95s         Find the Target Application 'invalid.example.questify.ios'
+    t =    12.98s         Find the Target Application 'invalid.example.questify.ios'
+    t =    13.02s         Find the Target Application 'invalid.example.questify.ios'
+    t =    13.05s         Find the Target Application 'invalid.example.questify.ios'
+    t =    13.08s         Find the Target Application 'invalid.example.questify.ios'
+    t =    13.81s     Wait for invalid.example.questify.ios to idle
+    t =    15.36s Find the Target Application 'invalid.example.questify.ios'
+    t =    15.46s Checking existence of `"club.ops.reviewProfile" Button`
+    t =    15.54s Find the "club.ops.reviewProfile" Button
+    t =    15.62s Press Target Application 'invalid.example.questify.ios'[0.50, 0.54] for 0.1 seconds, then drag to Target Application 'invalid.example.questify.ios'[0.50, 0.31] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    15.62s     Wait for invalid.example.questify.ios to idle
+    t =    15.62s     Find the Target Application 'invalid.example.questify.ios'
+    t =    15.65s     Check for interrupting elements affecting "Questify" Application
+    t =    15.69s     Synthesize event
+    t =    15.69s         Find the Target Application 'invalid.example.questify.ios'
+    t =    15.72s         Find the Target Application 'invalid.example.questify.ios'
+    t =    15.75s         Find the Target Application 'invalid.example.questify.ios'
+    t =    15.78s         Find the Target Application 'invalid.example.questify.ios'
+    t =    15.82s         Find the Target Application 'invalid.example.questify.ios'
+    t =    16.54s     Wait for invalid.example.questify.ios to idle
+    t =    18.10s Find the Target Application 'invalid.example.questify.ios'
+    t =    18.20s Checking existence of `"club.ops.reviewProfile" Button`
+    t =    18.27s Find the "club.ops.reviewProfile" Button
+    t =    18.35s Find the "club.ops.reviewProfile" Button
+    t =    18.43s Get number of matches for: Elements matching predicate '"club.ops.reviewProfile" IN identifiers'
+    t =    18.47s Checking existence of `"club.ops.reviewProfile" Button`
+    t =    18.54s Find the "club.ops.reviewProfile" Button
+    t =    18.62s Find the "club.ops.reviewProfile" Button
+    t =    18.69s Tap "club.ops.reviewProfile" Button[0.50, 0.50]
+    t =    18.69s     Wait for invalid.example.questify.ios to idle
+    t =    18.70s     Find the "club.ops.reviewProfile" Button
+    t =    18.77s     Check for interrupting elements affecting "club.ops.reviewProfile" Button
+    t =    18.81s     Synthesize event
+    t =    18.81s         Find the "club.ops.reviewProfile" Button
+    t =    18.89s         Find the "club.ops.reviewProfile" Button
+    t =    18.96s         Find the "club.ops.reviewProfile" Button
+    t =    19.32s     Wait for invalid.example.questify.ios to idle
+    t =    20.86s Checking `Expect predicate `BLOCKPREDICATE(0x105feee80)` for object Target Application 'invalid.example.questify.ios'`
+    t =    20.86s     Checking existence of `"Review changes" NavigationBar`
+    t =    20.95s     Checking existence of `"club.ops.cancelReview" Button`
+    t =    21.00s     Find the "club.ops.cancelReview" Button
+    t =    21.06s     Checking existence of `"club.ops.reviewSheet" StaticText`
+    t =    21.12s     Find the "club.ops.reviewSheet" StaticText
+    t =    21.17s     Find the "club.ops.reviewSheet" StaticText
+    t =    21.23s     Find the Target Application 'invalid.example.questify.ios'
+    t =    21.27s     Find the "club.ops.reviewSheet" StaticText
+    t =    21.32s     Find the "club.ops.reviewSheet" StaticText
+    t =    21.37s     Find the "Review changes" NavigationBar
+    t =    21.42s     Checking existence of `"Club, Fixture club (#81)" StaticText`
+    t =    21.55s     Find the "Club, Fixture club (#81)" StaticText
+    t =    21.68s     Find the "Club, Fixture club (#81)" StaticText
+    t =    21.82s     Find the Target Application 'invalid.example.questify.ios'
+    t =    21.86s     Find the "Club, Fixture club (#81)" StaticText
+    t =    21.99s     Find the "Club, Fixture club (#81)" StaticText
+    t =    22.13s     Find the "Review changes" NavigationBar
+    t =    22.18s     Checking existence of `"Name (up to 30 characters), Fixture club edited" StaticText`
+    t =    22.31s     Find the "Name (up to 30 characters), Fixture club edited" StaticText
+    t =    22.45s     Find the "Name (up to 30 characters), Fixture club edited" StaticText
+    t =    22.59s     Find the Target Application 'invalid.example.questify.ios'
+    t =    22.63s     Find the "Name (up to 30 characters), Fixture club edited" StaticText
+    t =    22.76s     Find the "Name (up to 30 characters), Fixture club edited" StaticText
+    t =    22.90s     Find the "Review changes" NavigationBar
+    t =    22.95s Find the Target Application 'invalid.example.questify.ios'
+    t =    23.06s Added attachment named 'CL02 profile review target and edited display values before confirm – synthetic fixture'
+    t =    23.06s Get all elements bound by index for: Elements matching predicate '"club.ops.cancelReview" IN identifiers'
+    t =    23.12s Checking existence of `"club.ops.cancelReview" Any`
+    t =    23.18s Find the "club.ops.cancelReview" Any
+    t =    23.24s Get all elements bound by index for: Elements matching predicate '"club.ops.cancelReview" IN identifiers'
+    t =    23.29s Checking existence of `"club.ops.cancelReview" Button`
+    t =    23.34s Find the "club.ops.cancelReview" Button
+    t =    23.40s Find the "club.ops.cancelReview" Button
+    t =    23.46s Tap "club.ops.cancelReview" Button
+    t =    23.46s     Wait for invalid.example.questify.ios to idle
+    t =    23.46s     Find the "club.ops.cancelReview" Button
+    t =    23.51s     Check for interrupting elements affecting "club.ops.cancelReview" Button
+    t =    23.56s     Synthesize event
+    t =    23.85s     Wait for invalid.example.questify.ios to idle
+    t =    25.63s Checking `Expect predicate `BLOCKPREDICATE(0x105fee8b0)` for object Target Application 'invalid.example.questify.ios'`
+    t =    25.63s     Get number of matches for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =    25.69s     Get all elements bound by index for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =    25.73s     Checking existence of `"club.ops.writeCount" StaticText`
+    t =    25.77s     Find the "club.ops.writeCount" StaticText
+    t =    25.81s     Checking existence of `"club.ops.writeCount" StaticText`
+    t =    25.84s     Find the "club.ops.writeCount" StaticText
+    t =    25.88s     Find the Target Application 'invalid.example.questify.ios'
+    t =    25.91s     Find the "club.ops.writeCount" StaticText
+    t =    25.94s     Find the "club.ops.writeCount" StaticText
+    t =    25.98s Tear Down
+    t =    25.98s     Terminate invalid.example.questify.ios:83840
+2026-11-04 15:39:48.922 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:39:48.923 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:39:48.924 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+Test Case '-[QuestifyUITests.ClubProfileScopeFlowTests testCaptureCL02ProfileReviewWithoutSubmitting]' passed (27.105 seconds).
+Test Case '-[QuestifyUITests.ClubProfileScopeFlowTests testCaptureCL02TypeChoiceSheetWithoutApplying]' started.
+    t =     0.00s Start Test at 2026-11-04 15:39:50.043
+    t =     0.02s Set Up
+    t =     0.02s Open invalid.example.questify.ios
+    t =     0.02s     Launch invalid.example.questify.ios
+2026-11-04 15:39:50.062 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-11-04 15:39:50.062 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: no debugger version
+2026-11-04 15:39:50.099 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+    t =     0.23s         Setting up automation session
+    t =     2.01s         Wait for invalid.example.questify.ios to idle
+    t =     3.48s Waiting 10.0s for "club.ops.fixtureNotice" Any to exist
+    t =     4.55s     Checking `Expect predicate `existsNoRetry == 1` for object "club.ops.fixtureNotice" Any`
+    t =     4.55s         Checking existence of `"club.ops.fixtureNotice" Any`
+    t =     4.65s Get all elements bound by index for: Elements matching predicate '"club.ops.openManage" IN identifiers'
+    t =     4.67s Checking existence of `"club.ops.openManage" Any`
+    t =     4.68s Find the "club.ops.openManage" Any
+    t =     4.72s Get all elements bound by index for: Elements matching predicate '"club.ops.openManage" IN identifiers'
+    t =     4.74s Checking existence of `"club.ops.openManage" Button`
+    t =     4.75s Find the "club.ops.openManage" Button
+    t =     4.76s Find the "club.ops.openManage" Button
+    t =     4.78s Tap "club.ops.openManage" Button
+    t =     4.78s     Wait for invalid.example.questify.ios to idle
+    t =     4.78s     Find the "club.ops.openManage" Button
+    t =     4.79s     Check for interrupting elements affecting "club.ops.openManage" Button
+    t =     4.81s     Synthesize event
+    t =     5.09s     Wait for invalid.example.questify.ios to idle
+    t =     6.31s Checking `Expect predicate `BLOCKPREDICATE(0x105fef270)` for object Target Application 'invalid.example.questify.ios'`
+    t =     6.31s     Get number of matches for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     6.39s     Get all elements bound by index for: Elements matching predicate '"club.ops.writeCount" IN identifiers'
+    t =     6.43s     Checking existence of `"club.ops.writeCount" StaticText`
+    t =     6.46s     Find the "club.ops.writeCount" StaticText
+    t =     6.50s     Checking existence of `"club.ops.writeCount" StaticText`
+    t =     6.53s     Find the "club.ops.writeCount" StaticText
+    t =     6.56s     Find the Target Application 'invalid.example.questify.ios'
+    t =     6.58s     Find the "club.ops.writeCount" StaticText
+    t =     6.61s     Find the "club.ops.writeCount" StaticText
+    t =     6.64s Get all elements bound by index for: Elements matching predicate '"club.profileChoice.open.type" IN identifiers'
+    t =     6.68s Checking existence of `"club.profileChoice.open.type" Any`
+    t =     6.71s Find the "club.profileChoice.open.type" Any
+    t =     6.75s Get all elements bound by index for: Elements matching predicate '"club.profileChoice.open.type" IN identifiers'
+    t =     6.78s Checking existence of `"club.profileChoice.open.type" Button`
+    t =     6.80s Find the "club.profileChoice.open.type" Button
+    t =     6.84s Find the "club.profileChoice.open.type" Button
+    t =     6.87s Tap "club.profileChoice.open.type" Button
+    t =     6.87s     Wait for invalid.example.questify.ios to idle
+    t =     6.87s     Find the "club.profileChoice.open.type" Button
+    t =     6.90s     Check for interrupting elements affecting "club.profileChoice.open.type" Button
+    t =     6.93s     Synthesize event
+    t =     7.22s     Wait for invalid.example.questify.ios to idle
+    t =     8.57s Checking `Expect predicate `BLOCKPREDICATE(0x105fee6d0)` for object Target Application 'invalid.example.questify.ios'`
+    t =     8.57s     Checking existence of `"club.profileChoice.apply" Any`
+    t =     8.64s     Find the "club.profileChoice.apply" Any
+    t =     8.69s Find the Target Application 'invalid.example.questify.ios'
+    t =     8.80s Added attachment named 'CL02 type choice sheet current fixture selection – synthetic fixture'
+    t =     8.80s Tear Down
+    t =     8.80s     Terminate invalid.example.questify.ios:85097
+2026-11-04 15:39:58.849 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:39:58.849 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:39:58.850 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+Test Case '-[QuestifyUITests.ClubProfileScopeFlowTests testCaptureCL02TypeChoiceSheetWithoutApplying]' passed (9.875 seconds).
+Test Suite 'ClubProfileScopeFlowTests' passed at 2026-11-04 15:39:59.919.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 50.406 (50.408) seconds
+Test Suite 'HomeFeedFlowTests' started at 2026-11-04 15:39:59.920.
+Test Case '-[QuestifyUITests.HomeFeedFlowTests testEmptyStateIsNotAnError]' started.
+    t =     0.00s Start Test at 2026-11-04 15:39:59.922
+    t =     0.02s Set Up
+    t =     0.03s Open invalid.example.questify.ios
+    t =     0.03s     Launch invalid.example.questify.ios
+2026-11-04 15:39:59.952 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-11-04 15:39:59.952 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: no debugger version
+2026-11-04 15:40:00.003 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+    t =     0.24s         Setting up automation session
+    t =     2.04s         Wait for invalid.example.questify.ios to idle
+    t =     3.69s Checking existence of `"homeFeed.empty" Any`
+    t =     3.84s Waiting 15.0s for "homeFeed.empty" Any to exist
+    t =     4.88s     Checking `Expect predicate `existsNoRetry == 1` for object "homeFeed.empty" Any`
+    t =     4.89s         Checking existence of `"homeFeed.empty" Any`
+    t =     4.98s Checking existence of `"homeFeed.retry.page" Button`
+    t =     5.01s Find the Target Application 'invalid.example.questify.ios'
+    t =     5.09s Added attachment named 'Home feed known empty state – synthetic fixture'
+    t =     5.09s Tear Down
+    t =     5.09s     Terminate invalid.example.questify.ios:85105
+2026-11-04 15:40:05.022 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:40:05.022 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:40:05.022 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+Test Case '-[QuestifyUITests.HomeFeedFlowTests testEmptyStateIsNotAnError]' passed (6.169 seconds).
+Test Case '-[QuestifyUITests.HomeFeedFlowTests testPageFailureRetriesAndDuplicateFullPageStillPaginates]' started.
+    t =     0.00s Start Test at 2026-11-04 15:40:06.092
+    t =     0.02s Set Up
+    t =     0.03s Open invalid.example.questify.ios
+    t =     0.03s     Launch invalid.example.questify.ios
+2026-11-04 15:40:06.120 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-11-04 15:40:06.120 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: no debugger version
+2026-11-04 15:40:06.170 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+    t =     0.23s         Setting up automation session
+    t =     2.05s         Wait for invalid.example.questify.ios to idle
+    t =     3.78s Checking existence of `"homeFeed.retry.page" Button`
+    t =     3.86s Swipe up Target Application 'invalid.example.questify.ios'
+    t =     3.86s     Wait for invalid.example.questify.ios to idle
+    t =     3.86s     Find the Target Application 'invalid.example.questify.ios'
+    t =     3.88s     Check for interrupting elements affecting "Questify" Application
+    t =     3.89s     Synthesize event
+    t =     4.31s     Wait for invalid.example.questify.ios to idle
+    t =     6.43s Checking existence of `"homeFeed.retry.page" Button`
+    t =     6.48s Swipe up Target Application 'invalid.example.questify.ios'
+    t =     6.48s     Wait for invalid.example.questify.ios to idle
+    t =     6.48s     Find the Target Application 'invalid.example.questify.ios'
+    t =     6.50s     Check for interrupting elements affecting "Questify" Application
+    t =     6.52s     Synthesize event
+    t =     6.94s     Wait for invalid.example.questify.ios to idle
+    t =     7.63s Checking existence of `"homeFeed.retry.page" Button`
+    t =     7.68s Find the "homeFeed.retry.page" Button
+    t =     7.71s Find the NavigationBar (First Match)
+    t =     7.72s Find the "homeFeed.retry.page" Button
+    t =     7.74s Find the "homeFeed.retry.page" Button
+    t =     7.77s Find the Target Application 'invalid.example.questify.ios'
+    t =     7.78s Find the Target Application 'invalid.example.questify.ios'
+    t =     7.87s Added attachment named 'Home feed page failure before retry – synthetic fixture'
+    t =     7.87s Tap "homeFeed.retry.page" Button
+    t =     7.87s     Wait for invalid.example.questify.ios to idle
+    t =     7.87s     Find the "homeFeed.retry.page" Button
+    t =     7.90s     Check for interrupting elements affecting "homeFeed.retry.page" Button
+    t =     7.92s     Synthesize event
+    t =     8.21s     Wait for invalid.example.questify.ios to idle
+    t =     8.21s Checking existence of `"homeFeed.stream.topic.7" Button`
+    t =     8.25s Find the "homeFeed.stream.topic.7" Button
+    t =     8.28s Find the NavigationBar (First Match)
+    t =     8.29s Find the "homeFeed.stream.topic.7" Button
+    t =     8.32s Find the "homeFeed.stream.topic.7" Button
+    t =     8.34s Find the Target Application 'invalid.example.questify.ios'
+    t =     8.36s Find the "homeFeed.stream.topic.7" Button
+    t =     8.39s Swipe up Target Application 'invalid.example.questify.ios'
+    t =     8.39s     Wait for invalid.example.questify.ios to idle
+    t =     8.39s     Find the Target Application 'invalid.example.questify.ios'
+    t =     8.41s     Check for interrupting elements affecting "Questify" Application
+    t =     8.43s     Synthesize event
+    t =     8.85s     Wait for invalid.example.questify.ios to idle
+    t =     9.66s Checking existence of `"homeFeed.stream.topic.7" Button`
+    t =     9.70s Find the "homeFeed.stream.topic.7" Button
+    t =     9.73s Find the NavigationBar (First Match)
+    t =     9.73s Find the "homeFeed.stream.topic.7" Button
+    t =     9.75s Find the "homeFeed.stream.topic.7" Button
+    t =     9.77s Find the Target Application 'invalid.example.questify.ios'
+    t =     9.78s Get number of matches for: Elements matching predicate '"homeFeed.stream.topic.7" IN identifiers'
+    t =     9.80s Checking existence of `"homeFeed.loadMore" Button`
+    t =     9.81s Find the "homeFeed.loadMore" Button
+    t =     9.83s Find the NavigationBar (First Match)
+    t =     9.84s Find the "homeFeed.loadMore" Button
+    t =     9.86s Find the "homeFeed.loadMore" Button
+    t =     9.88s Find the Target Application 'invalid.example.questify.ios'
+    t =     9.89s Tap "homeFeed.loadMore" Button
+    t =     9.89s     Wait for invalid.example.questify.ios to idle
+    t =     9.89s     Find the "homeFeed.loadMore" Button
+    t =     9.91s     Check for interrupting elements affecting "homeFeed.loadMore" Button
+    t =     9.93s     Synthesize event
+    t =    10.22s     Wait for invalid.example.questify.ios to idle
+    t =    11.50s Checking `Expect predicate `exists == 0` for object "homeFeed.loadMore" Button`
+    t =    11.50s     Checking existence of `"homeFeed.loadMore" Button`
+    t =    11.54s Tear Down
+    t =    11.54s     Terminate invalid.example.questify.ios:85108
+2026-11-04 15:40:17.643 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:40:17.644 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:40:17.644 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+Test Case '-[QuestifyUITests.HomeFeedFlowTests testPageFailureRetriesAndDuplicateFullPageStillPaginates]' passed (12.689 seconds).
+Test Case '-[QuestifyUITests.HomeFeedFlowTests testTypedDestinationsAndPriceCurrencyDisclosure]' started.
+    t =     0.00s Start Test at 2026-11-04 15:40:18.780
+    t =     0.02s Set Up
+    t =     0.02s Open invalid.example.questify.ios
+    t =     0.02s     Launch invalid.example.questify.ios
+2026-11-04 15:40:18.800 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-11-04 15:40:18.800 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: no debugger version
+2026-11-04 15:40:18.846 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+    t =     0.22s         Setting up automation session
+    t =     2.00s         Wait for invalid.example.questify.ios to idle
+    t =     3.70s Waiting 30.0s for "homeFeed.recommended.topic.7" Button to exist
+    t =     4.76s     Checking `Expect predicate `existsNoRetry == 1` for object "homeFeed.recommended.topic.7" Button`
+    t =     4.76s         Checking existence of `"homeFeed.recommended.topic.7" Button`
+    t =     4.85s Find the Target Application 'invalid.example.questify.ios'
+    t =     4.94s Added attachment named 'Home feed initial content – synthetic fixture'
+    t =     4.94s Tap "homeFeed.recommended.topic.7" Button
+    t =     4.94s     Wait for invalid.example.questify.ios to idle
+    t =     4.94s     Find the "homeFeed.recommended.topic.7" Button
+    t =     4.96s     Check for interrupting elements affecting "homeFeed.recommended.topic.7" Button
+    t =     4.97s     Synthesize event
+    t =     5.26s     Wait for invalid.example.questify.ios to idle
+    t =     5.65s Waiting 15.0s for "homeFeed.destination.topic" StaticText to exist
+    t =     6.68s     Checking `Expect predicate `existsNoRetry == 1` for object "homeFeed.destination.topic" StaticText`
+    t =     6.68s         Checking existence of `"homeFeed.destination.topic" StaticText`
+    t =     6.68s Tap Button (First Match)
+    t =     6.68s     Wait for invalid.example.questify.ios to idle
+    t =     6.69s     Find the Button (First Match)
+    t =     6.70s     Check for interrupting elements affecting "BackButton" Button
+    t =     6.71s     Synthesize event
+    t =     7.00s     Wait for invalid.example.questify.ios to idle
+    t =     7.29s Checking existence of `"homeFeed.nearby.activity.7" Button`
+    t =     7.32s Swipe up Target Application 'invalid.example.questify.ios'
+    t =     7.33s     Wait for invalid.example.questify.ios to idle
+    t =     7.33s     Find the Target Application 'invalid.example.questify.ios'
+    t =     7.34s     Check for interrupting elements affecting "Questify" Application
+    t =     7.36s     Synthesize event
+    t =     7.78s     Wait for invalid.example.questify.ios to idle
+    t =     9.88s Checking existence of `"homeFeed.nearby.activity.7" Button`
+    t =     9.91s Find the "homeFeed.nearby.activity.7" Button
+    t =     9.94s Find the NavigationBar (First Match)
+    t =     9.95s Find the "homeFeed.nearby.activity.7" Button
+    t =     9.98s Find the "homeFeed.nearby.activity.7" Button
+    t =    10.00s Find the Target Application 'invalid.example.questify.ios'
+    t =    10.02s Tap "homeFeed.nearby.activity.7" Button
+    t =    10.02s     Wait for invalid.example.questify.ios to idle
+    t =    10.02s     Find the "homeFeed.nearby.activity.7" Button
+    t =    10.05s     Check for interrupting elements affecting "homeFeed.nearby.activity.7" Button
+    t =    10.08s     Synthesize event
+    t =    10.36s     Wait for invalid.example.questify.ios to idle
+    t =    10.69s Waiting 15.0s for "homeFeed.destination.activity" StaticText to exist
+    t =    11.74s     Checking `Expect predicate `existsNoRetry == 1` for object "homeFeed.destination.activity" StaticText`
+    t =    11.74s         Checking existence of `"homeFeed.destination.activity" StaticText`
+    t =    11.76s Find the "homeFeed.destination.activity" StaticText
+    t =    11.77s Tap Button (First Match)
+    t =    11.77s     Wait for invalid.example.questify.ios to idle
+    t =    11.77s     Find the Button (First Match)
+    t =    11.78s     Check for interrupting elements affecting "BackButton" Button
+    t =    11.79s     Synthesize event
+    t =    12.08s     Wait for invalid.example.questify.ios to idle
+    t =    12.38s Find the Target Application 'invalid.example.questify.ios'
+    t =    12.44s Checking existence of `StaticText (First Match)`
+    t =    12.47s Find the StaticText (First Match)
+    t =    12.51s Press Target Application 'invalid.example.questify.ios'[0.50, 0.46] for 0.1 seconds, then drag to Target Application 'invalid.example.questify.ios'[0.50, 0.78] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    12.51s     Wait for invalid.example.questify.ios to idle
+    t =    12.51s     Find the Target Application 'invalid.example.questify.ios'
+    t =    12.53s     Check for interrupting elements affecting "Questify" Application
+    t =    12.56s     Synthesize event
+    t =    12.56s         Find the Target Application 'invalid.example.questify.ios'
+    t =    12.58s         Find the Target Application 'invalid.example.questify.ios'
+    t =    12.60s         Find the Target Application 'invalid.example.questify.ios'
+    t =    12.62s         Find the Target Application 'invalid.example.questify.ios'
+    t =    12.64s         Find the Target Application 'invalid.example.questify.ios'
+    t =    13.51s     Wait for invalid.example.questify.ios to idle
+    t =    15.07s Find the Target Application 'invalid.example.questify.ios'
+    t =    15.11s Checking existence of `"Starting price
+Currency not provided" StaticText`
+    t =    15.14s Find the "Starting price
+Currency not provided" StaticText
+    t =    15.17s Waiting 5.0s for "Starting price
+Currency not provided" StaticText to exist
+    t =    16.22s     Checking `Expect predicate `existsNoRetry == 1` for object "Starting price
+Currency not provided" StaticText`
+    t =    16.22s         Checking existence of `"Starting price
+Currency not provided" StaticText`
+    t =    16.26s Checking existence of `"Buy" Button`
+    t =    16.28s Checking existence of `"Start playing" Button`
+    t =    16.30s Tear Down
+    t =    16.30s     Terminate invalid.example.questify.ios:85120
+2026-11-04 15:40:35.084 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:40:35.085 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:40:35.085 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+Test Case '-[QuestifyUITests.HomeFeedFlowTests testTypedDestinationsAndPriceCurrencyDisclosure]' passed (17.417 seconds).
+Test Suite 'HomeFeedFlowTests' passed at 2026-11-04 15:40:36.198.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 36.275 (36.278) seconds
+Test Suite 'MerchantRegistrationAvailabilityFlowTests' started at 2026-11-04 15:40:36.198.
+Test Case '-[QuestifyUITests.MerchantRegistrationAvailabilityFlowTests testCancelAndRestorePreserveOriginalUnrecognizedSource]' started.
+    t =     0.00s Start Test at 2026-11-04 15:40:36.199
+    t =     0.01s Set Up
+    t =     0.02s Open invalid.example.questify.ios
+    t =     0.02s     Launch invalid.example.questify.ios
+2026-11-04 15:40:36.218 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-11-04 15:40:36.218 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: no debugger version
+2026-11-04 15:40:36.245 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+    t =     0.23s         Setting up automation session
+    t =     2.00s         Wait for invalid.example.questify.ios to idle
+    t =     3.49s Find the Target Application 'invalid.example.questify.ios'
+    t =     3.58s Checking existence of `"merchant.content.entry.registrations" Button`
+    t =     3.59s Press Target Application 'invalid.example.questify.ios'[0.50, 0.78] for 0.1 seconds, then drag to Target Application 'invalid.example.questify.ios'[0.50, 0.46] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =     3.59s     Wait for invalid.example.questify.ios to idle
+    t =     3.60s     Find the Target Application 'invalid.example.questify.ios'
+    t =     3.61s     Check for interrupting elements affecting "Questify" Application
+    t =     3.62s     Synthesize event
+    t =     3.62s         Find the Target Application 'invalid.example.questify.ios'
+    t =     3.63s         Find the Target Application 'invalid.example.questify.ios'
+    t =     3.63s         Find the Target Application 'invalid.example.questify.ios'
+    t =     3.64s         Find the Target Application 'invalid.example.questify.ios'
+    t =     3.65s         Find the Target Application 'invalid.example.questify.ios'
+    t =     4.51s     Wait for invalid.example.questify.ios to idle
+    t =     6.05s Find the Target Application 'invalid.example.questify.ios'
+    t =     6.08s Checking existence of `"merchant.content.entry.registrations" Button`
+    t =     6.09s Find the "merchant.content.entry.registrations" Button
+    t =     6.11s Press Target Application 'invalid.example.questify.ios'[0.50, 0.76] for 0.1 seconds, then drag to Target Application 'invalid.example.questify.ios'[0.50, 0.41] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =     6.11s     Wait for invalid.example.questify.ios to idle
+    t =     6.11s     Find the Target Application 'invalid.example.questify.ios'
+    t =     6.12s     Check for interrupting elements affecting "Questify" Application
+    t =     6.13s     Synthesize event
+    t =     6.13s         Find the Target Application 'invalid.example.questify.ios'
+    t =     6.14s         Find the Target Application 'invalid.example.questify.ios'
+    t =     6.15s         Find the Target Application 'invalid.example.questify.ios'
+    t =     6.16s         Find the Target Application 'invalid.example.questify.ios'
+    t =     6.17s         Find the Target Application 'invalid.example.questify.ios'
+    t =     7.08s     Wait for invalid.example.questify.ios to idle
+    t =     7.09s Find the Target Application 'invalid.example.questify.ios'
+    t =     7.14s Checking existence of `"merchant.content.entry.registrations" Button`
+    t =     7.15s Find the "merchant.content.entry.registrations" Button
+    t =     7.17s Press Target Application 'invalid.example.questify.ios'[0.50, 0.76] for 0.1 seconds, then drag to Target Application 'invalid.example.questify.ios'[0.50, 0.41] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =     7.17s     Wait for invalid.example.questify.ios to idle
+    t =     7.17s     Find the Target Application 'invalid.example.questify.ios'
+    t =     7.18s     Check for interrupting elements affecting "Questify" Application
+    t =     7.19s     Synthesize event
+    t =     7.20s         Find the Target Application 'invalid.example.questify.ios'
+    t =     7.20s         Find the Target Application 'invalid.example.questify.ios'
+    t =     7.22s         Find the Target Application 'invalid.example.questify.ios'
+    t =     7.22s         Find the Target Application 'invalid.example.questify.ios'
+    t =     7.24s         Find the Target Application 'invalid.example.questify.ios'
+    t =     8.15s     Wait for invalid.example.questify.ios to idle
+    t =     8.15s Find the Target Application 'invalid.example.questify.ios'
+    t =     8.20s Checking existence of `"merchant.content.entry.registrations" Button`
+    t =     8.22s Find the "merchant.content.entry.registrations" Button
+    t =     8.24s Press Target Application 'invalid.example.questify.ios'[0.50, 0.76] for 0.1 seconds, then drag to Target Application 'invalid.example.questify.ios'[0.50, 0.41] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =     8.24s     Wait for invalid.example.questify.ios to idle
+    t =     8.24s     Find the Target Application 'invalid.example.questify.ios'
+    t =     8.25s     Check for interrupting elements affecting "Questify" Application
+    t =     8.26s     Synthesize event
+    t =     8.26s         Find the Target Application 'invalid.example.questify.ios'
+    t =     8.27s         Find the Target Application 'invalid.example.questify.ios'
+    t =     8.28s         Find the Target Application 'invalid.example.questify.ios'
+    t =     8.29s         Find the Target Application 'invalid.example.questify.ios'
+    t =     8.30s         Find the Target Application 'invalid.example.questify.ios'
+    t =     9.22s     Wait for invalid.example.questify.ios to idle
+    t =     9.22s Find the Target Application 'invalid.example.questify.ios'
+    t =     9.27s Checking existence of `"merchant.content.entry.registrations" Button`
+    t =     9.28s Find the "merchant.content.entry.registrations" Button
+    t =     9.30s Find the "merchant.content.entry.registrations" Button
+    t =     9.34s Tap "merchant.content.entry.registrations" Button
+    t =     9.34s     Wait for invalid.example.questify.ios to idle
+    t =     9.34s     Find the "merchant.content.entry.registrations" Button
+    t =     9.36s     Check for interrupting elements affecting "merchant.content.entry.registrations" Button
+    t =     9.37s     Synthesize event
+    t =     9.66s     Wait for invalid.example.questify.ios to idle
+    t =    10.04s Find the Target Application 'invalid.example.questify.ios'
+    t =    10.07s Checking existence of `"merchant.content.open.registration" Button`
+    t =    10.09s Find the "merchant.content.open.registration" Button
+    t =    10.10s Find the "merchant.content.open.registration" Button
+    t =    10.12s Tap "merchant.content.open.registration" Button
+    t =    10.12s     Wait for invalid.example.questify.ios to idle
+    t =    10.13s     Find the "merchant.content.open.registration" Button
+    t =    10.14s     Check for interrupting elements affecting "merchant.content.open.registration" Button
+    t =    10.15s     Synthesize event
+    t =    10.45s     Wait for invalid.example.questify.ios to idle
+    t =    10.76s Find the Target Application 'invalid.example.questify.ios'
+    t =    10.82s Checking existence of `"merchant.content.edit" Button`
+    t =    10.83s Find the "merchant.content.edit" Button
+    t =    10.85s Find the "merchant.content.edit" Button
+    t =    10.87s Tap "merchant.content.edit" Button
+    t =    10.87s     Wait for invalid.example.questify.ios to idle
+    t =    10.87s     Find the "merchant.content.edit" Button
+    t =    10.89s     Check for interrupting elements affecting "merchant.content.edit" Button
+    t =    10.90s     Synthesize event
+    t =    11.19s     Wait for invalid.example.questify.ios to idle
+    t =    11.59s Waiting 4.0s for "merchant.content.fixture.context" StaticText to exist
+    t =    12.66s     Checking `Expect predicate `existsNoRetry == 1` for object "merchant.content.fixture.context" StaticText`
+    t =    12.66s         Checking existence of `"merchant.content.fixture.context" StaticText`
+    t =    12.73s Find the "merchant.content.fixture.context" StaticText
+    t =    12.75s Find the Target Application 'invalid.example.questify.ios'
+    t =    12.79s Checking existence of `"Saved daily hours" StaticText`
+    t =    12.82s Press Target Application 'invalid.example.questify.ios'[0.50, 0.78] for 0.1 seconds, then drag to Target Application 'invalid.example.questify.ios'[0.50, 0.46] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    12.82s     Wait for invalid.example.questify.ios to idle
+    t =    12.82s     Find the Target Application 'invalid.example.questify.ios'
+    t =    12.83s     Check for interrupting elements affecting "Questify" Application
+    t =    12.86s     Synthesize event
+    t =    12.86s         Find the Target Application 'invalid.example.questify.ios'
+    t =    12.87s         Find the Target Application 'invalid.example.questify.ios'
+    t =    12.89s         Find the Target Application 'invalid.example.questify.ios'
+    t =    12.91s         Find the Target Application 'invalid.example.questify.ios'
+    t =    12.93s         Find the Target Application 'invalid.example.questify.ios'
+    t =    13.79s     Wait for invalid.example.questify.ios to idle
+    t =    15.33s Find the Target Application 'invalid.example.questify.ios'
+    t =    15.42s Checking existence of `"Saved daily hours" StaticText`
+    t =    15.45s Find the "Saved daily hours" StaticText
+    t =    15.47s Find the Target Application 'invalid.example.questify.ios'
+    t =    15.52s Checking existence of `"merchant.registrationAvailability.sourceStart.value" StaticText`
+    t =    15.54s Find the "merchant.registrationAvailability.sourceStart.value" StaticText
+    t =    15.57s Find the "merchant.registrationAvailability.sourceStart.value" StaticText
+    t =    15.59s Find the Target Application 'invalid.example.questify.ios'
+    t =    15.64s Checking existence of `"Saved first day" StaticText`
+    t =    15.66s Find the "Saved first day" StaticText
+    t =    15.69s Find the Target Application 'invalid.example.questify.ios'
+    t =    15.73s Checking existence of `"Saved last day" StaticText`
+    t =    15.76s Find the "Saved last day" StaticText
+    t =    15.79s Find the Target Application 'invalid.example.questify.ios'
+    t =    15.83s Checking existence of `"Saved daily hours" StaticText`
+    t =    15.86s Find the "Saved daily hours" StaticText
+    t =    15.88s Find the Target Application 'invalid.example.questify.ios'
+    t =    15.97s Added attachment named 'M04 offline merchant availability source – synthetic fixture'
+    t =    15.97s Find the Target Application 'invalid.example.questify.ios'
+    t =    16.02s Checking existence of `"merchant.registrationAvailability.open" Button`
+    t =    16.05s Find the "merchant.registrationAvailability.open" Button
+    t =    16.07s Find the "merchant.registrationAvailability.open" Button
+    t =    16.11s Tap "merchant.registrationAvailability.open" Button
+    t =    16.11s     Wait for invalid.example.questify.ios to idle
+    t =    16.11s     Find the "merchant.registrationAvailability.open" Button
+    t =    16.13s     Check for interrupting elements affecting "merchant.registrationAvailability.open" Button
+    t =    16.16s     Synthesize event
+    t =    16.45s     Wait for invalid.example.questify.ios to idle
+    t =    16.51s Waiting 4.0s for "merchant.registrationAvailability.apply" Button to exist
+    t =    17.56s     Checking `Expect predicate `existsNoRetry == 1` for object "merchant.registrationAvailability.apply" Button`
+    t =    17.57s         Checking existence of `"merchant.registrationAvailability.apply" Button`
+    t =    17.66s Waiting 4.0s for "merchant.registrationAvailability.startDay" Any to exist
+    t =    18.70s     Checking `Expect predicate `existsNoRetry == 1` for object "merchant.registrationAvailability.startDay" Any`
+    t =    18.70s         Checking existence of `"merchant.registrationAvailability.startDay" Any`
+    t =    18.90s Find the Target Application 'invalid.example.questify.ios'
+    t =    18.95s Checking existence of `"merchant.registrationAvailability.startDay" Any`
+    t =    19.12s Find the "merchant.registrationAvailability.startDay" Any
+    t =    19.29s Find the Target Application 'invalid.example.questify.ios'
+    t =    19.40s Added attachment named 'M04 offline merchant availability dates – synthetic fixture'
+    t =    19.40s Find the Target Application 'invalid.example.questify.ios'
+    t =    19.45s Checking existence of `"merchant.registrationAvailability.endMinute" Any`
+    t =    19.63s Find the "merchant.registrationAvailability.endMinute" Any
+    t =    19.81s Press Target Application 'invalid.example.questify.ios'[0.50, 0.75] for 0.1 seconds, then drag to Target Application 'invalid.example.questify.ios'[0.50, 0.40] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    19.81s     Wait for invalid.example.questify.ios to idle
+    t =    19.81s     Find the Target Application 'invalid.example.questify.ios'
+    t =    19.84s     Check for interrupting elements affecting "Questify" Application
+    t =    19.88s     Synthesize event
+    t =    19.88s         Find the Target Application 'invalid.example.questify.ios'
+    t =    19.91s         Find the Target Application 'invalid.example.questify.ios'
+    t =    19.95s         Find the Target Application 'invalid.example.questify.ios'
+    t =    19.98s         Find the Target Application 'invalid.example.questify.ios'
+    t =    20.01s         Find the Target Application 'invalid.example.questify.ios'
+    t =    20.96s     Wait for invalid.example.questify.ios to idle
+    t =    21.40s Find the Target Application 'invalid.example.questify.ios'
+    t =    21.48s Checking existence of `"merchant.registrationAvailability.endMinute" Button`
+    t =    21.66s Find the "merchant.registrationAvailability.endMinute" Button
+    t =    21.82s Find the Target Application 'invalid.example.questify.ios'
+    t =    21.92s Added attachment named 'M04 offline merchant availability hours – synthetic fixture'
+    t =    21.93s Waiting 4.0s for "merchant.registrationAvailability.apply" Button to exist
+    t =    22.97s     Checking `Expect predicate `existsNoRetry == 1` for object "merchant.registrationAvailability.apply" Button`
+    t =    22.97s         Checking existence of `"merchant.registrationAvailability.apply" Button`
+    t =    23.02s Waiting 4.0s for "merchant.registrationAvailability.cancel" Button to exist
+    t =    24.07s     Checking `Expect predicate `existsNoRetry == 1` for object "merchant.registrationAvailability.cancel" Button`
+    t =    24.07s         Checking existence of `"merchant.registrationAvailability.cancel" Button`
+    t =    25.19s Get number of matches for: Elements matching predicate '"merchant.registrationAvailability.cancel" IN identifiers'
+    t =    25.27s Checking existence of `"merchant.registrationAvailability.cancel" Button`
+    t =    25.31s Find the "merchant.registrationAvailability.cancel" Button
+    t =    25.35s Find the "merchant.registrationAvailability.cancel" Button
+    t =    25.40s Find the "merchant.registrationAvailability.cancel" Button
+    t =    25.44s Find the Target Application 'invalid.example.questify.ios'
+    t =    25.47s Get number of matches for: Elements matching predicate '"merchant.registrationAvailability.cancel" IN identifiers'
+    t =    25.52s Checking existence of `"merchant.registrationAvailability.cancel" Button`
+    t =    25.56s Find the "merchant.registrationAvailability.cancel" Button
+    t =    25.60s Find the "merchant.registrationAvailability.cancel" Button
+    t =    25.65s Find the "merchant.registrationAvailability.cancel" Button
+    t =    25.69s Find the Target Application 'invalid.example.questify.ios'
+    t =    25.72s Checking existence of `"merchant.registrationAvailability.cancel" Button`
+    t =    25.77s Find the "merchant.registrationAvailability.cancel" Button
+    t =    25.81s Find the "merchant.registrationAvailability.cancel" Button
+    t =    25.86s Tap "merchant.registrationAvailability.cancel" Button
+    t =    25.86s     Wait for invalid.example.questify.ios to idle
+    t =    25.86s     Find the "merchant.registrationAvailability.cancel" Button
+    t =    25.90s     Check for interrupting elements affecting "merchant.registrationAvailability.cancel" Button
+    t =    25.94s     Synthesize event
+    t =    26.23s     Wait for invalid.example.questify.ios to idle
+    t =    26.63s Checking existence of `"merchant.registrationAvailability.restore" Button`
+    t =    26.66s Find the Target Application 'invalid.example.questify.ios'
+    t =    26.70s Checking existence of `"merchant.registrationAvailability.open" Button`
+    t =    26.73s Find the "merchant.registrationAvailability.open" Button
+    t =    26.76s Find the "merchant.registrationAvailability.open" Button
+    t =    26.79s Tap "merchant.registrationAvailability.open" Button
+    t =    26.79s     Wait for invalid.example.questify.ios to idle
+    t =    26.79s     Find the "merchant.registrationAvailability.open" Button
+    t =    26.82s     Check for interrupting elements affecting "merchant.registrationAvailability.open" Button
+    t =    26.84s     Synthesize event
+    t =    27.13s     Wait for invalid.example.questify.ios to idle
+    t =    27.56s Waiting 4.0s for "merchant.registrationAvailability.apply" Button to exist
+    t =    28.60s     Checking `Expect predicate `existsNoRetry == 1` for object "merchant.registrationAvailability.apply" Button`
+    t =    28.60s         Checking existence of `"merchant.registrationAvailability.apply" Button`
+    t =    28.68s Waiting 4.0s for "merchant.registrationAvailability.apply" Button to exist
+    t =    29.71s     Checking `Expect predicate `existsNoRetry == 1` for object "merchant.registrationAvailability.apply" Button`
+    t =    29.72s         Checking existence of `"merchant.registrationAvailability.apply" Button`
+    t =    30.83s Get number of matches for: Elements matching predicate '"merchant.registrationAvailability.apply" IN identifiers'
+    t =    30.90s Checking existence of `"merchant.registrationAvailability.apply" Button`
+    t =    30.95s Find the "merchant.registrationAvailability.apply" Button
+    t =    30.99s Find the "merchant.registrationAvailability.apply" Button
+    t =    31.04s Find the "merchant.registrationAvailability.apply" Button
+    t =    31.08s Find the Target Application 'invalid.example.questify.ios'
+    t =    31.11s Get number of matches for: Elements matching predicate '"merchant.registrationAvailability.apply" IN identifiers'
+    t =    31.15s Checking existence of `"merchant.registrationAvailability.apply" Button`
+    t =    31.19s Find the "merchant.registrationAvailability.apply" Button
+    t =    31.24s Find the "merchant.registrationAvailability.apply" Button
+    t =    31.29s Find the "merchant.registrationAvailability.apply" Button
+    t =    31.33s Find the Target Application 'invalid.example.questify.ios'
+    t =    31.36s Checking existence of `"merchant.registrationAvailability.apply" Button`
+    t =    31.40s Find the "merchant.registrationAvailability.apply" Button
+    t =    31.44s Find the "merchant.registrationAvailability.apply" Button
+    t =    31.49s Tap "merchant.registrationAvailability.apply" Button
+    t =    31.49s     Wait for invalid.example.questify.ios to idle
+    t =    31.50s     Find the "merchant.registrationAvailability.apply" Button
+    t =    31.54s     Check for interrupting elements affecting "merchant.registrationAvailability.apply" Button
+    t =    31.58s     Synthesize event
+    t =    31.87s     Wait for invalid.example.questify.ios to idle
+    t =    32.31s Find the Target Application 'invalid.example.questify.ios'
+    t =    32.36s Checking existence of `"merchant.registrationAvailability.newDaily" Any`
+    t =    32.46s Find the "merchant.registrationAvailability.newDaily" Any
+    t =    32.55s Find the Target Application 'invalid.example.questify.ios'
+    t =    32.64s Added attachment named 'M04 offline merchant availability pending draft – synthetic fixture'
+    t =    32.64s Find the Target Application 'invalid.example.questify.ios'
+    t =    32.69s Checking existence of `"merchant.registrationAvailability.restore" Button`
+    t =    32.72s Find the "merchant.registrationAvailability.restore" Button
+    t =    32.75s Find the "merchant.registrationAvailability.restore" Button
+    t =    32.78s Tap "merchant.registrationAvailability.restore" Button
+    t =    32.78s     Wait for invalid.example.questify.ios to idle
+    t =    32.78s     Find the "merchant.registrationAvailability.restore" Button
+    t =    32.81s     Check for interrupting elements affecting "merchant.registrationAvailability.restore" Button
+    t =    32.84s     Synthesize event
+    t =    33.13s     Wait for invalid.example.questify.ios to idle
+    t =    33.39s Checking existence of `"merchant.registrationAvailability.restore" Button`
+    t =    33.43s Find the Target Application 'invalid.example.questify.ios'
+    t =    33.47s Checking existence of `"merchant.registrationAvailability.sourceStart.value" StaticText`
+    t =    33.50s Find the "merchant.registrationAvailability.sourceStart.value" StaticText
+    t =    33.52s Checking existence of `"Saved first day" StaticText`
+    t =    33.55s Find the "merchant.registrationAvailability.sourceStart.value" StaticText
+    t =    33.57s Tear Down
+    t =    33.57s     Terminate invalid.example.questify.ios:98160
+2026-11-04 15:41:09.780 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:41:09.781 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:41:09.782 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+Test Case '-[QuestifyUITests.MerchantRegistrationAvailabilityFlowTests testCancelAndRestorePreserveOriginalUnrecognizedSource]' passed (34.693 seconds).
+Test Suite 'MerchantRegistrationAvailabilityFlowTests' passed at 2026-11-04 15:41:10.892.
+	 Executed 1 test, with 0 failures (0 unexpected) in 34.693 (34.694) seconds
+Test Suite 'ModuleFlowTests' started at 2026-11-04 15:41:10.893.
+Test Case '-[QuestifyUITests.ModuleFlowTests testProfileOrderReadbackAndBack]' started.
+    t =     0.00s Start Test at 2026-11-04 15:41:10.894
+    t =     0.01s Set Up
+    t =     0.02s Open invalid.example.questify.ios
+    t =     0.02s     Launch invalid.example.questify.ios
+2026-11-04 15:41:10.912 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-11-04 15:41:10.912 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: no debugger version
+2026-11-04 15:41:10.950 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+    t =     0.23s         Setting up automation session
+    t =     2.03s         Wait for invalid.example.questify.ios to idle
+    t =     3.51s Waiting 10.0s for "module.fixture.notice" StaticText to exist
+    t =     4.55s     Checking `Expect predicate `existsNoRetry == 1` for object "module.fixture.notice" StaticText`
+    t =     4.55s         Checking existence of `"module.fixture.notice" StaticText`
+    t =     5.68s Checking `Expect predicate `exists == 1 AND hittable == 1` for object "profile.open.orders" Button`
+    t =     5.68s     Checking existence of `"profile.open.orders" Button`
+    t =     5.69s     Find the "profile.open.orders" Button
+    t =     5.73s Tap "profile.open.orders" Button
+    t =     5.73s     Wait for invalid.example.questify.ios to idle
+    t =     5.73s     Find the "profile.open.orders" Button
+    t =     5.75s     Check for interrupting elements affecting "profile.open.orders" Button
+    t =     5.76s     Synthesize event
+    t =     6.05s     Wait for invalid.example.questify.ios to idle
+    t =     7.51s Checking `Expect predicate `exists == 1 AND hittable == 1` for object "profile.order.901" Button`
+    t =     7.51s     Checking existence of `"profile.order.901" Button`
+    t =     7.56s     Find the "profile.order.901" Button
+    t =     7.59s Tap "profile.order.901" Button
+    t =     7.59s     Wait for invalid.example.questify.ios to idle
+    t =     7.60s     Find the "profile.order.901" Button
+    t =     7.62s     Check for interrupting elements affecting "profile.order.901" Button
+    t =     7.65s     Synthesize event
+    t =     7.94s     Wait for invalid.example.questify.ios to idle
+    t =     8.26s Waiting 5.0s for "Order details" NavigationBar to exist
+    t =     9.28s     Checking `Expect predicate `existsNoRetry == 1` for object "Order details" NavigationBar`
+    t =     9.28s         Checking existence of `"Order details" NavigationBar`
+    t =     9.35s Waiting 5.0s for StaticText (First Match) to exist
+    t =    10.39s     Checking `Expect predicate `existsNoRetry == 1` for object StaticText (First Match)`
+    t =    10.40s         Checking existence of `StaticText (First Match)`
+    t =    10.46s Find the Target Application 'invalid.example.questify.ios'
+    t =    10.56s Added attachment named 'Order detail – synthetic data'
+    t =    11.58s Checking `Expect predicate `exists == 1 AND hittable == 1` for object Button (First Match)`
+    t =    11.58s     Checking existence of `Button (First Match)`
+    t =    11.61s     Find the Button (First Match)
+    t =    11.64s Tap "BackButton" Button
+    t =    11.64s     Wait for invalid.example.questify.ios to idle
+    t =    11.64s     Find the "BackButton" Button
+    t =    11.66s     Check for interrupting elements affecting "BackButton" Button
+    t =    11.68s     Synthesize event
+    t =    11.98s     Wait for invalid.example.questify.ios to idle
+    t =    12.28s Waiting 5.0s for "profile.order.901" Button to exist
+    t =    13.35s     Checking `Expect predicate `existsNoRetry == 1` for object "profile.order.901" Button`
+    t =    13.35s         Checking existence of `"profile.order.901" Button`
+    t =    13.40s Tear Down
+    t =    13.40s     Terminate invalid.example.questify.ios:98487
+2026-11-04 15:41:24.303 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:41:24.303 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:41:24.304 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+Test Case '-[QuestifyUITests.ModuleFlowTests testProfileOrderReadbackAndBack]' passed (14.516 seconds).
+Test Suite 'ModuleFlowTests' passed at 2026-11-04 15:41:25.410.
+	 Executed 1 test, with 0 failures (0 unexpected) in 14.516 (14.517) seconds
+Test Suite 'ReferenceChatTaskFlowTests' started at 2026-11-04 15:41:25.411.
+Test Case '-[QuestifyUITests.ReferenceChatTaskFlowTests testMessageEarlierPageAndDetailReturnRetainHistory]' started.
+    t =     0.00s Start Test at 2026-11-04 15:41:25.412
+    t =     0.02s Set Up
+    t =     0.02s Open invalid.example.questify.ios
+    t =     0.02s     Launch invalid.example.questify.ios
+2026-11-04 15:41:25.434 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-11-04 15:41:25.434 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: no debugger version
+2026-11-04 15:41:25.466 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+    t =     0.24s         Setting up automation session
+    t =     2.02s         Wait for invalid.example.questify.ios to idle
+    t =     3.93s Waiting 5.0s for "messaging.conversation.901" Button to exist
+    t =     4.97s     Checking `Expect predicate `existsNoRetry == 1` for object "messaging.conversation.901" Button`
+    t =     4.97s         Checking existence of `"messaging.conversation.901" Button`
+    t =     5.09s Tap "messaging.conversation.901" Button
+    t =     5.09s     Wait for invalid.example.questify.ios to idle
+    t =     5.09s     Find the "messaging.conversation.901" Button
+    t =     5.12s     Check for interrupting elements affecting "messaging.conversation.901" Button
+    t =     5.15s     Synthesize event
+    t =     5.44s     Wait for invalid.example.questify.ios to idle
+    t =     5.94s Find the Target Application 'invalid.example.questify.ios'
+    t =     6.06s Checking existence of `"messaging.history.earlier" Button`
+    t =     6.09s Find the "messaging.history.earlier" Button
+    t =     6.12s Find the "messaging.history.earlier" Button
+    t =     6.16s Tap "messaging.history.earlier" Button
+    t =     6.16s     Wait for invalid.example.questify.ios to idle
+    t =     6.16s     Find the "messaging.history.earlier" Button
+    t =     6.18s     Check for interrupting elements affecting "messaging.history.earlier" Button
+    t =     6.21s     Synthesize event
+    t =     6.50s     Wait for invalid.example.questify.ios to idle
+    t =     6.51s Find the Target Application 'invalid.example.questify.ios'
+    t =     6.56s Checking existence of `"messaging.message.1" Button`
+    t =     6.59s Find the "messaging.message.1" Button
+    t =     6.61s Find the "messaging.message.1" Button
+    t =     6.64s Tap "messaging.message.1" Button
+    t =     6.64s     Wait for invalid.example.questify.ios to idle
+    t =     6.65s     Find the "messaging.message.1" Button
+    t =     6.67s     Check for interrupting elements affecting "messaging.message.1" Button
+    t =     6.69s     Synthesize event
+    t =     6.98s     Wait for invalid.example.questify.ios to idle
+    t =     7.35s Waiting 5.0s for "messaging.message.detail" Any to exist
+    t =     8.39s     Checking `Expect predicate `existsNoRetry == 1` for object "messaging.message.detail" Any`
+    t =     8.39s         Checking existence of `"messaging.message.detail" Any`
+    t =     8.43s Tap Button (First Match)
+    t =     8.43s     Wait for invalid.example.questify.ios to idle
+    t =     8.43s     Find the Button (First Match)
+    t =     8.44s     Check for interrupting elements affecting "BackButton" Button
+    t =     8.47s     Synthesize event
+    t =     8.77s     Wait for invalid.example.questify.ios to idle
+    t =     9.08s Find the Target Application 'invalid.example.questify.ios'
+    t =     9.14s Checking existence of `"messaging.message.1" Button`
+    t =     9.16s Find the "messaging.message.1" Button
+    t =     9.19s Find the "messaging.message.1" Button
+    t =     9.22s Checking existence of `"messaging.history.earlier" Button`
+    t =     9.25s Find the Target Application 'invalid.example.questify.ios'
+    t =     9.33s Added attachment named 'IM earlier history retained after detail return – synthetic fixture'
+    t =     9.33s Tear Down
+    t =     9.33s     Terminate invalid.example.questify.ios:98522
+2026-11-04 15:41:34.751 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:41:34.752 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:41:34.752 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+Test Case '-[QuestifyUITests.ReferenceChatTaskFlowTests testMessageEarlierPageAndDetailReturnRetainHistory]' passed (10.485 seconds).
+Test Case '-[QuestifyUITests.ReferenceChatTaskFlowTests testMessageKeyboardKeepsSendActionReachable]' started.
+    t =     0.00s Start Test at 2026-11-04 15:41:35.898
+    t =     0.02s Set Up
+    t =     0.02s Open invalid.example.questify.ios
+    t =     0.02s     Launch invalid.example.questify.ios
+2026-11-04 15:41:35.920 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-11-04 15:41:35.920 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: no debugger version
+2026-11-04 15:41:35.953 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+    t =     0.23s         Setting up automation session
+    t =     2.09s         Wait for invalid.example.questify.ios to idle
+    t =     3.92s Waiting 5.0s for "message.send.input" Any to exist
+    t =     4.96s     Checking `Expect predicate `existsNoRetry == 1` for object "message.send.input" Any`
+    t =     4.96s         Checking existence of `"message.send.input" Any`
+    t =     5.04s Tap "message.send.input" Any
+    t =     5.04s     Wait for invalid.example.questify.ios to idle
+    t =     5.04s     Find the "message.send.input" Any
+    t =     5.07s     Check for interrupting elements affecting "message.send.input" TextField
+    t =     5.09s     Synthesize event
+    t =     5.41s     Wait for invalid.example.questify.ios to idle
+    t =     5.51s Type 'Message text Messa...' into "message.send.input" TextField
+    t =     5.51s     Wait for invalid.example.questify.ios to idle
+    t =     5.89s     Find the "message.send.input" TextField
+    t =     5.98s     Check for interrupting elements affecting "message.send.input" TextField
+    t =     6.02s     Synthesize event
+    t =     8.82s     Wait for invalid.example.questify.ios to idle
+    t =     8.83s Find the "message.send.button" Button
+    t =     8.87s Find the Target Application 'invalid.example.questify.ios'
+    t =     8.97s Added attachment named 'IM long draft with keyboard visible – synthetic fixture'
+    t =     8.97s Tap "message.send.keyboard.done" Button
+    t =     8.97s     Wait for invalid.example.questify.ios to idle
+    t =     8.97s     Find the "message.send.keyboard.done" Button
+    t =     8.99s     Check for interrupting elements affecting "message.send.keyboard.done" Button
+    t =     9.02s     Synthesize event
+    t =     9.31s     Wait for invalid.example.questify.ios to idle
+    t =     9.54s Find the "message.send.button" Button
+    t =     9.56s Find the Target Application 'invalid.example.questify.ios'
+    t =     9.65s Added attachment named 'IM long draft and pinned composer – synthetic fixture'
+    t =     9.65s Tear Down
+    t =     9.65s     Terminate invalid.example.questify.ios:98530
+2026-11-04 15:41:45.554 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:41:45.555 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:41:45.556 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+Test Case '-[QuestifyUITests.ReferenceChatTaskFlowTests testMessageKeyboardKeepsSendActionReachable]' passed (10.723 seconds).
+Test Suite 'ReferenceChatTaskFlowTests' passed at 2026-11-04 15:41:46.620.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 21.208 (21.210) seconds
+Test Suite 'TeamFlowTests' started at 2026-11-04 15:41:46.621.
+Test Case '-[QuestifyUITests.TeamFlowTests testCreatePrivateTeamReviewCancelPreservesForm]' started.
+    t =     0.00s Start Test at 2026-11-04 15:41:46.622
+    t =     0.02s Set Up
+    t =     0.02s Open invalid.example.questify.ios
+    t =     0.02s     Launch invalid.example.questify.ios
+2026-11-04 15:41:46.643 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-11-04 15:41:46.643 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: no debugger version
+2026-11-04 15:41:46.673 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+    t =     0.23s         Setting up automation session
+    t =     2.09s         Wait for invalid.example.questify.ios to idle
+    t =     3.77s Waiting 5.0s for "Synthetic harbor activity" StaticText to exist
+    t =     4.81s     Checking `Expect predicate `existsNoRetry == 1` for object "Synthetic harbor activity" StaticText`
+    t =     4.81s         Checking existence of `"Synthetic harbor activity" StaticText`
+    t =     4.90s Find the Target Application 'invalid.example.questify.ios'
+    t =     4.93s Checking existence of `"Synthetic harbor activity" StaticText`
+    t =     4.94s Find the "Synthetic harbor activity" StaticText
+    t =     4.96s Find the Target Application 'invalid.example.questify.ios'
+    t =     5.04s Added attachment named 'G05 create activity title initial – synthetic fixture'
+    t =     5.04s Waiting 5.0s for "team.create.inviteOnly" Switch to exist
+    t =     6.09s     Checking `Expect predicate `existsNoRetry == 1` for object "team.create.inviteOnly" Switch`
+    t =     6.09s         Checking existence of `"team.create.inviteOnly" Switch`
+    t =     6.13s Checking existence of `"team.create.inviteOnly" Switch`
+    t =     6.15s Find the "team.create.inviteOnly" Switch
+    t =     6.19s Checking existence of `"team.create.inviteOnly" Switch`
+    t =     6.21s Find the "team.create.inviteOnly" Switch
+    t =     6.23s Checking existence of `Switch (First Match)`
+    t =     6.26s Tap Switch (First Match)
+    t =     6.26s     Wait for invalid.example.questify.ios to idle
+    t =     6.26s     Find the Switch (First Match)
+    t =     6.29s     Check for interrupting elements affecting "0" Switch
+    t =     6.31s     Synthesize event
+    t =     6.59s     Wait for invalid.example.questify.ios to idle
+    t =     8.98s Checking `Expect predicate `value == "1"` for object "team.create.inviteOnly" Switch`
+    t =     8.98s     Find the "team.create.inviteOnly" Switch
+    t =     9.03s Find the Target Application 'invalid.example.questify.ios'
+    t =     9.06s Checking existence of `"team.create.review" Button`
+    t =     9.08s Find the "team.create.review" Button
+    t =     9.10s Press Target Application 'invalid.example.questify.ios'[0.50, 0.79] for 0.1 seconds, then drag to Target Application 'invalid.example.questify.ios'[0.50, 0.49] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =     9.10s     Wait for invalid.example.questify.ios to idle
+    t =     9.10s     Find the Target Application 'invalid.example.questify.ios'
+    t =     9.11s     Check for interrupting elements affecting "Questify" Application
+    t =     9.13s     Synthesize event
+    t =     9.13s         Find the Target Application 'invalid.example.questify.ios'
+    t =     9.14s         Find the Target Application 'invalid.example.questify.ios'
+    t =     9.16s         Find the Target Application 'invalid.example.questify.ios'
+    t =     9.17s         Find the Target Application 'invalid.example.questify.ios'
+    t =     9.18s         Find the Target Application 'invalid.example.questify.ios'
+    t =    10.02s     Wait for invalid.example.questify.ios to idle
+    t =    10.43s Find the Target Application 'invalid.example.questify.ios'
+    t =    10.49s Checking existence of `"team.create.review" Button`
+    t =    10.50s Find the "team.create.review" Button
+    t =    10.53s Find the "team.create.review" Button
+    t =    10.55s Find the "team.create.review" Button
+    t =    10.57s Find the Target Application 'invalid.example.questify.ios'
+    t =    10.65s Added attachment named 'Team create review target before one tap – synthetic fixture'
+    t =    10.65s Tap "team.create.review" Button
+    t =    10.65s     Wait for invalid.example.questify.ios to idle
+    t =    10.65s     Find the "team.create.review" Button
+    t =    10.67s     Check for interrupting elements affecting "team.create.review" Button
+    t =    10.69s     Synthesize event
+    t =    10.98s     Wait for invalid.example.questify.ios to idle
+    t =    11.38s Waiting 5.0s for "Review team change" NavigationBar to exist
+    t =    12.45s     Checking `Expect predicate `existsNoRetry == 1` for object "Review team change" NavigationBar`
+    t =    12.45s         Checking existence of `"Review team change" NavigationBar`
+    t =    12.50s Find the Target Application 'invalid.example.questify.ios'
+    t =    12.53s Checking existence of `"team.review.cancel" Button`
+    t =    12.55s Find the "team.review.cancel" Button
+    t =    12.58s Find the "team.review.cancel" Button
+    t =    12.61s Find the "team.review.cancel" Button
+    t =    12.63s Find the "team.review.cancel" Button
+    t =    12.66s Find the Target Application 'invalid.example.questify.ios'
+    t =    12.74s Added attachment named 'G05 create review first presentation – synthetic fixture'
+    t =    12.74s Tap "team.review.cancel" Button
+    t =    12.74s     Wait for invalid.example.questify.ios to idle
+    t =    12.75s     Find the "team.review.cancel" Button
+    t =    12.77s     Check for interrupting elements affecting "team.review.cancel" Button
+    t =    12.80s     Synthesize event
+    t =    13.09s     Wait for invalid.example.questify.ios to idle
+    t =    14.48s Checking `Expect predicate `exists == 0` for object "Review team change" NavigationBar`
+    t =    14.48s     Checking existence of `"Review team change" NavigationBar`
+    t =    14.53s Find the "team.create.inviteOnly" Switch
+    t =    14.55s Waiting 5.0s for "Synthetic harbor activity" StaticText to exist
+    t =    15.57s     Checking `Expect predicate `existsNoRetry == 1` for object "Synthetic harbor activity" StaticText`
+    t =    15.57s         Checking existence of `"Synthetic harbor activity" StaticText`
+    t =    15.61s Find the Target Application 'invalid.example.questify.ios'
+    t =    15.65s Checking existence of `"Synthetic harbor activity" StaticText`
+    t =    15.67s Find the "Synthetic harbor activity" StaticText
+    t =    15.68s Find the Target Application 'invalid.example.questify.ios'
+    t =    15.77s Added attachment named 'G05 create activity title after cancel – synthetic fixture'
+    t =    15.77s Find the Target Application 'invalid.example.questify.ios'
+    t =    15.81s Checking existence of `"team.create.review" Button`
+    t =    15.83s Find the "team.create.review" Button
+    t =    15.85s Find the "team.create.review" Button
+    t =    15.87s Find the "team.create.review" Button
+    t =    15.89s Find the Target Application 'invalid.example.questify.ios'
+    t =    15.97s Added attachment named 'Team create review target before one tap – synthetic fixture'
+    t =    15.97s Tap "team.create.review" Button
+    t =    15.97s     Wait for invalid.example.questify.ios to idle
+    t =    15.98s     Find the "team.create.review" Button
+    t =    16.00s     Check for interrupting elements affecting "team.create.review" Button
+    t =    16.02s     Synthesize event
+    t =    16.31s     Wait for invalid.example.questify.ios to idle
+    t =    16.66s Waiting 5.0s for "Review team change" NavigationBar to exist
+    t =    17.71s     Checking `Expect predicate `existsNoRetry == 1` for object "Review team change" NavigationBar`
+    t =    17.71s         Checking existence of `"Review team change" NavigationBar`
+    t =    17.74s Find the Target Application 'invalid.example.questify.ios'
+    t =    17.76s Checking existence of `"team.review.confirm" Button`
+    t =    17.78s Find the "team.review.confirm" Button
+    t =    17.81s Find the "team.review.confirm" Button
+    t =    17.84s Find the "team.review.confirm" Button
+    t =    17.86s Find the "team.review.confirm" Button
+    t =    17.89s Find the Target Application 'invalid.example.questify.ios'
+    t =    17.98s Added attachment named 'G05 create review reopened – synthetic fixture'
+    t =    17.98s Tap "team.review.confirm" Button
+    t =    17.98s     Wait for invalid.example.questify.ios to idle
+    t =    17.98s     Find the "team.review.confirm" Button
+    t =    18.00s     Check for interrupting elements affecting "team.review.confirm" Button
+    t =    18.03s     Synthesize event
+    t =    18.32s     Wait for invalid.example.questify.ios to idle
+    t =    18.69s Checking existence of `"team.message" StaticText`
+    t =    18.73s Find the "team.message" StaticText
+    t =    18.75s Checking existence of `"team.message" StaticText`
+    t =    18.77s Find the "team.message" StaticText
+    t =    18.79s Checking existence of `"team.review.confirm" Button`
+    t =    18.81s Tear Down
+    t =    18.81s     Terminate invalid.example.questify.ios:9101
+2026-11-04 15:42:05.441 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:42:05.441 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:42:05.441 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+Test Case '-[QuestifyUITests.TeamFlowTests testCreatePrivateTeamReviewCancelPreservesForm]' passed (19.933 seconds).
+Test Suite 'TeamFlowTests' passed at 2026-11-04 15:42:06.555.
+	 Executed 1 test, with 0 failures (0 unexpected) in 19.933 (19.934) seconds
+Test Suite 'TemplateOwnShelfFlowTests' started at 2026-11-04 15:42:06.555.
+Test Case '-[QuestifyUITests.TemplateOwnShelfFlowTests testDeleteReviewShowsSourceDangerCopyAndCancelDoesNotSubmit]' started.
+    t =     0.00s Start Test at 2026-11-04 15:42:06.556
+    t =     0.02s Set Up
+    t =     0.02s Open invalid.example.questify.ios
+    t =     0.02s     Launch invalid.example.questify.ios
+2026-11-04 15:42:06.575 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-11-04 15:42:06.575 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: no debugger version
+2026-11-04 15:42:06.610 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+    t =     0.23s         Setting up automation session
+    t =     1.99s         Wait for invalid.example.questify.ios to idle
+    t =     3.59s Find the Target Application 'invalid.example.questify.ios'
+    t =     3.69s Checking existence of `"templateAuthor.shelf.delete.901" Button`
+    t =     3.71s Press Target Application 'invalid.example.questify.ios'[0.50, 0.78] for 0.1 seconds, then drag to Target Application 'invalid.example.questify.ios'[0.50, 0.46] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =     3.71s     Wait for invalid.example.questify.ios to idle
+    t =     3.72s     Find the Target Application 'invalid.example.questify.ios'
+    t =     3.73s     Check for interrupting elements affecting "Questify" Application
+    t =     3.75s     Synthesize event
+    t =     3.75s         Find the Target Application 'invalid.example.questify.ios'
+    t =     3.76s         Find the Target Application 'invalid.example.questify.ios'
+    t =     3.78s         Find the Target Application 'invalid.example.questify.ios'
+    t =     3.79s         Find the Target Application 'invalid.example.questify.ios'
+    t =     3.80s         Find the Target Application 'invalid.example.questify.ios'
+    t =     4.66s     Wait for invalid.example.questify.ios to idle
+    t =     4.67s Find the Target Application 'invalid.example.questify.ios'
+    t =     4.74s Checking existence of `"templateAuthor.shelf.delete.901" Button`
+    t =     4.76s Find the "templateAuthor.shelf.delete.901" Button
+    t =     4.78s Press Target Application 'invalid.example.questify.ios'[0.50, 0.76] for 0.1 seconds, then drag to Target Application 'invalid.example.questify.ios'[0.50, 0.42] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =     4.78s     Wait for invalid.example.questify.ios to idle
+    t =     4.78s     Find the Target Application 'invalid.example.questify.ios'
+    t =     4.80s     Check for interrupting elements affecting "Questify" Application
+    t =     4.82s     Synthesize event
+    t =     4.82s         Find the Target Application 'invalid.example.questify.ios'
+    t =     4.83s         Find the Target Application 'invalid.example.questify.ios'
+    t =     4.85s         Find the Target Application 'invalid.example.questify.ios'
+    t =     4.86s         Find the Target Application 'invalid.example.questify.ios'
+    t =     4.88s         Find the Target Application 'invalid.example.questify.ios'
+    t =     5.79s     Wait for invalid.example.questify.ios to idle
+    t =     6.21s Find the Target Application 'invalid.example.questify.ios'
+    t =     6.28s Checking existence of `"templateAuthor.shelf.delete.901" Button`
+    t =     6.30s Find the "templateAuthor.shelf.delete.901" Button
+    t =     6.32s Find the "templateAuthor.shelf.delete.901" Button
+    t =     6.35s Checking existence of `"templateAuthor.shelf.delete.901" Button`
+    t =     6.37s Find the "templateAuthor.shelf.delete.901" Button
+    t =     6.39s Waiting 3.0s for "templateAuthor.shelf.delete.901" Button to exist
+    t =     7.44s     Checking `Expect predicate `existsNoRetry == 1` for object "templateAuthor.shelf.delete.901" Button`
+    t =     7.44s         Checking existence of `"templateAuthor.shelf.delete.901" Button`
+    t =     7.48s Tap "templateAuthor.shelf.delete.901" Button
+    t =     7.48s     Wait for invalid.example.questify.ios to idle
+    t =     7.49s     Find the "templateAuthor.shelf.delete.901" Button
+    t =     7.51s     Check for interrupting elements affecting "templateAuthor.shelf.delete.901" Button
+    t =     7.54s     Synthesize event
+    t =     7.82s     Wait for invalid.example.questify.ios to idle
+    t =     8.29s Checking existence of `"Delete this exact template from your own shelf? This may not be reversible." StaticText`
+    t =     8.37s Find the Target Application 'invalid.example.questify.ios'
+    t =     8.42s Checking existence of `"templateOwnShelf.delete.body" StaticText`
+    t =     8.45s Find the "templateOwnShelf.delete.body" StaticText
+    t =     8.50s Checking existence of `"templateOwnShelf.delete.body" StaticText`
+    t =     8.54s Waiting 3.0s for "templateOwnShelf.delete.body" StaticText to exist
+    t =     9.55s     Checking `Expect predicate `existsNoRetry == 1` for object "templateOwnShelf.delete.body" StaticText`
+    t =     9.56s         Checking existence of `"templateOwnShelf.delete.body" StaticText`
+    t =     9.62s Find the Target Application 'invalid.example.questify.ios'
+    t =     9.67s Checking existence of `"templateOwnShelf.delete.confirm" StaticText`
+    t =     9.71s Find the "templateOwnShelf.delete.confirm" StaticText
+    t =     9.75s Checking existence of `"templateOwnShelf.delete.confirm" StaticText`
+    t =     9.79s Checking existence of `"templateOwnShelf.delete.confirm" StaticText`
+    t =     9.83s Find the Target Application 'invalid.example.questify.ios'
+    t =     9.88s Checking existence of `"templateOwnShelf.delete.body" StaticText`
+    t =     9.91s Find the "templateOwnShelf.delete.body" StaticText
+    t =     9.95s Checking existence of `"templateOwnShelf.delete.body" StaticText`
+    t =     9.99s Find the Target Application 'invalid.example.questify.ios'
+    t =    10.09s Added attachment named 'Owned template deletion review danger copy – synthetic fixture'
+    t =    10.09s Tap "templateAuthor.shelf.cancel" Button
+    t =    10.09s     Wait for invalid.example.questify.ios to idle
+    t =    10.09s     Find the "templateAuthor.shelf.cancel" Button
+    t =    10.13s     Check for interrupting elements affecting "templateAuthor.shelf.cancel" Button
+    t =    10.17s     Synthesize event
+    t =    10.46s     Wait for invalid.example.questify.ios to idle
+    t =    10.86s Checking existence of `"templateAuthor.shelf.confirm" Button`
+    t =    10.89s Find the "templateAuthor.shelf.delete.901" Button
+    t =    10.91s Tap "templateAuthor.shelf.delete.901" Button
+    t =    10.91s     Wait for invalid.example.questify.ios to idle
+    t =    10.91s     Find the "templateAuthor.shelf.delete.901" Button
+    t =    10.94s     Check for interrupting elements affecting "templateAuthor.shelf.delete.901" Button
+    t =    10.96s     Synthesize event
+    t =    11.25s     Wait for invalid.example.questify.ios to idle
+    t =    11.63s Find the Target Application 'invalid.example.questify.ios'
+    t =    11.71s Checking existence of `"templateAuthor.shelf.confirm" Button`
+    t =    11.75s Press Target Application 'invalid.example.questify.ios'[0.50, 0.77] for 0.1 seconds, then drag to Target Application 'invalid.example.questify.ios'[0.50, 0.44] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    11.75s     Wait for invalid.example.questify.ios to idle
+    t =    11.75s     Find the Target Application 'invalid.example.questify.ios'
+    t =    11.78s     Check for interrupting elements affecting "Questify" Application
+    t =    11.82s     Synthesize event
+    t =    11.82s         Find the Target Application 'invalid.example.questify.ios'
+    t =    11.84s         Find the Target Application 'invalid.example.questify.ios'
+    t =    11.87s         Find the Target Application 'invalid.example.questify.ios'
+    t =    11.90s         Find the Target Application 'invalid.example.questify.ios'
+    t =    11.93s         Find the Target Application 'invalid.example.questify.ios'
+    t =    12.82s     Wait for invalid.example.questify.ios to idle
+    t =    13.26s Find the Target Application 'invalid.example.questify.ios'
+    t =    13.32s Checking existence of `"templateAuthor.shelf.confirm" Button`
+    t =    13.36s Find the "templateAuthor.shelf.confirm" Button
+    t =    13.40s Find the "templateAuthor.shelf.confirm" Button
+    t =    13.45s Checking existence of `"templateAuthor.shelf.confirm" Button`
+    t =    13.49s Find the "templateAuthor.shelf.confirm" Button
+    t =    13.53s Waiting 3.0s for "templateAuthor.shelf.confirm" Button to exist
+    t =    14.59s     Checking `Expect predicate `existsNoRetry == 1` for object "templateAuthor.shelf.confirm" Button`
+    t =    14.59s         Checking existence of `"templateAuthor.shelf.confirm" Button`
+    t =    14.66s Terminate invalid.example.questify.ios:12121
+2026-11-04 15:42:21.224 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:42:21.224 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:42:21.225 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+    t =    15.71s Tear Down
+Test Case '-[QuestifyUITests.TemplateOwnShelfFlowTests testDeleteReviewShowsSourceDangerCopyAndCancelDoesNotSubmit]' passed (15.798 seconds).
+Test Case '-[QuestifyUITests.TemplateOwnShelfFlowTests testOwnedCardShowsZeroDurationAndNoMarketplacePublishButton]' started.
+    t =     0.00s Start Test at 2026-11-04 15:42:22.355
+    t =     0.02s Set Up
+    t =     0.02s Open invalid.example.questify.ios
+    t =     0.02s     Launch invalid.example.questify.ios
+2026-11-04 15:42:22.376 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-11-04 15:42:22.376 xcodebuild[71690:104025689] [MT] IDELaunchParametersSnapshot: no debugger version
+2026-11-04 15:42:22.404 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+    t =     0.23s         Setting up automation session
+    t =     1.99s         Wait for invalid.example.questify.ios to idle
+    t =     3.53s Find the Target Application 'invalid.example.questify.ios'
+    t =     3.63s Checking existence of `"templateOwnShelf.card.duration.901" StaticText`
+    t =     3.65s Find the "templateOwnShelf.card.duration.901" StaticText
+    t =     3.67s Press Target Application 'invalid.example.questify.ios'[0.50, 0.78] for 0.1 seconds, then drag to Target Application 'invalid.example.questify.ios'[0.50, 0.46] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =     3.67s     Wait for invalid.example.questify.ios to idle
+    t =     3.68s     Find the Target Application 'invalid.example.questify.ios'
+    t =     3.69s     Check for interrupting elements affecting "Questify" Application
+    t =     3.71s     Synthesize event
+    t =     3.71s         Find the Target Application 'invalid.example.questify.ios'
+    t =     3.72s         Find the Target Application 'invalid.example.questify.ios'
+    t =     3.73s         Find the Target Application 'invalid.example.questify.ios'
+    t =     3.75s         Find the Target Application 'invalid.example.questify.ios'
+    t =     3.76s         Find the Target Application 'invalid.example.questify.ios'
+    t =     4.63s     Wait for invalid.example.questify.ios to idle
+    t =     4.64s Find the Target Application 'invalid.example.questify.ios'
+    t =     4.70s Checking existence of `"templateOwnShelf.card.duration.901" StaticText`
+    t =     4.73s Find the "templateOwnShelf.card.duration.901" StaticText
+    t =     4.75s Find the "templateOwnShelf.card.duration.901" StaticText
+    t =     4.78s Checking existence of `"templateOwnShelf.card.duration.901" StaticText`
+    t =     4.80s Find the "templateOwnShelf.card.duration.901" StaticText
+    t =     4.82s Find the "templateOwnShelf.card.duration.901" StaticText
+    t =     4.84s Find the Target Application 'invalid.example.questify.ios'
+    t =     4.93s Added attachment named 'Owned template card with known zero duration – synthetic fixture'
+    t =     4.93s Checking existence of `"templateOwnShelf.market.plan.901" Button`
+    t =     4.95s Checking existence of `"templateOwnShelf.market.held.901" Button`
+    t =     4.97s Find the Target Application 'invalid.example.questify.ios'
+    t =     5.00s Checking existence of `"templateAuthor.shelf.library.901" Button`
+    t =     5.02s Find the "templateAuthor.shelf.library.901" Button
+    t =     5.05s Find the "templateAuthor.shelf.library.901" Button
+    t =     5.07s Checking existence of `"templateAuthor.shelf.library.901" Button`
+    t =     5.09s Find the "templateAuthor.shelf.library.901" Button
+    t =     5.12s Find the "templateAuthor.shelf.library.901" Button
+    t =     5.14s Terminate invalid.example.questify.ios:12134
+2026-11-04 15:42:27.500 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:42:27.501 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:42:27.502 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+    t =     6.19s Tear Down
+Test Case '-[QuestifyUITests.TemplateOwnShelfFlowTests testOwnedCardShowsZeroDurationAndNoMarketplacePublishButton]' passed (6.244 seconds).
+Test Suite 'TemplateOwnShelfFlowTests' passed at 2026-11-04 15:42:28.599.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 22.041 (22.043) seconds
+Test Suite 'QuestifyUITests.xctest' passed at 2026-11-04 15:42:28.599.
+	 Executed 15 tests, with 0 failures (0 unexpected) in 233.574 (233.596) seconds
+Test Suite 'Selected tests' passed at 2026-11-04 15:42:28.600.
+	 Executed 15 tests, with 0 failures (0 unexpected) in 233.574 (233.599) seconds
+2026-11-04 15:42:28.646 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:42:28.647 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:42:28.648 xcodebuild[71690:104025689] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-04 15:42:28.918 xcodebuild[71690:104025689] [MT] IDETestOperationsObserverDebug: 237.009 elapsed -- Testing started completed.
+2026-11-04 15:42:28.918 xcodebuild[71690:104025689] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-11-04 15:42:28.918 xcodebuild[71690:104025689] [MT] IDETestOperationsObserverDebug: 237.009 sec, +237.009 sec -- end
+
+Test session results, code coverage, and logs:
+	<RUNNER_TEMP>/remediation-c924bebf-audit/ui.xcresult
+
+** TEST EXECUTE SUCCEEDED **
+
+Testing started
