@@ -6,7 +6,7 @@ import XCTest
     private var application: XCUIApplication?
     private let validStatus = "Configuration values are valid. Device behavior has not been tested."
     private let invalidStatus = "Current input is incomplete or invalid. You can still save it locally."
-    private let preserved = "This saved configuration is unsupported or ambiguous. Its original contents are preserved read-only."
+    private let preserved = "This saved setting isn't supported and can't be edited. It's kept as is."
     private let source = " {\r\n\t\"windowSec\" : 60, \"targetSteps\" : 12\r\n} \t"
 
     private struct Snapshot: Decodable {

@@ -240,8 +240,8 @@ import XCTest
         let base = "暂时无法验证共享状态。不会恢复采集或显示未经验证的位置。"
         let suffixes = [
             (" 创建结果未知。保留原请求，请查询或停止；不会换新请求重试。", "createUnknown"),
-            (" 服务端撤销仍待确认，请重试原请求。", "revokePending"),
-            (" 本机已停止，服务端撤销待确认。保留原请求重试。", "stoppedPending"),
+            (" 停止尚未确认，请重试。", "revokePending"),
+            (" 本机已停止，停止尚未确认，可重试。", "stoppedPending"),
             (" 接收位置已隐藏。", "locationsHidden")
         ]
         for (suffix, key) in suffixes {

@@ -22,7 +22,7 @@ final class OfficialEventFlowTests: XCTestCase {
         let price = app.descendants(matching: .any)["official.price"].firstMatch
         reveal(price)
         XCTAssertEqual(price.label, "Price")
-        XCTAssertEqual(price.value as? String, "Price not provided by the source")
+        XCTAssertEqual(price.value as? String, "Price not available")
     }
     private func select(_ title: String) {
         let picker = app.descendants(matching: .any)["official.filter"].firstMatch
@@ -104,11 +104,11 @@ final class OfficialEventFlowTests: XCTestCase {
         launch("unknown", destination: "detail")
         XCTAssertTrue(app.staticTexts["Status not provided"].waitForExistence(timeout: 10))
         expectUnspecifiedPrice()
-        reveal(app.staticTexts["No rewards configured"])
+        reveal(app.staticTexts["No rewards yet"])
         XCTAssertFalse(app.staticTexts["Free"].exists)
     }
     func testEmptyUnconfiguredAndUnavailableHaveDistinctCopy() {
-        for (scenario, destination, text) in [("empty", "browser", "No live events yet"), ("unconfigured", "browser", "Official-event service is not configured"), ("unavailable", "detail", "This record is unavailable for this account")] {
+        for (scenario, destination, text) in [("empty", "browser", "No live events yet"), ("unconfigured", "browser", "Official events aren't available right now"), ("unavailable", "detail", "This record is unavailable for this account")] {
             launch(scenario, destination: destination)
             XCTAssertTrue(app.staticTexts[text].waitForExistence(timeout: 10), scenario)
             app.terminate()
@@ -159,7 +159,7 @@ final class OfficialEventFlowTests: XCTestCase {
             let row = app.buttons["official.event.71"]
             XCTAssertTrue(row.waitForExistence(timeout: 10), scenario)
             XCTAssertFalse(row.label.contains("Information incomplete"), row.label)
-            XCTAssertFalse(row.label.contains("Reason not provided by the source"), row.label)
+            XCTAssertFalse(row.label.contains("No reason given"), row.label)
             XCTAssertFalse(row.label.contains("Synthetic reason"), row.label)
             row.tap()
             XCTAssertTrue(app.navigationBars["Official event details"].waitForExistence(timeout: 5), scenario)

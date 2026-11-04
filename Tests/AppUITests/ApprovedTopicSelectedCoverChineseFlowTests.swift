@@ -47,7 +47,7 @@ import XCTest
         let app = launch(chinese:true); submitAndOpen(in:app)
         value("topicReview.selectedCover.asset","11111111-1111-4111-8111-111111111111",in:app)
         value("topicReview.selectedCover.selection","9",in:app); value("topicReview.selectedCover.slot","51",in:app)
-        value("topicReview.selectedCover.blocked","所选封面目前仅作者可读，尚未配置玩家读取绑定，因此此快照不能提交审核或发布。原保存的封面引用仍未验证。",in:app,towardTop:true)
+        value("topicReview.selectedCover.blocked","所选封面目前仅你本人可见，暂不能提交审核或发布。",in:app,towardTop:true)
         value("topicReview.selectedCover.notLoaded","此记录页没有加载图片字节，也不会把作者专用地址当作任意图片链接打开。",in:app)
         XCTAssertTrue(revealFixtureElement(app.buttons["topicReview.review"], in: app, maximumSwipes: 70, requiresHittable: false), app.debugDescription)
         XCTAssertTrue(app.buttons["topicReview.review"].exists); XCTAssertFalse(app.buttons["topicReview.review"].isEnabled)

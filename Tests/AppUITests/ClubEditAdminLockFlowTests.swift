@@ -1,7 +1,7 @@
 import XCTest
 
 /// Mini-program club/edit (cy-scene-club-edit): administrators see the display-only note and a
-/// locked membership-settings card. Synthetic fixture only; not run on Apple platforms here.
+/// locked membership-settings card. Example only; not run on Apple platforms here.
 final class ClubEditAdminLockFlowTests: XCTestCase {
     private var app: XCUIApplication!
     override func setUpWithError() throws { continueAfterFailure = false; app = XCUIApplication() }

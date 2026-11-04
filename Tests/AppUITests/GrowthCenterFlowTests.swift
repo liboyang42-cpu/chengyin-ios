@@ -68,7 +68,7 @@ final class GrowthCenterFlowTests: XCTestCase {
         XCTAssertFalse(matchingText("Sample me").exists)
     }
     func testEmptyGuestFailureAndConfigurationAreDistinct() {
-        for (scenario, message) in [("empty", "No badges yet"), ("guest", "Sign in to see your growth and rankings"), ("unconfigured", "Growth service is not configured"), ("failure", "This growth information is temporarily unavailable"), ("unauthorized", "Sign in to see your growth and rankings")] {
+        for (scenario, message) in [("empty", "No badges yet"), ("guest", "Sign in to see your growth and rankings"), ("unconfigured", "Growth isn't available right now"), ("failure", "This growth information is temporarily unavailable"), ("unauthorized", "Sign in to see your growth and rankings")] {
             launch(scenario)
             reveal(app.staticTexts[message])
             XCTAssertFalse(app.staticTexts["Sample explorer badge"].exists)

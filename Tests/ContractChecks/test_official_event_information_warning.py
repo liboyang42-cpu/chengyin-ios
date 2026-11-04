@@ -50,7 +50,7 @@ class OfficialEventInformationWarningChecks(unittest.TestCase):
         strings = json.loads(read("Resources/Localizable.xcstrings"))["strings"]
         expected = {
             "official.informationIncomplete": ("Information incomplete", "信息不全"),
-            "official.informationReasonUnknown": ("Reason not provided by the source", "来源未提供原因"),
+            "official.informationReasonUnknown": ("No reason given", "来源未提供原因"),
         }
         for key, values in expected.items():
             for language, value in zip(["en", "zh-Hans"], values):

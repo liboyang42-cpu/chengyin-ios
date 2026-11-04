@@ -27,7 +27,7 @@ PARAMS = {'BASE_CORE_SHA': '3d8865b315f1712f0056d1b376f0f7f2b1aa01e8417dab95f438
                                                   'zh-Hans': '广场状态待确认'},
             'templateShelfState.market.unlisted': {'en': 'Unlisted from marketplace',
                                                    'zh-Hans': '广场已下架'},
-            'templateShelfState.personal.approved': {'en': 'Personal review approved',
+            'templateShelfState.personal.approved': {'en': 'Review passed',
                                                      'zh-Hans': '个人审核通过'},
             'templateShelfState.personal.draft': {'en': 'Draft', 'zh-Hans': '草稿'},
             'templateShelfState.personal.rejected': {'en': 'Personal review rejected',

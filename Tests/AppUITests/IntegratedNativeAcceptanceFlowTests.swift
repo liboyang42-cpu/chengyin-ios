@@ -242,7 +242,7 @@ import XCTest
         let app = launch(); signIn(app)
         tab("Me", app)
         let favoritesTabs = app.segmentedControls["accountCollection.favorites.tabs"]
-        let unavailable = app.staticTexts["Collection service is not configured"]
+        let unavailable = app.staticTexts["Collections aren't available right now."]
         func expectDismissed(_ element: XCUIElement) {
             let absent = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: element)
             XCTAssertEqual(XCTWaiter.wait(for: [absent], timeout: 5), .completed, app.debugDescription)

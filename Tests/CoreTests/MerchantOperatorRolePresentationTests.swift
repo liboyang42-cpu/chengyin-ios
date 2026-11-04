@@ -2,7 +2,7 @@ import XCTest
 @testable import QuestifyCore
 
 final class MerchantOperatorRolePresentationTests: XCTestCase {
-    private func role(_ codes: [String], name: String = "Server role", roleCode: String = "MERCHANT_MANAGER") throws -> MerchantBusinessRecord {
+    private func role(_ codes: [String], name: String = "Role", roleCode: String = "MERCHANT_MANAGER") throws -> MerchantBusinessRecord {
         try .init(kind: .role, fields: ["roleCode": .string(roleCode), "name": .string(name),
                                       "permissions": .array(codes.map { .string($0) })])
     }

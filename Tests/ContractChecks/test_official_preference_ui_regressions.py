@@ -39,7 +39,7 @@ class OfficialPreferenceUIRegressions(unittest.TestCase):
             self.assertIn(required, text)
         tests = source('Tests/AppUITests/OfficialEventFlowTests.swift')
         self.assertEqual(tests.count('        expectUnspecifiedPrice()'), 2)
-        self.assertIn('XCTAssertEqual(price.value as? String, "Price not provided by the source")', tests)
+        self.assertIn('XCTAssertEqual(price.value as? String, "Price not available")', tests)
         self.assertIn('XCTAssertFalse(app.staticTexts["Free"].exists)', tests)
         self.assertIn('XCTAssertFalse(app.buttons["Sign up"].exists)', tests)
 

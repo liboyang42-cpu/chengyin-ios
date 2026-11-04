@@ -35,7 +35,7 @@ class RetainedShelfUIRegressions(unittest.TestCase):
         self.assertIn('coordinator.cancelShelfReview()', view)
         tests = read('Tests/AppUITests/TemplateOwnShelfFlowTests.swift')
         for expected in ['XCTAssertEqual(identity.value as? String, "901")',
-                         'XCTAssertEqual(status.label, "Simulation completed. No template was saved to a server or published.")',
+                         'XCTAssertEqual(status.label, "Practice run finished. Nothing was saved or published.")',
                          'XCTAssertFalse(button.isEnabled)',
                          'XCTAssertFalse(app.buttons["templateAuthor.shelf.library.901"].isEnabled)',
                          'XCTAssertEqual(cancel.label, "取消"); cancel.tap()']:

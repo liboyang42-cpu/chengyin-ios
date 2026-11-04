@@ -52,7 +52,7 @@ final class CooperationFlowUITests: XCTestCase {
             let app = launch(language: language)
             let entry = app.buttons["coopflow.route.coopflow.nearby"]
             XCTAssertTrue(entry.waitForExistence(timeout: 5)); entry.tap()
-            XCTAssertTrue(app.staticTexts[language == "en" ? "Nearby search and its location provider are not enabled in this build." : "当前版本尚未启用附近商家查询和定位服务。"].exists)
+            XCTAssertTrue(app.staticTexts[language == "en" ? "Nearby search isn't available right now." : "附近商家查询暂不可用"].exists)
             XCTAssertEqual(app.alerts.count, 0)
             attachFixtureScreenshot(self, app: app, name: "Nearby purpose gate \(language)")
             app.navigationBars.buttons.element(boundBy: 0).tap()

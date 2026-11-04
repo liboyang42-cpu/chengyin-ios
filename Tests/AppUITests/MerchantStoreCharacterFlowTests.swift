@@ -35,7 +35,7 @@ final class MerchantStoreCharacterFlowTests: XCTestCase {
         for id in ["avatar", "voice", "name", "greeting", "persona", "knowledge", "mapPoint"] { reveal(app.buttons["aiNPC.row." + id]) }
         XCTAssertTrue(app.staticTexts["Voice ready"].exists)
         XCTAssertTrue(app.staticTexts["Sample address, Example District"].exists)
-        XCTAssertFalse(app.staticTexts["Scene scopes (not enabled)"].exists)
+        XCTAssertFalse(app.staticTexts["Scene scopes (unavailable)"].exists)
     }
     func testChineseRejectedBadgeAndReason() {
         launch("rejected", chinese: true)
@@ -93,7 +93,7 @@ final class MerchantStoreCharacterFlowTests: XCTestCase {
         editName("Sample Host")
         let confirm = app.buttons["aiNPC.save.confirm"]
         reveal(confirm); confirm.tap()
-        XCTAssertTrue(app.staticTexts["Save confirmed. The latest character details were read from the server."].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Saved. Showing the latest character details."].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Sample Host"].exists)
     }
     func testPresetSelectionThenDiscardSheet() {
@@ -112,7 +112,7 @@ final class MerchantStoreCharacterFlowTests: XCTestCase {
         launch("normal", chinese: true)
         XCTAssertTrue(app.buttons["aiNPC.row.avatar"].waitForExistence(timeout: 10)); app.buttons["aiNPC.row.avatar"].tap()
         app.buttons["aiNPC.avatar.photo"].tap()
-        XCTAssertTrue(app.staticTexts["照片形象需在端上裁剪并处理成像素画，此版本暂未开放。"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["照片形象暂不可用。"].waitForExistence(timeout: 5))
     }
     func testVoiceEnrollRecordsSeparateConsentFirst() {
         launch("voiceEnroll")
@@ -164,7 +164,7 @@ final class MerchantStoreCharacterFlowTests: XCTestCase {
     }
     func testReformScopesOnlyWithFixtureGates() {
         launch("scopes", chinese: true)
-        let header = app.staticTexts["场景范围（未启用）"]
+        let header = app.staticTexts["场景范围（暂不可用）"]
         reveal(header)
         reveal(app.staticTexts["aiNPC.reform.knowledge"])
         reveal(app.staticTexts["aiNPC.reform.blocker.capabilityDisabled"])

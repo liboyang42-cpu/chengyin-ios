@@ -47,7 +47,7 @@ final class PlayCompareFlowTests: XCTestCase {
         let app = launch()
         tap("playkit.compare.item.left_gate", app); tap("playkit.compare.item.right_gate", app); confirm(app)
         XCTAssertTrue(app.staticTexts["playkit.compare.receipt"].waitForExistence(timeout: 3))
-        XCTAssertEqual(app.staticTexts["playkit.compare.receipt"].label, "The server marked the complete selection correct.")
+        XCTAssertEqual(app.staticTexts["playkit.compare.receipt"].label, "Your whole selection is correct.")
         XCTAssertFalse(app.buttons["playkit.submit.compare"].exists)
         XCTAssertEqual(app.staticTexts["compare.fixture.writes"].label, "1")
     }

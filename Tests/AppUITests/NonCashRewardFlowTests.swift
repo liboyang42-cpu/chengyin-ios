@@ -49,7 +49,7 @@ import XCTest
         ] {
             let query = app.staticTexts.matching(identifier: id)
             XCTAssertEqual(query.count, 1)
-            XCTAssertEqual(query.element.label, field + ", Not provided by this read contract")
+            XCTAssertEqual(query.element.label, field + ", Not available")
         }
         XCTAssertFalse(app.buttons["Claim reward"].exists)
         attachFixtureScreenshot(self, app: app, name: "Synthetic frozen reward terms and unavailable claim facts")

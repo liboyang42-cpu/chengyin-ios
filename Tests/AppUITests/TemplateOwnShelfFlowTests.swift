@@ -107,7 +107,7 @@ import XCTest
         XCTAssertTrue(confirm.waitForExistence(timeout: 5)); confirm.tap()
         let status = app.staticTexts["templateAuthor.shelf.status"]
         reveal(status, in: app)
-        XCTAssertEqual(status.label, "Simulation completed. No template was saved to a server or published.")
+        XCTAssertEqual(status.label, "Practice run finished. Nothing was saved or published.")
         let field = app.textFields["templateAuthor.shelf.keyword"]
         reveal(field, in: app, towardTop: true); field.tap(); field.typeText("draft")
         XCTAssertFalse(library.exists)
@@ -156,7 +156,7 @@ import XCTest
         reveal(confirm, in: app); confirm.tap()
         let status = app.staticTexts["templateAuthor.shelf.status"]
         reveal(status, in: app)
-        XCTAssertEqual(status.label, "Simulation completed. No template was saved to a server or published.")
+        XCTAssertEqual(status.label, "Practice run finished. Nothing was saved or published.")
     }
     func testUnknownLocksBothActionsAcrossReopen() {
         let app = app(["--template-author-unknown"]); defer { attachFailureScreenshot(self, app: app); app.terminate() }; let button = app.buttons["templateAuthor.shelf.delete.901"]

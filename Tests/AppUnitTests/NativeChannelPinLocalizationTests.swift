@@ -32,7 +32,7 @@ import XCTest
         XCTAssertEqual(en.text("p23.current.reading"), "Current pinned list: an independent read is in progress.")
         XCTAssertEqual(en.text("p23.current.matches"), "Current pinned list: matches this operation’s target; this is not the original request receipt.")
         XCTAssertEqual(en.text("p23.current.differs"), "Current pinned list: differs from this operation’s target, possibly due to later changes; the original request outcome remains confirmed.")
-        XCTAssertEqual(en.text("p23.current.failed"), "Current pinned list: a valid readback is not yet available; the original request outcome is unchanged.")
+        XCTAssertEqual(en.text("p23.current.failed"), "Couldn't load the current pinned list. Your earlier request isn't affected.")
         XCTAssertEqual(en.text("p23.pending.explanation"), "The current list cannot establish whether the request was applied. Look up its receipt using the original UUID; do not resend.")
     }
     func testLanguageVariantsDoNotRetainPreviousLanguage() {

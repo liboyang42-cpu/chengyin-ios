@@ -29,7 +29,7 @@ final class SquareGovernanceFlowTests: XCTestCase {
         let message = app.staticTexts["square.gov.message"]
         for _ in 0..<8 { if message.exists && message.isHittable { break }; app.swipeDown() }
         XCTAssertTrue(message.waitForExistence(timeout: 3), app.debugDescription)
-        XCTAssertEqual(message.label, "Request acknowledged. Refresh to verify status; this is not proof of an approved appeal or deleted comment.")
+        XCTAssertEqual(message.label, "Request received. Refresh to check its status; this doesn't mean the appeal succeeded or the comment was deleted.")
         let comment = app.buttons["square.gov.delete.62"]
         for _ in 0..<8 { if comment.exists && comment.isHittable { break }; app.swipeUp() }
         XCTAssertTrue(comment.exists, app.debugDescription)

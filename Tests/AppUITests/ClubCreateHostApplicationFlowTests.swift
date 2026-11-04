@@ -1,6 +1,6 @@
 import XCTest
 
-/// Mini-program club/create sends non-hosts to club/apply. Synthetic fixtures only;
+/// Mini-program club/create sends non-hosts to club/apply. Examples only;
 /// not run on Apple platforms in the authoring environment.
 final class ClubCreateHostApplicationFlowTests: XCTestCase {
     private var app: XCUIApplication!

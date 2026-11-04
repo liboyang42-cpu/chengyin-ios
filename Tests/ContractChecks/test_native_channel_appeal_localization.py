@@ -99,7 +99,7 @@ class NativeChannelAppealLocalizationContracts(unittest.TestCase):
 
     def testReceiptCopyNeverPromisesReversalOrAutomaticResubmission(self):
         expected = {
-            'retry.confirmation': 'Read the original result first. Retry the same content only if the server confirms that the original request was not found.',
+            'retry.confirmation': 'Check the original result first. Only retry with the same content if the original request wasn\'t received.',
             'recovery.journalUnavailable': 'The original request record is temporarily unavailable. Refresh to read it again; this will not create another appeal or resend automatically.',
             'result.acceptedNotReversed': 'A submission receipt only confirms that the appeal was accepted for processing. It does not mean the original action was reversed.',
             'result.currentSeparate': 'The original request outcome is confirmed. Current appeal status is read separately; a past receipt does not enable a new statement or withdrawal.',

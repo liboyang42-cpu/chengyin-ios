@@ -183,7 +183,7 @@ private final class TimelineTransport: HTTPTransport {
         let access = #"{"code":200,"data":{"active":true,"merchant":{"id":31},"roleCode":"MERCHANT_OWNER","permissions":["merchant:project:manage"]}}"#
         let initial = #"{"code":200,"data":{"id":71,"title":"Timeline","validationMethod":2,"storyText":"Original story"}}"#
         let canonicalJSON = clear ? "" : #"[{"text":"Server story","tag":"Evening","imgs":["/canonical.jpg"]}]"#
-        let canonicalText = clear ? "" : "Server summary"
+        let canonicalText = clear ? "" : "Summary"
         let returned: [String: Any] = ["code": 200, "data": ["id": 71, "title": "Timeline", "validationMethod": 2, "storyText": canonicalText, "storyJson": canonicalJSON]]
         let transport = TimelineTransport()
         transport.replies = [access, initial, access, initial, access, initial, #"{"code":200,"data":71}"#, access,

@@ -43,14 +43,14 @@ final class RoamExperienceFlowTests: XCTestCase {
         XCTAssertFalse(check.isEnabled)
         let field = app.textFields["roam.experience.recovery.id"]
         field.tap(); field.typeText("901"); check.tap()
-        XCTAssertTrue(app.staticTexts["Server settlement confirmed"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Settlement confirmed"].waitForExistence(timeout: 5))
     }
     func testIncompleteSettlementNeverShowsConfirmedRewards() {
         let app = app("incomplete"); open("recovery", in: app)
         let field = app.textFields["roam.experience.recovery.id"]
         field.tap(); field.typeText("901"); app.buttons["roam.experience.recovery.check"].tap()
         XCTAssertTrue(app.staticTexts["Settlement details are incomplete"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.staticTexts["Server settlement confirmed"].exists)
+        XCTAssertFalse(app.staticTexts["Settlement confirmed"].exists)
     }
     func testAlbumHidesRejectedStampAndLabelsUnsubmittedReview() {
         let app = app(); open("album", in: app)

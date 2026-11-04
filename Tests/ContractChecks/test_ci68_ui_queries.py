@@ -12,6 +12,6 @@ class CI68QueryTests(unittest.TestCase):
         report=(ROOT/'Tests/AppUITests/SquareReportFlowTests.swift').read_text()
         self.assertIn('element.staticTexts["Synthetic versioned community post"]',report)
         self.assertIn('if id != "social.post.actions" { element.tap(); return }',report)
-        self.assertIn('"Server status, IN_REVIEW"',report)
+        self.assertIn('"Status, IN_REVIEW"',report)
         self.assertIn('wait(for: [readback], timeout: 5)',report)
 if __name__=='__main__':unittest.main()
