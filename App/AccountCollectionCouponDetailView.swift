@@ -16,7 +16,6 @@ import SwiftUI
         let presentation = appearance.permit
         let offeredRequest = request
         return List {
-            if reader.isOfflineExample { Text("accountCollection.offlineExample").font(.caption) }
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
             else if selection.ownerScope != reader.scope { Text("couponCode.stale") }

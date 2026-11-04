@@ -154447,13 +154447,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Filters apply to loaded records. Load more to see additional matches"
+            "value": "Filters apply to the records shown. Load more to see other matches"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "筛选仅针对已加载记录，加载更多可查看后续匹配项"
+            "value": "筛选仅针对当前显示的记录，加载更多可查看其他匹配项"
           }
         }
       }
@@ -154911,13 +154911,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The source returns only this batch; more records may exist"
+            "value": "Showing the latest records"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "源接口仅提供本批记录，可能还有其他记录"
+            "value": "仅显示最近的记录"
           }
         }
       }
