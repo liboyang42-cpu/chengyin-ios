@@ -1,5 +1,50 @@
 import SwiftUI
 
+/// Adapts the existing session reader; it never constructs another endpoint or transport.
+@MainActor private final class CoopSettlementJourneyAdapter: CoopSettlementJourneyReading {
+    private let reader: any CoopFlowReading
+    private var observed: CoopFlowSession?
+    private var stamp = UUID()
+    private var active = true
+    init(_ reader: any CoopFlowReading) { self.reader = reader; observed = reader.session }
+    var scope: UUID? {
+        guard active else { return nil }
+        let session = reader.session
+        if session != observed { observed = session; stamp = UUID() }
+        return session == nil ? nil : stamp
+    }
+    func matches(_ reader: any CoopFlowReading) -> Bool { active && ObjectIdentifier(self.reader) == ObjectIdentifier(reader) }
+    func invalidate() { active = false; observed = nil; stamp = UUID() }
+    func data(source: CoopFlowSettlement.Source) async throws -> CoopFlowJSON {
+        guard let captured = scope else { throw APIError.unauthorized }
+        let payload = try await reader.read(source == .finance ? .finance : .myBusiness, isCurrent: { self.scope == captured })
+        guard scope == captured, !Task.isCancelled else { throw CoopFlowFailure.stale }
+        return payload
+    }
+}
+
+@MainActor private final class CoopSettlementJourneyViewModel: ObservableObject {
+    @Published private(set) var revision = 0
+    let journey = CoopSettlementReadJourney()
+    private var adapter: CoopSettlementJourneyAdapter?
+    func detail(reader: any CoopFlowReading, source: CoopFlowSettlement.Source, id: Int) -> CoopSettlementDetailModel? {
+        guard let adapter, adapter.matches(reader) else { return nil }
+        return journey.detail(reader: adapter, source: source, id: id)
+    }
+    func issue(reader: any CoopFlowReading, source: CoopFlowSettlement.Source, id: Int) -> CoopSettlementReadJourney.Issue? {
+        guard let adapter, adapter.matches(reader) else { return nil }
+        return journey.issue(reader: adapter, source: source, id: id)
+    }
+    func invalidate() { adapter?.invalidate(); adapter = nil; journey.invalidate(); revision += 1 }
+    func load(reader: any CoopFlowReading, source: CoopFlowSettlement.Source, id: Int) async {
+        if adapter?.matches(reader) != true { invalidate(); adapter = .init(reader) }
+        guard let adapter else { return }
+        revision += 1
+        await journey.load(reader: adapter, source: source, id: id)
+        revision += 1
+    }
+}
+
 /// Source `pages/coop/settlement-detail` for `source=finance` (organizer) and `source=ledger` (merchant `mybiz`).
 /// One read per load; the row is found client-side after the whole payload validates. A failed refresh keeps
 /// the last detail visible with an inline notice, as the source `stale-error` state does.
@@ -9,19 +54,27 @@ import SwiftUI
     let id: Int
     @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
-    private enum Issue: Equatable { case failed(String?), missingRecord, permission(String?) }
-    @State private var detail: CoopSettlementDetailModel?
-    @State private var issue: Issue?
-    @State private var loading = false
-    @State private var loadedSession: CoopFlowSession?
-    @State private var generation = UUID()
+    private typealias Issue = CoopSettlementReadJourney.Issue
+    @Environment(\.scenePhase) private var scenePhase
+    @StateObject private var model = CoopSettlementJourneyViewModel()
     @State private var refresh = UUID()
+    private struct ReadTask: Equatable {
+        let reader: ObjectIdentifier
+        let account: Int?
+        let epoch: UInt64?
+        let source: String
+        let recordID: Int
+        let refresh: UUID
+    }
+    private var detail: CoopSettlementDetailModel? { model.detail(reader: reader, source: source, id: id) }
+    private var issue: Issue? { model.issue(reader: reader, source: source, id: id) }
+    private var loading: Bool { model.journey.isLoading }
 
     var body: some View {
         List {
             if id <= 0 { missingParameter }
             else if reader.session == nil { Text("cooperation.login").accessibilityIdentifier("cooperation.settlement.login") }
-            else if let detail, loadedSession == reader.session {
+            else if let detail {
                 if loading { notice("cooperation.settlement.refreshing", "cooperation.settlement.refreshing.detail", id: "refreshing") }
                 if case .failed(let message)? = issue {
                     Section {
@@ -30,13 +83,18 @@ import SwiftUI
                     }
                 }
                 content(detail)
-            } else if let issue, loadedSession == reader.session, !loading { failure(issue) }
+            } else if let issue, !loading { failure(issue) }
             else { ProgressView("cooperation.loading").accessibilityIdentifier("cooperation.settlement.loading") }
         }
         .appNavigationTitle("cooperation.settlement.title")
-        .task(id: "\(reader.session?.accountID ?? 0):\(reader.session?.epoch ?? 0):\(refresh)") { await load() }
+        .task(id: ReadTask(reader: ObjectIdentifier(reader), account: reader.session?.accountID, epoch: reader.session?.epoch, source: source.rawValue, recordID: id, refresh: refresh)) { await load() }
         .refreshable { await load() }
-        .onDisappear { generation = UUID(); loading = false }
+        .onDisappear { model.invalidate() }
+        .onChange(of: reader.session) { _, _ in model.invalidate(); refresh = UUID() }
+        .onChange(of: scenePhase) { _, phase in
+            model.invalidate()
+            if phase == .active { refresh = UUID() }
+        }
         .accessibilityIdentifier("cooperation.settlement.\(source.rawValue).\(id)")
     }
 
@@ -116,24 +174,8 @@ import SwiftUI
         }
     }
     private func load() async {
-        let stamp = UUID(); generation = stamp
-        guard id > 0, let session = reader.session else { detail = nil; issue = nil; loadedSession = nil; return }
-        if loadedSession != session { detail = nil; issue = nil; loadedSession = nil }
-        loading = true
-        defer { if generation == stamp { loading = false } }
-        do {
-            let value = try await reader.read(source == .finance ? .finance : .myBusiness)
-            let resolved = try CoopSettlementDetailModel.resolve(source: source, data: value, id: id)
-            guard !Task.isCancelled, generation == stamp, reader.session == session else { return }
-            detail = resolved; issue = nil; loadedSession = session
-        } catch {
-            guard !Task.isCancelled, generation == stamp, reader.session == session else { return }
-            let message: String? = { if case CoopFlowFailure.server(_, let text)? = error as? CoopFlowFailure, let text, !text.isEmpty { return text }; return nil }()
-            if CoopSettlementDetailModel.isPermission(error) { detail = nil; issue = .permission(message) }
-            else if error as? CoopFlowFailure == .unavailable { detail = nil; issue = .missingRecord }
-            else { issue = .failed(message) }
-            loadedSession = session
-        }
+        guard scenePhase == .active else { return }
+        await model.load(reader: reader, source: source, id: id)
     }
 }
 
