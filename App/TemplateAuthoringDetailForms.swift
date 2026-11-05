@@ -11,8 +11,8 @@ import SwiftUI
             TemplateAuthoringQAFields(method: model.draft.validationMethod, field: { model.optional($0.draftPath) },
                 includesHints: false, includesChoiceOptions: false)
             if [.text, .choice].contains(model.draft.validationMethod) {
-                TemplateBasicFieldClearButton(model: model, field: .questionImage)
-                TemplateBasicFieldClearButton(model: model, field: .questionAudio)
+                TemplateBasicFieldClearButton(model: model, field: .questionImage, iconOnly: false)
+                TemplateBasicFieldClearButton(model: model, field: .questionAudio, iconOnly: false)
             }
             TemplateLegacyHintFields(model: model)
             if TemplateLegacyQuestionRehearsal(model.draft).isAvailable {
@@ -42,7 +42,7 @@ import SwiftUI
             if !configuration.isSupported {
                 Text("templateAuthor.optionMedia.unsupported").accessibilityIdentifier("templateAuthor.optionMedia.unsupported")
             }
-            if let issueKey { Text(LocalizedStringKey(issueKey)).foregroundStyle(.red).accessibilityIdentifier("templateAuthor.optionMedia.limit") }
+            if let issueKey { Text(LocalizedStringKey(issueKey)).font(.footnote).foregroundStyle(.red).accessibilityIdentifier("templateAuthor.optionMedia.limit") }
             ForEach(TemplateChoiceOptionMedia.Letter.allCases) { letter in
                 VStack(alignment: .leading, spacing: 4) {
                     Text(LocalizedStringKey(letter.labelKey)).font(.subheadline)
@@ -251,7 +251,7 @@ import SwiftUI
                     Text("playkitAuthor.presentation.inline").tag("inline")
                     Text("playkitAuthor.presentation.focused").tag("fullscreen")
                 }.accessibilityIdentifier("creatorComposition.presentation")
-                if model.draft.advanced.presentationRequiresFullscreen { Text("playkitAuthor.presentation.focusedRequired").font(.footnote) }
+                if model.draft.advanced.presentationRequiresFullscreen { Text("playkitAuthor.presentation.focusedRequired").font(.footnote).foregroundStyle(.red) }
             }
             Section("creatorRoot.rules") {
                 NavigationLink("creatorRoot.rules") { TemplateRootAuthoringView(model: model) }
@@ -271,7 +271,7 @@ import SwiftUI
                     TemplateTimerOutcomeEntryLabel()
                 }.accessibilityIdentifier("templateTimerOutcome.open")
             }
-            if !model.draft.advanced.issues.isEmpty { Section("templateAuthor.validationTitle") { ForEach(Array(Set(model.draft.advanced.issues)).sorted(), id: \.self) { Text(LocalizedStringKey($0)) } } }
+            if !model.draft.advanced.issues.isEmpty { Section("templateAuthor.validationTitle") { ForEach(Array(Set(model.draft.advanced.issues)).sorted(), id: \.self) { Text(LocalizedStringKey($0)).font(.footnote).foregroundStyle(.red) } } }
         }.disabled(!model.canEdit).navigationTitle("templateAuthor.advanced")
     }
     private func field(_ section: String, _ key: String) -> some View {

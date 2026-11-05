@@ -128,7 +128,6 @@ struct ProjectChapterAtmosphereHostIdentity: Hashable {
             if let chapter = controller.chapter, !ProjectChapterAtmosphere.canSubmit(chapter) {
                 ProjectChapterAtmosphereUnsupportedNotice(chapter: chapter, supportsSelection: true)
             }
-            Text("projectChapterAtmosphere.hint").font(.footnote).foregroundStyle(.secondary)
             if controller.saveUnconfirmed {
                 Text("projectChapterAtmosphere.saveUnconfirmed").font(.footnote)
                     .accessibilityIdentifier("projectChapterAtmosphere.saveUnconfirmed")

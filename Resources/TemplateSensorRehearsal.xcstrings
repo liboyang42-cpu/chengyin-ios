@@ -6,13 +6,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sensor configuration rehearsal"
+            "value": "Try sensor challenge"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "传感器配置预演"
+            "value": "试玩传感器挑战"
           }
         }
       }
@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Author-only simulation. No microphone, location or compass is used. This does not verify arrival, complete a task or award anything."
+            "value": "Practice only. No microphone, location or compass is used."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅供创作者模拟。不使用麦克风、定位或罗盘，不验证到场、不完成任务、不发奖励。"
+            "value": "仅供试玩，不使用麦克风、定位或罗盘。"
           }
         }
       }
@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Each click advances one virtual second using the values below. Nothing runs in the background."
+            "value": "Each tap moves one second forward using the values below."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "每次点击按下方数值推进一秒模拟时间，后台不会继续计时。"
+            "value": "每点一次按下方数值前进一秒。"
           }
         }
       }
@@ -54,13 +54,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Simulated continuous hold (seconds)"
+            "value": "Held for (seconds)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "模拟连续保持（秒）"
+            "value": "保持时长（秒）"
           }
         }
       }
@@ -86,13 +86,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Draft or account changed. Reload the current valid configuration."
+            "value": "The draft changed. Reload to try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "草稿或账号已变化，请重新载入当前有效配置。"
+            "value": "草稿已变化，请重新载入后再试。"
           }
         }
       }
@@ -134,13 +134,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Simulated bearing"
+            "value": "Direction"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "模拟方位"
+            "value": "方位"
           }
         }
       }
@@ -150,13 +150,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Simulated accuracy error"
+            "value": "Accuracy error"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "模拟精度误差"
+            "value": "精度误差"
           }
         }
       }
@@ -166,13 +166,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Simulated sound level"
+            "value": "Sound level"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "模拟声音强度"
+            "value": "声音强度"
           }
         }
       }
@@ -182,13 +182,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Simulated loud threshold"
+            "value": "Loud threshold"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "模拟响度阈值"
+            "value": "响度阈值"
           }
         }
       }
@@ -198,13 +198,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Uses a fixed simulated quiet baseline of 0.10. This is not a real microphone calibration."
+            "value": "Quiet level is set to 0.10."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "使用固定 0.10 模拟安静基线，不代表真实麦克风校准。"
+            "value": "安静基线为 0.10。"
           }
         }
       }
@@ -214,13 +214,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Simulate one second"
+            "value": "Next second"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "模拟一秒"
+            "value": "前进一秒"
           }
         }
       }
@@ -230,13 +230,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ready for virtual input"
+            "value": "Ready"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "等待模拟输入"
+            "value": "准备就绪"
           }
         }
       }
@@ -246,13 +246,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aligned. Continue the simulated hold."
+            "value": "Aligned. Keep holding."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "方向已对准，继续模拟保持。"
+            "value": "方向已对准，继续保持。"
           }
         }
       }
@@ -294,13 +294,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Above threshold. Continue the simulated hold."
+            "value": "Loud enough. Keep going."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "高于阈值，继续模拟保持。"
+            "value": "声音足够，继续保持。"
           }
         }
       }
@@ -326,13 +326,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Simulation reached the configured condition. No real task was completed."
+            "value": "Condition reached."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "模拟已达到配置条件，未完成任何真实任务。"
+            "value": "已达到条件。"
           }
         }
       }

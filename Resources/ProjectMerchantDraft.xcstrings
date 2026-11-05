@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose one of your store’s saved AI drafts. This changes only this node’s local template reference."
+            "value": "Choose one of your store's saved AI drafts for this stop."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "选择本人店铺已保存的 AI 草稿，仅修改本节点的本地模板引用。"
+            "value": "为此地点选择店铺已保存的 AI 草稿。"
           }
         }
       }
@@ -198,13 +198,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review template reference"
+            "value": "Check template"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "检查模板引用"
+            "value": "检查模板"
           }
         }
       }
@@ -214,13 +214,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This reference grants no publication or usage rights. Existing save, facts confirmation, review and release checks still apply."
+            "value": "Publishing still goes through the usual checks and review."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此引用不授予发布权或使用权，仍需经过已有保存、事实确认、审核与发布检查。"
+            "value": "发布仍需经过常规检查与审核。"
           }
         }
       }
@@ -230,13 +230,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check and use this reference"
+            "value": "Use this template"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新检查并使用此引用"
+            "value": "使用此模板"
           }
         }
       }
@@ -326,13 +326,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Creating or editing other gameplay types isn't available here right now."
+            "value": "Other gameplay can be chosen in the play editor."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此处暂不支持创建或编辑其他玩法。"
+            "value": "其他玩法可在玩法编辑器中选择。"
           }
         }
       }

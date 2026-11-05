@@ -57,7 +57,6 @@ typealias WorkshopPaidInstalledTextControllerFactory = @MainActor (WorkshopPaidI
                         paidFact("version", content.version)
                         paidFact("purchasedVersion", content.purchasedVersionID)
                         paidFact("installedCopy", String(content.ownedDraftID))
-                        paidFact("sourceHash", content.contentHash)
                         paidText("unchangedCopy").fixedSize(horizontal: false, vertical: true)
                         paidText("modeUnresolved").fixedSize(horizontal: false, vertical: true)
                     } header: { paidText("provenance") }
@@ -72,7 +71,7 @@ typealias WorkshopPaidInstalledTextControllerFactory = @MainActor (WorkshopPaidI
                             if let value = fields[name] {
                                 DisclosureGroup {
                                     if value.isEmpty {
-                                        Text(locale.language.languageCode?.identifier == "zh" ? "本次快照中此字段为空。" : "This field is empty in this snapshot.")
+                                        Text("workshopPaid.emptyField")
                                             .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                                     } else {
                                         Text(verbatim: value).fixedSize(horizontal: false, vertical: true)
@@ -83,9 +82,6 @@ typealias WorkshopPaidInstalledTextControllerFactory = @MainActor (WorkshopPaidI
                     } header: { paidText("protectedFields") }
                     Section {
                         paidFact("termsVersion", content.termsVersion)
-                        paidFact("termsHash", content.termsHash)
-                        paidFact("termsDocumentHash", content.termsDocumentHash)
-                        paidFact("termsBytes", String(content.termsDocument.count))
                         paidText("opaqueTerms").fixedSize(horizontal: false, vertical: true)
                         paidText("perpetualVersion").fixedSize(horizontal: false, vertical: true)
                         paidText("noRedistribution").fixedSize(horizontal: false, vertical: true)

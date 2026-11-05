@@ -77,7 +77,6 @@ import Combine
         Form {
             Section {
                 Text("templateReasoning.localOnly", tableName: "TemplateReasoningRehearsal").font(.callout)
-                Text("templateReasoning.lifecycle", tableName: "TemplateReasoningRehearsal").font(.footnote).foregroundStyle(.secondary)
             }
             if let state = controller.visibleState, let kind = PlayKitScreenKind(rawValue: state.game.section) {
                 Section {

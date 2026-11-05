@@ -54,13 +54,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Node removed from the local draft."
+            "value": "Stop removed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "节点已从本地草稿删除。"
+            "value": "已删除地点。"
           }
         }
       }
@@ -118,13 +118,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Local saving could not be confirmed. Further removal and undo are paused. Reopen the draft and inspect the saved content before continuing."
+            "value": "We couldn't confirm the draft was saved. Removing and undo are paused; reopen the draft to check it."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无法确认本地保存结果，已暂停继续删除和撤销。请重新打开草稿并检查已保存的内容后再继续。"
+            "value": "无法确认草稿已保存，删除和撤销已暂停，请重新打开草稿检查。"
           }
         }
       }

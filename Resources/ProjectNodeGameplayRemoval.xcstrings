@@ -6,13 +6,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Remove gameplay reference"
+            "value": "Remove gameplay"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "移除玩法引用"
+            "value": "移除玩法"
           }
         }
       }
@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only an ordinary place node can have its gameplay reference removed here. The node, story and uploaded template are retained."
+            "value": "Removes the gameplay from this stop. The stop and its story stay."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这里只能移除普通地点节点的玩法引用，节点、故事和模板本身都会保留。"
+            "value": "移除此地点的玩法，地点和故事保留。"
           }
         }
       }
@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No removable current reference, or this is a story-only/branch-graph node. Existing data is unchanged."
+            "value": "This stop has no gameplay that can be removed here."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前没有可移除引用，或属于无地点故事玩法、分支路线；现存数据保持不变。"
+            "value": "此地点没有可在此移除的玩法。"
           }
         }
       }
@@ -54,13 +54,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Remove this node’s gameplay reference?"
+            "value": "Remove this stop's gameplay?"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "移除此节点的玩法引用？"
+            "value": "移除此地点的玩法？"
           }
         }
       }
@@ -70,13 +70,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Remove and save locally"
+            "value": "Remove"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "移除并保存到本机"
+            "value": "移除"
           }
         }
       }
@@ -86,13 +86,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This clears the template ID and its saved template information/name. Dependent story or outcome conditions are not migrated and should be reviewed. It does not delete the node or the template."
+            "value": "Story or conditions that depend on this gameplay need checking afterwards. The template itself isn't deleted."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这会清除模板 ID 及关联模板资料、名称。依赖玩法结果的故事或条件不会自动迁移，请重新检查；不会删除节点或模板本身。"
+            "value": "依赖此玩法的故事或条件需要重新检查，模板本身不会删除。"
           }
         }
       }
@@ -102,13 +102,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Local saving was not confirmed. The original node remains in the editor; storage may be partially updated. No automatic retry is made. Reopen the draft and inspect its recovery state before continuing."
+            "value": "We couldn't confirm the draft was saved. Reopen the draft to check it before continuing."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未能确认本机保存。编辑器仍保留原节点，存储可能部分更新，不会自动重试。请重新打开草稿并检查恢复状态后继续。"
+            "value": "无法确认草稿已保存，请重新打开草稿检查后继续。"
           }
         }
       }

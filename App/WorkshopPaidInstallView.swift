@@ -171,7 +171,6 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                     }
                 } label: { installText("target") }
                 if let target = controller.target {
-                    InstallFact("targetHash", target.targetPayloadHash)
                     installText("unresolvedMode").fixedSize(horizontal: false, vertical: true)
                     Picker(selection: Binding<String?>(get: { controller.region }, set: { controller.chooseRegion($0, appearance: displayed) })) {
                         installText("chooseRegion").tag(String?.none)
@@ -193,10 +192,10 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
     @ViewBuilder private func commandFacts(_ command: WorkshopPaidInstallCommand) -> some View {
         Section {
             InstallFact("request", command.requestId); InstallFact("license", command.licenseId)
-            InstallFact("version", command.purchasedVersionId); InstallFact("sourceHash", command.contentHash)
-            InstallFact("termsHash", command.termsHash); InstallFact("target", String(command.targetDraftId))
+            InstallFact("version", command.purchasedVersionId)
+            InstallFact("target", String(command.targetDraftId))
             InstallFact("targetRevision", String(command.targetRevision)); InstallFact("businessType", command.businessType)
-            InstallFact("targetHash", command.targetPayloadHash); InstallFact("region", command.planningRegion)
+            InstallFact("region", command.planningRegion)
             installText(command.commercialUse ? "commercialYes" : "commercialNo")
             installText("unresolvedMode").fixedSize(horizontal: false, vertical: true)
         } header: { installText("confirmation") }
