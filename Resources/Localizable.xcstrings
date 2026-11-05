@@ -45717,13 +45717,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Conversation actions"
+            "value" : "Chat info"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "会话操作"
+            "value" : "聊天信息"
           }
         }
       }
@@ -46186,17 +46186,18 @@
       }
     },
     "im.reply.systemNotice" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "System notifications are one-way. You can read them and manage notifications here."
+            "value" : "Notices can't be replied to."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "系统通知不支持回复，有新动态会出现在这里"
+            "value" : "系统通知不支持回复"
           }
         }
       }
@@ -79786,13 +79787,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Earlier messages could not load"
+            "value" : "Couldn't load earlier messages"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "更早消息未能加载"
+            "value" : "更早的消息加载失败"
           }
         }
       }
@@ -79905,13 +79906,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Conversation"
+            "value" : "Chat"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "会话"
+            "value" : "聊天"
           }
         }
       }
