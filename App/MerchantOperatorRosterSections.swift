@@ -27,12 +27,7 @@ import SwiftUI
                     DisclosureGroup("merchant.operatorRoster.accessDetails", isExpanded: $detailsExpanded) {
                         LabeledContent("merchant.business.storeID", value: String(access.merchantID))
                         LabeledContent("merchant.business.field.roleCode", value: access.role)
-                        Text("merchant.operatorRoster.currentAccessBoundary").font(.footnote).foregroundStyle(.secondary)
                     }.accessibilityIdentifier("merchant.operatorRoster.accessDetails")
-                }
-                Section {
-                    Text("merchant.operatorRoster.loadedScope").font(.footnote).foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
                 }
                 Section("merchant.operatorRoster.members") {
                     LabeledContent("merchant.operatorRoster.loadedMembers", value: String(roster.activeMembers.count))
@@ -54,8 +49,6 @@ import SwiftUI
                 }
                 if roster.hasHistory {
                     Section("merchant.operatorRoster.history") {
-                        Text("merchant.operatorRoster.historyScope").font(.footnote).foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
                         if !roster.previousMembers.isEmpty {
                             DisclosureGroup("merchant.operatorRoster.previousMembers") {
                                 ForEach(roster.previousMembers) { row in rowContent(row) }

@@ -63012,13 +63012,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This action requests a new, logged number for this customer and purpose. Ownership, consent and limits are checked. Masked or previously shared numbers are never reused."
+            "value" : "Gets a one-time number to contact this customer. Their consent and daily limits apply."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此操作会为该客户和用途获取一个新号码，并留有记录。将核对归属、同意与限额；不会使用脱敏号码或复用之前提供过的号码。"
+            "value" : "获取一次性号码联系这位客户，需符合客户授权和每日限额。"
           }
         }
       }
@@ -63476,13 +63476,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Uploading evidence does not append an aftercare response or execute a refund. Use a separate case-response review."
+            "value" : "Evidence uploaded. Add it to your aftercare response to submit it."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "上传凭证不会追加售后意见，也不会执行退款；需要另行预览售后回应。"
+            "value" : "凭证已上传，请在售后处理中附上后提交。"
           }
         }
       }
@@ -63556,13 +63556,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The export includes the first 20 results matching all current filters (keywords, segments, tags, channels and dates). Individually selected members aren't exported."
+            "value" : "Exports the first 20 customers that match your filters."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "导出包含符合当前全部筛选条件（关键词、分群、标签、渠道和日期）的前 20 条记录，不按单独勾选的会员导出。"
+            "value" : "导出符合当前筛选的前 20 位客户。"
           }
         }
       }
@@ -63572,13 +63572,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Request a spreadsheet with personal details masked, using exactly these filters. Downloading and saving to your device are separate steps."
+            "value" : "Exports a spreadsheet of these customers with personal details masked."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "按当前筛选条件申请脱敏表格。下载和保存到本机需分别操作。"
+            "value" : "按当前筛选导出脱敏客户表格。"
           }
         }
       }
@@ -63684,13 +63684,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Accepting may give you the role chosen by the inviter and change what you can access in the business."
+            "value" : "Accepting gives you the role the owner chose for you in this store."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "接受后可能获得邀请人指定的岗位，并改变你的经营权限。"
+            "value" : "接受后会获得店主分配的固定岗位。"
           }
         }
       }
@@ -155950,13 +155950,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The recipient can enter this code in the operator invitation screen, then review and accept the invitation."
+            "value" : "The invitee enters this code on the team invitation screen to join."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "受邀人可在员工邀请页面输入此码，然后查看并接受邀请。"
+            "value" : "受邀人在团队邀请页输入此码即可加入。"
           }
         }
       }
@@ -155984,13 +155984,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The invitation was created, but this response cannot safely display its code. Reload the team to manage or revoke it."
+            "value" : "Invitation created. Reload the team to share it."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "邀请已创建，但此响应无法安全显示邀请码。请重新加载团队以管理或撤销邀请。"
+            "value" : "邀请已创建，请重新加载团队后分享。"
           }
         }
       }
@@ -200240,13 +200240,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The workbench only shows the business entries available to your current role. The owner changes roles or ends access, and it takes effect on the next request."
+            "value" : "To change your role or leave the team, contact the store owner."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "工作台只显示当前岗位可用的经营入口。岗位调整或离职由店主操作，并在下一次请求时立即生效。"
+            "value" : "需要调整岗位或离职时，请联系店主处理。"
           }
         }
       }
