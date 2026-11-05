@@ -6,19 +6,35 @@ public enum OrientSessionOperation: Codable, Equatable {
     case abandon(sessionID: Int)
     case task(sessionID: Int, taskID: Int, alternative: OrientSessionAlternativeType?)
     case settle(sessionID: Int)
+    case sync(sessionID: Int)
+    case appeal(sessionID: Int, entryID: Int?, nodeID: Int?, reason: String)
+    case dispute(sessionID: Int, reason: String)
     case alternative(sessionID: Int, taskID: Int, playInstanceID: String?, evidence: OrientSessionAlternativeEvidence)
 
     public var sessionID: Int? {
         switch self {
         case .prepare: return nil
-        case .start(let id, _), .abandon(let id), .task(let id, _, _), .settle(let id), .alternative(let id, _, _, _): return id
+        case .start(let id, _), .abandon(let id), .task(let id, _, _), .settle(let id), .sync(let id),
+             .appeal(let id, _, _, _), .dispute(let id, _), .alternative(let id, _, _, _): return id
         }
+    }
+    var scoreKind: String? {
+        switch self { case .sync: return "SYNC"; case .settle: return "SETTLE"
+        case .appeal: return "APPEAL"; case .dispute: return "DISPUTE"; default: return nil }
+    }
+    var needsC6Scoring: Bool {
+        switch self { case .sync, .appeal, .dispute: return true; default: return false }
     }
     func validate() throws {
         guard sessionID == nil || sessionID! > 0 else { throw APIError.invalidRequest }
         switch self {
         case .start(_, let version): guard version >= 0 else { throw APIError.invalidRequest }
         case .task(_, let task, _): guard task > 0 else { throw APIError.invalidRequest }
+        case .appeal(_, let entry, let node, let reason):
+            guard entry != nil || node != nil, entry == nil || entry! > 0, node == nil || node! > 0,
+                  try OrientSessionScoreReason.normalized(reason) == reason else { throw APIError.invalidRequest }
+        case .dispute(_, let reason):
+            guard try OrientSessionScoreReason.normalized(reason) == reason else { throw APIError.invalidRequest }
         case .alternative(_, let task, let instance, let evidence):
             guard task > 0, instance == nil || (!instance!.isEmpty && instance!.utf8.count <= 128) else { throw APIError.invalidRequest }
             try evidence.validate()
@@ -55,10 +71,20 @@ public struct OrientSessionPending: Codable, Equatable {
         self.version = 1; self.owner = owner; self.scope = scope; self.key = key; self.operation = operation
         try validate()
     }
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        guard lhs.version == rhs.version, lhs.owner == rhs.owner, lhs.scope == rhs.scope,
+              lhs.key.utf8.elementsEqual(rhs.key.utf8) else { return false }
+        // Swift String equality normalizes Unicode; the backend fingerprints the
+        // original payload. Compare canonical JSON bytes to keep that distinction.
+        let encoder = JSONEncoder(); encoder.outputFormatting = .sortedKeys
+        guard let left = try? encoder.encode(lhs.operation), let right = try? encoder.encode(rhs.operation) else { return false }
+        return left == right
+    }
     func validate() throws {
         try owner.validate(); try operation.validate()
+        let keyLength = operation.scoreKind == nil ? (8...64) : (1...96)
         guard version == 1, scope.topicID > 0, scope.activityID >= 0,
-              (8...64).contains(key.utf8.count), key.utf8.allSatisfy({
+              keyLength.contains(key.utf8.count), key.utf8.allSatisfy({
                   (65...90).contains($0) || (97...122).contains($0) || (48...57).contains($0) || [95,46,58,45].contains($0)
               }) else { throw APIError.invalidRequest }
     }
@@ -68,6 +94,7 @@ public enum OrientSessionFlowError: Error, Equatable {
     case staleIdentity, busy, pendingOperation, storageUnavailable, safetyBlocked
     case confirmationRequired, sessionRequired, notFinished, receiptUnresolved
     case discoveryUnavailable, sessionDiscoveryRequired, sessionSelectionRequired
+    case unsupportedContract
 }
 
 /// Implementations must commit before send, fail on corrupt/colliding records and

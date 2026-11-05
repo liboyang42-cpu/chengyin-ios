@@ -138,6 +138,8 @@ public struct OrientSessionScore: Decodable, Equatable {
     public let settlement: OrientSessionSettlement?
     public let appeals: [OrientSessionJSON]
     public let disputes: [OrientSessionJSON]
+    public let appealRecords: [OrientSessionScoreReviewRecord]
+    public let disputeRecords: [OrientSessionScoreReviewRecord]
     private enum CodingKeys: String, CodingKey {
         case sessionId, topicId, activityId, status, totalCenti, byDimension, timeline, settlement, appeals, disputes
     }
@@ -157,9 +159,145 @@ public struct OrientSessionScore: Decodable, Equatable {
         settlement = try c.decodeIfPresent(OrientSessionSettlement.self, forKey: .settlement)
         appeals = try c.decode([OrientSessionJSON].self, forKey: .appeals)
         disputes = try c.decode([OrientSessionJSON].self, forKey: .disputes)
+        appealRecords = try c.decode([OrientSessionScoreReviewRecord].self, forKey: .appeals)
+        disputeRecords = try c.decode([OrientSessionScoreReviewRecord].self, forKey: .disputes)
         guard sessionID > 0, (0...3).contains(status), settlement == nil || settlement?.sessionID == sessionID,
-              ["TASK", "PUZZLE", "BONUS", "PENALTY", "ADJUSTMENT"].allSatisfy({ byDimension[$0] != nil })
+              ["TASK", "PUZZLE", "BONUS", "PENALTY", "ADJUSTMENT"].allSatisfy({ byDimension[$0] != nil }),
+              appealRecords.allSatisfy({ $0.sessionID == sessionID }), disputeRecords.allSatisfy({ $0.sessionID == sessionID }),
+              Set(appealRecords.map(\.id)).count == appealRecords.count,
+              Set(disputeRecords.map(\.id)).count == disputeRecords.count
         else { throw APIError.malformedResponse }
+    }
+}
+
+public struct OrientSessionScoreSyncReceipt: Decodable, Equatable {
+    public let sessionID: Int
+    public let memberID: Int
+    public let idempotencyKey: String
+    public let added: Int
+    public let totalCenti: Int
+    private enum CodingKeys: String, CodingKey { case state, kind, sessionId, memberId, idempotencyKey, added, totalCenti }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let state = try c.decode(String.self, forKey: .state)
+        if state == "NOT_FOUND" { throw OrientSessionFlowError.receiptUnresolved }
+        guard state == "SYNCED", try c.decode(String.self, forKey: .kind) == "SYNC" else { throw APIError.malformedResponse }
+        sessionID = try c.orientInt(.sessionId); memberID = try c.orientInt(.memberId)
+        idempotencyKey = try c.decode(String.self, forKey: .idempotencyKey)
+        added = try c.orientInt(.added); totalCenti = try c.orientInt(.totalCenti)
+        guard sessionID > 0, memberID > 0, !idempotencyKey.isEmpty, added >= 0 else { throw APIError.malformedResponse }
+    }
+}
+
+public enum OrientSessionScoreReviewKind: String, Codable { case appeal = "APPEAL", dispute = "DISPUTE" }
+
+/// Only player-facing facts are exposed. Staff identity and request fingerprints
+/// from the backend bean are intentionally absent from this presentation model.
+public struct OrientSessionScoreReviewRecord: Decodable, Equatable {
+    public let id: Int
+    public let sessionID: Int
+    public let memberID: Int
+    public let entryID: Int?
+    public let nodeID: Int?
+    public let reason: String
+    public let status: Int
+    public let idempotencyKey: String
+    public let resolutionEntryID: Int?
+    public let resolutionNote: String?
+    public let windowDeadline: OrientSessionJSON?
+    public var state: String { status == 0 ? "PENDING" : status == 1 ? "ACCEPTED" : "REJECTED" }
+    private enum CodingKeys: String, CodingKey {
+        case id, sessionId, memberId, entryId, nodeId, reason, status, idempotencyKey, resolutionEntryId, resolutionNote, windowDeadline
+    }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.orientInt(.id); sessionID = try c.orientInt(.sessionId); memberID = try c.orientInt(.memberId)
+        entryID = try c.orientOptionalInt(.entryId); nodeID = try c.orientOptionalInt(.nodeId)
+        reason = try c.decode(String.self, forKey: .reason); status = try c.orientInt(.status)
+        idempotencyKey = try c.decode(String.self, forKey: .idempotencyKey)
+        resolutionEntryID = try c.orientOptionalInt(.resolutionEntryId)
+        resolutionNote = try c.decodeIfPresent(String.self, forKey: .resolutionNote)
+        windowDeadline = try c.decodeIfPresent(OrientSessionJSON.self, forKey: .windowDeadline)
+        guard id > 0, sessionID > 0, memberID > 0, (0...2).contains(status), !idempotencyKey.isEmpty,
+              entryID == nil || entryID! > 0, nodeID == nil || nodeID! > 0,
+              resolutionEntryID == nil || resolutionEntryID! > 0 else { throw APIError.malformedResponse }
+    }
+    func matches(_ pending: OrientSessionPending) -> Bool {
+        guard sessionID == pending.operation.sessionID, memberID == pending.owner.accountID,
+              idempotencyKey == pending.key else { return false }
+        switch pending.operation {
+        case .appeal(_, let entry, let node, let text): return entryID == entry && nodeID == node && reason.utf8.elementsEqual(text.utf8)
+        case .dispute(_, let text): return entryID == nil && nodeID == nil && reason.utf8.elementsEqual(text.utf8)
+        default: return false
+        }
+    }
+}
+
+/// POST returns a bean; GET /receipt returns {state,kind,idempotencyKey,record}.
+/// Wrapper state is checked against the authoritative record's status.
+public struct OrientSessionScoreReviewReceipt: Decodable, Equatable {
+    public let record: OrientSessionScoreReviewRecord
+    public let kind: OrientSessionScoreReviewKind?
+    private enum CodingKeys: String, CodingKey { case state, kind, idempotencyKey, record }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        if try c.decodeIfPresent(String.self, forKey: .state) == "NOT_FOUND" { throw OrientSessionFlowError.receiptUnresolved }
+        if c.contains(.record) {
+            record = try c.decode(OrientSessionScoreReviewRecord.self, forKey: .record)
+            kind = try c.decode(OrientSessionScoreReviewKind.self, forKey: .kind)
+            guard try c.decode(String.self, forKey: .state) == record.state,
+                  try c.decode(String.self, forKey: .idempotencyKey) == record.idempotencyKey else { throw APIError.malformedResponse }
+        } else {
+            guard !c.contains(.state), !c.contains(.kind) else { throw APIError.malformedResponse }
+            record = try OrientSessionScoreReviewRecord(from: decoder); kind = nil
+        }
+    }
+}
+
+/// Anonymous server-ranked rows. rowKey is a display key, never a member/session
+/// identifier or a navigation target. Ties and out-of-top-50 "me" are retained.
+public struct OrientSessionLeaderboard: Decodable, Equatable {
+    public struct Row: Decodable, Equatable {
+        public let rowKey: String
+        public let rank: Int
+        public let scoreCenti: Int
+        public let elapsedMs: Int?
+        public let reachedEnding: Bool
+        public let mine: Bool
+        private enum CodingKeys: String, CodingKey { case rowKey, rank, scoreCenti, elapsedMs, reachedEnding, mine }
+        public init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            let key = try c.orientInt(.rowKey); rowKey = String(key)
+            rank = try c.orientInt(.rank); scoreCenti = try c.orientInt(.scoreCenti)
+            elapsedMs = try c.orientOptionalInt(.elapsedMs)
+            reachedEnding = try c.decode(Bool.self, forKey: .reachedEnding); mine = try c.decode(Bool.self, forKey: .mine)
+            guard key > 0, rank > 0, elapsedMs == nil || elapsedMs! >= 0 else { throw APIError.malformedResponse }
+        }
+    }
+    public enum Mode: String, Decodable { case score = "SCORE", route = "ROUTE" }
+    public let sessionID: Int
+    public let mode: Mode
+    public let list: [Row]
+    public let me: Row?
+    private enum CodingKeys: String, CodingKey { case sessionId, mode, list, me }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        sessionID = try c.orientInt(.sessionId); mode = try c.decode(Mode.self, forKey: .mode)
+        list = try c.decode([Row].self, forKey: .list); me = try c.decodeIfPresent(Row.self, forKey: .me)
+        guard sessionID > 0, list.count <= 50, Set(list.map(\.rowKey)).count == list.count,
+              list.filter(\.mine).count <= 1, me == nil || me?.mine == true else { throw APIError.malformedResponse }
+        if let mine = list.first(where: \.mine) { guard mine == me else { throw APIError.malformedResponse } }
+        if let me, let sameKey = list.first(where: { $0.rowKey == me.rowKey }) { guard sameKey == me else { throw APIError.malformedResponse } }
+    }
+}
+
+enum OrientSessionScoreReason {
+    /// Java String.trim and the backend's UTF-16 length limit. Canonicalize once,
+    /// before journal persistence; replay never edits the user's stored payload.
+    static func normalized(_ raw: String) throws -> String {
+        let text = raw.trimmingCharacters(in: CharacterSet(charactersIn: "\u{0000}"..."\u{0020}"))
+        guard !text.isEmpty, text.utf16.count <= 500 else { throw APIError.invalidRequest }
+        return text
     }
 }
 

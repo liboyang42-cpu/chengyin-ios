@@ -22,6 +22,7 @@ public struct OrientSessionIdentity: Equatable {
     public private(set) var teams: [OrientSessionTeam] = []
     public private(set) var ranks: [OrientSessionRank] = []
     public private(set) var score: OrientSessionScore?
+    public private(set) var personalLeaderboard: OrientSessionLeaderboard?
     public private(set) var taskState: OrientSessionTaskState?
     public private(set) var lastReceipt: OrientSessionWriteReceipt?
     public private(set) var pending: OrientSessionPending?
@@ -51,7 +52,7 @@ public struct OrientSessionIdentity: Equatable {
     /// Abandon is a different explicit, terminal action.
     public func leave() {
         generation &+= 1; isVisible = false; isBusy = false
-        view = nil; safety = nil; teams = []; ranks = []; score = nil; taskState = nil; lastReceipt = nil
+        view = nil; safety = nil; teams = []; ranks = []; score = nil; personalLeaderboard = nil; taskState = nil; lastReceipt = nil
         sessions = []; hasDiscoveredSessions = false
     }
 
@@ -114,6 +115,34 @@ public struct OrientSessionIdentity: Equatable {
             try check(ticket); score = value
         } catch { try fail(error, ticket: ticket) }
     }
+    public func loadPersonalLeaderboard() async throws {
+        guard let id = view?.sessionID else { throw OrientSessionFlowError.sessionRequired }
+        let ticket = try begin(); defer { end(ticket) }
+        personalLeaderboard = nil
+        do {
+            let value = try await service.leaderboard(sessionID: id, token: boundIdentity.token)
+            try check(ticket); personalLeaderboard = value
+        } catch { try fail(error, ticket: ticket) }
+    }
+    public func synchronizeScore(key: String) async throws {
+        guard let row = view, row.status != 3 else { throw OrientSessionFlowError.sessionRequired }
+        guard service.contract == .currentC6 else { throw OrientSessionFlowError.unsupportedContract }
+        try await perform(.sync(sessionID: row.sessionID), key: key)
+    }
+    public func appeal(confirmed: Bool, entryID: Int? = nil, nodeID: Int? = nil, reason: String, key: String) async throws {
+        guard confirmed else { throw OrientSessionFlowError.confirmationRequired }
+        guard let row = view else { throw OrientSessionFlowError.sessionRequired }
+        guard service.contract == .currentC6 else { throw OrientSessionFlowError.unsupportedContract }
+        let text = try OrientSessionScoreReason.normalized(reason)
+        try await perform(.appeal(sessionID: row.sessionID, entryID: entryID, nodeID: nodeID, reason: text), key: key)
+    }
+    public func dispute(confirmed: Bool, reason: String, key: String) async throws {
+        guard confirmed else { throw OrientSessionFlowError.confirmationRequired }
+        guard let row = view, row.status == 1 || row.status == 2 else { throw OrientSessionFlowError.notFinished }
+        guard service.contract == .currentC6 else { throw OrientSessionFlowError.unsupportedContract }
+        let text = try OrientSessionScoreReason.normalized(reason)
+        try await perform(.dispute(sessionID: row.sessionID, reason: text), key: key)
+    }
     public func loadTaskState(taskID: Int, playInstanceID: String? = nil) async throws {
         let ticket = try begin(); defer { end(ticket) }
         do {
@@ -155,6 +184,7 @@ public struct OrientSessionIdentity: Equatable {
     public func observeFinish() async throws {
         guard let id = view?.sessionID else { throw OrientSessionFlowError.sessionRequired }
         let ticket = try begin(); defer { end(ticket) }
+        personalLeaderboard = nil
         do {
             let row = try await service.view(sessionID: id, scope: scope, token: boundIdentity.token)
             try check(ticket); view = row
@@ -163,6 +193,10 @@ public struct OrientSessionIdentity: Equatable {
             try check(ticket); score = value
             let ranking = try await service.ranking(scope: scope, token: boundIdentity.token)
             try check(ticket); ranks = ranking
+            if service.contract == .currentC6 {
+                let board = try await service.leaderboard(sessionID: id, token: boundIdentity.token)
+                try check(ticket); personalLeaderboard = board
+            }
         } catch { try fail(error, ticket: ticket) }
     }
     public func settle(confirmed: Bool, key: String) async throws {
@@ -255,6 +289,16 @@ public struct OrientSessionIdentity: Equatable {
             freshScore = try await service.score(sessionID: id, scope: scope, token: boundIdentity.token)
             try check(ticket)
             guard freshScore?.settlement?.settlementID == settlement.settlementID else { throw OrientSessionFlowError.receiptUnresolved }
+        }
+        if case .sync = receipt {
+            freshScore = try await service.score(sessionID: id, scope: scope, token: boundIdentity.token)
+            try check(ticket)
+        }
+        if case .review(let review) = receipt {
+            freshScore = try await service.score(sessionID: id, scope: scope, token: boundIdentity.token)
+            try check(ticket)
+            let records = original.operation.scoreKind == "APPEAL" ? freshScore!.appealRecords : freshScore!.disputeRecords
+            guard records.contains(where: { $0.id == review.record.id && $0.matches(original) }) else { throw OrientSessionFlowError.receiptUnresolved }
         }
         if case .alternative(_, let task, let instance, _) = original.operation {
             freshTask = try await service.taskState(scope: scope, taskID: task, playInstanceID: instance, token: boundIdentity.token)
