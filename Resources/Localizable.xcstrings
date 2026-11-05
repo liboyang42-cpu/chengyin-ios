@@ -123682,7 +123682,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Quote details"
+            "value" : "Price details"
           }
         },
         "zh-Hans" : {
@@ -123733,13 +123733,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The quote is incomplete. A known total and signature are required before confirmation."
+            "value" : "The price couldn't be confirmed. Refresh to try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "报价不完整。确认前需要明确总额和有效报价签名。"
+            "value" : "价格暂时无法确认，请刷新后再试"
           }
         }
       }
@@ -124090,13 +124090,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Price quotes aren't available right now."
+            "value" : "Prices can't be shown right now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "报价暂不可用。"
+            "value" : "暂时无法显示价格"
           }
         }
       }
@@ -124124,13 +124124,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Request a fresh quote for this selection"
+            "value" : "Refresh to see the latest price"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请为当前选择获取最新报价"
+            "value" : "刷新以查看最新价格"
           }
         }
       }
@@ -124192,13 +124192,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Refresh quote"
+            "value" : "Refresh price"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "刷新报价"
+            "value" : "刷新价格"
           }
         }
       }
@@ -124413,13 +124413,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Live registration requires separate consent to share your name and mobile number with the organizer for registration verification."
+            "value" : "Your name and mobile number go to the organiser to verify your registration."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "实时报名需要单独同意将姓名、手机号提供给主办方，用于报名核验。"
+            "value" : "同意将姓名、手机号提供给主办方，用于报名核验"
           }
         }
       }
@@ -124532,13 +124532,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Status couldn't be loaded. Your existing submission stays locked."
+            "value" : "Couldn't load the registration status."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法获取状态，原报名提交仍保持锁定。"
+            "value" : "暂时无法获取报名状态"
           }
         }
       }
@@ -125135,13 +125135,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A previous registration request is retained for this ticket. Creating another order is blocked, including after restarting the app."
+            "value" : "A registration for this ticket is already in progress."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此票种已有保留的报名请求。重启应用后也不会重复创建订单。"
+            "value" : "这个票种已有一笔报名正在处理中"
           }
         }
       }
