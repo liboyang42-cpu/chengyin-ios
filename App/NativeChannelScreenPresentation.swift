@@ -2,26 +2,19 @@ import SwiftUI
 
 /// S04 presentation only. All state, identity, journal and navigation ownership stays with callers.
 private struct NativeChannelScreenPresentation: ViewModifier {
-    @Environment(\.themeDomain) private var domain
     func body(content: Content) -> some View {
         content
             .font(Theme.Font.body)
-            .foregroundStyle(Theme.Color.textPrimary(in: domain))
             .environment(\.defaultMinListRowHeight, 44)
-            .scrollContentBackground(.hidden)
-            .background(Theme.Color.bgPage(in: domain))
             .navigationBarTitleDisplayMode(.inline)
     }
 }
+/// The style itself supplies the primary colours and button font for the root's theme.
 private struct NativeChannelPrimaryAction: ViewModifier {
-    @Environment(\.themeDomain) private var domain
     func body(content: Content) -> some View {
         content
             .buttonStyle(.questifyPrimary)
             .controlSize(.large)
-            .tint(Theme.Color.actionPrimaryBackground(in: domain))
-            .foregroundStyle(Theme.Color.actionPrimaryForeground(in: domain))
-            .font(Theme.Font.button)
             .fixedSize(horizontal: false, vertical: true)
             .frame(minHeight: 44)
     }

@@ -6,7 +6,7 @@ import SwiftUI
     @State private var model = NativeNotificationPermissionState(provider: NativeNotificationPermissionAdapter())
     var body: some View {
         NavigationLink { NativeNotificationPermissionNudgeView(model: model) } label: {
-            Label { Text("notification.permission.title", tableName: "NativeChannelNotification") } icon: { Image(systemName: "bell.badge") }
+            Label { Text("d7.notifyPermission.title") } icon: { Image(systemName: "bell.badge") }
         }.accessibilityIdentifier("notification.permission.entry")
     }
 }

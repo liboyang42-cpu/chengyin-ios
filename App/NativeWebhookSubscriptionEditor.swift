@@ -11,22 +11,23 @@ import SwiftUI
     }
     var body: some View {
         Form {
-            Section(nativeWebhookLocalized("订阅设置")) {
-                TextField(nativeWebhookLocalized("名称"), text: $draft.name).textInputAutocapitalization(.sentences).accessibilityIdentifier("webhook.subscription.name")
-                Toggle(nativeWebhookLocalized("启用"), isOn: $draft.active).accessibilityIdentifier("webhook.subscription.active")
+            Section {
+                TextField(nativeWebhookLocalized("d7.webhook.field.name"), text: $draft.name).textInputAutocapitalization(.sentences).accessibilityIdentifier("webhook.subscription.name")
+                Toggle(nativeWebhookLocalized("d7.webhook.field.on"), isOn: $draft.active).accessibilityIdentifier("webhook.subscription.active")
+            }
+            Section(nativeWebhookLocalized("d7.webhook.field.url")) {
                 if resource != nil {
-                    Toggle(nativeWebhookLocalized("替换目标 URL"), isOn: $draft.replaceURL)
+                    if let host = resource?.urlHost { LabeledContent(nativeWebhookLocalized("d7.webhook.editor.currentURL"), value: host) }
+                    Toggle(nativeWebhookLocalized("d7.webhook.editor.changeURL"), isOn: $draft.replaceURL)
                         .accessibilityIdentifier("webhook.subscription.replaceURL")
-                    if let host = resource?.urlHost { NativeChannelFlowFact(label:Text(verbatim:nativeWebhookLocalized("当前目标域名")),value:host) }
                 }
                 if resource == nil || draft.replaceURL {
-                    SecureField(nativeWebhookLocalized("完整 HTTPS URL"), text: $draft.url)
+                    SecureField(nativeWebhookLocalized("d7.webhook.editor.httpsURL"), text: $draft.url)
                         .textInputAutocapitalization(.never).autocorrectionDisabled()
                         .accessibilityIdentifier("webhook.subscription.url")
-                    Text(nativeWebhookLocalized("URL 只用于本次提交；恢复原请求时需要重新输入。")).font(.footnote).foregroundStyle(.secondary)
                 }
             }
-            Section(nativeWebhookLocalized("订阅事件")) {
+            Section(nativeWebhookLocalized("d7.webhook.events")) {
                 if let options = model.coordinator?.context?.eventCatalogue.options {
                     ForEach(options) { option in
                         Toggle(isOn: Binding(get: { draft.events.contains(option.id) }, set: { selected in
@@ -38,24 +39,26 @@ import SwiftUI
                     }
                     let retained = draft.events.subtracting(Set(options.map(\.id)))
                     if !retained.isEmpty {
-                        Text(nativeWebhookLocalized("已有但当前目录未列出的事件，请先重新核对目录后保存。"))
-                        ForEach(retained.sorted(), id: \.self) { Text($0).font(.caption).fixedSize(horizontal: false, vertical: true) }
+                        Text(nativeWebhookLocalized("d7.webhook.events.retired")).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                        ForEach(retained.sorted(), id: \.self) { Text(verbatim: $0).fixedSize(horizontal: false, vertical: true) }
                     }
                 } else {
-                    Text(nativeWebhookLocalized("事件目录不可用；保留原订阅，暂不能新增或更换事件。"))
+                    Text(nativeWebhookLocalized("d7.webhook.events.unavailable"))
                         .accessibilityIdentifier("webhook.events.unavailable")
-                    ForEach(draft.events.sorted(), id: \.self) { Text($0).font(.caption).fixedSize(horizontal: false, vertical: true) }
+                    ForEach(draft.events.sorted(), id: \.self) { Text(verbatim: $0).fixedSize(horizontal: false, vertical: true) }
                 }
             }
             NativeWebhookStatusSection(model: model)
             Section {
-                Button(nativeWebhookLocalized("核对并保存")) { model.save(draft, original: resource) }.nativeChannelFlowAction()
+                Button(nativeWebhookLocalized("d7.webhook.save")) { model.save(draft, original: resource) }.nativeChannelFlowAction()
                     .disabled(!canSave).accessibilityIdentifier("webhook.subscription.save")
             }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
         }
         .nativeChannelFlowPage()
-        .navigationTitle(resource == nil ? nativeWebhookLocalized("新建订阅") : nativeWebhookLocalized("编辑订阅"))
-        .toolbar { ToolbarItem(placement: .cancellationAction) { Button(nativeWebhookLocalized("取消")) { model.dismissSheet() }.accessibilityIdentifier("webhook.subscription.cancel") } }
+        .navigationTitle(resource == nil ? nativeWebhookLocalized("d7.webhook.add") : nativeWebhookLocalized("d7.webhook.editor.editTitle"))
+        .toolbar { ToolbarItem(placement: .cancellationAction) { Button(nativeWebhookLocalized("d7.webhook.cancel")) { model.dismissSheet() }.accessibilityIdentifier("webhook.subscription.cancel") } }
         .onChange(of: draft.replaceURL) { enabled in if !enabled { draft.url = "" } }
         .onDisappear { draft.url = ""; draft.avatarURL = "" }
         .accessibilityIdentifier("webhook.subscription.editor")

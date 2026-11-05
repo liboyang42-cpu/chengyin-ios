@@ -6,7 +6,7 @@ typealias NativeChannelNotificationScreenOperation = @MainActor (NativeChannelNo
 @MainActor struct NativeChannelNotificationConversationView: View {
     @Environment(\.themeDomain) private var domain
     @Environment(\.locale) private var locale
-    private func n(_ key: String) -> String { NativeChannelNotificationPresentation.localized("notification." + key, locale: locale) }
+    private func c(_ key: String) -> String { NativeChannelNotificationCopy.text(key, locale: locale) }
     @Bindable var model: NativeChannelNotificationCoordinator
     let permission: NativeNotificationPermissionState
     @Environment(\.scenePhase) private var scenePhase
@@ -21,31 +21,27 @@ typealias NativeChannelNotificationScreenOperation = @MainActor (NativeChannelNo
             if let row = model.preference {
                 NativeChannelNotificationEditor(model: model, preference: row,
                     perform: { perform($0, expected: ticket) }).id(row.version)
-            } else if model.isBusy { ProgressView().accessibilityLabel(n("state.loading")) }
+            } else if model.isBusy { ProgressView().accessibilityLabel(c("state.loading")) }
             Section {
-                NavigationLink { NativeNotificationPermissionNudgeView(model: permission) } label: {
-                    Label(permission.snapshot.map { NativeChannelNotificationPresentation.authorization($0.authorization, locale: locale) } ?? n("permission.system"), systemImage: "bell.badge")
-                }
+                NativeChannelNotificationPermissionRow(permission: permission)
             }
-            Section { Button(n("conversation.refresh")) { perform({ await $0.refresh() }, expected: ticket) }
-                .disabled(model.isBusy || screenTask != nil) }
         }
         .formStyle(.grouped)
         .nativeChannelScreen()
-        .font(Theme.Font.body)
-        .scrollContentBackground(.hidden)
-        .background(Theme.Color.bgPage(in: domain))
-        .foregroundStyle(Theme.Color.textPrimary(in: domain))
-        .navigationTitle(model.scope?.isAccountDefault == true ? n("global.accountDefault")
+        .navigationTitle(model.scope?.isAccountDefault == true ? c("accountDefault.title")
             : NativeChannelNotificationPresentation.localized("notification.channel.title", locale: locale))
         .accessibilityIdentifier("notification.conversation.screen")
+        .refreshable { await pullToRefresh(expected: ticket) }
         .onAppear { visible = true; reopen() }
         .onDisappear { visible = false; suspend() }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { reopen() } else { suspend() }
         }
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
+    }
+    private func pullToRefresh(expected: UInt64) async {
+        guard !model.isBusy else { return }
+        perform({ await $0.refresh() }, expected: expected)
     }
     private func suspend() {
         screenGeneration &+= 1
@@ -79,9 +75,8 @@ typealias NativeChannelNotificationScreenOperation = @MainActor (NativeChannelNo
 }
 
 @MainActor struct NativeChannelNotificationStatusSection: View {
-    @Environment(\.themeDomain) private var domain
     @Environment(\.locale) private var locale
-    private func n(_ key: String) -> String { NativeChannelNotificationPresentation.localized("notification." + key, locale: locale) }
+    private func c(_ key: String) -> String { NativeChannelNotificationCopy.text(key, locale: locale) }
     @Bindable var model: NativeChannelNotificationCoordinator
     /// Optional to preserve existing message/ACK consumers; settings supply their visible owner.
     var perform: ((@escaping NativeChannelNotificationScreenOperation) -> Void)? = nil
@@ -89,39 +84,29 @@ typealias NativeChannelNotificationScreenOperation = @MainActor (NativeChannelNo
     var body: some View {
         Section {
             if !model.isCurrent && !model.isBusy {
-                Text(n("state.accessClosed"))
-            } else if let text = NativeChannelNotificationPresentation.state(model.state, locale: locale) {
+                Text(c("state.accessClosed"))
+            } else if let text = NativeChannelNotificationCopy.state(model.state, locale: locale) {
                 Text(text).nativeChannelNotice(systemImage: "bell").accessibilityIdentifier("notification.request.status")
             }
-            if model.directory == nil && !model.isBusy && model.state == .ready { Text(n("empty")) }
-            if let key = model.pendingRequestID {
-                VStack(alignment: .leading, spacing: Theme.Space.s1) {
-                    Text(n("recovery.requestID")).font(Theme.Font.label).foregroundStyle(.secondary)
-                    Text(verbatim: key).font(.callout.monospaced()).textSelection(.enabled)
-                        .fixedSize(horizontal: false, vertical: true)
-                }.frame(maxWidth: .infinity, alignment: .leading)
-                Button(n("recovery.check")) { run { await $0.checkReceipt() } }
-                    .buttonStyle(.bordered).frame(minHeight: 44)
+            if model.directory == nil && !model.isBusy && model.state == .ready { Text(c("empty")) }
+            if model.pendingRequestID != nil {
+                Button(c("recovery.check")) { run { await $0.checkReceipt() } }
                     .disabled(!model.canCheckReceipt).accessibilityIdentifier("notification.receipt.check")
-                Button(n("recovery.retry")) { retryConfirmation = true }.disabled(!model.canCheckReceipt)
+                Button(c("recovery.retry")) { retryConfirmation = true }.disabled(!model.canCheckReceipt)
                     .accessibilityIdentifier("notification.receipt.retry")
             }
-            if let detail = NativeChannelNotificationPresentation.failureDetail(model.lastFailure, state: model.state, locale: locale) {
-                Text(detail).font(Theme.Font.label).foregroundStyle(Theme.Color.textSecondary(in: domain))
+            if let detail = NativeChannelNotificationCopy.failureDetail(model.lastFailure, state: model.state, locale: locale) {
+                Text(detail).foregroundStyle(.secondary)
                     .accessibilityIdentifier("notification.request.explanation")
             }
-            if model.unreadIssue { Text(n("recovery.unreadIssue")) }
+            if model.unreadIssue { Text(c("unreadIssue")) }
         }
-        .font(Theme.Font.body)
-        .foregroundStyle(Theme.Color.textPrimary(in: domain))
-        .confirmationDialog(n("recovery.confirm"), isPresented: $retryConfirmation, titleVisibility: .visible) {
-            Button(n("recovery.checkAndRetry")) { run { await $0.retryOriginal() } }
-            Button(n("cancel"), role: .cancel) { }
+        .confirmationDialog(c("recovery.confirm"), isPresented: $retryConfirmation, titleVisibility: .visible) {
+            Button(c("recovery.checkAndRetry")) { run { await $0.retryOriginal() } }
+            Button(c("cancel"), role: .cancel) { }
         }
         .onDisappear { retryConfirmation = false }
         .onChange(of: model.isCurrent) { _, current in if !current { retryConfirmation = false } }
-        .themeDomain(domain)
-        .tint(Theme.Color.accent(in: domain))
     }
     private func run(_ operation: @escaping NativeChannelNotificationScreenOperation) {
         if let perform { perform(operation) }
@@ -129,10 +114,68 @@ typealias NativeChannelNotificationScreenOperation = @MainActor (NativeChannelNo
     }
 }
 
+/// System permission row shared by the global and per-channel settings screens.
+@MainActor struct NativeChannelNotificationPermissionRow: View {
+    @Environment(\.locale) private var locale
+    let permission: NativeNotificationPermissionState
+    var body: some View {
+        NavigationLink { NativeNotificationPermissionNudgeView(model: permission) } label: {
+            LabeledContent {
+                Text(permission.snapshot.map { NativeChannelNotificationCopy.authorization($0.authorization, locale: locale) } ?? "—")
+            } label: {
+                Label(NativeChannelNotificationCopy.text("permission.title", locale: locale), systemImage: "bell.badge")
+            }
+        }
+    }
+}
+
+/// Player-facing copy for the notification screens. Keys live in the
+/// NativeChannelNotification table under `d7.channelNotify.`; presentation only.
+enum NativeChannelNotificationCopy {
+    static func text(_ key: String, locale: Locale) -> String {
+        NativeChannelNotificationPresentation.localized("d7.channelNotify." + key, locale: locale)
+    }
+    static func format(_ key: String, locale: Locale, _ value: String) -> String {
+        NativeChannelNotificationPresentation.format("d7.channelNotify." + key, locale: locale, value)
+    }
+    /// Re-points an existing Core presentation key (`notification.x.y`) at its player copy.
+    private static func remapped(_ key: String, locale: Locale) -> String {
+        let prefix = "notification."
+        return text(key.hasPrefix(prefix) ? String(key.dropFirst(prefix.count)) : key, locale: locale)
+    }
+    static func level(_ value: NativeChannelNotificationLevel, locale: Locale) -> String {
+        remapped(NativeChannelNotificationPresentation.levelKey(value), locale: locale)
+    }
+    static func state(_ state: NativeChannelNotificationState, locale: Locale) -> String? {
+        NativeChannelNotificationPresentation.stateKey(state).map { remapped($0, locale: locale) }
+    }
+    static func failureDetail(_ failure: NativeChannelNotificationError?, state: NativeChannelNotificationState, locale: Locale) -> String? {
+        NativeChannelNotificationPresentation.failureDetailKey(failure, state: state).map { remapped($0, locale: locale) }
+    }
+    static func mute(_ preference: NativeChannelNotificationPreference, locale: Locale) -> String {
+        if preference.permanentMuted { return text("mute.permanent", locale: locale) }
+        if let until = preference.mutedUntil, let date = NativeChannelNotificationCommand.instant(until) {
+            return format("mute.until", locale: locale, date.formatted(Date.FormatStyle(date: .abbreviated, time: .shortened).locale(locale)))
+        }
+        if preference.effective.muted { return text("mute.inherited", locale: locale) }
+        return text("mute.none", locale: locale)
+    }
+    static func authorization(_ value: NativeNotificationPermissionAuthorization, locale: Locale) -> String {
+        switch value {
+        case .notDetermined: return text("permission.notDetermined", locale: locale)
+        case .denied: return text("permission.denied", locale: locale)
+        case .authorized: return text("permission.authorized", locale: locale)
+        case .provisional: return text("permission.provisional", locale: locale)
+        case .ephemeral: return text("permission.ephemeral", locale: locale)
+        case .unknown: return "—"
+        }
+    }
+}
+
 @MainActor private struct NativeChannelNotificationEditor: View {
     @Environment(\.themeDomain) private var domain
     @Environment(\.locale) private var locale
-    private func n(_ key: String) -> String { NativeChannelNotificationPresentation.localized("notification." + key, locale: locale) }
+    private func c(_ key: String) -> String { NativeChannelNotificationCopy.text(key, locale: locale) }
     let model: NativeChannelNotificationCoordinator
     let preference: NativeChannelNotificationPreference
     let perform: (@escaping NativeChannelNotificationScreenOperation) -> Void
@@ -142,7 +185,6 @@ typealias NativeChannelNotificationScreenOperation = @MainActor (NativeChannelNo
     @State private var end: Date
     @State private var zone: String
     @State private var preview: Int
-    @State private var muteMenu = false
     @State private var saveConfirmation = false
     @State private var localIssue: String?
     init(model: NativeChannelNotificationCoordinator, preference: NativeChannelNotificationPreference,
@@ -156,61 +198,66 @@ typealias NativeChannelNotificationScreenOperation = @MainActor (NativeChannelNo
     }
     var body: some View {
         Section {
-            Picker(n("editor.level"), selection: $draft.level) {
-                ForEach(NativeChannelNotificationLevel.allCases) { Text(NativeChannelNotificationPresentation.level($0, locale: locale)).tag($0) }
-            }.accessibilityIdentifier("notification.level")
-            Text(NativeChannelNotificationPresentation.effective(preference, locale: locale)).foregroundStyle(Theme.Color.textSecondary(in: domain))
-            LabeledContent(n("editor.version"), value: String(preference.version)).font(Theme.Font.label)
-        }
-        if !preference.scope.isAccountDefault {
-          Section(n("editor.mute")) {
-            Text(NativeChannelNotificationPresentation.mute(preference, locale: locale))
-            if preference.effective.permanentMuted == true && !preference.permanentMuted {
-                Text(n("editor.parentPermanent"))
+            Picker(c("editor.level"), selection: $draft.level) {
+                ForEach(NativeChannelNotificationLevel.allCases) { Text(NativeChannelNotificationCopy.level($0, locale: locale)).tag($0) }
             }
-            Button(n("editor.chooseMute")) { muteMenu = true }.disabled(!model.canMute)
+            .pickerStyle(.inline).labelsHidden()
+            .accessibilityIdentifier("notification.level")
+            if preference.level == .inherit {
+                LabeledContent(c("editor.effective"), value: NativeChannelNotificationCopy.level(preference.effective.level, locale: locale))
+            }
+        } header: { Text(c("editor.level")) }
+        if !preference.scope.isAccountDefault {
+            Section {
+                Menu {
+                    Button(c("mute.15m")) { mute(15) }; Button(c("mute.1h")) { mute(60) }; Button(c("mute.8h")) { mute(480) }
+                    Button(c("mute.24h")) { mute(1440) }; Button(c("mute.30d")) { mute(43200) }
+                    Button(c("mute.forever")) { mute(-1) }
+                    Divider()
+                    Button(c("mute.clear"), role: .destructive) { mute(0) }
+                } label: {
+                    LabeledContent {
+                        Text(NativeChannelNotificationCopy.mute(preference, locale: locale))
+                    } label: { Text(c("editor.mute")).foregroundStyle(.primary) }
+                }
+                .disabled(!model.canMute)
                 .accessibilityIdentifier("notification.mute.choose")
-          }
+                if preference.effective.permanentMuted == true && !preference.permanentMuted {
+                    Text(c("editor.parentPermanent")).foregroundStyle(.secondary)
+                }
+            }
         }
         Section {
-            Toggle(n("editor.quietEnabled"), isOn: $quietEnabled).accessibilityIdentifier("notification.quiet.enabled")
+            Toggle(c("editor.quietEnabled"), isOn: $quietEnabled).accessibilityIdentifier("notification.quiet.enabled")
             if quietEnabled {
-                DatePicker(n("editor.start"), selection: $start, displayedComponents: .hourAndMinute)
-                DatePicker(n("editor.end"), selection: $end, displayedComponents: .hourAndMinute)
-                Picker(n("editor.timeZone"), selection: $zone) {
-                    ForEach(Array(Set(TimeZone.knownTimeZoneIdentifiers + [zone])).sorted(), id: \.self) { Text($0).tag($0) }
+                DatePicker(c("editor.start"), selection: $start, displayedComponents: .hourAndMinute)
+                DatePicker(c("editor.end"), selection: $end, displayedComponents: .hourAndMinute)
+                Picker(c("editor.timeZone"), selection: $zone) {
+                    ForEach(Array(Set(TimeZone.knownTimeZoneIdentifiers + [zone])).sorted(), id: \.self) { Text(verbatim: $0).tag($0) }
                 }.accessibilityIdentifier("notification.quiet.timezone")
-                Text(n("editor.crossMidnight"))
             }
-        } header: { Text(n("editor.quietHours")) } footer: { Text(preference.effective.quiet ? n("editor.quietActive") : n("editor.quietBoundary")) }
-        Section(n("editor.contents")) {
+        }
+        Section(c("editor.contents")) {
             if !preference.scope.isAccountDefault {
-                Toggle(n("editor.suppressBroadcast"), isOn: $draft.suppressBroadcast)
-                Toggle(n("editor.suppressTeamStatus"), isOn: $draft.suppressTeamStatus)
+                Toggle(c("editor.suppressBroadcast"), isOn: $draft.suppressBroadcast)
+                Toggle(c("editor.suppressTeamStatus"), isOn: $draft.suppressTeamStatus)
             }
-            Picker(n("editor.preview"), selection: $preview) {
-                Text(n("editor.inherit")).tag(-1); Text(n("editor.hide")).tag(0); Text(n("editor.show")).tag(1)
+            Picker(c("editor.preview"), selection: $preview) {
+                Text(c("editor.previewDefault")).tag(-1); Text(c("editor.previewNever")).tag(0); Text(c("editor.previewAlways")).tag(1)
             }
-            Text(preference.effective.showPreview ? n("editor.previewAllowed") : n("editor.previewHidden")).foregroundStyle(Theme.Color.textSecondary(in: domain))
         }
         .disabled(!model.canSave)
         Section {
-            if let localIssue { Text(n(localIssue)).foregroundStyle(Theme.Color.danger(in: domain)) }
-            Button(n("editor.save")) { prepareSave() }.nativeChannelPrimaryAction().disabled(!model.canSave)
+            if let localIssue { Text(c(localIssue)).foregroundStyle(Theme.Color.danger(in: domain)) }
+            Button(c("editor.save")) { prepareSave() }.nativeChannelPrimaryAction().disabled(!model.canSave)
                 .accessibilityIdentifier("notification.save")
-        } footer: { Text(n("editor.boundary")) }
-        .confirmationDialog(n("editor.confirmSave"), isPresented: $saveConfirmation, titleVisibility: .visible) {
-            Button(n("save")) {
+        }
+        .confirmationDialog(c("editor.confirmSave"), isPresented: $saveConfirmation, titleVisibility: .visible) {
+            Button(c("save")) {
                 let intent = draft, version = preference.version
                 perform { await $0.save(intent, expectedVersion: version) }
             }
-            Button(n("cancel"), role: .cancel) { }
-        }
-        .confirmationDialog(n("editor.muteDuration"), isPresented: $muteMenu, titleVisibility: .visible) {
-            Button(n("mute.15m")) { mute(15) }; Button(n("mute.1h")) { mute(60) }; Button(n("mute.8h")) { mute(480) }
-            Button(n("mute.24h")) { mute(1440) }; Button(n("mute.30d")) { mute(43200) }
-            Button(n("mute.forever")) { mute(-1) }; Button(n("mute.clear")) { mute(0) }
-            Button(n("back"), role: .cancel) { }
+            Button(c("cancel"), role: .cancel) { }
         }
     }
     private func mute(_ minutes: Int) { perform { await $0.mute(minutes: minutes) } }

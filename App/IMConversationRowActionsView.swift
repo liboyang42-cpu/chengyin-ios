@@ -100,27 +100,23 @@ struct IMConversationRowButtonToken: Equatable {
         NavigationStack {
             Form {
                 if model.actions.isCurrent {
-                    Section("im.row.conversation") {
-                        MessagingConversationName(conversation: model.actions.conversation)
-                        if let action = model.actions.action {
-                            Label(LocalizedStringKey(action.titleKey), systemImage: action.symbolName)
-                        }
+                    Section {
+                        MessagingConversationName(conversation: model.actions.conversation).lineLimit(1)
                     }
                     Section {
                         switch model.state {
                         case .reviewing:
-                            Text("im.row.reviewHint")
-                            Button("im.full.confirm") {
+                            Button {
                                 guard let token = model.prepare(.confirm, appearance: appearance) else { return }
                                 Task { _ = await model.perform(token) }
-                            }
+                            } label: { Text(LocalizedStringKey(model.actions.action?.titleKey ?? "im.full.confirm")) }
                             .disabled(model.isActionPending)
                             .accessibilityIdentifier("im.row.confirm")
                         case .submitting:
                             ProgressView("im.full.submitting").accessibilityIdentifier("im.row.submitting")
                         case .outcomeUnknown:
-                            Text("im.row.unknown")
-                            Button("im.full.retrySame") {
+                            Text("d7.rowActions.unknown")
+                            Button("d7.rowActions.retry") {
                                 guard let token = model.prepare(.retryUnchanged, appearance: appearance) else { return }
                                 Task { _ = await model.perform(token) }
                             }
@@ -128,11 +124,11 @@ struct IMConversationRowButtonToken: Equatable {
                             .accessibilityIdentifier("im.row.retrySame")
                         case .acknowledged:
                             if model.actions.hasMatchingAcknowledgment {
-                                Text("im.row.acknowledged")
+                                Label("d7.rowActions.done", systemImage: "checkmark.circle")
                                     .accessibilityIdentifier("im.row.acknowledged")
-                            } else { Text("im.row.receiptMismatch") }
+                            } else { Text("d7.rowActions.mismatch") }
                         case .rejected:
-                            Text("im.full.rejected")
+                            Text("d7.rowActions.rejected")
                         case .closed:
                             Text("im.full.closed")
                         case .idle:
@@ -141,18 +137,25 @@ struct IMConversationRowButtonToken: Equatable {
                     }
                 } else { Text("messaging.signInHint") }
             }
-            .navigationTitle(Text("im.row.title"))
+            .navigationTitle(Text(LocalizedStringKey(model.actions.action?.titleKey ?? "im.row.title")))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("action.close") { model.dismiss(); dismiss() }.accessibilityIdentifier("im.row.close")
+                    Button(isReviewing ? LocalizedStringKey("action.cancel") : LocalizedStringKey("action.close")) { model.dismiss(); dismiss() }
+                        .accessibilityIdentifier("im.row.close")
                 }
             }
         }
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
         .privacySensitive()
         .accessibilityIdentifier("im.row.review")
         .onAppear { model.observe() }
         .onDisappear { model.dismiss() }
+    }
+    private var isReviewing: Bool {
+        if case .reviewing = model.state { return true }
+        return false
     }
 }
 

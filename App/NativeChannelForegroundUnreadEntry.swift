@@ -7,19 +7,18 @@ import SwiftUI
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s1) {
             if let unread = model.unread {
-                Text(verbatim: "服务器未读：\(unread.total)")
+                LabeledContent { Text(verbatim: String(unread.total)) } label: { Text("d7.channelUnread.total") }
                     .accessibilityIdentifier("notification.foreground.total")
-                Text(verbatim: "私信 \(unread.byTab.dm) · 系统 \(unread.byTab.sys) · 频道 \(unread.byTab.channel)")
-                if unread.hasMention == 1 { Text(verbatim: "原提及未读：\(unread.mentionCount)") }
-            } else if model.isBusy { ProgressView("正在读取原未读") }
-            else if model.unreadIssue { Text("原未读结果未知，未当作零，也没有标记已读。") }
-            else { Text("尚无当前授权的原未读结果。") }
-            Text("服务器未读不代表设备已收到推送；系统通知关闭不删除消息。")
-                .font(Theme.Font.label).foregroundStyle(Theme.Color.textSecondary(in: domain))
+                LabeledContent { Text(verbatim: String(unread.byTab.dm)) } label: { Text("d7.channelUnread.direct") }
+                LabeledContent { Text(verbatim: String(unread.byTab.sys)) } label: { Text("d7.channelUnread.system") }
+                LabeledContent { Text(verbatim: String(unread.byTab.channel)) } label: { Text("d7.channelUnread.channels") }
+                if unread.hasMention == 1 { LabeledContent { Text(verbatim: String(unread.mentionCount)) } label: { Text("d7.channelUnread.mentions") } }
+            } else if model.isBusy { ProgressView { Text("d7.channelUnread.loading") } }
+            else if model.unreadIssue { Text("d7.channelUnread.failed") }
+            else { LabeledContent { Text(verbatim: "—") } label: { Text("d7.channelUnread.total") } }
         }.font(Theme.Font.body)
             .foregroundStyle(Theme.Color.textPrimary(in: domain))
             .privacySensitive()
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
 }
@@ -43,14 +42,11 @@ import SwiftUI
             if current, let model {
                 NativeChannelUnreadSummaryContent(model: model)
                 if let snapshot = permission.snapshot {
-                    Text(verbatim: snapshot.authorization.label).font(Theme.Font.label)
+                    LabeledContent { Text(permissionKey(snapshot.authorization)) } label: { Text("d7.channelUnread.systemNotifications") }
                 }
-                Button("从原服务恢复未读及会话列表") { Task { await refresh() } }
+                Button("d7.channelUnread.refresh") { Task { await refresh() } }
                     .disabled(model.isBusy)
                     .accessibilityIdentifier("notification.foreground.recover")
-            } else {
-                Text("当前原未读恢复尚不可用；已有消息仍按原权限读取。")
-                    .font(Theme.Font.label).foregroundStyle(Theme.Color.textSecondary(in: domain))
             }
         }.font(Theme.Font.body)
             .foregroundStyle(Theme.Color.textPrimary(in: domain))
@@ -62,8 +58,17 @@ import SwiftUI
             else if phase != .active { onReadModelChanged?(nil); model?.deactivate(); permission.retire() }
         }
         .onChange(of: currentIdentity()) { _, value in if value != identity { retire() } }
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
+    }
+    private func permissionKey(_ authorization: NativeNotificationPermissionAuthorization) -> LocalizedStringKey {
+        switch authorization {
+        case .notDetermined: return "d7.channelUnread.permission.notDetermined"
+        case .denied: return "d7.channelUnread.permission.denied"
+        case .authorized: return "d7.channelUnread.permission.authorized"
+        case .provisional: return "d7.channelUnread.permission.provisional"
+        case .ephemeral: return "d7.channelUnread.permission.ephemeral"
+        case .unknown: return "d7.channelUnread.permission.unknown"
+        }
     }
     private func refresh() async {
         guard current, scenePhase == .active else { return }
@@ -99,10 +104,9 @@ import SwiftUI
         VStack(alignment: .leading, spacing: 2) {
             if state.readStateAvailable == 1, let unread = state.unread, let mentions = state.mentionCount {
                 Text(verbatim: format("notification.readState.counts", String(unread), String(mentions)))
-                if let cursor = state.lastReadMessageID { Text(verbatim: format("notification.readState.cursor", cursor)) }
             } else { Text(verbatim: text("notification.readState.unavailable")) }
         }
-        .font(.caption)
+        .font(.footnote).foregroundStyle(.secondary)
         .privacySensitive()
         .accessibilityIdentifier("notification.readState.\(state.channelID)")
     }

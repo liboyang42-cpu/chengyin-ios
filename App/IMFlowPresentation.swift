@@ -8,9 +8,6 @@ private struct IMFlowFormPresentation: ViewModifier {
             .formStyle(.grouped)
             .font(Theme.Font.body)
             .environment(\.defaultMinListRowHeight, 44)
-            .scrollContentBackground(.hidden)
-            .background(Theme.Color.bgPage(in: domain))
-            .foregroundStyle(Theme.Color.textPrimary(in: domain))
             .navigationBarTitleDisplayMode(.inline)
     }
 }

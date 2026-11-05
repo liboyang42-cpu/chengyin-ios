@@ -12,6 +12,7 @@ struct NativeChannelContextSelection: Identifiable {let id:NativeChannelMessageI
         NavigationStack {
             NativeChannelMessageContextView(model:model,expanded:expanded?(model))
         }
+        .presentationDragIndicator(.visible)
         .task(id:phase) {
             guard phase == .active else {model.retire();return}
             await model.open()
@@ -32,28 +33,37 @@ struct NativeChannelContextSelection: Identifiable {let id:NativeChannelMessageI
     var expanded:IMExpandedNavigationContext?
     @State private var readTask:Task<Void,Never>?
     @Environment(\.scenePhase) private var phase
+    @Environment(\.dismiss) private var dismiss
     var body:some View {
         List {
-            Section {
-                Text("原消息上下文 · 只读，不改变未读")
-                Text("重新进入会从原权限与原消息重新读取；搜索摘要不作为正文或发送证明。") .font(.caption)
-                Text("附件仅进入原预览入口；仍需其独立授权、审核与当前有效来源。") .font(.caption)
-                Button("从原消息重新读取") {open()}.disabled(model.loading || phase != .active)
+            if !model.isCurrent {
+                ContentUnavailableView { Label("d7.channelContext.unavailable", systemImage: "lock") }
             }
-            if !model.isCurrent {Text("当前会话权限不可用，正文已隐藏").nativeChannelNotice(systemImage: "lock")}
             else if let page=model.page {
                 if page.older.has_more,let cursor=page.older.next_cursor,let id=NativeChannelMessageID(rawValue:cursor) {
-                    Button("读取更早的原上下文") {open(id)}
+                    Button("d7.channelContext.earlier") {open(id)}
                 }
-                Section("原消息之前") {ForEach(page.older.list,id:\.id){row in line(row)}}
-                Section("当前定位原消息") {line(page.anchor)}
-                Section("原消息之后") {ForEach(page.newer.list,id:\.id){row in line(row)}}
+                if !page.older.list.isEmpty {
+                    Section {ForEach(page.older.list,id:\.id){row in line(row)}} header: { Text("d7.channelContext.before") }
+                }
+                Section {line(page.anchor)} header: { Text("d7.channelContext.anchor") }
+                if !page.newer.list.isEmpty {
+                    Section {ForEach(page.newer.list,id:\.id){row in line(row)}} header: { Text("d7.channelContext.after") }
+                }
                 if page.newer.has_more,let cursor=page.newer.next_after,let id=NativeChannelMessageID(rawValue:cursor) {
-                    Button("读取更新的原上下文") {open(id)}
+                    Button("d7.channelContext.later") {open(id)}
                 }
-            } else if model.failed {Text("原消息可能已撤回、不可见或读取失败；未当作没有搜索结果。").nativeChannelNotice(systemImage: "exclamationmark.circle")}
-            if model.loading {ProgressView()}
-        }.nativeChannelScreen().listStyle(.insetGrouped).navigationTitle("原消息定位").privacySensitive()
+            } else if model.failed {
+                ContentUnavailableView {
+                    Label("d7.channelContext.failed", systemImage: "exclamationmark.bubble")
+                } actions: {
+                    Button("messaging.retry") {open()}.disabled(model.loading || phase != .active)
+                }
+            }
+            if model.loading {ProgressView().frame(maxWidth: .infinity)}
+        }.nativeChannelScreen().listStyle(.insetGrouped).navigationTitle(Text("d7.channelContext.title")).privacySensitive()
+        .refreshable { open(); await readTask?.value }
+        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } } }
         // The enclosing sheet continues its current-source reads while a preview is pushed.
         // Only this view's explicit read task ends here; sheet departure retires the model.
         .onDisappear{readTask?.cancel();readTask=nil}
@@ -65,8 +75,8 @@ struct NativeChannelContextSelection: Identifiable {let id:NativeChannelMessageI
         readTask=Task{await model.open(id)}
     }
     @ViewBuilder private func line(_ row:NativeChannelMessageSnapshot)->some View {
-        VStack(alignment:.leading) {
-            Text("原消息 "+row.id.rawValue).font(Theme.Font.label).foregroundStyle(.secondary).monospacedDigit()
+        VStack(alignment:.leading,spacing:Theme.Space.s1) {
+            Text(verbatim: row.message.senderName ?? "—").font(.footnote).foregroundStyle(.secondary)
             NativeChannelMessageBubbleView(snapshot:row,isCurrent:{model.containsCurrent(row)},
                 locateOriginal:{open($0)},
                 videoOwner:expanded?.videoCoordinator?(row.message.conversationID),

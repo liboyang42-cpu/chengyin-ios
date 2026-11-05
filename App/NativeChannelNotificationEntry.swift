@@ -41,8 +41,8 @@ import SwiftUI
     var body: some View {
         Group {
             if let model { NativeChannelNotificationConversationView(model: model, permission: permission) }
-            else if attempted { ContentUnavailableView(n("entry.unavailable"), systemImage: "bell.slash") }
-            else { ProgressView().accessibilityLabel(n("state.loading")) }
+            else if attempted { ContentUnavailableView(NativeChannelNotificationCopy.text("entry.unavailable", locale: locale), systemImage: "bell.slash") }
+            else { ProgressView().accessibilityLabel(NativeChannelNotificationCopy.text("state.loading", locale: locale)) }
         }.task { if !attempted { model = makeFlow(scope); attempted = true } }
     }
 }
@@ -56,8 +56,8 @@ import SwiftUI
     var body: some View {
         Group {
             if let model { NativeChannelNotificationGlobalView(model: model, permission: permission, makeConversation: { makeFlow($0) }) }
-            else if attempted { ContentUnavailableView(n("entry.unavailable"), systemImage: "bell.slash") }
-            else { ProgressView().accessibilityLabel(n("state.loading")) }
+            else if attempted { ContentUnavailableView(NativeChannelNotificationCopy.text("entry.unavailable", locale: locale), systemImage: "bell.slash") }
+            else { ProgressView().accessibilityLabel(NativeChannelNotificationCopy.text("state.loading", locale: locale)) }
         }.task { if !attempted { model = makeFlow(nil); attempted = true } }
     }
 }

@@ -6,13 +6,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Write to this group"
+            "value": "Message"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "向此群发送文字"
+            "value": "发消息"
           }
         }
       }
@@ -70,13 +70,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel reply and mentions"
+            "value": "Cancel reply"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "取消回复和提及"
+            "value": "取消回复"
           }
         }
       }
@@ -86,13 +86,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "That message is no longer available. Cancel the reply, or go back and pull to refresh."
+            "value": "That message is no longer available. Cancel the reply to continue."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这条消息已不可用。请取消回复，或返回频道下拉刷新。"
+            "value": "这条消息已不可用，请取消回复后继续。"
           }
         }
       }
@@ -134,13 +134,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Send text"
+            "value": "Send"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "发送文字"
+            "value": "发送"
           }
         }
       }
@@ -150,13 +150,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check message status"
+            "value": "Check status"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看消息状态"
+            "value": "查看发送状态"
           }
         }
       }
@@ -166,13 +166,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retry the same original message"
+            "value": "Resend"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "明确重试同一条原消息"
+            "value": "重新发送"
           }
         }
       }
@@ -214,13 +214,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Text recovery or sending is unavailable for this session. Return to the channel list, then reopen this group to check current access."
+            "value": "You can't send messages here right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前会话暂不可恢复或发送文字。请返回频道目录后重新进入此群，核验当前权限。"
+            "value": "暂时无法在这里发消息。"
           }
         }
       }
@@ -230,13 +230,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sending original message…"
+            "value": "Sending…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在发送原消息…"
+            "value": "正在发送…"
           }
         }
       }
@@ -246,13 +246,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Checking original receipt…"
+            "value": "Checking status…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在查询原消息回执…"
+            "value": "正在确认发送状态…"
           }
         }
       }
@@ -262,13 +262,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original result is unknown. Not found does not mean failed. The app will not resend automatically."
+            "value": "We couldn't confirm this message was sent. It won't be resent automatically."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原消息结果待确认。未查到不等于失败，不会自动再次发送。"
+            "value": "暂未确认消息是否发出，不会自动重发。"
           }
         }
       }
@@ -278,13 +278,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The receipt could not be checked. The original request is saved; retry the lookup when connected."
+            "value": "Couldn't check the status. Try again when you're online."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无法查询回执。原请求已保留，联网后可重试查询。"
+            "value": "暂时无法确认发送状态，联网后再试。"
           }
         }
       }
@@ -294,13 +294,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Protected storage is unavailable. Sending is blocked; return after the device is unlocked."
+            "value": "Unlock your device to send messages."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "受保护存储暂不可用，已阻止发送。请解锁设备后返回重试。"
+            "value": "请解锁设备后再发消息。"
           }
         }
       }
@@ -310,13 +310,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Access changed or this group closed. Return to the directory to recheck access."
+            "value": "You no longer have access to this group."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "访问权限已变化或群已关闭，请返回目录重新核验。"
+            "value": "你已无法访问这个群。"
           }
         }
       }
@@ -326,13 +326,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Message sent. This doesn't mean others have read it."
+            "value": "Sent"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "消息已发送，不代表其他成员已读。"
+            "value": "已发送"
           }
         }
       }
@@ -342,13 +342,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The receipt is verified, but local cleanup is pending. New messages remain blocked; check the receipt again."
+            "value": "Almost done. Check the status before sending another message."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "回执已核验，本地结算尚未完成。暂不能发送新消息，请再次查询回执。"
+            "value": "即将完成，请先查看发送状态再发新消息。"
           }
         }
       }

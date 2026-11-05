@@ -11,7 +11,7 @@ import SwiftUI
     var body:some View {
         Group {
             if let flow { NativeChannelWelcomeView(flow:flow,selectChannel:{ if parentRouteIsActive() { selection.selected=$0 } }) }
-            else { NativeChannelFlowNotice(title:Text("原欢迎屏的独立读取批准尚不可用；未改变原成员资格或规则状态。"),symbol:"lock.shield").padding(.horizontal,Theme.Space.pageX) }
+            else { ContentUnavailableView { Label("d7.channelWelcome.unavailable",systemImage:"signpost.right") } }
         }.task { reopen() }
          .onDisappear { close() }
          .onChange(of:scene) { _,value in if value == .active { reopen() } else { close() } }
@@ -38,27 +38,38 @@ import SwiftUI
         List {
             if flow.isCurrent {
                 if let issue=flow.issue { NativeChannelFlowNotice(title:Text(verbatim:issue),symbol:"exclamationmark.circle") }
-                if flow.busy { ProgressView() }
+                if flow.busy { ProgressView().frame(maxWidth:.infinity) }
                 if let value=flow.snapshot {
-                    Section { Text(value.title).font(Theme.Font.sheetTitle).fixedSize(horizontal:false,vertical:true);Text(value.description).fixedSize(horizontal:false,vertical:true) }
-                    Section("当前可访问的路标") {
-                        ForEach(value.signposts) { item in
-                            Button { select(item.id) } label: {
-                                HStack(alignment:.top,spacing:Theme.Space.s3) {
-                                    Text(item.emoji).accessibilityHidden(true)
-                                    Text(item.label).fixedSize(horizontal:false,vertical:true)
-                                    Spacer(minLength:Theme.Space.s2)
-                                    Image(systemName:"chevron.right").font(Theme.Font.label).accessibilityHidden(true)
-                                }.frame(minHeight:44,alignment:.leading)
-                            }.disabled(flow.busy)
+                    Section {
+                        VStack(alignment:.leading,spacing:Theme.Space.s2) {
+                            Text(value.title).font(Theme.Font.sheetTitle).fixedSize(horizontal:false,vertical:true)
+                            if !value.description.isEmpty { Text(value.description).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true) }
+                        }
+                        .padding(.vertical,Theme.Space.s2)
+                    }
+                    if !value.signposts.isEmpty {
+                        Section("d7.channelWelcome.getStarted") {
+                            ForEach(value.signposts) { item in
+                                Button { select(item.id) } label: {
+                                    HStack(alignment:.top,spacing:Theme.Space.s3) {
+                                        Text(item.emoji).accessibilityHidden(true)
+                                        Text(item.label).foregroundStyle(.primary).fixedSize(horizontal:false,vertical:true)
+                                        Spacer(minLength:Theme.Space.s2)
+                                        Image(systemName:"chevron.right").font(Theme.Font.label).foregroundStyle(.tertiary).accessibilityHidden(true)
+                                    }.frame(minHeight:44,alignment:.leading)
+                                }.disabled(flow.busy)
+                            }
                         }
                     }
-                    Section { Button("进入聊天") { select(value.entryChannelID) }.nativeChannelFlowAction().disabled(flow.busy);Text("沿原频道入口再次核验访问与发言权限；这里不自动发送消息。") }
+                    Section { Button("d7.channelWelcome.enter") { select(value.entryChannelID) }.nativeChannelFlowAction().disabled(flow.busy) }
                 }
-                Button("重新读取当前欢迎配置") { Task{await flow.refresh()} }.disabled(flow.busy)
-            } else { NativeChannelFlowNotice(title:Text("身份或批准已失效，旧欢迎内容不可使用。"),symbol:"lock.shield") }
-        }.nativeChannelFlowPage()
-        .navigationTitle("空间欢迎屏").privacySensitive()
+            } else {
+                ContentUnavailableView { Label("d7.channelWelcome.expired",systemImage:"lock.shield") }
+            }
+        }
+        .refreshable { await flow.refresh() }
+        .nativeChannelFlowPage()
+        .navigationTitle("d7.channelWelcome.title").privacySensitive()
          .task { await flow.activate() }
          .onDisappear { flow.deactivate() }
 

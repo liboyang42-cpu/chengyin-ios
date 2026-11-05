@@ -6,13 +6,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Friends and requests"
+            "value": "Friends"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "好友与申请"
+            "value": "好友"
           }
         }
       }
@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Friend requests are not available for this account yet."
+            "value": "Friends aren't available for this account right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账号暂未开放好友申请。"
+            "value": "该账号暂时无法使用好友功能。"
           }
         }
       }
@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The pending request could not be safely saved or recovered. Do not send it again."
+            "value": "Couldn't save this request. Don't send it again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "申请状态无法安全保存或恢复，请勿重复发送。"
+            "value": "申请保存失败，请勿重复发送。"
           }
         }
       }
@@ -54,13 +54,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Could not refresh the latest result. Refresh to try again."
+            "value": "Couldn't load friends. Pull down to try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂时无法刷新最新结果，请稍后刷新。"
+            "value": "好友加载失败，请下拉重试。"
           }
         }
       }
@@ -70,13 +70,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The result is not yet confirmed. Check the original request instead of sending again."
+            "value": "We couldn't confirm your last request. Check the result before sending again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "结果尚未确认，请查询原申请，不要重复发送。"
+            "value": "上次申请结果未确认，请先查看结果，不要重复发送。"
           }
         }
       }
@@ -86,13 +86,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check original result"
+            "value": "Check result"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查询原请求结果"
+            "value": "查看结果"
           }
         }
       }
@@ -118,13 +118,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The request was not sent. Check your account and try again."
+            "value": "The request wasn't sent. Try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请求未发送，请检查账号后重试。"
+            "value": "申请未发送，请重试。"
           }
         }
       }
@@ -150,13 +150,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The operation was not accepted. Refresh to check the current relationship."
+            "value": "That didn't go through. Pull down to refresh."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "操作未被接受，请刷新查看当前关系。"
+            "value": "操作未成功，请下拉刷新。"
           }
         }
       }
@@ -166,13 +166,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "There is no available existing conversation. This entry does not create a new chat."
+            "value": "You don't have a chat with this friend yet."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无可进入的现有会话，此入口不会新建聊天。"
+            "value": "你和对方还没有聊天。"
           }
         }
       }
@@ -198,13 +198,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verification message (1–60 characters)"
+            "value": "Say hello (up to 60 characters)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "验证消息（1～60 字）"
+            "value": "打个招呼（最多60字）"
           }
         }
       }
@@ -214,13 +214,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Send friend request"
+            "value": "Next"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "发送好友申请"
+            "value": "下一步"
           }
         }
       }
@@ -230,7 +230,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Add a friend"
+            "value": "Add friend"
           }
         },
         "zh-Hans": {
@@ -246,13 +246,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Latest relationship"
+            "value": "Request status"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "最新关系"
+            "value": "申请状态"
           }
         }
       }
@@ -294,13 +294,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No friends to show"
+            "value": "No friends yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无好友"
+            "value": "还没有好友"
           }
         }
       }
@@ -502,13 +502,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your sign-in has expired. Sign in again; this request was not applied."
+            "value": "Your sign-in has expired. Sign in again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "登录已失效，请重新登录；本次操作未执行。"
+            "value": "登录已失效，请重新登录。"
           }
         }
       }
@@ -518,13 +518,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Application reviews (private)"
+            "value": "Under review"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "申请审核记录（仅本人可见）"
+            "value": "审核中的申请"
           }
         }
       }
@@ -534,13 +534,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Received for human review; not yet sent"
+            "value": "Under review"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已收件，等待人工审核，尚未发送给对方"
+            "value": "审核中"
           }
         }
       }
@@ -550,13 +550,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reviewed and delivered; see current relationship"
+            "value": "Sent"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "审核通过，申请已投递；关系以当前结果为准"
+            "value": "已发送"
           }
         }
       }
@@ -566,13 +566,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Application text was not approved; edit and apply again"
+            "value": "Message not approved. Edit it and try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "申请文字未通过审核，可修改后重新申请"
+            "value": "验证消息未通过审核，可修改后重新申请"
           }
         }
       }
@@ -582,13 +582,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review withdrawn; not sent"
+            "value": "Withdrawn"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "待审申请已撤回，未发送给对方"
+            "value": "已撤回"
           }
         }
       }
@@ -598,13 +598,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review expired; not sent"
+            "value": "Expired"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "待审申请已过期，未发送给对方"
+            "value": "已过期"
           }
         }
       }
@@ -614,13 +614,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Eligibility changed; not sent"
+            "value": "Not sent"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "申请条件已变化，未发送给对方"
+            "value": "未发送"
           }
         }
       }
@@ -662,13 +662,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Send this message to this member?"
+            "value": "Send friend request"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "向这位会员发送这条申请？"
+            "value": "发送好友申请"
           }
         }
       }
@@ -678,13 +678,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Accept this exact application?"
+            "value": "Accept request"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "通过这一个版本的申请？"
+            "value": "接受好友申请"
           }
         }
       }
@@ -694,13 +694,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Decline this exact application?"
+            "value": "Decline request"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "拒绝这一个版本的申请？"
+            "value": "拒绝好友申请"
           }
         }
       }
@@ -710,13 +710,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdraw this exact application?"
+            "value": "Withdraw request"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "撤回这一个版本的申请？"
+            "value": "撤回好友申请"
           }
         }
       }
@@ -742,13 +742,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Back without changes"
+            "value": "Cancel"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "返回，不作更改"
+            "value": "取消"
           }
         }
       }
@@ -774,13 +774,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retry the original request (check its result first)"
+            "value": "Try again"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "按原申请重试（先查询原结果）"
+            "value": "重试"
           }
         }
       }
@@ -806,13 +806,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "My team invitations"
+            "value": "Team invitations"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "我的原队伍邀请"
+            "value": "队伍邀请"
           }
         }
       }
@@ -822,13 +822,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "My channel invitations"
+            "value": "Channel invitations"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "我的原频道邀请"
+            "value": "频道邀请"
           }
         }
       }
@@ -838,13 +838,61 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open Friends and check the original request"
+            "value": "Go to Friends"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "打开好友首页，查看原请求"
+            "value": "前往好友"
+          }
+        }
+      }
+    },
+    "d7.friends.more": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更多"
+          }
+        }
+      }
+    },
+    "d7.friends.received %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requests (%lld)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "好友申请（%lld）"
+          }
+        }
+      }
+    },
+    "d7.friends.sent %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sent (%lld)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已发送（%lld）"
           }
         }
       }

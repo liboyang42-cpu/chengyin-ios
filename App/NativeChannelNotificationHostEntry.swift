@@ -9,12 +9,14 @@ import SwiftUI
         Group {
             NativeChannelNotificationEntry(permission: permission, makeFlow: { session.makeNativeChannelNotificationFlow(scope: $0) })
                 .id(session.contentDetailRevision)
-            NavigationLink("我的通知投递日志") {
+            NavigationLink {
                 NativeNotificationDeliveryLogView(makeFlow: { session.makeNativeNotificationDeliveryLogFlow() })
                     .id(session.contentDetailRevision)
-            }.accessibilityIdentifier("notification.deliveryLog.entry")
-            NavigationLink("本设备图标角标") { NativeOriginalUnreadBadgeView(model:unreadBadge) }
-                .accessibilityIdentifier("notification.badge.entry")
+            } label: { Text("d7.channelNotify.deliveryLog", tableName: "NativeChannelNotification") }
+                .accessibilityIdentifier("notification.deliveryLog.entry")
+            NavigationLink { NativeOriginalUnreadBadgeView(model:unreadBadge) } label: {
+                Text("d7.channelNotify.badge.title", tableName: "NativeChannelNotification")
+            }.accessibilityIdentifier("notification.badge.entry")
         }
     }
 }
@@ -46,22 +48,32 @@ import SwiftUI
 
 /// Readback of the original source / OS submission, never a second unread truth.
 @MainActor private struct NativeOriginalUnreadBadgeView: View {
+    @Environment(\.locale) private var locale
     @ObservedObject var model: NativeOriginalUnreadBadgeState
+    private func c(_ key: String) -> String { NativeChannelNotificationCopy.text(key, locale: locale) }
     var body: some View {
         Form {
-            Section("原未读 → 本设备角标") {
-                Text(model.status.explanation).accessibilityIdentifier("notification.badge.status")
-                if model.isBusy { ProgressView("正在核对原未读") }
-                Button("从原服务重新同步角标") { model.requestRefresh() }
+            Section {
+                LabeledContent {
+                    Text(statusText).accessibilityIdentifier("notification.badge.status")
+                } label: { Text(c("badge.status")) }
+                if model.isBusy { ProgressView() }
+            }
+            Section {
+                Button(c("badge.refresh")) { model.requestRefresh() }
                     .disabled(!model.canRefresh || model.isBusy)
                     .accessibilityIdentifier("notification.badge.refresh")
             }
-            Section {
-                Text("使用原未读汇总，与原 APNs 角标同一口径；不统计投递记录，也不在手机累加。")
-                Text("启动、回前台、前台每 60 秒及原已读/通知偏好成功后重新读取。只有服务器明确返回零才清零。")
-                Text("需要系统已允许角标；本页不会请求授权、注册设备、发送推送或标记消息已读。")
-                Text("离开前台或 App 关闭后停止同步，图标可能保留最后的值；已在途 APNs 的旧值回写不由这个前台恢复功能保证。")
-            }.font(.caption)
-        }.nativeChannelScreen().navigationTitle("图标角标").privacySensitive()
+        }.nativeChannelScreen().navigationTitle(c("badge.title")).privacySensitive()
+    }
+    private var statusText: String {
+        switch model.status {
+        case .suspended: return c("badge.suspended")
+        case .reading: return c("badge.reading")
+        case .unavailable: return c("badge.unavailable")
+        case .systemDisabled: return c("badge.systemDisabled")
+        case .applied(let total, _): return NativeChannelNotificationCopy.format("badge.applied", locale: locale, String(total))
+        case .systemFailed: return c("badge.systemFailed")
+        }
     }
 }

@@ -160,8 +160,6 @@ struct MessagingHistoryView: View {
         .appNavigationTitle("messaging.history.title")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            // Conversation settings sit top-right with the more menu (spec: title plus up to two actions),
-            // not beside the back button where a second "…" read as a duplicate.
             ToolbarItem(placement: .topBarTrailing) {
                 if currentHistoryReady,
                    let owner = expanded?.coordinator(conversationID) {
@@ -174,28 +172,27 @@ struct MessagingHistoryView: View {
                             admission: admission,
                             directory: directory,
                             showsAdmissionEntry: directory != nil || conversation?.kind == .group,
+                            isMuted: conversation?.muted,
                             onConversationMutationAccepted: onConversationMutationAccepted) { _ in Task { await reload() } }
                     } label: { Label("im.full.title", systemImage: "info.circle") }
                     .accessibilityIdentifier("im.full.controlsEntry")
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
+                // With a composer the poll entry is its leading `+`; otherwise it joins the … menu.
+                let createPoll: (() -> Void)? = canCreatePoll && !showsComposer ? { showingPollComposer = true } : nil
                 if currentHistoryReady, let owner = expanded?.safetyCoordinator?(conversationID), owner.isCurrent {
                     IMChatMoreMenu(owner: owner, conversation: conversation, blockedByMe: pageBlockedByMe,
-                                   messages: history.messages) { safety = .init(owner: owner) }
-                }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                // With a composer the poll entry is its leading `+`; otherwise it stays here.
-                if canCreatePoll, !showsComposer {
-                    Button("poll.create", systemImage: "chart.bar.xaxis") { showingPollComposer = true }
+                                   messages: history.messages, createPoll: createPoll) { safety = .init(owner: owner) }
+                } else if let createPoll {
+                    Button("poll.create", systemImage: "chart.bar.xaxis", action: createPoll)
                         .accessibilityIdentifier("poll.createEntry")
                 }
             }
             ToolbarItem(placement: .principal) {
-                if currentHistoryReady {
+                if conversation != nil {
                     MessagingConversationName(conversation: conversation).font(.headline).lineLimit(1)
-                } else { Text("messaging.history.title") }
+                } else { Text("messaging.history.title").font(.headline) }
             }
         }
         .sheet(item: $safety) { presentation in
@@ -360,12 +357,18 @@ private struct MessagingBubble: View {
     let conversation: MessagingConversation?
     let blockedByMe: Bool?
     let messages: [MessagingMessage]
+    var createPoll: (() -> Void)? = nil
     let present: () -> Void
     private var conversationID: Int { owner.scope.conversationID }
     var body: some View {
         let items = IMSafetyMenu(conversation: conversation, blockedByMe: blockedByMe).items.filter(granted)
-        if !items.isEmpty {
+        if !items.isEmpty || createPoll != nil {
             Menu {
+                if let createPoll {
+                    Button("poll.create", systemImage: "chart.bar.xaxis", action: createPoll)
+                        .accessibilityIdentifier("poll.createEntry")
+                    if !items.isEmpty { Divider() }
+                }
                 ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                     Button(role: item == .hide || item == .block ? .destructive : nil) { select(item) } label: {
                         Label(title(item), systemImage: symbol(item))

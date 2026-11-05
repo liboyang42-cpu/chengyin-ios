@@ -11,7 +11,9 @@ import SwiftUI
         Group {
             if let model = owner.model {
                 NativeChannelProgressPrivacyView(model: model, loadsOnAppear: false).id(owner.visitID)
-            } else if owner.attempted { Text("closed", tableName: "NativeChannelProgress") }
+            } else if owner.attempted {
+                ContentUnavailableView { Label { Text("d7.channelProgress.closed", tableName: "NativeChannelProgress") } icon: { Image(systemName: "hand.raised") } }
+            }
             else { ProgressView() }
         }
         .onAppear { isVisible = true; reopen() }
@@ -72,9 +74,8 @@ import SwiftUI
     @State private var showsConfirmation = false
     var body: some View {
         Form {
-            Section { Text("privacyExplanation", tableName: "NativeChannelProgress") }
             if model.busy { ProgressView() }
-            if !model.isCurrent { Text("closed", tableName: "NativeChannelProgress") }
+            if !model.isCurrent { Text("d7.channelProgress.closed", tableName: "NativeChannelProgress") }
             if model.isCurrent, let values = draft {
                 NativeChannelProgressScopePickers(values: Binding(get: { draft ?? values }, set: { draft = $0 }))
                     .disabled(!model.canSavePrivacy)
@@ -82,35 +83,33 @@ import SwiftUI
             if let current = model.privacy {
                 Section {
                     if let effective = current.effective {
-                        LabeledContent { Text(verbatim: effective.aggregateScope.rawValue) } label: { Text("aggregate", tableName: "NativeChannelProgress") }
-                        LabeledContent { Text(verbatim: effective.detailScope.rawValue) } label: { Text("detailScope", tableName: "NativeChannelProgress") }
+                        LabeledContent { Text(LocalizedStringKey(effective.aggregateScope.rawValue), tableName: "NativeChannelProgress") } label: { Text("d7.channelProgress.aggregate", tableName: "NativeChannelProgress") }
+                        LabeledContent { Text(LocalizedStringKey(effective.detailScope.rawValue), tableName: "NativeChannelProgress") } label: { Text("d7.channelProgress.detailScope", tableName: "NativeChannelProgress") }
                     }
-                    if let at = current.updatedAt { Text(verbatim: at).font(.caption) }
-                } header: { Text("effective", tableName: "NativeChannelProgress") } footer: { Text("effectiveExplanation", tableName: "NativeChannelProgress") }
+                    if let at = current.updatedAt {
+                        LabeledContent { Text(verbatim: NativeChannelProgressDateText.text(at)) } label: { Text("d7.channelProgress.updatedLabel", tableName: "NativeChannelProgress") }
+                    }
+                } header: { Text("d7.channelProgress.effective", tableName: "NativeChannelProgress") }
             }
             Section {
-                if let command = model.pendingCommand {
-                    Text("originalPending", tableName: "NativeChannelProgress")
-                    Text(verbatim: command.requestId).font(.caption.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-                    Text(verbatim: "\(command.aggregateScope.rawValue) · \(command.detailScope.rawValue) · \(command.photoScope.rawValue) · \(command.leaderboardScope.rawValue)").font(.caption)
-                    Button { actions.run { await model.recoverOriginal() } } label: { Text("checkOriginal", tableName: "NativeChannelProgress") }
+                if model.pendingCommand != nil {
+                    Text("d7.channelProgress.originalPending", tableName: "NativeChannelProgress")
+                    Button { actions.run { await model.recoverOriginal() } } label: { Text("d7.channelProgress.checkOriginal", tableName: "NativeChannelProgress") }
                         .disabled(model.busy).accessibilityIdentifier("channelProgress.checkOriginal")
-                    Button { actions.run { await model.recoverOriginal(retryOriginal: true) } } label: { Text("retryOriginal", tableName: "NativeChannelProgress") }
+                    Button { actions.run { await model.recoverOriginal(retryOriginal: true) } } label: { Text("d7.channelProgress.retryOriginal", tableName: "NativeChannelProgress") }
                         .disabled(model.busy).accessibilityIdentifier("channelProgress.retryOriginal")
                 }
-                if model.privacyPhase == .unresolved { Text("outcomeUnknown", tableName: "NativeChannelProgress").nativeChannelNotice(systemImage: "clock") }
-                if model.privacyPhase == .conflict { Text("privacyConflict", tableName: "NativeChannelProgress") }
-                if model.privacyPhase == .persistenceFailed { Text("persistenceFailed", tableName: "NativeChannelProgress") }
+                if model.privacyPhase == .unresolved { Text("d7.channelProgress.outcomeUnknown", tableName: "NativeChannelProgress").nativeChannelNotice(systemImage: "clock") }
+                if model.privacyPhase == .conflict { Text("d7.channelProgress.privacyConflict", tableName: "NativeChannelProgress") }
+                if model.privacyPhase == .persistenceFailed { Text("d7.channelProgress.persistenceFailed", tableName: "NativeChannelProgress") }
                 if let receipt = model.receipt, receipt.status == "APPLIED" {
-                    Text("applied", tableName: "NativeChannelProgress").accessibilityIdentifier("channelProgress.applied")
-                    if let id = receipt.requestId { Text(verbatim: id).font(.caption.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true) }
-                    // Historical receipt is shown separately from the current effective settings.
-                    Text(verbatim: "\(receipt.aggregateScope.rawValue) · \(receipt.detailScope.rawValue) · \(receipt.photoScope.rawValue) · \(receipt.leaderboardScope.rawValue)").font(.caption)
+                    Label { Text("d7.channelProgress.applied", tableName: "NativeChannelProgress") } icon: { Image(systemName: "checkmark.circle") }
+                        .accessibilityIdentifier("channelProgress.applied")
                 }
                 Button {
                     confirmation.prepare(current: model.privacy, draft: draft, canSave: model.canSavePrivacy)
                     showsConfirmation = confirmation.review != nil
-                } label: { Text("save", tableName: "NativeChannelProgress") }.nativeChannelPrimaryAction().disabled(!model.canSavePrivacy || draft == nil)
+                } label: { Text("d7.channelProgress.save", tableName: "NativeChannelProgress") }.nativeChannelPrimaryAction().disabled(!model.canSavePrivacy || draft == nil)
                     .accessibilityIdentifier("channelProgress.savePrivacy")
             }
             NativeChannelProgressIssueView(model: model, part: "privacy")
@@ -131,11 +130,9 @@ import SwiftUI
             if phase != .active { confirmation.leave(); actions.retire(); draft = nil; showsConfirmation = false }
         }
         .refreshable { confirmation.invalidate(); showsConfirmation = false; await model.loadPrivacy() }
-        .confirmationDialog(Text("confirmPrivacy", tableName: "NativeChannelProgress"), isPresented: $showsConfirmation, titleVisibility: .visible) {
-            Button { confirmSave() } label: { Text("confirm", tableName: "NativeChannelProgress") }
+        .confirmationDialog(Text("d7.channelProgress.confirmPrivacy", tableName: "NativeChannelProgress"), isPresented: $showsConfirmation, titleVisibility: .visible) {
+            Button { confirmSave() } label: { Text("d7.channelProgress.save", tableName: "NativeChannelProgress") }
             Button(role: .cancel) { confirmation.invalidate() } label: { Text("cancel", tableName: "NativeChannelProgress") }
-        } message: {
-            if let values = confirmation.review?.values { Text(verbatim: "\(values.aggregateScope.rawValue) · \(values.detailScope.rawValue) · \(values.photoScope.rawValue) · \(values.leaderboardScope.rawValue)") }
         }
     }
     private func synchronizeDraft() {
@@ -159,16 +156,16 @@ private struct NativeChannelProgressScopePickers: View {
         Section {
             Picker(selection: $values.aggregateScope) {
                 ForEach(NativeChannelProgressScope.allCases, id: \.self) { Text(LocalizedStringKey($0.rawValue), tableName: "NativeChannelProgress").tag($0) }
-            } label: { Text("aggregate", tableName: "NativeChannelProgress") }.accessibilityIdentifier("channelProgress.aggregateScope")
+            } label: { Text("d7.channelProgress.aggregate", tableName: "NativeChannelProgress") }.accessibilityIdentifier("channelProgress.aggregateScope")
             Picker(selection: $values.detailScope) {
                 ForEach(NativeChannelProgressScope.allCases.filter { $0 != .publicAccess }, id: \.self) { Text(LocalizedStringKey($0.rawValue), tableName: "NativeChannelProgress").tag($0) }
-            } label: { Text("detailScope", tableName: "NativeChannelProgress") }.accessibilityIdentifier("channelProgress.detailScope")
+            } label: { Text("d7.channelProgress.detailScope", tableName: "NativeChannelProgress") }.accessibilityIdentifier("channelProgress.detailScope")
             Picker(selection: $values.photoScope) {
                 ForEach(NativeChannelProgressPhotoScope.allCases, id: \.self) { Text(LocalizedStringKey($0.rawValue), tableName: "NativeChannelProgress").tag($0) }
-            } label: { Text("photo", tableName: "NativeChannelProgress") }.accessibilityIdentifier("channelProgress.photoScope")
+            } label: { Text("d7.channelProgress.photo", tableName: "NativeChannelProgress") }.accessibilityIdentifier("channelProgress.photoScope")
             Picker(selection: $values.leaderboardScope) {
                 ForEach(NativeChannelProgressLeaderboardScope.allCases, id: \.self) { Text(LocalizedStringKey($0.rawValue), tableName: "NativeChannelProgress").tag($0) }
-            } label: { Text("leaderboard", tableName: "NativeChannelProgress") }.accessibilityIdentifier("channelProgress.leaderboardScope")
-        }
+            } label: { Text("d7.channelProgress.leaderboard", tableName: "NativeChannelProgress") }.accessibilityIdentifier("channelProgress.leaderboardScope")
+        } header: { Text("d7.channelProgress.whoCanSee", tableName: "NativeChannelProgress") }
     }
 }
