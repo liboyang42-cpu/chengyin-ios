@@ -75,22 +75,24 @@ struct ClubOpsGovernanceMembersSection: View {
     var body: some View {
         Section {
             if roster.members.isEmpty {
-                VStack(alignment: .leading, spacing: 4) {
-                    ClubOpsGovernanceCopy.text("clubOpsGov.members.empty").font(.headline)
-                    ClubOpsGovernanceCopy.text("clubOpsGov.members.emptyBody").font(.footnote).foregroundStyle(.secondary)
+                ContentUnavailableView {
+                    Label { ClubOpsGovernanceCopy.text("clubOpsGov.members.empty") } icon: { Image(systemName: "person.2") }
                 }.accessibilityIdentifier("clubOpsGov.members.empty")
             }
+            // One row per member: name, then its actions side by side (ban, and transfer for the owner).
             ForEach(roster.members) { member in
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 8) {
                     ClubOpsGovernanceCopy.member(member.nickname, id: member.id).font(.headline)
-                    ban(member)
-                    if roster.viewerIsOwner {
-                        transfer(member)
-                        ClubOpsGovernanceCopy.text("clubOpsGov.transfer.hint").font(.footnote).foregroundStyle(.secondary)
-                    }
+                    HStack(spacing: Theme.Space.s3) {
+                        ban(member).foregroundStyle(.red)
+                        if roster.viewerIsOwner { transfer(member) }
+                    }.buttonStyle(.bordered).controlSize(.small)
                 }.accessibilityIdentifier("clubOpsGov.member.\(member.id)")
             }
-        } header: { ClubOpsGovernanceCopy.text("clubOpsGov.members.title") }
+        } header: { ClubOpsGovernanceCopy.text("clubOpsGov.members.title") } footer: {
+            // Mini-program 转让主理人 card: its one consequence line, shown once rather than under every member.
+            if roster.viewerIsOwner, !roster.members.isEmpty { ClubOpsGovernanceCopy.text("clubOpsGov.transfer.hint") }
+        }
     }
 }
 
@@ -115,10 +117,8 @@ struct ClubOpsCaseSection: View {
         switch list.appeal {
         case .none:
             Section {
-                VStack(alignment: .leading, spacing: 4) {
-                    ClubOpsGovernanceCopy.text("clubOpsGov.appeal.empty").font(.headline)
-                    ClubOpsGovernanceCopy.text("clubOpsGov.appeal.emptyBody").font(.footnote).foregroundStyle(.secondary)
-                }.accessibilityIdentifier("clubOpsGov.appeal.empty")
+                ClubOpsGovernanceCopy.text("clubOpsGov.appeal.empty").foregroundStyle(.secondary)
+                    .accessibilityIdentifier("clubOpsGov.appeal.empty")
             } header: { ClubOpsGovernanceCopy.text("clubOpsGov.appeal.title") }
         case .ban(let ban):
             Section {
@@ -227,16 +227,12 @@ struct ClubOpsRoleSection: View {
         } header: { Text("club.gov.assignments") }
         Section {
             if roster.delegableMemberCount == 0 {
-                VStack(alignment: .leading, spacing: 4) {
-                    ClubOpsGovernanceCopy.text("clubOpsGov.roles.empty").font(.headline)
-                    ClubOpsGovernanceCopy.text("clubOpsGov.roles.emptyBody").font(.footnote).foregroundStyle(.secondary)
-                }.accessibilityIdentifier("clubOpsGov.roles.empty")
+                ClubOpsGovernanceCopy.text("clubOpsGov.roles.empty").foregroundStyle(.secondary)
+                    .accessibilityIdentifier("clubOpsGov.roles.empty")
             } else {
-                ClubOpsGovernanceCopy.text("clubOpsGov.roles.assign.caption").font(.footnote).foregroundStyle(.secondary)
                 assign
             }
         } header: { ClubOpsGovernanceCopy.text("clubOpsGov.roles.assign.title") }
-        Section { ClubOpsGovernanceCopy.text("clubOpsGov.roles.footer").font(.footnote).foregroundStyle(.secondary) }
     }
 }
 
@@ -259,10 +255,10 @@ struct ClubOpsGovernanceDeniedNote: View {
     }
     private func note(_ title: String, _ body: String) -> some View {
         Section {
-            VStack(alignment: .leading, spacing: 4) {
-                ClubOpsGovernanceCopy.text(title).font(.headline)
-                ClubOpsGovernanceCopy.text(body).font(.footnote).foregroundStyle(.secondary)
-            }.accessibilityIdentifier("clubOpsGov.denied." + operation.rawValue)
+            ContentUnavailableView {
+                Label { ClubOpsGovernanceCopy.text(title) } icon: { Image(systemName: "lock") }
+            } description: { ClubOpsGovernanceCopy.text(body) }
+                .accessibilityIdentifier("clubOpsGov.denied." + operation.rawValue)
         }
     }
 }

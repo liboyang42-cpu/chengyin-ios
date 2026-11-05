@@ -54,13 +54,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Banned by this club? Your platform cases and the ban appeal are still available."
+            "value": "Banned by this club? You can still see your platform cases and appeal."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "被本俱乐部封禁时，仍可查看自己的平台工单并提交封禁申诉。"
+            "value": "被本俱乐部封禁时，仍可查看平台工单并提交申诉。"
           }
         }
       }
@@ -86,13 +86,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Appeals go to the platform governance queue; club owners and co-owners cannot decide them. An upheld appeal lifts the ban but does not restore membership automatically."
+            "value": "Appeals are decided by the platform. If upheld, the ban is lifted and you can rejoin."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "申诉进入平台治理队列；俱乐部主理人和副主理人不能裁决。申诉通过后解除封禁，但不会自动恢复成员身份。"
+            "value": "申诉由平台裁决。申诉通过后解封，需重新入会。"
           }
         }
       }
@@ -582,13 +582,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only submit specific facts that can be verified. Nothing is ruled a violation or banned automatically before platform review."
+            "value": "Submit facts that can be verified."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请只提交可核实的具体事实。平台审核前，不会自动认定违规或执行封禁。"
+            "value": "请提交可核实的事实。"
           }
         }
       }
