@@ -16678,13 +16678,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Average participants"
+            "value" : "Average participants (optional)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "平均参与人数"
+            "value" : "平均参与人数（选填）"
           }
         }
       }
@@ -16746,13 +16746,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Can design routes"
+            "value" : "Can design city routes"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可设计路线"
+            "value" : "能设计城市路线"
           }
         }
       }
@@ -16763,13 +16763,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Can design tasks"
+            "value" : "Can design tasks and puzzles"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可设计任务"
+            "value" : "能设计任务 · 解谜"
           }
         }
       }
@@ -16797,13 +16797,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Can coordinate merchants"
+            "value" : "Can work with merchants"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可对接商家"
+            "value" : "能与商家联动"
           }
         }
       }
@@ -16814,13 +16814,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Can perform as NPC"
+            "value" : "Can play NPCs and characters"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可扮演NPC"
+            "value" : "能带 NPC · 角色"
           }
         }
       }
@@ -16950,13 +16950,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Co-founders"
+            "value" : "Co-founders (optional)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "联合创始人"
+            "value" : "联合创始人（选填）"
           }
         }
       }
@@ -17511,13 +17511,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Identity"
+            "value" : "About you (optional)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "身份说明"
+            "value" : "身份说明（选填）"
           }
         }
       }
@@ -17596,13 +17596,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Largest group led"
+            "value" : "Largest group led (optional)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "最大带队人数"
+            "value" : "最大带队人数（选填）"
           }
         }
       }
@@ -19279,13 +19279,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Merchant accounts cannot apply as club hosts"
+            "value" : "This account has a merchant record. One account can't be both a merchant and a club host."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "商家账号不能申请成为俱乐部主理人"
+            "value" : "这个账号有商家入驻记录，一个账号不能同时是商家和俱乐部主理人"
           }
         }
       }
@@ -202584,6 +202584,244 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "发现"
+          }
+        }
+      }
+    },
+    "club.host.merchant.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This account is already a merchant"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这个账号已经是商家"
+          }
+        }
+      }
+    },
+    "club.host.done.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You're a club host"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已成为主理人"
+          }
+        }
+      }
+    },
+    "club.host.done.status" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Status"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "状态"
+          }
+        }
+      }
+    },
+    "club.host.done.active" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Active"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已生效"
+          }
+        }
+      }
+    },
+    "club.host.done.limitLabel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clubs you can create"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可建俱乐部"
+          }
+        }
+      }
+    },
+    "club.host.done.limitValue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Up to 2"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最多 2 个"
+          }
+        }
+      }
+    },
+    "club.host.intro.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn the people you lead into your club"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "把你带的人，变成你的俱乐部"
+          }
+        }
+      }
+    },
+    "club.host.intro.instant" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takes effect as soon as you finish, no review wait"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "填完身份立即生效，不用等审核"
+          }
+        }
+      }
+    },
+    "club.host.intro.limit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create up to 2 clubs"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最多可以建 2 个俱乐部"
+          }
+        }
+      }
+    },
+    "club.host.step.profile" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About you"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主理人资料"
+          }
+        }
+      }
+    },
+    "club.host.step.experience" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Experience"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "组织经验"
+          }
+        }
+      }
+    },
+    "club.host.step.skills" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What you can do"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "能力自评"
+          }
+        }
+      }
+    },
+    "club.host.step.credentials" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qualifications"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "资质证明"
+          }
+        }
+      }
+    },
+    "club.host.contactPrivate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your contact details are not shown publicly."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "联系方式不对外展示"
           }
         }
       }

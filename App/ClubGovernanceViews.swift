@@ -1201,10 +1201,29 @@ struct ClubGovernanceReadView: View {
                 }
             }
         } else if operation == .hostStatus {
-            ClubGovernanceFactRows(value: value, fields: ["accountRole", "registered"])
-            if value["accountRole"] == .string("merchant") { Text("club.gov.hostMerchantBlocked") }
-            else if value["accountRole"] == .string("club") { Text("club.gov.hostExisting") }
-            else { edit(.hostApply); Text("club.gov.identityGate") }
+            // Mini-program club/apply: intro → form; merchant accounts get a blocked state; hosts see the done card.
+            if value["accountRole"] == .string("merchant") {
+                ContentUnavailableView {
+                    Label("club.host.merchant.title", systemImage: "storefront")
+                } description: { Text("club.gov.hostMerchantBlocked") }
+                    .listRowBackground(Color.clear)
+            } else if value["accountRole"] == .string("club") {
+                Section("club.host.done.title") {
+                    LabeledContent("club.host.done.status") { Text("club.host.done.active").foregroundStyle(.green) }
+                    LabeledContent("club.host.done.limitLabel") { Text("club.host.done.limitValue") }
+                }
+            } else {
+                Section {
+                    Text("club.host.intro.title").font(.title2.weight(.bold))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.vertical, Theme.Space.s2)
+                    Label("club.host.intro.instant", systemImage: "checkmark.circle")
+                    Label("club.host.intro.limit", systemImage: "person.3")
+                }
+                Section {
+                    edit(.hostApply).buttonStyle(.questifyPrimary).frame(maxWidth: .infinity)
+                }.listRowBackground(Color.clear)
+            }
         } else if operation == .roster {
             if let roster = try? ClubRosterPresentation(snapshot: snapshot, context: readContext) {
                 let source = attendanceSource
