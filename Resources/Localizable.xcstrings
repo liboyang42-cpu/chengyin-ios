@@ -1,6 +1,74 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "templateAuthor.shelf.removeConfirm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove from library"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从玩法库下架"
+          }
+        }
+      }
+    },
+    "templateAuthor.shelf.addConfirm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add to library"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入玩法库"
+          }
+        }
+      }
+    },
+    "templateAuthor.shelf.removeQuestion %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove “%@” from the play library?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "把「%@」从玩法库下架？"
+          }
+        }
+      }
+    },
+    "templateAuthor.shelf.addQuestion %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add “%@” to the play library?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "把「%@」加入玩法库？"
+          }
+        }
+      }
+    },
     "team.invite.copied" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -146128,13 +146196,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This change is unresolved. Further shelf changes are locked; refreshing alone cannot confirm an unknown request."
+            "value" : "We couldn’t confirm whether your last change went through. Changes are paused until it’s resolved."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此次修改结果尚未确定，后续模板修改已锁定。仅刷新列表不能确认未知请求结果。"
+            "value" : "暂时无法确认上一次修改是否成功，确认前暂停修改。"
           }
         }
       }
@@ -184943,13 +185011,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This cannot be undone. The play configuration cannot be recovered."
+            "value" : "This cannot be undone."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此操作不可撤销,玩法配置无法找回"
+            "value" : "此操作不可撤销。"
           }
         }
       }
