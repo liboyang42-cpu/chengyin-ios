@@ -46,8 +46,13 @@ import SwiftUI
             Section {
                 Picker("merchantMarketing.section", selection: $selected) {
                     ForEach(MerchantMarketingCoordinator.Surface.allCases) { item in Text(LocalizedStringKey(item.titleKey)).tag(item) }
-                }.accessibilityIdentifier("merchantMarketing.sectionPicker")
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .accessibilityIdentifier("merchantMarketing.sectionPicker")
             }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
             if model.busy { ProgressView("merchantMarketing.loading") }
             if let error = model.failure { failure(error) }
             if let result = model.acknowledgement {
@@ -66,7 +71,14 @@ import SwiftUI
             if let rounds = model.rounds { predictionSections(rounds) }
         }
         .navigationTitle(LocalizedStringKey(selected.titleKey))
-        .toolbar { Button("merchantMarketing.refresh") { refreshTask?.cancel(); refreshTask = Task { await loadSurface() } }.disabled(model.busy) }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { refreshTask?.cancel(); refreshTask = Task { await loadSurface() } } label: {
+                    Label("merchantMarketing.refresh", systemImage: "arrow.clockwise")
+                }.disabled(model.busy)
+            }
+        }
+        .refreshable { await loadSurface() }
         .task(id: loadKey) { await loadSurface() }
         .onChange(of: loadKey) { _, _ in refreshTask?.cancel(); refreshTask = nil; loadedRecommendationOrigin = nil }
         .onDisappear { refreshTask?.cancel(); refreshTask = nil }
@@ -229,7 +241,6 @@ import SwiftUI
                 if let quota = commerce.premiumTemplate { quotaRow("merchantMarketing.premium", quota) }
                 if let quota = commerce.cityNode { quotaRow("merchantMarketing.cityNode", quota) }
             }
-            Text("merchantMarketing.iOSCheckoutUnavailable").accessibilityIdentifier("merchantMarketing.checkoutUnavailable")
         }
     }
     private func entitlementTitle(_ type: String) -> String {
@@ -244,7 +255,6 @@ import SwiftUI
         }.accessibilityElement(children: .combine)
     }
     @ViewBuilder private func predictionSections(_ rounds: [MerchantPredictionRound]) -> some View {
-        Section { Text("merchantMarketing.couponWarning").font(.footnote); Text("merchantMarketing.deadlinePolicy").font(.footnote) }
         if rounds.isEmpty { Section { Text("merchantMarketing.emptyPredictions") } }
         ForEach(rounds) { round in
             Section {
@@ -257,10 +267,15 @@ import SwiftUI
                 if let count = round.betCount, count > 0 { LabeledContent("merchantMarketing.bets", value: String(count)) }
                 else if round.betCount == 0 { Text("merchantMarketing.noBets") }
                 ForEach(round.options) { option in
-                    Button { Task { await model.prepare(round, option: option.key) } } label: { Text(option.label) }
-                    .disabled(model.busy || !model.service.permitsSettlement)
-                    .accessibilityIdentifier("merchantMarketing.option.\(option.key)")
-                    .accessibilityHint(Text("merchantMarketing.reviewHint"))
+                    // Options are actions only where settlement is wired; otherwise they are listed as text.
+                    if model.service.permitsSettlement {
+                        Button { Task { await model.prepare(round, option: option.key) } } label: { Text(option.label) }
+                        .disabled(model.busy)
+                        .accessibilityIdentifier("merchantMarketing.option.\(option.key)")
+                        .accessibilityHint(Text("merchantMarketing.reviewHint"))
+                    } else {
+                        Text(option.label).accessibilityIdentifier("merchantMarketing.option.\(option.key)")
+                    }
                 }
             }
         }

@@ -202910,6 +202910,23 @@
           }
         }
       }
+    },
+    "merchant.marketing.enterCoop" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter cooperation center"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "进入合作中心"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
