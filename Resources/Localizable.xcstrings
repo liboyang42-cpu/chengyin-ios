@@ -207135,6 +207135,23 @@
           }
         }
       }
+    },
+    "d7.imLocationCard.showMap" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show map"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示地图"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
