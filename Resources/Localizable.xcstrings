@@ -84305,13 +84305,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use your device location to search the configured Chengyin service for merchants within 5 km. Coordinates are used for this search only."
+            "value" : "Your location is used once to find merchants within 5 km."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用本机定位向已配置的城瘾服务查询 5 公里内商家，坐标仅用于本次查询。"
+            "value" : "仅本次使用你的位置，查找 5 公里内的商家。"
           }
         }
       }
@@ -84339,13 +84339,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This lead has no registered member profile."
+            "value" : "Not yet on Questify"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "该商家线索尚无已入驻的会员主页。"
+            "value" : "尚未入驻城瘾"
           }
         }
       }
