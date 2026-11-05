@@ -16,18 +16,11 @@ import SwiftUI
     private func readText(_ key: String) -> Text { Text(LocalizedStringKey("wallet.analysis.read." + key), tableName: "WalletIncomeAnalysisRead") }
     var body: some View {
         List {
-            Section {
-                readText("scope").font(Theme.Font.label).fixedSize(horizontal: false, vertical: true)
-                text("noPayout").font(Theme.Font.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            }
             if !reader.isConfigured { text("unavailable") }
             else if reader.scope == nil || model.requiresLogin { text("login") }
             else if model.loading {
                 Section {
-                    ProgressView { text("loading") }
-                    LabeledContent { Text(model.receivedCount, format: .number) } label: { text("received") }
-                    readText("progress").font(Theme.Font.label).foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                    ProgressView { text("loading") }.frame(maxWidth: .infinity)
                 }.accessibilityIdentifier("wallet.analysis.loading")
             }
             else if model.unavailable { text("unavailable") }
@@ -64,17 +57,13 @@ import SwiftUI
         let currency = selectedCurrency.flatMap { currencies.contains($0) ? $0 : nil } ?? currencies.first
         let summary = WalletIncomeAnalysisPresentation(rows: slice.rows, mode: mode, currency: currency, now: measuredAt)
         Section {
-            LabeledContent { Text(slice.rows.count, format: .number) } label: { text("received") }
-            text(slice.stop == .end ? "slice" : "more").font(Theme.Font.label)
-                .fixedSize(horizontal: false, vertical: true)
+            // Mini-program `an-seg` 收入 / 提现 first; read-mechanics notes are not user copy.
             if slice.isPartial {
-                readText("partial").font(.headline)
-                readText(slice.stop == .interrupted ? "interrupted" : slice.stop == .changed ? "changed" : "unverified")
-                    .fixedSize(horizontal: false, vertical: true)
+                Label { readText("partial") } icon: { Image(systemName: "exclamationmark.circle").accessibilityHidden(true) }
                 Button { Task { await load() } } label: { text("retry") }
                     .accessibilityIdentifier("wallet.analysis.partial.retry")
             } else if slice.stop == .budget {
-                readText("budget").font(Theme.Font.label).fixedSize(horizontal: false, vertical: true)
+                readText("budget").font(Theme.Font.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
             if dynamicTypeSize.isAccessibilitySize { modePicker.pickerStyle(.menu) }
             else { modePicker.pickerStyle(.segmented) }
@@ -85,7 +74,6 @@ import SwiftUI
             }
             if summary.unknownCount > 0 {
                 LabeledContent { Text(verbatim: String(summary.unknownCount)) } label: { text("unknown") }
-                text("excluded").font(Theme.Font.label).fixedSize(horizontal: false, vertical: true)
             }
         }
         if slice.rows.isEmpty { if slice.isPartial { readText("noVerifiedRecords") } else { text("empty") } }

@@ -38,16 +38,16 @@
     "wallet.analysis.read.partial": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前为部分结果"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Partial results"
+            "value": "Some records couldn't be loaded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分记录没有加载出来"
           }
         }
       }
@@ -106,16 +106,16 @@
     "wallet.analysis.read.budget": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "达到本次最多 200 条的读取上限，未读取的记录不计入小计。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The read limit of 200 records was reached. Unread records are excluded from subtotals."
+            "value": "Based on the latest 200 records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按最近 200 条记录统计"
           }
         }
       }
