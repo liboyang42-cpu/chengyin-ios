@@ -3025,13 +3025,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Topic categories"
+            "value" : "Category"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "主题类别"
+            "value" : "类别"
           }
         }
       }
@@ -7642,13 +7642,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "These items could not be loaded"
+            "value" : "Couldn't load these items"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂时无法读取这些内容"
+            "value" : "这些内容没加载出来"
           }
         }
       }
@@ -7792,7 +7792,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在读取…"
+            "value" : "加载中…"
           }
         }
       }
@@ -7818,13 +7818,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Collections aren't available right now."
+            "value" : "Favorites can't be shown right now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "收藏暂不可用"
+            "value" : "暂时无法显示收藏"
           }
         }
       }

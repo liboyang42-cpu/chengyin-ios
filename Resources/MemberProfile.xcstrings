@@ -1264,6 +1264,22 @@
           }
         }
       }
+    },
+    "member.favorites.postsEmpty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No saved posts yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无收藏的帖文"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
