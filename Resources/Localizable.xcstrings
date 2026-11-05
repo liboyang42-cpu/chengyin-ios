@@ -79752,7 +79752,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This conversation is closed. Go back to the conversation list."
+            "value" : "This chat is closed. Any outcome appears in your notices."
           }
         },
         "zh-Hans" : {
@@ -79956,13 +79956,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The service returned an invalid response. Please retry."
+            "value" : "Something went wrong. Please try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务返回的数据无效，请重试。"
+            "value" : "出了点问题，请重试。"
           }
         }
       }
@@ -80379,13 +80379,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No matching conversations"
+            "value" : "No results"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "没有匹配的会话"
+            "value" : "没有找到相关会话"
           }
         }
       }
@@ -80497,13 +80497,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Please try again. Your messages have not been changed."
+            "value" : "Check your connection and try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请重试，消息未被更改。"
+            "value" : "请检查网络后重试。"
           }
         }
       }
@@ -80616,13 +80616,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your signed-in session is required to view private conversations."
+            "value" : "Sign in to see your conversations and notices."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "登录后可查看私信和系统通知"
+            "value" : "登录后查看私信和通知"
           }
         }
       }
@@ -80667,13 +80667,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "System notifications"
+            "value" : "Questify Assistant"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "系统通知"
+            "value" : "城瘾小助手"
           }
         }
       }
@@ -181216,17 +181216,18 @@
       }
     },
     "im.inbox.emptyGroup" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No group chats yet"
+            "value" : "No channels yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "还没有群聊"
+            "value" : "还没有频道"
           }
         }
       }
@@ -202567,6 +202568,142 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "商家概览"
+          }
+        }
+      }
+    },
+    "messaging.segment.all" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部"
+          }
+        }
+      }
+    },
+    "messaging.segment.channels" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Channels"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "频道"
+          }
+        }
+      }
+    },
+    "messaging.segment.direct" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Direct"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "私信"
+          }
+        }
+      }
+    },
+    "messaging.channels.theme" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Theme"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主题"
+          }
+        }
+      }
+    },
+    "messaging.channels.club" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Club"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "俱乐部"
+          }
+        }
+      }
+    },
+    "messaging.channels.team" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Team"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "队伍"
+          }
+        }
+      }
+    },
+    "messaging.empty.all" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No messages yet"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "还没有消息"
+          }
+        }
+      }
+    },
+    "messaging.searchPrompt" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索"
           }
         }
       }

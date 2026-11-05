@@ -16,17 +16,20 @@ final class IMMessagingParityUITests: XCTestCase {
         let app = launch("success")
         let tabs = app.segmentedControls["messaging.list.scope"]
         XCTAssertTrue(tabs.waitForExistence(timeout: 5))
-        // 私信 / 系统 plus the native-only group tab because the fixture holds a type-4 row.
+        // All / Channels / Direct. System notices travel with Direct.
         XCTAssertEqual(tabs.buttons.count, 3)
         XCTAssertTrue(tabs.buttons.element(boundBy: 0).isSelected)
         XCTAssertTrue(app.buttons["messaging.conversation.901"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["messaging.conversation.903"].exists, "Official type 3 belongs to the direct tab")
-        XCTAssertFalse(app.buttons["messaging.conversation.902"].exists)
+        XCTAssertTrue(app.buttons["messaging.conversation.904"].exists)
         tabs.buttons.element(boundBy: 1).tap()
-        XCTAssertTrue(app.buttons["messaging.conversation.902"].waitForExistence(timeout: 2))
-        XCTAssertFalse(app.buttons["messaging.conversation.901"].exists)
-        tabs.buttons.element(boundBy: 2).tap()
         XCTAssertTrue(app.buttons["messaging.conversation.904"].waitForExistence(timeout: 2))
+        XCTAssertFalse(app.buttons["messaging.conversation.901"].exists)
+        XCTAssertFalse(app.buttons["messaging.conversation.902"].exists)
+        tabs.buttons.element(boundBy: 2).tap()
+        XCTAssertTrue(app.buttons["messaging.conversation.901"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["messaging.conversation.903"].exists, "Official type 3 belongs to Direct")
+        XCTAssertTrue(app.buttons["messaging.conversation.902"].exists, "System notices belong to Direct")
+        XCTAssertFalse(app.buttons["messaging.conversation.904"].exists)
     }
 
     func testReadOnlyFixtureOffersNoSafetyActions() {
@@ -109,7 +112,7 @@ final class IMMessagingParityUITests: XCTestCase {
         let app = launch("safety")
         let tabs = app.segmentedControls["messaging.list.scope"]
         XCTAssertTrue(tabs.waitForExistence(timeout: 5))
-        tabs.buttons.element(boundBy: 1).tap()
+        tabs.buttons.element(boundBy: 2).tap()
         app.buttons["messaging.conversation.902"].tap()
         XCTAssertTrue(element("im.reply.systemNotice", app).waitForExistence(timeout: 5))
         app.buttons["im.chat.more"].tap()
