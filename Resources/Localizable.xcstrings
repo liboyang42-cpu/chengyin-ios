@@ -181554,33 +181554,35 @@
       }
     },
     "im.safety.resolving" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reading the conversation…"
+            "value" : "Loading…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在读取会话对象…"
+            "value" : "正在加载…"
           }
         }
       }
     },
     "im.safety.unavailable" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This action can't be completed for this conversation. Try again."
+            "value" : "This action isn't available for this conversation."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法对该会话执行此操作，请重试"
+            "value" : "无法对该会话执行此操作"
           }
         }
       }
@@ -181618,17 +181620,18 @@
       }
     },
     "im.safety.retrySame" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Retry the same action"
+            "value" : "Try again"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "按原操作重试"
+            "value" : "重试"
           }
         }
       }
@@ -181650,17 +181653,18 @@
       }
     },
     "im.safety.unknownHint" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The connection dropped and the server may already have processed this. Check the result before trying again."
+            "value" : "The connection dropped. Check the result before trying again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "网络中断，服务器可能已处理。请先核对结果，不要重复操作。"
+            "value" : "网络中断，请先核对结果再重试。"
           }
         }
       }
@@ -181698,17 +181702,18 @@
       }
     },
     "im.safety.notApplied" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Not applied"
+            "value" : "This didn't take effect"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "核对后未生效"
+            "value" : "操作未生效"
           }
         }
       }
@@ -182066,17 +182071,18 @@
       }
     },
     "im.safety.report.content" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reports the most recent message they sent. Your own messages are never reported."
+            "value" : "Their most recent message will be reported."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "将举报对方发送的最近一条消息，不会举报你自己的消息。"
+            "value" : "将举报对方发送的最近一条消息。"
           }
         }
       }
