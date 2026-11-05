@@ -141484,13 +141484,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Copying only places the existing code on this device’s clipboard. It does not send an invitation or create a link."
+            "value" : "Copy the code and send it to your teammates"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "复制仅将现有邀请码放入本机剪贴板，不会发送邀请或创建链接。"
+            "value" : "复制邀请码后发给队友"
           }
         }
       }
@@ -141552,13 +141552,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Joining provides access to the team chat. It does not register you or buy a ticket. Leaving and ticket refunds are separate."
+            "value" : "You'll join the team chat automatically"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "加入后会进入队伍群聊。入队不会代替报名或购票。退队与退票互不联动。"
+            "value" : "入队后自动进群聊"
           }
         }
       }
@@ -141688,13 +141688,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Role not provided"
+            "value" : "Teammate"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "角色未提供"
+            "value" : "队员"
           }
         }
       }
@@ -141773,13 +141773,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Member count not provided"
+            "value" : "—"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "成员人数未提供"
+            "value" : "—"
           }
         }
       }
@@ -193946,13 +193946,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You received a team invitation. Teaming up does not affect whether the activity runs, and joining does not register you or buy a ticket."
+            "value" : "The invite code can't be used to check in, and joining doesn't register you or buy a ticket"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你收到一份组队邀请。组队与否不影响活动举行，入队不会代替报名或购票。"
+            "value" : "邀请码不能用于签到或核销，入队不代替报名或购票"
           }
         }
       }
