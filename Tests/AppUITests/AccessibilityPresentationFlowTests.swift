@@ -55,6 +55,9 @@ final class AccessibilityPresentationFlowTests:XCTestCase {
         XCTAssertTrue(pin.isSelected,app.debugDescription)
         XCTAssertEqual(pin.label,"Synthetic completed stop, 已完成",app.debugDescription)
         attachFixtureScreenshot(self,app:app,name:"Route map Chinese dark accessibility3 reduced-motion previewed pin")
+        // Use the visible native map/list control before scrolling the equivalent list.
+        // Dragging through the map pans it instead of advancing the enclosing list.
+        tap("playRoute.toggleMap")
         let row=app.buttons["playRoute.stop.700"]
         XCTAssertTrue(revealFixtureElement(row,in:app,maximumSwipes:20),app.debugDescription)
         row.tap()
