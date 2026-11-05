@@ -202689,6 +202689,23 @@
           }
         }
       }
+    },
+    "publishModes.stopNumber %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop %lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第 %lld 站"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

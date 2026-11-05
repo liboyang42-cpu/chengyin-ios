@@ -73,37 +73,57 @@ import Combine
     var body: some View {
         let _ = journey.bind(account: account)
         let draft = journey.draftBinding()
+        // Mini-program publish/simple order: AI draft, the draft (route type, name, story),
+        // the stops to confirm on the map, then one primary action into the editor.
         Form {
             Section {
-                Button("contextPublish.ai.title", action: journey.openAIAction(makeClient: makeAIDraft))
-                    .accessibilityIdentifier("contextPublish.ai.open")
+                Button(action: journey.openAIAction(makeClient: makeAIDraft)) {
+                    Label("contextPublish.ai.title", systemImage: "sparkles")
+                }.accessibilityIdentifier("contextPublish.ai.open")
             }
             Section("publishModes.details") {
+                Picker("publishModes.product", selection: draft.product) { Text("projectEdit.city").tag(ProjectEditProduct.city); Text("projectEdit.freeExplore").tag(ProjectEditProduct.freeExplore) }
                 TextField("publishModes.name", text: draft.title).accessibilityIdentifier("publishModes.quick.name")
                 TextField("publishModes.description", text: draft.description, axis: .vertical).lineLimit(3...8)
-                Picker("publishModes.product", selection: draft.product) { Text("projectEdit.city").tag(ProjectEditProduct.city); Text("projectEdit.freeExplore").tag(ProjectEditProduct.freeExplore) }
             }
             ForEach(draft.nodes) { $node in
+                let index = (draft.wrappedValue.nodes.firstIndex { $0.id == node.id } ?? 0) + 1
                 Section {
                     TextField("publishModes.name", text: $node.name)
-                    TextField("publishModes.description", text: $node.description, axis: .vertical)
-                    Button(action: journey.openPlaceAction(node.id)) { Label(node.confirmedPlace?.name ?? appLocalized("publishModes.choosePlace", locale: locale), systemImage: "mappin.and.ellipse") }
-                    if let place = node.confirmedPlace { Text(place.address).foregroundStyle(.secondary); Text("\(place.latitude), \(place.longitude)").font(.caption) }
+                    TextField("publishModes.description", text: $node.description, axis: .vertical).lineLimit(2...6)
+                    Button(action: journey.openPlaceAction(node.id)) {
+                        HStack {
+                            Label {
+                                Text(verbatim: node.confirmedPlace.map { $0.address.isEmpty ? $0.name : $0.address } ?? appLocalized("publishModes.choosePlace", locale: locale))
+                                    .foregroundStyle(node.confirmedPlace == nil ? Color.accentColor : Color.primary)
+                            } icon: { Image(systemName: node.confirmedPlace == nil ? "mappin.and.ellipse" : "checkmark.circle.fill") }
+                            Spacer()
+                            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+                        }
+                    }
                     Button("publishModes.remove", role: .destructive, action: journey.removeNodeAction(node.id))
-                }
+                } header: { Text("publishModes.stopNumber \(index)") }
             }
             Section {
-                Button("publishModes.saveLocal", action: journey.saveAction(store: draftStore))
-                    .disabled(account == nil || draftStore == nil)
-                Button("publishModes.restoreLocal", action: journey.restoreAction(store: draftStore))
-                    .disabled(account == nil || draftStore == nil)
-                if !journey.storageMessage.isEmpty { Text(LocalizedStringKey(journey.storageMessage)) }
+                Button(action: journey.addNodeAction()) { Label("publishModes.addNode", systemImage: "plus.circle") }
+                    .accessibilityIdentifier("publishModes.quick.add")
             }
-            Button("publishModes.addNode", action: journey.addNodeAction()).accessibilityIdentifier("publishModes.quick.add")
-            if journey.problem { Text("publishModes.confirmEveryPlace").foregroundStyle(.red) }
-            Button("publishModes.continueEditor", action: journey.handoffAction(openProfessional))
-                .accessibilityIdentifier("publishModes.quick.continue")
+            if account != nil && draftStore != nil {
+                Section {
+                    Button("publishModes.saveLocal", action: journey.saveAction(store: draftStore))
+                    Button("publishModes.restoreLocal", action: journey.restoreAction(store: draftStore))
+                    if !journey.storageMessage.isEmpty { Text(LocalizedStringKey(journey.storageMessage)) }
+                }
+            }
         }.disabled(!journey.canEdit).navigationTitle(Text("publishModes.quick"))
+        .questifyBottomAction {
+            VStack(spacing: 8) {
+                if journey.problem { Text("publishModes.confirmEveryPlace").font(.footnote).foregroundStyle(.red).multilineTextAlignment(.center) }
+                Button(action: journey.handoffAction(openProfessional)) { Text("publishModes.continueEditor").frame(maxWidth: .infinity) }
+                    .disabled(!journey.canEdit)
+                    .accessibilityIdentifier("publishModes.quick.continue")
+            }
+        }
         .onAppear { journey.appear(active: scenePhase == .active) }
         .onChange(of: scenePhase) { _, phase in journey.setActive(phase == .active) }
         .background { QuickPublishingJourneyLifetime(owner: journey).frame(width: 0, height: 0) }
