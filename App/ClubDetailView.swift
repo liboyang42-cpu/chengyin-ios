@@ -36,26 +36,35 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             let tabs = ClubDetailTabPolicy(club: club, grant: manageGrant)
             let tab = tabs.resolve(selectedTab ?? tabs.initialTab(requested: requestedTab))
             List {
-                // Mini-program profile block: name, then one meta line 「类型 · N 名成员」.
+                // Mini-program profile block: cover hero, name, then two meta lines —
+                // 「类型 · N 名成员」 and the join policy (公开加入 / 需审核加入).
                 Section {
-                    VStack(spacing: Theme.Space.s1) {
-                        ClubName(value: club.name).font(Theme.Font.pageTitle).multilineTextAlignment(.center)
+                    VStack(alignment: .leading, spacing: Theme.Space.s2) {
+                        ClubDetailCover(source: club.cover)
+                        ClubName(value: club.name).font(Theme.Font.pageTitle)
+                            .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("club.detail.name")
-                        Text(verbatim: headerMeta(club)).font(Theme.Font.label).foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
+                        Label { Text(verbatim: headerMeta(club)) } icon: { Image(systemName: "person.3") }
+                            .font(Theme.Font.label).foregroundStyle(.secondary)
+                        if club.joinPolicySupported {
+                            Label(club.needsApproval ? "club.detail.joinPolicy.review" : "club.detail.joinPolicy.open",
+                                  systemImage: club.needsApproval ? "lock" : "checkmark")
+                                .font(Theme.Font.label).foregroundStyle(.secondary)
+                        }
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, Theme.Space.s3)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
                 }
-                Section {
-                    ClubOptionalRow(title: "club.style", value: club.style)
-                    if club.isOwner { Label("club.role.creator", systemImage: "person.crop.circle.badge.checkmark") }
-                    else if club.isJoined { Label("club.membership.joined", systemImage: "checkmark.circle") }
-                    else if club.joinPending { Label("club.membership.pending", systemImage: "clock") }
-                    else if club.myJoinStatus == 2 { Text("club.membership.rejected") }
-                    if club.viewerIsAdmin { Text("club.viewerAdministrator") }
-                    if (1...5).contains(club.level) { LabeledContent("club.level") { Text(verbatim: "L\(club.level)") } }
+                // Viewer status only; the mini-program shows it through the join/quit controls.
+                if club.isOwner || club.isJoined || club.joinPending || club.myJoinStatus == 2 || club.viewerIsAdmin {
+                    Section {
+                        if club.isOwner { Label("club.role.creator", systemImage: "person.crop.circle.badge.checkmark") }
+                        else if club.isJoined { Label("club.membership.joined", systemImage: "checkmark.circle") }
+                        else if club.joinPending { Label("club.membership.pending", systemImage: "clock") }
+                        else if club.myJoinStatus == 2 { Label("club.membership.rejected", systemImage: "xmark.circle") }
+                        if club.viewerIsAdmin { Label("club.viewerAdministrator", systemImage: "person.badge.shield.checkmark") }
+                    }
                 }
                 if let actionCoordinator {
                     ClubActionPanel(club: club, identity: reader.clubIdentity, coordinator: actionCoordinator,
@@ -88,7 +97,10 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     }
                 }
                 if tab == .posts, community == nil {
-                    Section { Text("club.detail.posts.unavailable").foregroundStyle(.secondary).accessibilityIdentifier("club.detail.posts.unavailable") }
+                    Section {
+                        ContentUnavailableView("club.detail.posts.unavailable", systemImage: "text.bubble")
+                            .accessibilityIdentifier("club.detail.posts.unavailable")
+                    }
                 }
                 if tab == .posts, let community {
                     Section {
@@ -100,7 +112,10 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 }
                 // V2 governance has its own access/me model, including delegated event staff.
                 if tab == .events, management?.governance == nil {
-                    Section { Text("club.detail.events.unavailable").foregroundStyle(.secondary).accessibilityIdentifier("club.detail.events.unavailable") }
+                    Section {
+                        ContentUnavailableView("club.detail.events.unavailable", systemImage: "calendar")
+                            .accessibilityIdentifier("club.detail.events.unavailable")
+                    }
                 }
                 if tab == .events, let governance = management?.governance {
                     ClubDetailEventsSection(club: club, identity: reader.clubIdentity, governance: governance, reader: reader)
@@ -136,25 +151,31 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     }
                 }
                 if tab == .overview {
+                    // Mini-program overview: introduction, then the 主理人 / 俱乐部类型 / 所在城市 facts.
                     Section("club.introduction") {
                         if let description = club.description, !description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                             Text(verbatim: description).textSelection(.enabled)
                         } else { Text("club.noIntroduction").foregroundStyle(.secondary) }
-                        ClubOptionalRow(title: "club.leader", value: club.leaderName)
-                        ClubOptionalRow(title: "club.city", value: club.city)
-                        ClubOptionalRow(title: "club.address", value: club.address)
-                        ClubOptionalRow(title: "club.type", value: club.clubType ?? club.clubTypes)
+                    }
+                    Section {
+                        LabeledContent("club.leader") { Text(verbatim: Self.dash(club.leaderName)) }
+                        LabeledContent("club.type") { Text(verbatim: Self.dash(club.clubType ?? club.clubTypes)) }
+                        LabeledContent("club.detail.cityFact") { Text(verbatim: Self.dash(club.city ?? club.address)) }
                         ClubOptionalRow(title: "club.preferences", value: club.activityPrefs.isEmpty ? nil : club.activityPrefs.joined(separator: ", "))
                         ClubOptionalRow(title: "club.keywords", value: club.keywords)
+                        ClubOptionalRow(title: "club.style", value: club.style)
                     }
-                    Section("club.members") {
+                    Section {
                         if club.canSeeMembers {
                             NavigationLink {
                                 ClubMembersView(id: club.id, reader: reader, profile: management?.governance?.enrollmentProfile, governance: management?.governance, onSignIn: onSignIn)
                             } label: { Label("club.viewMembers", systemImage: "person.3") }
                                 .accessibilityIdentifier("club.openMembers")
-                        } else { Text("club.joinToSeeMembers").foregroundStyle(.secondary).accessibilityIdentifier("club.members.gated") }
-                    }
+                        } else {
+                            Text(club.needsApproval ? "club.detail.members.lockedReview" : "club.detail.members.locked")
+                                .foregroundStyle(.secondary).accessibilityIdentifier("club.members.gated")
+                        }
+                    } header: { Text("club.detail.membersCount \(club.memberCount)") }
                     // Mini-program overview: 本团贡献榜 · 本周, gated on member visibility like the source.
                     Section("club.detail.leaderboard.title") {
                         if club.canSeeMembers, let governance = management?.governance {
@@ -163,15 +184,11 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                     .environment(\.clubEnrollmentProfile, governance.enrollmentProfile)
                             } label: { Label("club.detail.leaderboard.open", systemImage: "trophy") }
                                 .accessibilityIdentifier("club.detail.leaderboard.open")
-                            Text("club.detail.leaderboard.reset").font(.footnote).foregroundStyle(.secondary)
                         } else if club.canSeeMembers {
                             Text("club.detail.leaderboard.unavailable").foregroundStyle(.secondary).accessibilityIdentifier("club.detail.leaderboard.unavailable")
                         } else {
-                            Text("club.detail.leaderboard.locked").accessibilityIdentifier("club.detail.leaderboard.locked")
+                            Text("club.detail.leaderboard.locked").foregroundStyle(.secondary).accessibilityIdentifier("club.detail.leaderboard.locked")
                         }
-                    }
-                    Section("club.detail.governanceHelp.title") {
-                        Text("club.detail.governanceHelp.body").font(.footnote).foregroundStyle(.secondary)
                     }
                 }
             }
@@ -190,6 +207,10 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             .onChange(of: reader.clubIdentity) { _, _ in actionDetail = nil; actionIdentity = nil; manageGrant = nil; selectedTab = nil }
     }
 
+    private static func dash(_ value: String?) -> String {
+        let text = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return text.isEmpty ? "—" : text
+    }
     private func headerMeta(_ club: ClubRecord) -> String {
         let type = (club.clubType ?? club.clubTypes)?.trimmingCharacters(in: .whitespacesAndNewlines)
         let count = ClubMemberCountLocalization.text(club.memberCount, locale: locale)
@@ -217,4 +238,24 @@ private struct ClubDetailManageGrantKey: Hashable {
     let clubID: Int
     let identity: ClubReadIdentity
     let hasGovernance: Bool
+}
+
+/// Club cover hero: the real cover when there is one, a clean text-free placeholder otherwise.
+private struct ClubDetailCover: View {
+    let source: String?
+    @QuestifyReduceMotion private var reduceMotion
+    var body: some View {
+        ZStack {
+            Rectangle().fill(.quaternary)
+            Image(systemName: "person.3").font(.largeTitle).foregroundStyle(.tertiary)
+            if let url = QuestifyCardArtwork.safeURL(source) {
+                AsyncImage(url: url, transaction: Transaction(animation: reduceMotion ? nil : QuestifyMotion.content)) { phase in
+                    if let image = phase.image { image.resizable().scaledToFill().transition(.opacity) }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity).frame(height: 180)
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .accessibilityHidden(true)
+    }
 }
