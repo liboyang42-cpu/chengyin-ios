@@ -11461,13 +11461,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Withdrawal history. Approved doesn't mean the money has arrived in your bank account yet."
+            "value" : "Approved doesn't mean the money has arrived yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "提现申请记录。审核通过不代表已到账银行卡。"
+            "value" : "审核通过不代表已到账。"
           }
         }
       }
@@ -154595,13 +154595,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "currency unspecified"
+            "value" : "—"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "币种未提供"
+            "value" : "—"
           }
         }
       }
@@ -154867,13 +154867,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Could not load. Your records have not been changed"
+            "value" : "Couldn't load. Nothing was changed."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂时无法加载，记录未被更改"
+            "value" : "没加载出来，记录未被更改"
           }
         }
       }
@@ -154963,13 +154963,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Filters apply to the records shown. Load more to see other matches"
+            "value" : "Filters apply to the records shown."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "筛选仅针对当前显示的记录，加载更多可查看其他匹配项"
+            "value" : "筛选仅作用于已显示的记录"
           }
         }
       }
@@ -155187,13 +155187,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Example only. No order has been placed or paid."
+            "value" : "Nothing has been ordered or paid."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅为示例，尚未下单或支付"
+            "value" : "尚未下单或支付"
           }
         }
       }
@@ -155555,13 +155555,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This connection is not available yet"
+            "value" : "Can't be shown right now"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "连接尚未开放"
+            "value" : "暂时无法显示"
           }
         }
       }
@@ -155719,13 +155719,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Contact platform support"
+            "value" : "Contact support to withdraw"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "联系平台客服"
+            "value" : "联系客服提现"
           }
         }
       }
@@ -155799,13 +155799,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Balance and withdrawal help"
+            "value" : "Withdraw"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "余额与提现帮助"
+            "value" : "提现"
           }
         }
       }
