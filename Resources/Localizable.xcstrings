@@ -80329,7 +80329,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The conversation reference is missing or invalid. Go back to the list."
+            "value" : "This link may have expired. Go back to the list and try again."
           }
         },
         "zh-Hans" : {
