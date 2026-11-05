@@ -527,10 +527,11 @@ import SwiftUI
                         rowActions(row, access: snapshot.access)
                     }
                 } else if let progress = snapshot.document.aftercareProgress {
-                    MerchantAftercareProgressView(progress: progress)
+                    // Source detail puts the decision actions (or the read-only line) right under the hero.
                     if let refund = snapshot.document.rows.first(where: { $0.kind == .refund }) {
                         Section { rowActions(refund, access: snapshot.access) }
                     }
+                    MerchantAftercareProgressView(progress: progress)
                 } else {
                     ForEach(snapshot.document.sections) { section in
                         let rows = visibleRows(section, in: snapshot.document)

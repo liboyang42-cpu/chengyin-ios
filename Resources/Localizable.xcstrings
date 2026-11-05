@@ -50447,13 +50447,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Refund amount not provided"
+            "value" : "Amount to be confirmed"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "退款金额待确认"
+            "value" : "金额待确认"
           }
         }
       }
@@ -50479,13 +50479,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Refund deadline (Beijing time)"
+            "value" : "Refund deadline"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "退款截止（北京时间）"
+            "value" : "可退截止"
           }
         }
       }
@@ -50735,13 +50735,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Order refund policy"
+            "value" : "Refund policy at order"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "订单退款政策"
+            "value" : "下单时的退款政策"
           }
         }
       }
@@ -52565,13 +52565,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Customer nickname"
+            "value" : "Nickname"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "客户昵称"
+            "value" : "昵称"
           }
         }
       }
@@ -53323,7 +53323,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "原因"
+            "value" : "申请原因"
           }
         }
       }
@@ -54565,13 +54565,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prepare response"
+            "value" : "Respond"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "准备售后意见"
+            "value" : "处理售后"
           }
         }
       }
@@ -202788,6 +202788,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "请先应用当前筛选。"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.refundNumber" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refund number"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "退款单号"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.requestedAt" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requested"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "申请时间"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.customer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Customer"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "客户"
           }
         }
       }
