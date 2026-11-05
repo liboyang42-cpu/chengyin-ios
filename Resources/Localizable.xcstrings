@@ -57537,13 +57537,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Run offline test request"
+            "value" : "Confirm"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "执行离线测试请求"
+            "value" : "确认"
           }
         }
       }
@@ -60273,13 +60273,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review frozen request"
+            "value" : "Continue"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "预览冻结请求"
+            "value" : "下一步"
           }
         }
       }
