@@ -198369,13 +198369,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saving changes is not open yet. You can browse only."
+            "value" : "Changes can't be saved right now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "写入尚未开放，目前只能浏览"
+            "value" : "暂时无法保存更改。"
           }
         }
       }
@@ -198386,13 +198386,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The result is not confirmed. Check the original request before retrying it."
+            "value" : "We couldn't confirm that. Check before trying again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "结果待确认：请先核对原请求，再决定是否用原内容重试"
+            "value" : "暂时无法确认结果，请先核对再重试。"
           }
         }
       }
@@ -198403,13 +198403,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Not applied."
+            "value" : "That wasn't saved."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "操作未应用"
+            "value" : "没有保存成功。"
           }
         }
       }
@@ -198437,13 +198437,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Resolve the earlier request first; other content cannot be submitted."
+            "value" : "Finish the earlier change first."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请先恢复原操作，不能提交其他内容"
+            "value" : "请先完成上一次的操作。"
           }
         }
       }
@@ -198539,13 +198539,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The last seal has no receipt yet. Check it before deciding to retry."
+            "value" : "Your last capsule is still being sealed. Check it before trying again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "上次封存还没收到回执，先核对再决定是否重试。"
+            "value" : "上一枚胶囊还在封存中，请先核对再重试。"
           }
         }
       }
@@ -198573,13 +198573,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Retry with original content"
+            "value" : "Try again"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "用原内容重试"
+            "value" : "重试"
           }
         }
       }
@@ -199151,13 +199151,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The last goal has no confirmed result yet. Check it or retry the original request."
+            "value" : "Your last goal is still being saved. Check it before trying again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "上一个目标结果待确认，请核对或以原操作重试。"
+            "value" : "上一个目标还在保存中，请先核对再重试。"
           }
         }
       }
@@ -199185,13 +199185,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Retry original request"
+            "value" : "Try again"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以原操作重试"
+            "value" : "重试"
           }
         }
       }
@@ -199440,13 +199440,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Progress stops counting and the goal cannot be restored. This cannot be undone."
+            "value" : "Progress stops counting and the goal can't be restored."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "取消后不再统计进度，也不能恢复。此操作不可撤销。"
+            "value" : "取消后不再统计进度，也无法恢复。"
           }
         }
       }
@@ -199848,13 +199848,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A range covers 1 to 366 days. Shorten the dates."
+            "value" : "Pick a range of up to 366 days."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "导出范围须为 1–366 天，请缩短日期范围"
+            "value" : "请选择不超过 366 天的范围。"
           }
         }
       }
@@ -200035,13 +200035,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your content changed while preparing the export. Please prepare it again."
+            "value" : "Your records changed while preparing. Prepare the export again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "导出准备期间内容有变化，请重新准备。"
+            "value" : "准备期间记录有变化，请重新准备导出。"
           }
         }
       }

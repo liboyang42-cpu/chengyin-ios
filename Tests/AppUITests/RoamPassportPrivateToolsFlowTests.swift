@@ -105,15 +105,14 @@ final class RoamPassportPrivateToolsFlowTests: XCTestCase {
         let app = app("privateReadOnly")
         open("roam.goals.open", app)
         XCTAssertTrue(element("roam.goals.row", app).waitForExistence(timeout: 5))
-        XCTAssertTrue(element("roam.goals.writesDisabled", app).exists)
+        XCTAssertFalse(app.buttons["roam.goals.new"].exists, "No write entry when saving is unavailable")
         tap("roam.goals.row", app)
         XCTAssertTrue(element("roam.goals.detail.progress", app).waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["roam.goals.cancelThis"].exists)
         app.navigationBars.buttons.element(boundBy: 0).tap()
         open("roam.capsule.open", app)
-        XCTAssertTrue(element("roam.capsule.writesDisabled", app).waitForExistence(timeout: 5))
-        tap("roam.capsule.write", app, towardTop: true)
-        XCTAssertFalse(app.buttons["roam.capsule.seal"].isEnabled)
+        XCTAssertTrue(element("roam.capsule.screen", app).waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["roam.capsule.write"].exists, "No write entry when saving is unavailable")
     }
 
     func testEmptyPrivateToolsShowHonestEmptyStates() {
