@@ -79838,13 +79838,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Switch fixture account"
+            "value" : "Switch account"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "切换测试账号"
+            "value" : "切换账号"
           }
         }
       }
@@ -207149,6 +207149,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "显示地图"
+          }
+        }
+      }
+    },
+    "d7.imFixture.square" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Square"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "广场"
           }
         }
       }
