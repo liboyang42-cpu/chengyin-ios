@@ -112618,13 +112618,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Order records"
+            "value" : "Verification and refund"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "订单记录"
+            "value" : "核销与退款"
           }
         }
       }
@@ -112873,7 +112873,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Order information"
+            "value" : "Note"
           }
         },
         "zh-Hans" : {
