@@ -28,7 +28,8 @@ final class CityGameFlowTests: XCTestCase {
 
     func testDisabledSectionStatesNotEnabledAndOffersNoAction() {
         let app = launch(["--city-game-disabled"])
-        waitFor(app.descendants(matching: .any)["cityGame.notEnabled"], app)
+        waitFor(app.descendants(matching: .any)["city.read.screen"], app)
+        XCTAssertFalse(app.descendants(matching: .any)["cityGame.panel"].exists, "No coordinator: the section is hidden")
         XCTAssertFalse(app.buttons["cityGame.roll"].exists)
         XCTAssertFalse(app.buttons["cityGame.action.ACQUIRE_PROPERTY.prop-cafe"].exists)
         XCTAssertEqual(recorder("submissions", app), "0")

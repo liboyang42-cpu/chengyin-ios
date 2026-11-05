@@ -28,9 +28,21 @@ struct CityPlayerView: View {
                 case .notPublished:
                     ContentUnavailableView("city.read.notPublished", systemImage: "building.2")
                 case .available(let snapshot):
-                    Text(verbatim: snapshot.board.title).font(.title2)
-                    Text(lifecycle(snapshot.board.lifecycle))
-                    Text(membership(snapshot.membership))
+                    // Board header: title, then season state and my membership as status chips.
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(verbatim: snapshot.board.title).font(.largeTitle.bold()).fixedSize(horizontal: false, vertical: true)
+                        HStack(spacing: 8) {
+                            Label(lifecycle(snapshot.board.lifecycle), systemImage: snapshot.board.lifecycle == "OPEN" ? "flag.fill" : "flag.slash")
+                                .font(.subheadline.weight(.semibold))
+                                .padding(.horizontal, 10).padding(.vertical, 5)
+                                .background((snapshot.board.lifecycle == "OPEN" ? Color.green : Color.secondary).opacity(0.18), in: Capsule())
+                            Label(membership(snapshot.membership), systemImage: snapshot.membership == .joined ? "person.fill.checkmark" : "person")
+                                .font(.subheadline)
+                                .padding(.horizontal, 10).padding(.vertical, 5)
+                                .background(Color.accentColor.opacity(snapshot.membership == .joined ? 0.18 : 0.08), in: Capsule())
+                        }
+                    }
+                    .accessibilityElement(children: .combine)
                     if let context = reader.pointMapContext {
                         // Keyed to this exact read so a reload never reuses old game state.
                         CityGameSlot(snapshot: context.snapshot, factory: gameFactory).id(context.readID)
@@ -38,13 +50,17 @@ struct CityPlayerView: View {
                     if let context = reader.pointMapContext {
                         if context.points.isEmpty { Text("city.read.points.empty") }
                         else { pointContent(context) }
-                    } else { Text("city.read.points.unavailable") }
-                }
-                if reader.isConfigured {
-                    Button("action.retry") { selection = nil; reader.cancel(); readRequest = UUID() }
-                        .disabled(reader.state == .loading || !visible || scenePhase != .active)
+                    } else { Text("city.read.points.unavailable").foregroundStyle(.secondary) }
                 }
             }.padding()
+        }
+        .toolbar {
+            if reader.isConfigured {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { selection = nil; reader.cancel(); readRequest = UUID() } label: { Label("action.retry", systemImage: "arrow.clockwise") }
+                        .disabled(reader.state == .loading || !visible || scenePhase != .active)
+                }
+            }
         }
         .appNavigationTitle("city.read.title")
         .accessibilityIdentifier("city.read.screen")

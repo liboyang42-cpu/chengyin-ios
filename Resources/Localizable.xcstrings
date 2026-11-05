@@ -12363,13 +12363,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No current published city board"
+            "value" : "No city board right now"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前尚无已发布城市棋盘"
+            "value" : "暂时没有城市棋盘"
           }
         }
       }
@@ -12397,13 +12397,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your participation is unavailable"
+            "value" : "Membership —"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你的参与状态暂不可用"
+            "value" : "参与状态 —"
           }
         }
       }
@@ -12448,13 +12448,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Not marked as mine"
+            "value" : "Not yours yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未标记为我的"
+            "value" : "还不是我的"
           }
         }
       }
@@ -12533,13 +12533,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Visible locations"
+            "value" : "Places"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可见地点"
+            "value" : "地点"
           }
         }
       }
@@ -12584,13 +12584,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "City read unavailable"
+            "value" : "City board unavailable"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "城市读取暂不可用"
+            "value" : "城市棋盘暂不可用"
           }
         }
       }
