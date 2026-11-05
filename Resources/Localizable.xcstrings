@@ -67974,13 +67974,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Save reviewed changes"
+            "value" : "Save"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保存已核对的更改"
+            "value" : "保存"
           }
         }
       }
