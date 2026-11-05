@@ -659,16 +659,16 @@
     },
     "attachment.sourceRequired": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此附件暂时无法打开，可用图片可按原方式预览。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This attachment can't be opened right now. Available images open in the usual preview."
+            "value": "This attachment can't be opened right now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此附件暂时无法打开。"
           }
         }
       }
