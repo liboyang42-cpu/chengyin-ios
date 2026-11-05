@@ -114,7 +114,6 @@ extension PlayKitScreen {
                 else { ProgressView("playkit.imageLoading") }
             }
         } else { Label("playkit.imageGated", systemImage: "photo") }
-        Text("playkit.hidden.boundary").font(.footnote)
         attempts
     }
     @ViewBuilder var predictForm: some View {

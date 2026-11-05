@@ -75,10 +75,10 @@ extension PlayKitScreen {
             }
         } else { Text("playkit.walk.noReading") }
         if let goal = raw["goal"].integer, goal > 0 { LabeledContent("playkit.walk.goal") { Text(verbatim: goal.formatted()) } }
-        Text("playkit.walk.goalLocked").font(.footnote)
-        Label("playkit.walk.providerGate", systemImage: "lock.shield")
-        // No native pedometer value substitutes for the service's WeChat encrypted proof.
-        Button("playkit.walk.sync") {}.disabled(true)
+        // No native pedometer value substitutes for the service's WeChat encrypted proof, so there is
+        // no sync button here; the reason is stated once.
+        Label("playkit.walk.providerGate", systemImage: "figure.walk")
+            .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
     }
     @ViewBuilder var bingoBoard: some View {
         let board = PlayKitBingoBoard(raw)
@@ -102,6 +102,5 @@ extension PlayKitScreen {
         LabeledContent("playkit.bingo.lines") { Text(verbatim: String(board.completedLines.count)) }
         if let line = raw["lineReward"].text, !line.isEmpty { LabeledContent("playkit.bingo.lineReward") { Text(verbatim: line) } }
         if let full = raw["fullReward"].text, !full.isEmpty { LabeledContent("playkit.bingo.fullReward") { Text(verbatim: full) } }
-        Text("playkit.bingo.authority").font(.footnote)
     }
 }

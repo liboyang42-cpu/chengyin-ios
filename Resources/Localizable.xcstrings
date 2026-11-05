@@ -97499,13 +97499,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Attempt limit"
+            "value" : "Attempts allowed"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "最多尝试次数"
+            "value" : "可尝试次数"
           }
         }
       }
@@ -97516,13 +97516,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Attempts recorded"
+            "value" : "Attempts"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已记录的尝试"
+            "value" : "已尝试"
           }
         }
       }
@@ -97533,13 +97533,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Keep the surroundings typical and steady while we measure two seconds of background sound."
+            "value" : "Stay still for two seconds while we listen to the room."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "测量环境音的两秒内，请保持环境声音自然、稳定。"
+            "value" : "保持安静两秒，先听一下环境声。"
           }
         }
       }
@@ -97567,13 +97567,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Live peak volume"
+            "value" : "Volume"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "实时声音峰值"
+            "value" : "音量"
           }
         }
       }
@@ -97618,13 +97618,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tilt-controlled ball board"
+            "value" : "Tilt board"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "倾斜控制的弹球区域"
+            "value" : "倾斜板"
           }
         }
       }
@@ -97635,13 +97635,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hold the phone in your starting position for 1.2 seconds."
+            "value" : "Hold your phone still for a moment."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请将手机保持在起始姿势 1.2 秒。"
+            "value" : "先把手机拿稳一会儿。"
           }
         }
       }
@@ -97652,13 +97652,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wall contacts"
+            "value" : "Wall hits"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "撞墙次数"
+            "value" : "碰壁次数"
           }
         }
       }
@@ -97703,13 +97703,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Not completed"
+            "value" : "Not done"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "尚未完成"
+            "value" : "未完成"
           }
         }
       }
@@ -97720,7 +97720,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Completed"
+            "value" : "Done"
           }
         },
         "zh-Hans" : {
@@ -97839,13 +97839,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Take a photo for this task. Nothing is uploaded until you review the separate upload step."
+            "value" : "Take a photo for this task."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "为当前任务拍摄照片。只有确认单独的上传步骤后才会上传。"
+            "value" : "为这个任务拍一张照片。"
           }
         }
       }
@@ -97873,13 +97873,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Scan the task's QR code with your camera. Check the code before sending it to be verified."
+            "value" : "Scan the task's QR code."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用相机扫描任务二维码。识别后先核对，再提交验证。"
+            "value" : "扫描任务二维码。"
           }
         }
       }
@@ -97907,13 +97907,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Discard this attempt"
+            "value" : "Give up this try"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "放弃本次尝试"
+            "value" : "放弃这次"
           }
         }
       }
@@ -97941,13 +97941,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Challenge clock"
+            "value" : "Time"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "挑战计时"
+            "value" : "计时"
           }
         }
       }
@@ -97975,13 +97975,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The attempt was interrupted. Start again to measure a fresh attempt."
+            "value" : "Interrupted. Start again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本次尝试已中断，请重新开始计量。"
+            "value" : "被打断了，重新开始吧。"
           }
         }
       }
@@ -98009,13 +98009,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review and start"
+            "value" : "Start"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "核对并开始"
+            "value" : "开始"
           }
         }
       }
@@ -98077,13 +98077,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choose a category for every item. You can change any choice before submitting."
+            "value" : "Put every item in a category."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "为每张卡选择一个分类，提交前都可以修改。"
+            "value" : "把每一项放进一个分类。"
           }
         }
       }
@@ -98145,13 +98145,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The result will appear shortly"
+            "value" : "Flipping…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "稍后显示结果"
+            "value" : "正在抛…"
           }
         }
       }
@@ -98162,13 +98162,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Submissions recorded"
+            "value" : "Submissions"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已记录提交次数"
+            "value" : "已提交次数"
           }
         }
       }
@@ -98179,13 +98179,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The session has changed. Your selection has not been submitted for this version. Load the latest receipt before editing again."
+            "value" : "This changed while you were editing. Reload before you continue."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "会话版本已更新，当前选择未针对新版本提交。继续编辑前请载入最新回执。"
+            "value" : "编辑期间内容有变化，请重新加载后继续。"
           }
         }
       }
@@ -98213,13 +98213,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your selection isn't fully correct. Individual answers aren't revealed."
+            "value" : "Not all correct. Try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "整组标记有误，不揭示单条答案。"
+            "value" : "没有全对，再试试。"
           }
         }
       }
@@ -98230,13 +98230,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Compare both records and mark every missing or changed entry. You can select entries from either timeline."
+            "value" : "Compare the two records and mark every entry that's missing or changed."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "对照两份记录，标出所有缺失或被改动的条目，可从任一侧多选。"
+            "value" : "对比两份记录，标出所有缺失或改动的条目。"
           }
         }
       }
@@ -98247,13 +98247,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This comparison question is incomplete. Refresh before continuing."
+            "value" : "This question isn't ready. Refresh and try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "对照题内容不完整，请刷新后继续。"
+            "value" : "题目还没准备好，请刷新后再试。"
           }
         }
       }
@@ -98281,13 +98281,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No entries marked. Submitting still counts as an attempt."
+            "value" : "Nothing marked yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未标记任何条目，提交仍计作一次作答。"
+            "value" : "还没有标记。"
           }
         }
       }
@@ -98298,13 +98298,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Replace selection with latest receipt"
+            "value" : "Restore my last submission"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "用最新回执替换选择"
+            "value" : "恢复上次提交"
           }
         }
       }
@@ -98315,13 +98315,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Replace your unsent selection with your last submitted selection?"
+            "value" : "Replace your current marks with your last submission?"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "用最近提交的选择替换未提交的选择？"
+            "value" : "用上次提交覆盖当前标记？"
           }
         }
       }
@@ -98332,7 +98332,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Submissions remaining"
+            "value" : "Submissions left"
           }
         },
         "zh-Hans" : {
@@ -98417,13 +98417,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Allow compass check and begin"
+            "value" : "Start"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "检查罗盘权限并开始"
+            "value" : "开始"
           }
         }
       }
@@ -98434,13 +98434,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Indoor magnetic interference can make the compass inaccurate. This reading is not proof of arrival."
+            "value" : "Indoors, the compass may be off."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "室内磁场干扰可能造成罗盘偏差。此读数不能作为到店凭证。"
+            "value" : "室内指南针可能不准。"
           }
         }
       }
@@ -98451,13 +98451,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Measured bearing"
+            "value" : "Your bearing"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "测量方位角"
+            "value" : "当前朝向"
           }
         }
       }
@@ -98553,13 +98553,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Waiting for an actual compass reading"
+            "value" : "Finding north…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在等待真实罗盘读数"
+            "value" : "正在找方向…"
           }
         }
       }
@@ -98570,13 +98570,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The task configuration is incomplete. Refresh or return to the task."
+            "value" : "This task isn't set up yet. Go back and try another."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "任务配置不完整，请刷新或返回任务。"
+            "value" : "这个任务还没设置好，返回看看别的。"
           }
         }
       }
@@ -98604,13 +98604,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your message may be shown to the next visitor. Completion is confirmed after you submit."
+            "value" : "The next visitor may see your line."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这句话可能展示给下一位来访者，提交后确认是否完成。"
+            "value" : "下一位来访者可能会看到你的留言。"
           }
         }
       }
@@ -98706,13 +98706,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dice results have not arrived yet"
+            "value" : "Rolling…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "骰子结果尚未返回"
+            "value" : "正在掷…"
           }
         }
       }
@@ -98893,13 +98893,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tap a location in the image to review that position"
+            "value" : "Tap where you think it is"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "点选图片中的位置后核对提交"
+            "value" : "点你觉得它在的位置"
           }
         }
       }
@@ -98910,13 +98910,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Search image"
+            "value" : "Find it in the picture"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "寻物图片"
+            "value" : "在图里找一找"
           }
         }
       }
@@ -98944,13 +98944,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This task's images aren't available right now"
+            "value" : "Image unavailable"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "任务图片暂不可用"
+            "value" : "图片暂不可用"
           }
         }
       }
@@ -99607,13 +99607,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pair each left item with a right item. Reusing a right item removes its previous pairing."
+            "value" : "Pair each item on the left with one on the right."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "为每个左侧条目选择一个右侧条目。重复选择同一个右侧条目会解除它原先的配对。"
+            "value" : "给左边每一项配一个右边的。"
           }
         }
       }
@@ -99624,13 +99624,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This message may be shown to later participants"
+            "value" : "Later players may see your message."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这条留言可能展示给后来的参与者"
+            "value" : "之后的玩家可能会看到你的留言。"
           }
         }
       }
@@ -99692,13 +99692,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your result has been recorded. The next step depends on whether the task is complete."
+            "value" : "Your photo has been recorded."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已记录你的结果，下一步取决于任务是否完成。"
+            "value" : "照片已记录。"
           }
         }
       }
@@ -99794,13 +99794,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This photo exceeds the 10 MB task upload limit"
+            "value" : "This photo is too large (max 10 MB)."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这张照片超过任务上传的 10 MB 限制"
+            "value" : "照片太大（最大 10 MB）。"
           }
         }
       }
@@ -99811,13 +99811,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Upload selected photo"
+            "value" : "Upload photo"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "上传选中的照片"
+            "value" : "上传照片"
           }
         }
       }
@@ -99828,13 +99828,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The selected image will be sent to the configured service. Uploading is separate from submitting the task and does not complete it."
+            "value" : "Uploading doesn't submit the task yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选中的照片将发送给已配置的服务。上传和任务提交是两个步骤，上传不代表完成任务。"
+            "value" : "上传后还需要提交任务。"
           }
         }
       }
@@ -99845,13 +99845,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Photo upload isn't available right now, or this photo no longer applies to this task"
+            "value" : "This photo can't be uploaded right now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "照片上传暂不可用，或这张照片已不适用于当前任务"
+            "value" : "这张照片暂时无法上传。"
           }
         }
       }
@@ -99879,13 +99879,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Photo uploaded; task not submitted"
+            "value" : "Photo uploaded. Submit when you're ready."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "照片已上传，任务尚未提交"
+            "value" : "照片已上传，准备好就提交。"
           }
         }
       }
@@ -99896,13 +99896,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use this uploaded photo"
+            "value" : "Use this photo"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用已上传的照片"
+            "value" : "使用这张照片"
           }
         }
       }
@@ -99930,13 +99930,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Settled answer"
+            "value" : "Answer"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已公布答案"
+            "value" : "答案"
           }
         }
       }
@@ -99981,13 +99981,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reveal day offset"
+            "value" : "Revealed in (days)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "揭晓天数"
+            "value" : "几天后揭晓"
           }
         }
       }
@@ -99998,13 +99998,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reveal hour"
+            "value" : "Revealed at (hour)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "揭晓时刻"
+            "value" : "揭晓时间（时）"
           }
         }
       }
@@ -100015,13 +100015,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This prediction round was voided; no result reward was issued for the round"
+            "value" : "This round was cancelled. No reward this time."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本轮竞猜已作废，本轮没有结果奖励"
+            "value" : "这一轮已作废，本轮不发奖励。"
           }
         }
       }
@@ -100032,13 +100032,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Waiting for the merchant to settle the answer"
+            "value" : "Waiting for the shop to reveal the answer"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "等待商家公布并结算答案"
+            "value" : "等商家揭晓答案"
           }
         }
       }
@@ -100066,13 +100066,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Current selection, not a result"
+            "value" : "Your pick"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前暂选，尚非判定结果"
+            "value" : "你的选择"
           }
         }
       }
@@ -100100,13 +100100,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Last confirmed choice: correct"
+            "value" : "Last pick: correct"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "上次确认的选择：正确"
+            "value" : "上次选择：正确"
           }
         }
       }
@@ -100117,13 +100117,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Last confirmed choice: incorrect"
+            "value" : "Last pick: wrong"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "上次确认的选择：错误"
+            "value" : "上次选择：错误"
           }
         }
       }
@@ -100134,13 +100134,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The last confirmed choice was incorrect. You can choose again."
+            "value" : "Wrong pick. Try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "上次确认的选择不正确，可以重新选择。"
+            "value" : "选错了，再试一次。"
           }
         }
       }
@@ -100185,13 +100185,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Avatar uploaded"
+            "value" : "Avatar ready"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "头像已上传"
+            "value" : "头像已就绪"
           }
         }
       }
@@ -100202,13 +100202,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your registration can't be changed once submitted. Check every answer and your avatar before submitting."
+            "value" : "You can't change this after submitting."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "提交后档案将锁定，请在提交前核对所有回答和头像。"
+            "value" : "提交后无法修改。"
           }
         }
       }
@@ -100236,13 +100236,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Select all answers you want to submit"
+            "value" : "Pick all that apply"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选择所有要提交的选项"
+            "value" : "可多选"
           }
         }
       }
@@ -100270,13 +100270,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A sound crossed the limit. The measured hold has ended."
+            "value" : "Too loud! This hold has ended."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "声音超过阈值，本次保持测量已结束。"
+            "value" : "太吵了！这次结束了。"
           }
         }
       }
@@ -100321,13 +100321,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Too early. This round did not count."
+            "value" : "Too early! This round doesn't count."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "抢跑了，本轮不计入成绩。"
+            "value" : "太早了！这一轮不算。"
           }
         }
       }
@@ -100372,13 +100372,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rounds measured"
+            "value" : "Rounds"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已测轮数"
+            "value" : "轮数"
           }
         }
       }
@@ -100525,13 +100525,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Result: not passed"
+            "value" : "Not passed"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "判定：未通过"
+            "value" : "未通过"
           }
         }
       }
@@ -100542,13 +100542,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Result: passed"
+            "value" : "Passed"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "判定：已通过"
+            "value" : "通过"
           }
         }
       }
@@ -100644,13 +100644,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Code captured; not yet validated"
+            "value" : "Code scanned. Submit to check it."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已识别二维码，尚未验证"
+            "value" : "已扫到二维码，提交后核对。"
           }
         }
       }
@@ -100729,13 +100729,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Only peak volume is measured. Audio is never saved or uploaded."
+            "value" : "Only volume is measured. Nothing is recorded."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅测量声音峰值，不保存或上传音频。"
+            "value" : "只测音量，不会录音。"
           }
         }
       }
@@ -100746,13 +100746,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Allow sensor check and calibrate"
+            "value" : "Start"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "检查传感器权限并校准"
+            "value" : "开始"
           }
         }
       }
@@ -100763,13 +100763,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Live sensor calibration"
+            "value" : "Getting ready…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "实时传感器校准"
+            "value" : "准备中…"
           }
         }
       }
@@ -100780,13 +100780,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This sensor activity isn't available right now."
+            "value" : "This challenge can't run right now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "该传感器玩法暂不可用。"
+            "value" : "这个挑战暂时无法进行。"
           }
         }
       }
@@ -100865,13 +100865,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Continuous hold progress"
+            "value" : "Hold"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "连续保持进度"
+            "value" : "保持"
           }
         }
       }
@@ -101086,13 +101086,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review start request"
+            "value" : "Start"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "核对开始请求"
+            "value" : "开始"
           }
         }
       }
@@ -101103,7 +101103,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Seconds remaining"
+            "value" : "Seconds left"
           }
         },
         "zh-Hans" : {
@@ -101137,13 +101137,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Stop this attempt"
+            "value" : "Stop"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "停止本次尝试"
+            "value" : "停止"
           }
         }
       }
@@ -101188,13 +101188,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Keep the volume above the limit continuously. A drop resets the hold."
+            "value" : "Keep it loud. Dropping below resets the hold."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请持续保持音量超过阈值。音量下降会将保持时间清零。"
+            "value" : "保持音量，低于线就重新计。"
           }
         }
       }
@@ -101222,13 +101222,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Arrange the items in order. Use the arrow buttons to move an item one place."
+            "value" : "Put the items in order."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "按顺序排列条目，用箭头按钮每次移动一格。"
+            "value" : "把它们排好顺序。"
           }
         }
       }
@@ -101256,13 +101256,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Elapsed time hidden. Tap stop when you think the target time has arrived."
+            "value" : "The clock is hidden. Tap Stop when you think time is up."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "计时读数已隐藏，请在你认为到达目标时间时停止。"
+            "value" : "时间已隐藏，觉得到点了就点停止。"
           }
         }
       }
@@ -101273,13 +101273,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Stop the clock"
+            "value" : "Stop"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "停止计时"
+            "value" : "停止"
           }
         }
       }
@@ -101307,13 +101307,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Letter case is ignored by the task"
+            "value" : "Upper or lower case both count"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本题不区分英文字母大小写"
+            "value" : "不区分大小写"
           }
         }
       }
@@ -101341,13 +101341,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Finish typing"
+            "value" : "Done"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "完成输入"
+            "value" : "完成"
           }
         }
       }
@@ -101443,13 +101443,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Merchant’s step goal"
+            "value" : "Step goal"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "商家设定的步数目标"
+            "value" : "步数目标"
           }
         }
       }
@@ -101477,13 +101477,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No verified step reading has been returned"
+            "value" : "No steps yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "尚未返回经验证的步数"
+            "value" : "还没有步数"
           }
         }
       }
@@ -101494,13 +101494,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verified step progress"
+            "value" : "Step progress"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "经验证的步数进度"
+            "value" : "步数进度"
           }
         }
       }
@@ -101511,13 +101511,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This task requires WeChat step counts. Steps from your phone can't be used instead."
+            "value" : "This step challenge counts WeChat steps, so it can't be played on iPhone."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此任务需使用微信运动步数，暂不支持使用手机计步代替。"
+            "value" : "这个步数挑战按微信步数统计，无法在 iPhone 上进行。"
           }
         }
       }
@@ -101545,13 +101545,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verified steps"
+            "value" : "Steps"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "经验证的步数"
+            "value" : "步数"
           }
         }
       }
@@ -101562,13 +101562,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sync verified steps"
+            "value" : "Update steps"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "同步经验证的步数"
+            "value" : "更新步数"
           }
         }
       }
@@ -102548,13 +102548,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choose what you tasted. The answer stays hidden."
+            "value" : "Pick what you tasted."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选择你品尝到的选项，答案暂不公开。"
+            "value" : "选出你尝到的。"
           }
         }
       }
@@ -102565,13 +102565,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "That choice was not solved. You can choose again."
+            "value" : "Not quite. Pick again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这个选择尚未答对，可以重新选择。"
+            "value" : "不太对，再选一次。"
           }
         }
       }
@@ -102616,13 +102616,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The name may be shown publicly and is reviewed before it's saved."
+            "value" : "Your name may be shown to others after review."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "作品名可能公开展示，保存前会进行内容审核。"
+            "value" : "名字审核后可能会公开显示。"
           }
         }
       }
@@ -102701,13 +102701,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local performance time"
+            "value" : "Time"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地表演时长"
+            "value" : "用时"
           }
         }
       }
@@ -102741,7 +102741,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂无见证码"
+            "value" : "还没有见证码"
           }
         }
       }
@@ -102752,13 +102752,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Start the local clock"
+            "value" : "Start"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "开始本地计时"
+            "value" : "开始"
           }
         }
       }
@@ -102769,13 +102769,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The local clock has stopped"
+            "value" : "Stopped"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地计时已停止"
+            "value" : "已停止"
           }
         }
       }
@@ -102803,13 +102803,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review and claim"
+            "value" : "Claim"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "核对并领取"
+            "value" : "领取"
           }
         }
       }
@@ -102837,13 +102837,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Claimed. There's no reveal text for this discovery."
+            "value" : "Claimed."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已领取，这次发现暂无揭示文案。"
+            "value" : "已领取。"
           }
         }
       }
@@ -102871,13 +102871,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reveal the returned discovery"
+            "value" : "Reveal"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "查看这次返回的发现"
+            "value" : "揭晓"
           }
         }
       }
@@ -102888,13 +102888,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review and begin"
+            "value" : "Begin"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "核对并开始"
+            "value" : "开始"
           }
         }
       }

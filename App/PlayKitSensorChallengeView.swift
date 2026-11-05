@@ -45,7 +45,6 @@ import SwiftUI
                 Text(LocalizedStringKey(kind == .ballShake ? "playkit.ball.calibration" : "playkit.audio.calibration"))
             }
             if stage.phase == .measured {
-                Text("playkit.sensor.measuredBoundary").font(.footnote).foregroundStyle(.secondary)
                 Button("playkit.review") {
                     guard let payload = stage.payload else { return }
                     requestReview(stage.submitAction, payload, {})
@@ -61,7 +60,6 @@ import SwiftUI
                     }
                 }.buttonStyle(.questifyPrimary).disabled(!enabled || !active)
                     .accessibilityIdentifier("playkit.sensor.start")
-                Text("playkit.sensor.startBoundary").font(.footnote).foregroundStyle(.secondary)
             } else if stage.phase == .idle || stage.phase == .interrupted {
                 Button(LocalizedStringKey(kind == .compass ? "playkit.compass.begin" : "playkit.sensor.calibrate")) {
                     onDirty(); stage.begin(active: active)

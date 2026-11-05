@@ -26,7 +26,6 @@ import SwiftUI
     private var running: Bool { timing.phase == .running || [.waiting, .signal].contains(reaction.phase) }
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("playkit.challenge.authority").font(.footnote).foregroundStyle(.secondary)
             if kind == .reaction { reactionStage }
             else { timedStage }
             if timing.phase == .interrupted || reaction.phase == .interrupted { Label("playkit.challenge.interrupted", systemImage: "pause.circle") }
@@ -85,7 +84,6 @@ import SwiftUI
             }.buttonStyle(.questifyPrimary).disabled(!enabled).accessibilityIdentifier("playkit.challenge.measure")
         }
         if timing.phase == .measured {
-            Text("playkit.challenge.measurementOnly").font(.footnote)
             Button("playkit.review") { reviewMeasurement() }.buttonStyle(.questifyPrimary)
                 .disabled(!enabled || (kind == .typeIn && input.isEmpty)).accessibilityIdentifier("playkit.challenge.submit")
         }
@@ -127,7 +125,6 @@ import SwiftUI
             HStack { Text(verbatim: PlayTimedDisplayLocalization.count(index + 1, locale: locale)); Spacer(); Text(verbatim: PlayTimedDisplayLocalization.milliseconds(ms, locale: locale)).monospacedDigit() }
         }
         if reaction.phase == .measured {
-            Text("playkit.challenge.measurementOnly").font(.footnote)
             Button("playkit.review") { requestReview("SUBMIT_REACTION", ["times": .array(reaction.roundsMilliseconds.map(PlayWireValue.int))], {}) }
                 .buttonStyle(.questifyPrimary).disabled(!enabled)
         }
