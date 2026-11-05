@@ -1,6 +1,23 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "playkit.submitQuestion" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Submit this answer?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提交这个答案？"
+          }
+        }
+      }
+    },
     "club.refund.question" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -98527,13 +98544,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm submission"
+            "value" : "Submit"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认提交"
+            "value" : "提交"
           }
         }
       }
@@ -100533,13 +100550,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review submission"
+            "value" : "Submit"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "核对提交"
+            "value" : "提交"
           }
         }
       }
