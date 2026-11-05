@@ -135218,13 +135218,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The account or content changed. Open a new review."
+            "value" : "This page changed. Go back and open it again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "账号或内容已变化，请重新预览。"
+            "value" : "页面内容已变化，请返回后重新打开。"
           }
         }
       }
@@ -135458,13 +135458,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Start a conversation"
+            "value" : "Message"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "发起会话"
+            "value" : "发消息"
           }
         }
       }
@@ -135560,7 +135560,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "关注关系"
+            "value" : "关系"
           }
         }
       }
@@ -136411,13 +136411,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No interests provided."
+            "value" : "No interests yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂无兴趣标签。"
+            "value" : "还没有兴趣标签"
           }
         }
       }
@@ -136427,13 +136427,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No introduction provided."
+            "value" : "No introduction yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂无个人介绍。"
+            "value" : "还没有个人介绍"
           }
         }
       }
@@ -136561,7 +136561,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "动态"
+            "value" : "帖文"
           }
         }
       }
@@ -136635,13 +136635,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Published routes and activities"
+            "value" : "Published"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已发布路线和活动"
+            "value" : "发布内容"
           }
         }
       }
@@ -136667,13 +136667,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sign in to see your relationship"
+            "value" : "—"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "登录后查看关注关系"
+            "value" : "—"
           }
         }
       }
@@ -171049,13 +171049,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "My order preview"
+            "value" : "My orders"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "我的订单预览"
+            "value" : "我的订单"
           }
         }
       }
@@ -202615,6 +202615,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "暂时无法注销"
+          }
+        }
+      }
+    },
+    "social.editor.follow" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Follow"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关注"
+          }
+        }
+      }
+    },
+    "social.editor.unfollow" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unfollow"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消关注"
           }
         }
       }

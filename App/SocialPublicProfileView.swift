@@ -45,14 +45,6 @@ import SwiftUI
         ProfileIdentitySharePageHost(owner: identityShareOwner,
             context: .init(memberID: memberID, reader: reader, isCurrent: isCurrent())) {
         List {
-            if localCoverOwner?.accountID == memberID {
-                ProfileLocalCoverSection(owner: localCoverOwner, reader: reader, isCurrent: isCurrent)
-            }
-            // The owner-only read is independent of the public profile response.
-            if let weeklyPointsAccess {
-                ProfileWeeklyPointsEntry(memberID: memberID, accountReader: reader,
-                    access: weeklyPointsAccess, isCurrent: isCurrent)
-            }
             if memberID <= 0 {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("profile.incompleteLink.title")
@@ -101,14 +93,24 @@ import SwiftUI
                     return loaded
                 }) { profile in
                     Section {
-                        if let name = profile.nickname { Text(verbatim: name).font(.title2.bold()) }
-                        else { Text("square.unknownAuthor").font(.title2.bold()) }
-                        if let avatar = profile.avatar { SquareImage(source: avatar).frame(maxHeight: 120) }
+                        // Mini-program cy-profile identity head: round avatar beside name and level.
+                        HStack(spacing: 14) {
+                            ProfilePublicAvatar(source: profile.avatar, name: profile.nickname)
+                            VStack(alignment: .leading, spacing: 4) {
+                                if let name = profile.nickname { Text(verbatim: name).font(.title2.bold()) }
+                                else { Text("square.unknownAuthor").font(.title2.bold()) }
+                                if let level = profile.level {
+                                    HStack(spacing: 6) {
+                                        Text(verbatim: "Lv.\(level)")
+                                        Text("member.card.levelTitle", tableName: "MemberProfile")
+                                    }.font(.subheadline).foregroundStyle(.secondary).accessibilityElement(children: .combine)
+                                }
+                            }
+                        }
                         if profile.id == memberID, reader.identity.accountID == memberID {
                             ProfileIdentityShareSection(profile: profile, reader: reader, isCurrent: isCurrent, owner: identityShareOwner)
                                 .id(ProfileIdentityShareViewIdentity(profile: profile, reader: reader))
                         }
-                        SocialOptionalCount(title: "social.level", count: profile.level)
                         LabeledContent("social.followStatus") {
                             switch profile.isFollowed {
                             case true: Text("social.following")
@@ -117,7 +119,9 @@ import SwiftUI
                             }
                         }
                         if let actions, actions.identity.accountID != profile.id {
-                            NavigationLink { SocialActionEditorView(purpose: .toggleFollow, target: .member(profile.id), coordinator: actions) } label: { Text("social.editor.toggleFollow") }
+                            NavigationLink { SocialActionEditorView(purpose: .toggleFollow, target: .member(profile.id), coordinator: actions) } label: {
+                                Text(LocalizedStringKey(profile.isFollowed == true ? "social.editor.unfollow" : "social.editor.follow"))
+                            }
                             if showsStartChat {
                                 NavigationLink { SocialActionEditorView(purpose: .startChat, target: .member(profile.id), coordinator: actions) } label: { Text("social.editor.startChat") }
                             }
@@ -154,6 +158,11 @@ import SwiftUI
                         ProfileAuthorPostsSection(memberID: memberID, accountReader: reader, squareReader: squareReader,
                             actions: actions, isCurrent: isCurrent, retainedModel: authorPosts, onOpenPost: openAuthorPost)
                     case .achievements:
+                        // Points come first under 成就, as in the mini-program.
+                        if let weeklyPointsAccess {
+                            ProfileWeeklyPointsEntry(memberID: memberID, accountReader: reader,
+                                access: weeklyPointsAccess, isCurrent: isCurrent)
+                        }
                         if let selfObjectCardsAccess {
                             ProfileObjectCardsEntry(memberID: memberID, accountReader: reader,
                                 access: selfObjectCardsAccess, isCurrent: isCurrent)
@@ -200,6 +209,9 @@ import SwiftUI
                             Section("social.portfolio") {
                                 ForEach(Array(profile.workImages.enumerated()), id: \.offset) { _, source in SquareImage(source: source) }
                             }
+                        }
+                        if localCoverOwner?.accountID == memberID {
+                            ProfileLocalCoverSection(owner: localCoverOwner, reader: reader, isCurrent: isCurrent)
                         }
                     }
                 }
@@ -367,5 +379,28 @@ struct ProfileSelfCouponContext: Hashable {
         }
         .environment(\.couponCodeFactory, nil)
         .id(session.profileOwnedCouponReader.scope)
+    }
+}
+
+/// Round avatar for the public profile head; a clean initial when there is no https image.
+@MainActor private struct ProfilePublicAvatar: View {
+    let source: String?
+    let name: String?
+    var body: some View {
+        Group {
+            if let url = MemberIdentityCardSection.remoteAvatarURL(source) {
+                AsyncImage(url: url) { phase in
+                    if let image = phase.image { image.resizable().scaledToFill() } else { placeholder }
+                }
+            } else { placeholder }
+        }
+        .frame(width: 64, height: 64).clipShape(Circle()).accessibilityHidden(true)
+    }
+    private var placeholder: some View {
+        ZStack {
+            Circle().fill(.tint.opacity(0.15))
+            if let initial = name?.first { Text(verbatim: String(initial)).font(.title2.weight(.semibold)) }
+            else { Image(systemName: "person.fill").font(.title2) }
+        }
     }
 }
