@@ -176998,13 +176998,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dropping a stamp is not available in the app yet. Your note stays on this page and nothing is sent."
+            "value" : "Stamps can't be sent from here right now. Nothing has been sent."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "App 暂不支持投递城市签，留言只保留在本页，不会发送。"
+            "value" : "暂时无法从这里投递，留言没有发送。"
           }
         }
       }

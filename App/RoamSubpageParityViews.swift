@@ -255,10 +255,8 @@ struct RoamShareLinkDormantNotice: View {
             Label(LocalizedStringKey(node.favorited ? "roamSub.w208.poi.favorited" : "roamSub.w208.poi.favorite"), systemImage: node.favorited ? "heart.fill" : "heart")
                 .font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("roamSub.w208.poi.favoriteState")
             if node.coordinate == nil { Label("roamSub.w208.poi.noNavigation", systemImage: "location.slash").font(.footnote).foregroundStyle(.secondary) }
-            NavigationLink {
-                RoamCityStampFlowView(kind: "sign", place: node.name.isEmpty ? nil : node.name, cameraDestination: stampDestination)
-            } label: { Label("roamSub.w208.poi.dropStamp", systemImage: "envelope") }
-                .frame(minHeight: 44).accessibilityIdentifier("roamSub.w208.poi.dropStamp")
+            // 投一张 is hidden: this card has no stamp-exchange coordinator to send with, so the
+            // flow could only end on a disabled send button.
             if card.primary == .showVoucher {
                 NavigationLink { RoamCityVoucherCodeView(poiID: node.poiId, name: node.name) } label: {
                     Label(LocalizedStringKey(card.primaryKey), systemImage: "qrcode")
@@ -372,7 +370,6 @@ struct RoamPOIMissingView: View {
             NavigationLink { if let cameraDestination { cameraDestination() } else { RoamStampCameraView() } } label: {
                 Label("roamSub.w208.stamp.takePhoto", systemImage: "camera")
             }.frame(minHeight: 44).accessibilityIdentifier("roamSub.w208.stamp.takePhoto")
-            Text("roamSub.w208.stamp.dragHint").font(.footnote).foregroundStyle(.secondary)
             Button {
                 Task { await send() }
             } label: { Text(LocalizedStringKey(working ? "roamSub.w208.stamp.sending" : "roamSub.w208.stamp.send")).frame(maxWidth: .infinity, minHeight: 44) }
