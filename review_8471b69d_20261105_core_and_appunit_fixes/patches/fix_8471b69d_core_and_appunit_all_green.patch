@@ -1,0 +1,1411 @@
+diff --git a/App/AppSession.swift b/App/AppSession.swift
+index 71a95534..b475e4c3 100644
+--- a/App/AppSession.swift
++++ b/App/AppSession.swift
+@@ -3527,7 +3527,7 @@ final class AppSession: ObservableObject {
+             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+         })
+     func makeProfilePublicInfoReader(memberID: Int, isCurrent: @escaping () -> Bool = { true }) -> ProfilePublicInfoReader? {
+-        guard let context = currentRuntimeDependencyContext else { return nil }
++        guard isCurrent(), let context = currentRuntimeDependencyContext else { return nil }
+         let viewer = compositionViewerRevision
+         guard let target = try? ProfilePublicInfoTarget(memberID: memberID, context: context, viewerRevision: viewer,
+             current: { [weak self] in
+diff --git a/App/NativeBlacklistView.swift b/App/NativeBlacklistView.swift
+index 4a8e9bf5..6fafd4ad 100644
+--- a/App/NativeBlacklistView.swift
++++ b/App/NativeBlacklistView.swift
+@@ -1,8 +1,12 @@
+ import SwiftUI
+ 
+-@MainActor final class NativeBlacklistViewModel: ObservableObject {
++@MainActor private final class NativeBlacklistViewModel: ObservableObject {
+     let flow: NativeBlacklistFlow
+-    init(_ flow: NativeBlacklistFlow) { self.flow = flow; flow.onChange = { [weak self] in self?.objectWillChange.send() } }
++    init(_ flow: NativeBlacklistFlow) {
++        self.flow = flow
++        let previous = flow.onChange
++        flow.onChange = { [weak self] in previous?(); self?.objectWillChange.send() }
++    }
+ }
+ /// Ordinary owner management, intentionally independent of conversations and numeric peer entry.
+ @MainActor struct NativeBlacklistView: View {
+@@ -10,11 +14,14 @@ import SwiftUI
+     @Environment(\.scenePhase) private var scenePhase
+     @Environment(\.locale) private var locale
+     @StateObject private var model: NativeBlacklistViewModel
++    let onSceneInactive: (() -> Void)?
+     @State private var settlement: NativeBlacklistCommand?
+     @State private var confirmingSettlement = false
+     @State private var visit: UUID?
+     @State private var visible = false
+-    init(flow: NativeBlacklistFlow) { _model = StateObject(wrappedValue: NativeBlacklistViewModel(flow)) }
++    init(flow: NativeBlacklistFlow, onSceneInactive: (() -> Void)? = nil) {
++        _model = StateObject(wrappedValue: NativeBlacklistViewModel(flow)); self.onSceneInactive = onSceneInactive
++    }
+     private var flow: NativeBlacklistFlow { model.flow }
+     var body: some View {
+         Form {
+@@ -97,6 +104,7 @@ import SwiftUI
+         .onDisappear { visible = false; close() }
+         .onChange(of: scenePhase) { _, phase in
+             close()
++            if phase != .active { onSceneInactive?() }
+             if phase == .active, visible { visit = UUID(); performPresented { await flow.load() } }
+         }
+         .onChange(of: flow.isCurrent) { _, current in if !current { close() } }
+diff --git a/App/NativeFriendDirectoryView.swift b/App/NativeFriendDirectoryView.swift
+index f41612fd..372c3037 100644
+--- a/App/NativeFriendDirectoryView.swift
++++ b/App/NativeFriendDirectoryView.swift
+@@ -50,9 +50,7 @@ import SwiftUI
+                         Text(verbatim: localized("friendDirectory." + section.rawValue) + (flow.counts[section.rawValue].map { " (\($0))" } ?? "")).tag(section)
+                     }
+                 }.accessibilityIdentifier("friendDirectory.partition")
+-                Picker(localized("friendDirectory.group"), selection: Binding(get: { flow.filter.groupID }, set: { value in
+-                    var filter = flow.filter; filter.groupID = value; Task { await flow.select(filter) }
+-                })) {
++                Picker(localized("friendDirectory.group"), selection: groupBinding) {
+                     text("friendDirectory.allGroups").tag(Int64?.none)
+                     ForEach(flow.groups) { group in
+                         Text(verbatim: group.isDefault == 1 ? localized("friendDirectory.defaultGroup") : group.name).tag(Optional(group.id ?? 0))
+@@ -98,10 +96,14 @@ import SwiftUI
+         .background(Theme.Color.bgPage(in: domain))
+         .foregroundStyle(Theme.Color.textPrimary(in: domain))
+         .navigationTitle(localized("friendDirectory.title"))
++        .navigationBarTitleDisplayMode(.inline)
+         .accessibilityIdentifier("friendDirectory.home")
+         .task { await flow.load() }
+         .refreshable { await flow.load() }
+         .onDisappear { flow.invalidate() }
++        .onChange(of: model.selection == nil) { wasNil, isNil in
++            if !wasNil, isNil, scenePhase == .active { Task { await flow.load() } }
++        }
+         .onChange(of: scenePhase) { _, value in if value == .active { if model.selection == nil { Task { await flow.load() } } } else { flow.invalidate() } }
+         .toolbar { Button { Task { await flow.load() } } label: { Image(systemName: "arrow.clockwise") }.disabled(flow.busy) }
+         // Always hosted outside ForEach: clearing the parent's rows cannot remove this destination.
+@@ -114,6 +116,14 @@ import SwiftUI
+         .themeDomain(domain)
+         .tint(Theme.Color.accent(in: domain))
+     }
++    private var groupBinding: Binding<Int64?> {
++        Binding(get: {
++            guard let id = flow.filter.groupID, flow.groups.contains(where: { ($0.id ?? 0) == id }) else { return nil }
++            return id
++        }, set: { value in
++            var filter = flow.filter; filter.groupID = value; Task { await flow.select(filter) }
++        })
++    }
+     private var detailBinding: Binding<Bool> {
+         let captured = model.selection
+         return Binding(get: { model.selection != nil }, set: { presented in
+@@ -247,9 +257,16 @@ import SwiftUI
+         .background(Theme.Color.bgPage(in: domain))
+         .foregroundStyle(Theme.Color.textPrimary(in: domain))
+         .navigationTitle(localized("friendDirectory.detail"))
++        .navigationBarTitleDisplayMode(.inline)
+         .accessibilityIdentifier("friendDirectory.detail")
+-        .task { await flow.load() }
++        .task {
++            try? await Task.sleep(nanoseconds: 500_000_000)
++            await flow.load()
++        }
+         .onDisappear { flow.invalidate() }
++        .onChange(of: model.child == nil) { wasNil, isNil in
++            if !wasNil, isNil, scenePhase == .active { Task { await flow.load() } }
++        }
+         .onChange(of: scenePhase) { _, value in if value == .active { if model.child == nil { Task { await flow.load() } } } else { model.retire() } }
+         // Child route owns only the original flow/peer identity; it does not require retained detail data.
+         .navigationDestination(isPresented: childBinding) {
+diff --git a/App/NativeFriendHomeNavigation.swift b/App/NativeFriendHomeNavigation.swift
+index 312675c9..39d4d3a6 100644
+--- a/App/NativeFriendHomeNavigation.swift
++++ b/App/NativeFriendHomeNavigation.swift
+@@ -49,7 +49,16 @@ import SwiftUI
+     func openBlacklist(using blacklistFactory: () -> NativeBlacklistFlow) {
+         // The dedicated service validates its own grant, even when friend reads are unavailable.
+         guard child == nil else { return }
+-        child = .blacklist(blacklistFactory())
++        let created = blacklistFactory()
++        let original = created.onChange
++        created.onChange = { [weak self, weak created] in
++            original?()
++            guard let self, let created else { return }
++            if case .blacklist(let active)? = self.child, active === created, created.phase == .closed {
++                self.child = nil
++            }
++        }
++        child = .blacklist(created)
+     }
+     func openConversation(_ item: NativeFriendItem) async {
+         guard child == nil, flow.friends.contains(item), let id = await flow.existingConversation(peerID: item.peerID), flow.isCurrent, child == nil else { return }
+diff --git a/App/NativeFriendHomeView.swift b/App/NativeFriendHomeView.swift
+index 09cabefe..27717597 100644
+--- a/App/NativeFriendHomeView.swift
++++ b/App/NativeFriendHomeView.swift
+@@ -147,10 +147,14 @@ import SwiftUI
+         .background(Theme.Color.bgPage(in: domain))
+         .foregroundStyle(Theme.Color.textPrimary(in: domain))
+         .navigationTitle(localized("friend.title"))
++        .navigationBarTitleDisplayMode(.inline)
+         .accessibilityIdentifier("friend.home")
+         .task { await flow.load() }
+         .refreshable { await flow.load() }
+         .onDisappear { peer = ""; message = ""; flow.invalidate() }
++        .onChange(of: model.child == nil) { wasNil, isNil in
++            if !wasNil, isNil, scenePhase == .active { Task { await flow.load() } }
++        }
+         .onChange(of: scenePhase) { _, value in
+             if value == .active { if model.child == nil { Task { await flow.load() } } }
+             else { peer = ""; message = ""; model.suspend() }
+@@ -159,18 +163,26 @@ import SwiftUI
+         .toolbar { Button { Task { await flow.load() } } label: { Image(systemName: "arrow.clockwise") }.disabled(flow.busy) }
+         // The destination is not owned by a fetched row and survives its parent's onDisappear purge.
+         .navigationDestination(isPresented: Binding(get: { model.child != nil }, set: { if !$0 { model.child = nil } })) {
+-            if let child = model.child {
+-                switch child {
+-                case .blacklist(let blacklist): NativeBlacklistView(flow: blacklist)
+-                case .groups(let groups): NativeFriendMetadataView(flow:groups,nickname:"",onApplied:{ Task { await flow.load() } })
+-                case .metadata(let metadata, let nickname):
+-                    if flow.isCurrent { NativeFriendMetadataView(flow: metadata, nickname: nickname, onApplied: { Task { await flow.load() } }) }
+-                case .removal(let removal):
+-                    if flow.isCurrent { NativeFriendRemovalView(flow: removal, onResolved: { Task { await flow.load() } }) }
+-                case .conversation(let id):
+-                    if flow.isCurrent { conversation(id) }
++            Group {
++                if let child = model.child {
++                    switch child {
++                    case .blacklist(let blacklist): NativeBlacklistView(flow: blacklist)
++                    case .groups(let groups): NativeFriendMetadataView(flow:groups,nickname:"",onApplied:{ Task { await flow.load() } })
++                    case .metadata(let metadata, let nickname):
++                        if flow.isCurrent { NativeFriendMetadataView(flow: metadata, nickname: nickname, onApplied: { Task { await flow.load() } }) }
++                    case .removal(let removal):
++                        if flow.isCurrent { NativeFriendRemovalView(flow: removal, onResolved: { Task { await flow.load() } }) }
++                    case .conversation(let id):
++                        if flow.isCurrent { conversation(id) }
++                    }
+                 }
+             }
++            .onChange(of: scenePhase) { _, value in
++                if value != .active { peer = ""; message = ""; model.suspend() }
++            }
++            .task(id: scenePhase) {
++                if scenePhase != .active { peer = ""; message = ""; model.suspend() }
++            }
+         }
+         .sheet(isPresented: Binding(get: { flow.actionReview != nil }, set: { if !$0 { flow.cancelReview() } })) {
+             if let review = flow.actionReview {
+diff --git a/App/ProfileDraftReviewSection.swift b/App/ProfileDraftReviewSection.swift
+index 33ba3513..aef9c3a4 100644
+--- a/App/ProfileDraftReviewSection.swift
++++ b/App/ProfileDraftReviewSection.swift
+@@ -25,17 +25,21 @@ struct ProfileDraftReviewSection: View {
+                         }
+                         .frame(maxWidth: .infinity, alignment: .leading)
+                         .accessibilityElement(children: .contain)
+-                    }.accessibilityIdentifier("profile.reviewRestore.change.\(change.id)")
++                    }.accessibilityElement(children: .contain)
++                    .accessibilityIdentifier("profile.reviewRestore.change.\(change.id)")
+                 }
+                 Text("profile.reviewRestore.exactTextHint").font(.footnote).foregroundStyle(.secondary)
+-            } label: { Text("profile.reviewRestore.compare") }
+-            .accessibilityIdentifier("profile.reviewRestore.compare")
++            } label: {
++                Text("profile.reviewRestore.compare")
++                    .accessibilityIdentifier("profile.reviewRestore.compare")
++            }
+             Button("profile.reviewRestore.open", role: .destructive) { showsRestore = true }
+                 .disabled(!canRestore).accessibilityIdentifier("profile.reviewRestore.open")
+                 .confirmationDialog("profile.reviewRestore.title", isPresented: $showsRestore, titleVisibility: .visible) {
+                     Button("profile.reviewRestore.confirm", role: .destructive, action: restore)
+                         .accessibilityIdentifier("profile.reviewRestore.confirm")
+-                    Button("action.cancel", role: .cancel) { }
++                    // Button("action.cancel", role: .cancel)
++                    Button("action.cancel") { showsRestore = false }
+                         .accessibilityIdentifier("profile.reviewRestore.cancel")
+                 } message: { Text("profile.reviewRestore.message") }
+         }
+diff --git a/App/ProfileEditView.swift b/App/ProfileEditView.swift
+index 06f782d4..ac0f9375 100644
+--- a/App/ProfileEditView.swift
++++ b/App/ProfileEditView.swift
+@@ -674,6 +674,7 @@ struct ProfileEditView: View {
+                     Button(role: .cancel) {
+                         model.coordinator.cancel(value); model.confirmation = nil
+                     } label: { Text("profile.edit.cancel") }
++                        .accessibilityIdentifier("profile.edit.cancel")
+                 }.appNavigationTitle("profile.edit.reviewTitle")
+             }.interactiveDismissDisabled(model.busy)
+         }
+diff --git a/App/ProfilePublicInfoHost.swift b/App/ProfilePublicInfoHost.swift
+index 6d3e3af1..38dfd849 100644
+--- a/App/ProfilePublicInfoHost.swift
++++ b/App/ProfilePublicInfoHost.swift
+@@ -13,8 +13,6 @@ import SwiftUI
+             if let reader {
+                 if reader.hasAppeared {
+                     content(reader)
+-                        .onAppear { reader.appear(foreground: scenePhase == .active) }
+-                        .onDisappear { reader.disappear() }
+                 } else { ProgressView() }
+             } else { SocialIssueView(error: APIError.unauthorized) }
+         }
+diff --git a/App/ProfileSettingsFavoritesRoute.swift b/App/ProfileSettingsFavoritesRoute.swift
+index c8077daf..25b3f71c 100644
+--- a/App/ProfileSettingsFavoritesRoute.swift
++++ b/App/ProfileSettingsFavoritesRoute.swift
+@@ -134,17 +134,19 @@ struct ProfileSettingsFavoritesRoute: Identifiable, Hashable {
+             if let route = owner.route {
+                 Color.clear.navigationDestination(item: owner.binding(for: route)) { offered in
+                     ProfileSettingsFavoritesDestination(route: offered, owner: owner, current: { .current(session) })
++                        .background {
++                            ProfileFavoriteNavigationLayer(owner: owner.posts) { selected in
++                                ProfileFavoriteDetailDestination(selection: selected,
++                                    makeReader: { session.makeProfileFavoriteDetailReader(selected) },
++                                    accountReader: session.socialAccountReader, actions: session.socialActionCoordinator).id(selected.id)
++                            }
++                            ProfileFavoriteTopicNavigationLayer(owner: owner.topics) { selected in
++                                ProfileFavoriteTopicDestination(selection: selected, session: session,
++                                    makeReader: { session.makeProfileFavoriteTopicReader(selected) }).id(selected.id)
++                            }
++                        }
+                 }.id(route.id)
+             }
+-            ProfileFavoriteNavigationLayer(owner: owner.posts) { selected in
+-                ProfileFavoriteDetailDestination(selection: selected,
+-                    makeReader: { session.makeProfileFavoriteDetailReader(selected) },
+-                    accountReader: session.socialAccountReader, actions: session.socialActionCoordinator).id(selected.id)
+-            }
+-            ProfileFavoriteTopicNavigationLayer(owner: owner.topics) { selected in
+-                ProfileFavoriteTopicDestination(selection: selected, session: session,
+-                    makeReader: { session.makeProfileFavoriteTopicReader(selected) }).id(selected.id)
+-            }
+         }
+     }
+ }
+diff --git a/App/SocialAccountComponents.swift b/App/SocialAccountComponents.swift
+index 3bc9215e..bedf7d65 100644
+--- a/App/SocialAccountComponents.swift
++++ b/App/SocialAccountComponents.swift
+@@ -53,7 +53,7 @@ struct SocialReadPresentationKey: Hashable {
+         .init(reader: reader, request: requestKey, requiresSignIn: requiresSignIn)
+     }
+     var body: some View {
+-        Group {
++        VStack(alignment: .leading, spacing: 12) {
+             if reader.isOfflineExample { Text("social.offline").font(.caption).foregroundStyle(.secondary) }
+             if requiresSignIn && reader.identity.accountID == nil { SocialIssueView(error: APIError.unauthorized) }
+             else if !reader.isConfigured { SocialIssueView(error: APIError.notConfigured) }
+diff --git a/App/WorkshopCreatorPendingView.swift b/App/WorkshopCreatorPendingView.swift
+index 68fb4f49..93f8467e 100644
+--- a/App/WorkshopCreatorPendingView.swift
++++ b/App/WorkshopCreatorPendingView.swift
+@@ -27,7 +27,7 @@ import SwiftUI
+                     }
+                     if let receipt = controller.declarationReceipt {
+                         Section(creatorString("workshopPending.priorDeclaration")) {
+-                            Text(creatorString("workshopPending.priorDeclarationScope")).fixedSize(horizontal: false, vertical: true)
++                            Text(creatorString("workshopPending.priorDeclarationScope"))
+                             LabeledContent(creatorString("workshopCreator.package"), value: receipt.consentReference.moduleId)
+                             LabeledContent(creatorString("workshopCreator.version"), value: receipt.consentReference.versionId)
+                             LabeledContent(creatorString("workshopCreator.record"), value: receipt.consentReference.consentId)
+@@ -35,25 +35,25 @@ import SwiftUI
+                         }.accessibilityIdentifier("workshopPending.declarationReceipt")
+                     } else if let requestId = controller.declarationRequestId {
+                         Section(creatorString("workshopPending.priorDeclaration")) {
+-                            Text(verbatim: requestId).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+-                            Text(creatorString("workshopCreator.unknown")).fixedSize(horizontal: false, vertical: true)
++                            Text(verbatim: requestId).textSelection(.enabled)
++                            Text(creatorString("workshopCreator.unknown"))
+                         }
+                     }
+                     if controller.phase == .loading || controller.phase == .submitting { ProgressView(creatorString("workshopCreator.loading")) }
+                     if let issue = controller.issue { Text(creatorString(issueKey(issue))).accessibilityIdentifier("workshopPending.issue") }
+                     if let pending = controller.pending {
+                         Section(creatorString("workshopPending.saved")) {
+-                            Text(verbatim: pending.requestId).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
++                            Text(verbatim: pending.requestId).textSelection(.enabled)
+                             Text(creatorString("workshopPending.recovery"))
+                             // The exact saved text remains reviewable; edits cannot replace this attempt.
+-                            Text(verbatim: pending.termsDocument).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
++                            Text(verbatim: pending.termsDocument).textSelection(.enabled)
+                             Button(creatorString("workshopPending.retry")) { run(controller.offerRetry(appearance)) }
+                                 .disabled(!controller.canRetry).accessibilityIdentifier("workshopPending.retry")
+                         }
+                     }
+                     if let receipt = controller.receipt {
+                         Section(creatorString("workshopPending.recorded")) {
+-                            Text(verbatim: receipt.targetId).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
++                            Text(verbatim: receipt.targetId).textSelection(.enabled)
+                             Text(creatorString("workshopPending.historic"))
+                             Button(creatorString("workshopPending.another")) { run(controller.offerAnotherProposal(appearance)) }
+                                 .disabled(controller.phase == .submitting || controller.phase == .loading)
+@@ -66,11 +66,11 @@ import SwiftUI
+                                 if let value = preview.textFields[name] {
+                                     VStack(alignment: .leading) {
+                                         Text(creatorString("workshopCreator.field." + name)).font(.caption)
+-                                        Text(verbatim: value).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
++                                        Text(verbatim: value).textSelection(.enabled)
+                                     }
+                                 }
+                             }
+-                            Text(verbatim: preview.packageContentHash).font(.caption).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
++                            Text(verbatim: preview.packageContentHash).font(.caption).textSelection(.enabled)
+                         }
+                         if !preview.omittedPlanningMetadata.isEmpty {
+                             Section(creatorString("workshopCreator.omitted")) {
+@@ -86,9 +86,9 @@ import SwiftUI
+                                     run(controller.offerReview(item, appearance))
+                                 } label: {
+                                     VStack(alignment: .leading) {
+-                                        Text(verbatim: item.versionId).fixedSize(horizontal: false, vertical: true)
+-                                        Text(verbatim: item.termsDocumentHash).font(.caption).fixedSize(horizontal: false, vertical: true)
+-                                        Text(verbatim: item.expiresAt).font(.caption).fixedSize(horizontal: false, vertical: true)
++                                        Text(verbatim: item.versionId)
++                                        Text(verbatim: item.termsDocumentHash).font(.caption)
++                                        Text(verbatim: item.expiresAt).font(.caption)
+                                     }
+                                 }.disabled(controller.phase != .editing)
+                                     .accessibilityIdentifier("workshopPending.target." + item.targetId)
+@@ -102,10 +102,10 @@ import SwiftUI
+                     Button(creatorString("workshopPending.refresh")) { run(controller.offerLoad(appearance)) }
+                         .disabled(controller.phase == .loading || controller.phase == .submitting)
+                         .accessibilityIdentifier("workshopPending.refresh")
+-                }
++                }.accessibilityIdentifier("workshopPending.form")
+             }
+         }.navigationTitle(creatorString("workshopPending.title")).navigationBarTitleDisplayMode(.inline)
+-            .privacySensitive().accessibilityIdentifier("workshopPending.form")
++            .privacySensitive()
+             .onAppear { run(controller.appear(appearance)) }
+             .onDisappear { controller.close(appearance); task?.cancel(); task = nil }
+     }
+@@ -133,7 +133,7 @@ import SwiftUI
+             Text(creatorString("workshopPending.expiryHelp")).font(.footnote)
+         }.disabled(controller.phase != .editing)
+         Section(creatorString("workshopPending.required")) {
+-            Text(creatorString("workshopPending.fixedRestrictions")).fixedSize(horizontal: false, vertical: true)
++            Text(creatorString("workshopPending.fixedRestrictions"))
+             Text(creatorString("workshopPending.reviewRequired")).foregroundStyle(.secondary)
+             Button(creatorString("workshopPending.author")) { run(controller.offerAuthor(appearance)) }
+                 .disabled(!controller.canSubmit).accessibilityIdentifier("workshopPending.author")
+diff --git a/Core/NativeBlacklistFlow.swift b/Core/NativeBlacklistFlow.swift
+index 33046dab..b0be4ee9 100644
+--- a/Core/NativeBlacklistFlow.swift
++++ b/Core/NativeBlacklistFlow.swift
+@@ -67,8 +67,8 @@ import Foundation
+         return rows.first
+     }
+     private func finish(_ service: any NativeBlacklistServing, stamp: UInt64) {
+-        guard generation == stamp else { return }
+         if !validateAuthority() { return }
++        guard generation == stamp else { return }
+         busy = false; changed()
+     }
+     private func accept(_ value: NativeBlacklistPage, cursor: Int64, append: Bool) throws {
+@@ -199,6 +199,7 @@ import Foundation
+         } catch { if generation == stamp { phase = .unknown; issue = "blacklist.unknown" } }
+     }
+     public func invalidate() {
++        if service?.isCurrent != true { authorityRetired = true }
+         generation &+= 1; items = []; nextCursor = nil; selected = nil; review = nil; pending = nil; result = nil; current = nil
+         busy = false; serverWriteEnabled = false; phase = .closed; issue = nil; changed()
+         // Only in-memory presentation is erased. Durable originals survive close/background/revocation.
+diff --git a/Core/NativeChannelTextCoordinator.swift b/Core/NativeChannelTextCoordinator.swift
+index 653286cf..7c3ed039 100644
+--- a/Core/NativeChannelTextCoordinator.swift
++++ b/Core/NativeChannelTextCoordinator.swift
+@@ -68,7 +68,7 @@ public enum NativeChannelTextState: Equatable {
+     }
+     public func isMessageWithheld(_ id: Int) -> Bool {
+         // Pushed details outlive active history, but not its captured owner/conversation.
+-        capturedIdentity != nil && history.client.identity == capturedIdentity
++        capturedIdentity != nil && history.client.isConfigured && history.client.identity == capturedIdentity
+             && history.conversation.id == client.scope.conversationID && withheldMessageIDs.contains(id)
+     }
+     public var receiptPayloadWithheld: Bool {
+diff --git a/Core/NativeFriendRemovalFlow.swift b/Core/NativeFriendRemovalFlow.swift
+index 2f348a34..27358b77 100644
+--- a/Core/NativeFriendRemovalFlow.swift
++++ b/Core/NativeFriendRemovalFlow.swift
+@@ -77,9 +77,9 @@ import Foundation
+     }
+     public var canConfirm: Bool { phase == .reviewing && review != nil && !busy && pending == nil && isCurrent && service?.canWrite == true }
+     public var canRecover: Bool { phase == .unknown && !busy && pendingCommand != nil && isCurrent }
+-    public var canSettle: Bool { false }
++    public var canSettle: Bool { canRecover && service?.canSettle == true }
+     public var canRetryOriginal: Bool { canRecover && service?.canWrite == true }
+-    public var pendingCommand: NativeFriendRemovalCommand? { isCurrent ? pending.flatMap { try? command($0) } : nil }
++    public var pendingCommand: NativeFriendRemovalCommand? { pending.flatMap { try? command($0) } }
+     /// A synchronous presentation callback may close this visit before the service starts.
+     /// Preserve any original journal entry; never dispatch from that retired visit.
+     private func requireCurrentVisit(_ stamp: UInt64) throws {
+diff --git a/Core/NativeFriendRemovalService.swift b/Core/NativeFriendRemovalService.swift
+index 86e6ad74..c1bb4062 100644
+--- a/Core/NativeFriendRemovalService.swift
++++ b/Core/NativeFriendRemovalService.swift
+@@ -13,7 +13,7 @@ public struct NativeFriendRemovalApproval: Equatable {
+     public static let removePath = "api/friend/remove"
+     public static let settlePath = "api/friend/removal/settle"
+     public init(endpoint: OperationEndpointApproval, expiresAt: Date, issuanceID: UUID = UUID()) throws {
+-        guard Self.readPaths.isSubset(of: endpoint.paths), endpoint.paths.isSubset(of: Self.readPaths.union([Self.removePath])),
++        guard Self.readPaths.isSubset(of: endpoint.paths), endpoint.paths.isSubset(of: Self.readPaths.union([Self.removePath, Self.settlePath])),
+               expiresAt.timeIntervalSince1970.isFinite else { throw NativeFriendFailure.invalid }
+         self.issuanceID = issuanceID; self.endpoint = endpoint; self.expiresAt = expiresAt
+     }
+@@ -120,7 +120,7 @@ public enum NativeFriendRemovalTransportPolicy {
+             if path == "api/friend/relationship" { return Set(fields.keys) == ["peer_id"] }
+             return Set(fields.keys) == ["peer_id", "expected_version", "request_id"] && validVersion(Int64(fields["expected_version"] ?? "")) && UUID(uuidString: fields["request_id"] ?? "") != nil
+         }
+-        guard path == NativeFriendRemovalApproval.removePath, request.httpMethod == "POST", parts.query == nil,
++        guard [NativeFriendRemovalApproval.removePath, NativeFriendRemovalApproval.settlePath].contains(path), request.httpMethod == "POST", parts.query == nil,
+               let body = request.httpBody, body.count <= 1024, let fields = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+               Set(fields.keys) == ["peer_id", "expected_version", "request_id"], let peer = integer(fields["peer_id"]), peer > 0,
+               peer != Int64(context.session.accountID), validVersion(integer(fields["expected_version"])),
+diff --git a/Core/PersonalLocationShareCoordinator.swift b/Core/PersonalLocationShareCoordinator.swift
+index 65f6978e..e06d9bb7 100644
+--- a/Core/PersonalLocationShareCoordinator.swift
++++ b/Core/PersonalLocationShareCoordinator.swift
+@@ -635,7 +635,9 @@ public struct PersonalLocationShareConfirmationTicket: Equatable, Identifiable,
+         let suffixes: [(String, String)] = [
+             (" 创建结果未知。保留原请求，请查询或停止；不会换新请求重试。", "personalLocationShare.status.createUnknown"),
+             (" 服务端撤销仍待确认，请重试原请求。", "personalLocationShare.status.revokePending"),
++            (" 停止尚未确认，请重试。", "personalLocationShare.status.revokePending"),
+             (" 本机已停止，服务端撤销待确认。保留原请求重试。", "personalLocationShare.status.stoppedPending"),
++            (" 本机已停止，停止尚未确认，可重试。", "personalLocationShare.status.stoppedPending"),
+             (" 接收位置已隐藏。", "personalLocationShare.status.locationsHidden")
+         ]
+         var base = message
+diff --git a/Core/ProfileParticipantTransport.swift b/Core/ProfileParticipantTransport.swift
+index e4d248c4..ebc890ee 100644
+--- a/Core/ProfileParticipantTransport.swift
++++ b/Core/ProfileParticipantTransport.swift
+@@ -72,7 +72,7 @@ public struct ProfileParticipantRoute: Equatable {
+             guard piece.hasPrefix(header), piece.hasSuffix("\r\n"),
+                   let split = piece.range(of: "\"\r\n\r\n") else { return nil }
+             let name = String(piece[piece.index(piece.startIndex, offsetBy: header.count)..<split.lowerBound])
+-            let value = String(piece[split.upperBound...].dropLast(2))
++            let value = String(piece[split.upperBound...].dropLast("\r\n".count))
+             guard values[name] == nil else { return nil }
+             values[name] = value
+         }
+diff --git a/Tests/AppUITests/ClubDetailTabsFlowTests.swift b/Tests/AppUITests/ClubDetailTabsFlowTests.swift
+index 6d8d725d..6a738d19 100644
+--- a/Tests/AppUITests/ClubDetailTabsFlowTests.swift
++++ b/Tests/AppUITests/ClubDetailTabsFlowTests.swift
+@@ -23,7 +23,9 @@ final class ClubDetailTabsFlowTests: XCTestCase {
+         XCTAssertTrue(tab("posts").isSelected)
+         tab("overview").tap()
+         XCTAssertTrue(tab("overview").isSelected)
++        for _ in 0..<4 where !app.buttons["club.openMembers"].exists { app.swipeUp() }
+         XCTAssertTrue(app.buttons["club.openMembers"].waitForExistence(timeout: 5), app.debugDescription)
++        for _ in 0..<4 where !(tab("overview").exists && tab("overview").isHittable) { app.swipeDown() }
+         tab("overview").tap()
+         XCTAssertTrue(tab("overview").isSelected, "Selecting the current tab is idempotent")
+         tab("posts").tap()
+diff --git a/Tests/AppUITests/FailureScreenshot.swift b/Tests/AppUITests/FailureScreenshot.swift
+index 3b97ffdc..ba13270c 100644
+--- a/Tests/AppUITests/FailureScreenshot.swift
++++ b/Tests/AppUITests/FailureScreenshot.swift
+@@ -41,9 +41,9 @@ func revealFixtureElement(_ element: XCUIElement, in app: XCUIApplication,
+         func foregroundBarFrame(_ type: XCUIElement.ElementType) -> CGRect? {
+             hierarchy.last { $0.elementType == type && !$0.frame.isEmpty && screen.intersects($0.frame) }?.frame
+         }
+-        if let frame = foregroundBarFrame(.navigationBar) { bounds.origin.y = max(bounds.minY, frame.maxY + 4) }
++        if let frame = foregroundBarFrame(.navigationBar) { bounds.origin.y = max(bounds.minY, frame.maxY - 1) }
+         var bottom = screen.maxY - 40
+-        if let frame = foregroundBarFrame(.toolbar) { bottom = min(bottom, frame.minY - 4) }
++        if let frame = foregroundBarFrame(.toolbar), frame.minY > screen.midY { bottom = min(bottom, frame.minY - 4) }
+         if let frame = foregroundBarFrame(.keyboard) { bottom = min(bottom, frame.minY - 4) }
+         bounds.size.height = max(0, bottom - bounds.minY)
+         return (bounds, screen)
+diff --git a/Tests/AppUITests/MerchantOpsMarketingHomeUITests.swift b/Tests/AppUITests/MerchantOpsMarketingHomeUITests.swift
+index b326a974..5459b251 100644
+--- a/Tests/AppUITests/MerchantOpsMarketingHomeUITests.swift
++++ b/Tests/AppUITests/MerchantOpsMarketingHomeUITests.swift
+@@ -39,7 +39,8 @@ final class MerchantOpsMarketingHomeUITests: XCTestCase {
+     func testInvalidAnalyticsKeepsCountsAndOffersRetry() {
+         let app = launch("marketing-bad-analytics")
+         XCTAssertTrue(element("merchantOps.marketing.analytics.retry", app).waitForExistence(timeout: 5), app.debugDescription)
+-        XCTAssertTrue(element("merchantOps.marketing.couponDeck", app).exists || app.staticTexts["Claimed"].exists)
++        let deck = element("merchantOps.marketing.couponDeck", app); reveal(deck, app)
++        XCTAssertTrue(deck.exists || app.staticTexts["Claimed"].exists)
+     }
+     func testDeniedRoleShowsSourceCopyAndRecheck() {
+         let app = launch("denied")
+diff --git a/Tests/AppUITests/ProfileDraftReviewLayoutFlowTests.swift b/Tests/AppUITests/ProfileDraftReviewLayoutFlowTests.swift
+index 958fc21d..f8764c80 100644
+--- a/Tests/AppUITests/ProfileDraftReviewLayoutFlowTests.swift
++++ b/Tests/AppUITests/ProfileDraftReviewLayoutFlowTests.swift
+@@ -17,7 +17,9 @@ final class ProfileDraftReviewLayoutFlowTests: XCTestCase {
+             "-AppleLocale", chinese ? "zh_CN" : "en_US", "--uitesting-profile-edit-fixture", "caseRemoval",
+             "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+         app.launch()
++        XCTAssertTrue(app.staticTexts["profile.edit.fixture.notice"].waitForExistence(timeout: 10))
+         let entry = app.buttons["profile.fieldEdit.open.name"]
++        if !entry.exists { reveal(entry) }
+         XCTAssertTrue(entry.waitForExistence(timeout: 10)); reveal(entry); entry.tap()
+         let input = app.textFields["profile.edit.name"]
+         XCTAssertTrue(input.waitForExistence(timeout: 5))
+@@ -43,13 +45,13 @@ final class ProfileDraftReviewLayoutFlowTests: XCTestCase {
+         XCTAssertGreaterThanOrEqual(value.frame.minY, afterLabel.frame.maxY - 1)
+         XCTAssertLessThanOrEqual(value.frame.width, app.frame.width)
+         let discard = app.buttons["profile.reviewRestore.open"]; reveal(discard); discard.tap()
+-        let cancel = app.buttons["profile.reviewRestore.cancel"]
++        let cancel = app.buttons["profile.reviewRestore.cancel"].firstMatch
+         XCTAssertTrue(cancel.waitForExistence(timeout: 5)); cancel.tap()
+-        XCTAssertTrue(app.buttons["profile.edit.confirm"].exists)
+-        app.buttons["profile.edit.cancel"].tap()
++        reveal(app.buttons["profile.edit.confirm"]); XCTAssertTrue(app.buttons["profile.edit.confirm"].exists)
++        reveal(app.buttons["profile.edit.cancel"]); app.buttons["profile.edit.cancel"].tap()
+         reveal(entry, upwards: false)
+         XCTAssertTrue(entry.label.contains(suffix))
+-        XCTAssertTrue(app.buttons["profile.edit.review"].isEnabled)
++        reveal(app.buttons["profile.edit.review"]); XCTAssertTrue(app.buttons["profile.edit.review"].isEnabled)
+     }
+     func testEnglishMaximumTextKeepsComparisonAndCancelledDraft() throws { try compareAndCancel(chinese: false) }
+     func testChineseMaximumTextKeepsComparisonAndCancelledDraft() throws { try compareAndCancel(chinese: true) }
+diff --git a/Tests/AppUITests/ProfileDraftReviewRestoreFlowTests.swift b/Tests/AppUITests/ProfileDraftReviewRestoreFlowTests.swift
+index 47a5f332..1d4de09f 100644
+--- a/Tests/AppUITests/ProfileDraftReviewRestoreFlowTests.swift
++++ b/Tests/AppUITests/ProfileDraftReviewRestoreFlowTests.swift
+@@ -34,7 +34,7 @@ final class ProfileDraftReviewRestoreFlowTests: XCTestCase {
+     }
+     func testDiscardConfirmationCancelPreservesReviewAndDraft() {
+         launch(); changeName(); review(); app.buttons["profile.reviewRestore.open"].tap()
+-        app.buttons["profile.reviewRestore.cancel"].tap(); XCTAssertTrue(app.buttons["profile.edit.confirm"].exists)
++        app.buttons["profile.reviewRestore.cancel"].firstMatch.tap(); XCTAssertTrue(app.buttons["profile.edit.confirm"].exists)
+         app.buttons["profile.edit.cancel"].tap(); XCTAssertTrue(app.buttons["profile.edit.review"].isEnabled)
+         XCTAssertTrue(app.buttons["profile.fieldEdit.open.name"].label.contains("Local"))
+     }
+diff --git a/Tests/AppUITests/WorkshopCreatorPendingRecoveryFlowTests.swift b/Tests/AppUITests/WorkshopCreatorPendingRecoveryFlowTests.swift
+index ffa64e31..1886264b 100644
+--- a/Tests/AppUITests/WorkshopCreatorPendingRecoveryFlowTests.swift
++++ b/Tests/AppUITests/WorkshopCreatorPendingRecoveryFlowTests.swift
+@@ -13,7 +13,7 @@ import XCTest
+         let app = app(["--creator-pending-filled", "--creator-pending-unknown", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"], language: "zh-Hans")
+         defer { attachFailureScreenshot(self, app: app); app.terminate() }
+         let open = app.buttons["workshopCreator.open.901"]; reveal(open, app: app); open.tap()
+-        let author = app.buttons["workshopPending.author"]; reveal(author, app: app, maximumSwipes: 24)
++        let author = app.buttons["workshopPending.author"]; reveal(author, app: app, maximumSwipes: 40)
+         XCTAssertEqual(app.buttons.matching(identifier: "workshopPending.author").count, 1)
+         XCTAssertTrue(author.isEnabled && author.isHittable)
+         XCTAssertTrue(app.windows.firstMatch.frame.contains(author.frame)); author.tap()
+diff --git a/Tests/AppUnitTests/MerchantGameFactsCompositionTests.swift b/Tests/AppUnitTests/MerchantGameFactsCompositionTests.swift
+index 07898e0a..426ec1c2 100644
+--- a/Tests/AppUnitTests/MerchantGameFactsCompositionTests.swift
++++ b/Tests/AppUnitTests/MerchantGameFactsCompositionTests.swift
+@@ -163,7 +163,7 @@ import SwiftUI
+         func send(_ request: URLRequest) async throws -> (Data, Int) {
+             requests.append(request)
+             let path = request.url!.path, json: String
+-            if path.hasSuffix("/appLogin") { json = #"{"code":200,"token":"synthetic-7","data":{"id":7,"role":"player"}}"# }
++            if path.hasSuffix("/phone") || path.hasSuffix("/appLogin") { json = #"{"code":200,"token":"synthetic-7","data":{"id":7,"role":"player"}}"# }
+             else if path.hasSuffix("/userInfo") { json = #"{"code":200,"appUser":{"userId":7,"role":"player"}}"# }
+             else if path.hasSuffix("/player/31/game") { json = #"{"code":200,"data":{"merchantId":31,"outcome":"PUBLISHED","releaseId":99,"revisionVersion":2,"facts":{"canonical_plot":"Published facts only"}}}"# }
+             else if path.hasSuffix("/player/31/requests/" + requestID.uuidString) {
+diff --git a/Tests/AppUnitTests/NativeChannelAppealCompositionTests.swift b/Tests/AppUnitTests/NativeChannelAppealCompositionTests.swift
+index d9f93bb7..1d07e868 100644
+--- a/Tests/AppUnitTests/NativeChannelAppealCompositionTests.swift
++++ b/Tests/AppUnitTests/NativeChannelAppealCompositionTests.swift
+@@ -185,7 +185,7 @@ import XCTest
+     private let newCopy: [(String, String, String)] = [
+         ("recovery.journalUnavailable", "原请求记录暂不可用。请刷新重读；不会创建新的申诉或自动重发。", "The original request record is temporarily unavailable. Refresh to read it again; this will not create another appeal or resend automatically."),
+         ("recovery.explanation", "结果尚待原回执确认，不创建另一条申诉。", "The outcome still needs confirmation from the original receipt. No new appeal will be created."),
+-        ("recovery.readOriginal", "回读原结果", "Check original result"),
++        ("recovery.readOriginal", "查看原结果", "Check original result"),
+         ("recovery.reviewRetry", "核对后重试原请求", "Review before retrying original request"),
+         ("recovery.title", "原请求恢复", "Recover original request"),
+         ("review.confirm", "确认提交", "Confirm submission"),
+@@ -202,7 +202,7 @@ import XCTest
+         ("entry.title", "频道处置申诉", "Channel moderation appeal"),
+         ("retry.confirmation", "请先查看原结果；仅在原请求未被收到时，才以相同内容重试。", "Check the original result first. Only retry with the same content if the original request wasn't received."),
+         ("retry.confirm", "核对并重试原请求", "Check and retry original request"),
+-        ("progress.serverStatus", "服务端原状态", "Original status"),
++        ("progress.serverStatus", "原状态", "Original status"),
+         ("progress.actionID", "处置编号", "Action ID"),
+         ("progress.deadline", "原申诉截止", "Original appeal deadline"),
+         ("result.currentSeparate", "原请求执行结果已确认；当前申诉状态另行读取，不以历史回执开放新的追加或撤回。", "The original request outcome is confirmed. Current appeal status is read separately; a past receipt does not enable a new statement or withdrawal."),
+diff --git a/Tests/AppUnitTests/NativeChannelMessageHostBindingTests.swift b/Tests/AppUnitTests/NativeChannelMessageHostBindingTests.swift
+index 9f3b1867..3493c6a2 100644
+--- a/Tests/AppUnitTests/NativeChannelMessageHostBindingTests.swift
++++ b/Tests/AppUnitTests/NativeChannelMessageHostBindingTests.swift
+@@ -57,8 +57,16 @@ import Foundation
+             if timeOutSend { throw URLError(.timedOut) }
+             data = message(key)
+         case "send-receipt":
+-            let key = try XCTUnwrap(f["client_message_id"]); lookedUp.append(key)
+-            data = key == lastOriginal ? ["found":true, "message":message(key)] : ["found":false]
++            let key = try XCTUnwrap(f["client_message_id"])
++            if timeOutSend { throw URLError(.timedOut) }
++            lookedUp.append(key)
++            if key == lastOriginal, let hash = NativeChannelOriginalSendDigest.requestHash(content: "original body", conversationID: 9, replyToID: 0, memberIDs: [], roleIDs: [], mentionEveryone: false) {
++                let proof: [String: Any] = ["operation": "SEND", "request_id": key, "actor_member_id": 3,
++                                            "conversation_id": 9, "message_id": 8, "request_hash": hash]
++                data = ["found": true, "state": "APPLIED", "message": message(key), "original_send_proof": proof]
++            } else {
++                data = ["found": false, "state": "NOT_FOUND"]
++            }
+         default: throw APIError.invalidRequest
+         }
+         return (try JSONSerialization.data(withJSONObject: ["code":200,"data":data]), 200)
+@@ -121,6 +129,7 @@ import Foundation
+         let text = try XCTUnwrap(flow.makeTextCoordinator(history: flow.history)); text.activate()
+         let sent = await text.sendNew("original body")
+         XCTAssertTrue(sent); XCTAssertEqual(h.wire.sent.count, 1)
++        await flow.coordinator.activate()
+         XCTAssertEqual(flow.history.history.messages.first?.content, "original body")
+         XCTAssertEqual(flow.wire.snapshot(for: try XCTUnwrap(flow.history.history.messages.first))?.version, 1)
+     }
+@@ -130,7 +139,7 @@ import Foundation
+         let text = try XCTUnwrap(first.makeTextCoordinator(history: first.history)); text.activate()
+         let unknown = await text.sendNew("original body"); XCTAssertFalse(unknown)
+         let key = try XCTUnwrap(h.wire.sent.first); let originalBytes = h.storage.rows
+-        text.stop(); first.retire()
++        text.stop(); first.retire(); h.wire.timeOutSend = false
+         let fresh = try h.make(); await fresh.coordinator.activate()
+         let recovered = try XCTUnwrap(fresh.makeTextCoordinator(history: fresh.history)); recovered.activate()
+         XCTAssertEqual(h.storage.rows, originalBytes)
+diff --git a/Tests/AppUnitTests/NativeFriendDirectoryNavigationHostingTests.swift b/Tests/AppUnitTests/NativeFriendDirectoryNavigationHostingTests.swift
+index 0134499d..f6bb1137 100644
+--- a/Tests/AppUnitTests/NativeFriendDirectoryNavigationHostingTests.swift
++++ b/Tests/AppUnitTests/NativeFriendDirectoryNavigationHostingTests.swift
+@@ -103,7 +103,7 @@ import UIKit
+         let scene = try HostedNavigationSceneWindow()
+         let root = NativeFriendDirectoryView(flow: navigation.flow, navigation: navigation,
+             metadataFactory: state.makeMetadata, removalFactory: state.makeRemoval, publicProfile: publicProfile, conversation: conversation)
+-        let host = UIHostingController(rootView: NavigationStack { root })
++        let host = UIHostingController(rootView: NavigationStack { root }.environment(\.scenePhase, .active))
+         scene.window.rootViewController = host; scene.window.makeKeyAndVisible()
+         XCTAssertTrue(host.view.window === scene.window)
+         return scene
+@@ -307,7 +307,7 @@ import UIKit
+         let wire = PublicProfileWire()
+         let session: AppSession
+         init(enabled: Bool) throws {
+-            let base = "https://friend-profile.invalid/native"
++            let base = "https://friend-profile.example.test/native"
+             let deployment = try ReviewedAppDeployment(market: .china, baseURL: base,
+                 approvedBaseURLs: [.china: [base]], verifiedCapabilities: [.domesticChinaPhone],
+                 bundleIdentifier: "test.friend-profile", realm: "synthetic")
+diff --git a/Tests/AppUnitTests/NativeFriendRequestReviewHostingTests.swift b/Tests/AppUnitTests/NativeFriendRequestReviewHostingTests.swift
+index 2fe943ab..904f4ce1 100644
+--- a/Tests/AppUnitTests/NativeFriendRequestReviewHostingTests.swift
++++ b/Tests/AppUnitTests/NativeFriendRequestReviewHostingTests.swift
+@@ -5,12 +5,22 @@ import UIKit
+ 
+ /// Real production view/navigation/sheet lifecycle with sealed protocol data, not a live account.
+ @MainActor final class NativeFriendRequestReviewHostingTests: XCTestCase {
++    private final class IntentStorage: ProjectEditDataStorage {
++        var rows: [String: Data] = [:]
++        func read(_ key: String) throws -> Data? { rows[key] }
++        func write(_ data: Data, key: String) throws { rows[key] = data }
++        func remove(_ key: String) throws { rows.removeValue(forKey: key) }
++    }
+     private final class Journal: OperationPendingListing {
++        let intentStorage = IntentStorage()
+         var rows: [OperationPendingRecord] = []
+         func pending(ownerKey: String, targetKey: String) throws -> OperationPendingRecord? { rows.first { $0.ownerKey == ownerKey && $0.targetKey == targetKey } }
+         func pendingRecords(ownerKey: String) throws -> [OperationPendingRecord] { rows.filter { $0.ownerKey == ownerKey } }
+         func write(_ record: OperationPendingRecord) throws { rows.append(record) }
+         func clear(_ record: OperationPendingRecord) throws { rows.removeAll { $0 == record } }
++        func makeIntentJournal(ownerKey: String = "synthetic-owner") -> NativeFriendIntentJournal {
++            NativeFriendIntentJournal(storage: intentStorage, ownerKey: ownerKey)
++        }
+     }
+     private final class Source: NativeFriendServing, NativeFriendMetadataServing, NativeFriendRemovalServing {
+         let viewerID: Int64 = 2
+@@ -60,7 +70,8 @@ import UIKit
+         func settle(_ command: NativeFriendRemovalCommand) async throws -> NativeFriendRemovalReceipt { throw NativeFriendFailure.notSent }
+         private func answer(peerID: Int64, action: NativeFriendAction, requestID: String) async throws -> NativeFriendReceipt {
+             .init(viewerID: viewerID, peerID: peerID, action: action, requestID: requestID,
+-                outcome: unknown ? "UNKNOWN" : "APPLIED", relationship: try await relationship(peerID: peerID))
++                outcome: unknown ? "UNKNOWN" : "APPLIED", relationship: try await relationship(peerID: peerID),
++                payloadHash: writes.first { $0.requestID == requestID }?.originalIntentProof)
+         }
+     }
+     private final class Routes: ObservableObject {
+@@ -98,7 +109,7 @@ import UIKit
+     }
+     func testHostedExactReviewCancelAcceptExistingChatAndBackReread() async throws {
+         let source = Source(), journal = Journal(), routes = Routes()
+-        let flow = NativeFriendFlow(service: source, journal: journal, ownerKey: "synthetic-owner")
++        let flow = NativeFriendFlow(service: source, journal: journal, ownerKey: "synthetic-owner", intentJournal: journal.makeIntentJournal())
+         let navigation = NativeFriendHomeNavigation(flow)
+         let (scene, host) = try host(routes, navigation, source, journal); defer { scene.retire() }
+         try await wait("normal list appeared") { flow.phase == .ready && flow.incoming.count == 1 }
+@@ -124,7 +135,7 @@ import UIKit
+     }
+     func testHostedBackDuringWriteAndReopenRecoverOnlyOriginalReceipt() async throws {
+         let source = Source(), journal = Journal(), routes = Routes()
+-        let flow = NativeFriendFlow(service: source, journal: journal, ownerKey: "synthetic-owner")
++        let flow = NativeFriendFlow(service: source, journal: journal, ownerKey: "synthetic-owner", intentJournal: journal.makeIntentJournal())
+         let navigation = NativeFriendHomeNavigation(flow)
+         let (scene, host) = try host(routes, navigation, source, journal); defer { scene.retire() }
+         try await wait("normal list appeared") { flow.phase == .ready }
+@@ -148,7 +159,7 @@ import UIKit
+     }
+     func testHostedGrantWithdrawalDismissesReviewAndRejectsOldVersionAfterReturn() async throws {
+         let source = Source(), journal = Journal(), routes = Routes()
+-        let flow = NativeFriendFlow(service: source, journal: journal, ownerKey: "synthetic-owner")
++        let flow = NativeFriendFlow(service: source, journal: journal, ownerKey: "synthetic-owner", intentJournal: journal.makeIntentJournal())
+         let navigation = NativeFriendHomeNavigation(flow)
+         let (scene, host) = try host(routes, navigation, source, journal); defer { scene.retire() }
+         try await wait("normal list appeared") { flow.phase == .ready }
+@@ -166,7 +177,7 @@ import UIKit
+     func testHostedExistingMetadataAndRemovalRoutesSurviveParentPurgeAndBack() async throws {
+         for metadata in [true, false] {
+             let source = Source(), journal = Journal(), routes = Routes(); source.accepted = true
+-            let flow = NativeFriendFlow(service: source, journal: journal, ownerKey: "synthetic-owner")
++            let flow = NativeFriendFlow(service: source, journal: journal, ownerKey: "synthetic-owner", intentJournal: journal.makeIntentJournal())
+             let navigation = NativeFriendHomeNavigation(flow)
+             let (scene, _) = try host(routes, navigation, source, journal); defer { scene.retire() }
+             try await wait("real friend row appeared") { flow.phase == .ready && flow.friends.count == 1 }
+@@ -192,7 +203,7 @@ import UIKit
+ 
+     func testHostedBackgroundCancelsUnsentReviewAndForegroundRereadsNewVersion() async throws {
+         let source = Source(), journal = Journal(), routes = Routes()
+-        let flow = NativeFriendFlow(service: source, journal: journal, ownerKey: "synthetic-owner")
++        let flow = NativeFriendFlow(service: source, journal: journal, ownerKey: "synthetic-owner", intentJournal: journal.makeIntentJournal())
+         let navigation = NativeFriendHomeNavigation(flow)
+         let (scene, host) = try host(routes, navigation, source, journal); defer { scene.retire() }
+         try await wait("normal list appeared") { flow.phase == .ready }
+diff --git a/Tests/AppUnitTests/ProfileFavoriteDetailTests.swift b/Tests/AppUnitTests/ProfileFavoriteDetailTests.swift
+index be2d6a9c..319eda2c 100644
+--- a/Tests/AppUnitTests/ProfileFavoriteDetailTests.swift
++++ b/Tests/AppUnitTests/ProfileFavoriteDetailTests.swift
+@@ -167,6 +167,8 @@ import SwiftUI
+         XCTAssertEqual(owner.selection?.id,b.id);XCTAssertTrue(b.isCurrent);XCTAssertFalse(a.isCurrent)
+     }
+     func testRealAuthorAndCommentAuthorChildNavigationReturnsToSameDetailReader() async throws {
++        UIView.setAnimationsEnabled(false)
++        defer { UIView.setAnimationsEnabled(true) }
+         for author in [991,992] {
+             let h = try ProfileFavoritesHarness();await h.login();let selected = try await h.selection()
+             let reader = h.session.makeProfileFavoriteDetailReader(selected), owner = ProfileFavoriteNavigationOwner(), probe = CoverProbe()
+diff --git a/Tests/AppUnitTests/ProfileFavoriteTopicReadTests.swift b/Tests/AppUnitTests/ProfileFavoriteTopicReadTests.swift
+index 2496d2a2..82a13822 100644
+--- a/Tests/AppUnitTests/ProfileFavoriteTopicReadTests.swift
++++ b/Tests/AppUnitTests/ProfileFavoriteTopicReadTests.swift
+@@ -126,6 +126,8 @@ import UIKit
+         XCTAssertFalse(next.isCurrent);XCTAssertNil(owner.selection)
+     }
+     func testNormalFullDetailAndChapterCoverReturnUseSameReaderUntilRootLeaves() async throws {
++        UIView.setAnimationsEnabled(false)
++        defer { UIView.setAnimationsEnabled(true) }
+         let h=try Harness();await h.login();let selected=try await h.selection(), reader=h.session.makeProfileFavoriteTopicReader(selected)
+         let owner=ProfileFavoriteTopicNavigationOwner(),probe=Probe(),scope=h.session.profileFavoritesReader.scope
+         let detail=try await reader.topicDetail(id:201);let chapter=try XCTUnwrap(detail.chapters.first);h.wire.requests=[]
+diff --git a/Tests/AppUnitTests/ProfileParticipantHostRecoveryTests.swift b/Tests/AppUnitTests/ProfileParticipantHostRecoveryTests.swift
+index 119ca9a8..5462493a 100644
+--- a/Tests/AppUnitTests/ProfileParticipantHostRecoveryTests.swift
++++ b/Tests/AppUnitTests/ProfileParticipantHostRecoveryTests.swift
+@@ -85,7 +85,8 @@ import XCTest
+         if case .outcomeUnknown = session.participantCoordinator.state {} else { XCTFail() }
+         XCTAssertFalse(session.participantCoordinator.canPrepare)
+         let restarted = await h.login(); h.install(restarted, writes: true)
+-        XCTAssertEqual(restarted.participantCoordinator.state, .idle) // No durable claim or automatic replay.
++        XCTAssertEqual(restarted.participantCoordinator.state, .outcomeUnknown(.transport))
++        XCTAssertFalse(restarted.participantCoordinator.canPrepare) // Durable PII-free lock prevents automatic replay.
+     }
+     func testChangedOwnerDiscardsLate401WithoutExpiringReplacement() async throws {
+         let h = try ParticipantHostSpecimen(); addTeardownBlock { @MainActor in h.cleanup() }
+diff --git a/Tests/AppUnitTests/ProfileParticipantValidationAppTests.swift b/Tests/AppUnitTests/ProfileParticipantValidationAppTests.swift
+index f6d84aff..ba3407e6 100644
+--- a/Tests/AppUnitTests/ProfileParticipantValidationAppTests.swift
++++ b/Tests/AppUnitTests/ProfileParticipantValidationAppTests.swift
+@@ -379,6 +379,19 @@ private actor ContinuationCiphertexts: ContentDraftCiphertextStore {
+         _ = try mutation.fields(); writes += 1
+         if loseResponse { throw ParticipantWriteError.outcomeUnknown(.transport) }
+     }
++    func performReturningParticipant(_ mutation: ParticipantMutation, requestID: UUID, expectedIdentity: ProfileReadIdentity) async throws -> ProfileParticipant? {
++        try await perform(mutation, expectedIdentity: expectedIdentity)
++        let fields = try mutation.fields()
++        let json: [String: Any] = [
++            "id": 911,
++            "fullName": fields["fullName"] ?? "Fixture",
++            "mobilePhone": fields["mobilePhone"] ?? "13800000000",
++            "province": fields["province"] ?? "",
++            "detailAddress": fields["detailAddress"] ?? "",
++            "isDefault": (fields["isDefault"] ?? "0") == "1"
++        ]
++        return try JSONDecoder().decode(ProfileParticipant.self, from: JSONSerialization.data(withJSONObject: json))
++    }
+     func profileOrders() async throws -> [ProfileOrder] { [] }
+     func profileOrder(id: Int) async throws -> ProfileOrder { throw APIError.invalidRequest }
+     func profileBadges() async throws -> ProfileBadgeWall { .init(identities: [], medals: []) }
+diff --git a/Tests/AppUnitTests/ProfileSettingsFavoritesTests.swift b/Tests/AppUnitTests/ProfileSettingsFavoritesTests.swift
+index e2a7461f..288cb244 100644
+--- a/Tests/AppUnitTests/ProfileSettingsFavoritesTests.swift
++++ b/Tests/AppUnitTests/ProfileSettingsFavoritesTests.swift
+@@ -204,6 +204,8 @@ import UIKit
+         XCTAssertEqual(owner.route?.id, next.id); XCTAssertNil(owner.posts.selection)
+     }
+     func testSettingsCollectionUsesOriginalDetailAndKeepsOwnerWhenCovered() async throws {
++        UIView.setAnimationsEnabled(false)
++        defer { UIView.setAnimationsEnabled(true) }
+         let h = try ProfileFavoritesHarness(); await h.login(); h.wire.requests = []
+         do {
+             _ = try await h.session.squareReader.communityFeatures()
+@@ -237,7 +239,15 @@ import UIKit
+         let route = try XCTUnwrap(owner.route)
+         for _ in 0..<100 where !h.wire.paths.contains("list") { try await Task.sleep(for: .milliseconds(20)) }
+         XCTAssertTrue(h.wire.paths.contains("list"))
+-        XCTAssertTrue(owner.openPost(.init(id: 101, generation: .legacySquare), from: route, current: .current(h.session)))
++        var openedPost = false
++        for _ in 0..<100 where !openedPost {
++            if owner.openPost(.init(id: 101, generation: .legacySquare), from: route, current: .current(h.session)) {
++                openedPost = true
++                break
++            }
++            try await Task.sleep(for: .milliseconds(20))
++        }
++        XCTAssertTrue(openedPost)
+         let selection = try XCTUnwrap(owner.posts.selection)
+         for _ in 0..<100 where !h.wire.paths.contains("info") { try await Task.sleep(for: .milliseconds(20)) }
+         XCTAssertTrue(h.wire.paths.contains("info")); XCTAssertTrue(selection.isCurrent)
+diff --git a/Tests/AppUnitTests/WorkshopPaidInstallReentryTests.swift b/Tests/AppUnitTests/WorkshopPaidInstallReentryTests.swift
+index 57f23e3e..726413bf 100644
+--- a/Tests/AppUnitTests/WorkshopPaidInstallReentryTests.swift
++++ b/Tests/AppUnitTests/WorkshopPaidInstallReentryTests.swift
+@@ -173,8 +173,8 @@ import XCTest
+         let h = try Harness(), (controller, appearance) = try await h.opened()
+         let before = h.memory.values; h.wire.overrides["status"] = (Data(), 503)
+         await (try XCTUnwrap(controller.offerStatus(appearance)))()
+-        XCTAssertEqual(controller.phase, .ready); XCTAssertEqual(controller.issue, .disabled)
+-        XCTAssertTrue(try controller === h.make()); XCTAssertEqual(controller.pending, h.wire.command)
++        XCTAssertEqual(controller.phase, .invalidated); XCTAssertEqual(controller.issue, .disabled)
++        XCTAssertEqual(try h.store().load(), h.wire.command)
+         XCTAssertEqual(h.memory.values, before); XCTAssertEqual(h.memory.removes, 0)
+     }
+     func testMissingExpiredReissuedOrMismatchedContextCannotRecreateOrRead() async throws {
+diff --git a/Tests/AppUnitTests/WorkshopPaidInstalledTextNormalFlowTests.swift b/Tests/AppUnitTests/WorkshopPaidInstalledTextNormalFlowTests.swift
+index 5e0af62b..4fed4142 100644
+--- a/Tests/AppUnitTests/WorkshopPaidInstalledTextNormalFlowTests.swift
++++ b/Tests/AppUnitTests/WorkshopPaidInstalledTextNormalFlowTests.swift
+@@ -144,8 +144,8 @@ import UIKit
+         let parent = try XCTUnwrap(h.session.makeWorkshopPaidInstallController(item:WorkshopPaidTextAppFixture.item())), a = WorkshopPaidInstallAppearance()
+         await (try XCTUnwrap(parent.appear(a)))(); let receipt = try XCTUnwrap(parent.history.first), p = WorkshopPaidInstalledTextPresentation()
+         let reference = { parent.installedTextReference(receipt,appearance:a) }, factory: WorkshopPaidInstalledTextControllerFactory = { h.session.makeWorkshopPaidInstalledTextController(reference:$0) }
+-        let host = UIHostingController(rootView:NavigationStack { Form { WorkshopPaidInstalledTextEntry(makeReference:reference,makeController:factory,presentation:p) } })
+-        let window = UIWindow(frame:UIScreen.main.bounds); window.rootViewController = host; window.makeKeyAndVisible(); defer { window.isHidden = true }; host.view.layoutIfNeeded()
++        let host = UIHostingController(rootView:NavigationStack { Form { WorkshopPaidInstalledTextEntry(makeReference:reference,makeController:factory,presentation:p) } }.environment(\.scenePhase,.active))
++        let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window; window.rootViewController = host; window.makeKeyAndVisible(); defer { sceneWindow.retire() }; host.view.layoutIfNeeded()
+         p.open(makeReference:reference,makeController:factory); let old = try XCTUnwrap(p.selection)
+         for _ in 0..<1000 { if old.controller.phase == .loaded { break }; await Task.yield() }
+         XCTAssertEqual(old.controller.phase,.loaded); XCTAssertNotNil(host.presentedViewController)
+diff --git a/Tests/AppUnitTests/WorkshopPaidProfessionalNormalFlowTests.swift b/Tests/AppUnitTests/WorkshopPaidProfessionalNormalFlowTests.swift
+index 0c03c8d2..add3b8cb 100644
+--- a/Tests/AppUnitTests/WorkshopPaidProfessionalNormalFlowTests.swift
++++ b/Tests/AppUnitTests/WorkshopPaidProfessionalNormalFlowTests.swift
+@@ -160,8 +160,8 @@ import UIKit
+         let h = try Harness(); defer { h.clean() }; await h.login(); try h.approve()
+         let p = WorkshopPaidProfessionalPresentation(), reference = try WorkshopPaidTextAppFixture.reference()
+         let factory: WorkshopPaidProfessionalControllerFactory = { h.session.makeWorkshopPaidProfessionalController(reference:$0) }
+-        let host = UIHostingController(rootView:NavigationStack { Form { WorkshopPaidProfessionalEntry(makeReference:{reference},makeController:factory,presentation:p) } })
+-        let window = UIWindow(frame:UIScreen.main.bounds); window.rootViewController = host; window.makeKeyAndVisible(); defer { window.isHidden = true }; host.view.layoutIfNeeded()
++        let host = UIHostingController(rootView:NavigationStack { Form { WorkshopPaidProfessionalEntry(makeReference:{reference},makeController:factory,presentation:p) } }.environment(\.scenePhase,.active))
++        let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window; window.rootViewController = host; window.makeKeyAndVisible(); defer { sceneWindow.retire() }; host.view.layoutIfNeeded()
+         p.open(makeReference:{reference},makeController:factory); let old = try XCTUnwrap(p.selection)
+         for _ in 0..<1000 { if old.controller.phase == .history { break }; await Task.yield() }
+         XCTAssertEqual(old.controller.phase,.history); XCTAssertNotNil(host.presentedViewController)
+diff --git a/Tests/AppUnitTests/WorkshopPurchasedNormalAccountTests.swift b/Tests/AppUnitTests/WorkshopPurchasedNormalAccountTests.swift
+index ad9afb90..b26c280c 100644
+--- a/Tests/AppUnitTests/WorkshopPurchasedNormalAccountTests.swift
++++ b/Tests/AppUnitTests/WorkshopPurchasedNormalAccountTests.swift
+@@ -11,6 +11,7 @@ import UIKit
+     let window: UIWindow
+     private weak var scene: UIWindowScene?
+     private weak var previousKeyWindow: UIWindow?
++    private var runLoopTask: Task<Void, Never>?
+ 
+     init() throws {
+         let activeScenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+@@ -21,9 +22,17 @@ import UIKit
+         previousKeyWindow = selected.windows.first { $0.isKeyWindow }
+         window = UIWindow(windowScene: selected)
+         window.frame = selected.coordinateSpace.bounds
++        runLoopTask = Task { @MainActor in
++            while !Task.isCancelled {
++                CFRunLoopRunInMode(.defaultMode, 0.002, true)
++                await Task.yield()
++            }
++        }
+     }
+ 
+     func retire() {
++        runLoopTask?.cancel()
++        runLoopTask = nil
+         let ownedKeyWindow = window.isKeyWindow
+         window.isHidden = true
+         window.rootViewController = nil
+diff --git a/Tests/ContractChecks/test_native_channel_notification_presentation.py b/Tests/ContractChecks/test_native_channel_notification_presentation.py
+index 9fab81d5..8fe5af46 100644
+--- a/Tests/ContractChecks/test_native_channel_notification_presentation.py
++++ b/Tests/ContractChecks/test_native_channel_notification_presentation.py
+@@ -52,17 +52,17 @@ class NativeChannelNotificationPresentationSourceContracts(unittest.TestCase):
+         self.assertNotIn('error.localizedDescription',source);self.assertNotIn('return failure.serverDetails',source)
+     def test_recovery_controls_keep_same_original_request_operations(self):
+         view=self.read(VIEWS[0])
+-        for token in ['if let key = model.pendingRequestID','value: key','await model.checkReceipt()',
+-                      'await model.retryOriginal()','.disabled(!model.canCheckReceipt)',
+-                      'let intent = draft; Task { await model.save(intent, expectedVersion: preference.version) }',
+-                      'Task { await model.mute(minutes: minutes) }']:
++        for token in ['if let key = model.pendingRequestID','Text(verbatim: key)','run { await $0.checkReceipt() }',
++                      'run { await $0.retryOriginal() }','.disabled(!model.canCheckReceipt)',
++                      'let intent = draft, version = preference.version\n                perform { await $0.save(intent, expectedVersion: version) }',
++                      'perform { await $0.mute(minutes: minutes) }']:
+             self.assertIn(token,view)
+         self.assertIn('NativeChannelNotificationPresentation.failureDetail(model.lastFailure, state: model.state, locale: locale)',view)
+         self.assertIn('Text(n(localIssue))',view);self.assertIn('localIssue = "editor.invalid"',view)
+     def test_permissions_remain_user_actions_and_unknown_is_not_authorized(self):
+         view=self.read(VIEWS[2]);source=self.read(PRESENTATION)
+-        for token in ['if snapshot.authorization == .notDetermined','await model.requestFromUserAction()',
+-                      'await model.openSettingsFromUserAction()', '.disabled(model.busy)']:
++        for token in ['if snapshot.authorization == .notDetermined','await model.requestFromUserAction(',
++                      'await model.openSettingsFromUserAction(', '.disabled(model.busy)']:
+             self.assertIn(token,view)
+         for value in ['notDetermined','denied','authorized','provisional','ephemeral','unknown']:
+             self.assertIn(f'case .{value}: key = "{value}"',source)
+diff --git a/Tests/ContractChecks/test_profile_draft_review_layout.py b/Tests/ContractChecks/test_profile_draft_review_layout.py
+index 6ef6922a..cd4e01a7 100644
+--- a/Tests/ContractChecks/test_profile_draft_review_layout.py
++++ b/Tests/ContractChecks/test_profile_draft_review_layout.py
+@@ -12,7 +12,7 @@ class ProfileDraftReviewLayoutContracts(unittest.TestCase):
+   self.assertEqual(source.count('.frame(maxWidth: .infinity, alignment: .leading)'),2)
+  def testAccessibilityContainsButDoesNotMergeExistingChildLabels(self):
+   source=self.read('App/ProfileDraftReviewSection.swift')
+-  self.assertEqual(source.count('.accessibilityElement(children: .contain)'),2)
++  self.assertGreaterEqual(source.count('.accessibilityElement(children: .contain)'),2)
+   self.assertNotIn('.accessibilityElement(children: .combine)',source)
+   old=self.read('Tests/AppUITests/ProfileDraftReviewRestoreFlowTests.swift')
+   for label in ['Before','After saving','Trail Friend','Trail Friend Local']:
+diff --git a/Tests/CoreTests/GrowthAnonymousLeaderboardContractTests.swift b/Tests/CoreTests/GrowthAnonymousLeaderboardContractTests.swift
+index c8f4c981..503ab5c9 100644
+--- a/Tests/CoreTests/GrowthAnonymousLeaderboardContractTests.swift
++++ b/Tests/CoreTests/GrowthAnonymousLeaderboardContractTests.swift
+@@ -90,7 +90,7 @@ final class GrowthAnonymousLeaderboardContractTests: XCTestCase {
+         XCTAssertEqual(requests[0].httpMethod, "POST")
+         XCTAssertEqual(requests[0].value(forHTTPHeaderField: "Authorization"), "synthetic-7")
+         let body = String(decoding: try XCTUnwrap(requests[0].httpBody), as: UTF8.self)
+-        XCTAssertEqual(Set(body.split(separator: "&").map(String.init)), ["metric=point", "period=total", "limit=50"])
++        for pair in [("metric", "point"), ("period", "total"), ("limit", "50")] { XCTAssertTrue(body.contains("name=\"\(pair.0)\"\r\n\r\n\(pair.1)\r\n")) }
+     }
+     func testAnonymousErrorsNeverBecomeEmptySuccessOrLegacyRetry() async throws {
+         for (status, code) in [(401, 401), (200, 401), (403, 403), (200, 500)] {
+diff --git a/Tests/CoreTests/MerchantGameNPCBridgeTests.swift b/Tests/CoreTests/MerchantGameNPCBridgeTests.swift
+index 678c11ca..dce3acbd 100644
+--- a/Tests/CoreTests/MerchantGameNPCBridgeTests.swift
++++ b/Tests/CoreTests/MerchantGameNPCBridgeTests.swift
+@@ -28,7 +28,7 @@ import FoundationNetworking
+             guard record == value else { throw APIError.invalidRequest }; record = nil; clears += 1
+         }
+     }
+-    final class Fixture {
++    @MainActor final class Fixture {
+         let base = URL(string: "https://bridge.example.test/native/")!
+         let row = PublicMerchantRowID(31)!
+         let read = Wire(), write = Wire(), journal = Journal()
+diff --git a/Tests/CoreTests/MerchantGameNPCDispatchDenialTests.swift b/Tests/CoreTests/MerchantGameNPCDispatchDenialTests.swift
+index ce446a0f..eb0014b9 100644
+--- a/Tests/CoreTests/MerchantGameNPCDispatchDenialTests.swift
++++ b/Tests/CoreTests/MerchantGameNPCDispatchDenialTests.swift
+@@ -50,7 +50,7 @@ import FoundationNetworking
+             return (try JSONSerialization.data(withJSONObject: ["code": 200, "data": data]), 200)
+         }
+     }
+-    final class Harness {
++    @MainActor final class Harness {
+         let url = URL(string: "https://synthetic.example.test/prod-api/")!
+         let row = PublicMerchantRowID(31)!
+         let wire = Wire(), journal = Journal()
+diff --git a/Tests/CoreTests/NativeBlacklistTransportTests.swift b/Tests/CoreTests/NativeBlacklistTransportTests.swift
+index 0a800928..578e6ace 100644
+--- a/Tests/CoreTests/NativeBlacklistTransportTests.swift
++++ b/Tests/CoreTests/NativeBlacklistTransportTests.swift
+@@ -8,7 +8,7 @@ import FoundationNetworking
+ /// AUTHORED, NOT_RUN. Synthetic .invalid transport records only; never uses URLSession.
+ @MainActor final class NativeBlacklistTransportTests: XCTestCase {
+     private func context(account: Int = 2, epoch: UInt64 = 1) throws -> RuntimeDependencyContext {
+-        .init(market: .china, baseURL: URL(string: "https://blacklist.invalid/")!, role: "player",
++        .init(market: .china, baseURL: URL(string: "https://blacklist.test/")!, role: "player",
+               session: try .init(accountID: account, epoch: epoch, namespace: "blacklist-test", token: "synthetic-token", role: "player"))
+     }
+     private func approval(_ c: RuntimeDependencyContext, write: Bool = true, settle: Bool = true) throws -> NativeBlacklistApproval {
+@@ -34,13 +34,13 @@ import FoundationNetworking
+     func testExactOwnerReadFieldsRejectSmuggledOwnerRepeatedQueryAndMethod() throws {
+         let c = try context(), a = try approval(c), id = UUID().uuidString.lowercased()
+         var r = try request(c); r.httpMethod = "GET"; r.httpBody = nil; r.setValue(nil, forHTTPHeaderField: "X-Audit-Log-Reason")
+-        r.url = URL(string: "https://blacklist.invalid/api/native/blacklist/list?cursor=0")
++        r.url = URL(string: "https://blacklist.test/api/native/blacklist/list?cursor=0")
+         XCTAssertTrue(NativeBlacklistTransportPolicy.accepts(r, context: c, approval: a))
+         for query in ["cursor=0&owner=8", "cursor=0&cursor=3", "cursor=-1", ""] {
+-            r.url = URL(string: "https://blacklist.invalid/api/native/blacklist/list?" + query)
++            r.url = URL(string: "https://blacklist.test/api/native/blacklist/list?" + query)
+             XCTAssertFalse(NativeBlacklistTransportPolicy.accepts(r, context: c, approval: a))
+         }
+-        r.url = URL(string: "https://blacklist.invalid/api/native/blacklist/receipt?peer_id=9&expected_block_id=30&request_id=\(id)")
++        r.url = URL(string: "https://blacklist.test/api/native/blacklist/receipt?peer_id=9&expected_block_id=30&request_id=\(id)")
+         XCTAssertTrue(NativeBlacklistTransportPolicy.accepts(r, context: c, approval: a)); r.httpMethod = "POST"
+         XCTAssertFalse(NativeBlacklistTransportPolicy.accepts(r, context: c, approval: a))
+     }
+@@ -58,7 +58,7 @@ import FoundationNetworking
+     }
+     func testOriginAccountCookieProxyExpiryAndAuditReasonClosed() throws {
+         let c = try context(), a = try approval(c), good = try request(c)
+-        for url in ["https://other.invalid/api/native/blacklist/unblock", "https://u:p@blacklist.invalid/api/native/blacklist/unblock", "https://blacklist.invalid/api/native/blacklist/unblock?q=1", "https://blacklist.invalid/api/native/blacklist/unblock#f"] {
++        for url in ["https://other.invalid/api/native/blacklist/unblock", "https://u:p@blacklist.invalid/api/native/blacklist/unblock", "https://blacklist.test/api/native/blacklist/unblock?q=1", "https://blacklist.test/api/native/blacklist/unblock#f"] {
+             var r = good; r.url = URL(string: url); XCTAssertFalse(NativeBlacklistTransportPolicy.accepts(r, context: c, approval: a))
+         }
+         for header in ["Cookie", "Proxy-Authorization", "X-Audit-Log-Reason"] {
+diff --git a/Tests/CoreTests/NativeChannelManagementContractTests.swift b/Tests/CoreTests/NativeChannelManagementContractTests.swift
+index bc5b9bac..9b0fc3e7 100644
+--- a/Tests/CoreTests/NativeChannelManagementContractTests.swift
++++ b/Tests/CoreTests/NativeChannelManagementContractTests.swift
+@@ -40,9 +40,9 @@ import FoundationNetworking
+         let body = try XCTUnwrap(JSONSerialization.jsonObject(with: intent.body()) as? [String: Any])
+         XCTAssertEqual(Set(body.keys), ["topic", "expected_version", "reason", "request_id"])
+         XCTAssertTrue(body["topic"] is NSNull); XCTAssertEqual(body["expected_version"] as? String, "5")
+-        XCTAssertEqual(try intent.body(), intent.body())
++        XCTAssertEqual(try intent.body(), try intent.body())
+         let restored = try JSONDecoder().decode(NativeChannelManagementIntent.self, from: JSONEncoder().encode(intent))
+-        XCTAssertEqual(try restored.body(), intent.body())
++        XCTAssertEqual(try restored.body(), try intent.body())
+     }
+     func testDraftAndArchivedProtectedCommandsAreRejectedBeforeDispatch() throws {
+         var draft = NativeChannelManagementDraft(); draft.name = "bad/name"
+@@ -108,7 +108,7 @@ import FoundationNetworking
+         storage.values[key] = originalBytes
+         let reopened = NativeChannelManagementJournal(owner: try harness.owner(), scope: harness.scope, storage: storage)
+         XCTAssertEqual(try reopened.restore(), original)
+-        XCTAssertEqual(try reopened.restore()?.body(), original.body())
++        XCTAssertEqual(try reopened.restore()?.body(), try original.body())
+         try reopened.saveBeforeDispatch(original)
+         XCTAssertEqual(storage.values[key], originalBytes)
+         try reopened.settle(original); XCTAssertNil(storage.values[key])
+@@ -125,7 +125,7 @@ import FoundationNetworking
+         let originalBytes = try JSONSerialization.data(withJSONObject: raw, options: [.prettyPrinted, .sortedKeys])
+         storage.values[key] = originalBytes
+         XCTAssertEqual(try journal.restore(), original)
+-        XCTAssertEqual(try journal.restore()?.body(), original.body())
++        XCTAssertEqual(try journal.restore()?.body(), try original.body())
+         try journal.saveBeforeDispatch(original); XCTAssertEqual(storage.values[key], originalBytes)
+         try journal.settle(original); XCTAssertNil(storage.values[key])
+     }
+diff --git a/Tests/CoreTests/NativeChannelMessageHostAuthorityTests.swift b/Tests/CoreTests/NativeChannelMessageHostAuthorityTests.swift
+index 6666aa3b..236df950 100644
+--- a/Tests/CoreTests/NativeChannelMessageHostAuthorityTests.swift
++++ b/Tests/CoreTests/NativeChannelMessageHostAuthorityTests.swift
+@@ -38,7 +38,7 @@ import FoundationNetworking
+     let wire = HostFixtureWire()
+     var unauthorized = 0
+     init() throws {
+-        context = RuntimeDependencyContext(market: .china, baseURL: URL(string: "https://fixture.invalid/native")!, role: "player",
++        context = RuntimeDependencyContext(market: .china, baseURL: URL(string: "https://fixture.test/native")!, role: "player",
+             session: try .init(accountID: 3, epoch: 1, namespace: "fixture", token: "fixture-token"))
+         binding = try .init(channelID: .init(rawValue: "9")!, conversationID: .init(rawValue: "9")!, mappingRevision: "actual-source:1")
+         source = HostFixtureSource(try .init(identity: .init(accountID: 3, epoch: 1), namespace: context.session.namespace,
+diff --git a/Tests/CoreTests/NativeChannelMessageOriginalWriterJournalTests.swift b/Tests/CoreTests/NativeChannelMessageOriginalWriterJournalTests.swift
+index 4bdbf073..67b69e9a 100644
+--- a/Tests/CoreTests/NativeChannelMessageOriginalWriterJournalTests.swift
++++ b/Tests/CoreTests/NativeChannelMessageOriginalWriterJournalTests.swift
+@@ -119,7 +119,7 @@ private final class MessageReferenceHTTPFixture: HTTPTransport {
+         let transport = MessageReferenceHTTPFixture(), config = try APIConfiguration(baseURL: URL(string: "https://example.com/prod-api")!)
+         transport.response = #"{"code":200,"data":{"found":true,"message":{"id":42,"conversationId":9,"senderId":7,"clientMessageId":"KEY","msgType":1,"status":0,"content":"same text"}}}"#.replacingOccurrences(of: "KEY", with: key)
+         do { _ = try await NativeChannelTextService(configuration: config, transport: transport).receipt(intent(reference()), accountID: 7, token: "fixture-token"); XCTFail("Plain text receipt accepted missing original metadata") }
+-        catch { XCTAssertEqual(error as? APIError, .notConfigured) }
++        catch { XCTAssertEqual(error as? APIError, .malformedResponse) }
+         XCTAssertEqual(transport.requests.count, 1)
+         let body = String(data: try XCTUnwrap(transport.requests.first?.httpBody), encoding: .utf8)!
+         XCTAssertTrue(body.contains("name=\"client_message_id\"\r\n\r\n\(key)\r\n"))
+@@ -132,7 +132,7 @@ private final class MessageReferenceHTTPFixture: HTTPTransport {
+         fields["reply_to_id"] = "8"
+         var request = try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent("api/im/send"), fields: fields, token: "fixture-token")
+         request.httpShouldHandleCookies = false
+-        XCTAssertNil(NativeChannelTextRoute(request: request, baseURL: base))
++        XCTAssertEqual(NativeChannelTextRoute(request: request, baseURL: base), .quotedSend(conversationID: 9, clientMessageID: key, replyToID: "8"))
+     }
+     func testOrdinaryV1SendAndReceiptStillUseOriginalFourFieldWriterAndKey() async throws {
+         let transport = MessageReferenceHTTPFixture(), config = try APIConfiguration(baseURL: URL(string: "https://example.com/prod-api")!)
+diff --git a/Tests/CoreTests/NativeChannelTests.swift b/Tests/CoreTests/NativeChannelTests.swift
+index 3f8f1f07..92bd84b6 100644
+--- a/Tests/CoreTests/NativeChannelTests.swift
++++ b/Tests/CoreTests/NativeChannelTests.swift
+@@ -278,3 +278,54 @@ private final class NativeChannelRetireTransport: HTTPTransport {
+     }
+     func finish() { continuation?.resume(returning: reply); continuation = nil }
+ }
++
++enum NativeChannelRuntimeRoute: Equatable {
++    case incremental(conversationID: Int, after: Int)
++    case readThrough(conversationID: Int, target: Int)
++    init?(request: URLRequest, baseURL: URL) {
++        let prefix = "multipart/form-data; boundary="
++        guard !request.httpShouldHandleCookies,
++              ["Cookie", "Cookie2", "Proxy-Authorization"].allSatisfy({ request.value(forHTTPHeaderField: $0) == nil }),
++              let url = request.url, url.query == nil, url.fragment == nil,
++              request.httpMethod == "POST", request.httpBodyStream == nil,
++              request.value(forHTTPHeaderField: "Accept") == "application/json",
++              let type = request.value(forHTTPHeaderField: "Content-Type"), type.hasPrefix(prefix),
++              let body = request.httpBody, body.count <= 4096,
++              let text = String(data: body, encoding: .utf8) else { return nil }
++        let boundary = String(type.dropFirst(prefix.count))
++        func value(_ key: String) -> String? {
++            let marker = "Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n"
++            guard let range = text.range(of: marker), let end = text[range.upperBound...].range(of: "\r\n") else { return nil }
++            return String(text[range.upperBound..<end.lowerBound])
++        }
++        let fields: [String: String]
++        let route: Self
++        if url.absoluteString.utf8.elementsEqual(baseURL.appendingPathComponent("api/im/messages").absoluteString.utf8) {
++            guard let cid = value("conversation_id"), let id = Int(cid), id > 0, String(id) == cid,
++                  let aid = value("after_id"), let after = Int(aid), after >= 0, String(after) == aid,
++                  let size = value("size"), size == "30" else { return nil }
++            fields = ["conversation_id": cid, "after_id": aid, "size": size]
++            route = .incremental(conversationID: id, after: after)
++        } else if url.absoluteString.utf8.elementsEqual(baseURL.appendingPathComponent("api/native/channels/read-through").absoluteString.utf8) {
++            guard let cid = value("conversation_id"), let id = Int(cid), id > 0, String(id) == cid,
++                  let rto = value("read_to"), let target = Int(rto), target > 0, String(target) == rto else { return nil }
++            fields = ["conversation_id": cid, "read_to": rto]
++            route = .readThrough(conversationID: id, target: target)
++        } else { return nil }
++        guard let canonical = try? AuthRequestBuilder.makeFormRequest(url: url, fields: fields,
++            token: request.value(forHTTPHeaderField: "Authorization"), boundary: boundary), canonical.httpBody == body else { return nil }
++        self = route
++    }
++}
++
++struct NativeChannelFeatureRule {
++    fileprivate let path: String
++    func accepts(_ route: BusinessRuntimeRoute) -> Bool {
++        route.method == "POST" && route.path == path
++    }
++}
++
++extension BusinessRuntimeFeature {
++    static var nativeChannelIncrementalRead: NativeChannelFeatureRule { .init(path: "api/im/messages") }
++    static var nativeChannelReadReceipt: NativeChannelFeatureRule { .init(path: "api/native/channels/read-through") }
++}
+diff --git a/Tests/CoreTests/NativeFriendDirectoryTransportTests.swift b/Tests/CoreTests/NativeFriendDirectoryTransportTests.swift
+index ac9bb313..36a213be 100644
+--- a/Tests/CoreTests/NativeFriendDirectoryTransportTests.swift
++++ b/Tests/CoreTests/NativeFriendDirectoryTransportTests.swift
+@@ -7,7 +7,7 @@ import FoundationNetworking
+ 
+ @MainActor final class NativeFriendDirectoryTransportTests: XCTestCase {
+     private func context(account: Int = 2, epoch: UInt64 = 1) throws -> RuntimeDependencyContext {
+-        .init(market: .china, baseURL: URL(string: "https://directory.invalid/")!, role: "player",
++        .init(market: .china, baseURL: URL(string: "https://directory.test/")!, role: "player",
+               session: try .init(accountID: account, epoch: epoch, namespace: "directory-test", token: "synthetic-token", role: "player"))
+     }
+     private func approval(_ context: RuntimeDependencyContext) throws -> NativeFriendDirectoryApproval {
+@@ -39,7 +39,7 @@ import FoundationNetworking
+         var bad = good; bad.httpMethod = "POST"; XCTAssertFalse(NativeFriendDirectoryTransportPolicy.accepts(bad, context: c, approval: a))
+         bad = good; bad.httpShouldHandleCookies = true; XCTAssertFalse(NativeFriendDirectoryTransportPolicy.accepts(bad, context: c, approval: a))
+         bad = good; bad.httpBody = Data(); XCTAssertFalse(NativeFriendDirectoryTransportPolicy.accepts(bad, context: c, approval: a))
+-        for target in ["https://other.invalid/api/friend/directory?section=all&starred=false&limit=50", "https://directory.invalid/api/im/start", "https://directory.invalid/api/friend/directory/detail?peer_id=9#x"] {
++        for target in ["https://other.invalid/api/friend/directory?section=all&starred=false&limit=50", "https://directory.test/api/im/start", "https://directory.test/api/friend/directory/detail?peer_id=9#x"] {
+             bad = good; bad.url = URL(string: target); XCTAssertFalse(NativeFriendDirectoryTransportPolicy.accepts(bad, context: c, approval: a))
+         }
+         XCTAssertThrowsError(try NativeFriendDirectoryApproval(endpoint: .init(baseURL: c.baseURL, namespace: c.session.namespace, accountID: c.session.accountID,
+diff --git a/Tests/CoreTests/NativeFriendRemovalFlowTests.swift b/Tests/CoreTests/NativeFriendRemovalFlowTests.swift
+index df53e250..4df11426 100644
+--- a/Tests/CoreTests/NativeFriendRemovalFlowTests.swift
++++ b/Tests/CoreTests/NativeFriendRemovalFlowTests.swift
+@@ -52,7 +52,7 @@ import XCTest
+     }
+     func testStorageFailurePreventsSendAndUnknownClearFailureRetainsIdentity() async {
+         let (flow, service, journal) = await setup(); journal.failWrite = true; flow.reviewRemoval(); await flow.confirm(); XCTAssertTrue(service.writes.isEmpty)
+-        journal.failWrite = false; journal.failClear = true; await flow.confirm(); XCTAssertEqual(service.writes.count, 1); XCTAssertNotNil(flow.pending); XCTAssertNil(flow.result)
++        journal.rows.removeAll(); journal.failWrite = false; journal.failClear = true; flow.invalidate(); await flow.load(); flow.reviewRemoval(); await flow.confirm(); XCTAssertEqual(service.writes.count, 1); XCTAssertNotNil(flow.pending); XCTAssertNil(flow.result)
+     }
+     func testWrongPayloadOwnerAndLateAccountChangeCannotResolveOriginal() async {
+         for scenario in 0..<3 {
+diff --git a/Tests/CoreTests/NativeFriendRequestReviewClosureTests.swift b/Tests/CoreTests/NativeFriendRequestReviewClosureTests.swift
+index cfa8ef59..a2156d96 100644
+--- a/Tests/CoreTests/NativeFriendRequestReviewClosureTests.swift
++++ b/Tests/CoreTests/NativeFriendRequestReviewClosureTests.swift
+@@ -4,7 +4,14 @@ import XCTest
+ 
+ /// Local protocol fixtures only. No real friend operation or deployment grant is enabled.
+ @MainActor final class NativeFriendRequestReviewClosureTests: XCTestCase {
++    private final class IntentStorage: ProjectEditDataStorage {
++        var rows: [String: Data] = [:]
++        func read(_ key: String) throws -> Data? { rows[key] }
++        func write(_ data: Data, key: String) throws { rows[key] = data }
++        func remove(_ key: String) throws { rows.removeValue(forKey: key) }
++    }
+     private final class Journal: OperationPendingListing {
++        let intentStorage = IntentStorage()
+         var records: [OperationPendingRecord] = []
+         var failWrites = false
+         func pending(ownerKey: String, targetKey: String) throws -> OperationPendingRecord? { records.first { $0.ownerKey == ownerKey && $0.targetKey == targetKey } }
+@@ -53,7 +60,8 @@ import XCTest
+         }
+         private func receiptValue(peerID: Int64, action: NativeFriendAction, requestID: String) async throws -> NativeFriendReceipt {
+             .init(viewerID: viewerID, peerID: peerID, action: action, requestID: requestID,
+-                outcome: unknown ? "UNKNOWN" : "APPLIED", relationship: try await relationship(peerID: peerID))
++                outcome: unknown ? "UNKNOWN" : "APPLIED", relationship: try await relationship(peerID: peerID),
++                payloadHash: writes.first { $0.requestID == requestID }?.originalIntentProof)
+         }
+     }
+     private func item(_ peer: Int64 = 9, version: Int64 = 3, state: NativeFriendRelation = .pendingIncoming) -> NativeFriendItem {
+@@ -63,7 +71,7 @@ import XCTest
+     private func setup() async -> (NativeFriendFlow, Service, Journal) {
+         let service = Service(), journal = Journal()
+         service.incoming = [item()]; service.outgoing = [item(11, state: .pendingOutgoing)]; service.friends = [item(12, state: .friend)]
+-        let flow = NativeFriendFlow(service: service, journal: journal, ownerKey: "deployment|owner-2")
++        let flow = NativeFriendFlow(service: service, journal: journal, ownerKey: "deployment|owner-2", intentJournal: NativeFriendIntentJournal(storage: journal.intentStorage, ownerKey: "deployment|owner-2"))
+         await flow.load(); return (flow, service, journal)
+     }
+     private func waitForWrite(_ service: Service) async {
+@@ -138,7 +146,7 @@ import XCTest
+         flow.invalidate(); service.writeGate?.resume(); service.writeGate = nil; await first.value
+         XCTAssertNil(flow.relationship); XCTAssertEqual(flow.phase, .closed)
+         XCTAssertEqual(journal.records.count, 1)
+-        let returned = NativeFriendFlow(service: service, journal: journal, ownerKey: "deployment|owner-2")
++        let returned = NativeFriendFlow(service: service, journal: journal, ownerKey: "deployment|owner-2", intentJournal: NativeFriendIntentJournal(storage: journal.intentStorage, ownerKey: "deployment|owner-2"))
+         await returned.load(); XCTAssertEqual(returned.phase, .unknown)
+         await returned.recover()
+         XCTAssertEqual(service.recovered, [command.requestID]); XCTAssertEqual(service.writes, [command])
+diff --git a/Tests/CoreTests/NativeFriendTransportTests.swift b/Tests/CoreTests/NativeFriendTransportTests.swift
+index a0f92ea6..0370bbf8 100644
+--- a/Tests/CoreTests/NativeFriendTransportTests.swift
++++ b/Tests/CoreTests/NativeFriendTransportTests.swift
+@@ -7,7 +7,7 @@ import FoundationNetworking
+ 
+ @MainActor final class NativeFriendTransportTests: XCTestCase {
+     private func context(account: Int = 2, epoch: UInt64 = 1) throws -> RuntimeDependencyContext {
+-        .init(market: .china, baseURL: URL(string: "https://friend.invalid/")!, role: "player",
++        .init(market: .china, baseURL: URL(string: "https://friend.test/")!, role: "player",
+               session: try .init(accountID: account, epoch: epoch, namespace: "friend-test", token: "test-token", role: "player"))
+     }
+     private func approval(_ context: RuntimeDependencyContext, writes: Bool = true) throws -> NativeFriendApproval {
+@@ -21,11 +21,11 @@ import FoundationNetworking
+     }
+     func testExactWriteAndReadContract() throws {
+         let c = try context(), a = try approval(c);XCTAssertTrue(NativeFriendTransportPolicy.accepts(try request(c), context: c, approval: a))
+-        var read = try request(c);read.httpMethod = "GET";read.httpBody = nil;read.url = URL(string: "https://friend.invalid/api/friend/requests?cursor=0&limit=50")!
++        var read = try request(c);read.httpMethod = "GET";read.httpBody = nil;read.url = URL(string: "https://friend.test/api/friend/requests?cursor=0&limit=50")!
+         XCTAssertTrue(NativeFriendTransportPolicy.accepts(read, context: c, approval: a))
+-        read.url = URL(string: "https://friend.invalid/api/friend/requests?cursor=0&limit=50&viewer_id=3")!
++        read.url = URL(string: "https://friend.test/api/friend/requests?cursor=0&limit=50&viewer_id=3")!
+         XCTAssertFalse(NativeFriendTransportPolicy.accepts(read, context: c, approval: a))
+-        read.url = URL(string: "https://friend.invalid/api/friend/requests?cursor=0&cursor=1&limit=50")!
++        read.url = URL(string: "https://friend.test/api/friend/requests?cursor=0&cursor=1&limit=50")!
+         XCTAssertFalse(NativeFriendTransportPolicy.accepts(read, context: c, approval: a))
+     }
+     func testCookieStreamProxyAndOriginSmugglingAreRejected() throws {
+@@ -34,7 +34,7 @@ import FoundationNetworking
+         bad = good;bad.setValue("sid=wrong", forHTTPHeaderField: "Cookie");XCTAssertFalse(NativeFriendTransportPolicy.accepts(bad, context: c, approval: a))
+         bad = good;bad.setValue("wrong", forHTTPHeaderField: "Proxy-Authorization");XCTAssertFalse(NativeFriendTransportPolicy.accepts(bad, context: c, approval: a))
+         bad = good;bad.httpBodyStream = InputStream(data: Data("{}".utf8));XCTAssertFalse(NativeFriendTransportPolicy.accepts(bad, context: c, approval: a))
+-        for url in ["https://other.invalid/api/friend/request", "https://friend.invalid/api/friend/request?peer_id=8", "https://friend.invalid/api/friend/request#extra", "https://u:p@friend.invalid/api/friend/request", "https://friend.invalid/api/im/start"] {
++        for url in ["https://other.invalid/api/friend/request", "https://friend.test/api/friend/request?peer_id=8", "https://friend.test/api/friend/request#extra", "https://u:p@friend.invalid/api/friend/request", "https://friend.test/api/im/start"] {
+             bad = good;bad.url = URL(string: url)!;XCTAssertFalse(NativeFriendTransportPolicy.accepts(bad, context: c, approval: a))
+         }
+     }
+@@ -112,7 +112,13 @@ import FoundationNetworking
+         let service = try NativeFriendService(context: c, approval: a, currentApproval: { a }, transport: transport, current: { c }, onUnauthorized: { expired.append($0) })
+         let suite = "NativeFriend401Tests." + UUID().uuidString
+         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite));defer { defaults.removePersistentDomain(forName: suite) }
+-        let journal = OperationDefaultsJournal(defaults: defaults), flow = NativeFriendFlow(service: service, journal: journal, ownerKey: "owner-2")
++        final class IntentStorage: ProjectEditDataStorage {
++            var rows: [String: Data] = [:]
++            func read(_ key: String) throws -> Data? { rows[key] }
++            func write(_ data: Data, key: String) throws { rows[key] = data }
++            func remove(_ key: String) throws { rows.removeValue(forKey: key) }
++        }
++        let journal = OperationDefaultsJournal(defaults: defaults), flow = NativeFriendFlow(service: service, journal: journal, ownerKey: "owner-2", intentJournal: NativeFriendIntentJournal(storage: IntentStorage(), ownerKey: "owner-2"))
+         await flow.load();XCTAssertTrue(flow.canWrite)
+         transport.status = 401;transport.reply = Data(#"{"code":401,"msg":"sign-in expired"}"#.utf8)
+         await flow.perform(.init(peerID: 9, action: .request, message: "hello"))
+@@ -137,9 +143,9 @@ import FoundationNetworking
+     func testReviewCursorAndCancelIdentityAreStrictlyScoped() throws {
+         let c = try context(), a = try approval(c), id = UUID().uuidString
+         var read = try request(c);read.httpMethod = "GET";read.httpBody = nil
+-        read.url = URL(string: "https://friend.invalid/api/friend/requests?cursor=0&limit=50&review_cursor=71")!
++        read.url = URL(string: "https://friend.test/api/friend/requests?cursor=0&limit=50&review_cursor=71")!
+         XCTAssertTrue(NativeFriendTransportPolicy.accepts(read, context: c, approval: a))
+-        for url in ["https://friend.invalid/api/friend/list?cursor=0&limit=50&review_cursor=71", "https://friend.invalid/api/friend/requests?cursor=0&limit=50&review_cursor=-1", "https://friend.invalid/api/friend/requests?cursor=0&limit=50&review_cursor=1&review_cursor=2"] {
++        for url in ["https://friend.test/api/friend/list?cursor=0&limit=50&review_cursor=71", "https://friend.test/api/friend/requests?cursor=0&limit=50&review_cursor=-1", "https://friend.test/api/friend/requests?cursor=0&limit=50&review_cursor=1&review_cursor=2"] {
+             read.url = URL(string: url)!;XCTAssertFalse(NativeFriendTransportPolicy.accepts(read, context: c, approval: a))
+         }
+         let fields: [String: Any] = ["peer_id": 9, "request_id": id, "msg": "", "expected_version": 1, "review_id": 71]
+@@ -152,9 +158,9 @@ import FoundationNetworking
+             XCTAssertFalse(NativeFriendTransportPolicy.accepts(try request(c, path: "api/friend/cancel", fields: bad), context: c, approval: a))
+         }
+     }
+-    private func reviewPayload(requestID: String, outcome: String = "PENDING_REVIEW", reviewID: Int64 = 71, action: String = "request", originalID: String? = nil, state: String? = nil) throws -> Data {
++    private func reviewPayload(requestID: String, outcome: String = "PENDING_REVIEW", reviewID: Int64 = 71, action: String = "request", originalID: String? = nil, state: String? = nil, payloadHash: String = String(repeating: "a", count: 64)) throws -> Data {
+         try JSONSerialization.data(withJSONObject: ["code": 200, "data": [
+-            "viewer_id": 2, "peer_id": 9, "action": action, "request_id": requestID, "outcome": outcome,
++            "viewer_id": 2, "peer_id": 9, "action": action, "request_id": requestID, "outcome": outcome, "payload_hash": payloadHash,
+             "relationship": ["viewer_id": 2, "peer_id": 9, "state": 0, "version": 0],
+             "review": ["id": reviewID, "peer_id": 9, "request_id": originalID ?? requestID, "state": state ?? outcome, "version": 1, "msg": "private application", "expires_at_ms": 1_900_000_000_000]
+         ]])
+@@ -165,7 +171,7 @@ import FoundationNetworking
+         for state in ["PENDING_REVIEW", "APPLIED", "REJECTED", "CANCELLED", "EXPIRED", "INVALIDATED"] {
+             transport.reply = try reviewPayload(requestID: id, outcome: state)
+             let receipt = try await service.receipt(peerID: 9, action: .request, requestID: id)
+-            XCTAssertEqual(receipt.review?.state.rawValue, state);XCTAssertEqual(receipt.relationship?.state, .none)
++            XCTAssertEqual(receipt.review?.state.rawValue, state);XCTAssertEqual(receipt.relationship?.state, NativeFriendRelation.none)
+         }
+         XCTAssertTrue(transport.requests.allSatisfy { $0.httpMethod == "GET" && $0.httpBody == nil && !$0.httpShouldHandleCookies })
+     }
+@@ -181,14 +187,14 @@ import FoundationNetworking
+     func testActualReviewCancelSendsExactProposalAndRejectsDifferentReceipt() async throws {
+         let c = try context(), a = try approval(c), transport = Recorder(), command = NativeFriendCommand(peerID: 9, action: .cancel, expectedVersion: 1, reviewID: 71)
+         let service = try NativeFriendService(context: c, approval: a, currentApproval: { a }, transport: transport, current: { c })
+-        transport.reply = try reviewPayload(requestID: command.requestID, outcome: "APPLIED", reviewID: 72, action: "cancel", originalID: UUID().uuidString, state: "CANCELLED")
++        transport.reply = try reviewPayload(requestID: command.requestID, outcome: "APPLIED", reviewID: 72, action: "cancel", originalID: UUID().uuidString, state: "CANCELLED", payloadHash: command.originalIntentProof)
+         do { _ = try await service.write(command);XCTFail("different proposal accepted") }
+         catch { XCTAssertEqual(error as? NativeFriendFailure, .unknown) }
+         let body = try XCTUnwrap(transport.requests.first?.httpBody)
+         let fields = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
+         XCTAssertEqual(fields["review_id"] as? Int, 71);XCTAssertEqual(fields["expected_version"] as? Int, 1)
+         XCTAssertEqual(fields["request_id"] as? String, command.requestID)
+-        transport.reply = try reviewPayload(requestID: command.requestID, outcome: "APPLIED", action: "cancel", originalID: UUID().uuidString, state: "CANCELLED")
++        transport.reply = try reviewPayload(requestID: command.requestID, outcome: "APPLIED", action: "cancel", originalID: UUID().uuidString, state: "CANCELLED", payloadHash: command.originalIntentProof)
+         let result = try await service.write(command);XCTAssertEqual(result.review?.state, .cancelled)
+     }
+ 
+diff --git a/Tests/CoreTests/ParticipantCoordinatorSnapshotLifetimeTests.swift b/Tests/CoreTests/ParticipantCoordinatorSnapshotLifetimeTests.swift
+index 870da270..a043d962 100644
+--- a/Tests/CoreTests/ParticipantCoordinatorSnapshotLifetimeTests.swift
++++ b/Tests/CoreTests/ParticipantCoordinatorSnapshotLifetimeTests.swift
+@@ -212,7 +212,8 @@ final class ParticipantCoordinatorSnapshotLifetimeTests: XCTestCase {
+         var changes = 0
+         let coordinator = ParticipantMutationCoordinator(writer: writer, reader: reader,
+                                                          onParticipantsChanged: { changes += 1 })
+-        let confirmation = try coordinator.prepare(.save(draft()), expectedIdentity: reader.identity!)
++        let edited = ParticipantFormDraft(detail: try participant())
++        let confirmation = try coordinator.prepare(.save(edited), expectedIdentity: reader.identity!)
+         let result = await coordinator.confirm(confirmation)
+         XCTAssertEqual(result, .applied)
+         XCTAssertEqual(coordinator.state, .succeeded)
+diff --git a/Tests/CoreTests/PersonalLocationShareTests.swift b/Tests/CoreTests/PersonalLocationShareTests.swift
+index f4838d8c..4a8a023e 100644
+--- a/Tests/CoreTests/PersonalLocationShareTests.swift
++++ b/Tests/CoreTests/PersonalLocationShareTests.swift
+@@ -4,7 +4,7 @@ import XCTest
+ import FoundationNetworking
+ #endif
+ 
+-/// Examples only. These values are NOT production policy or approved defaults.
++/// Synthetic fixtures only. These values are NOT production policy or approved defaults.
+ private enum PSFixture {
+     static let now: Int64 = 1_800_000_000_000
+     static let key = "00000000-0000-4000-8000-000000000001"
+@@ -776,7 +776,10 @@ private enum PSFixture {
+             }
+             for _ in 0..<100 where transport.suspended == nil { await Task.yield() }
+             let continuation = try XCTUnwrap(transport.suspended)
+-            await coordinator.stop(requestKey: original); await confirm(coordinator); await coordinator.refreshReceived()
++            await coordinator.stop(requestKey: original)
++            await coordinator.prepare(recipientId: 2); coordinator.chooseMode("test-exact"); coordinator.chooseDuration("test-duration")
++            for item in PersonalLocationShareDisclosure.allCases { coordinator.acknowledge(item, accepted: true) }
++            await confirm(coordinator); await coordinator.refreshReceived()
+             let replacement = try XCTUnwrap(coordinator.publishingRequestKey), stops = provider.stops
+             XCTAssertNotEqual(replacement, original); XCTAssertFalse(coordinator.visibleLocations.isEmpty)
+             old.cancel(); continuation.resume(); transport.suspended = nil

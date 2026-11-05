@@ -1,0 +1,429 @@
+Test Suite 'Selected tests' started at 2026-11-05 10:43:53.256.
+Test Suite 'QuestifyAppUnitTests.xctest' started at 2026-11-05 10:43:53.257.
+Test Suite 'MerchantGameFactsCompositionTests' started at 2026-11-05 10:43:53.257.
+Test Case '-[QuestifyAppUnitTests.MerchantGameFactsCompositionTests testDefaultFactsRendererDoesNotCreateReadGrantOrChatAuthority]' started.
+Test Case '-[QuestifyAppUnitTests.MerchantGameFactsCompositionTests testDefaultFactsRendererDoesNotCreateReadGrantOrChatAuthority]' passed (0.007 seconds).
+Test Case '-[QuestifyAppUnitTests.MerchantGameFactsCompositionTests testExistingApprovedChatRemainsSeparateAndWrapperRequiresBothReadPaths]' started.
+Test Case '-[QuestifyAppUnitTests.MerchantGameFactsCompositionTests testExistingApprovedChatRemainsSeparateAndWrapperRequiresBothReadPaths]' passed (0.020 seconds).
+Test Case '-[QuestifyAppUnitTests.MerchantGameFactsCompositionTests testMissingRowMismatchedOwnerAndMismatchedLegacyTargetHaveNoEntry]' started.
+Test Case '-[QuestifyAppUnitTests.MerchantGameFactsCompositionTests testMissingRowMismatchedOwnerAndMismatchedLegacyTargetHaveNoEntry]' passed (0.002 seconds).
+Test Case '-[QuestifyAppUnitTests.MerchantGameFactsCompositionTests testNoNPCCardRequiredAndReturnedRowIsNeverOwnerOrReleaseID]' started.
+Test Case '-[QuestifyAppUnitTests.MerchantGameFactsCompositionTests testNoNPCCardRequiredAndReturnedRowIsNeverOwnerOrReleaseID]' passed (0.001 seconds).
+Test Case '-[QuestifyAppUnitTests.MerchantGameFactsCompositionTests testPresentationFactoryIsLazySingleUseAndNeverReopensRetiredOwner]' started.
+Test Case '-[QuestifyAppUnitTests.MerchantGameFactsCompositionTests testPresentationFactoryIsLazySingleUseAndNeverReopensRetiredOwner]' passed (0.001 seconds).
+Test Case '-[QuestifyAppUnitTests.MerchantGameFactsCompositionTests testPresentationRevokesLoadedPrivateProjectionWithoutClearingOriginal]' started.
+Test Case '-[QuestifyAppUnitTests.MerchantGameFactsCompositionTests testPresentationRevokesLoadedPrivateProjectionWithoutClearingOriginal]' passed (0.011 seconds).
+Test Case '-[QuestifyAppUnitTests.MerchantGameFactsCompositionTests testPublicationOnlyGrantDoesNotInstallOriginalResultChatGate]' started.
+Test Case '-[QuestifyAppUnitTests.MerchantGameFactsCompositionTests testPublicationOnlyGrantDoesNotInstallOriginalResultChatGate]' passed (0.004 seconds).
+Test Case '-[QuestifyAppUnitTests.MerchantGameFactsCompositionTests testRealSessionFactoryReadsSameOriginalAndOnlyExplicitACKClearsMarker]' started.
+Test Case '-[QuestifyAppUnitTests.MerchantGameFactsCompositionTests testRealSessionFactoryReadsSameOriginalAndOnlyExplicitACKClearsMarker]' passed (0.004 seconds).
+Test Case '-[QuestifyAppUnitTests.MerchantGameFactsCompositionTests testSelectionRetiresWhenRowTargetReaderScopeOrSnapshotChanges]' started.
+Test Case '-[QuestifyAppUnitTests.MerchantGameFactsCompositionTests testSelectionRetiresWhenRowTargetReaderScopeOrSnapshotChanges]' passed (0.000 seconds).
+Test Case '-[QuestifyAppUnitTests.MerchantGameFactsCompositionTests testSignedInWithoutGrantShowsConfigurationAndSendsNoGETOrPOST]' started.
+Test Case '-[QuestifyAppUnitTests.MerchantGameFactsCompositionTests testSignedInWithoutGrantShowsConfigurationAndSendsNoGETOrPOST]' passed (0.007 seconds).
+Test Case '-[QuestifyAppUnitTests.MerchantGameFactsCompositionTests testStaleUnopenedPresentationNeverConstructsCoordinator]' started.
+Test Case '-[QuestifyAppUnitTests.MerchantGameFactsCompositionTests testStaleUnopenedPresentationNeverConstructsCoordinator]' passed (0.000 seconds).
+Test Suite 'MerchantGameFactsCompositionTests' passed at 2026-11-05 10:43:53.318.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.057 (0.061) seconds
+Test Suite 'NativeBlacklistEntryHostingTests' started at 2026-11-05 10:43:53.318.
+Test Case '-[QuestifyAppUnitTests.NativeBlacklistEntryHostingTests testHostedBackDuringWritePreservesOriginalAndReopenOnlyRecoversReceipt]' started.
+Test Case '-[QuestifyAppUnitTests.NativeBlacklistEntryHostingTests testHostedBackDuringWritePreservesOriginalAndReopenOnlyRecoversReceipt]' passed (0.669 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeBlacklistEntryHostingTests testHostedBackgroundRejectsDelayedReadAndForegroundReopensFreshChild]' started.
+Test Case '-[QuestifyAppUnitTests.NativeBlacklistEntryHostingTests testHostedBackgroundRejectsDelayedReadAndForegroundReopensFreshChild]' passed (0.292 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeBlacklistEntryHostingTests testHostedBackRereadsParentWithoutRefreshingHiddenRowsOnResolution]' started.
+Test Case '-[QuestifyAppUnitTests.NativeBlacklistEntryHostingTests testHostedBackRereadsParentWithoutRefreshingHiddenRowsOnResolution]' passed (0.148 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeBlacklistEntryHostingTests testHostedBlacklistWithoutFriendReadAuthorityAndRepeatedOpen]' started.
+Test Case '-[QuestifyAppUnitTests.NativeBlacklistEntryHostingTests testHostedBlacklistWithoutFriendReadAuthorityAndRepeatedOpen]' passed (0.402 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeBlacklistEntryHostingTests testHostedOwnerAuthorityRetirementRejectsOldCallbackAndCannotRevive]' started.
+Test Case '-[QuestifyAppUnitTests.NativeBlacklistEntryHostingTests testHostedOwnerAuthorityRetirementRejectsOldCallbackAndCannotRevive]' passed (0.154 seconds).
+Test Suite 'NativeBlacklistEntryHostingTests' passed at 2026-11-05 10:43:54.985.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 1.665 (1.667) seconds
+Test Suite 'NativeChannelAppealCompositionTests' started at 2026-11-05 10:43:54.985.
+Test Case '-[QuestifyAppUnitTests.NativeChannelAppealCompositionTests testCompositionPolicyRevokedAfterPersistenceStopsFirstPost]' started.
+Test Case '-[QuestifyAppUnitTests.NativeChannelAppealCompositionTests testCompositionPolicyRevokedAfterPersistenceStopsFirstPost]' passed (0.015 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeChannelAppealCompositionTests testCompositionRejectsMismatchedRealmAndAccount]' started.
+Test Case '-[QuestifyAppUnitTests.NativeChannelAppealCompositionTests testCompositionRejectsMismatchedRealmAndAccount]' passed (0.001 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeChannelAppealCompositionTests testNoDeploymentCannotUseEvenAnOtherwiseValidPolicy]' started.
+Test Case '-[QuestifyAppUnitTests.NativeChannelAppealCompositionTests testNoDeploymentCannotUseEvenAnOtherwiseValidPolicy]' passed (0.000 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeChannelAppealCompositionTests testNormalReviewedCompositionFactorySubmitsWithUnpredictedUUID]' started.
+Test Case '-[QuestifyAppUnitTests.NativeChannelAppealCompositionTests testNormalReviewedCompositionFactorySubmitsWithUnpredictedUUID]' passed (0.014 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeChannelAppealCompositionTests testReviewedEndpointWithoutIndependentAppealPolicyDoesNotEnableJourney]' started.
+Test Case '-[QuestifyAppUnitTests.NativeChannelAppealCompositionTests testReviewedEndpointWithoutIndependentAppealPolicyDoesNotEnableJourney]' passed (0.000 seconds).
+Test Suite 'NativeChannelAppealCompositionTests' passed at 2026-11-05 10:43:55.017.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.031 (0.032) seconds
+Test Suite 'NativeChannelAppealEntryLocalizationTests' started at 2026-11-05 10:43:55.017.
+Test Case '-[QuestifyAppUnitTests.NativeChannelAppealEntryLocalizationTests testEveryAppealKeyIsPackagedForChineseAndEnglish]' started.
+Test Case '-[QuestifyAppUnitTests.NativeChannelAppealEntryLocalizationTests testEveryAppealKeyIsPackagedForChineseAndEnglish]' passed (0.004 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeChannelAppealEntryLocalizationTests testKnownCurrentStatusesUseDedicatedLocalizedTitles]' started.
+Test Case '-[QuestifyAppUnitTests.NativeChannelAppealEntryLocalizationTests testKnownCurrentStatusesUseDedicatedLocalizedTitles]' passed (0.001 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeChannelAppealEntryLocalizationTests testLanguageSwitchResolvesTheOriginalRequestLabelWithoutCaching]' started.
+Test Case '-[QuestifyAppUnitTests.NativeChannelAppealEntryLocalizationTests testLanguageSwitchResolvesTheOriginalRequestLabelWithoutCaching]' passed (0.000 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeChannelAppealEntryLocalizationTests testNewControlsAndSafetyMessagesResolveExactReviewedCopy]' started.
+Test Case '-[QuestifyAppUnitTests.NativeChannelAppealEntryLocalizationTests testNewControlsAndSafetyMessagesResolveExactReviewedCopy]' passed (0.001 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeChannelAppealEntryLocalizationTests testRealFlowRetains500UTF16BoundaryAndOriginalTextInEitherLanguage]' started.
+Test Case '-[QuestifyAppUnitTests.NativeChannelAppealEntryLocalizationTests testRealFlowRetains500UTF16BoundaryAndOriginalTextInEitherLanguage]' passed (0.008 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeChannelAppealEntryLocalizationTests testReviewOperationKeysKeepOriginalWireValues]' started.
+Test Case '-[QuestifyAppUnitTests.NativeChannelAppealEntryLocalizationTests testReviewOperationKeysKeepOriginalWireValues]' passed (0.000 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeChannelAppealEntryLocalizationTests testUnrecognizedStatusNeverBecomesAnUntranslatedKeyOrSuccess]' started.
+Test Case '-[QuestifyAppUnitTests.NativeChannelAppealEntryLocalizationTests testUnrecognizedStatusNeverBecomesAnUntranslatedKeyOrSuccess]' passed (0.000 seconds).
+Test Suite 'NativeChannelAppealEntryLocalizationTests' passed at 2026-11-05 10:43:55.032.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.014 (0.015) seconds
+Test Suite 'NativeChannelMessageHostBindingTests' started at 2026-11-05 10:43:55.032.
+Test Case '-[QuestifyAppUnitTests.NativeChannelMessageHostBindingTests testActualCode401RetiresBothOriginalTextGrantsAndHostForCurrentAndCancelledDelivery]' started.
+Test Case '-[QuestifyAppUnitTests.NativeChannelMessageHostBindingTests testActualCode401RetiresBothOriginalTextGrantsAndHostForCurrentAndCancelledDelivery]' passed (0.032 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeChannelMessageHostBindingTests testCancelledSuccessfulTextResponseKeepsBothOriginalGrantsAndJournal]' started.
+Test Case '-[QuestifyAppUnitTests.NativeChannelMessageHostBindingTests testCancelledSuccessfulTextResponseKeepsBothOriginalGrantsAndJournal]' passed (0.008 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeChannelMessageHostBindingTests testNormalBindingReadsSameOriginalHistoryAndSendsPlainTextThroughSameWire]' started.
+Test Case '-[QuestifyAppUnitTests.NativeChannelMessageHostBindingTests testNormalBindingReadsSameOriginalHistoryAndSendsPlainTextThroughSameWire]' passed (0.011 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeChannelMessageHostBindingTests testOrdinaryCompositionDoesNotIssueMessageAuthority]' started.
+Test Case '-[QuestifyAppUnitTests.NativeChannelMessageHostBindingTests testOrdinaryCompositionDoesNotIssueMessageAuthority]' passed (0.001 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeChannelMessageHostBindingTests testOriginalText401AlsoRetiresOriginalTextGrantsInsteadOfHidingStatusInBridge]' started.
+Test Case '-[QuestifyAppUnitTests.NativeChannelMessageHostBindingTests testOriginalText401AlsoRetiresOriginalTextGrantsInsteadOfHidingStatusInBridge]' passed (0.004 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeChannelMessageHostBindingTests testRecognizedHistory401RetiresHostBeforeCancelledDeliveryAndBlocksNormalRemount]' started.
+Test Case '-[QuestifyAppUnitTests.NativeChannelMessageHostBindingTests testRecognizedHistory401RetiresHostBeforeCancelledDeliveryAndBlocksNormalRemount]' passed (0.002 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeChannelMessageHostBindingTests testRecognizedHistoryCode401RetiresHostBeforeCancellationWithoutChangingHTTPStatus]' started.
+Test Case '-[QuestifyAppUnitTests.NativeChannelMessageHostBindingTests testRecognizedHistoryCode401RetiresHostBeforeCancellationWithoutChangingHTTPStatus]' passed (0.002 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeChannelMessageHostBindingTests testTimeoutThenNormalRemountUsesSameOriginalJournalAndReceiptNotSecondSend]' started.
+Test Case '-[QuestifyAppUnitTests.NativeChannelMessageHostBindingTests testTimeoutThenNormalRemountUsesSameOriginalJournalAndReceiptNotSecondSend]' passed (0.016 seconds).
+Test Suite 'NativeChannelMessageHostBindingTests' passed at 2026-11-05 10:43:55.108.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.075 (0.077) seconds
+Test Suite 'NativeFriendDirectoryNavigationHostingTests' started at 2026-11-05 10:43:55.108.
+Test Case '-[QuestifyAppUnitTests.NativeFriendDirectoryNavigationHostingTests testHostedDirectoryDetailMetadataBackPreservesFilterAndRereadsMovedStarredRow]' started.
+Test Case '-[QuestifyAppUnitTests.NativeFriendDirectoryNavigationHostingTests testHostedDirectoryDetailMetadataBackPreservesFilterAndRereadsMovedStarredRow]' passed (2.061 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeFriendDirectoryNavigationHostingTests testHostedExistingConversationReturnsAndGrantWithdrawalDismissesNestedRoute]' started.
+Test Case '-[QuestifyAppUnitTests.NativeFriendDirectoryNavigationHostingTests testHostedExistingConversationReturnsAndGrantWithdrawalDismissesNestedRoute]' passed (1.363 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeFriendDirectoryNavigationHostingTests testHostedIndependentGrantWithdrawalAndExpiryDismissBothKindsOfChildWithoutReads]' started.
+Test Case '-[QuestifyAppUnitTests.NativeFriendDirectoryNavigationHostingTests testHostedIndependentGrantWithdrawalAndExpiryDismissBothKindsOfChildWithoutReads]' passed (1.665 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeFriendDirectoryNavigationHostingTests testHostedReadyAccountSwitchClearsWithoutRefreshAndOldRouteCannotReopen]' started.
+Test Case '-[QuestifyAppUnitTests.NativeFriendDirectoryNavigationHostingTests testHostedReadyAccountSwitchClearsWithoutRefreshAndOldRouteCannotReopen]' passed (0.386 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeFriendDirectoryNavigationHostingTests testHostedRealPublicProfileUsesIndependentGrantAndReturnsToSameFriendAndFilter]' started.
+Test Case '-[QuestifyAppUnitTests.NativeFriendDirectoryNavigationHostingTests testHostedRealPublicProfileUsesIndependentGrantAndReturnsToSameFriendAndFilter]' passed (2.726 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeFriendDirectoryNavigationHostingTests testHostedRemoveCancelConfirmReturnAndReaddedVersion]' started.
+Test Case '-[QuestifyAppUnitTests.NativeFriendDirectoryNavigationHostingTests testHostedRemoveCancelConfirmReturnAndReaddedVersion]' passed (1.826 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeFriendDirectoryNavigationHostingTests testLateConversationCannotReplaceNewerMetadataRouteAfterBack]' started.
+Test Case '-[QuestifyAppUnitTests.NativeFriendDirectoryNavigationHostingTests testLateConversationCannotReplaceNewerMetadataRouteAfterBack]' passed (0.019 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeFriendDirectoryNavigationHostingTests testPublicProfileGateRetiresWithParentEvenWhileIndependentGrantRemains]' started.
+Test Case '-[QuestifyAppUnitTests.NativeFriendDirectoryNavigationHostingTests testPublicProfileGateRetiresWithParentEvenWhileIndependentGrantRemains]' passed (0.797 seconds).
+Test Suite 'NativeFriendDirectoryNavigationHostingTests' passed at 2026-11-05 10:44:05.954.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 10.844 (10.846) seconds
+Test Suite 'NativeFriendRequestReviewHostingTests' started at 2026-11-05 10:44:05.955.
+Test Case '-[QuestifyAppUnitTests.NativeFriendRequestReviewHostingTests testHostedBackDuringWriteAndReopenRecoverOnlyOriginalReceipt]' started.
+Test Case '-[QuestifyAppUnitTests.NativeFriendRequestReviewHostingTests testHostedBackDuringWriteAndReopenRecoverOnlyOriginalReceipt]' passed (1.809 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeFriendRequestReviewHostingTests testHostedBackgroundCancelsUnsentReviewAndForegroundRereadsNewVersion]' started.
+Test Case '-[QuestifyAppUnitTests.NativeFriendRequestReviewHostingTests testHostedBackgroundCancelsUnsentReviewAndForegroundRereadsNewVersion]' passed (1.209 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeFriendRequestReviewHostingTests testHostedExactReviewCancelAcceptExistingChatAndBackReread]' started.
+Test Case '-[QuestifyAppUnitTests.NativeFriendRequestReviewHostingTests testHostedExactReviewCancelAcceptExistingChatAndBackReread]' passed (2.855 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeFriendRequestReviewHostingTests testHostedExistingMetadataAndRemovalRoutesSurviveParentPurgeAndBack]' started.
+Test Case '-[QuestifyAppUnitTests.NativeFriendRequestReviewHostingTests testHostedExistingMetadataAndRemovalRoutesSurviveParentPurgeAndBack]' passed (0.766 seconds).
+Test Case '-[QuestifyAppUnitTests.NativeFriendRequestReviewHostingTests testHostedGrantWithdrawalDismissesReviewAndRejectsOldVersionAfterReturn]' started.
+Test Case '-[QuestifyAppUnitTests.NativeFriendRequestReviewHostingTests testHostedGrantWithdrawalDismissesReviewAndRejectsOldVersionAfterReturn]' passed (1.192 seconds).
+Test Suite 'NativeFriendRequestReviewHostingTests' passed at 2026-11-05 10:44:13.787.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 7.831 (7.833) seconds
+Test Suite 'ProfileFavoriteDetailTests' started at 2026-11-05 10:44:13.787.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testConcreteBindingRejectsOldGetterAndPopAfterReplacement]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testConcreteBindingRejectsOldGetterAndPopAfterReplacement]' passed (0.027 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testConcurrentScreenReadsSharePendingDetailAndCommentsWaitForSuccess]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testConcurrentScreenReadsSharePendingDetailAndCommentsWaitForSuccess]' passed (0.011 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testExplicitSelectedDetailThenCommentsUseOnlyOriginalReadShapes]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testExplicitSelectedDetailThenCommentsUseOnlyOriginalReadShapes]' passed (0.005 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testHiddenRootCannotReopenOnForegroundWithoutRealAppearance]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testHiddenRootCannotReopenOnForegroundWithoutRealAppearance]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testHiddenSelectionRejectsPending401WithoutExpiringCurrentSession]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testHiddenSelectionRejectsPending401WithoutExpiringCurrentSession]' passed (0.005 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testListApprovalCannotOpenDetailAndDetailCannotReadTheList]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testListApprovalCannotOpenDetailAndDetailCannotReadTheList]' passed (0.004 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testMalformedOrCrossTargetCommentsAreNotEmptySuccess]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testMalformedOrCrossTargetCommentsAreNotEmptySuccess]' passed (0.007 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testNormalDestinationBackgroundRetiresWithoutAnotherRead]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testNormalDestinationBackgroundRetiresWithoutAnotherRead]' passed (0.074 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testNormalStableDestinationActuallyLoadsDetailAndCommentsThenRetires]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testNormalStableDestinationActuallyLoadsDetailAndCommentsThenRetires]' passed (0.044 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testOldSelectedPageCannotReadAfterAccountSwitch]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testOldSelectedPageCannotReadAfterAccountSwitch]' passed (0.008 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testOtherIDGenerationFeedAndRawUnselectedTransportCannotDispatch]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testOtherIDGenerationFeedAndRawUnselectedTransportCannotDispatch]' passed (0.005 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testRealAuthorAndCommentAuthorChildNavigationReturnsToSameDetailReader]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testRealAuthorAndCommentAuthorChildNavigationReturnsToSameDetailReader]' passed (0.208 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testRetiredAAndItsLateCloseNeverAffectFreshBSelection]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testRetiredAAndItsLateCloseNeverAffectFreshBSelection]' passed (0.010 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testSameOwnerDetailApprovalRevocationRejectsLateReplyAndCannotBorrowReplacement]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testSameOwnerDetailApprovalRevocationRejectsLateReplyAndCannotBorrowReplacement]' passed (0.007 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testScopeChangeRetiresOldRouteAndOldPopCannotTouchNewOwner]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testScopeChangeRetiresOldRouteAndOldPopCannotTouchNewOwner]' passed (0.005 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testUnavailableDetailNeverTriggersCommentsAndExplicitRetryCanRecover]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteDetailTests testUnavailableDetailNeverTriggersCommentsAndExplicitRetryCanRecover]' passed (0.005 seconds).
+Test Suite 'ProfileFavoriteDetailTests' passed at 2026-11-05 10:44:14.219.
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.428 (0.431) seconds
+Test Suite 'ProfileFavoriteTopicReadTests' started at 2026-11-05 10:44:14.219.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testCurrent401ExpiresButLate401AfterOwnerChangeCannot]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testCurrent401ExpiresButLate401AfterOwnerChangeCannot]' passed (0.009 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testCurrentConcreteBindingDoesNotReadOrPopSuccessor]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testCurrentConcreteBindingDoesNotReadOrPopSuccessor]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testDefaultNilDetailIsUnavailableDespiteListAndGlobalDetailApproval]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testDefaultNilDetailIsUnavailableDespiteListAndGlobalDetailApproval]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testExactTransportIdentityChangesRejectAllLateReplies]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testExactTransportIdentityChangesRejectAllLateReplies]' passed (0.023 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testHiddenForegroundAndScopeChangesCannotReviveSelection]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testHiddenForegroundAndScopeChangesCannotReviveSelection]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testListSelectionNeedsSuccessfulCurrentLoadedIDAndScope]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testListSelectionNeedsSuccessfulCurrentLoadedIDAndScope]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testNormalFullDetailAndChapterCoverReturnUseSameReaderUntilRootLeaves]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testNormalFullDetailAndChapterCoverReturnUseSameReaderUntilRootLeaves]' passed (0.170 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testNormalHostWithoutTopicApprovalDoesNotDispatchOrPretendLoaded]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testNormalHostWithoutTopicApprovalDoesNotDispatchOrPretendLoaded]' passed (0.025 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testOriginalServiceDetailIncludesChaptersWithoutExtraCommentRead]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testOriginalServiceDetailIncludesChaptersWithoutExtraCommentRead]' passed (0.007 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testPageFailureRetainsFirstReceiptButRefreshFailureInvalidatesIt]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testPageFailureRetainsFirstReceiptButRefreshFailureInvalidatesIt]' passed (0.007 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testRetiredSelectionRejectsHeldReplyAndFutureReads]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testRetiredSelectionRejectsHeldReplyAndFutureReads]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testRevokedOrReplacedApprovalRejectsLateSuccessAnd401]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testRevokedOrReplacedApprovalRejectsLateSuccessAnd401]' passed (0.011 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testScopedTransportCannotFallbackToGlobalTopicGrantOrOtherRoutes]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testScopedTransportCannotFallbackToGlobalTopicGrantOrOtherRoutes]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testServerDenialAndMalformedDetailRemainFailuresExplicitRetryCanRecover]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testServerDenialAndMalformedDetailRemainFailuresExplicitRetryCanRecover]' passed (0.006 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testUnscopedExistingTopicReadAndDefaultOverrideRemainCompatible]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileFavoriteTopicReadTests testUnscopedExistingTopicReadAndDefaultOverrideRemainCompatible]' passed (0.003 seconds).
+Test Suite 'ProfileFavoriteTopicReadTests' passed at 2026-11-05 10:44:14.499.
+	 Executed 15 tests, with 0 failures (0 unexpected) in 0.277 (0.280) seconds
+Test Suite 'ProfileGuideReadTests' started at 2026-11-05 10:44:14.499.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testActualArticleDestinationReadsOriginalViewAndRetiresOnRealRemoval]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testActualArticleDestinationReadsOriginalViewAndRetiresOnRealRemoval]' passed (0.068 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testApprovalReplacementRevocationAndAccountChangeRejectLateArticleResponses]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testApprovalReplacementRevocationAndAccountChangeRejectLateArticleResponses]' passed (0.020 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testCurrent401ExpiresAndTaskCancellationDoesNot]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testCurrent401ExpiresAndTaskCancellationDoesNot]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testEmptyErrorRemovedAndExplicitRetryAreDistinct]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testEmptyErrorRemovedAndExplicitRetryAreDistinct]' passed (0.004 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testHiddenListAndBackgroundArticleRetireHeldResultsWithoutExpiringCurrentOwner]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testHiddenListAndBackgroundArticleRetireHeldResultsWithoutExpiringCurrentOwner]' passed (0.005 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testListCoverKeepsArticleReceiptAndHiddenForegroundCannotRead]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testListCoverKeepsArticleReceiptAndHiddenForegroundCannotRead]' passed (0.005 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testNormalOriginalListToExplicitArticleOnlyUsesTwoOriginalRequests]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testNormalOriginalListToExplicitArticleOnlyUsesTwoOriginalRequests]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testOldArticleCloseCannotRetireNewSelection]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testOldArticleCloseCannotRetireNewSelection]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testOldSettingsCallbacksCannotRouteOrConsumeNewPresentation]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testOldSettingsCallbacksCannotRouteOrConsumeNewPresentation]' passed (0.000 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testOnlyExactAcceptedRowCanCreateArticleAndRefreshRetiresOldSourceEvenSameID]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testOnlyExactAcceptedRowCanCreateArticleAndRefreshRetiresOldSourceEvenSameID]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testOrdinaryConfiguredGuideLoadsOriginalListAndRefreshesWithoutWrites]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testOrdinaryConfiguredGuideLoadsOriginalListAndRefreshesWithoutWrites]' passed (0.099 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testOrdinaryGuideHostKeepsStaticModesAndDefaultNilDoesNoRead]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testOrdinaryGuideHostKeepsStaticModesAndDefaultNilDoesNoRead]' passed (0.034 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testSettingsGuideConstructionKeepsExistingIndependentGrantClosed]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testSettingsGuideConstructionKeepsExistingIndependentGrantClosed]' passed (0.006 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testSettingsGuideModeRunsOnlyAfterDismissAndOnlyOnce]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testSettingsGuideModeRunsOnlyAfterDismissAndOnlyOnce]' passed (0.000 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testSignedOutAndDefaultNilNeverDispatchGuideRequests]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testSignedOutAndDefaultNilNeverDispatchGuideRequests]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testTransportEpochViewerTokenAndRoleChangesRejectLateResponses]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testTransportEpochViewerTokenAndRoleChangesRejectLateResponses]' passed (0.012 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testTransportSelectedIDAndPurposeCannotFallbackOrBorrowOtherRoutes]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileGuideReadTests testTransportSelectedIDAndPurposeCannotFallbackOrBorrowOtherRoutes]' passed (0.003 seconds).
+Test Suite 'ProfileGuideReadTests' passed at 2026-11-05 10:44:14.771.
+	 Executed 17 tests, with 0 failures (0 unexpected) in 0.269 (0.272) seconds
+Test Suite 'ProfileParticipantDurableHostTests' started at 2026-11-05 10:44:14.771.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantDurableHostTests testNewHostNewEpochRestoresUnknownThroughNormalOwnedHost]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantDurableHostTests testNewHostNewEpochRestoresUnknownThroughNormalOwnedHost]' passed (0.009 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantDurableHostTests testSameNumericAccountInAnotherNamespaceOrOriginIsIsolated]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantDurableHostTests testSameNumericAccountInAnotherNamespaceOrOriginIsIsolated]' passed (0.004 seconds).
+Test Suite 'ProfileParticipantDurableHostTests' passed at 2026-11-05 10:44:14.784.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.013 (0.013) seconds
+Test Suite 'ProfileParticipantHostAdmissionTests' started at 2026-11-05 10:44:14.784.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantHostAdmissionTests testDefaultHOLDAndReadOnlyGrantUseActualNormalHost]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantHostAdmissionTests testDefaultHOLDAndReadOnlyGrantUseActualNormalHost]' passed (0.004 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantHostAdmissionTests testGenericRootDoesNotBorrowDedicatedOrMerchantAccess]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantHostAdmissionTests testGenericRootDoesNotBorrowDedicatedOrMerchantAccess]' passed (0.001 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantHostAdmissionTests testNormalOriginalUUIDCreateThenEditDeleteACK]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantHostAdmissionTests testNormalOriginalUUIDCreateThenEditDeleteACK]' passed (0.034 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantHostAdmissionTests testPreDispatchGrantWithdrawalIsNotSentAndNeverTouchesWire]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantHostAdmissionTests testPreDispatchGrantWithdrawalIsNotSentAndNeverTouchesWire]' passed (0.003 seconds).
+Test Suite 'ProfileParticipantHostAdmissionTests' passed at 2026-11-05 10:44:14.827.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.042 (0.043) seconds
+Test Suite 'ProfileParticipantHostRecoveryTests' started at 2026-11-05 10:44:14.827.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantHostRecoveryTests testBackgroundAndLeaveDoNotReplayAndSameOwnerReloginRetainsOnlyMemoryLock]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantHostRecoveryTests testBackgroundAndLeaveDoNotReplayAndSameOwnerReloginRetainsOnlyMemoryLock]' passed (0.026 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantHostRecoveryTests testChangedOwnerDiscardsLate401WithoutExpiringReplacement]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantHostRecoveryTests testChangedOwnerDiscardsLate401WithoutExpiringReplacement]' passed (0.006 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantHostRecoveryTests testGrantWithdrawalAfterDispatchKeepsUnknownAndCurrentReadNeedsOnlyReadGrant]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantHostRecoveryTests testGrantWithdrawalAfterDispatchKeepsUnknownAndCurrentReadNeedsOnlyReadGrant]' passed (0.014 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantHostRecoveryTests testNilCreateACKDoesNotAutoSelectOrClaimSuccess]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantHostRecoveryTests testNilCreateACKDoesNotAutoSelectOrClaimSuccess]' passed (0.011 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantHostRecoveryTests testNilThenSameGrantCannotReviveOldConfirmationOrPayload]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantHostRecoveryTests testNilThenSameGrantCannotReviveOldConfirmationOrPayload]' passed (0.010 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantHostRecoveryTests testOriginalCreateUnknownReadbackRetryAndSameUUID]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantHostRecoveryTests testOriginalCreateUnknownReadbackRetryAndSameUUID]' passed (0.025 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantHostRecoveryTests testRegistrationParticipantRevisionDoesNotReplaceOriginalRegistrationIdentityOrGrant]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantHostRecoveryTests testRegistrationParticipantRevisionDoesNotReplaceOriginalRegistrationIdentityOrGrant]' passed (0.009 seconds).
+Test Suite 'ProfileParticipantHostRecoveryTests' passed at 2026-11-05 10:44:14.931.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.103 (0.104) seconds
+Test Suite 'ProfileParticipantValidationAppTests' started at 2026-11-05 10:44:14.931.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testAppSessionDurablePausedRunRecoveryAcrossRestartAndReturnRefresh]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testAppSessionDurablePausedRunRecoveryAcrossRestartAndReturnRefresh]' passed (0.024 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testConfirmationCancelPreservesDraftAndDoesNotWrite]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testConfirmationCancelPreservesDraftAndDoesNotWrite]' passed (0.001 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testCorrectionAdvancesAndValidInputUsesOriginalConfirmation]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testCorrectionAdvancesAndValidInputUsesOriginalConfirmation]' passed (0.001 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testDisappearAndReloadResetReview]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testDisappearAndReloadResetReview]' passed (0.000 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testEditingDoesNotChangeHiddenMetadata]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testEditingDoesNotChangeHiddenMetadata]' passed (0.001 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testExplicitConfirmationRetainsExistingSavePath]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testExplicitConfirmationRetainsExistingSavePath]' passed (0.000 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testHomeHeroHeaderAndPlayContinuationBannerViewsIntegrateWithParityPresentation]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testHomeHeroHeaderAndPlayContinuationBannerViewsIntegrateWithParityPresentation]' passed (0.499 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testInvalidReviewHasNoConfirmationOrDispatch]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testInvalidReviewHasNoConfirmationOrDispatch]' passed (0.001 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testMissingConfigurationBlocksAction]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testMissingConfigurationBlocksAction]' passed (0.000 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testParticipantsViewsConstructWithPurposeSubtitleKey]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testParticipantsViewsConstructWithPurposeSubtitleKey]' passed (0.012 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testReadIdentityChangeBlocksLocalAction]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testReadIdentityChangeBlocksLocalAction]' passed (0.000 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testRepeatedValidTapCannotReplacePendingConfirmation]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testRepeatedValidTapCannotReplacePendingConfirmation]' passed (0.000 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testUnknownWriteKeepsExistingLock]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileParticipantValidationAppTests testUnknownWriteKeepsExistingLock]' passed (0.001 seconds).
+Test Suite 'ProfileParticipantValidationAppTests' passed at 2026-11-05 10:44:15.476.
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.542 (0.544) seconds
+Test Suite 'ProfileSettingsFavoritesTests' started at 2026-11-05 10:44:15.476.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testAccountEpochRoleViewerAndDependencyChangesRejectCapturedRowsImmediately]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testAccountEpochRoleViewerAndDependencyChangesRejectCapturedRowsImmediately]' passed (0.007 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testApprovalRevocationRetiresCollectionAndSelection]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testApprovalRevocationRetiresCollectionAndSelection]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testBackgroundRetiresDetailButPreservesCollectionForExplicitReturn]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testBackgroundRetiresDetailButPreservesCollectionForExplicitReturn]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testClosingSettingsIsPermanentForRetainedOwnerAndCallbacks]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testClosingSettingsIsPermanentForRetainedOwnerAndCallbacks]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testDefaultNilApprovalOpensHonestUnavailableCollectionWithoutDispatch]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testDefaultNilApprovalOpensHonestUnavailableCollectionWithoutDispatch]' passed (0.006 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testEntryRequiresAuthenticatedMatchingAccount]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testEntryRequiresAuthenticatedMatchingAccount]' passed (0.002 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testHeldPostReplyAfterCollectionPopCannotReachNewRoute]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testHeldPostReplyAfterCollectionPopCannotReachNewRoute]' passed (0.004 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testLogoutAndReauthenticationCannotReviveOldCollection]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testLogoutAndReauthenticationCannotReviveOldCollection]' passed (0.005 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testOldDismissalAndOldRowCannotDismissOrOpenSuccessor]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testOldDismissalAndOldRowCannotDismissOrOpenSuccessor]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testOnlyAcceptedCollectionRowsCanOpenExistingDetailSelections]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testOnlyAcceptedCollectionRowsCanOpenExistingDetailSelections]' passed (0.004 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testPopCollectionRetiresBothKindsOfNestedDetail]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testPopCollectionRetiresBothKindsOfNestedDetail]' passed (0.005 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testRepeatedOpenDoesNotReplaceActiveCollection]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testRepeatedOpenDoesNotReplaceActiveCollection]' passed (0.002 seconds).
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testSettingsCollectionUsesOriginalDetailAndKeepsOwnerWhenCovered]' started.
+Test Case '-[QuestifyAppUnitTests.ProfileSettingsFavoritesTests testSettingsCollectionUsesOriginalDetailAndKeepsOwnerWhenCovered]' passed (0.362 seconds).
+Test Suite 'ProfileSettingsFavoritesTests' passed at 2026-11-05 10:44:15.891.
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.413 (0.415) seconds
+Test Suite 'WorkshopPaidInstallNormalFlowTests' started at 2026-11-05 10:44:15.891.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testNormalAccountDefaultAndMetadataApprovalCannotConstructInstallController]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testNormalAccountDefaultAndMetadataApprovalCannotConstructInstallController]' passed (0.024 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testNormalConfigurationABAInvalidatesBeforeChangeAndLate401DoesNotLogout]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testNormalConfigurationABAInvalidatesBeforeChangeAndLate401DoesNotLogout]' passed (0.006 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testNormalControllerConfirmationReachesDedicatedTransportAndOnePrivateReceipt]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testNormalControllerConfirmationReachesDedicatedTransportAndOnePrivateReceipt]' passed (0.014 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testNormalRoleABAAndRootReplacementRevokeQueuedReadBeforeDispatch]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testNormalRoleABAAndRootReplacementRevokeQueuedReadBeforeDispatch]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testNormalSignedInPlayerMerchantAndClubUseExactFullContextAndSameController]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testNormalSignedInPlayerMerchantAndClubUseExactFullContextAndSameController]' passed (0.011 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testNormalTransportNeverAcceptsSubmitThroughGeneralSendEvenWithInstallApproval]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testNormalTransportNeverAcceptsSubmitThroughGeneralSendEvenWithInstallApproval]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testRealHostedInstallModalDismissAndReopenRetiresOldViewCallbacks]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testRealHostedInstallModalDismissAndReopenRetiresOldViewCallbacks]' passed (0.529 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testTransportClonePreservesInstallSelectorAndLifetimeClosesBeforeForward]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallNormalFlowTests testTransportClonePreservesInstallSelectorAndLifetimeClosesBeforeForward]' passed (0.005 seconds).
+Test Suite 'WorkshopPaidInstallNormalFlowTests' passed at 2026-11-05 10:44:16.488.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.596 (0.597) seconds
+Test Suite 'WorkshopPaidInstallReentryTests' started at 2026-11-05 10:44:16.489.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallReentryTests testBounded503StatusHistoryTargetsReentryReadsSameOriginalBeforeCollections]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallReentryTests testBounded503StatusHistoryTargetsReentryReadsSameOriginalBeforeCollections]' passed (0.014 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallReentryTests testClosedOrBackgroundOldActionDoesNotReviveAndHealthyCacheStillReuses]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallReentryTests testClosedOrBackgroundOldActionDoesNotReviveAndHealthyCacheStillReuses]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallReentryTests testCurrentCacheSurvivesHealthyCloseSuspendAndOrdinaryFailureWithoutReconstruction]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallReentryTests testCurrentCacheSurvivesHealthyCloseSuspendAndOrdinaryFailureWithoutReconstruction]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallReentryTests testExactInstalledReceiptAloneAcknowledgesAndProtectedTextStillNeedsSeparateGrant]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallReentryTests testExactInstalledReceiptAloneAcknowledgesAndProtectedTextStillNeedsSeparateGrant]' passed (0.002 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallReentryTests testExplicitStatus503KeepsOriginalControllerAndNeverCallsSubmit]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallReentryTests testExplicitStatus503KeepsOriginalControllerAndNeverCallsSubmit]' passed (0.002 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallReentryTests testFullItemReplacementCreatesNewControllerButNeverRebuildsSavedCommand]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallReentryTests testFullItemReplacementCreatesNewControllerButNeverRebuildsSavedCommand]' passed (0.001 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallReentryTests testLateInvalidatedStatusCannotAcknowledgePendingOrRepopulateReplacement]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallReentryTests testLateInvalidatedStatusCannotAcknowledgePendingOrRepopulateReplacement]' passed (0.006 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallReentryTests testMissingExpiredReissuedOrMismatchedContextCannotRecreateOrRead]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallReentryTests testMissingExpiredReissuedOrMismatchedContextCannotRecreateOrRead]' passed (0.004 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallReentryTests testOversizedOrMalformed503DoesNotEnterDisabledInvalidationCase]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallReentryTests testOversizedOrMalformed503DoesNotEnterDisabledInvalidationCase]' passed (0.002 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallReentryTests testOwnerBDoesNotInheritAPendingAndAReturnReadsOnlyOriginalAKey]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallReentryTests testOwnerBDoesNotInheritAPendingAndAReturnReadsOnlyOriginalAKey]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallReentryTests testResumeAndEachPage503RetireCacheButKeepPendingAcrossReentry]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstallReentryTests testResumeAndEachPage503RetireCacheButKeepPendingAcrossReentry]' passed (0.054 seconds).
+Test Suite 'WorkshopPaidInstallReentryTests' passed at 2026-11-05 10:44:16.585.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.094 (0.096) seconds
+Test Suite 'WorkshopPaidInstalledTextNormalFlowTests' started at 2026-11-05 10:44:16.585.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstalledTextNormalFlowTests testActualHostedSheetOpensFromSharedEntryAndBackClearsBodyBeforeReopen]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstalledTextNormalFlowTests testActualHostedSheetOpensFromSharedEntryAndBackClearsBodyBeforeReopen]' passed (1.204 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstalledTextNormalFlowTests testConfigurationABAInvalidatesBeforeChangeAndOld401CannotLogout]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstalledTextNormalFlowTests testConfigurationABAInvalidatesBeforeChangeAndOld401CannotLogout]' passed (0.022 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstalledTextNormalFlowTests testCurrentNormal401StillExpiresAuthenticatedSession]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstalledTextNormalFlowTests testCurrentNormal401StillExpiresAuthenticatedSession]' passed (0.006 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstalledTextNormalFlowTests testLiveInstallHistoryEntryCapturesActualReceiptAndClosedParentCannotReopenIt]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstalledTextNormalFlowTests testLiveInstallHistoryEntryCapturesActualReceiptAndClosedParentCannotReopenIt]' passed (0.018 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstalledTextNormalFlowTests testNormalDefaultAndInstallApprovalCannotOpenProtectedBody]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstalledTextNormalFlowTests testNormalDefaultAndInstallApprovalCannotOpenProtectedBody]' passed (0.004 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstalledTextNormalFlowTests testNormalPlayerMerchantClubSelectorsSeeConsistentFullCanonicalContext]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstalledTextNormalFlowTests testNormalPlayerMerchantClubSelectorsSeeConsistentFullCanonicalContext]' passed (0.016 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstalledTextNormalFlowTests testNormalRoleABAAndRootReplacementClearProtectedDataAndQueuedOffers]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstalledTextNormalFlowTests testNormalRoleABAAndRootReplacementClearProtectedDataAndQueuedOffers]' passed (0.007 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstalledTextNormalFlowTests testTransportClonePreservesIndependentBodyApprovalAndRejectsWriteRoute]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidInstalledTextNormalFlowTests testTransportClonePreservesIndependentBodyApprovalAndRejectsWriteRoute]' passed (0.005 seconds).
+Test Suite 'WorkshopPaidInstalledTextNormalFlowTests' passed at 2026-11-05 10:44:17.868.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 1.282 (1.283) seconds
+Test Suite 'WorkshopPaidProfessionalNormalFlowTests' started at 2026-11-05 10:44:17.868.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testActualNormalPlayerMerchantClubContextReviewAndDedicatedCreate]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testActualNormalPlayerMerchantClubContextReviewAndDedicatedCreate]' passed (0.083 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testConfigurationABARemovesOldBodyAndQueuedCreateBeforeChange]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testConfigurationABARemovesOldBodyAndQueuedCreateBeforeChange]' passed (0.021 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testDefaultFactoryIsUnavailableWithZeroProfessionalRequests]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testDefaultFactoryIsUnavailableWithZeroProfessionalRequests]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testGeneratedDetailCurrent401PreservesUnauthorizedHandling]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testGeneratedDetailCurrent401PreservesUnauthorizedHandling]' passed (0.002 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testGeneratedDetailEnvironmentIsNilByDefaultForStandaloneFixtures]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testGeneratedDetailEnvironmentIsNilByDefaultForStandaloneFixtures]' passed (0.000 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testGeneratedDetailIndependentOwnerReadRejectsWrongOwnerAndRetries]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testGeneratedDetailIndependentOwnerReadRejectsWrongOwnerAndRetries]' passed (0.004 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testGeneratedDetailLate401AfterCloseDoesNotExpireCurrentOwner]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testGeneratedDetailLate401AfterCloseDoesNotExpireCurrentOwner]' passed (0.002 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testGeneratedDetailRefreshSynchronouslyRetiresOldRevisionEvenForSameReceipt]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testGeneratedDetailRefreshSynchronouslyRetiresOldRevisionEvenForSameReceipt]' passed (0.015 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testGeneratedDetailVisitRetirementDoesNotRetireNewVisitOrReceipt]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testGeneratedDetailVisitRetirementDoesNotRetireNewVisitOrReceipt]' passed (0.003 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testGeneratedReceiptConfigurationUsesSameOwnerReadAndRetiresOnRefresh]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testGeneratedReceiptConfigurationUsesSameOwnerReadAndRetiresOnRefresh]' passed (0.013 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testGeneratedReceiptDoesNotGrantIndependentConfigurationRead]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testGeneratedReceiptDoesNotGrantIndependentConfigurationRead]' passed (0.002 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testGeneratedReferenceRejectsConfigurationABA]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testGeneratedReferenceRejectsConfigurationABA]' passed (0.011 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testGeneratedReferenceRejectsNonCreatedAndSupersededOperation]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testGeneratedReferenceRejectsNonCreatedAndSupersededOperation]' passed (0.022 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testGeneratedReferenceRequiresCurrentCreatedReceiptWithoutWriteOrBodyGrant]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testGeneratedReferenceRequiresCurrentCreatedReceiptWithoutWriteOrBodyGrant]' passed (0.011 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testHistoryRecoveryWorksWithoutBodyOrWriteApproval]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testHistoryRecoveryWorksWithoutBodyOrWriteApproval]' passed (0.011 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testHostedActualSheetCloseQueuedActionAndReopenKeepsFreshAppearance]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testHostedActualSheetCloseQueuedActionAndReopenKeepsFreshAppearance]' passed (0.096 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testNormalGenericTransportRejectsSubmitAndCancelEvenWithWriteGrant]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testNormalGenericTransportRejectsSubmitAndCancelEvenWithWriteGrant]' passed (0.049 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testNormalReadGrantDoesNotBorrowCreatePermission]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testNormalReadGrantDoesNotBorrowCreatePermission]' passed (0.019 seconds).
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testSuspendedOldRead401CannotLogoutAfterPresentationDismissAndReopen]' started.
+Test Case '-[QuestifyAppUnitTests.WorkshopPaidProfessionalNormalFlowTests testSuspendedOldRead401CannotLogoutAfterPresentationDismissAndReopen]' passed (0.008 seconds).
+Test Suite 'WorkshopPaidProfessionalNormalFlowTests' passed at 2026-11-05 10:44:18.249.
+	 Executed 19 tests, with 0 failures (0 unexpected) in 0.376 (0.380) seconds
+Test Suite 'QuestifyAppUnitTests.xctest' passed at 2026-11-05 10:44:18.249.
+	 Executed 182 tests, with 0 failures (0 unexpected) in 24.949 (24.992) seconds
+Test Suite 'Selected tests' passed at 2026-11-05 10:44:18.249.
+	 Executed 182 tests, with 0 failures (0 unexpected) in 24.949 (24.993) seconds
+** TEST EXECUTE SUCCEEDED **
+** TEST FAILED **
