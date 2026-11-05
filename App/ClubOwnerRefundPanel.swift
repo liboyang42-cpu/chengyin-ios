@@ -53,17 +53,15 @@ extension EnvironmentValues {
             .sheet(item: $review, onDismiss: cancelPending) { pending in
                 NavigationStack {
                     Form {
-                        Section("club.refund.target") {
+                        Section {
                             fact("club.refund.player", pending.evidence.displayName)
                             fact("club.refund.topic", pending.evidence.topicName)
                             fact("club.refund.ticket", pending.evidence.ticketText)
                             fact("club.refund.order", pending.evidence.orderNo)
-                            LabeledContent("club.refund.registration") { Text(pending.evidence.target.registrationID, format: .number) }
                             fact("club.refund.paid", pending.evidence.paidAmountText)
                         }
                         Section {
                             Text("club.refund.scopeWarning")
-                            Text("club.refund.policy")
                             if coordinator?.canDispatchOffline == true { Text("club.refund.synthetic") }
                             else if coordinator?.canDispatch != true { Text("club.refund.disabled") }
                             Button(role: .destructive) {
@@ -79,12 +77,16 @@ extension EnvironmentValues {
                             if status.inFlight { ProgressView("club.refund.working") }
                         }
                     }
-                    .navigationTitle("club.refund.reviewTitle")
+                    .navigationTitle("club.refund.question")
+                    .navigationBarTitleDisplayMode(.inline)
                     .toolbar { ToolbarItem(placement: .cancellationAction) {
                         Button("club.refund.cancel") { coordinator?.cancel(pending); review = nil }
                             .disabled(status.inFlight).accessibilityIdentifier("club.refund.cancel")
                     } }
-                }.interactiveDismissDisabled(status.inFlight)
+                }
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+                .interactiveDismissDisabled(status.inFlight)
             }
             .onChange(of: identity) { _, _ in coordinator?.leave(ownerID: ownerID); review = nil; failure = nil }
             .onDisappear { coordinator?.leave(ownerID: ownerID) }

@@ -1,6 +1,23 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "club.refund.question" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel and refund?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清退并退款？"
+          }
+        }
+      }
+    },
     "publishModes.onlineQuestion %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -23474,13 +23491,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm cancellation and refund"
+            "value" : "Cancel and refund"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认清退退款"
+            "value" : "清退并退款"
           }
         }
       }
@@ -23762,13 +23779,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Paid amount shown on record"
+            "value" : "Paid"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "记录所示实付"
+            "value" : "实付"
           }
         }
       }
@@ -23858,13 +23875,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The result is unknown. Recheck only; do not resubmit."
+            "value" : "We couldn’t confirm the result. Check the record again instead of resubmitting."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "结果尚不明确。请仅重新查询，勿重复提交。"
+            "value" : "暂时无法确认结果。请重新查询记录，不要重复提交。"
           }
         }
       }
@@ -24146,13 +24163,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Other tickets in the same order may also be cancelled. The refund amount isn't shown here, and tickets already checked in may need manual review."
+            "value" : "Other tickets in the same order may also be cancelled."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "同一订单中的其他票可能一并取消。此处不显示退款金额；已核销的票可能转人工处理。"
+            "value" : "同一订单中的其他票可能一并取消。"
           }
         }
       }
