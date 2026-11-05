@@ -569,13 +569,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Weekly statistics are not available in this configuration."
+            "value" : "Weekly stats can't be shown right now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前配置尚未开放每周统计读取。"
+            "value" : "暂时无法显示本周统计。"
           }
         }
       }
@@ -89348,13 +89348,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Payments, cancellations, refunds, code issuance and redemption are unavailable in this native build."
+            "value" : "Payment, cancellation, refunds and entry codes aren't in the app yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此原生版本暂不支持支付、取消、退款、出码及核销。"
+            "value" : "App 内暂不支持支付、取消、退款和入场码。"
           }
         }
       }
@@ -89959,13 +89959,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The server acknowledged the request. Check order, cash refund and points status separately."
+            "value" : "Request received. Check the order, refund and points status separately."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器已接收请求。请分别查看订单、现金退款及积分状态。"
+            "value" : "请求已受理。订单、退款和积分状态请分别查看。"
           }
         }
       }
@@ -90788,13 +90788,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Offline receipt preview"
+            "value" : "Entry record"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "离线回执预览"
+            "value" : "核验记录"
           }
         }
       }
@@ -136459,13 +136459,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This service is not configured."
+            "value" : "This can't be shown right now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此服务尚未配置。"
+            "value" : "暂时无法显示。"
           }
         }
       }
@@ -138237,13 +138237,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "These posts are loaded, but the server did not provide a usable next page. Pull to refresh"
+            "value" : "Couldn't load more posts. Pull to refresh."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已读取当前动态，但服务器未提供有效的下一页信息，请下拉刷新"
+            "value" : "没能加载更多帖文，请下拉刷新。"
           }
         }
       }
@@ -160672,13 +160672,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "All changes in this review will be cleared. The last reviewed profile stays on this page. Nothing will be saved to the server."
+            "value" : "All changes in this review will be cleared. Nothing will be saved."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本次审阅中的全部改动将被清除，页面恢复为本次审阅时读取的资料，不会向服务器保存。"
+            "value" : "将清除本次确认中的所有更改，不会保存任何内容。"
           }
         }
       }
