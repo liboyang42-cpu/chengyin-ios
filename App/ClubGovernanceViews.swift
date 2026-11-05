@@ -1257,28 +1257,49 @@ struct ClubGovernanceReadView: View {
             ClubTopicMerchantContent(snapshot: snapshot, context: readContext, snapshotGeneration: snapshotGeneration, readGeneration: generation, access: access)
         } else if operation == .topicOverview {
             let terminalContext = readContext, terminalGeneration = snapshotGeneration
+            // Mini-program club/topic-detail order: title + status → quick entries → 未通过原因 →
+            // 剧情与玩法 → 接下来 (sessions) → director (terminal sessions) → rules.
+            Section {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(verbatim: value["name"].string ?? value["title"].string ?? "—").font(.title2.weight(.bold))
+                        .fixedSize(horizontal: false, vertical: true)
+                    if let status = value["status"].string, ["reviewing", "rejected", "confirmed", "preparing", "running", "ended"].contains(status) {
+                        Text(LocalizedStringKey("club.topic.status." + status)).font(.subheadline.weight(.semibold))
+                            .foregroundStyle(status == "rejected" ? Color.red : (status == "running" ? Color.green : Color.secondary))
+                    }
+                }.accessibilityElement(children: .combine)
+                ClubGovernanceFactRows(value: value, fields: ["startDate", "endDate", "playModeText"])
+            }
+            Section { link(.topicStats); link(.topicSettings); link(.topicCustomers); link(.recruit); enrollmentLink(focusTopicID: scope.topicID) }
+            if let reason = value["rejectReason"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !reason.isEmpty {
+                Section("club.topic.rejectReason") { Text(verbatim: reason).foregroundStyle(.red) }
+            }
+            Section {
+                NavigationLink { ClubGovernanceStoryView(snapshot: $snapshot, snapshotContext: $snapshotContext, snapshotGeneration: $snapshotGeneration, loading: $loading, failure: $failure, context: readContext, identity: identity, access: access, coordinator: coordinator, reload: { await load() }) } label: { Label("club.gov.story", systemImage: "book.pages") }.accessibilityIdentifier("club.gov.openStory")
+            }
+            Section("club.topic.upcoming") {
+                let sessions = value["activityList"].array ?? []
+                if sessions.isEmpty { Text("club.topic.noSessions").foregroundStyle(.secondary) }
+                ForEach(Array(sessions.enumerated()), id: \.offset) { _, row in
+                    if let id = row["id"].int {
+                        let target = ClubGovernanceScope(clubID: scope.clubID, topicID: scope.topicID, activityID: id)
+                        NavigationLink { ClubGovernanceEventView(scope: target, identity: identity, access: access, coordinator: coordinator) } label: {
+                            if let name = row["name"].string { Text(verbatim: name) } else { Text("club.gov.eventID \(id)") }
+                        }
+                        if let startDate = row["startDate"].string, ClubOpsTimeRequest.date(startDate) != nil {
+                            NavigationLink("context.ops.title") {
+                                ClubOpsTimeView(activityID: id, original: startDate, owner: opsTimeFactory?(id)) { Task { await load() } }
+                            }.accessibilityIdentifier("club.context.editOps.\(id)")
+                        }
+                    }
+                }
+            }
             ClubTerminalSessionEntry(snapshot: snapshot, context: terminalContext, snapshotGeneration: terminalGeneration,
                 host: terminalSessions, access: access, sourceIsCurrent: {
                     !loading && self.snapshot == snapshot && snapshotContext == terminalContext && readContext == terminalContext &&
                     snapshotGeneration == terminalGeneration && identity == access.identity && scenePhase == .active
                 }, presentation: terminalPresentation)
-            ClubGovernanceFactRows(value: value, fields: ["name", "title", "auditStatus", "rejectReason", "status", "startDate", "endDate", "playModeText", "storyReady", "gameConfiguredCount"])
-            Section { link(.topicStats); link(.topicSettings); link(.topicCustomers); link(.recruit); enrollmentLink(focusTopicID: scope.topicID) }
             Section { NavigationLink("context.rules.title") { ClubOperatingRulesView() }.accessibilityIdentifier("club.context.openRules") }
-            Section("club.gov.story") {
-                NavigationLink { ClubGovernanceStoryView(snapshot: $snapshot, snapshotContext: $snapshotContext, snapshotGeneration: $snapshotGeneration, loading: $loading, failure: $failure, context: readContext, identity: identity, access: access, coordinator: coordinator, reload: { await load() }) } label: { Label("club.gov.story", systemImage: "book.pages") }.accessibilityIdentifier("club.gov.openStory")
-            }
-            Section("club.gov.events") { ForEach(Array((value["activityList"].array ?? []).enumerated()), id: \.offset) { _, row in
-                if let id = row["id"].int {
-                    let target = ClubGovernanceScope(clubID: scope.clubID, topicID: scope.topicID, activityID: id)
-                    if let startDate = row["startDate"].string, ClubOpsTimeRequest.date(startDate) != nil {
-                        NavigationLink("context.ops.title") {
-                            ClubOpsTimeView(activityID: id, original: startDate, owner: opsTimeFactory?(id)) { Task { await load() } }
-                        }.accessibilityIdentifier("club.context.editOps.\(id)")
-                    }
-                    NavigationLink { ClubGovernanceEventView(scope: target, identity: identity, access: access, coordinator: coordinator) } label: { Text(verbatim: row["name"].string ?? "#\(id)") }
-                }
-            } }
         } else if operation == .audienceCounts {
             Section {
                 if let rows = try? ClubOpsNotifyPresentation.audienceRows(value) { ClubOpsNotifyAudienceRows(rows: rows) }
