@@ -430,7 +430,7 @@ import SwiftUI
     }
     private var state: MerchantBusinessCoordinator { model.coordinator }
     private var isRedemptionLedger: Bool { if case .redemptions = query { return true }; return false }
-    private var pageContent: some View {
+    @ViewBuilder private var pageContent: some View {
         let renderedTeamScope = reader.scope
         let renderedTeamAuthorization = reader.authorizationGeneration
         List {
