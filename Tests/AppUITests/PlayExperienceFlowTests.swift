@@ -26,7 +26,7 @@ final class PlayExperienceFlowTests: XCTestCase {
             XCTAssertTrue(app.buttons["playx.confirm"].waitForExistence(timeout: 3), app.debugDescription)
             dismissFixtureConfirmationPopover(in: app)
         }
-        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.sheets["Review action"])
+        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.sheets["Submit?"])
         let editable = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == true AND enabled == true"), object: review)
         XCTAssertEqual(XCTWaiter.wait(for: [dismissed, editable], timeout: 5), .completed, app.debugDescription)
         XCTAssertFalse(app.buttons["playx.confirm"].exists)
@@ -87,6 +87,6 @@ final class PlayExperienceFlowTests: XCTestCase {
     func testChineseJourneyLabels() {
         let app = launch(language: "zh-Hans"); let node = app.buttons["playx.node.701"]
         reveal(node, app: app); XCTAssertTrue(node.waitForExistence(timeout: 5))
-        XCTAssertTrue(app.navigationBars["旅程游玩"].exists)
+        XCTAssertTrue(app.navigationBars["旅程"].exists)
     }
 }

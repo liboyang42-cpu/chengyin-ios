@@ -30,7 +30,7 @@ final class PlayRouteMapContinuationFlowTests: XCTestCase {
 
     func testAccountChangeBackReopenAndRelaunchDoNotRestoreOldSelection() {
         launch(); openMap(); tap("playRoute.openCurrent"); fixtureAction("playRoute.fixture.account")
-        XCTAssertTrue(app.navigationBars["Journey runtime"].waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(app.navigationBars["Journey"].waitForExistence(timeout: 5), app.debugDescription)
         openMap(); XCTAssertTrue(app.staticTexts["Synthetic second-account stop"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts["Synthetic current stop"].exists)
         // Keep the footer gesture in the stop list rather than the interactive map.
@@ -54,7 +54,7 @@ final class PlayRouteMapContinuationFlowTests: XCTestCase {
         tap("playRoute.toggleMap"); tap("playRoute.stop.701")
         XCTAssertTrue(app.navigationBars["旅程任务"].waitForExistence(timeout: 5))
         backFromTask(); tap("playRoute.back")
-        XCTAssertTrue(app.navigationBars["旅程游玩"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars["旅程"].waitForExistence(timeout: 5))
         attachFixtureScreenshot(self, app: app, name: "Chinese maximum-text route navigation")
     }
     func testFreeExplorationDoesNotGainOrientationMapEntry() {

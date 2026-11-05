@@ -95300,17 +95300,18 @@
       }
     },
     "playMode.recoveryBlocked" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "An earlier submission has a different or unrecorded play mode. Its outcome must be verified before another submission."
+            "value" : "An earlier answer needs checking before you can continue."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此前提交属于其他玩法或未记录玩法，需要先核实原提交结果，才能继续提交。"
+            "value" : "之前的提交需要先核对，才能继续。"
           }
         }
       }
@@ -104037,17 +104038,18 @@
       }
     },
     "playx.device.disabled" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This device feature isn't available right now. No permission was requested and nothing was recorded."
+            "value" : "This task can't be done on this phone."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "该设备功能暂不可用，未请求权限或开始采集"
+            "value" : "这个任务无法在本机完成。"
           }
         }
       }
@@ -104981,17 +104983,18 @@
       }
     },
     "playx.disabled" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Live gameplay isn't available right now."
+            "value" : "This journey isn't open for play right now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "实时玩法暂不可用"
+            "value" : "这个旅程暂时不能游玩。"
           }
         }
       }
@@ -105029,17 +105032,18 @@
       }
     },
     "playx.error" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This result could not be confirmed. Refresh to check the latest state."
+            "value" : "We couldn't confirm this. Refresh to check."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂时无法确认结果，请刷新核对最新状态"
+            "value" : "暂时无法确认，请刷新查看。"
           }
         }
       }
@@ -105109,17 +105113,18 @@
       }
     },
     "playx.hints.consequence" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The points shown may be deducted. Puzzle hints can lower your maximum puzzle score and are recorded."
+            "value" : "Using a hint costs the points shown and lowers your top puzzle score."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可能扣除所示积分，谜题提示会降低解谜分上限并被记录"
+            "value" : "使用提示会扣除所示积分，并降低解谜最高分。"
           }
         }
       }
@@ -105349,17 +105354,18 @@
       }
     },
     "playx.lead.unknown" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The last team action is still unconfirmed. Do not send it again."
+            "value" : "Your last team action is still being confirmed."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "上次队伍操作结果尚未确认，请勿重复发送"
+            "value" : "上次队伍操作还在确认中。"
           }
         }
       }
@@ -105397,17 +105403,18 @@
       }
     },
     "playx.leaderboard.me" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "My position and completed nodes"
+            "value" : "Me"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "我的名次与完成节点数"
+            "value" : "我"
           }
         }
       }
@@ -105621,17 +105628,18 @@
       }
     },
     "playx.node.unavailable" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This task is no longer visible in the current session."
+            "value" : "This task is no longer available."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前会话中此任务已不可见"
+            "value" : "这个任务已不可用。"
           }
         }
       }
@@ -108501,97 +108509,103 @@
       }
     },
     "playx.results" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Journey results"
+            "value" : "Play tools"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "旅程结果"
+            "value" : "游玩工具"
           }
         }
       }
     },
     "playx.results.load" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Load ending and leaderboard"
+            "value" : "Ending and leaderboard"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "查看结局与同行者榜"
+            "value" : "结局与同行者榜"
           }
         }
       }
     },
     "playx.retryExact" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Retry the original request"
+            "value" : "Try again"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重试原请求"
+            "value" : "重试"
           }
         }
       }
     },
     "playx.review" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review action"
+            "value" : "Submit?"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "核对操作"
+            "value" : "确认提交？"
           }
         }
       }
     },
     "playx.review.detail" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Submit this action to your current journey? Completion will be checked after you submit."
+            "value" : "Your answer will be checked after you submit."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "将此操作提交到当前旅程？提交后将核对完成状态"
+            "value" : "提交后会核对结果。"
           }
         }
       }
     },
     "playx.reward" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reward details"
+            "value" : "Rewards"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "奖励明细"
+            "value" : "奖励"
           }
         }
       }
@@ -108661,97 +108675,103 @@
       }
     },
     "playx.run.elapsed" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Paused elapsed time"
+            "value" : "Time"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂停时的已用时间"
+            "value" : "用时"
           }
         }
       }
     },
     "playx.run.end" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "End this run"
+            "value" : "End"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "结束本次游玩"
+            "value" : "结束"
           }
         }
       }
     },
     "playx.run.end.detail" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This ends your saved timer. It does not mark unfinished tasks complete or grant rewards."
+            "value" : "Your time stops here. Unfinished tasks stay unfinished."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这会结束已保存的计时，不会完成未完成任务或发放奖励"
+            "value" : "计时将停止，未完成的任务不会算作完成。"
           }
         }
       }
     },
     "playx.run.pause" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pause run"
+            "value" : "Pause"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂停游玩"
+            "value" : "暂停"
           }
         }
       }
     },
     "playx.run.resume" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Start or resume"
+            "value" : "Continue"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "开始或继续"
+            "value" : "继续"
           }
         }
       }
     },
     "playx.run.saveFailed" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The remote timer update was not confirmed. Your local state is retained."
+            "value" : "Your time couldn't be synced. It's kept on this phone."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "远端计时更新尚未确认，已保留本机状态"
+            "value" : "计时没能同步，已保存在本机。"
           }
         }
       }
@@ -108773,17 +108793,18 @@
       }
     },
     "playx.session.changed" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your session changed. Reopen this journey to continue."
+            "value" : "Your account changed. Open this journey again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "登录会话已变更，请重新进入旅程"
+            "value" : "账号已变化，请重新进入旅程。"
           }
         }
       }
@@ -109301,33 +109322,35 @@
       }
     },
     "playx.title" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Journey runtime"
+            "value" : "Journey"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "旅程游玩"
+            "value" : "旅程"
           }
         }
       }
     },
     "playx.unknown.body" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your action may have gone through. Check the result before submitting anything else."
+            "value" : "Your answer may already have gone through. Check before trying again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "操作可能已提交成功，请先核对结果，不要重复提交"
+            "value" : "你的提交可能已经成功，请先核对再操作。"
           }
         }
       }
@@ -109349,17 +109372,18 @@
       }
     },
     "playx.unsupported" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This action is not available for the current task."
+            "value" : "This can't be done for this task."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此任务暂不支持该操作"
+            "value" : "这个任务不支持该操作。"
           }
         }
       }
@@ -203104,6 +203128,91 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "这次没有点亮新地点"
+          }
+        }
+      }
+    },
+    "playx.disabled.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't play right now"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂时无法游玩"
+          }
+        }
+      }
+    },
+    "playx.error.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't load this journey"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "旅程没有加载出来"
+          }
+        }
+      }
+    },
+    "playx.run.start" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开始"
+          }
+        }
+      }
+    },
+    "playx.player.unnamed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Player"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "玩家"
+          }
+        }
+      }
+    },
+    "playx.node.untitled" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Untitled stop"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未命名地点"
           }
         }
       }
