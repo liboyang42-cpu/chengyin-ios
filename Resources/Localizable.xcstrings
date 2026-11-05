@@ -135746,13 +135746,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ways to explore"
+            "value" : "Ways to play"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "探索方式"
+            "value" : "三种玩法"
           }
         }
       }
@@ -135843,13 +135843,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Browse all templates"
+            "value" : "More plays"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "浏览全部模板"
+            "value" : "更多玩法"
           }
         }
       }
@@ -135928,13 +135928,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Game templates are unavailable in this context."
+            "value" : "No ready-made plays right now"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前暂时无法查看玩法模板。"
+            "value" : "暂时没有现成玩法"
           }
         }
       }
@@ -190276,13 +190276,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rules and play details"
+            "value" : "The play page's rules apply"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "规则与玩法细节"
+            "value" : "实际玩法以游玩页规则为准"
           }
         }
       }
@@ -203927,6 +203927,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$lld 报名 · %2$lld 浏览"
+          }
+        }
+      }
+    },
+    "social.guideTemplates.playedTimes %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Played %lld times"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已玩 %lld 次"
           }
         }
       }

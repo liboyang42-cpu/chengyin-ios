@@ -10,7 +10,6 @@ struct SocialGuideXcxHero: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             (Text("guideXcx.heroLead").fontWeight(.light) + Text("guideXcx.heroEmphasis").bold()).font(.title2)
-            Text("guideXcx.heroDetail").font(.subheadline).foregroundStyle(.secondary)
         }.padding(.vertical, 4).accessibilityElement(children: .combine).accessibilityIdentifier("social.guide.hero")
     }
 }
