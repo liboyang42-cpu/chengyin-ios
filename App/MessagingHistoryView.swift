@@ -172,6 +172,7 @@ struct MessagingHistoryView: View {
                             admission: admission,
                             directory: directory,
                             showsAdmissionEntry: directory != nil || conversation?.kind == .group,
+                            isMuted: conversation?.muted,
                             onConversationMutationAccepted: onConversationMutationAccepted) { _ in Task { await reload() } }
                     } label: { Label("im.full.title", systemImage: "info.circle") }
                     .accessibilityIdentifier("im.full.controlsEntry")
