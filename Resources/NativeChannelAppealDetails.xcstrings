@@ -4,16 +4,16 @@
     "facts": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原申诉详情"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original appeal details"
+            "value": "Appeal details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申诉详情"
           }
         }
       }
@@ -21,16 +21,16 @@
     "reason": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原申诉说明"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original appeal statement"
+            "value": "Your statement"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申诉说明"
           }
         }
       }
@@ -38,16 +38,16 @@
     "submittedAt": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原提交时间"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original submission time"
+            "value": "Submitted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交时间"
           }
         }
       }
@@ -55,16 +55,16 @@
     "decidedAt": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原处理时间"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original decision time"
+            "value": "Decided"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "处理时间"
           }
         }
       }
@@ -72,16 +72,16 @@
     "withdrawnAt": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原撤回时间"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original withdrawal time"
+            "value": "Withdrawn"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤回时间"
           }
         }
       }
@@ -89,16 +89,16 @@
     "dueAt": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原截止时间"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original due time"
+            "value": "Due"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "截止时间"
           }
         }
       }
@@ -106,16 +106,16 @@
     "slaDueAt": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "处理期限"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Processing deadline"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "处理期限"
           }
         }
       }
@@ -140,16 +140,16 @@
     "evidenceCount": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Items"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "材料条数"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Evidence count"
           }
         }
       }
@@ -157,16 +157,16 @@
     "supplement": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原追加说明"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original supplemental statement"
+            "value": "Added statement"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "追加说明"
           }
         }
       }
@@ -174,16 +174,16 @@
     "originalEvidence": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原初次材料"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original initial evidence"
+            "value": "First statement"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首次材料"
           }
         }
       }
@@ -208,16 +208,16 @@
     "evidenceUnavailable": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "材料列表当前不可确认"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The materials list cannot currently be confirmed"
+            "value": "Materials can't be loaded right now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法加载材料"
           }
         }
       }
@@ -225,16 +225,16 @@
     "noTextEvidence": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原记录未返回文本材料"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original record returned no text materials"
+            "value": "No materials"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无材料"
           }
         }
       }
@@ -242,16 +242,16 @@
     "timeline": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原处理记录"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original processing history"
+            "value": "History"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "处理记录"
           }
         }
       }
@@ -276,16 +276,16 @@
     "timelineUnavailable": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "处理记录当前不可确认"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The processing history cannot currently be confirmed"
+            "value": "History can't be loaded right now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法加载处理记录"
           }
         }
       }
@@ -293,16 +293,16 @@
     "noTimeline": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原服务未返回处理记录"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original service returned no processing history"
+            "value": "No history yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无处理记录"
           }
         }
       }
@@ -327,16 +327,16 @@
     "messageReferences": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原消息引用编号"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original referenced message IDs"
+            "value": "Messages"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "引用消息"
           }
         }
       }
@@ -344,16 +344,16 @@
     "attachmentReferences": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原附件引用条数"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original attachment reference count"
+            "value": "Attachments"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "附件"
           }
         }
       }
@@ -378,16 +378,16 @@
     "recovery.pending": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原请求结果待确认"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original request result pending"
+            "value": "Your last request is waiting for a result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次提交正在等待结果"
           }
         }
       }
@@ -446,16 +446,16 @@
     "input.tooLong": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "说明已超过长度限制，请缩短至计数不超过 500 后继续。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The statement is too long. Shorten it until the counter is no more than 500."
+            "value": "Keep it under 500 characters."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请控制在 500 字以内。"
           }
         }
       }
@@ -463,16 +463,16 @@
     "progress.reading": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在读取原申诉和处置进度…"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reading the original appeal and moderation progress…"
+            "value": "Loading…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载…"
           }
         }
       }
@@ -480,16 +480,16 @@
     "progress.submitting": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在提交原请求，请勿重复操作…"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sending the original request. Do not submit again…"
+            "value": "Submitting…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在提交…"
           }
         }
       }
@@ -514,16 +514,16 @@
     "result.confirmed": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原请求已确认"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original request confirmed"
+            "value": "Request received"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已收到你的提交"
           }
         }
       }
@@ -531,16 +531,16 @@
     "source.unavailable": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂无法读取或定位原申诉，或原权限、存储不可用；这不表示申诉不存在或操作未发生。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original appeal cannot currently be read or located, or access/storage is unavailable. This does not mean no appeal exists or no action occurred."
+            "value": "This appeal can't be loaded right now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法加载这条申诉。"
           }
         }
       }
@@ -650,16 +650,16 @@
     "status.closed": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此为最终状态；仍可查看原材料和处理记录。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This is the final status. Original materials and history are still available."
+            "value": "This decision is final."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此为最终结果。"
           }
         }
       }
@@ -769,16 +769,16 @@
     "channel.actionFacts.expiresAt": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ends at"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "结束时间"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Expires at"
           }
         }
       }
@@ -820,16 +820,16 @@
     "channel.actionFacts.unavailable": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂未读回原处置详情；已读回的申诉进度仍单独展示。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original action details are unavailable. Retrieved appeal progress is shown separately."
+            "value": "Moderation details can't be loaded right now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法加载处置详情。"
           }
         }
       }
@@ -837,16 +837,16 @@
     "channel.actionFacts.title": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原处置详情"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original action details"
+            "value": "Moderation details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "处置详情"
           }
         }
       }
@@ -871,16 +871,16 @@
     "recovery.journalUnavailable": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原请求记录暂不可用。请刷新重读；不会创建新的申诉或自动重发。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original request record is temporarily unavailable. Refresh to read it again; this will not create another appeal or resend automatically."
+            "value": "Couldn't load your saved request. Pull to refresh."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法读取已保存的提交，请下拉刷新。"
           }
         }
       }
@@ -905,16 +905,16 @@
     "recovery.readOriginal": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "查看原结果"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check original result"
+            "value": "Check result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看结果"
           }
         }
       }
@@ -922,16 +922,16 @@
     "recovery.reviewRetry": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "核对后重试原请求"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review before retrying original request"
+            "value": "Try again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新提交"
           }
         }
       }
@@ -939,16 +939,16 @@
     "recovery.title": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原请求恢复"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recover original request"
+            "value": "Pending request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待确认的提交"
           }
         }
       }
@@ -990,16 +990,16 @@
     "review.title": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "确认原操作"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm original action"
+            "value": "Confirm"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认提交"
           }
         }
       }
@@ -1007,16 +1007,16 @@
     "input.placeholder": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "误判原因、补充说明或撤回原因"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reason for appeal, additional statement, or reason for withdrawal"
+            "value": "Explain why"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "填写说明"
           }
         }
       }
@@ -1041,16 +1041,16 @@
     "action.submit": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "我认为这是误判，申诉"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Appeal this moderation decision"
+            "value": "Submit appeal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交申诉"
           }
         }
       }
@@ -1058,16 +1058,16 @@
     "action.evidence": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "追加一次说明"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Add one additional statement"
+            "value": "Add statement"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "追加说明"
           }
         }
       }
@@ -1092,16 +1092,16 @@
     "input.title": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explanation"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "说明"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Statement"
           }
         }
       }
@@ -1126,16 +1126,16 @@
     "session.unavailable": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前会话或权限已失效，原待定请求仍保留。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current session or access is no longer valid. The original pending request is still saved."
+            "value": "This appeal isn't available right now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前申诉暂不可用。"
           }
         }
       }
@@ -1143,16 +1143,16 @@
     "entry.title": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "频道处置申诉"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Channel moderation appeal"
+            "value": "Appeal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申诉"
           }
         }
       }
@@ -1160,16 +1160,16 @@
     "retry.confirmation": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请先查看原结果；仅在原请求未被收到时，才以相同内容重试。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check the original result first. Only retry with the same content if the original request wasn't received."
+            "value": "Check the result first. Only try again if your request wasn't received."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先查看结果，确认未收到后再重新提交。"
           }
         }
       }
@@ -1177,16 +1177,16 @@
     "retry.confirm": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "核对并重试原请求"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check and retry original request"
+            "value": "Try again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新提交"
           }
         }
       }
@@ -1228,16 +1228,16 @@
     "progress.deadline": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原申诉截止"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original appeal deadline"
+            "value": "Appeal deadline"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申诉截止"
           }
         }
       }
@@ -1262,16 +1262,16 @@
     "progress.currentReadFailed": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂未获取当前申诉进度，请刷新重试；不会重复提交申诉。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "We couldn't load your current appeal progress. Refresh to try again; your appeal won't be submitted twice."
+            "value": "Couldn't load the latest progress. Pull to refresh."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法加载最新进度，请下拉刷新。"
           }
         }
       }
@@ -1296,16 +1296,16 @@
     "progress.title": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原处置与申诉进度"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original action and appeal progress"
+            "value": "Progress"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "处理进度"
           }
         }
       }
@@ -1347,16 +1347,16 @@
     "operation.withdraw": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "撤回原申诉"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdraw original appeal"
+            "value": "Withdraw appeal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤回申诉"
           }
         }
       }
@@ -1364,16 +1364,16 @@
     "operation.original": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原操作"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original action"
+            "value": "Request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交内容"
           }
         }
       }
@@ -1381,16 +1381,16 @@
     "status.unknown": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "申诉状态暂不可确认"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Appeal status cannot currently be confirmed"
+            "value": "Status unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态暂不可确认"
           }
         }
       }
