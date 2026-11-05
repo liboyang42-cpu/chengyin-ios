@@ -36,6 +36,7 @@ import SwiftUI
                             .lineLimit(1...5).textFieldStyle(.plain)
                             .padding(.vertical, 11).padding(.leading, 16)
                             .accessibilityIdentifier("channel.text.draft")
+                        let draftIsEmpty = draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                         Button {
                             let original = draft
                             run {
@@ -48,15 +49,17 @@ import SwiftUI
                             else {
                                 Label { Text("channelText.send", tableName: "NativeChannelText") } icon: { Image(systemName: "arrow.up.circle.fill") }
                                     .labelStyle(.iconOnly).font(.title2)
+                                    // Quiet while there is nothing to send; the accent returns with text.
+                                    .foregroundStyle(draftIsEmpty ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.tint))
                             }
                         }
                         .buttonStyle(.borderless)
                         .frame(minWidth: 44, minHeight: 44)
-                        .disabled(!coordinator.quoteDraftIsCurrent || draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || draft.utf8.count > 16 * 1024)
+                        .disabled(!coordinator.quoteDraftIsCurrent || draftIsEmpty || draft.utf8.count > 16 * 1024)
                         .accessibilityIdentifier("channel.text.send")
                     }
                     .frame(minHeight: 44)
-                    .background(Theme.Color.bgSurface(in: domain), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                    .background(Theme.Color.bgRaised(in: domain), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
                 } else if let pending = coordinator.pendingText {
                     Text(verbatim: pending).font(Theme.Font.body).fixedSize(horizontal: false, vertical: true).lineLimit(4).textSelection(.enabled).privacySensitive().accessibilityIdentifier("channel.text.original")
                 }
@@ -79,7 +82,8 @@ import SwiftUI
             .controlSize(.regular)
         }
         .font(Theme.Font.body)
-        .padding(.horizontal, Theme.Space.s3).padding(.vertical, Theme.Space.s2).background(.bar).privacySensitive()
+        // Same surface as the page, so the composer doesn't read as a separate band.
+        .padding(.horizontal, Theme.Space.pageX).padding(.vertical, Theme.Space.s2).background(.background).privacySensitive()
         .onAppear { coordinator.onChange = { revision += 1 }; resume() }
         .onChange(of: historyReady) { _, ready in
             if ready { resume() } else { draft = ""; task?.cancel(); coordinator.stop() }
