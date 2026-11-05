@@ -39867,7 +39867,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "My published content"
+            "value" : "My projects"
           }
         },
         "zh-Hans" : {
@@ -40059,13 +40059,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Showing the first 200 results. Narrow the filters to find more content."
+            "value" : "Showing the latest 200"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅显示前 200 条，请筛选以查找更多内容。"
+            "value" : "仅显示最近 200 条"
           }
         }
       }
@@ -196065,13 +196065,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Node plays are not available from this entry"
+            "value" : "Find node plays in your template list"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此入口暂不提供节点玩法列表"
+            "value" : "节点玩法请在模板列表中查看"
           }
         }
       }
@@ -203910,6 +203910,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "固定 · —"
+          }
+        }
+      }
+    },
+    "myProject.statsLine %lld %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld signups · %2$lld views"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld 报名 · %2$lld 浏览"
           }
         }
       }
