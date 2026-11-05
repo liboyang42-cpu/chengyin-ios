@@ -58051,13 +58051,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Instance last reviewed"
+            "value" : "Last confirmed"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "实例最近复核时间"
+            "value" : "最近确认时间"
           }
         }
       }
@@ -58627,13 +58627,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pending count"
+            "value" : "Pending"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "待处理数量"
+            "value" : "待处理"
           }
         }
       }
@@ -59507,13 +59507,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "I am participating"
+            "value" : "My part in this route"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "我承接的"
+            "value" : "我在这条路线上的承接"
           }
         }
       }
@@ -59651,13 +59651,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No host or participant workspace was returned"
+            "value" : "You're not hosting or taking part in this route"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未返回主办或承接工作台"
+            "value" : "你还没有主办或承接这条路线"
           }
         }
       }
@@ -59683,13 +59683,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Node review"
+            "value" : "Stop review"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "点位审核"
+            "value" : "节点审核"
           }
         }
       }
@@ -59891,13 +59891,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Project workspace"
+            "value" : "Route workspace"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "项目工作台"
+            "value" : "路线工作台"
           }
         }
       }
@@ -60323,13 +60323,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm instance supply review"
+            "value" : "Confirm supply is unchanged"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认实例供给已复核"
+            "value" : "供给无变化，重新确认"
           }
         }
       }
