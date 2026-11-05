@@ -16,7 +16,7 @@ import XCTest
         launch("readOnly", chinese: true); openCoupons(); enterDraft()
         let confirm = app.buttons["couponManagement.confirm"]
         XCTAssertTrue(revealFixtureElement(confirm, in: app, requiresHittable: false)); XCTAssertFalse(confirm.isEnabled)
-        XCTAssertEqual(confirm.label, "确认提交")
+        XCTAssertEqual(confirm.label, "发布优惠券")
         try closeEditor()
         XCTAssertEqual(app.staticTexts["couponRuntime.evidence"].label, "合成优惠券运行记录")
     }
