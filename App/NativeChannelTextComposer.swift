@@ -8,6 +8,8 @@ import SwiftUI
     let historyReady: Bool
     var onReturnToHistory: () -> Void = {}
     var onReturnToDirectory: () -> Void = {}
+    /// Leading `+` supplied by the host (its existing channel tools menu).
+    var accessory: AnyView? = nil
     @State private var draft = ""
     @State private var revision = 0
     @State private var task: Task<Void, Never>?
@@ -18,68 +20,93 @@ import SwiftUI
         VStack(alignment: .leading, spacing: Theme.Space.s2) {
             if historyReady && coordinator.isCurrent {
                 status
-                if let mentions = coordinator.pendingMentionSummary { Text("channelText.pendingMentions \(mentions)", tableName: "NativeChannelText").fixedSize(horizontal: false, vertical: true).font(.footnote) }
-                if coordinator.pendingQuotedMessageID != nil { Text("channelText.replying", tableName: "NativeChannelText").fixedSize(horizontal: false, vertical: true).font(.footnote) }
+                if coordinator.pendingMentionSummary != nil { Text("d7.channelChat.withMentions").fixedSize(horizontal: false, vertical: true).font(.footnote).foregroundStyle(.secondary) }
+                if coordinator.pendingQuotedMessageID != nil { Text("channelText.replying", tableName: "NativeChannelText").fixedSize(horizontal: false, vertical: true).font(.footnote).foregroundStyle(.secondary) }
                 if coordinator.canSendNew {
-                    if let mentions = coordinator.mentionSummary {
-                        Text("channelText.mentions \(mentions)", tableName: "NativeChannelText").fixedSize(horizontal: false, vertical: true).font(.footnote)
-                        Button { coordinator.cancelQuoteDraft() } label: { Text("channelText.cancelReply", tableName: "NativeChannelText") }.font(Theme.Font.button)
-                    }
-                    if coordinator.quotedMessageID != nil {
-                        Text("channelText.replying", tableName: "NativeChannelText").fixedSize(horizontal: false, vertical: true).font(.footnote)
-                        if !coordinator.quoteDraftIsCurrent { Text("channelText.replyUnavailable", tableName: "NativeChannelText").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
-                        Button { coordinator.cancelQuoteDraft() } label: { Text("channelText.cancelReply", tableName: "NativeChannelText") }.font(Theme.Font.button)
-                    }
-                    // Rounded field with the send control inside it.
-                    HStack(alignment: .bottom, spacing: Theme.Space.s1) {
-                        TextField(text: $draft, axis: .vertical) { Text("channelText.placeholder", tableName: "NativeChannelText").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
-                            .lineLimit(1...5).textFieldStyle(.plain)
-                            .padding(.vertical, 11).padding(.leading, 16)
-                            .accessibilityIdentifier("channel.text.draft")
-                        let draftIsEmpty = draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                        Button {
-                            let original = draft
-                            run {
-                                let accepted = await coordinator.sendNew(original)
-                                if accepted || coordinator.pendingClientMessageID != nil { draft = "" }
+                    if coordinator.quotedMessageID != nil || coordinator.mentionSummary != nil {
+                        // Reply and mention context sits above the field, cancelled in one tap.
+                        HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s2) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                if coordinator.quotedMessageID != nil {
+                                    Text("channelText.replying", tableName: "NativeChannelText").fixedSize(horizontal: false, vertical: true)
+                                }
+                                if let reference = coordinator.draftTextReference {
+                                    if reference.mentionEveryone { Text("d7.channelChat.mentionEveryone").fixedSize(horizontal: false, vertical: true) }
+                                    else if !reference.memberIDs.isEmpty || !reference.roleIDs.isEmpty {
+                                        Text("d7.channelChat.mentionCount \(reference.memberIDs.count + reference.roleIDs.count)").fixedSize(horizontal: false, vertical: true)
+                                    }
+                                }
                             }
-                        } label: {
-                            if coordinator.mentionSummary != nil { Text("channelText.sendMentions", tableName: "NativeChannelText").font(Theme.Font.button).fixedSize(horizontal: false, vertical: true).padding(.horizontal, Theme.Space.s2) }
-                            else if coordinator.quotedMessageID != nil { Text("channelText.sendReply", tableName: "NativeChannelText").font(Theme.Font.button).fixedSize(horizontal: false, vertical: true).padding(.horizontal, Theme.Space.s2) }
-                            else {
-                                Label { Text("channelText.send", tableName: "NativeChannelText") } icon: { Image(systemName: "arrow.up.circle.fill") }
+                            .font(.footnote).foregroundStyle(.secondary)
+                            Spacer(minLength: 0)
+                            Button { coordinator.cancelQuoteDraft() } label: {
+                                Label { Text("channelText.cancelReply", tableName: "NativeChannelText") } icon: { Image(systemName: "xmark.circle.fill") }
+                                    .labelStyle(.iconOnly).foregroundStyle(.secondary)
+                                    .frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
+                            }.buttonStyle(.borderless)
+                        }
+                        if coordinator.quotedMessageID != nil && !coordinator.quoteDraftIsCurrent {
+                            Text("channelText.replyUnavailable", tableName: "NativeChannelText").font(.footnote).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    // `+` on the left, then a rounded field with the send control inside it.
+                    HStack(alignment: .bottom, spacing: Theme.Space.s2) {
+                        if let accessory { accessory }
+                        HStack(alignment: .bottom, spacing: Theme.Space.s1) {
+                            TextField(text: $draft, axis: .vertical) { Text("channelText.placeholder", tableName: "NativeChannelText") }
+                                .lineLimit(1...5).textFieldStyle(.plain)
+                                .padding(.vertical, 11).padding(.leading, 16)
+                                .accessibilityIdentifier("channel.text.draft")
+                            let draftIsEmpty = draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                            Button {
+                                let original = draft
+                                run {
+                                    let accepted = await coordinator.sendNew(original)
+                                    if accepted || coordinator.pendingClientMessageID != nil { draft = "" }
+                                }
+                            } label: {
+                                Label {
+                                    if coordinator.mentionSummary != nil { Text("channelText.sendMentions", tableName: "NativeChannelText") }
+                                    else if coordinator.quotedMessageID != nil { Text("channelText.sendReply", tableName: "NativeChannelText") }
+                                    else { Text("channelText.send", tableName: "NativeChannelText") }
+                                } icon: { Image(systemName: "arrow.up.circle.fill") }
                                     .labelStyle(.iconOnly).font(.title2)
+                                    .frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
                                     // Quiet while there is nothing to send; the accent returns with text.
                                     .foregroundStyle(draftIsEmpty ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.tint))
                             }
+                            .buttonStyle(.borderless)
+                            .disabled(!coordinator.quoteDraftIsCurrent || draftIsEmpty || draft.utf8.count > 16 * 1024)
+                            .accessibilityIdentifier("channel.text.send")
                         }
-                        .buttonStyle(.borderless)
-                        .frame(minWidth: 44, minHeight: 44)
-                        .disabled(!coordinator.quoteDraftIsCurrent || draftIsEmpty || draft.utf8.count > 16 * 1024)
-                        .accessibilityIdentifier("channel.text.send")
+                        .frame(minHeight: 44)
+                        .background(Theme.Color.bgRaised(in: domain), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
                     }
-                    .frame(minHeight: 44)
-                    .background(Theme.Color.bgRaised(in: domain), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-                } else if let pending = coordinator.pendingText {
-                    Text(verbatim: pending).font(Theme.Font.body).fixedSize(horizontal: false, vertical: true).lineLimit(4).textSelection(.enabled).privacySensitive().accessibilityIdentifier("channel.text.original")
+                } else {
+                    if let pending = coordinator.pendingText {
+                        Text(verbatim: pending).font(Theme.Font.body).fixedSize(horizontal: false, vertical: true).lineLimit(4).textSelection(.enabled).privacySensitive().accessibilityIdentifier("channel.text.original")
+                    }
+                    accessoryRow
                 }
-                if coordinator.canCheckReceipt {
-                    Button { run { _ = await coordinator.checkReceipt() } } label: {
-                        Text("channelText.check", tableName: "NativeChannelText").font(Theme.Font.button).fixedSize(horizontal: false, vertical: true)
-                    }.accessibilityIdentifier("channel.text.checkReceipt")
+                if coordinator.canCheckReceipt || coordinator.canRetryOriginal {
+                    HStack(spacing: Theme.Space.s3) {
+                        if coordinator.canCheckReceipt {
+                            Button { run { _ = await coordinator.checkReceipt() } } label: {
+                                Text("channelText.check", tableName: "NativeChannelText").fixedSize(horizontal: false, vertical: true)
+                            }.accessibilityIdentifier("channel.text.checkReceipt")
+                        }
+                        if coordinator.canRetryOriginal {
+                            Button { run { _ = await coordinator.retryOriginal() } } label: {
+                                Text("channelText.retry", tableName: "NativeChannelText").fixedSize(horizontal: false, vertical: true)
+                            }.accessibilityIdentifier("channel.text.retryOriginal")
+                        }
+                    }
+                    .buttonStyle(.bordered).font(Theme.Font.button)
                 }
-                if coordinator.canRetryOriginal {
-                    Button { run { _ = await coordinator.retryOriginal() } } label: {
-                        Text("channelText.retry", tableName: "NativeChannelText").font(Theme.Font.button).fixedSize(horizontal: false, vertical: true)
-                    }.accessibilityIdentifier("channel.text.retryOriginal")
-                }
-            } else { Text("channelText.unavailable", tableName: "NativeChannelText").fixedSize(horizontal: false, vertical: true).font(.footnote) }
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: Theme.Space.s3) { returnButtons }
-                VStack(alignment: .leading, spacing: Theme.Space.s1) { returnButtons }
+            } else {
+                Text("channelText.unavailable", tableName: "NativeChannelText").fixedSize(horizontal: false, vertical: true).font(.footnote).foregroundStyle(.secondary)
+                accessoryRow
             }
-            .buttonStyle(.bordered)
-            .controlSize(.regular)
         }
         .font(Theme.Font.body)
         // Same surface as the page, so the composer doesn't read as a separate band.
@@ -94,31 +121,23 @@ import SwiftUI
         .onChange(of: scenePhase) { _, phase in if phase == .active { resume() } else { clear() } }
         .onDisappear { clear(); coordinator.onChange = nil }
     }
-    @ViewBuilder private var returnButtons: some View {
-        Button(action: onReturnToHistory) {
-            Text("channelText.history", tableName: "NativeChannelText")
-                .font(Theme.Font.button).fixedSize(horizontal: false, vertical: true).frame(minHeight: 44)
-        }.accessibilityIdentifier("channel.text.returnHistory")
-        Button(action: onReturnToDirectory) {
-            Text("channelText.directory", tableName: "NativeChannelText")
-                .font(Theme.Font.button).fixedSize(horizontal: false, vertical: true).frame(minHeight: 44)
-        }.accessibilityIdentifier("channel.text.returnDirectory")
+    @ViewBuilder private var accessoryRow: some View {
+        if let accessory { HStack { accessory; Spacer(minLength: 0) } }
     }
     @ViewBuilder private var status: some View {
         switch coordinator.visibleState {
         case .idle:
-            if !coordinator.canSendNew { Text("channelText.unavailable", tableName: "NativeChannelText").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
-        case .sending: ProgressView { Text("channelText.sending", tableName: "NativeChannelText").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
-        case .checkingReceipt: ProgressView { Text("channelText.checking", tableName: "NativeChannelText").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
-        case .outcomeUnknown: Text("channelText.unknown", tableName: "NativeChannelText").nativeChannelNotice(systemImage: "clock")
-        case .receiptUnavailable: Text("channelText.receiptUnavailable", tableName: "NativeChannelText").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-        case .persistenceFailed: Text("channelText.storageUnavailable", tableName: "NativeChannelText").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-        case .accessClosed: Text("channelText.accessClosed", tableName: "NativeChannelText").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-        case .acknowledged(let messageID):
-            Text("channelText.received", tableName: "NativeChannelText").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("channel.text.serverReceived")
-            Text(String(messageID)).font(Theme.Font.label).monospacedDigit().textSelection(.enabled).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("channel.text.receiptMessageID")
+            if !coordinator.canSendNew { Text("channelText.unavailable", tableName: "NativeChannelText").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
+        case .sending: ProgressView { Text("channelText.sending", tableName: "NativeChannelText").font(.footnote).fixedSize(horizontal: false, vertical: true) }
+        case .checkingReceipt: ProgressView { Text("channelText.checking", tableName: "NativeChannelText").font(.footnote).fixedSize(horizontal: false, vertical: true) }
+        case .outcomeUnknown: Label { Text("channelText.unknown", tableName: "NativeChannelText") } icon: { Image(systemName: "clock") }.font(.footnote).fixedSize(horizontal: false, vertical: true)
+        case .receiptUnavailable: Text("channelText.receiptUnavailable", tableName: "NativeChannelText").font(.footnote).fixedSize(horizontal: false, vertical: true)
+        case .persistenceFailed: Text("channelText.storageUnavailable", tableName: "NativeChannelText").font(.footnote).fixedSize(horizontal: false, vertical: true)
+        case .accessClosed: Text("channelText.accessClosed", tableName: "NativeChannelText").font(.footnote).fixedSize(horizontal: false, vertical: true)
+        case .acknowledged:
+            Text("channelText.received", tableName: "NativeChannelText").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("channel.text.serverReceived")
             if coordinator.receiptPayloadWithheld {
-                Text("channelText.withheld", tableName: "NativeChannelText").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+                Text("channelText.withheld", tableName: "NativeChannelText").font(.footnote).fixedSize(horizontal: false, vertical: true)
             }
             if let message = coordinator.authoritativeMessage {
                 MessagingMessageContent(message: message).accessibilityIdentifier("channel.text.authoritativeMessage")
