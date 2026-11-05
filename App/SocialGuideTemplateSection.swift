@@ -116,7 +116,7 @@ enum SocialGuideTemplateRows {
         let catalogPermit = model.catalogPermit(reader: reader)
         let retryPermit = model.reloadPermit(reader: reader)
         Section("social.guideTemplates.title") {
-            if !reader.isConfigured { Text("social.guideTemplates.unavailable").foregroundStyle(.secondary) }
+            if !reader.isConfigured { Text("social.guideTemplates.unavailable") }
             else if scenePhase == .active, let snapshot = model.visibleSnapshot(reader: reader) {
                 if snapshot.rows.isEmpty {
                     Text("social.guideTemplates.empty").accessibilityIdentifier("social.guideTemplates.empty")

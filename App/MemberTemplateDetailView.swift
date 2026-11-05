@@ -75,7 +75,6 @@ import SwiftUI
                     }
                 } else { textSection("memberTemplate.story", value: item.storyText) }
                 textSection("discovery.creator", value: item.publisher)
-                Section { Text("memberTemplate.readBoundary").font(.footnote).foregroundStyle(.secondary) }
             }
         }.navigationTitle("memberTemplate.title").navigationBarTitleDisplayMode(.inline)
         .privacySensitive().accessibilityIdentifier("memberTemplate.detail")

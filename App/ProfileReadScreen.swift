@@ -150,6 +150,7 @@ struct ProfileEmptyState: View {
     var body: some View {
         ContentUnavailableView {
             Label { Text(title).accessibilityIdentifier(identifier) } icon: { Image(systemName: symbol) }
-        } description: { Text(hint) }
+        }
+        // `hint` is kept for callers; the spec allows no helper captions under empty states.
     }
 }

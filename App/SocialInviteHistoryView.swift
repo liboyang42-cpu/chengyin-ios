@@ -21,9 +21,7 @@ import SwiftUI
                 Section {
                     ProfileInviteHistorySummaryLine(total: model.pagination.total)
                     SocialOptionalCount(title: "social.invites.total", count: model.pagination.total)
-                    LabeledContent("social.invites.loaded", value: String(model.pagination.members.count))
                     if model.scan?.isComplete != true { Text("social.invites.partial").font(.footnote).accessibilityIdentifier("social.invites.partial") }
-                    Text("profile.inviteTimeline.zoneHint").font(.caption).foregroundStyle(.secondary)
                 }
                 ProfileInviteRewardReviewSection(review: .init(scan: model.scan), isLoading: model.loading) {
                     model.start(reader, permit: permit, reset: true)

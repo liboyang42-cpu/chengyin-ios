@@ -28,11 +28,12 @@ import SwiftUI
 
     var body: some View {
         Form {
+            // Mini-program privacy sheet opens with the privacy guide link, then presence, roam and own media.
             Section {
-                NavigationLink { OwnMediaReviewView(reader: mediaReader) } label: {
-                    Text("member.privacy.media.open", tableName: "MemberProfile")
-                }.accessibilityIdentifier("member.privacy.media")
-            } header: { Text("member.privacy.media.title", tableName: "MemberProfile") }
+                NavigationLink {
+                    SettingsLegalDocumentView(type: .privacyPolicy, market: market, reader: legalReader)
+                } label: { Text(LocalizedStringKey(SettingsLegalType.privacyPolicy.titleKey)) }
+            }
             Section {
                 Text("member.privacy.presence.detail", tableName: "MemberProfile").font(.footnote).foregroundStyle(.secondary)
                 Button {} label: { Text("member.privacy.presence.off", tableName: "MemberProfile") }
@@ -45,6 +46,11 @@ import SwiftUI
                         .accessibilityIdentifier("member.privacy.roam.withdraw")
                 }
             } header: { Text("member.privacy.roam.title", tableName: "MemberProfile") }
+            Section {
+                NavigationLink { OwnMediaReviewView(reader: mediaReader) } label: {
+                    Text("member.privacy.media.open", tableName: "MemberProfile")
+                }.accessibilityIdentifier("member.privacy.media")
+            } header: { Text("member.privacy.media.title", tableName: "MemberProfile") }
         }
         .navigationTitle(Text("member.privacy.title", tableName: "MemberProfile"))
         .sheet(isPresented: $showsRoam) {

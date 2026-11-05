@@ -115,6 +115,8 @@ extension WalletScreen where Value == WithdrawalBalance {
                     WalletFundsStagesInline(reader: reader, funds: funds) { Task { await loadFunds() } }
                 }.accessibilityIdentifier("wallet.earnings.stages.home")
             }
+            // Detail rows grouped as one inset section, then withdrawal rows, as the mini-program 账户收益 page lists them.
+            Section {
             if visibility.assets { NavigationLink("wallet.assets") { WalletAssetsView(reader: reader) } }
             if visibility.income { NavigationLink("wallet.income") { WalletIncomeView(reader: reader, onCooperationFinance: onCooperationFinance, showsCooperationFinance: showsCooperationFinance, organizerFinance: organizerFinance) } }
             if visibility.income {
@@ -133,11 +135,14 @@ extension WalletScreen where Value == WithdrawalBalance {
             }
             if visibility.points { NavigationLink("wallet.points") { WalletLedgerView(reader: reader, kind: .points) } }
             if visibility.mall { NavigationLink("wallet.mall") { WalletProductsView(reader: reader) } }
+            }
             if visibility.withdrawalRecords {
-                if showsWithdrawalSupport {
-                    NavigationLink("withdrawal.support.title") { WithdrawalSupportLandingView(reader: reader) }
+                Section {
+                    if showsWithdrawalSupport {
+                        NavigationLink("withdrawal.support.title") { WithdrawalSupportLandingView(reader: reader) }
+                    }
+                    NavigationLink("wallet.withdrawals") { WithdrawalHistoryView(reader: reader) }
                 }
-                NavigationLink("wallet.withdrawals") { WithdrawalHistoryView(reader: reader) }
             }
         }.appNavigationTitle("wallet.title")
             .task(id: reader.scope) {
@@ -230,7 +235,7 @@ extension WalletScreen where Value == WithdrawalBalance {
         List {
             Picker("wallet.direction", selection: $direction) {
                 Text("wallet.all").tag("all"); Text("wallet.inflow").tag("income"); Text("wallet.outflow").tag("expense")
-            }.pickerStyle(.menu)
+            }.pickerStyle(.segmented)
             if points { NavigationLink("wallet.tasks") { WalletPointsTasksView(reader: reader) } }
             if model.pager.hasLoadedPage && model.pager.loadedScope == reader.scope {
                 if points { LabeledContent("wallet.pointsBalance", value: format.points(model.pager.rows.first?.afterPoints)) }
@@ -285,30 +290,43 @@ extension WalletScreen where Value == WithdrawalBalance {
                 }
             }
     }
+    /// Mini-program 积分明细 row: reason and time on the left, signed amount on the right.
     private func ledgerRow(_ row: WalletLedgerRow) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 6) {
-                if income, let badge = WalletReadFailurePresentation.incomeSourceBadge(for: row) {
-                    Text(verbatim: badge)
-                        .font(.caption2.bold())
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 2)
-                        .background(Color.accentColor.opacity(0.15), in: Capsule())
-                        .accessibilityIdentifier("wallet.income.badge.\(row.id)")
+        let direction = income ? row.incomeDirection : row.assetDirection
+        return HStack(alignment: .firstTextBaseline, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    if income, let badge = WalletReadFailurePresentation.incomeSourceBadge(for: row) {
+                        Text(verbatim: badge)
+                            .font(.caption2.bold())
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 2)
+                            .background(Color.accentColor.opacity(0.15), in: Capsule())
+                            .accessibilityIdentifier("wallet.income.badge.\(row.id)")
+                    }
+                    Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale))
                 }
-                Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale))
+                if income { Text(LocalizedStringKey(row.incomeEventKey)).font(.subheadline).foregroundStyle(.secondary) }
+                if income, let day = WalletIncomeDay.make(row.createTime) { WalletIncomeDayText(day: day).font(.caption).foregroundStyle(.secondary) }
+                else if let date = row.createTime { Text(verbatim: date).font(.caption).foregroundStyle(.secondary) }
             }
-            if income { Text(LocalizedStringKey(row.incomeEventKey)) }
-            Text(LocalizedStringKey("wallet.direction." + (income ? row.incomeDirection : row.assetDirection).rawValue))
-            HStack {
-                Text(verbatim: format.signed(row, points: points, income: income))
-                if points { Text(verbatim: format.pointsUnit(for: row.changePoints)) }
-                else { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }
+            Spacer(minLength: 8)
+            VStack(alignment: .trailing, spacing: 4) {
+                HStack(spacing: 2) {
+                    Text(verbatim: format.signed(row, points: points, income: income))
+                    if points { Text(verbatim: format.pointsUnit(for: row.changePoints)) }
+                    else { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }
+                }
+                .font(.body.weight(.semibold).monospacedDigit())
+                .foregroundStyle(direction.rawValue == "income" ? Color.green : Color.primary)
+                if !points, let balance = row.afterBalance {
+                    Text(verbatim: format.amount(balance, currency: row.currency)).font(.caption).foregroundStyle(.secondary)
+                }
             }
-            if !points, let balance = row.afterBalance { LabeledContent("wallet.balanceAfter", value: format.amount(balance, currency: row.currency)) }
-            if income, let day = WalletIncomeDay.make(row.createTime) { WalletIncomeDayText(day: day).font(.caption) }
-            else if let date = row.createTime { Text(verbatim: date).font(.caption) }
-        }.accessibilityElement(children: .combine).accessibilityIdentifier("wallet.ledger.\(row.id)")
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityValue(Text(LocalizedStringKey("wallet.direction." + direction.rawValue)))
+        .accessibilityIdentifier("wallet.ledger.\(row.id)")
     }
 }
 @MainActor struct WalletIncomeView: View {

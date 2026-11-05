@@ -81,7 +81,6 @@ struct ProfileSelfOrderSelection: Identifiable, Hashable {
                     } label: { Label("profile.selfOrders.all", systemImage: "list.bullet.rectangle") }
                         .disabled(model.isLoading || model.issue != nil || model.rows == nil)
                         .accessibilityIdentifier("profile.selfOrders.all")
-                    Text("profile.selfOrders.previewNote").font(.caption).foregroundStyle(.secondary)
                 }
             }
         }

@@ -59,11 +59,9 @@ struct WelcomeView: View {
         Button { destination = .login(role) } label: {
             HStack(alignment: .top, spacing: 16) {
                 Image(systemName: symbol).font(.title2).accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(title).font(.headline)
-                    Text(detail).font(.subheadline).foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+                // Title only: ui-spec allows no subtitle captions under rows.
+                Text(title).font(.headline)
+                    .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
                     .foregroundStyle(.tertiary).accessibilityHidden(true)

@@ -61,8 +61,6 @@ struct ProfileParticipantsView: View {
                                     if participant.fullName.isEmpty { Text("profile.participants.unnamed").font(.body.weight(.bold)) }
                                     else { Text(verbatim: participant.fullName).font(.body.weight(.bold)) }
                                     if !participant.mobilePhone.isEmpty { Text(verbatim: participant.mobilePhone).monospacedDigit().foregroundStyle(.secondary) }
-                                    // Mini-program address list repeats the purpose on every row.
-                                    Text("participant.form.purpose").font(.caption).foregroundStyle(.tertiary)
                                 }
                                 .fixedSize(horizontal: false, vertical: true)
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -78,22 +76,21 @@ struct ProfileParticipantsView: View {
                                 }
                             }
                         }
-                    } footer: { Text("participant.form.purpose") }
+                    }
                 }
-                .listStyle(.plain)
+                .listStyle(.insetGrouped)
             }
         }
         }
         }
         .id(refreshID)
         .appNavigationTitle("profile.participants.title")
-        .toolbar {
+        // Mini-program pages/address pins 新增参与人信息 as the page's primary action.
+        .questifyBottomAction {
             if let coordinator, coordinator.canPrepare, reader.identity != nil {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("participant.form.add", systemImage: "person.badge.plus") { showsCreate = true }
-                        .disabled(snapshotIdentity == nil || snapshotIdentity != reader.identity)
-                        .accessibilityIdentifier("participant.list.add")
-                }
+                Button { showsCreate = true } label: { Text("participant.form.add").frame(maxWidth: .infinity) }
+                    .disabled(snapshotIdentity == nil || snapshotIdentity != reader.identity)
+                    .accessibilityIdentifier("participant.list.add")
             }
         }
         .onAppear { recoveryGeneration &+= 1; recoveryVisible = true }
@@ -217,10 +214,6 @@ struct ProfileParticipantDetailView: View {
                         Text(verbatim: participant.oneLineAddress).textSelection(.enabled)
                     }
                 }
-                // Same stored row can contain an address. No invented shipping purpose,
-                // default badge, default switch, editing, add, or delete in this read slice.
-                Section { Text("participant.form.purpose").foregroundStyle(.secondary) }
-                Section { Text("profile.readOnly").foregroundStyle(.secondary) }
             }
         }
         .appNavigationTitle("profile.participants.detail")

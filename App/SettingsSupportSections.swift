@@ -25,10 +25,6 @@ import UIKit
                 SettingsSoundPreferencesView(store: soundStore)
             } label: { Label("settingsNative.sound.title", systemImage: "speaker.wave.2") }
             .accessibilityIdentifier("settingsNative.openSound")
-            NavigationLink {
-                SettingsAboutView(market: market, appInformation: appInformation, legalReader: legalReader, copyText: copyText)
-            } label: { Label("settingsNative.about.title", systemImage: "info.circle") }
-            .accessibilityIdentifier("settingsNative.openAbout")
         }
         Section("settingsNative.legal.title") {
             ForEach(SettingsLegalType.allCases) { type in
@@ -49,6 +45,13 @@ import UIKit
                 .accessibilityIdentifier("settingsNative.openBlocked.\(feature.rawValue)")
             }
         }
+        }
+        // Mini-program pages/shezhi ends its list with 关于, after the agreement and deregister rows.
+        Section {
+            NavigationLink {
+                SettingsAboutView(market: market, appInformation: appInformation, legalReader: legalReader, copyText: copyText)
+            } label: { Label("settingsNative.about.title", systemImage: "info.circle") }
+            .accessibilityIdentifier("settingsNative.openAbout")
         }
         SettingsAttributionsSection(copyText: copyText)
     }
@@ -79,7 +82,6 @@ import UIKit
                         soundToggle(key, preferences: preferences)
                     }
                 }
-                Section { Text("settingsNative.sound.localOnly").font(.footnote).foregroundStyle(.secondary) }
             } else if model.state.isBusy {
                 ProgressView("settingsNative.loading").accessibilityIdentifier("settingsNative.sound.loading")
             }

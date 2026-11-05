@@ -15,9 +15,6 @@ struct LoginView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section {
-                    Text(intent == .merchant ? LocalizedStringKey("auth.merchantNotice") : LocalizedStringKey("auth.playerNotice"))
-                }
                 if session.canUsePassword {
                 Section("auth.existingAccount") {
                     TextField("auth.username",text:$username)

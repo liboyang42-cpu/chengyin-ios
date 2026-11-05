@@ -31,11 +31,9 @@ import SwiftUI
                     let rows = coupons.filter { filter.includes($0) }
                     if rows.isEmpty {
                         if filter == .all, submittedQuery.isEmpty {
-                            ContentUnavailableView("accountCollection.coupons.empty", systemImage: "ticket",
-                                                   description: Text("accountCollection.coupons.emptyHint"))
+                            ContentUnavailableView("accountCollection.coupons.empty", systemImage: "ticket")
                         } else {
-                            ContentUnavailableView("accountCollection.coupons.filteredEmpty", systemImage: "line.3.horizontal.decrease.circle",
-                                                   description: Text("accountCollection.coupons.filteredEmptyHint"))
+                            ContentUnavailableView("accountCollection.coupons.filteredEmpty", systemImage: "line.3.horizontal.decrease.circle")
                         }
                     }
                     let selections = model.selections(for: offeredRequest, filter: filter)

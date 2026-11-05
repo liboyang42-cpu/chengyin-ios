@@ -23,17 +23,6 @@ import SwiftUI
         NavigationStack {
             Form {
                 MemberIdentityCardSection(account: account, reader: session.memberHomeReader, growth: session.growthCenterReader, onOpenTickets: { showsTickets = true }, refreshToken: memberRefreshToken)
-                Section {
-                    NavigationLink { ProfilePublicInfoHost(reader: session.makeProfilePublicInfoReader(memberID: account.id)) { profileReader in
-                        SocialPublicProfileView(memberID: account.id, reader: profileReader, squareReader: session.squareReader, actions: session.socialActionCoordinator, selfOrdersAccess: .init(session: session), selfProjectsAccess: .init(session: session), selfGrowthAccess: .init(reader: session.growthCenterReader, owner: session.socialAccountReader.identity), weeklyPointsAccess: .init(reader: session.profileWeeklyPointsReader, owner: session.socialAccountReader.identity), personalToolsAccess: .init(owner: session.socialAccountReader.identity, wallet: session.walletHistoryReader, complaint: session.cooperationFlowReader), selfCouponAccess: .init(reader: session.profileOwnedCouponReader, owner: session.socialAccountReader.identity), selfObjectCardsAccess: .init(reader: session.objectCardReader, owner: session.socialAccountReader.identity), selfMedalsReader: session.profileReader, selfEditAccess: .init(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session), localCoverOwner: localCoverOwner, isCurrent: { profileReader.isCurrent })
-                    }.id(session.socialAccountReader.identity) } label: {
-                        Label("social.profile", systemImage: "person.crop.rectangle")
-                    }.accessibilityIdentifier("account.publicProfile")
-                    NavigationLink { ProfileEditView(coordinator:session.profileEditCoordinator,sessionRevision:session.contentDetailRevision,categoryReader:session) } label: {
-                        Label("profile.edit.title",systemImage:"pencil")
-                    }.accessibilityIdentifier("account.editProfile")
-                }
-                ProfileLocalCoverSection(owner: localCoverOwner, reader: session.socialAccountReader)
                 ProfileAccountLinks(reader:session.profileReader,ordersDestination:{ AnyView(SessionOwnedOrdersView(session: session)) },participantReader:session.participantReader,participantCoordinator:session.participantCoordinator,orderLifecycleCoordinator:session.orderLifecycleCoordinator, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory, part: .orders)
                 PlayerJourneyAccountLinks()
                 Section("profile.selfProjects.title") {
@@ -60,6 +49,28 @@ import SwiftUI
                         Label("wallet.title", systemImage: "wallet.pass")
                     }.accessibilityIdentifier("account.wallet")
                 }
+                Section("account.section.collection") {
+                    NavigationLink { GrowthCenterView(reader:session.growthCenterReader).id(session.growthCenterReader.scope)
+                            .environment(\.growthExploreHomeAction, onOpenGuideDestination.map { open in { open(.home) } })
+                    } label: {
+                        Label("growth.title",systemImage:"chart.bar.xaxis")
+                    }.accessibilityIdentifier("account.growthCenter")
+                    ProfileAccountLinks(reader:session.profileReader, part: .collection)
+                    NavigationLink { SessionObjectCardsView() } label: {
+                        Label("objects.title", systemImage: "rectangle.stack")
+                    }.accessibilityIdentifier("account.objectCards")
+                }
+                Section {
+                    NavigationLink { ProfilePublicInfoHost(reader: session.makeProfilePublicInfoReader(memberID: account.id)) { profileReader in
+                        SocialPublicProfileView(memberID: account.id, reader: profileReader, squareReader: session.squareReader, actions: session.socialActionCoordinator, selfOrdersAccess: .init(session: session), selfProjectsAccess: .init(session: session), selfGrowthAccess: .init(reader: session.growthCenterReader, owner: session.socialAccountReader.identity), weeklyPointsAccess: .init(reader: session.profileWeeklyPointsReader, owner: session.socialAccountReader.identity), personalToolsAccess: .init(owner: session.socialAccountReader.identity, wallet: session.walletHistoryReader, complaint: session.cooperationFlowReader), selfCouponAccess: .init(reader: session.profileOwnedCouponReader, owner: session.socialAccountReader.identity), selfObjectCardsAccess: .init(reader: session.objectCardReader, owner: session.socialAccountReader.identity), selfMedalsReader: session.profileReader, selfEditAccess: .init(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session), localCoverOwner: localCoverOwner, isCurrent: { profileReader.isCurrent })
+                    }.id(session.socialAccountReader.identity) } label: {
+                        Label("social.profile", systemImage: "person.crop.rectangle")
+                    }.accessibilityIdentifier("account.publicProfile")
+                    NavigationLink { ProfileEditView(coordinator:session.profileEditCoordinator,sessionRevision:session.contentDetailRevision,categoryReader:session) } label: {
+                        Label("profile.edit.title",systemImage:"pencil")
+                    }.accessibilityIdentifier("account.editProfile")
+                }
+                ProfileLocalCoverSection(owner: localCoverOwner, reader: session.socialAccountReader)
                 AccountCollectionAccountLinks(reader:session.accountCollectionReader,onOpenTopic:{
                     guard let selected = session.profileFavoritesReader.selectTopic($0, renderedScope: session.profileFavoritesReader.scope) else { return }
                     _ = savedTopicOwner.open(selected, scope: session.profileFavoritesReader.scope)
@@ -67,17 +78,6 @@ import SwiftUI
                     guard let selected = session.profileFavoritesReader.selectPost($0, renderedScope: session.profileFavoritesReader.scope) else { return }
                     _ = savedPostOwner.open(selected, scope: session.profileFavoritesReader.scope)
                 }, favoriteRemoval: session.makeProfileFavoriteRemovalController(scope: session.profileFavoritesReader.scope), couponReader: session.profileOwnedCouponReader, favoritesReader: session.profileFavoritesReader, rewardMerchant: session.readOnlyPublicMerchantHomeContext, communityGate: session.squareReader).id(session.accountCollectionReader.scope)
-                Section("account.section.collection") {
-                    ProfileAccountLinks(reader:session.profileReader, part: .collection)
-                    NavigationLink { SessionObjectCardsView() } label: {
-                        Label("objects.title", systemImage: "rectangle.stack")
-                    }.accessibilityIdentifier("account.objectCards")
-                    NavigationLink { GrowthCenterView(reader:session.growthCenterReader).id(session.growthCenterReader.scope)
-                            .environment(\.growthExploreHomeAction, onOpenGuideDestination.map { open in { open(.home) } })
-                    } label: {
-                        Label("growth.title",systemImage:"chart.bar.xaxis")
-                    }.accessibilityIdentifier("account.growthCenter")
-                }
                 MemberBenefitsSection(reader: session.memberHomeReader, earningsDestination: { AnyView(SessionWalletCommerceView().id(session.walletCommerceScope)) })
                 Section {
                     NavigationLink { SessionMessagingHome(session: session) } label: {

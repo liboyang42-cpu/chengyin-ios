@@ -22,8 +22,6 @@ import SwiftUI
             List {
                 if !reader.isAuthenticated {
                     TicketWalletIssueView(issue: .login)
-                    Text("ticketWallet.parity.login.detail").font(.subheadline).foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
                     if let onSignIn { Button("ticketWallet.signIn", action: onSignIn) }
                 } else if !reader.isConfigured { TicketWalletIssueView(issue: .notConfigured) }
                 else if model.isLoading || model.loadedOwner != key { ProgressView("ticketWallet.loading") }
@@ -91,7 +89,6 @@ import SwiftUI
                         }.accessibilityIdentifier("ticketWallet.teams")
                     }
                 }
-                Section { Text("ticketWallet.readOnly").font(.footnote).foregroundStyle(.secondary) }
             }
             .listStyle(.insetGrouped)
             .listSectionSpacing(20)

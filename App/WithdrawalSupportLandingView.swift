@@ -47,16 +47,16 @@ struct WithdrawalOrderLookupRequest {
                 } else { Text(LocalizedStringKey(stagesFailed ? "wallet.failed" : "wallet.unavailable")) }
             }
             WithdrawalApplyParitySection(showContact: $showContact)
-            Section {
-                LabeledContent("profile.orders.number") {
-                    if let lookedUpOrderID { Text(verbatim: String(lookedUpOrderID)) }
-                    else { Text("wallet.unavailable") }
-                }.accessibilityIdentifier("withdrawal.support.orderLookup")
+            // Only an order the user opened from support is shown; no placeholder row otherwise.
+            if let lookedUpOrderID {
+                Section {
+                    LabeledContent("profile.orders.number") { Text(verbatim: String(lookedUpOrderID)) }
+                        .accessibilityIdentifier("withdrawal.support.orderLookup")
+                }
             }
             Section {
                 NavigationLink("bank.withdrawal.title") { if let bankDestination { bankDestination() } else { BankWithdrawalView(reader: reader) } }
                     .accessibilityIdentifier("bank.withdrawal.entry")
-                Text("bank.withdrawal.supportAlternative")
                 Button("withdrawal.support.contact") { showContact = true }.accessibilityIdentifier("withdrawal.support.contact")
                 NavigationLink("wallet.withdrawals") { WithdrawalHistoryView(reader: reader) }
                     .accessibilityIdentifier("withdrawal.apply.history")

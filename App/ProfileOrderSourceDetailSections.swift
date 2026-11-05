@@ -10,7 +10,6 @@ struct ProfileOrderSourceDetailSections: View {
             ForEach(order.sourceTimeline()) { step in
                 ProfileOrderTimelineStepRow(step: step)
             }
-            Text("orderLifecycle.timeline.zone").font(.caption).foregroundStyle(.secondary)
         }.accessibilityIdentifier("profile.order.detail.timeline")
         if order.showsSourcePaymentInfo {
             Section(LocalizedStringKey(order.isSourceFreeOrder ? "profile.orderParity.section.registrationInfo" : "profile.orderParity.section.paymentInfo")) {

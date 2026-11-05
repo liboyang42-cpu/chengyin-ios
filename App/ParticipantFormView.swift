@@ -233,14 +233,13 @@ struct ParticipantFormView: View {
                             .submitLabel(.done).focused($focusedField, equals: .phone)
                             .onSubmit { focusedField = model.reviewForSave() }
                             .accessibilityIdentifier("participant.form.phone")
-                    } footer: { Text("participant.form.purpose") }
-                    .disabled(model.operation.preventsNewMutation)
-                    if let field = model.validationIssue {
-                        Section {
-                            Text(LocalizedStringKey(field.messageKey)).foregroundStyle(.secondary)
+                        // Input errors sit in red under the fields (ui-spec States).
+                        if let field = model.validationIssue {
+                            Text(LocalizedStringKey(field.messageKey)).font(.footnote).foregroundStyle(.red)
                                 .accessibilityIdentifier("profile.participantValidation.issue." + field.rawValue)
                         }
                     }
+                    .disabled(model.operation.preventsNewMutation)
                     if let issue = model.issue {
                         Section { ParticipantIssueText(issue: issue) }
                     }
