@@ -221,7 +221,6 @@ import SwiftUI
                 }
                 if handlesCityNodeRemoval {
                     Section {
-                        Text("projectCityNodeRemoval.scope", tableName: "ProjectCityStoryNodeRemoval").font(.footnote)
                         ProjectCityStoryNodeRemovalStatus(controller: cityRemoval)
                     }
                 }
@@ -250,12 +249,11 @@ import SwiftUI
                     }
                     Button("projectEdit.addNode", systemImage: "plus", action: addNode).disabled(pendingGap != nil || chapter.wrappedValue.preserved["opening"] == .bool(true) || chapter.wrappedValue.preserved["ending"]?.object != nil || (model.draft.product == .city && !chapter.wrappedValue.hasRealStory) || (chapter.wrappedValue.blocks?.count ?? 0) >= 200)
                         .accessibilityIdentifier("projectEdit.addNode")
-                    if model.draft.product == .city && !chapter.wrappedValue.hasRealStory { Text("projectEdit.validation.story").foregroundStyle(.secondary) }
+                    if model.draft.product == .city && !chapter.wrappedValue.hasRealStory { Text("projectEdit.validation.story").font(.footnote).foregroundStyle(.red) }
                 }.id("project-issue-anchor-nodes")
                 if let key = model.coordinator.messageKey {
                     Section { Text(LocalizedStringKey(key)).accessibilityIdentifier("projectStoryAudio.localStatus") }
                 }
-                Section { Text("projectEdit.chapterCarryOver").foregroundStyle(.secondary) }
             } else { Text("projectEdit.signIn") }
         }.modifier(ProjectEditIssueInitialScroll(anchor: initialIssueAnchor)).disabled(!model.fullEdit)
             .appNavigationTitle(key: starterLease == nil && chapterOverride == nil ? "projectEdit.chapterDetails" : "projectEdit.storyFlow").navigationBarTitleDisplayMode(.inline)
@@ -443,14 +441,15 @@ import SwiftUI
                 .id("project-issue-anchor-nodeTime")
                 ProjectEditReferenceField(title: "projectEdit.nodeImages", value: $node.imgUrl, identifier: "projectEdit.nodeImages")
             }
-            Section("projectEdit.gameplay") {
-                if let id = node.templateID {
-                    LabeledContent("projectEdit.templateID", value: String(id))
-                }
+            Section {
+                // The template is chosen by the selection field below; its number isn't shown to people.
                 if let merchantDraftContext {
                     ProjectMerchantDraftField(context: merchantDraftContext).id(merchantDraftContext.id)
-                    Text(ProjectMerchantDraftCopy.value(.otherGameplay, locale: merchantDraftLocale)).foregroundStyle(.secondary)
-                } else { Text("projectEdit.gameplayDeferred").foregroundStyle(.secondary) }
+                } else if node.templateID != nil {
+                    Label("projectEdit.gameplayLinked", systemImage: "checkmark.circle").foregroundStyle(.secondary)
+                }
+            } header: {
+                if merchantDraftContext != nil || node.templateID != nil { Text("projectEdit.gameplay") }
             }.id("project-issue-anchor-gameplay")
         }
     }
@@ -476,7 +475,7 @@ import SwiftUI
                 ProjectEditDateField(title: "projectEdit.saleEnd", value: ticket.saleEndTime, identifier: "projectEdit.saleEnd").dateEditing(.init(model: model, field: .saleEnd(ticketID)))
                     .disabled(!ticket.wrappedValue.canEditSaleTime(end: true))
                 if !ticket.wrappedValue.canEditSaleTime(end: false) || !ticket.wrappedValue.canEditSaleTime(end: true) {
-                    Text("projectEdit.saleLegacy").font(.caption).foregroundStyle(.secondary)
+                    Text("projectEdit.saleLegacy").font(.footnote).foregroundStyle(.secondary)
                 }
             }.id("project-issue-anchor-ticketSale")
             Section("projectEdit.ticketSchedule") {

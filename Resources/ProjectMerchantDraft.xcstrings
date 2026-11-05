@@ -326,13 +326,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Creating or editing other gameplay types isn't available here right now."
+            "value": "Other gameplay can be chosen in the play editor."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此处暂不支持创建或编辑其他玩法。"
+            "value": "其他玩法可在玩法编辑器中选择。"
           }
         }
       }

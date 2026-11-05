@@ -115542,13 +115542,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Minutes at stop"
+            "value" : "Minutes at this stop"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "节点时长（分钟）"
+            "value" : "地点时长（分钟）"
           }
         }
       }
@@ -117702,13 +117702,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "An unrecognized saved sync setting is preserved. Date sync cannot be changed."
+            "value" : "This saved date setting can't be changed here. It's kept as is."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已保留无法识别的旧版同步设置，暂不能修改日期同步。"
+            "value" : "此已保存的日期设置无法在此修改，将原样保留。"
           }
         }
       }
@@ -118310,13 +118310,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Write a real opening story before adding city-orientation stops."
+            "value" : "Write this chapter's story before adding stops."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "城市定向需先完成本章剧情，再添加节点。"
+            "value" : "请先写好本章剧情，再添加地点。"
           }
         }
       }
@@ -203993,6 +203993,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld 个地点"
+          }
+        }
+      }
+    },
+    "projectEdit.gameplayLinked" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gameplay linked"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已关联玩法"
           }
         }
       }
