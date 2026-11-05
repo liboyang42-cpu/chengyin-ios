@@ -28,7 +28,7 @@ final class DesignReviewCaptureTests: XCTestCase {
         ("23-growth", ["--uitesting-module", "growthCenter"]),
         ("24-messages", ["--uitesting-module", "messaging"]),
         ("25-publish-templates", ["--ui-template-authoring", "--template-author-shelf", "--uitesting-theme-merchant"]),
-        ("26-project-editor", ["--uitesting-module", "project", "--uitesting-theme-merchant"]),
+        ("26-project-editor", ["--uitesting-module", "projectEdit", "--project-edit-starter-probe", "--project-story-image", "--uitesting-theme-merchant"]),
         ("27-merchant-operations", ["--uitesting-merchant-operations-fixture"]),
         ("28-merchant-business", ["--uitesting-merchant-business-fixture"]),
         ("29-merchant-content", ["--uitesting-merchant-content-fixture"]),
@@ -36,6 +36,63 @@ final class DesignReviewCaptureTests: XCTestCase {
         ("31-cooperation", ["--uitesting-module", "cooperation", "--uitesting-theme-merchant"]),
         ("32-first-launch", ["--uitesting-first-launch-language"])
     ]
+
+    /// Real root with the tab bar: each tab, then its first row, in both languages.
+    func testCaptureRealRootTabs() {
+        for (language, locale, tag) in [("zh-Hans", "zh_CN", "zh"), ("en", "en_US", "en")] {
+            let app = XCUIApplication()
+            app.launchArguments = ["--uitesting-integrated-native", "ready", "--uitesting-reset-language", "-AppleLanguages", "(\(language))", "-AppleLocale", locale]
+            app.launch()
+            Thread.sleep(forTimeInterval: 6)
+            let count = app.tabBars.firstMatch.buttons.count
+            for index in 0..<max(count, 1) {
+                if count > index { app.tabBars.firstMatch.buttons.element(boundBy: index).tap() }
+                Thread.sleep(forTimeInterval: 3)
+                attach(app, name: "root-\(tag)-tab\(index)-a")
+                app.swipeUp()
+                Thread.sleep(forTimeInterval: 1.5)
+                attach(app, name: "root-\(tag)-tab\(index)-b")
+                app.swipeDown()
+                let row = app.cells.firstMatch
+                if row.waitForExistence(timeout: 2), row.isHittable {
+                    row.tap()
+                    Thread.sleep(forTimeInterval: 3)
+                    attach(app, name: "root-\(tag)-tab\(index)-detail")
+                }
+            }
+            app.terminate()
+        }
+    }
+
+    /// Lists whose useful page is one tap in.
+    func testCaptureDetailPages() {
+        let screens: [(String, [String])] = [
+            ("detail-activity", ["--uitesting-activity-fixture", "tickets"]),
+            ("detail-activity-people", ["--uitesting-activity-fixture", "people"]),
+            ("detail-topic", ["--uitesting-module", "topic"]),
+            ("detail-club", ["--uitesting-club-fixture", "owner"]),
+            ("detail-message", ["--uitesting-module", "messaging"]),
+            ("detail-order", ["--uitesting-module", "ownedOrderHistory"]),
+            ("detail-ticket", ["--uitesting-module", "ticketWallet"]),
+            ("detail-square", ["--uitesting-module", "square"]),
+            ("detail-merchant-operations", ["--uitesting-merchant-operations-fixture"]),
+            ("detail-merchant-business", ["--uitesting-merchant-business-fixture"])
+        ]
+        for (name, arguments) in screens {
+            let app = XCUIApplication()
+            app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"] + arguments
+            app.launch()
+            Thread.sleep(forTimeInterval: 5)
+            let row = app.cells.firstMatch
+            if row.waitForExistence(timeout: 3), row.isHittable { row.tap() }
+            Thread.sleep(forTimeInterval: 3)
+            attach(app, name: name + "-a")
+            app.swipeUp()
+            Thread.sleep(forTimeInterval: 1.5)
+            attach(app, name: name + "-b")
+            app.terminate()
+        }
+    }
 
     func testCaptureAllScreens() {
         for screen in Self.screens {
