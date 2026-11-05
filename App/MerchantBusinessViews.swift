@@ -431,9 +431,6 @@ import SwiftUI
     private var state: MerchantBusinessCoordinator { model.coordinator }
     private var isRedemptionLedger: Bool { if case .redemptions = query { return true }; return false }
     private var pageContent: some View {
-        let capturedCustomerRoute = customerQueryRoute
-        let presentedReview = state.confirmation
-        let presentedEditorID = editor?.id
         let renderedTeamScope = reader.scope
         let renderedTeamAuthorization = reader.authorizationGeneration
         List {
@@ -599,6 +596,9 @@ import SwiftUI
             } message: { _ in Text("merchant.noteDraft.discardBody") }
     }
     var body: some View {
+        let capturedCustomerRoute = customerQueryRoute
+        let presentedReview = state.confirmation
+        let presentedEditorID = editor?.id
         pageContent
         .appNavigationTitle(key: query.titleKey)
         .modifier(MerchantCustomerContactStablePresentation(owner: model, flow: $customerContactFlow))
