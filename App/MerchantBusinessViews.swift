@@ -806,7 +806,7 @@ import SwiftUI
                     ForEach(MerchantReviewFilter.allCases, id: \.self) { filter in
                         Text(LocalizedStringKey("merchant.business.reviews.filter." + filter.rawValue)).tag(filter)
                     }
-                }.pickerStyle(.menu).accessibilityIdentifier("merchant.business.reviews.filter")
+                }.pickerStyle(.segmented).accessibilityIdentifier("merchant.business.reviews.filter")
                 if model.listFilters.review != .all {
                     Button("merchant.business.reviews.clearFilter") { model.listFilters.review = .all }
                         .accessibilityIdentifier("merchant.business.reviews.clearFilter")
