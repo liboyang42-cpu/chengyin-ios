@@ -166,9 +166,21 @@ import SwiftUI
             }
             if let groupCode {
                 TimelineView(.periodic(from: groupCode.receivedAt, by: 1)) { context in
+                    // Mini-program 活动核验团码 sheet: the code itself, large, with its remaining validity.
                     Section {
-                        if groupCode.isActive(at: context.date) { Text("club.gov.codeAvailable"); Text(verbatim: groupCode.code).privacySensitive().accessibilityIdentifier("club.gov.groupCode") }
-                        else { Text("club.gov.expiredCode").accessibilityIdentifier("club.gov.expiredCode") }
+                        if groupCode.isActive(at: context.date) {
+                            VStack(spacing: Theme.Space.s2) {
+                                Text("club.gov.codeAvailable").font(.headline)
+                                Text(verbatim: groupCode.code)
+                                    .font(.system(.largeTitle, design: .monospaced).weight(.bold))
+                                    .minimumScaleFactor(0.5).lineLimit(1)
+                                    .textSelection(.enabled)
+                                    .privacySensitive().accessibilityIdentifier("club.gov.groupCode")
+                                Text("club.gov.codeExpires \(Text(groupCode.expiresAt, style: .timer))")
+                                    .font(.subheadline).foregroundStyle(.secondary).monospacedDigit()
+                            }.frame(maxWidth: .infinity).padding(.vertical, Theme.Space.s3)
+                        }
+                        else { Label("club.gov.expiredCode", systemImage: "clock.badge.exclamationmark").foregroundStyle(.orange).accessibilityIdentifier("club.gov.expiredCode") }
                     }
                 }
             }

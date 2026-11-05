@@ -15080,13 +15080,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Issue group code"
+            "value" : "Show group code"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "签发团核销码"
+            "value" : "出示团码"
           }
         }
       }
@@ -15964,13 +15964,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Group code issued"
+            "value" : "Show this code to verify the group"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "团码已签发"
+            "value" : "活动核验团码"
           }
         }
       }
@@ -16100,13 +16100,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Delegated event access"
+            "value" : "Your sessions"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已委派场次"
+            "value" : "我负责的场次"
           }
         }
       }
@@ -16270,13 +16270,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Event #%lld"
+            "value" : "Session %lld"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "场次 #%lld"
+            "value" : "场次 %lld"
           }
         }
       }
@@ -16321,13 +16321,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This code has expired. Do not reuse it"
+            "value" : "This code has expired. Issue a new one."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此团码已过期，请勿复用"
+            "value" : "团码已过期，请重新签发。"
           }
         }
       }
@@ -203230,6 +203230,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "单号 %@"
+          }
+        }
+      }
+    },
+    "club.gov.codeExpires %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expires in %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 后失效"
           }
         }
       }
