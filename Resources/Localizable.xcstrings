@@ -71859,13 +71859,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm and send"
+            "value" : "Send"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认发送"
+            "value" : "发送"
           }
         }
       }
@@ -72371,13 +72371,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review submission"
+            "value" : "Continue"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "预览提交"
+            "value" : "下一步"
           }
         }
       }
@@ -72851,13 +72851,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The outcome is unknown. This operation is locked to prevent duplicates"
+            "value" : "We couldn’t confirm whether this was sent. Sending again is paused to avoid duplicates."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "结果未知，为避免重复提交，此操作已锁定"
+            "value" : "暂时无法确认是否已发送，为避免重复，已暂停再次发送。"
           }
         }
       }
