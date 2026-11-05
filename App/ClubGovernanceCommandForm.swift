@@ -71,14 +71,19 @@ import SwiftUI
                     // so the picker stays hidden until uploads exist (ClubHostApplicationMaterialsRows).
                     flagRow("hasGuideCert")
                 }.disabled(busy || locked || review != nil)
-            } else {
-            Section {
-                if route.operation == .sendNotification {
+            } else if route.operation == .sendNotification {
+                // Mini-program club/notify: 选择受众 list, then 内容.
+                Section("club.gov.field.audienceType") {
                     ClubNotificationAudienceView(context: audienceContext, access: access, model: notificationAudience,
                         selection: textBinding("audienceType"), canEdit: { audienceIsCurrent && !busy && !locked && review == nil },
                         isCurrent: { audienceIsCurrent })
+                }.disabled(busy || locked || review != nil)
+                Section {
                     ClubOpsNotifyContentFields(title: textBinding("title"), content: textBinding("content"))
-                }
+                } header: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.content.section") }
+                    .disabled(busy || locked || review != nil)
+            } else {
+            Section {
                 if route.operation == .assignRole {
                     ClubRoleAssignmentPicker(scope: route.scope, identity: identity, access: access, model: rolePicker,
                         memberID: textBinding("targetMemberId"), roleCode: textBinding("roleCode"),

@@ -441,13 +441,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Open notifications from an event to choose this audience."
+            "value" : "Available when you notify from a specific session"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "从具体场次进入通知后，才可选择这类受众。"
+            "value" : "从具体场次发通知时可选"
           }
         }
       }
@@ -15199,13 +15199,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Compose member notification"
+            "value" : "Write notification"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "编写成员通知"
+            "value" : "编写通知"
           }
         }
       }
@@ -16644,13 +16644,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Audience"
+            "value" : "Choose audience"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "通知受众"
+            "value" : "选择受众"
           }
         }
       }
@@ -203247,6 +203247,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ 后失效"
+          }
+        }
+      }
+    },
+    "club.audience.countsUnavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Member counts couldn't be loaded"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "人数暂时无法读取"
           }
         }
       }
