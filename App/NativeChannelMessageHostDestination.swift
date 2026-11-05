@@ -34,23 +34,24 @@ import SwiftUI
                         if !flow.prepareOriginalQuote(id) { unavailable = true }
                     }, reportUsingExistingOwner: nil,
                     reportFlow: session.nativeChannelReportFlow(for: flow), notificationFlow: notificationFlow,
-                    historyRouteIsActive: { routeIsPresented.wrappedValue && scenePhase == .active && flow.isCurrent })
+                    historyRouteIsActive: { routeIsPresented.wrappedValue && scenePhase == .active && flow.isCurrent },
+                    mentionAction: flow.canOpenMentionTargets ? { mentionsPresented = true } : nil)
+            } else if loading {
+                ProgressView { Text("source.required", tableName: "NativeChannelMessage") }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                VStack(spacing: Theme.Space.s3) {
-                    Text("source.required", tableName: "NativeChannelMessage").nativeChannelNotice(systemImage: "bubble.left")
-                    if loading { ProgressView() }
-                    else { Button("Retry") { resume() }.buttonStyle(.bordered).frame(minHeight: 44) }
-                }.padding()
+                ContentUnavailableView {
+                    Label("d7.channelChat.openFailed", systemImage: "bubble.left")
+                } actions: {
+                    Button("messaging.retry") { resume() }.buttonStyle(.bordered)
+                }
             }
         }
         .nativeChannelScreen()
-        .toolbar {
-            if let flow,flow.canOpenMentionTargets { Button("提及目标与恢复",systemImage:"at") { mentionsPresented=true } }
-        }
         .sheet(isPresented:$mentionsPresented) {
             if let flow,flow.canOpenMentionTargets,let targets=flow.mentionTargets {
                 NavigationStack { NativeChannelMentionEntry(source:targets,original:flow.originalDraftReference,canApply:{ flow.canPrepareMentions },apply:flow.prepareOriginalMentions) }
-            } else { Text("原提及来源或发送授权不可用") }
+            } else { ContentUnavailableView { Label("d7.channelChat.mentionsUnavailable", systemImage: "at") } }
         }
         .onAppear { resume() }
         .onChange(of: session.contentDetailRevision) { _, _ in close(); resume() }
@@ -86,7 +87,7 @@ import SwiftUI
                 }
             }
         }
-        .alert(Text("message.unavailable", tableName: "NativeChannelMessage"), isPresented: $unavailable) { Button("OK", role: .cancel) {} }
+        .alert(Text("message.unavailable", tableName: "NativeChannelMessage"), isPresented: $unavailable) { Button("d7.channelChat.ok", role: .cancel) {} }
         .privacySensitive()
     }
     private func close() {

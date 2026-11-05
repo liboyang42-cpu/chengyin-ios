@@ -118,13 +118,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No visible messages."
+            "value": "No messages yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无可见消息。"
+            "value": "还没有消息"
           }
         }
       }
@@ -182,13 +182,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Load more new messages"
+            "value": "Load newer messages"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "继续加载新消息"
+            "value": "加载更新的消息"
           }
         }
       }
@@ -214,13 +214,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mark read through the end of this page"
+            "value": "Mark as read"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "将本页末尾之前标记已读"
+            "value": "标为已读"
           }
         }
       }
@@ -262,13 +262,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unread remaining"
+            "value": "Unread"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "剩余未读"
+            "value": "未读"
           }
         }
       }
@@ -326,13 +326,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The read result is unknown. Retry the same read point before continuing."
+            "value": "Couldn't confirm the messages were marked as read. Try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已读结果尚未确认。请先重试相同阅读位置，再继续加载。"
+            "value": "未能确认已读，请重试。"
           }
         }
       }
