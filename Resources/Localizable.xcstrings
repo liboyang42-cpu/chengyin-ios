@@ -146011,7 +146011,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "存草稿"
+            "value" : "保存草稿"
           }
         }
       }
@@ -169322,13 +169322,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Interaction tools"
+            "value" : "Play modules"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "互动工具"
+            "value" : "玩法模块"
           }
         }
       }
