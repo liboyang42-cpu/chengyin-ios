@@ -92,8 +92,8 @@ final class RoamExperienceFlowTests: XCTestCase {
     }
     func testDefaultCityStampEntryKeepsCameraDisabled() {
         let app = app(); open("cityStamp", in: app)
-        let capture = app.buttons["media.stamp.capture"]
-        XCTAssertTrue(capture.waitForExistence(timeout: 5)); XCTAssertFalse(capture.isEnabled)
+        XCTAssertTrue(app.descendants(matching: .any)["media.stamp.caption.section"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["media.stamp.capture"].exists, "A camera that cannot open has no shutter")
         XCTAssertFalse(app.textFields["roam.experience.stamp.caption"].exists)
         XCTAssertEqual(app.alerts.count, 0)
     }
