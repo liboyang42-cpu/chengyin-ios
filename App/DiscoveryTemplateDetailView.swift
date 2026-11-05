@@ -178,8 +178,7 @@ struct DiscoveryTopicTemplatePreview: View {
                         TopicTotalStops(count: item.locationCount, identifier: "discovery.publicTotalStops")
                         if let count = item.templateCount { LabeledContent("discovery.publicGames", value: String(count)) }
                         if let seconds = item.totalTime { LabeledContent("discovery.publicSeconds") { TopicXcxDurationText(seconds: seconds) } }
-                        optionalText(item.addressName)
-                        optionalText(item.version)
+                        // Topic templates have no venue (mini-program topic-detail shows no address) and no version label.
                     }
                     if let text = item.description, !text.isEmpty { Section("discovery.introduction") { Text(text) } }
                     if let text = item.playerPromise, !text.isEmpty { Section("discovery.playerPromise") { Text(text) } }

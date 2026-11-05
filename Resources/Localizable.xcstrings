@@ -42779,13 +42779,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Route template preview"
+            "value" : "Route template"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "主题模板预览"
+            "value" : "主题模板"
           }
         }
       }
