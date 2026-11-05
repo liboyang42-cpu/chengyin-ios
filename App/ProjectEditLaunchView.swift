@@ -6,16 +6,15 @@ import SwiftUI
     @EnvironmentObject private var session: AppSession
     var body: some View {
         List {
-            Section {
-                if !session.projectEditorIsConfigured { Text("projectEdit.unconfigured").foregroundStyle(.secondary) }
-                if session.account == nil { Text("projectEdit.signIn").foregroundStyle(.secondary) }
+            if session.account == nil {
+                Section { Text("projectEdit.signIn") }
             }
             Section {
                 NavigationLink { SessionPublishingModesView().id(session.publishingSession?.epoch) } label: {
                     Label("publishModes.title", systemImage: "square.and.pencil")
                 }.accessibilityIdentifier("projectEdit.openPublishingModes")
             }
-            Section(session.projectEditorIsConfigured ? "projectEdit.title" : "projectEdit.createLocal") {
+            Section("projectEdit.title") {
                 NavigationLink {
                     ProjectEditView(coordinator: session.projectEditor(product: .city), sessionRevision: session.sessionRevision, publisherClient: session.publisherLifecycleContext?.client, publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) }).id(session.projectEditorContextID)
                 } label: { Label("projectEdit.city", systemImage: "map") }

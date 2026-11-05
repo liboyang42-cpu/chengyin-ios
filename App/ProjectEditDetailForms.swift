@@ -514,22 +514,19 @@ struct ProjectEditReviewView: View {
         NavigationStack {
             Form {
                 Section {
-                    Label("projectEdit.reviewHint", systemImage: "checklist")
                     Text(LocalizedStringKey(canSimulate ? "projectEdit.fixtureNotice" : (canSubmit ? "projectEdit.confirmLiveHint" : "projectEdit.unconfigured")))
                 }
                 if !localSaveConfirmed { Section { Text("projectPrepared.localSaveUnconfirmed").accessibilityIdentifier("projectPrepared.localSaveUnconfirmed") } }
                 ProjectEditPreparedNodesView(value: .init(payload: confirmation.payload))
                 ProjectStoryImagePreparedReferences(payload: confirmation.payload)
                 ProjectStoryAudioPreparedReferences(payload: confirmation.payload)
-                ProjectEditPreparedPayloadView(payload: confirmation.payload)
-                Section { Text("projectPrepared.draftContext") }
                 Section("projectEdit.basics") {
                     row("projectEdit.name", confirmation.draft.name)
                     row("projectEdit.subtitle", confirmation.draft.subtitle)
                     row("projectEdit.description", confirmation.draft.description)
                     row("projectEdit.cover", confirmation.draft.imgUrl)
                     row("projectEdit.gallery", confirmation.draft.imgArr)
-                    row("projectEdit.categories", confirmation.draft.categoryIDs.map(String.init).joined(separator: ","))
+                    row("projectEdit.categoriesTitle", confirmation.draft.categoryIDs.isEmpty ? "—" : String(confirmation.draft.categoryIDs.count))
                     row("projectEdit.startDate", confirmation.draft.startDate)
                     row("projectEdit.endDate", confirmation.draft.endDate)
                     if confirmation.draft.product == .freeExplore { row("projectEdit.deadline", confirmation.draft.recruitDeadline) }
@@ -577,14 +574,20 @@ struct ProjectEditReviewView: View {
                 }
                 Section("projectEdit.visibility") {
                     LabeledContent { Text(LocalizedStringKey(confirmation.draft.publishToCreative ? "projectEdit.yes" : "projectEdit.no")) } label: { Text("projectEdit.publishToCreative") }
-                    Text("projectEdit.advancedPreserved")
                 }
-                if canSubmit {
-                    Button(LocalizedStringKey(canSimulate ? "projectEdit.confirmSimulation" : "projectEdit.confirmLive"), action: confirm).disabled(busy)
-                        .accessibilityIdentifier("projectEdit.confirmSimulation")
-                }
-                Button("action.cancel", role: .cancel, action: cancel).accessibilityIdentifier("projectEdit.cancelReview")
             }.appNavigationTitle("projectEdit.reviewTitle").navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("action.cancel", role: .cancel, action: cancel).accessibilityIdentifier("projectEdit.cancelReview")
+                    }
+                }
+                .questifyBottomAction {
+                    if canSubmit {
+                        Button(action: confirm) { Text(LocalizedStringKey(canSimulate ? "projectEdit.confirmSimulation" : "projectEdit.confirmLive")).frame(maxWidth: .infinity) }
+                            .disabled(busy)
+                            .accessibilityIdentifier("projectEdit.confirmSimulation")
+                    }
+                }
                 .interactiveDismissDisabled(busy)
         }
     }

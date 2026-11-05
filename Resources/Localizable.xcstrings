@@ -114838,13 +114838,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Submit reviewed changes"
+            "value" : "Submit"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "提交已核对的更改"
+            "value" : "提交"
           }
         }
       }
@@ -114854,13 +114854,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Submit these changes? If no response comes back, editing stays locked to prevent a duplicate submission."
+            "value" : "Check your topic before submitting. If no response comes back, editing pauses so it isn't sent twice."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "提交这些更改？如未收到结果，将保持锁定以避免重复提交。"
+            "value" : "提交前请检查主题。如未收到结果，将暂停编辑以免重复提交。"
           }
         }
       }
@@ -115750,13 +115750,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review"
+            "value" : "Review and submit"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "检查"
+            "value" : "检查并提交"
           }
         }
       }
@@ -118950,13 +118950,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This chapter contains no submitted nodes."
+            "value" : "No stops in this chapter."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此章节不含提交节点。"
+            "value" : "本章没有地点。"
           }
         }
       }
@@ -118966,13 +118966,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Included empty text"
+            "value" : "Empty"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "包含空文本"
+            "value" : "空"
           }
         }
       }
@@ -118998,13 +118998,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Node description"
+            "value" : "Description"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "节点说明"
+            "value" : "说明"
           }
         }
       }
@@ -119014,13 +119014,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Image reference"
+            "value" : "Image"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "图片引用"
+            "value" : "图片"
           }
         }
       }
@@ -119062,13 +119062,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Node name"
+            "value" : "Stop name"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "节点名称"
+            "value" : "地点名称"
           }
         }
       }
@@ -119094,13 +119094,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Submitted order"
+            "value" : "Order"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "提交顺序"
+            "value" : "顺序"
           }
         }
       }
@@ -119110,13 +119110,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Play template reference"
+            "value" : "Play template"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "玩法模板引用"
+            "value" : "玩法模板"
           }
         }
       }
@@ -119142,13 +119142,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Node %lld"
+            "value" : "Stop %lld"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "节点 %lld"
+            "value" : "地点 %lld"
           }
         }
       }
@@ -119158,13 +119158,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Submitted chapter nodes"
+            "value" : "Stops"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本次提交的章节节点"
+            "value" : "地点"
           }
         }
       }
@@ -119190,13 +119190,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nodes are omitted from this chapter value."
+            "value" : "Stops aren't part of this update."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此章节值未包含节点字段。"
+            "value" : "本次更新不含地点。"
           }
         }
       }
@@ -119238,13 +119238,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This prepared review is no longer current. Return to the editor and prepare a new review."
+            "value" : "This changed. Go back to the editor and review again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此审核内容已失效，请返回编辑器重新准备审核。"
+            "value" : "内容已变化，请返回编辑器重新检查。"
           }
         }
       }
@@ -119254,13 +119254,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This prepared value cannot be displayed in the supported structure."
+            "value" : "This can't be shown here."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此准备值无法按已支持的结构显示。"
+            "value" : "此项无法在此显示。"
           }
         }
       }
@@ -205693,6 +205693,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "检查已取消。"
+          }
+        }
+      }
+    },
+    "projectEdit.categoriesTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Categories"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "类别"
           }
         }
       }
