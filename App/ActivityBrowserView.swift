@@ -39,6 +39,7 @@ private struct ActivityListDestination: Hashable { let id: Int }
                         ForEach(model.items) { item in
                             NavigationLink(value: ActivityListDestination(id: item.id)) { ActivityListCard(item:item) }
                                 .buttonStyle(QuestifyCardButtonStyle())
+                                .questifyHidesLinkIndicator()
                                 .questifyCardListRow()
                                 .accessibilityIdentifier("activity.row.\(item.id)")
                         }

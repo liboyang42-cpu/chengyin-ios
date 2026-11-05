@@ -99,3 +99,51 @@ struct QuestifyImageEntityMetadata:View {
             .accessibilityLabel(Text(label)+Text(verbatim:": "+value))
     }
 }
+
+/// Feed-card text shared by home, route and activity lists (mini-program `v2-status`).
+/// Missing values return nil so the card leaves them out instead of printing a placeholder.
+enum QuestifyCardText {
+    /// Like the mini-program, a time without a zone reads as written; an explicit offset shows in local time.
+    static func date(_ raw: String?, sourceTimeZone: TimeZone? = nil, locale: Locale, displayTimeZone: TimeZone) -> String? {
+        let utc = TimeZone(secondsFromGMT: 0)!
+        let zone: TimeZone
+        let date: Date
+        if let absolute = HomeFeedDate.parse(raw, sourceTimeZone: sourceTimeZone) {
+            date = absolute; zone = displayTimeZone
+        } else if let wallClock = HomeFeedDate.parse(raw, sourceTimeZone: utc) {
+            date = wallClock; zone = utc
+        } else { return nil }
+        var calendar = Calendar(identifier: .gregorian); calendar.timeZone = zone
+        var style = Date.FormatStyle.dateTime.month(.abbreviated).day().hour().minute().locale(locale)
+        if calendar.component(.year, from: date) != calendar.component(.year, from: Date()) {
+            style = Date.FormatStyle.dateTime.year().month(.abbreviated).day().hour().minute().locale(locale)
+        }
+        style.timeZone = zone
+        return date.formatted(style)
+    }
+    static func amount(_ value: Decimal?, locale: Locale) -> String? {
+        guard let value, value >= 0 else { return nil }
+        return value.formatted(.number.precision(.fractionLength(0...2)).locale(locale))
+    }
+    static func metaLine(date: String?, place: String?) -> String? {
+        let parts = [date, place?.trimmingCharacters(in: .whitespacesAndNewlines)].compactMap { $0 }.filter { !$0.isEmpty }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+}
+
+/// One date · place line and the starting price. `onArtwork` is for text over a cover scrim.
+struct QuestifyCardSummary: View {
+    let meta: String?
+    let price: String?
+    var onArtwork = false
+    var body: some View {
+        if let meta {
+            Text(verbatim: meta).font(.subheadline)
+                .foregroundStyle(onArtwork ? AnyShapeStyle(Color.white.opacity(0.8)) : AnyShapeStyle(.secondary))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        if let price {
+            Text("playx.finishRoute.priceFrom \(price)").font(.headline).monospacedDigit()
+        }
+    }
+}
