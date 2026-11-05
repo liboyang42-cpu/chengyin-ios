@@ -14,6 +14,7 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var model: NativeFriendRemovalViewModel
     @State private var confirmingRetry = false
+    @State private var confirmingRemoval = false
     @State private var retryCommand: NativeFriendRemovalCommand?
     @State private var operationTask: Task<Void, Never>?
     init(flow: NativeFriendRemovalFlow, onResolved: @escaping () -> Void = {}) {
@@ -24,63 +25,57 @@ import SwiftUI
         Form {
             if let item = flow.presentationItem {
                 Section {
-                    Text(verbatim: "\(item.nickname) · #\(item.peerID)").accessibilityIdentifier("friendRemoval.target")
-                    Text(verbatim: "v\(item.version)").accessibilityIdentifier("friendRemoval.version")
-                    text("friendRemoval.impact").font(.callout)
-                    text("friendRemoval.noBlockOrChatDelete").font(Theme.Font.label)
-                    text("friendRemoval.readd").font(Theme.Font.label)
+                    HStack(spacing: Theme.Space.s3) {
+                        Image(systemName: "person.crop.circle.fill").font(.title).foregroundStyle(.secondary).accessibilityHidden(true)
+                        Text(verbatim: item.displayName.isEmpty ? "—" : item.displayName).font(Theme.Font.sectionTitle)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("friendRemoval.target")
+                    }
                 }
             }
-            if flow.busy { ProgressView().accessibilityIdentifier("friendRemoval.loading") }
+            if flow.busy { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("friendRemoval.loading") }
             if flow.phase == .closed { text("friendRemoval.closed") }
-            if let issue = flow.issue { text(issue).foregroundStyle(Theme.Color.textSecondary(in: domain)).accessibilityIdentifier("friendRemoval.issue") }
+            if let issue = flow.issue {
+                Label { text(issue) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.secondary) }
+                    .accessibilityIdentifier("friendRemoval.issue")
+            }
             if flow.pending != nil {
                 Section {
                     text("friendRemoval.unknown")
-                    if let original = flow.pendingCommand {
-                        Text(verbatim: "#\(original.peerID) · v\(original.expectedVersion) · \(original.requestID.uuidString)")
-                            .accessibilityIdentifier("friendRemoval.originalIdentity")
-                    }
                     Button { perform { await flow.recover() } } label: { text("friendRemoval.recover") }
                         .disabled(!flow.canRecover).accessibilityIdentifier("friendRemoval.recover")
                     Button { retryCommand = flow.pendingCommand; confirmingRetry = true } label: { text("friendRemoval.retryOriginal") }
                         .disabled(!flow.canRetryOriginal).accessibilityIdentifier("friendRemoval.retryOriginal")
                 }
-            } else if flow.item == nil && flow.result == nil && flow.phase == .ready { text("friendRemoval.noPending") }
-            if flow.review != nil {
-                Section {
-                    text("friendRemoval.confirmImpact")
-                    Button(role: .destructive) {
-                        guard let confirmed = flow.review else { return }
-                        perform { await flow.confirm(confirmed: confirmed) }
-                    } label: { text("friendRemoval.confirm") }
-                        .disabled(!flow.canConfirm).accessibilityIdentifier("friendRemoval.confirm")
-                    Button { flow.cancelReview() } label: { text("friendRemoval.cancel") }
-                        .disabled(flow.busy).accessibilityIdentifier("friendRemoval.cancel")
-                }
-            } else if flow.item != nil && flow.result == nil && flow.pending == nil {
-                Button(role: .destructive) { flow.reviewRemoval() } label: { text("friendRemoval.review") }
-                    .disabled(!flow.canReview).accessibilityIdentifier("friendRemoval.review")
+            } else if flow.item == nil && flow.result == nil && flow.phase == .ready {
+                ContentUnavailableView { Label { text("friendRemoval.noPending") } icon: { Image(systemName: "checkmark.circle") } }
             }
             if let result = flow.result {
                 Section {
                     text(result.outcome == "APPLIED" ? "friendRemoval.applied" : "friendRemoval.rejected")
                         .accessibilityIdentifier("friendRemoval.outcome")
-                    Text(verbatim: "#\(result.peerID) · \(result.requestID)").accessibilityIdentifier("friendRemoval.resultIdentity")
-                    text("friendRemoval.historical").font(Theme.Font.label)
                 }
             }
             if let current = flow.currentRelationship {
                 Section {
-                    Text(verbatim: "#\(current.peerID)").accessibilityIdentifier("friendRemoval.currentTarget")
-                    text(current.state == .friend ? "friendRemoval.currentFriend" : "friendRemoval.currentNotFriend")
-                        .accessibilityIdentifier("friendRemoval.current")
-                } header: { text("friendRemoval.currentTitle") }
+                    LabeledContent {
+                        text(current.state == .friend ? "friendRemoval.currentFriend" : "friendRemoval.currentNotFriend")
+                            .accessibilityIdentifier("friendRemoval.current")
+                    } label: { text("friendRemoval.currentTitle") }
+                }
+            }
+            if flow.review != nil || (flow.item != nil && flow.result == nil && flow.pending == nil) {
+                Section {
+                    Button(role: .destructive) {
+                        if flow.review == nil { flow.reviewRemoval() }
+                        confirmingRemoval = flow.review != nil
+                    } label: { text("friendRemoval.review").frame(maxWidth: .infinity) }
+                        .disabled(!(flow.canReview || flow.canConfirm)).accessibilityIdentifier("friendRemoval.review")
+                }
             }
         }
         .formStyle(.grouped)
         .font(Theme.Font.body)
-        .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .navigationTitle(localized("friendRemoval.title"))
         .accessibilityIdentifier("friendRemoval.home")
         .task { await flow.load() }
@@ -92,6 +87,18 @@ import SwiftUI
         .onChange(of: flow.isCurrent) { _, current in
             if !current { cancelOperation() }
         }
+        // The dialog only presents the flow's own review; dismissing it without a choice keeps that review open.
+        .confirmationDialog(localized("d7.friendRemoval.confirmTitle"), isPresented: $confirmingRemoval, titleVisibility: .visible) {
+            Button(role: .destructive) {
+                guard let confirmed = flow.review else { return }
+                perform { await flow.confirm(confirmed: confirmed) }
+            } label: { text("friendRemoval.confirm") }
+                .disabled(!flow.canConfirm).accessibilityIdentifier("friendRemoval.confirm")
+            Button(role: .cancel) { flow.cancelReview() } label: { text("friendRemoval.cancel") }
+                .accessibilityIdentifier("friendRemoval.cancel")
+        } message: {
+            text("friendRemoval.impact")
+        }
         .confirmationDialog(localized("friendRemoval.retryTitle"), isPresented: $confirmingRetry, titleVisibility: .visible) {
             Button(localized("friendRemoval.retryConfirm"), role: .destructive) {
                 guard let confirmed = retryCommand else { return }
@@ -100,7 +107,6 @@ import SwiftUI
             }
             Button(localized("friendRemoval.keepPending"), role: .cancel) { retryCommand = nil }
         } message: {
-            if let retryCommand { Text(verbatim: "#\(retryCommand.peerID) · v\(retryCommand.expectedVersion) · \(retryCommand.requestID.uuidString)") }
             text("friendRemoval.retryImpact")
         }
         .tint(Theme.Color.accent(in: domain))
@@ -116,7 +122,7 @@ import SwiftUI
     }
     private func cancelOperation() {
         operationTask?.cancel(); operationTask = nil
-        confirmingRetry = false; retryCommand = nil
+        confirmingRetry = false; retryCommand = nil; confirmingRemoval = false
     }
     private func suspend() {
         cancelOperation(); flow.invalidate()
