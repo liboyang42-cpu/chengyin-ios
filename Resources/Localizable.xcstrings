@@ -94855,13 +94855,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The server confirms your task status. You can check My Collection later; your photo will not be submitted again."
+            "value" : "You can find it in My Collection later."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "关卡状态以服务器为准。可稍后在“我的藏品”查看，不会重复提交照片。"
+            "value" : "稍后可以在我的藏品里查看。"
           }
         }
       }
@@ -102429,13 +102429,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Camera overlay isn't available right now"
+            "value" : "Camera overlay unavailable"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "相机叠图暂不可用"
+            "value" : "相机叠加暂不可用"
           }
         }
       }
@@ -102446,13 +102446,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The camera did not open. You can still view the returned image below."
+            "value" : "The camera didn't open. Here's the picture instead."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "相机未能打开，你仍可查看下方返回的图片。"
+            "value" : "相机没能打开，先看图片吧。"
           }
         }
       }
@@ -103024,13 +103024,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "AR could not start or track reliably on this device. Use the image fallback."
+            "value" : "AR can't start on this phone. Here's the picture instead."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此设备未能启动或稳定追踪 AR，请使用图片回落。"
+            "value" : "这台手机无法启动 AR，先看图片吧。"
           }
         }
       }
@@ -196644,17 +196644,18 @@
       }
     },
     "playx.device.lowAccuracy" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Low location accuracy · you can scan the code to complete"
+            "value" : "Location isn't precise · scan the code to finish"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "定位精度不足 · 可扫码完成"
+            "value" : "定位不够精确 · 扫码也能完成"
           }
         }
       }

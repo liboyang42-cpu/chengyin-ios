@@ -101,7 +101,6 @@ import PhotosUI
                         else { ProgressView("playkit.imageLoading") }
                     }.frame(width: geometry.size.width * CGFloat(overlay.widthFraction), height: geometry.size.height * 0.55)
                     if !overlay.reply.isEmpty { Text(verbatim: overlay.reply).padding().background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16)) }
-                    Text("playkitCamera.screenSpaceOnly").font(.footnote).padding().background(.ultraThinMaterial, in: Capsule())
                     Spacer()
                 }.frame(maxWidth: .infinity).padding(.vertical, 60)
             }.allowsHitTesting(false)

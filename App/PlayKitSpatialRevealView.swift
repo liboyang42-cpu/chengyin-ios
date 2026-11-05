@@ -95,7 +95,6 @@ import simd
                     if phase != .placed {
                         Text(prepared.request.mode == .marker ? "playkitSpatial.findMarker" : phase == .surfaceFound ? "playkitSpatial.tapPlane" : "playkitSpatial.findPlane")
                     } else if !prepared.request.reply.isEmpty { Text(verbatim: prepared.request.reply) }
-                    Text("playkitSpatial.noEvidence").font(.footnote)
                 }.padding().frame(maxWidth: .infinity).background(.ultraThinMaterial).allowsHitTesting(false)
             }.navigationTitle("playkitSpatial.title").navigationBarTitleDisplayMode(.inline)
                 .toolbar {
