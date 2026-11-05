@@ -310,7 +310,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scheduling, check-in and attendance corrections need the “Event operations” or “This event’s check-in” permission."
+            "value": "Scheduling, check-in and attendance changes need the Event operations or This event's check-in role."
           }
         },
         "zh-Hans": {
@@ -726,13 +726,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Time zone is fixed to Shanghai; at most 90 days / 64 future occurrences are materialized"
+            "value": "Up to 90 days ahead (64 occurrences)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "时区固定为上海，最多物化未来 90 天 / 64 期"
+            "value": "最多排未来 90 天（64 期）"
           }
         }
       }
@@ -1110,13 +1110,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Edits only affect future occurrences with no registrations or settlement records"
+            "value": "Only future occurrences with no registrations can be changed"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "编辑只影响未来且无报名、无结算事实的场次"
+            "value": "仅可修改无报名的未来场次"
           }
         }
       }

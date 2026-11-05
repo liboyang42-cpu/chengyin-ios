@@ -441,13 +441,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Open notifications from an event to choose this audience."
+            "value" : "Available when you notify from a specific session"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "从具体场次进入通知后，才可选择这类受众。"
+            "value" : "从具体场次发通知时可选"
           }
         }
       }
@@ -12652,13 +12652,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The server acknowledged the request. Current membership is shown below when available."
+            "value" : "Done. Your membership is shown below."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器已确认收到请求；获取成功后，下方会显示当前成员状态。"
+            "value" : "已完成，下方显示你当前的成员状态。"
           }
         }
       }
@@ -12686,13 +12686,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Membership or joining policy changed. Refresh the club and review the new action."
+            "value" : "The club changed. Refresh and try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "成员状态或加入规则已改变，请刷新俱乐部并确认最新操作。"
+            "value" : "俱乐部状态已变化，请刷新后再试。"
           }
         }
       }
@@ -12703,13 +12703,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Send an application to this club. You will become a member only after approval."
+            "value" : "Send a request to join? You'll become a member once it's approved."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "向此俱乐部发送申请，审批通过后才能成为成员。"
+            "value" : "发送入会申请？审核通过后即成为成员。"
           }
         }
       }
@@ -12720,13 +12720,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Send a request to join this club. Your membership will be checked with the server."
+            "value" : "Join this club?"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "向此俱乐部发送加入请求，随后从服务器确认成员状态。"
+            "value" : "加入这个俱乐部？"
           }
         }
       }
@@ -12839,7 +12839,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Joining is unavailable for a merchant account."
+            "value" : "Merchant accounts can't join clubs here."
           }
         },
         "zh-Hans" : {
@@ -12856,13 +12856,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Current status: not a member"
+            "value" : "Not a member"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前状态：非成员"
+            "value" : "非成员"
           }
         }
       }
@@ -12873,13 +12873,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No membership request was sent. Refresh the club before trying again."
+            "value" : "Nothing was sent. Refresh the club and try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "尚未发送成员请求，请刷新俱乐部后再试。"
+            "value" : "没有发送请求，请刷新俱乐部后再试。"
           }
         }
       }
@@ -12890,13 +12890,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Creators cannot leave their own club here."
+            "value" : "As the creator, you can't leave your own club."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "创建者不能在此退出自己的俱乐部。"
+            "value" : "创建者不能退出自己的俱乐部。"
           }
         }
       }
@@ -12907,13 +12907,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Could not check current membership. No request was sent."
+            "value" : "Couldn't check your membership. Nothing was sent."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法确认当前成员状态，尚未发送请求。"
+            "value" : "暂时无法确认你的成员状态，没有发送请求。"
           }
         }
       }
@@ -12941,13 +12941,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Current membership could not be checked. Check again before taking another action."
+            "value" : "Couldn't check your membership. Check again before trying anything else."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前无法确认成员状态，请再次查询后再操作。"
+            "value" : "暂时无法确认成员状态，请再次查看后再操作。"
           }
         }
       }
@@ -12975,13 +12975,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The server declined the request."
+            "value" : "The request wasn't accepted."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器拒绝了此请求。"
+            "value" : "请求未被接受。"
           }
         }
       }
@@ -13009,13 +13009,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The request may have reached the server. It will not be sent again. You can check your current membership below."
+            "value" : "We couldn't confirm whether this went through. It won't be sent again; check your membership below."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请求可能已到达服务器，不会再次发送。你可以在下方查看当前成员状态。"
+            "value" : "暂时无法确认是否成功，不会重复发送。请在下方查看当前成员状态。"
           }
         }
       }
@@ -13026,13 +13026,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This membership state is not supported. Refresh to check the current status."
+            "value" : "Refresh to see your current membership."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂不支持此成员状态，请刷新查看最新状态。"
+            "value" : "请刷新查看当前成员状态。"
           }
         }
       }
@@ -13094,13 +13094,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Up to 60 characters; emoji may count as more than one. The club reviewers can read this message."
+            "value" : "Up to 60 characters. The club's reviewers will read it."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "最多 60 字，表情可能占多个字。俱乐部审核人员可以阅读此留言。"
+            "value" : "最多 60 字，俱乐部审核人员可以看到。"
           }
         }
       }
@@ -14331,13 +14331,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Check-in unknown · View details"
+            "value" : "View check-in"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "核销状态未知 · 查看详情"
+            "value" : "查看核销"
           }
         }
       }
@@ -14363,7 +14363,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Date not available"
+            "value" : "Date to be set"
           }
         },
         "zh-Hans" : {
@@ -14491,13 +14491,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Paid registrations"
+            "value" : "Paid"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已支付报名数"
+            "value" : "已支付"
           }
         }
       }
@@ -14555,13 +14555,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Potentially refundable"
+            "value" : "Refundable"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可退款人数"
+            "value" : "可退款"
           }
         }
       }
@@ -14731,13 +14731,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unknown"
+            "value" : "—"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未知"
+            "value" : "—"
           }
         }
       }
@@ -14848,13 +14848,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Club workspace"
+            "value" : "Club management"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "俱乐部工作台"
+            "value" : "俱乐部管理"
           }
         }
       }
@@ -15086,13 +15086,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Issue group code"
+            "value" : "Show group code"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "签发团核销码"
+            "value" : "出示团码"
           }
         }
       }
@@ -15211,7 +15211,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "编写成员通知"
+            "value" : "编写通知"
           }
         }
       }
@@ -15970,13 +15970,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Group code issued"
+            "value" : "Show this code to verify the group"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "团码已签发"
+            "value" : "活动核验团码"
           }
         }
       }
@@ -16106,13 +16106,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Delegated event access"
+            "value" : "Your sessions"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已委派场次"
+            "value" : "我负责的场次"
           }
         }
       }
@@ -16225,13 +16225,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dissolution blockers"
+            "value" : "Dissolve club"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "解散阻塞事项"
+            "value" : "解散俱乐部"
           }
         }
       }
@@ -16242,7 +16242,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Edition reports"
+            "value" : "Session reports"
           }
         },
         "zh-Hans" : {
@@ -16276,13 +16276,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Event #%lld"
+            "value" : "Session %lld"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "场次 #%lld"
+            "value" : "场次 %lld"
           }
         }
       }
@@ -16327,13 +16327,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This code has expired. Do not reuse it"
+            "value" : "This code has expired. Issue a new one."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此团码已过期，请勿复用"
+            "value" : "团码已过期，请重新签发。"
           }
         }
       }
@@ -16650,13 +16650,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Audience"
+            "value" : "Choose audience"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "通知受众"
+            "value" : "选择受众"
           }
         }
       }
@@ -16684,13 +16684,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Average participants"
+            "value" : "Average participants (optional)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "平均参与人数"
+            "value" : "平均参与人数（选填）"
           }
         }
       }
@@ -16752,13 +16752,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Can design routes"
+            "value" : "Can design city routes"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可设计路线"
+            "value" : "能设计城市路线"
           }
         }
       }
@@ -16769,13 +16769,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Can design tasks"
+            "value" : "Can design tasks and puzzles"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可设计任务"
+            "value" : "能设计任务 · 解谜"
           }
         }
       }
@@ -16803,13 +16803,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Can coordinate merchants"
+            "value" : "Can work with merchants"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可对接商家"
+            "value" : "能与商家联动"
           }
         }
       }
@@ -16820,13 +16820,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Can perform as NPC"
+            "value" : "Can play NPCs and characters"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可扮演NPC"
+            "value" : "能带 NPC · 角色"
           }
         }
       }
@@ -16956,13 +16956,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Co-founders"
+            "value" : "Co-founders (optional)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "联合创始人"
+            "value" : "联合创始人（选填）"
           }
         }
       }
@@ -17517,13 +17517,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Identity"
+            "value" : "About you (optional)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "身份说明"
+            "value" : "身份说明（选填）"
           }
         }
       }
@@ -17602,13 +17602,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Largest group led"
+            "value" : "Largest group led (optional)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "最大带队人数"
+            "value" : "最大带队人数（选填）"
           }
         }
       }
@@ -18010,13 +18010,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Paid amount"
+            "value" : "Paid"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "支付金额"
+            "value" : "实付"
           }
         }
       }
@@ -18333,7 +18333,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Registration ID"
+            "value" : "Registration number"
           }
         },
         "zh-Hans" : {
@@ -18741,7 +18741,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Redemption store"
+            "value" : "Store"
           }
         },
         "zh-Hans" : {
@@ -19200,7 +19200,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "New customers"
+            "value" : "New"
           }
         },
         "zh-Hans" : {
@@ -19217,7 +19217,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "With remarks"
+            "value" : "Noted"
           }
         },
         "zh-Hans" : {
@@ -19234,7 +19234,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Repeat customers"
+            "value" : "Repeat"
           }
         },
         "zh-Hans" : {
@@ -19285,13 +19285,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Merchant accounts cannot apply as club hosts"
+            "value" : "This account has a merchant record. One account can't be both a merchant and a club host."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "商家账号不能申请成为俱乐部主理人"
+            "value" : "这个账号有商家入驻记录，一个账号不能同时是商家和俱乐部主理人"
           }
         }
       }
@@ -20322,13 +20322,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Club topic workspace"
+            "value" : "Activity"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "俱乐部主题工作台"
+            "value" : "活动详情"
           }
         }
       }
@@ -20339,13 +20339,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Topic settings"
+            "value" : "Activity settings"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "主题设置"
+            "value" : "活动设置"
           }
         }
       }
@@ -20356,13 +20356,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Topic operations metrics"
+            "value" : "Activity data"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "主题运营数据"
+            "value" : "活动数据"
           }
         }
       }
@@ -20458,13 +20458,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Club workspace"
+            "value" : "Manage"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "俱乐部工作台"
+            "value" : "管理"
           }
         }
       }
@@ -20594,7 +20594,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Leader"
+            "value" : "Host"
           }
         },
         "zh-Hans" : {
@@ -20713,13 +20713,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Clubs matching the merchant’s city or address"
+            "value" : "Clubs in your city"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "按店铺城市或地址匹配的俱乐部"
+            "value" : "同城俱乐部"
           }
         }
       }
@@ -20763,13 +20763,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The server acknowledged the action. Current membership is shown only after refresh."
+            "value" : "Done. Refresh to see the updated list."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器已确认操作，刷新后才显示当前成员状态。"
+            "value" : "已完成，刷新后显示最新名单。"
           }
         }
       }
@@ -20785,7 +20785,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "通过申请"
+            "value" : "通过"
           }
         }
       }
@@ -20859,13 +20859,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The server has not granted access to this management view."
+            "value" : "You don't have access to manage this club."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器未授予此管理页面的访问权限。"
+            "value" : "你没有管理这个俱乐部的权限。"
           }
         }
       }
@@ -20955,13 +20955,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No members returned"
+            "value" : "No members yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未返回成员"
+            "value" : "暂无成员"
           }
         }
       }
@@ -21019,13 +21019,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Refresh current state"
+            "value" : "Refresh"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "刷新当前状态"
+            "value" : "刷新"
           }
         }
       }
@@ -21041,7 +21041,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "拒绝申请"
+            "value" : "拒绝"
           }
         }
       }
@@ -21067,13 +21067,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The server rejected this action."
+            "value" : "This action wasn't accepted."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器拒绝了此操作。"
+            "value" : "操作未被接受。"
           }
         }
       }
@@ -21121,7 +21121,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "申请详情"
+            "value" : "入会申请"
           }
         }
       }
@@ -21131,7 +21131,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Join applications"
+            "value" : "Join requests"
           }
         },
         "zh-Hans" : {
@@ -21179,13 +21179,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Showing the previous list. Refresh to review applications or manage members."
+            "value" : "Showing the last list. Refresh before reviewing applications or managing members."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在显示上次名单。请刷新成功后再审核申请或管理成员。"
+            "value" : "正在显示上次名单，请刷新后再审核申请或管理成员。"
           }
         }
       }
@@ -21243,13 +21243,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Management details are unavailable. Refresh to check your access."
+            "value" : "Couldn't load club management. Refresh to try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂时无法加载管理信息，请刷新确认权限。"
+            "value" : "俱乐部管理没加载成功，请刷新重试。"
           }
         }
       }
@@ -21275,13 +21275,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The outcome is unknown. Refresh to view current state. Repeating actions is locked for this club in this session."
+            "value" : "We couldn't confirm the result. Refresh to check; repeating this action is paused for now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "操作结果尚未确认。请刷新查看当前状态，此会话已锁定该俱乐部的重复操作。"
+            "value" : "暂时无法确认结果。请刷新查看，重复操作已暂停。"
           }
         }
       }
@@ -21479,13 +21479,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No introduction provided"
+            "value" : "No introduction yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂无俱乐部介绍"
+            "value" : "暂无简介"
           }
         }
       }
@@ -21511,13 +21511,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Request acknowledged. The current values below come from a separate read."
+            "value" : "Saved"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请求已获回执，下方当前值来自独立读取。"
+            "value" : "已保存"
           }
         }
       }
@@ -21575,13 +21575,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Checking current access…"
+            "value" : "Working…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在核对当前权限…"
+            "value" : "正在处理…"
           }
         }
       }
@@ -21607,13 +21607,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "City (up to 20 characters)"
+            "value" : "City"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "城市（最多20字）"
+            "value" : "城市"
           }
         }
       }
@@ -21703,13 +21703,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Apply to example"
+            "value" : "Confirm example"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "应用到示例"
+            "value" : "确认示例"
           }
         }
       }
@@ -21719,13 +21719,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm these changes"
+            "value" : "Confirm"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认这些更改"
+            "value" : "确认"
           }
         }
       }
@@ -21783,13 +21783,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Introduction (up to 200 characters)"
+            "value" : "Introduction (optional)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "介绍（最多200字）"
+            "value" : "俱乐部介绍（选填）"
           }
         }
       }
@@ -21799,13 +21799,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Activity preferences"
+            "value" : "Activity direction"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "路线方向"
+            "value" : "活动方向"
           }
         }
       }
@@ -21911,13 +21911,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Two administrators are already assigned. Remove an existing role before adding another."
+            "value" : "This club already has two administrators. Remove one first."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已有两名管理员，请先取消一名管理员角色。"
+            "value" : "已有两名管理员，请先取消一名。"
           }
         }
       }
@@ -21927,13 +21927,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The local review was interrupted before submission."
+            "value" : "Not submitted."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地核对已中断，未提交。"
+            "value" : "未提交。"
           }
         }
       }
@@ -21943,13 +21943,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Club data or access changed. Close and reopen the form to review current information."
+            "value" : "The club changed while you were editing. Close and reopen to see the latest details."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "俱乐部数据或权限已变化，请关闭后重新打开表单核对最新信息。"
+            "value" : "俱乐部资料已变化，请关闭后重新打开查看最新资料。"
           }
         }
       }
@@ -22007,13 +22007,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choose a supported type and at most three distinct preferences."
+            "value" : "Choose a club type and up to three activity directions."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请选择有效类型，路线方向最多三项且不能重复。"
+            "value" : "请选择俱乐部类型，活动方向最多 3 项。"
           }
         }
       }
@@ -22023,13 +22023,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Media uploads are not connected. Existing logo and cover references are preserved."
+            "value" : "Logo and cover can't be changed right now. Your current ones are kept."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "图片上传尚未接入，将保留现有标志和封面。"
+            "value" : "暂时无法更换头像和封面，将保留当前图片。"
           }
         }
       }
@@ -22087,13 +22087,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This review has expired. Review current information again."
+            "value" : "This confirmation expired. Review your changes again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此核对已过期，请重新核对当前信息。"
+            "value" : "确认已过期，请重新核对修改。"
           }
         }
       }
@@ -22103,13 +22103,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "One or more fields exceed the displayed character limit."
+            "value" : "Some fields are too long: name 30, city 20, keywords 60, style 30, introduction 200 characters."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "部分字段超过所示字数限制。"
+            "value" : "部分内容超出字数：名称 30、城市 20、关键词 60、风格 30、介绍 200 字。"
           }
         }
       }
@@ -22119,13 +22119,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Club operations are not configured."
+            "value" : "Clubs can't be managed right now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "俱乐部运营服务尚未配置。"
+            "value" : "暂时无法管理俱乐部。"
           }
         }
       }
@@ -22135,7 +22135,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Example content. No real club is changed."
+            "value" : "Example only. No real club changes."
           }
         },
         "zh-Hans" : {
@@ -22199,13 +22199,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Approval required"
+            "value" : "Approval to join"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "需要审批"
+            "value" : "入会需要审批"
           }
         }
       }
@@ -22231,13 +22231,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Keywords (up to 60 characters)"
+            "value" : "Keywords (optional)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "关键词（最多60字）"
+            "value" : "核心关键词（选填）"
           }
         }
       }
@@ -22279,13 +22279,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Club workspace"
+            "value" : "Edit profile"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "俱乐部工作台"
+            "value" : "编辑资料"
           }
         }
       }
@@ -22375,13 +22375,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The member list is unavailable or empty. No member action is inferred."
+            "value" : "No members yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "成员列表为空或暂不可用，不推断可操作的成员。"
+            "value" : "暂无成员"
           }
         }
       }
@@ -22407,13 +22407,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Name (up to 30 characters)"
+            "value" : "Club name"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "名称（最多30字）"
+            "value" : "俱乐部名称"
           }
         }
       }
@@ -22439,13 +22439,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nothing was submitted. Refresh current club information before trying again."
+            "value" : "Nothing was saved. Reload the club and try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未提交任何修改，请先刷新俱乐部信息。"
+            "value" : "没有保存任何修改，请重新读取俱乐部后再试。"
           }
         }
       }
@@ -22471,13 +22471,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The request outcome is unknown. Do not submit it again. Reading current values does not prove whether this request succeeded."
+            "value" : "We couldn't confirm whether this went through. Don't submit again; reload the club first."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请求结果不明确，请勿再次提交。读取当前值不能证明本次请求是否成功。"
+            "value" : "暂时无法确认是否成功。请勿重复提交，先重新读取俱乐部。"
           }
         }
       }
@@ -22567,13 +22567,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Read current state"
+            "value" : "Reload club"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "读取当前状态"
+            "value" : "重新读取"
           }
         }
       }
@@ -22583,13 +22583,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Could not read the club information. Try again."
+            "value" : "Couldn't load the club. Try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法读取俱乐部信息，请重试。"
+            "value" : "俱乐部资料没加载成功，请重试。"
           }
         }
       }
@@ -22599,13 +22599,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Acknowledgment was received, but the latest club data could not be read. No saved value is assumed."
+            "value" : "Saved, but the latest club details couldn't be loaded."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已收到回执，但无法读取最新俱乐部数据，不推断保存后的值。"
+            "value" : "已保存，但暂时读不到最新的俱乐部资料。"
           }
         }
       }
@@ -22663,13 +22663,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Retry reading"
+            "value" : "Try again"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重新读取"
+            "value" : "重试"
           }
         }
       }
@@ -22679,13 +22679,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review changes"
+            "value" : "Confirm"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "核对修改"
+            "value" : "确认"
           }
         }
       }
@@ -22695,13 +22695,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review profile changes"
+            "value" : "Save changes"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "核对资料修改"
+            "value" : "保存修改"
           }
         }
       }
@@ -22839,13 +22839,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Membership and signup"
+            "value" : "Membership settings"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "入会与报名"
+            "value" : "会员经营配置"
           }
         }
       }
@@ -22855,13 +22855,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Style (up to 30 characters)"
+            "value" : "Style (optional)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "风格（最多30字）"
+            "value" : "风格/调性（选填）"
           }
         }
       }
@@ -22887,13 +22887,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Club operations aren't available right now."
+            "value" : "Clubs can't be managed right now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "俱乐部运营暂不可用"
+            "value" : "暂时无法管理俱乐部"
           }
         }
       }
@@ -22903,13 +22903,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No role action available"
+            "value" : "Member"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂无可用角色操作"
+            "value" : "成员"
           }
         }
       }
@@ -22919,13 +22919,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Not reported"
+            "value" : "—"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未返回设置值"
+            "value" : "—"
           }
         }
       }
@@ -23191,13 +23191,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Submitting isn't available right now. You can fill in and review the form, but no real club will change."
+            "value" : "Changes can't be saved right now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "提交暂不可用。可以填写和核对表单，但不会修改真实俱乐部。"
+            "value" : "暂时无法保存修改。"
           }
         }
       }
@@ -23530,13 +23530,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You can review the request. Sending refunds isn't available right now."
+            "value" : "Refunds can't be sent right now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可查看请求，退款提交暂不可用。"
+            "value" : "暂时无法发起退款。"
           }
         }
       }
@@ -23770,13 +23770,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This registration and its known parent order stay locked against resubmission. A refunded record alone does not confirm cash or points payout."
+            "value" : "This registration can't be submitted again. A refunded record doesn't mean the money or points have arrived yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "该报名及其已知关联父订单仍被锁定，不能重复提交。记录显示已退款不单独证明现金或积分到账。"
+            "value" : "这笔报名不能重复提交。记录显示已退款，不代表现金或积分已到账。"
           }
         }
       }
@@ -24154,13 +24154,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review cancellation"
+            "value" : "Review"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "核对清退退款"
+            "value" : "核对"
           }
         }
       }
@@ -24170,13 +24170,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review cancellation"
+            "value" : "Cancel and refund"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "核对清退退款"
+            "value" : "清退退款"
           }
         }
       }
@@ -24202,13 +24202,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Message (not a confirmation)"
+            "value" : "Message"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "提示信息（不代表处理结果）"
+            "value" : "提示信息"
           }
         }
       }
@@ -24266,13 +24266,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Owner cancellation and refund"
+            "value" : "Cancel and refund"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "主理人清退退款"
+            "value" : "清退退款"
           }
         }
       }
@@ -24817,13 +24817,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The story is no longer available for this session. Refresh or return to the club."
+            "value" : "This story can't be shown right now. Refresh to try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前会话暂时无法查看剧情，请刷新或返回俱乐部。"
+            "value" : "暂时无法查看剧情，请刷新重试。"
           }
         }
       }
@@ -24914,7 +24914,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tagline"
+            "value" : "Style"
           }
         },
         "zh-Hans" : {
@@ -197033,13 +197033,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Club posts are unavailable in this build."
+            "value" : "No posts yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前版本暂不可查看俱乐部帖子"
+            "value" : "还没有帖子"
           }
         }
       }
@@ -197049,13 +197049,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Club events are unavailable in this build."
+            "value" : "No activities yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前版本暂不可查看俱乐部活动"
+            "value" : "还没有活动"
           }
         }
       }
@@ -197065,13 +197065,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Become a club leader first. Once approved you can create and manage clubs."
+            "value" : "Once you're a host you can create and manage clubs."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请先成为俱乐部主理人，申请通过后即可创建与管理俱乐部"
+            "value" : "申请通过后即可创建与管理俱乐部"
           }
         }
       }
@@ -197145,13 +197145,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The contribution board is unavailable in this build."
+            "value" : "The contribution board can't be shown right now"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前版本暂不可查看贡献榜"
+            "value" : "暂时无法查看贡献榜"
           }
         }
       }
@@ -207862,6 +207862,873 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已上传，添加到主题后完成。"
+          }
+        }
+      }
+    },
+    "club.ops.positioning" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Positioning"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "定位"
+          }
+        }
+      }
+    },
+    "club.ops.basics" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Basic information"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基础信息"
+          }
+        }
+      }
+    },
+    "club.enroll.denied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can't view this roster"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有权限查看报名名册"
+          }
+        }
+      }
+    },
+    "club.gov.yourRoles" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your roles"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的身份"
+          }
+        }
+      }
+    },
+    "club.ops.createdStatus.unread" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Club created, but its details couldn't be loaded yet."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "俱乐部已创建，但暂时读不到资料。"
+          }
+        }
+      }
+    },
+    "club.host.step.credentials" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qualifications"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "资质证明"
+          }
+        }
+      }
+    },
+    "club.ops.openManagement" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open club management"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开俱乐部管理"
+          }
+        }
+      }
+    },
+    "club.detail.membersCount %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Members · %lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "成员 · %lld"
+          }
+        }
+      }
+    },
+    "club.ops.destinationDetail" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your club is ready"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "俱乐部已就绪"
+          }
+        }
+      }
+    },
+    "club.topic.status.confirmed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirmed"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已确认"
+          }
+        }
+      }
+    },
+    "club.topic.status.reviewing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In review"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "审核中"
+          }
+        }
+      }
+    },
+    "club.gov.customers.showAll" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show all customers"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看全部客户"
+          }
+        }
+      }
+    },
+    "club.topic.status.ended" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ended"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已结束"
+          }
+        }
+      }
+    },
+    "club.ops.leaderRequired.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Become a club host first"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先成为俱乐部主理人"
+          }
+        }
+      }
+    },
+    "club.ops.enterManagement" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go to club management"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "进入俱乐部管理"
+          }
+        }
+      }
+    },
+    "club.host.intro.instant" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takes effect as soon as you finish, no review wait"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "填完身份立即生效，不用等审核"
+          }
+        }
+      }
+    },
+    "club.topic.status.rejected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not approved"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未通过"
+          }
+        }
+      }
+    },
+    "club.topic.status.preparing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparing"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "准备中"
+          }
+        }
+      }
+    },
+    "club.host.contactPrivate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your contact details are not shown publicly."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "联系方式不对外展示"
+          }
+        }
+      }
+    },
+    "club.host.intro.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn the people you lead into your club"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "把你带的人，变成你的俱乐部"
+          }
+        }
+      }
+    },
+    "club.ops.directionsCount %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld of 3 selected"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已选 %lld / 3"
+          }
+        }
+      }
+    },
+    "club.detail.members.lockedReview" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Approved members can see the members"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通过审核后可看成员名单"
+          }
+        }
+      }
+    },
+    "club.detail.joinPolicy.review" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Approval to join"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需审核加入"
+          }
+        }
+      }
+    },
+    "club.host.done.status" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Status"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "状态"
+          }
+        }
+      }
+    },
+    "club.host.done.active" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Active"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已生效"
+          }
+        }
+      }
+    },
+    "club.ops.clubLimit.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Club limit reached"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已达创建上限"
+          }
+        }
+      }
+    },
+    "club.ops.createdStatus.closed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Club creation is closed right now."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂时无法创建俱乐部。"
+          }
+        }
+      }
+    },
+    "club.detail.cityFact" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "City"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所在城市"
+          }
+        }
+      }
+    },
+    "club.host.step.profile" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About you"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主理人资料"
+          }
+        }
+      }
+    },
+    "club.detail.joinPolicy.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open to join"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "公开加入"
+          }
+        }
+      }
+    },
+    "club.host.step.experience" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Experience"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "组织经验"
+          }
+        }
+      }
+    },
+    "club.host.done.limitLabel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clubs you can create"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可建俱乐部"
+          }
+        }
+      }
+    },
+    "club.topic.rejectReason" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Why it wasn't approved"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未通过原因"
+          }
+        }
+      }
+    },
+    "club.ops.createdStatus.confirming" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirming your new club…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在确认创建结果…"
+          }
+        }
+      }
+    },
+    "club.tab.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discover"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "发现"
+          }
+        }
+      }
+    },
+    "club.ops.introduction" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduction"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "俱乐部介绍"
+          }
+        }
+      }
+    },
+    "club.host.done.limitValue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Up to 2"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最多 2 个"
+          }
+        }
+      }
+    },
+    "club.host.done.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You're a club host"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已成为主理人"
+          }
+        }
+      }
+    },
+    "club.audience.countsUnavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Member counts couldn't be loaded"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "人数暂时无法读取"
+          }
+        }
+      }
+    },
+    "club.topic.status.running" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In progress"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "进行中"
+          }
+        }
+      }
+    },
+    "club.host.intro.limit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create up to 2 clubs"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最多可以建 2 个俱乐部"
+          }
+        }
+      }
+    },
+    "club.checkin.orderNo %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Order %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "单号 %@"
+          }
+        }
+      }
+    },
+    "club.topic.upcoming" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Up next"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接下来"
+          }
+        }
+      }
+    },
+    "club.topic.noSessions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No sessions yet"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "还没有场次"
+          }
+        }
+      }
+    },
+    "club.ops.createdStatus.ready" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Club created"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "俱乐部已创建"
+          }
+        }
+      }
+    },
+    "club.detail.members.locked" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Join to see the members"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入后可看成员名单"
+          }
+        }
+      }
+    },
+    "club.gov.codeExpires %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expires in %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 后失效"
+          }
+        }
+      }
+    },
+    "club.ops.enterDetail" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open club"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "进入俱乐部"
+          }
+        }
+      }
+    },
+    "club.ops.createdStatus.accountChanged" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You switched accounts. Reopen to manage this club."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "账号已切换，请重新打开后管理俱乐部。"
+          }
+        }
+      }
+    },
+    "club.host.merchant.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This account is already a merchant"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这个账号已经是商家"
+          }
+        }
+      }
+    },
+    "club.host.step.skills" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What you can do"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "能力自评"
           }
         }
       }

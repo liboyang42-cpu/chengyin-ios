@@ -40,3 +40,58 @@ struct ClubCheckinRailView: View {
         }
     }
 }
+
+/// Mini-program club/checkin-detail (K3): customer + status head, ticket card, then the six right-aligned rows.
+/// Values come straight from the server; a missing value shows —.
+struct ClubCheckinDetailRows: View {
+    let value: ClubGovernanceValue
+    var body: some View {
+        Section {
+            HStack(alignment: .top, spacing: Theme.Space.s3) {
+                if let avatar = text("avatar") {
+                    SquareImage(source: avatar).frame(width: 48, height: 48).clipShape(Circle()).accessibilityHidden(true)
+                }
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(verbatim: text("displayName") ?? "—").font(.title3.weight(.semibold))
+                        .accessibilityIdentifier("club.gov.fact.displayName")
+                    if let session = text("sessionTimeText") { Text(verbatim: session).font(.subheadline).foregroundStyle(.secondary) }
+                    if let phone = text("phoneText") { Text(verbatim: phone).font(.subheadline).foregroundStyle(.secondary) }
+                }
+                Spacer(minLength: Theme.Space.s2)
+                VStack(alignment: .trailing, spacing: 4) {
+                    if let status = text("statusText") {
+                        Text(verbatim: status).font(.subheadline.weight(.semibold)).foregroundStyle(statusColor)
+                    }
+                    if let time = text("statusTimeText") { Text(verbatim: time).font(.caption).foregroundStyle(.secondary) }
+                }
+            }
+        }
+        Section {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(verbatim: text("topicName") ?? "—").font(.headline)
+                if let order = text("orderNo") { Text("club.checkin.orderNo \(order)").font(.footnote).foregroundStyle(.secondary).textSelection(.enabled) }
+            }
+            row("club.gov.field.ticketText", "ticketText")
+            row("club.gov.field.orderTimeText", "orderTimeText")
+            row("club.gov.field.paidAmountText", "paidAmountText")
+            row("club.gov.field.verifyTimeText", "verifyTimeText")
+            row("club.gov.field.storeName", "storeName")
+            row("club.gov.field.operatorName", "operatorName")
+            ClubGovernanceFactRows(value: value, fields: ["registrationId"])
+        }
+    }
+    private var statusColor: Color {
+        switch value["statusCode"].string {
+        case "VERIFIED": return .green
+        case "REFUNDED", "CANCELLED": return .red
+        default: return .orange
+        }
+    }
+    private func text(_ key: String) -> String? {
+        guard let raw = value[key].text?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty else { return nil }
+        return raw
+    }
+    private func row(_ title: LocalizedStringKey, _ key: String) -> some View {
+        LabeledContent(title) { Text(verbatim: text(key) ?? "—").monospacedDigit() }
+    }
+}

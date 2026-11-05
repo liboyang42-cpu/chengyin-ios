@@ -171,12 +171,16 @@ struct ClubOperationsWorkspaceView: View {
             }
         }
         if target == .create && !value.canCreate {
+            // Mini-program club/create no-permission and limit states.
             Section {
+                ContentUnavailableView {
+                    Label(value.accountRole != "club" ? "club.ops.leaderRequired.title" : "club.ops.clubLimit.title",
+                          systemImage: value.accountRole != "club" ? "person.badge.plus" : "person.3")
+                } description: {
+                    Text(value.accountRole != "club" ? "club.ops.leaderRequired.apply" : "club.ops.clubLimit")
+                }
                 if value.accountRole != "club", let hostApplication {
-                    Text("club.ops.leaderRequired.apply")
                     ClubCreateHostApplicationLink(identity: identity, governance: hostApplication)
-                } else {
-                    Text(value.accountRole != "club" ? "club.ops.leaderRequired" : "club.ops.clubLimit")
                 }
             }
         } else {
@@ -184,16 +188,18 @@ struct ClubOperationsWorkspaceView: View {
                 choiceContext: profileChoiceContext, choiceIsCurrent: profileChoiceIsCurrent, choiceController: profileChoice)
                 .disabled(loading || state.locksForm)
             Section {
-                Button("club.ops.reviewProfile") {
+                Button {
                     let command: ClubOperationsCommand
                     if let original = value.profile { command = .update(draft, original: original) }
                     else { command = .create(draft) }
                     Task { await prepare(command) }
+                } label: {
+                    Text(target == .create ? "club.ops.create" : "club.ops.reviewProfile").frame(maxWidth: .infinity)
                 }
+                .buttonStyle(.questifyPrimary)
                 .disabled(loading || state.locksForm || (target != .create && !dirty))
                 .accessibilityIdentifier("club.ops.reviewProfile")
-                Text("club.ops.mediaUnavailable").font(.footnote).foregroundStyle(.secondary)
-            }
+            }.listRowBackground(Color.clear)
         }
         if let profile = value.profile, profile.club.isOwner {
             Section("club.ops.openSettings") {
@@ -208,27 +214,24 @@ struct ClubOperationsWorkspaceView: View {
                         .accessibilityIdentifier("club.ops.setting." + setting.rawValue)
                     } else { LabeledContent(LocalizedStringKey("club.ops." + setting.rawValue)) { Text("club.ops.unknownValue") } }
                 }
-                Text("club.ops.settingsHint").font(.footnote).foregroundStyle(.secondary)
             }
             Section("club.ops.memberRoles") {
-                if value.members.isEmpty { Text("club.ops.membersUnavailable") }
+                if value.members.isEmpty { Text("club.ops.membersUnavailable").foregroundStyle(.secondary) }
                 ForEach(value.members) { member in
                     if !member.isOwner, member.memberId != identity?.accountID, [0, 1].contains(member.role) {
                         Button {
                             Task { await prepare(.memberRole(memberID: member.id, admin: !member.isAdmin, previousRole: member.role)) }
                         } label: {
-                            VStack(alignment: .leading) {
-                                Text(verbatim: member.trimmedNickname ?? "#\(member.id)")
-                                Text(member.isAdmin ? "club.ops.removeAdmin" : "club.ops.makeAdmin").font(.caption)
-                            }
+                            LabeledContent {
+                                Text(member.isAdmin ? "club.ops.removeAdmin" : "club.ops.makeAdmin")
+                            } label: { Text(verbatim: member.trimmedNickname ?? "—") }
                         }
                         .disabled(loading || state.locksForm)
                         .accessibilityIdentifier("club.ops.member.\(member.id)")
                     } else {
-                        LabeledContent { Text(member.isOwner ? "club.ops.owner" : "club.ops.unknownRole") } label: { Text(verbatim: member.trimmedNickname ?? "#\(member.id)") }
+                        LabeledContent { Text(member.isOwner ? "club.ops.owner" : "club.ops.unknownRole") } label: { Text(verbatim: member.trimmedNickname ?? "—") }
                     }
                 }
-                Text("club.ops.adminHint").font(.footnote).foregroundStyle(.secondary)
             }
         }
         if access.writeAvailability == .unverified { Section { Text("club.ops.writeGated").accessibilityIdentifier("club.ops.writeGated") } }
@@ -241,7 +244,6 @@ struct ClubOperationsWorkspaceView: View {
             case .acknowledged(let receipt):
                 Text("club.ops.acknowledged").accessibilityIdentifier("club.ops.acknowledged")
                 if let message = receipt.message { Text(verbatim: message) }
-                if let id = receipt.clubID { LabeledContent("club.ops.clubID") { Text(id, format: .number) } }
             case .rejected(let failure):
                 Text("club.ops.rejected")
                 if let message = failure.message { Text(verbatim: message) }
@@ -276,8 +278,8 @@ struct ClubOperationsWorkspaceView: View {
     }
     @ViewBuilder private var postCreateManagementClosure: some View {
         let flow = createToManageFlow
-        Text(verbatim: flow.bilingualStatusCopy)
-            .font(.footnote)
+        Text(LocalizedStringKey(Self.createStatusKey(flow.blockReason)))
+            .font(flow.canEnterManagement ? .headline : .body)
             .foregroundStyle(flow.canEnterManagement ? .primary : .secondary)
             .accessibilityIdentifier("clubCreateManage.status")
         Button {
@@ -295,8 +297,10 @@ struct ClubOperationsWorkspaceView: View {
                 onEnterClubManagement?(destination)
             }
         } label: {
-            Text(verbatim: flow.actionButtonTitle)
+            Text(flow.validatedTab == .manage || !flow.canEnterManagement ? "club.ops.enterManagement" : "club.ops.enterDetail")
+                .frame(maxWidth: .infinity)
         }
+        .buttonStyle(.questifyPrimary)
         .disabled(loading || !flow.canEnterManagement)
         .accessibilityIdentifier("clubCreateManage.enterManagement")
         if let destination = enteredManageDestination,
@@ -312,15 +316,23 @@ struct ClubOperationsWorkspaceView: View {
                         hostApplication: hostApplication
                     )
                 } label: {
-                    Text(verbatim: destination.bilingualDestinationLabel)
-                        .font(.footnote)
+                    Text("club.ops.openManagement")
                 }
                 .accessibilityIdentifier("clubCreateManage.destination")
             } else {
-                Text(verbatim: destination.bilingualDestinationLabel)
-                    .font(.footnote)
+                Text("club.ops.destinationDetail")
                     .accessibilityIdentifier("clubCreateManage.fallbackDestination")
             }
+        }
+    }
+    /// Core's flow copy is bilingual engineering text; the screen shows one localized line per state.
+    static func createStatusKey(_ reason: ClubCreateToManageBlockReason?) -> String {
+        switch reason {
+        case nil: return "club.ops.createdStatus.ready"
+        case .gateBlocked: return "club.ops.createdStatus.closed"
+        case .awaitingConfirmedReceipt: return "club.ops.createdStatus.confirming"
+        case .accountMismatch: return "club.ops.createdStatus.accountChanged"
+        case .readbackFailed, .clubIdMismatch: return "club.ops.createdStatus.unread"
         }
     }
     @MainActor private func load() async {
@@ -566,63 +578,78 @@ private struct ClubOperationsProfileForm: View {
     var choiceIsCurrent: (ClubProfileChoiceContext) -> Bool = { _ in false }
     let choiceController: ClubProfileChoiceController
     var body: some View {
-        Section("club.ops.profile") {
-            // cy-scene-club-edit admin-note: administrators may only edit display information.
-            if !isCreate && !isOwner { Text("club.ops.adminNote").font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("club.ops.adminNote") }
-            field("name", text: $draft.name)
-            field("city", text: $draft.city)
-            if isCreate {
+        if isCreate { createSections } else { editSections }
+    }
+    /// Mini-program club/create steps, in order: 类型 → 活动方向 → 资料 → 城市.
+    @ViewBuilder private var createSections: some View {
+        Section("club.ops.clubType") {
             Picker("club.ops.clubType", selection: $draft.clubType) {
-                Text("club.ops.chooseType").tag("")
                 ForEach(ClubOperationsCatalog.types, id: \.self) { Text(LocalizedStringKey("club.ops.value." + $0)).tag($0) }
                 if !draft.clubType.isEmpty, !ClubOperationsCatalog.types.contains(draft.clubType) { Text(verbatim: draft.clubType).tag(draft.clubType) }
-            }.accessibilityIdentifier("club.ops.clubType")
-            } else {
-                ClubProfileChoiceControl(kind: .type, draft: $draft, context: choiceContext, isCurrent: choiceIsCurrent, controller: choiceController)
-            }
+            }.pickerStyle(.inline).labelsHidden().accessibilityIdentifier("club.ops.clubType")
+        }
+        Section {
+            directionToggles
+        } header: { Text("club.ops.directions") } footer: { Text("club.ops.directionsCount \(draft.activityPrefs.count)") }
+        Section("club.ops.profile") {
+            field("name", text: $draft.name)
             field("description", text: $draft.description, axis: .vertical)
+        }
+        Section("club.ops.city") {
+            field("city", text: $draft.city)
             field("keywords", text: $draft.keywords)
             field("style", text: $draft.style)
         }
-        Section("club.ops.directions") {
-            if isCreate {
-            ForEach(ClubOperationsCatalog.directions, id: \.self) { value in
-                Toggle(isOn: Binding(get: { draft.activityPrefs.contains(value) }, set: { enabled in
-                    if enabled { if draft.activityPrefs.count < 3 { draft.activityPrefs.append(value) } }
-                    else { draft.activityPrefs.removeAll { $0 == value } }
-                })) { Text(LocalizedStringKey("club.ops.value." + value)) }
-                .disabled(!draft.activityPrefs.contains(value) && draft.activityPrefs.count >= 3)
-            }
-            if draft.activityPrefs.contains(where: { !ClubOperationsCatalog.directions.contains($0) }) {
-                Text(verbatim: draft.activityPrefs.filter { !ClubOperationsCatalog.directions.contains($0) }.joined(separator: ", "))
-            }
-            Text("club.ops.directionsHint").font(.footnote).foregroundStyle(.secondary)
-            } else {
-                ClubProfileChoiceControl(kind: .directions, draft: $draft, context: choiceContext, isCurrent: choiceIsCurrent, controller: choiceController)
-            }
+    }
+    /// Mini-program cy-scene-club-edit order: 基础信息 → 俱乐部介绍 → 定位 → 会员经营配置.
+    @ViewBuilder private var editSections: some View {
+        Section("club.ops.basics") {
+            // cy-scene-club-edit admin-note: administrators may only edit display information.
+            if !isOwner { Text("club.ops.adminNote").font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("club.ops.adminNote") }
+            field("name", text: $draft.name)
+            field("city", text: $draft.city)
+            field("keywords", text: $draft.keywords)
+            field("style", text: $draft.style)
         }
-        if !isCreate && !isOwner {
+        Section("club.ops.introduction") {
+            field("description", text: $draft.description, axis: .vertical)
+        }
+        Section("club.ops.positioning") {
+            ClubProfileChoiceControl(kind: .type, draft: $draft, context: choiceContext, isCurrent: choiceIsCurrent, controller: choiceController)
+            ClubProfileChoiceControl(kind: .directions, draft: $draft, context: choiceContext, isCurrent: choiceIsCurrent, controller: choiceController)
+        }
+        if !isOwner {
             // Locked card instead of disabled toggles, echoing the current owner-only values.
             Section("club.ops.signupSettings") {
                 Text("club.ops.locked.title").font(.subheadline.bold())
-                Text("club.ops.locked.body").font(.footnote).foregroundStyle(.secondary)
                 lockedCurrent.font(.footnote).accessibilityIdentifier("club.ops.locked.current")
             }
-        }
-        if !isCreate && isOwner {
+        } else {
             Section("club.ops.signupSettings") {
                 Toggle("club.ops.prioritySignup", isOn: $draft.prioritySignupEnabled).accessibilityIdentifier("club.ops.prioritySignup")
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("club.ops.quota").font(.subheadline)
-                        .accessibilityIdentifier("clubQuota.visibleLabel")
-                    field("quota", text: $draft.memberReservedQuota).keyboardType(.numberPad)
-                }
                 if joinPolicySupported {
-                    Picker("club.ops.joinPolicy", selection: $draft.joinPolicy) {
-                        Text("club.ops.joinDirect").tag(0); Text("club.ops.joinReview").tag(1)
-                    }.accessibilityIdentifier("club.ops.joinPolicy")
-                } else { Text("club.ops.joinPolicyUnavailable").font(.footnote) }
+                    Toggle("club.ops.joinReview", isOn: Binding(get: { draft.joinPolicy == 1 }, set: { draft.joinPolicy = $0 ? 1 : 0 }))
+                        .accessibilityIdentifier("club.ops.joinPolicy")
+                }
+                LabeledContent {
+                    field("quota", text: $draft.memberReservedQuota).keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing).frame(maxWidth: 96)
+                } label: {
+                    Text("club.ops.quota").accessibilityIdentifier("clubQuota.visibleLabel")
+                }
             }
+        }
+    }
+    @ViewBuilder private var directionToggles: some View {
+        ForEach(ClubOperationsCatalog.directions, id: \.self) { value in
+            Toggle(isOn: Binding(get: { draft.activityPrefs.contains(value) }, set: { enabled in
+                if enabled { if draft.activityPrefs.count < 3 { draft.activityPrefs.append(value) } }
+                else { draft.activityPrefs.removeAll { $0 == value } }
+            })) { Text(LocalizedStringKey("club.ops.value." + value)) }
+            .disabled(!draft.activityPrefs.contains(value) && draft.activityPrefs.count >= 3)
+        }
+        if draft.activityPrefs.contains(where: { !ClubOperationsCatalog.directions.contains($0) }) {
+            Text(verbatim: draft.activityPrefs.filter { !ClubOperationsCatalog.directions.contains($0) }.joined(separator: ", "))
         }
     }
     private var lockedCurrent: Text {
