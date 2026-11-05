@@ -230,13 +230,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Benefits aren't available right now."
+            "value": "No benefits to show."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "权益暂不可用。"
+            "value": "暂无权益"
           }
         }
       }
@@ -358,13 +358,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading your profile…"
+            "value": "Loading…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在读取主页…"
+            "value": "加载中…"
           }
         }
       }
@@ -396,7 +396,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "登录未成功"
+            "value": "登录后查看我的主页"
           }
         }
       }
@@ -454,13 +454,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Profile details aren't available right now. Name and level come from your account."
+            "value": "Your profile didn't load."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "主页资料暂不可用，名称与等级来自你的账号。"
+            "value": "主页资料没加载出来"
           }
         }
       }

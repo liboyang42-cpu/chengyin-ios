@@ -375,13 +375,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The crop could not be prepared. Adjust it and retry, or cancel to keep your saved cover."
+            "value" : "The crop didn't work. Adjust and try again, or cancel to keep your current background."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "裁剪未能完成。可以调整后重试，或取消以保留已保存的封面。"
+            "value" : "裁剪未完成。可以调整后重试，或取消以保留当前背景图。"
           }
         }
       }
@@ -6838,13 +6838,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local cover crop preview"
+            "value" : "Background crop preview"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本机封面裁剪预览"
+            "value" : "背景图裁剪预览"
           }
         }
       }
@@ -7184,7 +7184,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "账号"
+            "value" : "我的"
           }
         }
       }
@@ -165030,13 +165030,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cover on this device"
+            "value" : "Profile background"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本机封面"
+            "value" : "主页背景图"
           }
         }
       }
@@ -165046,13 +165046,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Only for your account on this device. This image is not uploaded, shared with other people or synced to other devices."
+            "value" : "Saved on this iPhone only. It isn't uploaded or shown to other people."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅供此账户在本机显示，不上传、不向他人展示，也不同步到其他设备。"
+            "value" : "仅保存在这台 iPhone 上，不会上传，也不会展示给他人。"
           }
         }
       }
@@ -165062,13 +165062,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Customize this device’s cover"
+            "value" : "Change background"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "设置本机封面"
+            "value" : "更换背景图"
           }
         }
       }
@@ -165094,13 +165094,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Adjust a 16:9 cover"
+            "value" : "Adjust to 16:9"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "调整 16:9 封面"
+            "value" : "调整为 16:9"
           }
         }
       }
@@ -165110,13 +165110,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local cover preview"
+            "value" : "Background preview"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本机封面预览"
+            "value" : "背景图预览"
           }
         }
       }
@@ -165126,13 +165126,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Default cover"
+            "value" : "Default background"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "默认封面"
+            "value" : "默认背景图"
           }
         }
       }
@@ -165142,13 +165142,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Save this cropped image as your cover on this device?"
+            "value" : "Use this cropped image as your background?"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "将这张裁剪后的图片保存为本机封面？"
+            "value" : "将这张裁剪后的图片设为背景图？"
           }
         }
       }
@@ -165158,13 +165158,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Save on this device"
+            "value" : "Save"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保存到本机"
+            "value" : "保存"
           }
         }
       }
@@ -165174,13 +165174,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Restore default cover…"
+            "value" : "Restore default background…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "恢复默认封面…"
+            "value" : "恢复默认背景图…"
           }
         }
       }
@@ -165190,13 +165190,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Remove this device’s saved cover and restore the default? Your photo library and online profile will not change."
+            "value" : "Remove your background and restore the default? Your photo library won't change."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "移除本机已保存的封面并恢复默认？不会更改相册原图或线上资料。"
+            "value" : "移除当前背景图并恢复默认？相册里的原图不会改变。"
           }
         }
       }
@@ -165254,13 +165254,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The local cover could not be verified. Close the preview and reload the saved cover before trying again."
+            "value" : "Your background couldn't be checked. Close and reload it, then try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未能验证本机封面。请关闭预览并重新读取已保存的封面后再试。"
+            "value" : "背景图未能读取。请关闭后重新读取再试。"
           }
         }
       }
@@ -165270,13 +165270,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The saved cover changed elsewhere. Close the preview and reload it before making another change."
+            "value" : "Your background changed. Close and reload it before changing it again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已保存的封面发生变化。请关闭预览并重新读取后再修改。"
+            "value" : "背景图已变化。请关闭并重新读取后再修改。"
           }
         }
       }
@@ -165286,13 +165286,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cover saved on this device."
+            "value" : "Background saved."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本机封面已保存。"
+            "value" : "背景图已保存。"
           }
         }
       }
@@ -165302,13 +165302,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reload saved cover"
+            "value" : "Reload background"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重新读取本机封面"
+            "value" : "重新读取背景图"
           }
         }
       }

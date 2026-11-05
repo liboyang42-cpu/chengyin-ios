@@ -115,7 +115,6 @@ extension ProfileLocalCoverOwner {
             VStack(alignment: .leading, spacing: 12) {
                 if model.controller.ownsContext {
                     cover(model.controller.saved)
-                    Text("profile.localCover.deviceOnly").font(.footnote).foregroundStyle(.secondary)
                     if let message = model.controller.messageKey {
                         Text(LocalizedStringKey(message)).accessibilityIdentifier("profile.localCover.message")
                     }
