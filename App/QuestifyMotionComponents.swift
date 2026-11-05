@@ -24,6 +24,10 @@ extension View {
             .listRowSeparator(.hidden)
             .listRowBackground(Color.clear)
     }
+    /// Card rows keep one width: a link card must not lose space to the list's disclosure chevron.
+    @ViewBuilder func questifyHidesLinkIndicator() -> some View {
+        if #available(iOS 26.0, *) { navigationLinkIndicatorVisibility(.hidden) } else { self }
+    }
 }
 
 /// Label remains available to VoiceOver even when the visual metadata is deliberately compact.

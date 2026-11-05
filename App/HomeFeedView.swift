@@ -204,45 +204,13 @@ struct HomeFeedCard: View {
     var body: some View {
         QuestifyImageEntityCard(imageSource: safeImageSource, title: item.name, fallbackSymbol: typeSymbol,
                                 minimumHeight: dynamicTypeSize.isAccessibilitySize ? 300 : 260) {
-            if let meta = metaLine {
-                Text(verbatim: meta).foregroundStyle(.white.opacity(0.8))
-            }
-            if let price = priceText {
-                Text("playx.finishRoute.priceFrom \(price)").font(.headline).monospacedDigit()
-            }
+            QuestifyCardSummary(meta: QuestifyCardText.metaLine(date: QuestifyCardText.date(item.startDate, sourceTimeZone: sourceTimeZone, locale: locale, displayTimeZone: timeZone), place: item.place),
+                                price: QuestifyCardText.amount(item.amount, locale: locale), onArtwork: true)
         }
     }
     /// Only a safe https cover reaches the card; anything else shows the clean placeholder.
     private var safeImageSource: String? {
         if let url = QuestifyCardArtwork.safeURL(item.imageURL) { return url.absoluteString }
         return nil
-    }
-    private var metaLine: String? {
-        let place = item.place?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let parts = [startDateText, place].compactMap { $0 }.filter { !$0.isEmpty }
-        return parts.isEmpty ? nil : parts.joined(separator: " · ")
-    }
-    /// Like the mini-program, a time without a zone reads as written; an explicit offset shows in local time.
-    private var startDateText: String? {
-        let utc = TimeZone(secondsFromGMT: 0)!
-        let displayZone: TimeZone
-        let date: Date
-        if let absolute = HomeFeedDate.parse(item.startDate, sourceTimeZone: sourceTimeZone) {
-            date = absolute; displayZone = timeZone
-        } else if let wallClock = HomeFeedDate.parse(item.startDate, sourceTimeZone: utc) {
-            date = wallClock; displayZone = utc
-        } else { return nil }
-        var calendar = Calendar(identifier: .gregorian); calendar.timeZone = displayZone
-        var style = Date.FormatStyle.dateTime.month(.abbreviated).day().hour().minute().locale(locale)
-        if calendar.component(.year, from: date) != calendar.component(.year, from: Date()) {
-            style = Date.FormatStyle.dateTime.year().month(.abbreviated).day().hour().minute().locale(locale)
-        }
-        style.timeZone = displayZone
-        return date.formatted(style)
-    }
-    /// Unknown or negative amounts hide the price instead of printing a placeholder.
-    private var priceText: String? {
-        guard let amount = item.amount, amount >= 0 else { return nil }
-        return amount.formatted(.number.precision(.fractionLength(0...2)).locale(locale))
     }
 }

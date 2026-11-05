@@ -61,7 +61,7 @@ import SwiftUI
                                 TicketWalletDetailView(id: ticket.id, reader: reader, lifecycleCoordinator: orderLifecycleCoordinator, makeTeamCoordinator: makeTeamCoordinator)
                             } label: { TicketWalletRow(ticket: ticket) }
                             .buttonStyle(QuestifyCardButtonStyle())
-                            .ticketWalletHidesLinkIndicator()
+                            .questifyHidesLinkIndicator()
                             .accessibilityIdentifier("ticketWallet.row.\(ticket.id)")
                             .questifyCardListRow()
                         } else if let provider = pendingOrderProvider, pendingOrderReadOwner == provider.owner,
@@ -207,12 +207,5 @@ private struct TicketWalletCardAction: View {
             .frame(maxWidth: .infinity, minHeight: 44)
             .background(QuestifyPalette.accent.opacity(0.12), in: Capsule())
             .padding(.top, 4)
-    }
-}
-
-private extension View {
-    /// Cards keep one width: a link row must not lose space to the list's disclosure chevron.
-    @ViewBuilder func ticketWalletHidesLinkIndicator() -> some View {
-        if #available(iOS 26.0, *) { navigationLinkIndicatorVisibility(.hidden) } else { self }
     }
 }

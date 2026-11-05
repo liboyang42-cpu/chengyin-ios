@@ -20,6 +20,8 @@ struct TopicBrowserView: View {
     @State private var issue: TopicScreenIssue?
     @State private var generation = 0
     @State private var artworkRevision = UUID()
+    @Environment(\.locale) private var locale
+    @Environment(\.timeZone) private var timeZone
     private struct Key: Hashable { let readerID: ObjectIdentifier; let scope: UUID; let query: TopicQuery; let configured: Bool }
     private var key: Key {
         Key(readerID: ObjectIdentifier(reader), scope: reader.scope, query: TopicQuery(keyword: keyword.isEmpty ? nil : keyword, categoryID: categoryID, recommend: recommend, pageSize: pageSize), configured: reader.isConfigured)
@@ -28,7 +30,6 @@ struct TopicBrowserView: View {
         NavigationStack {
             List {
                 Section {
-                    if reader.isOfflineExample { Text("topic.offlineExample").font(.caption) }
                     Toggle("topic.recommended", isOn: $recommend)
                 }
                 if !reader.isConfigured { TopicIssueView(issue: .notConfigured) }
@@ -40,20 +41,14 @@ struct TopicBrowserView: View {
                         NavigationLink {
                             TopicDetailView(id: item.id, reader: reader, publicMerchant: publicMerchant, makeAudio: makeAudio, makeExternalMaps: makeExternalMaps, selfPlayDestination: selfPlayDestination)
                         } label: {
+                            // Same card as home: cover, title, one date · place line, starting price.
                             QuestifyImageEntityCard(imageSource:item.imageURL,title:item.name,
-                                                    subtitle:item.introduction,fallbackSymbol:"map",progressiveBlur:.cover,
+                                                    fallbackSymbol:"map",minimumHeight:260,progressiveBlur:.cover,
                                                     artworkIdentity:.init(owner:reader.scope.uuidString,content:"topic:\(item.id)",version:artworkRevision.uuidString)) {
-                                TopicTotalStops(count: item.locationCount, identifier: "topic.totalStops.\(item.id)")
-                                if item.betaFlag == 1 { Text("topic.beta").font(.caption.weight(.semibold)) }
-                                if let address=item.addressName,!address.isEmpty {
-                                    QuestifyImageEntityMetadata(label:"homeFeed.place",value:address,systemImage:"mappin")
-                                }
-                                if let date=item.startDate,!date.isEmpty {
-                                    QuestifyImageEntityMetadata(label:"homeFeed.date",value:date,systemImage:"calendar")
-                                }
-                                TopicStartingPrice(amount: item.minimumAmount)
+                                QuestifyCardSummary(meta: QuestifyCardText.metaLine(date: QuestifyCardText.date(item.startDate, locale: locale, displayTimeZone: timeZone), place: item.addressName),
+                                                    price: QuestifyCardText.amount(item.minimumAmount, locale: locale), onArtwork: true)
                             }
-                        }.buttonStyle(QuestifyCardButtonStyle()).questifyCardListRow()
+                        }.buttonStyle(QuestifyCardButtonStyle()).questifyHidesLinkIndicator().questifyCardListRow()
                         .accessibilityIdentifier("topic.row.\(item.id)")
                     }
                     if loading { ProgressView("topic.loading") }
@@ -99,21 +94,5 @@ struct TopicBrowserView: View {
             guard operation == generation, captured == key else { return }
             issue = TopicScreenIssue(error); loadedKey = captured
         }
-    }
-}
-
-private struct TopicStartingPrice: View {
-    let amount: Decimal?
-    @Environment(\.locale) private var locale
-    var body: some View {
-        let starting = appLocalized("topic.startingPrice", locale: locale)
-        let currency = appLocalized("homeFeed.currencyUnknown", locale: locale)
-        let figure: String
-        if let amount, amount >= 0 {
-            figure = amount.formatted(.number.precision(.fractionLength(2)).locale(locale))
-        } else {
-            figure = appLocalized("topic.priceUnknown", locale: locale)
-        }
-        return RevolutAmountView(figure: figure, label: starting + "\n" + currency)
     }
 }
