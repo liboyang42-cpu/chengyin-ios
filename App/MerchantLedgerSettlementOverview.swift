@@ -96,8 +96,13 @@ import UIKit
             section(.overview)
             section(.entries)
             section(.batches)
-            Button("merchant.business.refresh") { model.loadAll() }
-                .accessibilityIdentifier("merchant.ledgerSettlement.refresh")
+        }
+        .refreshable { model.loadAll() }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { model.loadAll() } label: { Label("merchant.business.refresh", systemImage: "arrow.clockwise") }
+                    .accessibilityIdentifier("merchant.ledgerSettlement.refresh")
+            }
         }
         .navigationTitle(Text("merchant.business.overview"))
         .navigationDestination(item: cover) { item in
@@ -115,9 +120,7 @@ import UIKit
         let slot = model.state.section(id)
         Section {
             switch slot.phase {
-            case .idle:
-                Text("merchant.ledgerSettlement.notLoaded", tableName: "MerchantLedgerSettlement").foregroundStyle(.secondary)
-            case .loading:
+            case .idle, .loading:
                 ProgressView("merchant.loading").accessibilityIdentifier("merchant.ledgerSettlement.loading." + id.rawValue)
             case .failed:
                 if let key = slot.failureKey { Text(LocalizedStringKey(key)) }

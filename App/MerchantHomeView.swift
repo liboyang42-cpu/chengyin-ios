@@ -359,11 +359,17 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
         .navigationDestination(item: $quickRoute) { route in
             if let businessReader, let businessJournal,
                route.isCurrent(reader: businessReader, journal: businessJournal) {
-                MerchantBusinessPage(reader: route.reader, journal: route.journal, query: route.shortcut.query)
+                // Source 财务 opens the settlement ledger (pages/merchant/ledger), as the business workspace does.
+                if route.shortcut == .finance {
+                    MerchantLedgerSettlementOverview(reader: route.reader)
+                        .onDisappear(perform: onChildReturn)
+                } else {
+                    MerchantBusinessPage(reader: route.reader, journal: route.journal, query: route.shortcut.query)
                     .environment(\.merchantAftercareEvidenceDependencies, aftercareEvidenceDependencies(journal: route.journal))
                     .environment(\.merchantCustomerQueryDestination, customerQueryDestination(source: route.reader, journal: route.journal))
                     .id(route)
                     .onDisappear(perform: onChildReturn)
+                }
             } else {
                 Text("merchant.business.stale")
             }

@@ -51877,7 +51877,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Public-account settlement"
+            "value" : "Business-account settlement"
           }
         },
         "zh-Hans" : {
@@ -51909,13 +51909,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Public transfer batches"
+            "value" : "Business-account settlement"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "对公结算批次"
+            "value" : "对公结算"
           }
         }
       }
@@ -52197,13 +52197,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No records in this view."
+            "value" : "No records yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前视图暂无记录。"
+            "value" : "还没有记录"
           }
         }
       }
@@ -52213,13 +52213,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Income and adjustments"
+            "value" : "Income details"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "收入与调整"
+            "value" : "收入明细"
           }
         }
       }
