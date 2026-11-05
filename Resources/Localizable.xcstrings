@@ -136043,13 +136043,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The next page repeated existing records. Refresh to try again."
+            "value" : "Couldn't load more. Pull to refresh."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "下一页重复了已有记录，请刷新后重试。"
+            "value" : "没能加载更多，请下拉刷新。"
           }
         }
       }
@@ -136075,13 +136075,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your invited members will appear here after they join."
+            "value" : "No invitations yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "受邀用户加入后会显示在这里。"
+            "value" : "还没有邀请记录"
           }
         }
       }
@@ -136123,13 +136123,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Invitation records are available, but rewards are not fully synchronized. Missing rewards do not establish that a first purchase is pending."
+            "value" : "Some rewards haven't synced yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "邀请记录已获取，奖励流水尚未完整同步。未查到奖励不代表首购尚未完成。"
+            "value" : "部分奖励待同步。"
           }
         }
       }
@@ -136155,13 +136155,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reward points"
+            "value" : "First-purchase reward points"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "奖励积分"
+            "value" : "首购奖励积分"
           }
         }
       }
