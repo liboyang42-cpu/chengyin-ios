@@ -200,6 +200,7 @@ private final class QmodAuthorImportHostProbe: UIViewController {
 
 @MainActor
 struct QmodAuthorImportView: View {
+    @Environment(\.locale) private var locale
     @StateObject private var model: QmodAuthorImportModel
     @State private var activePicker: QmodFileImporterBinding?
 
@@ -280,11 +281,11 @@ struct QmodAuthorImportView: View {
             Section(header: Text("qmodImport.problems")) {
                 ForEach(Array(report.issues.enumerated()), id: \.offset) { index, issue in
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(verbatim: qmodArchiveIssueTitle(issue))
+                        Text(verbatim: qmodArchiveIssueTitle(issue, locale: locale))
                             .font(.subheadline.weight(.semibold)).foregroundStyle(.red)
-                        Text(verbatim: qmodArchiveIssueDetail(issue))
+                        Text(verbatim: qmodArchiveIssueDetail(issue, locale: locale))
                             .font(.footnote)
-                        Text(verbatim: qmodArchiveIssueLocation(issue))
+                        Text(verbatim: qmodArchiveIssueLocation(issue, locale: locale))
                             .font(.caption.monospaced())
                             .foregroundStyle(.secondary)
                     }
@@ -309,67 +310,67 @@ struct QmodAuthorImportView: View {
 
 }
 
-private func qmodArchiveIssueLocation(_ issue: QmodArchiveIssue) -> String {
+private func qmodArchiveIssueLocation(_ issue: QmodArchiveIssue, locale: Locale) -> String {
     var parts: [String] = []
-    if let index = issue.entryIndex { parts.append(String(localized: "qmodImport.entry \(index)")) }
+    if let index = issue.entryIndex { parts.append(appLocalized("qmodImport.entry \(index)", locale: locale)) }
     if let path = issue.path { parts.append(path) }
-    return parts.isEmpty ? String(localized: "qmodImport.archive") : parts.joined(separator: " · ")
+    return parts.isEmpty ? appLocalized("qmodImport.archive", locale: locale) : parts.joined(separator: " · ")
 }
 
-private func qmodArchiveIssueTitle(_ issue: QmodArchiveIssue) -> String {
+private func qmodArchiveIssueTitle(_ issue: QmodArchiveIssue, locale: Locale) -> String {
     switch issue.code {
-    case .pathTraversal: return String(localized: "qmodImport.issue.pathTraversal")
-    case .duplicatePath: return String(localized: "qmodImport.issue.duplicatePath")
-    case .abnormalCompression: return String(localized: "qmodImport.issue.abnormalCompression")
-    case .symlink: return String(localized: "qmodImport.issue.symlink")
-    case .notARegularFile: return String(localized: "qmodImport.issue.notARegularFile")
-    case .unsafeEntry: return String(localized: "qmodImport.issue.unsafeEntry")
-    case .corrupt: return String(localized: "qmodImport.issue.corrupt")
-    case .digestMismatch: return String(localized: "qmodImport.issue.digestMismatch")
+    case .pathTraversal: return appLocalized("qmodImport.issue.pathTraversal", locale: locale)
+    case .duplicatePath: return appLocalized("qmodImport.issue.duplicatePath", locale: locale)
+    case .abnormalCompression: return appLocalized("qmodImport.issue.abnormalCompression", locale: locale)
+    case .symlink: return appLocalized("qmodImport.issue.symlink", locale: locale)
+    case .notARegularFile: return appLocalized("qmodImport.issue.notARegularFile", locale: locale)
+    case .unsafeEntry: return appLocalized("qmodImport.issue.unsafeEntry", locale: locale)
+    case .corrupt: return appLocalized("qmodImport.issue.corrupt", locale: locale)
+    case .digestMismatch: return appLocalized("qmodImport.issue.digestMismatch", locale: locale)
     case .manifest(let manifestIssue): return QmodManifestIssueNotice(issue: manifestIssue).titleText
-    case .proposalPresentedAsBusinessRule: return String(localized: "qmodImport.issue.proposalPresentedAsBusinessRule")
-    case .limitProfileNotApproved: return String(localized: "qmodImport.issue.limitProfileNotApproved")
-    case .archiveTooLarge: return String(localized: "qmodImport.issue.archiveTooLarge")
-    case .fileTooLarge: return String(localized: "qmodImport.issue.fileTooLarge")
-    case .expandedTooLarge: return String(localized: "qmodImport.issue.expandedTooLarge")
-    case .tooManyEntries: return String(localized: "qmodImport.issue.tooManyEntries")
-    case .unexpectedEntry: return String(localized: "qmodImport.issue.unexpectedEntry")
-    case .missingEntry: return String(localized: "qmodImport.issue.missingEntry")
-    case .unsupportedMethod: return String(localized: "qmodImport.issue.unsupportedMethod")
-    case .unsupportedZip64: return String(localized: "qmodImport.issue.unsupportedZip64")
-    case .encrypted: return String(localized: "qmodImport.issue.encrypted")
-    case .localFileUnreadable: return String(localized: "qmodImport.issue.localFileUnreadable")
-    case .readBudgetPosedAsRule: return String(localized: "qmodImport.issue.readBudgetPosedAsRule")
-    case .readBudgetUnsafe: return String(localized: "qmodImport.issue.readBudgetUnsafe")
-    case .readBudgetExceeded: return String(localized: "qmodImport.issue.readBudgetExceeded")
-    case .checkCancelled: return String(localized: "qmodImport.issue.checkCancelled")
+    case .proposalPresentedAsBusinessRule: return appLocalized("qmodImport.issue.proposalPresentedAsBusinessRule", locale: locale)
+    case .limitProfileNotApproved: return appLocalized("qmodImport.issue.limitProfileNotApproved", locale: locale)
+    case .archiveTooLarge: return appLocalized("qmodImport.issue.archiveTooLarge", locale: locale)
+    case .fileTooLarge: return appLocalized("qmodImport.issue.fileTooLarge", locale: locale)
+    case .expandedTooLarge: return appLocalized("qmodImport.issue.expandedTooLarge", locale: locale)
+    case .tooManyEntries: return appLocalized("qmodImport.issue.tooManyEntries", locale: locale)
+    case .unexpectedEntry: return appLocalized("qmodImport.issue.unexpectedEntry", locale: locale)
+    case .missingEntry: return appLocalized("qmodImport.issue.missingEntry", locale: locale)
+    case .unsupportedMethod: return appLocalized("qmodImport.issue.unsupportedMethod", locale: locale)
+    case .unsupportedZip64: return appLocalized("qmodImport.issue.unsupportedZip64", locale: locale)
+    case .encrypted: return appLocalized("qmodImport.issue.encrypted", locale: locale)
+    case .localFileUnreadable: return appLocalized("qmodImport.issue.localFileUnreadable", locale: locale)
+    case .readBudgetPosedAsRule: return appLocalized("qmodImport.issue.readBudgetPosedAsRule", locale: locale)
+    case .readBudgetUnsafe: return appLocalized("qmodImport.issue.readBudgetUnsafe", locale: locale)
+    case .readBudgetExceeded: return appLocalized("qmodImport.issue.readBudgetExceeded", locale: locale)
+    case .checkCancelled: return appLocalized("qmodImport.issue.checkCancelled", locale: locale)
     }
 }
 
-private func qmodArchiveIssueDetail(_ issue: QmodArchiveIssue) -> String {
+private func qmodArchiveIssueDetail(_ issue: QmodArchiveIssue, locale: Locale) -> String {
     switch issue.code {
-    case .pathTraversal(let path): return String(localized: "qmodImport.detail.pathTraversal \(path)")
-    case .duplicatePath(let path): return String(localized: "qmodImport.detail.duplicatePath \(path)")
-    case .abnormalCompression: return String(localized: "qmodImport.detail.abnormalCompression")
-    case .symlink(let path): return String(localized: "qmodImport.detail.symlink \(path)")
-    case .notARegularFile(let path): return String(localized: "qmodImport.detail.notARegularFile \(path)")
-    case .unsafeEntry(let path): return String(localized: "qmodImport.detail.unsafeEntry \(path)")
-    case .corrupt: return String(localized: "qmodImport.detail.corrupt")
-    case .digestMismatch(let path, _, _, _, _): return String(localized: "qmodImport.detail.digestMismatch \(path)")
+    case .pathTraversal(let path): return appLocalized("qmodImport.detail.pathTraversal \(path)", locale: locale)
+    case .duplicatePath(let path): return appLocalized("qmodImport.detail.duplicatePath \(path)", locale: locale)
+    case .abnormalCompression: return appLocalized("qmodImport.detail.abnormalCompression", locale: locale)
+    case .symlink(let path): return appLocalized("qmodImport.detail.symlink \(path)", locale: locale)
+    case .notARegularFile(let path): return appLocalized("qmodImport.detail.notARegularFile \(path)", locale: locale)
+    case .unsafeEntry(let path): return appLocalized("qmodImport.detail.unsafeEntry \(path)", locale: locale)
+    case .corrupt: return appLocalized("qmodImport.detail.corrupt", locale: locale)
+    case .digestMismatch(let path, _, _, _, _): return appLocalized("qmodImport.detail.digestMismatch \(path)", locale: locale)
     case .manifest(let manifestIssue): return QmodManifestIssueNotice(issue: manifestIssue).bodyText
     case .proposalPresentedAsBusinessRule, .limitProfileNotApproved, .readBudgetPosedAsRule, .readBudgetUnsafe:
-        return String(localized: "qmodImport.detail.settings")
-    case .archiveTooLarge(let actual, let limit): return String(localized: "qmodImport.detail.tooLarge \(actual) \(limit)")
-    case .fileTooLarge(_, let actual, let limit): return String(localized: "qmodImport.detail.tooLarge \(actual) \(limit)")
-    case .expandedTooLarge(_, let actual, let limit): return String(localized: "qmodImport.detail.tooLarge \(actual) \(limit)")
-    case .tooManyEntries(let actual, let limit): return String(localized: "qmodImport.detail.tooManyEntries \(actual) \(limit)")
-    case .unexpectedEntry(let path): return String(localized: "qmodImport.detail.unexpectedEntry \(path)")
-    case .missingEntry(let path): return String(localized: "qmodImport.detail.missingEntry \(path)")
-    case .unsupportedMethod: return String(localized: "qmodImport.detail.unsupportedMethod")
-    case .unsupportedZip64: return String(localized: "qmodImport.detail.unsupportedZip64")
-    case .encrypted(let path): return String(localized: "qmodImport.detail.encrypted \(path)")
-    case .localFileUnreadable(let path): return String(localized: "qmodImport.detail.localFileUnreadable \(path)")
-    case .readBudgetExceeded: return String(localized: "qmodImport.detail.readBudgetExceeded")
-    case .checkCancelled: return String(localized: "qmodImport.detail.checkCancelled")
+        return appLocalized("qmodImport.detail.settings", locale: locale)
+    case .archiveTooLarge(let actual, let limit): return appLocalized("qmodImport.detail.tooLarge \(actual) \(limit)", locale: locale)
+    case .fileTooLarge(_, let actual, let limit): return appLocalized("qmodImport.detail.tooLarge \(actual) \(limit)", locale: locale)
+    case .expandedTooLarge(_, let actual, let limit): return appLocalized("qmodImport.detail.tooLarge \(actual) \(limit)", locale: locale)
+    case .tooManyEntries(let actual, let limit): return appLocalized("qmodImport.detail.tooManyEntries \(actual) \(limit)", locale: locale)
+    case .unexpectedEntry(let path): return appLocalized("qmodImport.detail.unexpectedEntry \(path)", locale: locale)
+    case .missingEntry(let path): return appLocalized("qmodImport.detail.missingEntry \(path)", locale: locale)
+    case .unsupportedMethod: return appLocalized("qmodImport.detail.unsupportedMethod", locale: locale)
+    case .unsupportedZip64: return appLocalized("qmodImport.detail.unsupportedZip64", locale: locale)
+    case .encrypted(let path): return appLocalized("qmodImport.detail.encrypted \(path)", locale: locale)
+    case .localFileUnreadable(let path): return appLocalized("qmodImport.detail.localFileUnreadable \(path)", locale: locale)
+    case .readBudgetExceeded: return appLocalized("qmodImport.detail.readBudgetExceeded", locale: locale)
+    case .checkCancelled: return appLocalized("qmodImport.detail.checkCancelled", locale: locale)
     }
 }
