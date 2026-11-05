@@ -47,7 +47,10 @@ public enum NativeChannelTextState: Equatable {
     private var verifiedReceiptClientMessageID: String?
     private var active = false
     private var generation: UInt64 = 0
-    private var busy = false
+    // The lease belongs to one asynchronous operation, not to the lifetime of
+    // whichever transport continuation eventually completes.
+    private var operationLock: UUID?
+    private var busy: Bool { operationLock != nil }
     private var retryPermitted = false
     private var terminalAccessFailure = false
     // Metadata-only safety veto from a newer authoritative receipt. Never restore
@@ -68,7 +71,7 @@ public enum NativeChannelTextState: Equatable {
     }
     public func isMessageWithheld(_ id: Int) -> Bool {
         // Pushed details outlive active history, but not its captured owner/conversation.
-        capturedIdentity != nil && history.client.identity == capturedIdentity
+        capturedIdentity != nil && history.client.isConfigured && history.client.identity == capturedIdentity
             && history.conversation.id == client.scope.conversationID && withheldMessageIDs.contains(id)
     }
     public var receiptPayloadWithheld: Bool {
@@ -116,6 +119,11 @@ public enum NativeChannelTextState: Equatable {
     public func stop() {
         draftReference = nil
         active = false; generation &+= 1; client.retireOperations(); retryPermitted = false
+        // Cancellation cannot prove rollback, but a departed host must not keep
+        // recovery locked until a transport that ignores cancellation returns.
+        // The protected original remains, so another lifetime can only recover
+        // that same request, never silently replace it or automatically resend.
+        if let lock = operationLock { journal.endOperation(lock); operationLock = nil }
         if intent != nil { state = .outcomeUnknown }
         onChange?()
     }
@@ -125,7 +133,7 @@ public enum NativeChannelTextState: Equatable {
         guard canSendNew, quoteDraftIsCurrent, !Task.isCancelled,
               let value = try? MessageTextIntent(conversationID: client.scope.conversationID, content: text, channelReference: draftReference),
               let lock = journal.beginOperation() else { return false }
-        busy = true; generation &+= 1; let operation = generation
+        operationLock = lock; generation &+= 1; let operation = generation
         defer { finish(lock) }
         do {
             try journal.saveBeforeDispatch(value)
@@ -142,7 +150,7 @@ public enum NativeChannelTextState: Equatable {
     @discardableResult public func checkReceipt() async -> Bool {
         guard canCheckReceipt, !Task.isCancelled, let value = intent,
               let lock = journal.beginOperation() else { return false }
-        busy = true; generation &+= 1; let operation = generation
+        operationLock = lock; generation &+= 1; let operation = generation
         defer { finish(lock) }
         return await probe(value, operation: operation)
     }
@@ -151,7 +159,7 @@ public enum NativeChannelTextState: Equatable {
     @discardableResult public func retryOriginal() async -> Bool {
         guard canRetryOriginal, !Task.isCancelled, let value = intent,
               let lock = journal.beginOperation() else { return false }
-        busy = true; retryPermitted = false; generation &+= 1; let operation = generation
+        operationLock = lock; retryPermitted = false; generation &+= 1; let operation = generation
         defer { finish(lock) }
         if await probe(value, operation: operation) { return true }
         guard valid(operation), conversationReady, retryPermitted, client.canSend, client.canReadReceipt,
@@ -160,7 +168,11 @@ public enum NativeChannelTextState: Equatable {
         return await dispatch(value, operation: operation)
     }
     private func finish(_ lock: UUID) {
-        journal.endOperation(lock); busy = false
+        journal.endOperation(lock)
+        // A retired completion may arrive while a replacement read/write owns
+        // a different lease. It cannot release that lease or change its state.
+        guard operationLock == lock else { return }
+        operationLock = nil
         if state == .sending || state == .checkingReceipt { state = .outcomeUnknown }
         onChange?()
     }
@@ -173,9 +185,10 @@ public enum NativeChannelTextState: Equatable {
         do { guard try NativeChannelTextJournal.same(journal.restore(), value) else { throw NativeChannelTextJournalError.pendingIntent } }
         catch { state = .persistenceFailed; onChange?(); return false }
         state = .sending; retryPermitted = false; onChange?()
+        guard valid(operation), conversationReady, client.canSend, client.canReadReceipt, mayDispatch(value) else { return false }
         do {
             let message = try await client.send(value)
-            guard valid(operation), conversationReady, client.canSend else { return false }
+            guard valid(operation), conversationReady, client.canSend, client.canReadReceipt else { return false }
             return acknowledge(message, value: value)
         } catch {
             guard valid(operation) else { return false }
@@ -189,6 +202,7 @@ public enum NativeChannelTextState: Equatable {
     private func probe(_ value: MessageTextIntent, operation: UInt64) async -> Bool {
         guard valid(operation), conversationReady, client.canReadReceipt else { return false }
         retryPermitted = false; state = .checkingReceipt; onChange?()
+        guard valid(operation), conversationReady, client.canReadReceipt else { return false }
         do {
             let read = try await client.confirmOriginal(value)
             guard valid(operation), conversationReady, client.canReadReceipt,
