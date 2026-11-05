@@ -149113,13 +149113,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Payment is not available in this native version yet"
+            "value" : "Payment isn't in the app yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "原生版本暂不支持支付"
+            "value" : "App 内暂不支持支付"
           }
         }
       }
@@ -149351,13 +149351,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ticket information could not be verified"
+            "value" : "This ticket couldn't be read"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法确认票券信息"
+            "value" : "无法读取票券信息"
           }
         }
       }
@@ -149419,13 +149419,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Loading tickets…"
+            "value" : "Loading…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在加载我的票"
+            "value" : "加载中…"
           }
         }
       }
@@ -149436,13 +149436,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This screen does not issue or display a redemption code."
+            "value" : "—"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此页面不签发或展示核销码。"
+            "value" : "—"
           }
         }
       }
@@ -149606,13 +149606,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Payment, refunds and completion rewards aren't available here. You can view your team but not make changes."
+            "value" : "Payment, refunds and completion rewards aren't in the app yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此处暂不支持支付、退款和完赛奖励；队伍信息仅供查看。"
+            "value" : "App 内暂不支持支付、退款和完赛奖励。"
           }
         }
       }
@@ -149714,7 +149714,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "原生版本暂不支持核销码"
+            "value" : "App 内暂不支持入场码"
           }
         }
       }
@@ -149946,13 +149946,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Some chapter statuses are unavailable. Only confirmed pending chapters are counted."
+            "value" : "Some chapters don't have a status yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "部分章节状态未提供，仅统计已明确待核销的章节。"
+            "value" : "部分章节暂无状态。"
           }
         }
       }
