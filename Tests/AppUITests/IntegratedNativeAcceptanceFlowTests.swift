@@ -97,7 +97,7 @@ import XCTest
 
 
     private func tapRoamOverflowToggle(_ app: XCUIApplication) {
-        let navigation = app.navigationBars["Explore the map"]
+        let navigation = app.navigationBars["Roam"]
         let city = navigation.buttons["Official city"]
         guard navigation.exists, city.exists, city.isEnabled, city.isHittable else {
             XCTFail("Expected the visible Explore city toolbar anchor. " + app.debugDescription); return

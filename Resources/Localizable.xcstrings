@@ -126941,13 +126941,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No search coordinates have been supplied. This screen does not collect your location."
+            "value" : "Pick an area to see what's nearby."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "尚未提供搜索坐标，此页面不会采集您的位置。"
+            "value" : "选择一个区域，看看附近有什么。"
           }
         }
       }
@@ -128444,13 +128444,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Please try again. No visit or other action was recorded."
+            "value" : "Check your connection and try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请稍后重试，没有记录打卡或其他操作。"
+            "value" : "请检查网络后重试。"
           }
         }
       }
@@ -129800,13 +129800,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The service could not find this place. Return to the map for other places."
+            "value" : "This place couldn't be found. Go back to the map for other places."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务未找到此据点，请返回地图查看其他地点。"
+            "value" : "没有找到这个地点，返回地图看看其他地方。"
           }
         }
       }
@@ -130252,13 +130252,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Explore the map"
+            "value" : "Roam"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "探索地图"
+            "value" : "漫游"
           }
         }
       }
@@ -130558,13 +130558,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Successfully read on this device"
+            "value" : "Updated"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本设备成功读取时间"
+            "value" : "更新于"
           }
         }
       }
@@ -130575,13 +130575,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "These earlier results may be out of date. They are shown for reference only; map selection and details are unavailable until a successful refresh."
+            "value" : "Couldn't refresh. These are your earlier results."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这些旧结果可能已过时，仅供查看；成功刷新前，不能选择地图点位或打开详情。"
+            "value" : "刷新失败，以下是之前的结果。"
           }
         }
       }
@@ -175067,13 +175067,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nearby activities aren't available right now. Choose an area and use the map below."
+            "value" : "Nearby activities can't be shown right now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "附近活动暂不可用，可选择区域后使用下方地图。"
+            "value" : "暂时无法显示附近活动。"
           }
         }
       }
@@ -175764,13 +175764,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This tool is in the mini-program but isn't available on iOS yet. No data has been read or changed."
+            "value" : "Sign in to use this."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "该工具已在小程序提供，iOS 暂未开放；未读取或修改任何数据。"
+            "value" : "登录后即可使用。"
           }
         }
       }
@@ -202567,6 +202567,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "商家概览"
+          }
+        }
+      }
+    },
+    "roam.browse.header" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nearby"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "附近"
           }
         }
       }

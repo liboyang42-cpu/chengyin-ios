@@ -232,7 +232,7 @@ struct RoamEntryCover: View {
                         ForEach(card.teams) { team in teamRow(team) }
                     } header: { Text("roam.w208.entry.teams \(card.teams.count)") }
                 }
-                if card.registered && !card.ended {
+                if card.registered && !card.ended, card.destination != nil, eventDestination != nil {
                     Section { detailLink("roam.w208.entry.createTeam", identifier: "roam.home.sheet.createTeam") }
                 }
             }
@@ -244,13 +244,13 @@ struct RoamEntryCover: View {
                 }
             }
         }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
         .accessibilityIdentifier("roam.home.sheet")
     }
     @ViewBuilder private func detailLink(_ title: LocalizedStringKey, identifier: String) -> some View {
         if let destination = card.destination, let eventDestination {
             NavigationLink { eventDestination(destination) } label: { Text(title).bold() }.accessibilityIdentifier(identifier)
-        } else {
-            Text(title).foregroundStyle(.secondary).accessibilityIdentifier(identifier)
         }
     }
     @ViewBuilder private func teamRow(_ team: RoamEntryActivityCard.Team) -> some View {
@@ -295,6 +295,8 @@ struct RoamToolUnavailableView: View {
     var discoverDestination: (() -> AnyView)? = nil
     /// Host's existing topic detail for an anniversary card's current route; nil = honestly unavailable.
     var anniversaryRouteDestination: ((String) -> AnyView)? = nil
+    /// 探索目标 / 时光胶囊 / 导出 owner-only tools; nil keeps the tiles on their fallback page.
+    var privateToolsReader: (any RoamPrivateToolsServing)? = nil
     @State private var home: Result<RoamPassportHome, Error>?
     var body: some View {
         List {
@@ -304,17 +306,12 @@ struct RoamToolUnavailableView: View {
                 }
             }
             Section {
-                ForEach(RoamPassportHome.Tile.allCases) { tile in tileLink(tile) }
+                ForEach(RoamPassportHome.Tile.allCases.filter(tileAvailable)) { tile in tileLink(tile) }
             }
             Section {
                 ForEach(RoamPassportHome.Play.allCases) { play in playCard(play) }
             }
-            RoamPassportToolsSection(reader: toolsReader, routeDestination: anniversaryRouteDestination)
-            Section {
-                NavigationLink { RoamToolUnavailableView(titleKey: "roam.w208.tool.export") } label: {
-                    Label("roam.w208.tool.export", systemImage: "square.and.arrow.up")
-                }.accessibilityIdentifier("roam.home.tool.export.open")
-            }
+            RoamPassportToolsSection(reader: toolsReader, routeDestination: anniversaryRouteDestination, privateTools: privateToolsReader)
         }
         .onAppear(perform: load)
         .refreshable { load() }
@@ -359,8 +356,15 @@ struct RoamToolUnavailableView: View {
                 }
             }
         }
-        .disabled(reader == nil && tile != .goals && tile != .capsule)
         .accessibilityIdentifier("roam.home.passport.tile.\(tile.rawValue)")
+    }
+    /// A tile is listed only when it opens something; goals and capsule always open.
+    private func tileAvailable(_ tile: RoamPassportHome.Tile) -> Bool {
+        switch tile {
+        case .history, .badge: return reader != nil
+        case .stamp: return reader != nil || albumMetadataReader != nil
+        case .goals, .capsule: return true
+        }
     }
     private func caption(_ tile: RoamPassportHome.Tile) -> Text {
         if let key = tile.subtitleKey { return Text(LocalizedStringKey(key)) }
@@ -376,24 +380,36 @@ struct RoamToolUnavailableView: View {
             else if let reader { RoamStampAlbumView(reader: reader, stampDestination: stampDestination) }
         case .badge:
             if let reader { RoamBadgeWallDestination(roamReader: reader) }
-        case .goals, .capsule:
-            RoamToolUnavailableView(titleKey: tile.titleKey)
+        case .goals:
+            if let privateToolsReader { RoamExplorationGoalsView(tools: privateToolsReader) }
+            else { RoamToolUnavailableView(titleKey: tile.titleKey) }
+        case .capsule:
+            if let privateToolsReader { RoamCapsuleView(tools: privateToolsReader) }
+            else { RoamToolUnavailableView(titleKey: tile.titleKey) }
         }
     }
+    /// 官方活动 opens the official roam tasks (owner 2026-10-28: the card is always open);
+    /// 发现附近店铺 opens the nearby map. A card without a destination is not listed.
     @ViewBuilder private func playCard(_ play: RoamPassportHome.Play) -> some View {
         let label = HStack(spacing: 12) {
-            Image(systemName: play == .event ? "calendar" : "storefront").foregroundStyle(play.isClosed ? Color.secondary : Color.accentColor).frame(width: 28).accessibilityHidden(true)
+            Image(systemName: play == .event ? "calendar" : "storefront").foregroundStyle(.tint).frame(width: 28).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text(LocalizedStringKey(play.titleKey)).font(.headline)
                 Text(LocalizedStringKey(play.subtitleKey)).font(.caption).foregroundStyle(.secondary)
             }
             Spacer(minLength: 0)
-            if play.isClosed { Text("roam.w208.passport.closed").font(.caption.bold()).foregroundStyle(.secondary) }
         }
-        if !play.isClosed, let discoverDestination {
-            NavigationLink { discoverDestination() } label: { label }.accessibilityIdentifier("roam.home.passport.play.\(play.rawValue)")
-        } else {
-            label.accessibilityElement(children: .combine).accessibilityIdentifier("roam.home.passport.play.\(play.rawValue)")
+        switch play {
+        case .event:
+            if let reader {
+                NavigationLink { RoamOfficialTasksDestination(roamReader: reader) } label: { label }
+                    .accessibilityIdentifier("roam.home.passport.play.\(play.rawValue)")
+            }
+        case .discover:
+            if let discoverDestination {
+                NavigationLink { discoverDestination() } label: { label }
+                    .accessibilityIdentifier("roam.home.passport.play.\(play.rawValue)")
+            }
         }
     }
 }
