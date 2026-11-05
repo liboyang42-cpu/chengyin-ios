@@ -1001,13 +1001,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local reaction rehearsal"
+            "value" : "Try reaction"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "反应速度本地预演"
+            "value" : "试玩变色就点"
           }
         }
       }
@@ -1017,13 +1017,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reaction source example"
+            "value" : "Reaction example"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "反应速度源样例"
+            "value" : "变色就点示例"
           }
         }
       }
@@ -1033,13 +1033,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Author-only rehearsal. These local readings are not verified scores, rewards or task results."
+            "value" : "Practice only. Results aren't saved."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅供作者本地预演。这些读数不是经验证的成绩、奖励或任务结果。"
+            "value" : "仅供试玩，结果不保存。"
           }
         }
       }
@@ -1049,13 +1049,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Leaving or going to the background clears this local run. Returning starts fresh."
+            "value" : "Leaving this screen ends the run."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "离开或切到后台会清空本地过程，返回后重新开始。"
+            "value" : "离开此页会结束本轮。"
           }
         }
       }
@@ -1097,13 +1097,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local target"
+            "value" : "Target"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地目标"
+            "value" : "目标"
           }
         }
       }
@@ -1161,13 +1161,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Accepted local readings (ms)"
+            "value" : "Your times (ms)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地有效读数（毫秒）"
+            "value" : "你的用时（毫秒）"
           }
         }
       }
@@ -1177,13 +1177,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local comparison only"
+            "value" : "Result"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅供本地比较"
+            "value" : "结果"
           }
         }
       }
@@ -1209,13 +1209,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Within the configured target locally"
+            "value" : "Within the target"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地读数符合配置目标"
+            "value" : "达到目标"
           }
         }
       }
@@ -1225,13 +1225,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Above the configured target locally"
+            "value" : "Slower than the target"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地读数超出配置目标"
+            "value" : "慢于目标"
           }
         }
       }
@@ -1353,13 +1353,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local run finished"
+            "value" : "Run finished"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地预演结束"
+            "value" : "本轮结束"
           }
         }
       }
@@ -1417,13 +1417,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tap now to record this local reaction."
+            "value" : "Tap now!"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "现在点，记录本地反应读数。"
+            "value" : "现在点！"
           }
         }
       }
@@ -1465,13 +1465,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use Reset to begin a fresh local run."
+            "value" : "Tap Reset to try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "点“重置”开始新的本地预演。"
+            "value" : "点「重置」再试一次。"
           }
         }
       }
@@ -1807,13 +1807,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local countdown rehearsal"
+            "value" : "Try countdown"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "倒计时本地预演"
+            "value" : "试玩倒计时"
           }
         }
       }
@@ -1823,13 +1823,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local blind-stopwatch rehearsal"
+            "value" : "Try precision stopwatch"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "精准停表本地预演"
+            "value" : "试玩精准停表"
           }
         }
       }
@@ -1871,13 +1871,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Author-local timing only. No real task result, completion evidence, score or reward is submitted."
+            "value" : "Practice only. Results aren't saved."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅为作者本地计时，不提交真实任务结果、完成证据、得分或奖励。"
+            "value" : "仅供试玩，结果不保存。"
           }
         }
       }
@@ -1887,13 +1887,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Leaving or backgrounding retires this rehearsal. Returning begins a fresh session."
+            "value" : "Leaving this screen ends the run."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "离开或进入后台会结束本次预演；回来后从新一轮开始。"
+            "value" : "离开此页会结束本轮。"
           }
         }
       }
@@ -1951,13 +1951,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local misses remaining"
+            "value" : "Misses left"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地剩余可失误次数"
+            "value" : "剩余可失误次数"
           }
         }
       }
@@ -1967,13 +1967,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local miss allowance: unlimited"
+            "value" : "Misses: unlimited"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地可失误次数不限"
+            "value" : "可失误次数不限"
           }
         }
       }
@@ -1983,13 +1983,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local round"
+            "value" : "Round"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地轮次"
+            "value" : "轮次"
           }
         }
       }
@@ -2047,13 +2047,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Beyond target + 30 seconds: this local round was discarded."
+            "value" : "More than 30 seconds past the target, so this round doesn't count."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "超过目标时长30秒，本地这一轮已作废。"
+            "value" : "超过目标 30 秒，本轮不计。"
           }
         }
       }
@@ -2063,13 +2063,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The local clock changed unexpectedly. Reset before starting a fresh rehearsal."
+            "value" : "The clock changed. Reset to try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地时钟异常，请重置后重新预演。"
+            "value" : "时钟发生变化，请重置后再试。"
           }
         }
       }
@@ -2079,13 +2079,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local stopwatch readout"
+            "value" : "Your time"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地停表读数"
+            "value" : "你的用时"
           }
         }
       }
@@ -2095,13 +2095,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Excellent · local example"
+            "value" : "Excellent"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "优秀 · 本地示例"
+            "value" : "优秀"
           }
         }
       }
@@ -2111,13 +2111,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Within tolerance · local example"
+            "value" : "Within tolerance"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "达标 · 本地示例"
+            "value" : "达标"
           }
         }
       }
@@ -2127,13 +2127,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Outside tolerance · local example"
+            "value" : "Just missed"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "差一点 · 本地示例"
+            "value" : "差一点"
           }
         }
       }
@@ -2207,13 +2207,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reset to begin a new author-only rehearsal."
+            "value" : "Reset to try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重置后可开始新的作者本地预演。"
+            "value" : "重置后再试一次。"
           }
         }
       }
@@ -2223,13 +2223,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Start rehearsal"
+            "value" : "Start"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "开始预演"
+            "value" : "开始"
           }
         }
       }
@@ -2239,13 +2239,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Try another local round"
+            "value" : "Try again"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "再来一轮本地预演"
+            "value" : "再来一轮"
           }
         }
       }
@@ -2287,13 +2287,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Stop and inspect locally"
+            "value" : "Stop"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "停止并查看本地读数"
+            "value" : "停止"
           }
         }
       }
@@ -2303,13 +2303,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Timing configuration is incomplete, invalid, or changed. Review it in the editor, then reload."
+            "value" : "Finish the timing settings in the editor first."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "计时配置未完成、不合法或已变化，请在编辑器查看后重新读取。"
+            "value" : "请先在编辑器中完成计时设置。"
           }
         }
       }
@@ -2529,13 +2529,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rehearse coin flip"
+            "value" : "Try coin flip"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "抛硬币本地排练"
+            "value" : "试玩抛硬币"
           }
         }
       }
@@ -2561,13 +2561,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local author simulation only. No player result, payment, coin, completion or reward is created."
+            "value" : "Practice only. Results aren't saved."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅为作者本地模拟，不产生玩家结果、付款、发币、任务达成或奖励。"
+            "value" : "仅供试玩，结果不保存。"
           }
         }
       }
@@ -2593,13 +2593,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Examples are filled only in this temporary copy. Their wording creates no payment or treat commitment. Your draft stays unchanged."
+            "value" : "Examples fill a copy. Your draft doesn't change."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "样例只填入临时副本。演示文案不构成付款或请客承诺，原稿不会改变。"
+            "value" : "示例只填入副本，草稿不会改变。"
           }
         }
       }
@@ -2689,13 +2689,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local example result"
+            "value" : "Result"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地演示结果"
+            "value" : "结果"
           }
         }
       }
@@ -2721,13 +2721,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The configuration changed or cannot be read. Reload the current draft to begin a fresh local rehearsal."
+            "value" : "The settings changed. Reload to try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "配置已变化或无法读取。重新读取当前草稿可开始新的本地排练。"
+            "value" : "设置已变化，请重新载入后再试。"
           }
         }
       }
@@ -3041,13 +3041,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Explore local samples"
+            "value" : "See examples"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "先看本地样例"
+            "value" : "先看示例"
           }
         }
       }
@@ -3057,13 +3057,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Try these text-based examples before configuring a game. This browser uses the existing local rehearsal screens."
+            "value" : "Try a few examples before you set up a game."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "先体验这些文字交互样例，再配置玩法。此处复用已有本地试玩界面。"
+            "value" : "配置玩法前，先试玩几个示例。"
           }
         }
       }
@@ -3073,13 +3073,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Open editor uses your original draft. It does not enable a game, switch a mode, or copy sample values."
+            "value" : "Opens your own draft. Nothing from the example is copied."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "进入配置会打开原草稿，不自动启用玩法、切换模式或复制样例。"
+            "value" : "打开你自己的草稿，不会复制示例内容。"
           }
         }
       }
@@ -3105,13 +3105,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "View sample"
+            "value" : "View example"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "查看样例"
+            "value" : "查看示例"
           }
         }
       }
@@ -3137,13 +3137,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A temporary copy: examples fill fields currently equal to defaults; other values are retained. Native local feedback creates no real task or reward. Source example text remains in Chinese."
+            "value" : "Examples fill a copy. Your draft doesn't change."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "临时副本：当前仍等于默认值的字段会填入样例，其他值原样保留。本地试玩反馈不产生真实任务或奖励。原始样例文案保留中文。"
+            "value" : "示例只填入副本，草稿不会改变。"
           }
         }
       }
@@ -3153,13 +3153,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld fields supplied with examples"
+            "value" : "%lld fields filled from the example"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld 个字段填入样例"
+            "value" : "%lld 个字段填入示例"
           }
         }
       }
@@ -3329,13 +3329,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "More local samples"
+            "value" : "More examples"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "更多本地样例"
+            "value" : "更多示例"
           }
         }
       }
@@ -3345,13 +3345,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Explore the remaining supported local examples. No play session, camera, sensor, image request or reward is created."
+            "value" : "Try the other games."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "体验其余已支持的本地样例。不会创建玩家会话、调用相机传感器、请求图片或发放奖励。"
+            "value" : "试玩其他玩法。"
           }
         }
       }
@@ -3361,13 +3361,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This configuration cannot be rehearsed yet. Open its editor; your original data has not been changed."
+            "value" : "This game can't be tried yet. Open its settings instead."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前配置暂不能排练，请打开原配置查看；原始数据未改变。"
+            "value" : "此玩法暂不能试玩，可打开其设置查看。"
           }
         }
       }
@@ -3377,13 +3377,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Picture-choice rehearsal uses option names only. Images are not loaded. This is not a full image preview."
+            "value" : "Shows option names only."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "猜图排练仅显示选项名称，不加载图片，不代表完整图片预览。"
+            "value" : "仅显示选项名称。"
           }
         }
       }
@@ -3393,13 +3393,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Source preview uses fixed examples: 5 for one die, 5 + 4 for two. These are not player rolls."
+            "value" : "The example always rolls 5 (or 5 + 4 with two dice)."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "原样例使用固定点数：单骰为 5，双骰为 5 + 4。这不是玩家掷骰结果。"
+            "value" : "示例固定掷出 5（双骰为 5 + 4）。"
           }
         }
       }
@@ -3447,7 +3447,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "D6 骰子样例"
+            "value" : "D6 骰子示例"
           }
         }
       }
@@ -3463,7 +3463,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "D20 检定样例"
+            "value" : "D20 检定示例"
           }
         }
       }
@@ -35584,13 +35584,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Entry IDs that must be marked"
+            "value" : "Entries that should be marked"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正确答案：应标记的条目 ID"
+            "value" : "正确答案：应标记的条目"
           }
         }
       }
@@ -35601,13 +35601,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mark entries from either timeline, then evaluate the complete selection. This is a local rehearsal only."
+            "value" : "Mark entries from either timeline, then check your selection."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可从任一侧标记条目后核对整组选择，仅供本地排练。"
+            "value" : "从任一侧标记条目后核对选择。"
           }
         }
       }
@@ -35669,13 +35669,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Check locally"
+            "value" : "Check"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地检查"
+            "value" : "核对"
           }
         }
       }
@@ -37063,13 +37063,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Minimum server confidence (%)"
+            "value" : "Minimum match confidence (%)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务端最低置信度（%）"
+            "value" : "最低匹配度（%）"
           }
         }
       }
@@ -38474,13 +38474,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Creator-only rehearsal. No publishing, real player records, rewards, or verification."
+            "value" : "Practice only. Nothing is saved or published."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅供创作者本地预演，不发布、不写入真实玩家记录、不发奖励，也不代表已验证。"
+            "value" : "仅供试玩，不保存也不发布。"
           }
         }
       }
@@ -38542,13 +38542,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A local selection is not a prediction submission. The merchant reveals the result later."
+            "value" : "Your pick isn't submitted. The merchant reveals the result later."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地选择不提交竞猜。实际结果由商家稍后揭晓。"
+            "value" : "你的选择不会提交，结果由商家稍后揭晓。"
           }
         }
       }
@@ -38576,13 +38576,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Music is ambient content, not a completion check. This rehearsal reviews the linked track without claiming listening proof."
+            "value" : "Music sets the mood and isn't a completion check."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音乐是氛围内容，不作为通关判定。此预演检查关联曲目，不产生收听凭证。"
+            "value" : "音乐用于营造氛围，不作为完成判定。"
           }
         }
       }
@@ -38644,13 +38644,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Authoring is available. Camera capture and real vision review are not run in this rehearsal."
+            "value" : "The camera check runs when players play."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可以配置。此次预演不运行相机拍摄或真实视觉审核。"
+            "value" : "拍照识别在玩家游玩时进行。"
           }
         }
       }
@@ -38678,13 +38678,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local rehearsal"
+            "value" : "Try it"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地预演"
+            "value" : "试玩"
           }
         }
       }
@@ -38695,13 +38695,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A site-relative image needs the configured media host before interactive rehearsal. The coordinates remain available in review."
+            "value" : "This image can't be shown here. Use a full https:// link to try it."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "站内图片需要配置媒体主机后才能交互预演。仍可在检查视图查看坐标。"
+            "value" : "此图片无法在此显示，请使用完整的 https:// 链接后再试玩。"
           }
         }
       }
@@ -38746,13 +38746,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reset rehearsal"
+            "value" : "Reset"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重置预演"
+            "value" : "重置"
           }
         }
       }
@@ -38763,13 +38763,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fix configuration or start the rehearsal first"
+            "value" : "Fix the settings or start first"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请先修正配置或开始预演"
+            "value" : "请先修正设置或开始"
           }
         }
       }
@@ -38780,13 +38780,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Matches in this local rehearsal"
+            "value" : "Matched"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地预演匹配"
+            "value" : "匹配"
           }
         }
       }
@@ -38797,13 +38797,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Does not match in this local rehearsal"
+            "value" : "Not matched"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地预演未匹配"
+            "value" : "未匹配"
           }
         }
       }
@@ -38814,13 +38814,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This outcome needs the real runtime provider"
+            "value" : "This result is decided when players play"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此结果需要真实运行服务"
+            "value" : "此结果在玩家游玩时判定"
           }
         }
       }
@@ -38831,13 +38831,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ready for rehearsal"
+            "value" : "Ready"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "准备预演"
+            "value" : "准备就绪"
           }
         }
       }
@@ -38882,13 +38882,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Start rehearsal"
+            "value" : "Start"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "开始预演"
+            "value" : "开始"
           }
         }
       }
@@ -39069,13 +39069,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use a valid, stable identifier."
+            "value" : "Use letters, digits, - or _."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请使用有效且稳定的标识。"
+            "value" : "请使用字母、数字、- 或 _。"
           }
         }
       }
@@ -39103,13 +39103,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use an HTTPS address or a site-relative path."
+            "value" : "Use a full https:// link."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请使用 HTTPS 地址或站内路径。"
+            "value" : "请使用完整的 https:// 链接。"
           }
         }
       }
@@ -39171,13 +39171,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This reference must point to an existing item or match its mode."
+            "value" : "Choose an existing item."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此引用必须指向现有条目，且符合所选模式。"
+            "value" : "请选择已有条目。"
           }
         }
       }
@@ -39239,13 +39239,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This field has an invalid data type."
+            "value" : "This value isn't valid."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此字段的数据类型不正确。"
+            "value" : "此值无效。"
           }
         }
       }
@@ -39256,13 +39256,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "An unrecognized field is retained. Submission is blocked to avoid changing its meaning."
+            "value" : "Remove the unrecognised setting before publishing."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已保留未识别字段。为避免改变原意，暂不能提交。"
+            "value" : "发布前请移除无法识别的设置。"
           }
         }
       }
@@ -40259,13 +40259,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "DC 1–40; modifier −20…20; success and failure text 1–200 UTF-16 units. D20 does not require six task faces."
+            "value" : "DC 1–40, modifier −20 to 20, success and failure text up to 200 characters."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "DC 为 1–40；加值为 −20…20；成功、失败文案各 1–200 个 UTF-16 单位。D20 不需要六面任务。"
+            "value" : "DC 为 1–40，加值 −20 至 20，成功、失败文案各最多 200 字。"
           }
         }
       }
@@ -40276,13 +40276,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "D20 local example"
+            "value" : "Try the D20 roll"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "D20 本地示例"
+            "value" : "试玩 D20"
           }
         }
       }
@@ -40599,13 +40599,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rehearse root rules locally"
+            "value" : "Try the rules"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地预演根层规则"
+            "value" : "试玩规则"
           }
         }
       }
@@ -40973,13 +40973,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Each text field allows up to 200 UTF-16 units. Keep IDs A and B unchanged."
+            "value" : "Each text can be up to 200 characters. Keep roles A and B."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "每项文字最多 200 个 UTF-16 单位。固定标识 A、B 不可改变。"
+            "value" : "每项文字最多 200 字，保留角色 A、B。"
           }
         }
       }
@@ -41092,13 +41092,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Root rules and role content"
+            "value" : "Rules and roles"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "根层规则与角色内容"
+            "value" : "规则与角色"
           }
         }
       }
@@ -41245,13 +41245,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use a supported condition and valid state key/value."
+            "value" : "Choose a supported condition and value."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请使用支持的条件及有效状态键和值。"
+            "value" : "请选择支持的条件和值。"
           }
         }
       }
@@ -41262,13 +41262,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Too many rules/items or an invalid list."
+            "value" : "Too many rules or items."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "规则／条目数量过多，或列表格式不正确。"
+            "value" : "规则或条目过多。"
           }
         }
       }
@@ -41347,13 +41347,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choose an enabled, eligible field and a valid easing amount."
+            "value" : "Choose a field that can be eased and a valid amount."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请选择已启用且可放宽的字段，并填写有效调整量。"
+            "value" : "请选择可放宽的字段并填写有效调整量。"
           }
         }
       }
@@ -41364,13 +41364,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "After this rule applies, the full configuration would exceed a valid boundary."
+            "value" : "With this rule the settings would go out of range."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "应用此规则后，完整配置将超出有效范围。"
+            "value" : "应用此规则后设置将超出范围。"
           }
         }
       }
@@ -41398,13 +41398,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This configuration has an invalid data shape."
+            "value" : "These settings aren't valid."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此配置的数据结构不正确。"
+            "value" : "这些设置无效。"
           }
         }
       }
@@ -41415,13 +41415,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Required content is missing, the type is invalid or text is too long."
+            "value" : "Required text is missing or too long."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "必填内容缺失、类型不正确或文字过长。"
+            "value" : "必填文字缺失或过长。"
           }
         }
       }
@@ -101672,13 +101672,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Each entered left/right row is a correct pair. Players receive a shuffled right column."
+            "value" : "Each row is a correct pair. Players see the right side shuffled."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "每行的左、右两项组成正确配对，玩家看到的右侧条目由服务端打乱。"
+            "value" : "每行左右两项为正确配对，玩家看到的右侧会被打乱。"
           }
         }
       }
@@ -101689,13 +101689,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter items in the correct order. The server will shuffle them for players."
+            "value" : "Enter items in the correct order. Players see them shuffled."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请按正确顺序录入条目，服务端会为玩家打乱顺序。"
+            "value" : "按正确顺序录入条目，玩家看到的顺序会被打乱。"
           }
         }
       }
@@ -101842,13 +101842,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Author rehearsal only. No request is sent, no live session is created and no reward is awarded. Secret answers are removed from these player controls."
+            "value" : "Practice only. Answers are hidden and nothing is saved."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅供作者试用。不会发送请求、创建真实会话或发放奖励。此处的玩家控件已移除答案字段。"
+            "value" : "仅供试玩，不显示答案，也不保存。"
           }
         }
       }
@@ -102046,13 +102046,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The compass hint must be at most 60 UTF-16 units"
+            "value" : "The compass hint can be up to 60 characters"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "罗盘提示不能超过 60 个 UTF-16 单位"
+            "value" : "罗盘提示最多 60 字"
           }
         }
       }
@@ -102131,13 +102131,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Item IDs must be unique, 1–32 letters, digits, underscores or hyphens"
+            "value" : "Item codes must be unique: 1–32 letters, digits, - or _"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "条目 ID 必须唯一，使用 1 至 32 位字母、数字、下划线或短横线"
+            "value" : "条目编号须唯一，1–32 位字母、数字、- 或 _"
           }
         }
       }
@@ -102148,13 +102148,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "An item image must use a valid HTTPS address"
+            "value" : "Item images need a full https:// link"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "条目图片需使用有效的 HTTPS 地址"
+            "value" : "条目图片需使用完整的 https:// 链接"
           }
         }
       }
@@ -102165,13 +102165,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The heading must be at most 32 UTF-16 units"
+            "value" : "The heading can be up to 32 characters"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "标题不能超过 32 个 UTF-16 单位"
+            "value" : "标题最多 32 字"
           }
         }
       }
@@ -102182,13 +102182,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Every item needs 1–40 UTF-16 units of text"
+            "value" : "Every item needs 1–40 characters"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "每个条目需填写 1 至 40 个 UTF-16 单位的文案"
+            "value" : "每个条目需 1–40 字"
           }
         }
       }
@@ -102267,13 +102267,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a question of 1–200 UTF-16 units"
+            "value" : "Enter a question of 1–200 characters"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请填写 1 至 200 个 UTF-16 单位的题干"
+            "value" : "请填写 1–200 字的题干"
           }
         }
       }
@@ -142339,13 +142339,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Keep crop locally"
+            "value" : "Use this crop"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保留本地裁剪"
+            "value" : "使用此裁剪"
           }
         }
       }
@@ -142355,13 +142355,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Adjust the composition within the original image shape. Confirming only keeps a local selection; nothing is uploaded."
+            "value" : "Drag to frame the image."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在原图比例内调整构图。确认仅保留本地选择，不会上传。"
+            "value" : "拖动调整构图。"
           }
         }
       }
@@ -142399,17 +142399,18 @@
       }
     },
     "templateAuthor.acknowledged" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Request received. It isn't published or reviewed yet."
+            "value" : "Submitted. It will appear after review."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已收到请求，尚未发布或通过审核。"
+            "value" : "已提交，审核通过后展示。"
           }
         }
       }
@@ -142431,17 +142432,18 @@
       }
     },
     "templateAuthor.adopt" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Adopt as a local play draft"
+            "value" : "Use as my draft"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "套用为本地玩法草稿"
+            "value" : "套用为我的草稿"
           }
         }
       }
@@ -142468,29 +142470,30 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "All 37 setting types can be edited here. Unrecognized settings are kept but must be removed before you can submit. Some previews explain their limits."
+            "value" : "Settings this editor doesn't recognise are kept, but must be removed before you publish."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可在此编辑全部 37 类设置。无法识别的设置会保留，但需移除后才能提交；部分预览会说明其限制。"
+            "value" : "无法识别的设置会保留，但发布前需要移除。"
           }
         }
       }
     },
     "templateAuthor.basics" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Basics"
+            "value" : "Template info"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "基础信息"
+            "value" : "模板信息"
           }
         }
       }
@@ -142560,17 +142563,18 @@
       }
     },
     "templateAuthor.confirmRequest" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm request"
+            "value" : "Submit"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认请求"
+            "value" : "提交"
           }
         }
       }
@@ -142720,17 +142724,18 @@
       }
     },
     "templateAuthor.discard" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Discard local draft"
+            "value" : "Discard draft"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "丢弃本地草稿"
+            "value" : "丢弃草稿"
           }
         }
       }
@@ -142752,17 +142757,18 @@
       }
     },
     "templateAuthor.draftReview" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saving the draft sends the template details you've set."
+            "value" : "Saves this play as a draft in your templates."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保存草稿会提交你设置的模板内容。"
+            "value" : "将此玩法存为你的模板草稿。"
           }
         }
       }
@@ -142800,17 +142806,18 @@
       }
     },
     "templateAuthor.field.activityCategoryids" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Category IDs, comma-separated"
+            "value" : "Play categories"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "类别 ID，以逗号分隔"
+            "value" : "玩法类别"
           }
         }
       }
@@ -142848,17 +142855,18 @@
       }
     },
     "templateAuthor.field.audioUrl" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Audio reference"
+            "value" : "Audio link"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音频引用"
+            "value" : "音频链接"
           }
         }
       }
@@ -142881,17 +142889,18 @@
       }
     },
     "templateAuthor.field.beatImages" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Image references, one per line"
+            "value" : "Image links, one per line"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "图片引用，每行一个"
+            "value" : "图片链接，每行一个"
           }
         }
       }
@@ -142929,17 +142938,18 @@
       }
     },
     "templateAuthor.field.categoryId" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Category ID"
+            "value" : "Category"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "类别 ID"
+            "value" : "类别"
           }
         }
       }
@@ -142978,33 +142988,35 @@
       }
     },
     "templateAuthor.field.couponId" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Coupon ID"
+            "value" : "Reward coupon number"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "优惠券 ID"
+            "value" : "奖励优惠券编号"
           }
         }
       }
     },
     "templateAuthor.field.description" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Description, up to 30 UTF-16 units"
+            "value" : "Highlights (up to 30 characters)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "描述，不超过 30 个 UTF-16 字符单元"
+            "value" : "玩法看点（最多 30 字）"
           }
         }
       }
@@ -143219,33 +143231,35 @@
       }
     },
     "templateAuthor.field.imgUrl" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cover image reference"
+            "value" : "Cover image link"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "封面图片引用"
+            "value" : "封面图片链接"
           }
         }
       }
     },
     "templateAuthor.field.kicker" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Title, up to 32 UTF-16 units"
+            "value" : "Title (up to 32 characters)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "标题，不超过 32 个 UTF-16 字符单元"
+            "value" : "标题（最多 32 字）"
           }
         }
       }
@@ -143268,17 +143282,18 @@
       }
     },
     "templateAuthor.field.medalImg" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Medal image reference"
+            "value" : "Medal image link"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "勋章图片引用"
+            "value" : "勋章图片链接"
           }
         }
       }
@@ -143445,17 +143460,18 @@
       }
     },
     "templateAuthor.field.questionAudio" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Question audio reference"
+            "value" : "Question audio link"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "题目音频引用"
+            "value" : "题目音频链接"
           }
         }
       }
@@ -143509,17 +143525,18 @@
       }
     },
     "templateAuthor.field.questionImg" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Question image reference"
+            "value" : "Question image link"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "题目图片引用"
+            "value" : "题目图片链接"
           }
         }
       }
@@ -143541,6 +143558,7 @@
       }
     },
     "templateAuthor.field.requiredMaterials" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -143551,7 +143569,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "所需物料"
+            "value" : "所需材料"
           }
         }
       }
@@ -143605,17 +143623,18 @@
       }
     },
     "templateAuthor.field.storyImg" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Creator image reference"
+            "value" : "Creator photo link"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "创作者图片引用"
+            "value" : "创作者图片链接"
           }
         }
       }
@@ -144107,17 +144126,18 @@
       }
     },
     "templateAuthor.httpReview" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Check your request before submitting. It may still need review."
+            "value" : "Published templates are reviewed before they appear."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "提交前请核对内容，提交后可能仍需审核。"
+            "value" : "发布后需审核通过才会展示。"
           }
         }
       }
@@ -144235,17 +144255,18 @@
       }
     },
     "templateAuthor.linkedMedia" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Linked media reference"
+            "value" : "Image attached"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已关联媒体引用"
+            "value" : "已附图片"
           }
         }
       }
@@ -144283,17 +144304,18 @@
       }
     },
     "templateAuthor.localConfigurationOnly" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This completion method can be edited and saved only on this device. Remote draft and publishing are unavailable."
+            "value" : "This completion method can be saved on this device but can't be published yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此完成方式仅支持本机编辑与保存，不能提交远端草稿或发布。"
+            "value" : "此完成方式可保存到本机，暂不能发布。"
           }
         }
       }
@@ -144347,17 +144369,18 @@
       }
     },
     "templateAuthor.mediaHint" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Existing media references only. Uploading and fetching remote media are unavailable here."
+            "value" : "Paste links to images or audio you already have."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅编辑已有媒体引用。此处不上传或读取远程媒体。"
+            "value" : "粘贴已有图片或音频的链接。"
           }
         }
       }
@@ -144459,33 +144482,35 @@
       }
     },
     "templateAuthor.method.6" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Preference questionnaire (local)"
+            "value" : "Preference questionnaire"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "偏好题组（本地）"
+            "value" : "偏好题组"
           }
         }
       }
     },
     "templateAuthor.method.7" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sensor challenge (local)"
+            "value" : "Sensor challenge"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "传感器挑战（本地）"
+            "value" : "传感器挑战"
           }
         }
       }
@@ -144507,17 +144532,18 @@
       }
     },
     "templateAuthor.mineScope" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "These are your play templates, separate from public route templates."
+            "value" : "Your play templates."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这里是个人玩法模板，与公共路线主题模板分别管理。"
+            "value" : "你的玩法模板。"
           }
         }
       }
@@ -144527,13 +144553,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enable this module"
+            "value" : "On"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "启用模块"
+            "value" : "开启"
           }
         }
       }
@@ -144555,17 +144581,18 @@
       }
     },
     "templateAuthor.noGameplay" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This preview shows your settings only. Gameplay doesn't run here."
+            "value" : "Try this game when you play the route."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "预览仅展示配置，不运行实际玩法。"
+            "value" : "实际游玩时可体验此玩法。"
           }
         }
       }
@@ -144576,13 +144603,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Audio reference"
+            "value" : "Audio link"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音频地址"
+            "value" : "音频链接"
           }
         }
       }
@@ -144593,13 +144620,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Image reference"
+            "value" : "Image link"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "图片地址"
+            "value" : "图片链接"
           }
         }
       }
@@ -144610,13 +144637,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use at most 500 UTF-16 units per reference and 2,000 for all attachment data. This edit was not applied."
+            "value" : "That link is too long. The change wasn't applied."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "每个地址最多 500 个 UTF-16 单元，全部附件数据最多 2,000 个。本次修改未应用。"
+            "value" : "链接过长，本次修改未应用。"
           }
         }
       }
@@ -144627,13 +144654,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Image and audio references stay attached to choices A–D. These fields do not upload, fetch, or play media."
+            "value" : "Each choice A–D can have its own image and audio."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "图片和音频地址按 A–D 选项保存。此处不上传、加载或播放媒体。"
+            "value" : "选项 A–D 可分别配图片和音频。"
           }
         }
       }
@@ -144661,13 +144688,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This saved attachment data has an unsupported format. It is preserved unchanged and cannot be edited here."
+            "value" : "These saved attachments can't be edited here. They are kept as they are."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已保存的附件数据格式暂不支持。原数据保持不变，此处无法编辑。"
+            "value" : "这些已保存的附件无法在此编辑，将原样保留。"
           }
         }
       }
@@ -145841,33 +145868,35 @@
       }
     },
     "templateAuthor.previewNotice" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local preview. Answers are hidden; no completion or rewards are issued."
+            "value" : "Answers are hidden in this preview."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地预览，隐藏答案，不完成任务或发放奖励。"
+            "value" : "预览中不显示答案。"
           }
         }
       }
     },
     "templateAuthor.publishReview" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Publishing submits the play template for review and may expose the configured content in the template library."
+            "value" : "Your play is reviewed before it appears in the template library."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "发布会将玩法提交审核，并可能在公共模板库展示配置内容。"
+            "value" : "玩法需审核通过后才会在模板库展示。"
           }
         }
       }
@@ -145921,33 +145950,35 @@
       }
     },
     "templateAuthor.restoreFailed" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The saved draft cannot be safely restored. It has not been overwritten."
+            "value" : "This saved draft can't be opened. It hasn't been changed."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法安全恢复已保存草稿，尚未覆盖。"
+            "value" : "这份已保存草稿无法打开，内容未被改动。"
           }
         }
       }
     },
     "templateAuthor.restoreMessage" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A draft already exists for this account and deployment. Restore or discard it before editing."
+            "value" : "You have a saved draft. Restore it or discard it to start again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此账号与部署已有本地草稿，请先恢复或丢弃。"
+            "value" : "你有一份已保存的草稿，可恢复或丢弃后重新开始。"
           }
         }
       }
@@ -145969,49 +146000,52 @@
       }
     },
     "templateAuthor.reviewDraft" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review draft before saving"
+            "value" : "Save draft"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保存前检查草稿"
+            "value" : "存草稿"
           }
         }
       }
     },
     "templateAuthor.reviewPublish" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review publish submission"
+            "value" : "Publish"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "预览发布提交"
+            "value" : "发布"
           }
         }
       }
     },
     "templateAuthor.reviewTitle" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review submission"
+            "value" : "Check before submitting"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认提交内容"
+            "value" : "提交前确认"
           }
         }
       }
@@ -146434,33 +146468,35 @@
       }
     },
     "templateAuthor.simulated" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Simulation completed. No template was saved to a server or published."
+            "value" : "Example run finished. Nothing was saved or published."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "模拟完成，未向服务端保存或发布模板。"
+            "value" : "示例运行完成，未保存或发布。"
           }
         }
       }
     },
     "templateAuthor.storageFailed" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Secure storage is unavailable. Nothing was submitted."
+            "value" : "Couldn't save on this device. Nothing was submitted."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "安全存储不可用，未提交任何内容。"
+            "value" : "无法保存到本机，未提交任何内容。"
           }
         }
       }
@@ -146482,17 +146518,18 @@
       }
     },
     "templateAuthor.storyInvalid" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This story data cannot be decoded safely. The original draft is preserved."
+            "value" : "This story can't be opened. Your draft is unchanged."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法安全读取剧情数据，原草稿已保留。"
+            "value" : "此剧情无法打开，草稿未改动。"
           }
         }
       }
@@ -146546,17 +146583,18 @@
       }
     },
     "templateAuthor.timerUnsupported" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This game has no timed task. A saved timer is preserved but is not executed here."
+            "value" : "This game has no timed task, so the time limit isn't used."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此玩法没有可限时的任务，已保存计时配置保留，但此处不执行。"
+            "value" : "此玩法没有可限时的任务，限时设置不会生效。"
           }
         }
       }
@@ -146578,17 +146616,18 @@
       }
     },
     "templateAuthor.unavailable" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Save and preview locally. Server saves and publishing are unavailable until runtime acceptance."
+            "value" : "Publishing isn't available right now. You can keep editing and save on this device."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可在本地保存和预览。服务端保存与发布尚未通过运行验收，暂不可用。"
+            "value" : "暂时无法发布，可继续编辑并保存到本机。"
           }
         }
       }
@@ -146642,33 +146681,35 @@
       }
     },
     "templateAuthor.validation.advancedSchema" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The advanced configuration version is unsupported."
+            "value" : "These game settings are from a newer version and can't be published here."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "不支持此高级配置版本。"
+            "value" : "这些玩法设置来自较新版本，此处无法发布。"
           }
         }
       }
     },
     "templateAuthor.validation.advancedUnsupported" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "An unsupported configuration is preserved. It cannot be submitted yet."
+            "value" : "Remove the unsupported setting before publishing."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已保留尚未支持的配置，暂不能提交。"
+            "value" : "发布前请移除不支持的设置。"
           }
         }
       }
@@ -146690,33 +146731,35 @@
       }
     },
     "templateAuthor.validation.audio" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Add an audio reference."
+            "value" : "Add an audio link."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请填写音频引用。"
+            "value" : "请填写音频链接。"
           }
         }
       }
     },
     "templateAuthor.validation.ballShake.goal" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Edge hits: 1–200 must be between 1 and 200."
+            "value" : "Edge hits must be between 1 and 200."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "撞击次数：1–200须在 1 至 200 之间。"
+            "value" : "撞击次数须在 1 至 200 之间。"
           }
         }
       }
@@ -146770,49 +146813,52 @@
       }
     },
     "templateAuthor.validation.coinAction" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Both coin actions must contain 1–60 UTF-16 units."
+            "value" : "Each coin action needs 1–60 characters."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正反面行动需为 1–60 个 UTF-16 字符单元。"
+            "value" : "正反面行动需 1–60 字。"
           }
         }
       }
     },
     "templateAuthor.validation.coinLabel" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Coin labels cannot exceed 16 UTF-16 units."
+            "value" : "Coin labels can be up to 16 characters."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正反面名称不超过 16 个 UTF-16 字符单元。"
+            "value" : "正反面名称最多 16 字。"
           }
         }
       }
     },
     "templateAuthor.validation.correctAnswer" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Select a nonempty correct option."
+            "value" : "Choose the correct option."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请选择非空的正确选项。"
+            "value" : "请选择正确选项。"
           }
         }
       }
@@ -146834,65 +146880,69 @@
       }
     },
     "templateAuthor.validation.countdownText" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Add completion text up to 60 UTF-16 units."
+            "value" : "Add the completion text (up to 60 characters)."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请填写不超过 60 个 UTF-16 字符单元的到点文字。"
+            "value" : "请填写到点文字（最多 60 字）。"
           }
         }
       }
     },
     "templateAuthor.validation.description" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Add a description."
+            "value" : "Add the highlights."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请填写玩法描述。"
+            "value" : "请填写玩法看点。"
           }
         }
       }
     },
     "templateAuthor.validation.descriptionLength" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Keep the description within 30 UTF-16 units."
+            "value" : "Keep the highlights within 30 characters."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "玩法描述不超过 30 个 UTF-16 字符单元。"
+            "value" : "玩法看点最多 30 字。"
           }
         }
       }
     },
     "templateAuthor.validation.diceFaces" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "All six dice faces need actions up to 60 UTF-16 units."
+            "value" : "All six dice faces need an action (up to 60 characters)."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "骰子六面均需填写不超过 60 个 UTF-16 字符单元的行动。"
+            "value" : "骰子六面都需填写行动（最多 60 字）。"
           }
         }
       }
@@ -146930,17 +146980,18 @@
       }
     },
     "templateAuthor.validation.kicker" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Game titles cannot exceed 32 UTF-16 units."
+            "value" : "Game titles can be up to 32 characters."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "玩法标题不超过 32 个 UTF-16 字符单元。"
+            "value" : "玩法标题最多 32 字。"
           }
         }
       }
@@ -147042,33 +147093,35 @@
       }
     },
     "templateAuthor.validation.reaction.goalMs" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Target: 120–2000 milliseconds must be between 120 and 2000."
+            "value" : "Target must be between 120 and 2000 milliseconds."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "达标毫秒：120–2000须在 120 至 2000 之间。"
+            "value" : "达标毫秒须在 120 至 2000 之间。"
           }
         }
       }
     },
     "templateAuthor.validation.reaction.rounds" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rounds: 1–10 must be between 1 and 10."
+            "value" : "Rounds must be between 1 and 10."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "轮数：1–10须在 1 至 10 之间。"
+            "value" : "轮数须在 1 至 10 之间。"
           }
         }
       }
@@ -147090,65 +147143,69 @@
       }
     },
     "templateAuthor.validation.stopwatch.targetSeconds" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Target: 3–120 seconds must be between 3 and 120."
+            "value" : "Target must be between 3 and 120 seconds."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目标秒数：3–120须在 3 至 120 之间。"
+            "value" : "目标秒数须在 3 至 120 之间。"
           }
         }
       }
     },
     "templateAuthor.validation.stopwatch.toleranceMs" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tolerance: 50–5000 milliseconds must be between 50 and 5000."
+            "value" : "Tolerance must be between 50 and 5000 milliseconds."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "容差毫秒：50–5000须在 50 至 5000 之间。"
+            "value" : "容差须在 50 至 5000 毫秒之间。"
           }
         }
       }
     },
     "templateAuthor.validation.stopwatch.tries" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Attempts: 0–10; 0 means unlimited must be between 0 and 10."
+            "value" : "Attempts must be between 0 and 10 (0 means unlimited)."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "次数：0–10，0 表示不限须在 0 至 10 之间。"
+            "value" : "次数须在 0 至 10 之间（0 表示不限）。"
           }
         }
       }
     },
     "templateAuthor.validation.timer.durationSeconds" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Time limit: 10–86400 seconds must be between 10 and 86400."
+            "value" : "Time limit must be between 10 and 86400 seconds."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "限时秒数：10–86400须在 10 至 86400 之间。"
+            "value" : "限时须在 10 至 86400 秒之间。"
           }
         }
       }
@@ -147240,13 +147297,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Apply unavailable: no uploaded reference"
+            "value" : "Upload the file first"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂不可应用：没有已上传的引用"
+            "value" : "请先上传文件"
           }
         }
       }
@@ -147288,13 +147345,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No local selection yet."
+            "value" : "Nothing chosen yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "尚未选择本地媒体。"
+            "value" : "尚未选择。"
           }
         }
       }
@@ -147304,13 +147361,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cancel local review"
+            "value" : "Cancel"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "取消本地审阅"
+            "value" : "取消"
           }
         }
       }
@@ -147336,13 +147393,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No saved reference."
+            "value" : "None"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "尚无已保存的引用。"
+            "value" : "无"
           }
         }
       }
@@ -147352,13 +147409,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The local selection could not be inspected. Reselect or cancel."
+            "value" : "This file couldn't be read. Choose another."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法检查本地选择，请重新选择或取消。"
+            "value" : "无法读取此文件，请重新选择。"
           }
         }
       }
@@ -147368,13 +147425,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Finish review without changing the reference"
+            "value" : "Done"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "结束审阅并保持引用不变"
+            "value" : "完成"
           }
         }
       }
@@ -147400,13 +147457,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reviewed local image, not uploaded"
+            "value" : "Chosen image (not uploaded yet)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已审阅的本地图片，尚未上传"
+            "value" : "已选图片（尚未上传）"
           }
         }
       }
@@ -147416,13 +147473,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local only · Not uploaded"
+            "value" : "Not uploaded yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅限本地 · 未上传"
+            "value" : "尚未上传"
           }
         }
       }
@@ -147464,13 +147521,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local selection is pending. Nothing has been uploaded."
+            "value" : "Preparing your selection…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地选择处理中，尚未上传任何内容。"
+            "value" : "正在处理所选文件…"
           }
         }
       }
@@ -147480,13 +147537,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ready for local review only. The saved reference is unchanged."
+            "value" : "Ready. Your saved media hasn't changed."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅供本地审阅，已保存的引用保持不变。"
+            "value" : "已就绪，已保存的媒体未改变。"
           }
         }
       }
@@ -147496,13 +147553,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Discard selection and reselect"
+            "value" : "Choose again"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "丢弃本地选择并重新选择"
+            "value" : "重新选择"
           }
         }
       }
@@ -147512,13 +147569,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unchanged saved reference"
+            "value" : "Current"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未更改的已保存引用"
+            "value" : "当前"
           }
         }
       }
@@ -147528,13 +147585,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review a local image or audio inspection for one field. This does not upload or replace its saved reference."
+            "value" : "Check an image or audio before using it."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "按字段审阅本地图片或音频检查结果。此操作不会上传或替换已保存的引用。"
+            "value" : "使用前先查看图片或音频。"
           }
         }
       }
@@ -147544,13 +147601,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Select an image for local review"
+            "value" : "Choose an image"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选择图片供本地审阅"
+            "value" : "选择图片"
           }
         }
       }
@@ -147560,13 +147617,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This local review is no longer current. Return to the editor and open the field again."
+            "value" : "This has changed. Go back and open it again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地审阅已失效，请返回编辑器重新打开该字段。"
+            "value" : "内容已变化，请返回后重新打开。"
           }
         }
       }
@@ -147668,17 +147725,18 @@
       }
     },
     "templateMedia.title" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local media review"
+            "value" : "Media"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地媒体审阅"
+            "value" : "媒体"
           }
         }
       }
@@ -147706,13 +147764,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No choices are available. Your saved value is preserved."
+            "value" : "No choices yet. Your current value is kept."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂无可选项，已保存的值保持不变。"
+            "value" : "暂无可选项，当前值保持不变。"
           }
         }
       }
@@ -147723,13 +147781,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choices could not be loaded. Your saved value is preserved."
+            "value" : "Choices couldn't be loaded. Your current value is kept."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选项加载失败，已保存的值保持不变。"
+            "value" : "选项加载失败，当前值保持不变。"
           }
         }
       }
@@ -147740,13 +147798,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This saved category list cannot be edited safely. Cancel to keep its exact original text, or explicitly replace it."
+            "value" : "These saved categories can't be edited here. Keep them, or replace them with a new choice."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此历史分类列表无法安全编辑。取消可原样保留，也可明确选择替换。"
+            "value" : "这些已保存的类别无法在此编辑，可保留或替换为新的选择。"
           }
         }
       }
@@ -147808,13 +147866,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saved value"
+            "value" : "Current"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已保存的值"
+            "value" : "当前"
           }
         }
       }
@@ -147825,13 +147883,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choices are unavailable for this editor session."
+            "value" : "Choices can't be loaded right now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前编辑会话无法使用这些选项。"
+            "value" : "暂时无法加载选项。"
           }
         }
       }
@@ -147842,13 +147900,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saved category ID"
+            "value" : "Saved category"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已保存的分类编号"
+            "value" : "已保存的类别"
           }
         }
       }
@@ -147876,13 +147934,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This value cannot be selected safely."
+            "value" : "Not available for this template."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此值无法安全选择。"
+            "value" : "此模板不可选。"
           }
         }
       }
@@ -148335,13 +148393,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use 60 or fewer ASCII characters for this step. The previous text was kept."
+            "value" : "Each step can be up to 60 characters. Your previous text was kept."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此步骤的ASCII字符不能超过60个，原有文字已保留。"
+            "value" : "每步最多 60 字，已保留原文字。"
           }
         }
       }
@@ -148369,13 +148427,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "These saved rules are outside this editor’s supported range. The original text is shown and will be kept unchanged."
+            "value" : "These saved rules can't be edited here and are kept as written."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已保存的规则超出此编辑器支持的范围。下方显示原文，保存时将保持不变。"
+            "value" : "这些已保存的规则无法在此编辑，将原样保留。"
           }
         }
       }
@@ -148726,13 +148784,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review summary is derived from timeline text, joined with newlines and limited to 500 UTF-16 units. Full beat text is retained."
+            "value" : "The summary is made from the beats, up to 500 characters."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "预览摘要由时间线文本以换行拼接生成，最多500个UTF-16单位。节点全文仍会保留。"
+            "value" : "摘要由各段剧情拼成，最多 500 字。"
           }
         }
       }
@@ -148743,13 +148801,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This historical list has more than six images. It is preserved; you can keep it or remove references."
+            "value" : "This beat has more than six images. You can keep them or remove some."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此历史列表超过六张图片，已原样保留。你可以保留或移除引用。"
+            "value" : "此段落超过六张图片，可保留或删除部分。"
           }
         }
       }
@@ -148760,13 +148818,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Image references"
+            "value" : "Images"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "图片引用数量"
+            "value" : "图片数量"
           }
         }
       }
@@ -148777,13 +148835,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The image change was not saved. Use at most six references, or only remove references from a historical oversized list."
+            "value" : "Up to six images per beat. The change wasn't saved."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "图片修改未保存。请最多填写六个引用，或仅从超限的历史列表中移除引用。"
+            "value" : "每段最多六张图片，本次修改未保存。"
           }
         }
       }
@@ -148794,13 +148852,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Image references stay local and are not opened or uploaded. New image lists allow up to six references per beat."
+            "value" : "Each beat can have up to six image links."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "图片引用仅保留在本地，不会自动打开或上传。每个节点新编辑的图片列表最多六个引用。"
+            "value" : "每段剧情最多可填六个图片链接。"
           }
         }
       }
@@ -148811,13 +148869,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The summary cutoff splits a Unicode character that Swift cannot preserve exactly. Full text is kept in the draft; adjust text near the 500 UTF-16-unit boundary before preparing a request."
+            "value" : "Adjust the text near the 500-character limit; the summary can't end there."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "摘要截断点拆分了Swift无法完整保留的Unicode字符。全文仍保留在草稿中；请调整500个UTF-16单位附近的文本后再准备请求。"
+            "value" : "请调整 500 字附近的文字，摘要无法在此处截断。"
           }
         }
       }
@@ -156668,13 +156726,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your saved venue is kept as entered. Choosing a preset replaces it."
+            "value" : "Your own wording is kept until you pick one below."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已保留原有场所文字。选择预设后才会替换。"
+            "value" : "选择下方选项前保留你原来的填写。"
           }
         }
       }
@@ -163245,13 +163303,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choose an option with a unique valid code as the answer."
+            "value" : "Choose the answer option."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请选择一个编号有效且不重复的选项作为答案。"
+            "value" : "请选择答案选项。"
           }
         }
       }
@@ -163357,13 +163415,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "D6 local samples"
+            "value" : "D6 examples"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "D6 本地样例"
+            "value" : "D6 示例"
           }
         }
       }
@@ -163485,13 +163543,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Show local sample"
+            "value" : "Show example"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "查看本地样例"
+            "value" : "查看示例"
           }
         }
       }
@@ -163501,13 +163559,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local sample result"
+            "value" : "Example result"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地样例结果"
+            "value" : "示例结果"
           }
         }
       }
@@ -163517,13 +163575,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The current configuration is unavailable or has changed. Reload it to start a new sample."
+            "value" : "The settings changed. Reload to try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前配置不可用或已变更。重新载入后可开始新的样例。"
+            "value" : "设置已变化，请重新载入后再试。"
           }
         }
       }
@@ -163901,13 +163959,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Return to the form and enter a supported HTTPS scene address."
+            "value" : "Go back and add a full https:// scene image link."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请返回表单填写可用的 HTTPS 场景图地址。"
+            "value" : "请返回填写完整的 https:// 场景图链接。"
           }
         }
       }
@@ -164429,13 +164487,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Optional: an HTTPS address or a site path. This editor saves the address without loading the image."
+            "value" : "Optional image link."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选填 HTTPS 地址或站内路径。此处仅保存地址，不加载图片。"
+            "value" : "选填图片链接。"
           }
         }
       }
@@ -168992,13 +169050,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Try this question locally"
+            "value" : "Try this question"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地演练此题"
+            "value" : "试答此题"
           }
         }
       }
@@ -169008,13 +169066,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Try the text or choice question from your current draft. Answers and hints stay in this local rehearsal; no completion record, score or reward is sent. Attachments are not played or fetched here."
+            "value" : "Answer the question as a player would."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用当前草稿中的文字或选择题演练。输入和提示仅留在本地演练，不发送完成记录、分数或奖励；此处不播放或加载附件。"
+            "value" : "像玩家一样试答此题。"
           }
         }
       }
@@ -169104,13 +169162,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local answer matched"
+            "value" : "Correct"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地演练答案匹配"
+            "value" : "回答正确"
           }
         }
       }
@@ -169120,13 +169178,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This is only the author’s local preview. No real completion or reward was granted."
+            "value" : "Practice only. Nothing is recorded."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这只是作者本地预览，未产生真实完成记录或发放奖励。"
+            "value" : "仅供试答，不做记录。"
           }
         }
       }
@@ -169232,13 +169290,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Check local answer"
+            "value" : "Check answer"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "检查本地答案"
+            "value" : "核对答案"
           }
         }
       }
@@ -169264,13 +169322,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Optional modules"
+            "value" : "Interaction tools"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可选模块管理"
+            "value" : "互动工具"
           }
         }
       }
@@ -169392,13 +169450,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Save uses the existing local draft storage. It does not publish or grant rewards."
+            "value" : "Save keeps your draft. It doesn't publish."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保存使用现有本地草稿存储，不发布或发放奖励。"
+            "value" : "保存仅保留草稿，不会发布。"
           }
         }
       }
@@ -169440,13 +169498,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This only clears this draft’s coupon reference, feedback and medal fields; medal style resets to glow. It does not cancel coupons or affect rewards already granted."
+            "value" : "Clears this draft's coupon, feedback and medal. Rewards already given aren't affected."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这里只清空草稿中的优惠券引用、反馈和勋章字段，勋章样式重置为流光；不会注销优惠券或影响已发放的奖励。"
+            "value" : "清空此草稿的优惠券、反馈与勋章，已发放的奖励不受影响。"
           }
         }
       }
@@ -169600,13 +169658,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You can save an HTTPS link or a site path. Previews only load full HTTPS links."
+            "value" : "Paste an image link."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可保存 HTTPS 链接或站内路径。预览仅加载完整的 HTTPS 链接。"
+            "value" : "粘贴图片链接。"
           }
         }
       }
@@ -169680,13 +169738,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a supported HTTPS address to load a preview. Site paths remain saved without loading."
+            "value" : "Use a full https:// link to see a preview."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "填写受支持的 HTTPS 地址后可加载预览。站内路径会保留，但不在此加载。"
+            "value" : "使用完整的 https:// 链接可查看预览。"
           }
         }
       }
@@ -169760,13 +169818,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Edit the current prediction question, choices and relative reveal schedule. Save with the existing local draft action."
+            "value" : "Set the question, choices and when the result is revealed."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "编辑当前竞猜的题目、选项和相对揭晓时间，并沿用现有草稿保存。"
+            "value" : "设置竞猜题目、选项和揭晓时间。"
           }
         }
       }
@@ -169856,13 +169914,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Keys are generated automatically and shown for reference. Removing a choice removes only that row. A valid plan needs 2–4 choices."
+            "value" : "A prediction needs 2–4 choices."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选项标识自动生成，仅供查看。删除只移除对应行；有效配置需要 2–4 个选项。"
+            "value" : "竞猜需要 2–4 个选项。"
           }
         }
       }
@@ -170032,13 +170090,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configure what a scan should return using existing references. Changing modes keeps the other fields. This editor does not scan, play audio, upload files or run AR."
+            "value" : "Choose what players get after they scan."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用已有地址配置扫码后的回复。切换模式会保留其他字段。此编辑页不执行扫码、音频播放、上传或 AR。"
+            "value" : "设置玩家扫码后收到的回复。"
           }
         }
       }
@@ -170160,13 +170218,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "These saved values are not used by the current response mode. They remain editable because the existing validator still checks them. Choose NONE for retained AR when outside OVERLAY; clear a model reference explicitly if it conflicts."
+            "value" : "These saved values belong to another reply type. They are still checked, so clear them if they conflict."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这些已存内容不属于当前回复模式，但现有校验仍会检查，因此保留编辑入口。非显形模式如保留了 AR，请手动选“不开”；模型引用有冲突时可明确清除。"
+            "value" : "这些已保存的内容属于其他回复类型，仍会被检查，冲突时请清除。"
           }
         }
       }
@@ -170256,13 +170314,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use an existing .glb reference. This field does not upload or execute a 3D model."
+            "value" : "Paste a link to an existing .glb model."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "填写已有 .glb 模型地址，此处不上传或运行三维模型。"
+            "value" : "粘贴已有 .glb 模型链接。"
           }
         }
       }
@@ -170272,13 +170330,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Clear model reference"
+            "value" : "Clear model"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "清除模型引用"
+            "value" : "清除模型"
           }
         }
       }
@@ -171229,16 +171287,16 @@
     },
     "templateProfileOverride.saveScope" : {
       "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "本地保存会先应用有效表单，再保存当前账号的整份草稿；保存失败可重试。"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local save applies the valid form, then saves the whole draft for this account. You can retry a failed save."
+            "value" : "Saves the whole draft to this device."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将整份草稿保存到本机。"
           }
         }
       }
@@ -171389,16 +171447,16 @@
     },
     "templateProfileOverride.voiceHint" : {
       "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "最多 120 个 UTF-16 字符单位。可原样使用 {picked} 和 {assigned}。"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Up to 120 UTF-16 code units. You may use literal {picked} and {assigned} placeholders."
+            "value" : "Up to 120 characters. You can use {picked} and {assigned}."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最多 120 字，可使用 {picked} 和 {assigned}。"
           }
         }
       }
@@ -171437,16 +171495,16 @@
     },
     "templateProfileOverride.save" : {
       "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "应用并本地保存"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Apply and save locally"
+            "value" : "Apply and save"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用并保存"
           }
         }
       }
@@ -171501,16 +171559,16 @@
     },
     "templateProfileOverride.applied" : {
       "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已应用到当前草稿，尚未执行本地保存。"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Applied to the current draft. Local save has not been performed."
+            "value" : "Applied to the draft. Not saved yet."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已应用到草稿，尚未保存。"
           }
         }
       }
@@ -171565,16 +171623,16 @@
     },
     "templateProfileOverride.voiceInvalid" : {
       "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "改写文案去掉首尾空白后不能超过 120 个 UTF-16 字符单位。"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The trimmed override line must not exceed 120 UTF-16 code units."
+            "value" : "Keep this line within 120 characters."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此句最多 120 字。"
           }
         }
       }
@@ -185189,13 +185247,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nodes that already reference this play are unaffected and keep their configuration."
+            "value" : "Nodes already using this play keep their settings."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已经引用了这个玩法的节点不受影响,继续按原配置跑"
+            "value" : "已使用此玩法的节点不受影响，继续按原设置运行。"
           }
         }
       }
@@ -202881,6 +202939,703 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "设置活动时间"
+          }
+        }
+      }
+    },
+    "templateBasicClear.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear name"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清空名称"
+          }
+        }
+      }
+    },
+    "templateBasicClear.description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear highlights"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清空玩法看点"
+          }
+        }
+      }
+    },
+    "templateBasicClear.cover" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear cover"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清空封面"
+          }
+        }
+      }
+    },
+    "templateBasicClear.questionImage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear question image"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清空题目图片"
+          }
+        }
+      }
+    },
+    "templateBasicClear.questionAudio" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear question audio"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清空题目音频"
+          }
+        }
+      }
+    },
+    "templateBasicClear.optionMedia %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear option %@ image and audio"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清空选项 %@ 的图片和音频"
+          }
+        }
+      }
+    },
+    "templateCheckPreset.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check modifier presets"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "检定条件修正预设"
+          }
+        }
+      }
+    },
+    "templateCheckPreset.scope" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applies to this draft. Save the draft to keep it."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用到当前草稿，保存草稿后生效。"
+          }
+        }
+      }
+    },
+    "templateCheckPreset.luck" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Luck modifier"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "幸运修正"
+          }
+        }
+      }
+    },
+    "templateCheckPreset.off" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Luck presets off"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭幸运预设"
+          }
+        }
+      }
+    },
+    "templateCheckPreset.high" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Luck ≥ 3 adds 1"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "幸运 ≥ 3 时加1"
+          }
+        }
+      }
+    },
+    "templateCheckPreset.low" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Luck ≤ 0 subtracts 1"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "幸运 ≤ 0 时减1"
+          }
+        }
+      }
+    },
+    "templateCheckPreset.both" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use both luck modifiers"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同时使用两档幸运修正"
+          }
+        }
+      }
+    },
+    "templateCheckPreset.ladder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lower HP makes checks harder"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "生命值越低越困难"
+          }
+        }
+      }
+    },
+    "templateCheckPreset.warning" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HP ≤ 6 subtracts 1; HP ≤ 3 subtracts another 1, up to −2 in total."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HP ≤ 6 减 1，HP ≤ 3 再减 1，最多共减 2。"
+          }
+        }
+      }
+    },
+    "templateCheckPreset.retained" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other modifiers are kept. All matching modifiers add up."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其他修正保持不变，命中的修正会累加。"
+          }
+        }
+      }
+    },
+    "templateCheckPreset.unsupported" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Some modifiers can't be edited here. They are kept as they are."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "部分修正无法在此编辑，将原样保留。"
+          }
+        }
+      }
+    },
+    "templateCheckPreset.preview" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifier total (example values)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "修正合计（示例值）"
+          }
+        }
+      }
+    },
+    "templateCheckPreset.apply" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply to draft"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用到草稿"
+          }
+        }
+      }
+    },
+    "templateCheckPreset.applied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applied to the draft. Not saved yet."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已应用到草稿，尚未保存。"
+          }
+        }
+      }
+    },
+    "templateCheckPreset.cancel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消"
+          }
+        }
+      }
+    },
+    "templateCheckPreset.reload" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reload"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新载入"
+          }
+        }
+      }
+    },
+    "templateTimerOutcome.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time limit"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "限时挑战"
+          }
+        }
+      }
+    },
+    "templateTimerOutcome.scope" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applies to this draft. Save the draft to keep it."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用到当前草稿，保存草稿后生效。"
+          }
+        }
+      }
+    },
+    "templateTimerOutcome.enabled" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable time limit"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用限时挑战"
+          }
+        }
+      }
+    },
+    "templateTimerOutcome.seconds" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duration in seconds"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时长（秒）"
+          }
+        }
+      }
+    },
+    "templateTimerOutcome.outcome" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timeout outcome"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "超时结果"
+          }
+        }
+      }
+    },
+    "templateTimerOutcome.failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "失败"
+          }
+        }
+      }
+    },
+    "templateTimerOutcome.expired" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expired"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已超时"
+          }
+        }
+      }
+    },
+    "templateTimerOutcome.unknown" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose what happens when time runs out"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请选择超时后的结果"
+          }
+        }
+      }
+    },
+    "templateTimerOutcome.validation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter a whole number from 10 to 86400 seconds and choose a timeout outcome."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请输入10至86400的整数秒，并明确选择超时结果。"
+          }
+        }
+      }
+    },
+    "templateTimerOutcome.preview" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Summary"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设置摘要"
+          }
+        }
+      }
+    },
+    "templateTimerOutcome.disabled" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time limit is off. Your settings are kept."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "限时挑战已关闭，设置保留。"
+          }
+        }
+      }
+    },
+    "templateTimerOutcome.save" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save to draft"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存到草稿"
+          }
+        }
+      }
+    },
+    "templateTimerOutcome.cancel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消"
+          }
+        }
+      }
+    },
+    "templateTimerOutcome.unavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The draft changed. Reload to edit again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "草稿已变化，请重新载入后编辑。"
+          }
+        }
+      }
+    },
+    "templateTimerOutcome.reload" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reload"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新载入"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.card.useCount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Used"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用次数"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.card.durationLabel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duration"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时长"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.card.minutes %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld min"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 分钟"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.card.createdLabel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Created"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "创建时间"
           }
         }
       }

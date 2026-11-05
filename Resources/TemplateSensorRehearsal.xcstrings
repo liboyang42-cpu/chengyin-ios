@@ -6,13 +6,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sensor configuration rehearsal"
+            "value": "Try sensor challenge"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "传感器配置预演"
+            "value": "试玩传感器挑战"
           }
         }
       }
@@ -86,13 +86,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Draft or account changed. Reload the current valid configuration."
+            "value": "The draft changed. Reload to try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "草稿或账号已变化，请重新载入当前有效配置。"
+            "value": "草稿已变化，请重新载入后再试。"
           }
         }
       }
