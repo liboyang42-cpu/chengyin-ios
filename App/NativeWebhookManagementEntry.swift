@@ -7,16 +7,76 @@ func nativeWebhookLocalized(_ key: String) -> String {
 }
 
 func nativeWebhookLocalizedError(_ error: NativeWebhookClientError) -> String {
-    let key: String, code: String
+    let key: String
     switch error {
-    case .sourceUnavailable(let value): key = "当前来源尚不可用（%@）"; code = value
-    case .invalidInput(let value): key = "请检查输入（%@）"; code = value
-    case .denied(let value, _): key = "当前没有管理权限（%@）"; code = value
-    case .conflict(let value, _): key = "原请求或版本冲突（%@），请回读核对，不会覆盖。"; code = value
-    case .rejected(_, let value, _): key = "请求被拒绝（%@）"; code = value
-    default: return nativeWebhookLocalized(NativeWebhookPresentation.error(error))
+    case .sourceUnavailable: key = "d7.webhook.error.unavailable"
+    case .scopeChanged: key = "d7.webhook.error.changed"
+    case .invalidWire: key = "d7.webhook.error.response"
+    case .invalidInput: key = "d7.webhook.error.input"
+    case .originalInputRequired: key = "d7.webhook.error.reenterURL"
+    case .denied: key = "d7.webhook.error.denied"
+    case .conflict: key = "d7.webhook.error.conflict"
+    case .rejected: key = "d7.webhook.error.rejected"
+    case .resultUnknown: key = "d7.webhook.error.unknown"
+    case .cancelled: key = "d7.webhook.error.cancelled"
     }
-    return String(format: nativeWebhookLocalized(key), code)
+    return nativeWebhookLocalized(key)
+}
+
+func nativeWebhookDeliveryText(_ state: NativeWebhookDeliveryState) -> String {
+    switch state {
+    case .pending: return nativeWebhookLocalized("d7.webhook.delivery.pending")
+    case .inflight: return nativeWebhookLocalized("d7.webhook.delivery.sending")
+    case .sent: return nativeWebhookLocalized("d7.webhook.delivery.sent")
+    case .failed: return nativeWebhookLocalized("d7.webhook.delivery.failed")
+    case .dead: return nativeWebhookLocalized("d7.webhook.delivery.stopped")
+    case .unknown: return nativeWebhookLocalized("d7.webhook.status.unconfirmed")
+    case .cancelled: return nativeWebhookLocalized("d7.webhook.delivery.cancelled")
+    }
+}
+
+func nativeWebhookInboundText(_ state: NativeWebhookInboundState) -> String {
+    switch state {
+    case .received: return nativeWebhookLocalized("d7.webhook.inbound.received")
+    case .pendingReview: return nativeWebhookLocalized("d7.webhook.inbound.inReview")
+    case .accepted: return nativeWebhookLocalized("d7.webhook.inbound.posted")
+    case .rejected: return nativeWebhookLocalized("d7.webhook.inbound.rejected")
+    case .blocked: return nativeWebhookLocalized("d7.webhook.inbound.blocked")
+    case .rateLimited: return nativeWebhookLocalized("d7.webhook.inbound.rateLimited")
+    case .unknown: return nativeWebhookLocalized("d7.webhook.status.unconfirmed")
+    }
+}
+
+/// Server times shown as local dates; the raw value is never displayed.
+struct NativeWebhookTimeRow: View {
+    let label: String
+    let time: NativeWebhookServerTime
+    var body: some View {
+        LabeledContent(label) { Text(time.date, format: .dateTime.year().month().day().hour().minute()) }
+    }
+}
+
+/// Maps the coordinator's fixed confirmation wording to plain copy. Unknown wording falls back to the table.
+private func nativeWebhookConfirmationCopy(_ confirmation: NativeWebhookConfirmation) -> (title: String, message: String?) {
+    switch confirmation.title {
+    case "确认新建": return (nativeWebhookLocalized("d7.webhook.confirm.create"), nil)
+    case "确认保存修改": return (nativeWebhookLocalized("d7.webhook.confirm.save"), nil)
+    case "确认删除": return (nativeWebhookLocalized("d7.webhook.confirm.delete"), nativeWebhookLocalized("d7.webhook.confirm.delete.message"))
+    case "确认轮换密钥": return (nativeWebhookLocalized("d7.webhook.confirm.reset"), nativeWebhookLocalized("d7.webhook.confirm.reset.message"))
+    case "确认测试事件入队": return (nativeWebhookLocalized("d7.webhook.confirm.test"), nil)
+    case "确认重试原投递": return (nativeWebhookLocalized("d7.webhook.confirm.retry"), nil)
+    case "恢复原请求": return (nativeWebhookLocalized("d7.webhook.confirm.resume"), nativeWebhookLocalized("d7.webhook.confirm.resume.message"))
+    default: return (nativeWebhookLocalized(confirmation.title), nativeWebhookLocalized(confirmation.message))
+    }
+}
+
+/// Maps the coordinator's fixed result notices to plain copy.
+private func nativeWebhookNoticeText(_ notice: String) -> String {
+    switch notice {
+    case "操作结果已确认。": return nativeWebhookLocalized("d7.webhook.notice.saved")
+    case "结果已确认，密钥首次返回未取得。若需要新凭据，请另外确认轮换。": return nativeWebhookLocalized("d7.webhook.notice.savedNoSecret")
+    default: return nativeWebhookLocalized(notice)
+    }
 }
 
 enum NativeWebhookDestination: Hashable {
@@ -184,7 +244,7 @@ enum NativeWebhookSheet: String, Identifiable {
             NativeWebhookManagementView(model: model)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button(nativeWebhookLocalized("返回频道")) { model.leave(); dismiss() }
+                        Button(nativeWebhookLocalized("d7.webhook.done")) { model.leave(); dismiss() }
                             .accessibilityIdentifier("webhook.channel.return")
                     }
                 }
@@ -207,6 +267,8 @@ enum NativeWebhookSheet: String, Identifiable {
                 case .credential: NativeWebhookOneTimeCredentialView(model: model)
                 }
             }
+            .presentationDetents(sheet == .confirmation ? [.medium, .large] : [.large])
+            .presentationDragIndicator(.visible)
         }
         .onChange(of: scenePhase) { phase in
             if phase == .active { Task { await model.foreground() } }
@@ -222,18 +284,18 @@ enum NativeWebhookSheet: String, Identifiable {
     @ObservedObject var model: NativeWebhookViewModel
     var body: some View {
         if let text = model.issueText {
-            Section { NativeChannelFlowNotice(title:Text(verbatim:nativeWebhookLocalized(text)),symbol:"exclamationmark.circle").accessibilityIdentifier("webhook.issue") }
+            Section { NativeChannelFlowNotice(title:Text(verbatim:text),symbol:"exclamationmark.circle").accessibilityIdentifier("webhook.issue") }
         }
         if let notice = model.coordinator?.notice {
             Section {
                 if let state = model.coordinator?.lastDeliveryReceiptState {
-                    Text(String(format: nativeWebhookLocalized("投递请求回执：%@。请回读原日志核对最终状态。"), nativeWebhookLocalized(NativeWebhookPresentation.delivery(state))))
+                    Text(String(format: nativeWebhookLocalized("d7.webhook.notice.delivery %@"), nativeWebhookDeliveryText(state)))
                         .accessibilityIdentifier("webhook.notice")
-                } else { Text(nativeWebhookLocalized(notice)).accessibilityIdentifier("webhook.notice") }
+                } else { Text(nativeWebhookNoticeText(notice)).accessibilityIdentifier("webhook.notice") }
             }
         }
         if model.coordinator?.busy == true {
-            Section { ProgressView(nativeWebhookLocalized("正在核对当前频道…")).accessibilityIdentifier("webhook.loading") }
+            Section { ProgressView(nativeWebhookLocalized("d7.webhook.loading")).accessibilityIdentifier("webhook.loading") }
         }
     }
 }
@@ -243,22 +305,23 @@ enum NativeWebhookSheet: String, Identifiable {
     var body: some View {
         Form {
             if let confirmation = model.coordinator?.confirmation {
-                Section {
-                    NativeChannelFlowNotice(title:Text(verbatim:nativeWebhookLocalized(confirmation.title)),message:Text(verbatim:nativeWebhookLocalized(confirmation.message)),symbol:"doc.text.magnifyingglass")
-                    NativeChannelFlowReference(label:Text(verbatim:nativeWebhookLocalized("原请求编号")),value:confirmation.requestID.rawValue)
+                if let message = nativeWebhookConfirmationCopy(confirmation).message {
+                    Section { Text(message).fixedSize(horizontal: false, vertical: true) }
                 }
                 Section {
-                    Button(nativeWebhookLocalized("确认提交")) { Task { await model.confirm(confirmation.id) } }.nativeChannelFlowAction()
+                    Button(nativeWebhookLocalized("d7.webhook.confirm.submit")) { Task { await model.confirm(confirmation.id) } }.nativeChannelFlowAction()
                         .disabled(!model.available || model.coordinator?.busy == true)
                         .accessibilityIdentifier("webhook.confirm.submit")
-                    Button(nativeWebhookLocalized("取消"), role: .cancel) { model.dismissSheet() }
+                    Button(nativeWebhookLocalized("d7.webhook.cancel"), role: .cancel) { model.dismissSheet() }
                         .accessibilityIdentifier("webhook.confirm.cancel")
                 }
                 NativeWebhookStatusSection(model: model)
-            } else { Text(nativeWebhookLocalized("确认已失效，请返回当前频道核对。")) }
+            } else {
+                ContentUnavailableView(nativeWebhookLocalized("d7.webhook.confirm.expired"), systemImage: "clock.arrow.circlepath")
+            }
         }
         .nativeChannelFlowPage()
-        .navigationTitle(nativeWebhookLocalized(model.coordinator?.confirmation?.title ?? "确认操作"))
+        .navigationTitle((model.coordinator?.confirmation).map { nativeWebhookConfirmationCopy($0).title } ?? nativeWebhookLocalized("d7.webhook.confirm.title"))
         .interactiveDismissDisabled(model.coordinator?.busy == true)
         .accessibilityIdentifier("webhook.confirmation")
     }
@@ -271,41 +334,40 @@ enum NativeWebhookSheet: String, Identifiable {
     var body: some View {
         Form {
             if let pending = model.coordinator?.pending {
-                Section(nativeWebhookLocalized("待核对原请求")) {
-                    NativeChannelFlowReference(label:Text(verbatim:nativeWebhookLocalized("原请求编号")),value:pending.requestID.rawValue)
-                    Text(nativeWebhookLocalized("恢复会沿用原请求，不会取回已脱敏的首次密钥。"))
-                }
                 if pending.redactedFields.contains("url") {
-                    Section(nativeWebhookLocalized("重新输入原 URL")) {
-                        SecureField(nativeWebhookLocalized("原操作的完整 URL"), text: $originalURL)
+                    Section(nativeWebhookLocalized("d7.webhook.field.url")) {
+                        SecureField(nativeWebhookLocalized("d7.webhook.field.url.prompt"), text: $originalURL)
                             .textInputAutocapitalization(.never).autocorrectionDisabled()
                             .accessibilityIdentifier("webhook.recovery.url")
                     }
                 }
                 if pending.redactedFields.contains("avatar_url") {
-                    Section(nativeWebhookLocalized("重新输入原头像 URL")) {
-                        SecureField(nativeWebhookLocalized("原操作的完整头像 URL"), text: $originalAvatarURL)
+                    Section(nativeWebhookLocalized("d7.webhook.field.avatar")) {
+                        SecureField(nativeWebhookLocalized("d7.webhook.field.avatar.prompt"), text: $originalAvatarURL)
                             .textInputAutocapitalization(.never).autocorrectionDisabled()
                             .accessibilityIdentifier("webhook.recovery.avatarURL")
                     }
                 }
                 if pending.binding != model.coordinator?.context?.binding {
-                    Section { Text(nativeWebhookLocalized("当前授权上下文与原请求不同，暂不能恢复。原记录继续保留。")) }
+                    Section { NativeChannelFlowNotice(title: Text(verbatim: nativeWebhookLocalized("d7.webhook.resume.accessChanged")), symbol: "lock") }
                 }
                 NativeWebhookStatusSection(model: model)
-                Button(nativeWebhookLocalized("核对并恢复原请求")) {
-                    model.coordinator?.prepareRecovery(url: pending.redactedFields.contains("url") ? originalURL : nil,
-                        avatarURL: pending.redactedFields.contains("avatar_url") ? originalAvatarURL : nil)
+                Section {
+                    Button(nativeWebhookLocalized("d7.webhook.resume.continue")) {
+                        model.coordinator?.prepareRecovery(url: pending.redactedFields.contains("url") ? originalURL : nil,
+                            avatarURL: pending.redactedFields.contains("avatar_url") ? originalAvatarURL : nil)
+                    }
+                    .nativeChannelFlowAction()
+                    .disabled(!model.available || model.coordinator?.busy == true || pending.binding != model.coordinator?.context?.binding
+                        || (pending.redactedFields.contains("url") && originalURL.isEmpty)
+                        || (pending.redactedFields.contains("avatar_url") && originalAvatarURL.isEmpty))
+                    .accessibilityIdentifier("webhook.recovery.prepare")
                 }
-                .disabled(!model.available || model.coordinator?.busy == true || pending.binding != model.coordinator?.context?.binding
-                    || (pending.redactedFields.contains("url") && originalURL.isEmpty)
-                    || (pending.redactedFields.contains("avatar_url") && originalAvatarURL.isEmpty))
-                .accessibilityIdentifier("webhook.recovery.prepare")
-            } else { NativeChannelFlowNotice(title:Text(verbatim:nativeWebhookLocalized("当前没有待恢复的原请求。")),symbol:"tray") }
+            } else { ContentUnavailableView(nativeWebhookLocalized("d7.webhook.resume.none"), systemImage: "tray") }
         }
         .nativeChannelFlowPage()
-        .navigationTitle(nativeWebhookLocalized("恢复原请求"))
-        .toolbar { ToolbarItem(placement: .cancellationAction) { Button(nativeWebhookLocalized("取消")) { model.dismissSheet() } } }
+        .navigationTitle(nativeWebhookLocalized("d7.webhook.resume.title"))
+        .toolbar { ToolbarItem(placement: .cancellationAction) { Button(nativeWebhookLocalized("d7.webhook.cancel")) { model.dismissSheet() } } }
         .onDisappear { originalURL = ""; originalAvatarURL = "" }
         .accessibilityIdentifier("webhook.recovery")
     }
