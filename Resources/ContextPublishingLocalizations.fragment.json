@@ -500,13 +500,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "One-time payment in CNY for this route, paid with WeChat Pay. Please read the notice before confirming."
+            "value": "One-time payment in CNY with WeChat Pay."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本路线为人民币一次性付款，使用微信支付。确认前请阅读购买须知。"
+            "value": "人民币一次性付款，使用微信支付。"
           }
         }
       }
@@ -653,13 +653,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review pass order"
+            "value": "Pass order"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核对通行证订单"
+            "value": "通行证订单"
           }
         }
       }
@@ -976,13 +976,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review existing-order payment"
+            "value": "Continue to payment"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核对原订单付款"
+            "value": "继续付款"
           }
         }
       }
