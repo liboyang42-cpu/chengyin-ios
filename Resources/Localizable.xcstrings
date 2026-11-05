@@ -67878,13 +67878,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "City locations"
+            "value" : "City nodes"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "城市据点"
+            "value" : "城市节点"
           }
         }
       }
@@ -68438,13 +68438,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Store gallery"
+            "value" : "Store gallery (up to 9)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "门店相册"
+            "value" : "门店相册（最多 9 张）"
           }
         }
       }
@@ -68742,13 +68742,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Live saving is unavailable. These forms only prepare local drafts."
+            "value" : "Can't save right now"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "真实保存尚未开放，这些表单仅用于准备本地草稿。"
+            "value" : "暂时无法保存"
           }
         }
       }
@@ -69366,13 +69366,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Provider unavailable"
+            "value" : "Not available"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "供应商尚不可用"
+            "value" : "暂不可用"
           }
         }
       }
@@ -69574,13 +69574,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review local draft"
+            "value" : "Review and save"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "检查本地草稿"
+            "value" : "检查并保存"
           }
         }
       }
@@ -69910,13 +69910,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Template answers are visible to the owner only."
+            "value" : "Only you can see the answers."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "模板答案仅所有者可见。"
+            "value" : "答案仅你自己可见。"
           }
         }
       }
@@ -70006,13 +70006,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The example outcome is unknown. Saving is locked; reading again does not prove that the earlier operation failed."
+            "value" : "We couldn't confirm the last save. Saving is paused until you reload."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "示例结果未确认，保存已锁定；再次读取不能证明之前的操作失败。"
+            "value" : "上一次保存的结果暂未确认，重新读取前暂停保存。"
           }
         }
       }
@@ -78460,13 +78460,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saving an empty personality explicitly clears it. Player chat may be unavailable without a personality."
+            "value" : "Without a personality, players may not be able to chat with your character."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保存空白性格设定会明确清空人设，玩家对话可能因此不可用。"
+            "value" : "没有性格设定时，玩家可能无法与店铺角色对话。"
           }
         }
       }
@@ -203111,6 +203111,91 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "回复结果"
+          }
+        }
+      }
+    },
+    "merchant.decor.section.store" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Store info"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "门店信息"
+          }
+        }
+      }
+    },
+    "merchant.decor.section.brand" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brand"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "品牌介绍"
+          }
+        }
+      }
+    },
+    "merchant.decor.section.gallery" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gallery"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "门店相册"
+          }
+        }
+      }
+    },
+    "merchant.decor.section.character" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI store character"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 店铺角色"
+          }
+        }
+      }
+    },
+    "merchant.decor.section.coop" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cooperation"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "合作经营"
           }
         }
       }
