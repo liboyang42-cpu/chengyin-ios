@@ -869,17 +869,18 @@
       }
     },
     "roam.liveRead.failed" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Some nearby places could not be read. Previously loaded results are retained."
+            "value" : "Places already shown are kept."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "部分附近地点未能读取，已加载的结果仍保留。"
+            "value" : "已显示的地点会保留。"
           }
         }
       }
@@ -901,33 +902,35 @@
       }
     },
     "roam.liveRead.placesFailed" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Place read failed"
+            "value" : "Couldn't load nearby places"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "据点读取失败"
+            "value" : "附近地点加载失败"
           }
         }
       }
     },
     "roam.liveRead.shopsFailed" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Merchant read failed"
+            "value" : "Couldn't load nearby shops"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "商家读取失败"
+            "value" : "附近商家加载失败"
           }
         }
       }
@@ -128745,17 +128748,18 @@
       }
     },
     "roam.live.acquiring" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Waiting for a fresh location"
+            "value" : "Finding your location…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在获取新定位"
+            "value" : "正在定位…"
           }
         }
       }
@@ -128777,17 +128781,18 @@
       }
     },
     "roam.live.archivePending" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The server has settled this walk. Saving the local history still needs to be retried."
+            "value" : "Your results are in. Saving this walk on your phone hasn't finished."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器已确认结算，本机历史记录仍待重新保存。"
+            "value" : "结果已确认，本机记录还没保存完。"
           }
         }
       }
@@ -128809,81 +128814,86 @@
       }
     },
     "roam.live.confirmedShops" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Server-confirmed shops"
+            "value" : "Shops visited"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器确认的探店数"
+            "value" : "探店数"
           }
         }
       }
     },
     "roam.live.confirmedXP" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Server-confirmed exploration XP"
+            "value" : "Exploration XP"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器确认的探索值"
+            "value" : "探索值"
           }
         }
       }
     },
     "roam.live.consent" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use foreground location for this walk"
+            "value" : "Use my location while I roam"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "同意为本次漫游使用前台定位"
+            "value" : "漫游时使用我的位置"
           }
         }
       }
     },
     "roam.live.discover" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm arrival"
+            "value" : "I'm here"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认到达"
+            "value" : "我到了"
           }
         }
       }
     },
     "roam.live.finish" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Finish and check results"
+            "value" : "End roam"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "结束并核对结果"
+            "value" : "结束漫游"
           }
         }
       }
@@ -128905,81 +128915,86 @@
       }
     },
     "roam.live.finishHint" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pending exploration tiles will be confirmed first. Results are shown only after a matching server settlement is read back."
+            "value" : "We'll confirm the areas you lit up, then show your results."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "将先核对待确认的探索格子；只有读取到相匹配的服务器结算结果后，才会展示奖励。"
+            "value" : "会先确认你点亮的区域，再显示本次结果。"
           }
         }
       }
     },
     "roam.live.finished" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Settled and saved"
+            "value" : "Roam complete"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已确认结算并保存"
+            "value" : "漫游完成"
           }
         }
       }
     },
     "roam.live.finishing" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirming this walk"
+            "value" : "Wrapping up…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在核对本次漫游"
+            "value" : "正在结算…"
           }
         }
       }
     },
     "roam.live.incomplete" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The settlement is incomplete or exploration tiles still need checking. Keep the recovery record."
+            "value" : "Some results are still being confirmed. Check this walk again shortly."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "结算信息不完整，或仍有探索格子待核对，请保留恢复记录。"
+            "value" : "部分结果还在确认，请稍后再核对。"
           }
         }
       }
     },
     "roam.live.leaveHint" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Leaving this screen, locking your phone or switching apps pauses your walk and hides you from nearby players. Come back and tap Resume to continue."
+            "value" : "Leaving this screen, locking your phone or switching apps pauses your roam. Come back and tap Continue."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "离开此页、锁屏或切到后台会暂停漫游，附近玩家也看不到你。回来后点「继续本次漫游」即可。"
+            "value" : "离开此页、锁屏或切到后台会暂停漫游，回来后点「继续」即可。"
           }
         }
       }
@@ -129001,17 +129016,18 @@
       }
     },
     "roam.live.locationQuality" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A fresh location accurate to 80 metres or better is needed. Approximate or old locations cannot verify this walk."
+            "value" : "Your location isn't precise enough. Move to open sky and try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "需要精度在 80 米以内的新定位。模糊或过期的定位无法核验本次漫游。"
+            "value" : "定位不够精确，请到开阔处再试。"
           }
         }
       }
@@ -129033,49 +129049,52 @@
       }
     },
     "roam.live.nearby" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Places to discover"
+            "value" : "Nearby"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "附近可发现地点"
+            "value" : "附近"
           }
         }
       }
     },
     "roam.live.needsRecovery" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Status needs checking"
+            "value" : "Needs a quick check"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "状态待核对"
+            "value" : "需要核对"
           }
         }
       }
     },
     "roam.live.noPlaces" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No verified nearby places are available yet."
+            "value" : "Nothing to discover right here yet. Keep walking."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂未读取到可核验的附近地点。"
+            "value" : "这里暂时没有可发现的地点，继续走走看。"
           }
         }
       }
@@ -129113,17 +129132,18 @@
       }
     },
     "roam.live.operationError" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The operation was not confirmed. Check your connection and use status recovery before repeating a pending write."
+            "value" : "That didn't go through. Check your connection and try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "操作尚未确认，请检查网络；重复提交待确认操作前，应先核对状态。"
+            "value" : "操作没有成功，请检查网络后重试。"
           }
         }
       }
@@ -129161,33 +129181,35 @@
       }
     },
     "roam.live.paused" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Paused; no location collection"
+            "value" : "Paused"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已暂停，未采集定位"
+            "value" : "已暂停"
           }
         }
       }
     },
     "roam.live.pendingTiles" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tiles awaiting confirmation"
+            "value" : "Areas still syncing"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "待确认格子"
+            "value" : "同步中的格子"
           }
         }
       }
@@ -129209,65 +129231,69 @@
       }
     },
     "roam.live.presenceFailed" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The latest visibility report was not confirmed. Earlier presence may remain until it expires."
+            "value" : "Couldn't update what nearby players see."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "最近一次状态上报未获确认，先前的状态可能仍显示至过期。"
+            "value" : "附近可见状态更新失败。"
           }
         }
       }
     },
     "roam.live.presenceOff" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nearby visibility is off"
+            "value" : "Hidden from nearby players"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未向附近玩家上报状态"
+            "value" : "附近玩家看不到你"
           }
         }
       }
     },
     "roam.live.presenceOn" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nearby visibility is on"
+            "value" : "Nearby players can see you"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在向附近玩家展示状态"
+            "value" : "附近玩家可以看到你"
           }
         }
       }
     },
     "roam.live.presencePrivacy" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "If enabled, the server receives your fix and shows nearby players your approximate location (rounded to three decimals), nickname, avatar, exploration percent, shop count and walk duration. Pausing or leaving stops reports. Existing presence can remain visible for up to five minutes."
+            "value" : "Nearby players see your rough location, nickname, avatar and progress while you roam. Pausing or leaving stops sharing; it can take up to five minutes to disappear."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "开启后，服务器接收定位，向附近玩家展示约三位小数精度的位置、昵称、头像、探索比例、探店数和在走时长。暂停或离开会停止上报；已上报的状态最多仍可能显示五分钟。"
+            "value" : "漫游时，附近玩家会看到你的大致位置、昵称、头像和漫游进度。暂停或离开即停止分享，最多五分钟后消失。"
           }
         }
       }
@@ -129337,49 +129363,52 @@
       }
     },
     "roam.live.recoveryHint" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This walk needs a quick check before you continue. Checking won't repeat discoveries or rewards."
+            "value" : "Check this walk before you continue. Nothing will be counted twice."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "继续前需要核对本次漫游。核对不会重复提交发现，也不会重复发放奖励。"
+            "value" : "继续前先核对本次漫游，不会重复计算。"
           }
         }
       }
     },
     "roam.live.resume" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Resume this walk"
+            "value" : "Continue"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "继续本次漫游"
+            "value" : "继续"
           }
         }
       }
     },
     "roam.live.ruleArrival" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choose a nearby verified place to confirm arrival, or record a merchant visit. The server checks the place, session and distance. Browse-only examples cannot be checked in."
+            "value" : "When you reach a nearby place, tap I'm here, or check in at a shop."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选择附近的真实地点确认到达，或记录探店。服务器会核验地点、会话与距离。仅供浏览的演示点不能打卡。"
+            "value" : "到达附近地点后点「我到了」，或在商家处探店打卡。"
           }
         }
       }
@@ -129401,17 +129430,18 @@
       }
     },
     "roam.live.ruleExplore" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "There is no fixed route. Start explicitly, then walk to reveal visited blocks. Distance excludes paused gaps, poor fixes and large GPS jumps."
+            "value" : "There's no fixed route. Start, then walk to light up the blocks you pass. Paused time and jumpy GPS don't count."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "不绑定固定路线。主动开始后，步行点亮经过的街区。暂停期间、低精度定位和明显跳点不会计入距离。"
+            "value" : "没有固定路线。开始后边走边点亮经过的街区，暂停和定位跳动不计入。"
           }
         }
       }
@@ -129433,17 +129463,18 @@
       }
     },
     "roam.live.ruleFinish" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Finish to check server-confirmed exploration XP and shop totals. Displayed rule values are not an award. Saved history contains measured totals; live exact route samples are not archived."
+            "value" : "End your roam to see your exploration XP and shops visited. Your walk is saved to your history."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "结束后核对服务器确认的探索值与探店总数。规则中的数值不等于已获奖励。本机历史保存实测汇总，不存档实时精确轨迹。"
+            "value" : "结束漫游后查看探索值和探店数，本次漫游会存入漫游记录。"
           }
         }
       }
@@ -129513,49 +129544,52 @@
       }
     },
     "roam.live.start" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Start this walk"
+            "value" : "Start roaming"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "开始本次漫游"
+            "value" : "开始漫游"
           }
         }
       }
     },
     "roam.live.storageError" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The protected recovery record could not be saved or read. No new operation will be sent until it is available."
+            "value" : "This walk couldn't be saved on your phone. Free up some space and try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "受保护的恢复记录暂时无法读写。在恢复可用前，不会提交新的操作。"
+            "value" : "本次漫游无法保存在手机上，请清理空间后重试。"
           }
         }
       }
     },
     "roam.live.tiles" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirmed tiles"
+            "value" : "Areas lit"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已确认格子"
+            "value" : "点亮格子"
           }
         }
       }
@@ -129577,33 +129611,35 @@
       }
     },
     "roam.live.unknownVisit" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This arrival is unconfirmed. Do not submit it again; final results use the server’s records."
+            "value" : "This check-in is still being confirmed. No need to try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本次到点结果尚未确认，请勿重复提交；最终结算以服务器记录为准。"
+            "value" : "这次打卡还在确认中，无需重复操作。"
           }
         }
       }
     },
     "roam.live.visitShop" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Record this shop visit"
+            "value" : "Check in at this shop"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "记录这次探店"
+            "value" : "探店打卡"
           }
         }
       }
@@ -130269,13 +130305,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unnamed item"
+            "value" : "Unnamed place"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未命名内容"
+            "value" : "未命名地点"
           }
         }
       }
@@ -202584,6 +202620,346 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "附近"
+          }
+        }
+      }
+    },
+    "roam.live.goal" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep walking to light up this block"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续行走，点亮这片街区"
+          }
+        }
+      }
+    },
+    "roam.live.stat.time" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用时"
+          }
+        }
+      }
+    },
+    "roam.live.stat.turf" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turf"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "地盘"
+          }
+        }
+      }
+    },
+    "roam.live.stat.distance" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Distance (km)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "距离 (公里)"
+          }
+        }
+      }
+    },
+    "roam.live.more" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更多"
+          }
+        }
+      }
+    },
+    "roam.live.more.history" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Roam history"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "漫游记录"
+          }
+        }
+      }
+    },
+    "roam.live.more.settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Location settings"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "定位设置"
+          }
+        }
+      }
+    },
+    "roam.live.more.album" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stamp album"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "集邮册"
+          }
+        }
+      }
+    },
+    "roam.live.medal.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medals"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本次勋章"
+          }
+        }
+      }
+    },
+    "roam.live.medal.journey" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Roam medal"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "漫游勋章"
+          }
+        }
+      }
+    },
+    "roam.live.medal.shop" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shop medal"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "探店勋章"
+          }
+        }
+      }
+    },
+    "roam.live.story.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This walk"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这段足迹"
+          }
+        }
+      }
+    },
+    "roam.live.placeMemory.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Place memory"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "地点记忆"
+          }
+        }
+      }
+    },
+    "roam.live.placeMemory.close" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭"
+          }
+        }
+      }
+    },
+    "roam.live.merchant.about" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About this shop"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "商家介绍"
+          }
+        }
+      }
+    },
+    "roam.live.nearby.hide" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hide nearby"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收起附近"
+          }
+        }
+      }
+    },
+    "roam.live.nearby.show" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show nearby"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "展开附近"
+          }
+        }
+      }
+    },
+    "roam.live.route.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your route"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本次路线"
+          }
+        }
+      }
+    },
+    "roam.live.route.empty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No route yet"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "还没有路线"
+          }
+        }
+      }
+    },
+    "roam.live.walkCloser %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Walk %lld m closer"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再走近 %lld 米"
           }
         }
       }

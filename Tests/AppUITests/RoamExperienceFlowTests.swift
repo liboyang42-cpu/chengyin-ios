@@ -125,7 +125,7 @@ final class RoamExperienceFlowTests: XCTestCase {
         let confirmation = app.sheets["Finish this walk?"]
         XCTAssertTrue(confirmation.waitForExistence(timeout: 5), app.debugDescription)
         attachFixtureScreenshot(self, app: app, name: "Roam explicit finish native confirmation")
-        tapFixtureSheetAction("Finish and check results", in: confirmation, app: app)
+        tapFixtureSheetAction("End roam", in: confirmation, app: app)
         XCTAssertTrue(app.staticTexts["Settled and saved"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.alerts.count, 0)
     }
