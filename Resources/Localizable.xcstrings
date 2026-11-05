@@ -8453,13 +8453,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The required club is not available from this activity response."
+            "value" : "This club can't be opened right now"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本次活动回复中的俱乐部入口暂不可用。"
+            "value" : "暂时无法打开对应俱乐部"
           }
         }
       }
@@ -8476,7 +8476,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "玩家"
+            "value" : "城瘾玩家"
           }
         }
       }
@@ -8504,13 +8504,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Count unavailable"
+            "value" : "—"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "评价数量暂不可用"
+            "value" : "—"
           }
         }
       }
@@ -8527,7 +8527,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂无评价"
+            "value" : "还没有评价"
           }
         }
       }
@@ -8555,13 +8555,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review preview unavailable"
+            "value" : "No reviews yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "评价预览暂不可用"
+            "value" : "还没有评价"
           }
         }
       }
@@ -8589,13 +8589,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rating unavailable"
+            "value" : "—"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "评分暂不可用"
+            "value" : "—"
           }
         }
       }
@@ -8775,13 +8775,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "View theme route"
+            "value" : "Theme route"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "查看主题路线"
+            "value" : "主题路线"
           }
         }
       }
@@ -8809,13 +8809,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Duration unavailable"
+            "value" : "—"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "时长待确认"
+            "value" : "—"
           }
         }
       }
@@ -8843,13 +8843,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Player count unavailable"
+            "value" : "—"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "人数待确认"
+            "value" : "—"
           }
         }
       }
@@ -183884,13 +183884,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No ticket types available"
+            "value" : "No tickets yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂无可选票种"
+            "value" : "暂无票种"
           }
         }
       }
@@ -202737,6 +202737,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "举报"
+          }
+        }
+      }
+    },
+    "activity.reviewPointsNote" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Points for a first genuine review follow the platform's current rules"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "首次真实评价的积分以平台当前规则为准"
           }
         }
       }
