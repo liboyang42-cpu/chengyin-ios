@@ -178,29 +178,36 @@ struct OrderLifecycleField: View {
         NavigationStack {
             List {
                 Section {
-                    Text(LocalizedStringKey("orderLifecycle.review." + review.action.rawValue)).font(.headline)
                     OrderLifecycleField(label: "orderLifecycle.number", value: review.detail.registrationNumber)
                     LabeledContent("orderLifecycle.amount") { AmountLabel(amount: review.detail.payableAmount) }
                     OrderLifecycleField(label: "orderLifecycle.refund.reason", value: review.detail.refundReason)
                     OrderLifecycleField(label: "orderLifecycle.refund.deadline", value: review.detail.refundDeadline)
                 }
                 Section {
-                    Text("orderLifecycle.review.snapshot")
-                    Text("orderLifecycle.refund.caution")
-                    Text("orderLifecycle.production.caution").font(.footnote).foregroundStyle(.secondary)
                     if canDispatch {
-                        Button(LocalizedStringKey("orderLifecycle.production.confirm." + review.action.rawValue), action: confirm)
-                            .accessibilityIdentifier("orderLifecycle.review.confirmProduction")
+                        if review.action == .payment {
+                            Button(LocalizedStringKey("orderLifecycle.production.confirm." + review.action.rawValue), action: confirm)
+                                .buttonStyle(.questifyPrimary)
+                                .frame(maxWidth: .infinity)
+                                .listRowBackground(Color.clear)
+                                .accessibilityIdentifier("orderLifecycle.review.confirmProduction")
+                        } else {
+                            Button(LocalizedStringKey("orderLifecycle.production.confirm." + review.action.rawValue), role: .destructive, action: confirm)
+                                .accessibilityIdentifier("orderLifecycle.review.confirmProduction")
+                        }
                     } else if canSimulate && review.action != .payment {
-                        Button("orderLifecycle.review.simulate", action: confirm).accessibilityIdentifier("orderLifecycle.review.confirmFixture")
+                        Button("orderLifecycle.review.simulate", role: .destructive, action: confirm).accessibilityIdentifier("orderLifecycle.review.confirmFixture")
                     } else {
                         Button("orderLifecycle.review.disabled", action: {}).disabled(true).accessibilityIdentifier("orderLifecycle.review.disabled")
                     }
                 }
             }
-            .appNavigationTitle("orderLifecycle.review.title")
+            .appNavigationTitle(key: "orderLifecycle.question." + review.action.rawValue)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("orderLifecycle.review.close", action: close).accessibilityIdentifier("orderLifecycle.review.close") } }
             .accessibilityIdentifier("orderLifecycle.review.sheet")
         }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
     }
 }

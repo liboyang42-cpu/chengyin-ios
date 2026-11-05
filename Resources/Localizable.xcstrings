@@ -1,6 +1,57 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "orderLifecycle.question.payment" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pay for this order?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支付这笔订单？"
+          }
+        }
+      }
+    },
+    "orderLifecycle.question.refund" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel and request a refund?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消并申请退款？"
+          }
+        }
+      }
+    },
+    "orderLifecycle.question.cancel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel this order?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消这笔订单？"
+          }
+        }
+      }
+    },
     "couponManagement.stopConfirm" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -89855,13 +89906,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm cancellation"
+            "value" : "Cancel order"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认取消订单"
+            "value" : "取消订单"
           }
         }
       }
@@ -89871,13 +89922,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm and continue payment"
+            "value" : "Continue to payment"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认并继续支付"
+            "value" : "继续支付"
           }
         }
       }
@@ -89887,13 +89938,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm cancellation and refund request"
+            "value" : "Cancel and request refund"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认取消并申请退款"
+            "value" : "取消并申请退款"
           }
         }
       }
