@@ -96644,13 +96644,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This registration needs changes. Editing registrations isn't available right now."
+            "value" : "This registration needs changes. Contact support to change it."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这条报名需要修改，报名编辑暂不可用"
+            "value" : "这条报名需要修改，请联系客服处理。"
           }
         }
       }
@@ -96865,13 +96865,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Not provided"
+            "value" : "—"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂未提供"
+            "value" : "—"
           }
         }
       }
