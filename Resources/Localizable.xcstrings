@@ -170281,13 +170281,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prepare a complaint"
+            "value" : "Complaints & feedback"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "准备投诉内容"
+            "value" : "投诉与建议"
           }
         }
       }
@@ -170361,13 +170361,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Not provided"
+            "value" : "Optional"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未填写"
+            "value" : "可选"
           }
         }
       }
@@ -170441,13 +170441,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review prepared text"
+            "value" : "Review"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "审阅准备的内容"
+            "value" : "确认内容"
           }
         }
       }
@@ -170457,13 +170457,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prepared text"
+            "value" : "Your complaint"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "待提交内容审阅"
+            "value" : "投诉内容确认"
           }
         }
       }
@@ -170473,13 +170473,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This complaint has not been submitted. The platform has not received it. Submission is not available in this version."
+            "value" : "Complaints can't be sent from the app yet. Nothing has been submitted."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "投诉尚未提交，平台未收到这些内容。当前版本未开放受理提交。"
+            "value" : "App 内暂不能提交投诉，内容尚未发送。"
           }
         }
       }
@@ -170521,13 +170521,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This preparation session is closed. Return and reopen to start again."
+            "value" : "This page closed. Go back and open it again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本次准备已结束，请返回后重新打开。"
+            "value" : "页面已关闭，请返回后重新打开。"
           }
         }
       }
@@ -170649,13 +170649,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Describe the issue in at least 5 UTF-16 text units."
+            "value" : "Describe the issue in at least 5 characters."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请填写至少 5 个文本单位的投诉内容。"
+            "value" : "请填写至少 5 个字的投诉内容。"
           }
         }
       }
@@ -170665,13 +170665,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The issue exceeds the 500-unit limit. Shorten it before reviewing."
+            "value" : "Keep it under 500 characters."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "投诉内容超过 500 个文本单位，请缩短后再审阅。"
+            "value" : "投诉内容请控制在 500 字以内。"
           }
         }
       }
@@ -170681,13 +170681,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Contact details exceed the 50-unit limit."
+            "value" : "Keep contact details under 50 characters."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "联系方式超过 50 个文本单位。"
+            "value" : "联系方式请控制在 50 字以内。"
           }
         }
       }
@@ -170697,13 +170697,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Eligible activities could not be refreshed. Your local text remains, but review is paused until retry succeeds."
+            "value" : "Activities didn't refresh. Your text is kept; try again to continue."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可投诉活动暂时没能刷新。本页文字仍保留，重试成功后才能审阅。"
+            "value" : "活动列表没刷新出来。已填写的内容会保留，请重试后继续。"
           }
         }
       }
@@ -170729,13 +170729,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The activity selector is unavailable."
+            "value" : "Activities can't be shown right now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前无法读取可投诉活动。"
+            "value" : "暂时无法显示可投诉的活动。"
           }
         }
       }
