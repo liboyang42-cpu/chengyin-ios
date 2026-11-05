@@ -17,26 +17,25 @@ import SwiftUI
             case .visible(let rows):
                 if rows.isEmpty { Text("friendEmpty", tableName: "NativeChannelProgress") }
                 ForEach(rows) { row in
-                    VStack(alignment: .leading, spacing: Theme.Space.s1) {
-                        Text(verbatim: row.title).font(Theme.Font.body.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
-                        if let done = row.meter.done, let required = row.meter.required { Text(verbatim: copy.format("p31.friend.fraction", copy.number(done), copy.number(required))) }
-                        if let percent = row.meter.percent { Text(verbatim: copy.format("p31.friend.percent", copy.number(percent))) }
-                        if let at = row.meter.asOf { Text(verbatim: at).font(Theme.Font.label).foregroundStyle(Theme.Color.textSecondary(in: domain)) }
-                        // Original service/card already validates FRIEND/SELF and the current viewer/peer/context.
-                        // Display only the returned row; no hidden rows, policy causes or broad permission inferred.
-                        if let visibility = row.meter.visibility,
-                           visibility.aggregate == "FRIEND", visibility.detail == "SELF" {
-                            Text(verbatim: copy.text("p31.friend.currentVisibility"))
-                                .font(Theme.Font.label).foregroundStyle(Theme.Color.textSecondary(in: domain))
-                                .accessibilityIdentifier("friendProgress.currentVisibility")
+                    LabeledContent {
+                        VStack(alignment: .trailing, spacing: Theme.Space.s1) {
+                            if let done = row.meter.done, let required = row.meter.required { Text(verbatim: copy.format("p31.friend.fraction", copy.number(done), copy.number(required))).monospacedDigit() }
+                            if let percent = row.meter.percent { Text(verbatim: copy.format("p31.friend.percent", copy.number(percent))).monospacedDigit() }
+                            if row.meter.done == nil && row.meter.percent == nil { Text(verbatim: "—") }
+                        }
+                    } label: {
+                        VStack(alignment: .leading, spacing: Theme.Space.s1) {
+                            Text(verbatim: row.title).fixedSize(horizontal: false, vertical: true)
+                            if let at = row.meter.asOf { Text(verbatim: at).font(Theme.Font.label).foregroundStyle(.secondary) }
                         }
                     }
                 }
             }
-            Button(copy.text("p31.friend.refresh")) { Task { await model.activate() } }.font(Theme.Font.label).frame(minHeight: 44, alignment: .leading)
+            if model.state != .loading {
+                Button { Task { await model.activate() } } label: { Text("d7.friendProgress.refresh") }
+            }
         } header: { Text("friendProgress", tableName: "NativeChannelProgress") }
         .font(Theme.Font.body)
-        .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .privacySensitive().accessibilityIdentifier("friendProgress.card")
         .task { await model.activate() }
         .onDisappear { model.invalidate() }
