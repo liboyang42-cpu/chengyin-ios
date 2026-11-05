@@ -5939,13 +5939,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The contact action was handed to the device."
+            "value" : "Opened on your phone."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "联系操作已交给设备处理。"
+            "value" : "已在手机上打开。"
           }
         }
       }
@@ -5990,13 +5990,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Contacting from this device isn't available for this request."
+            "value" : "This customer can't be contacted from this phone."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此请求暂不支持在本机联系。"
+            "value" : "这位客户暂不能在本机联系。"
           }
         }
       }
@@ -6007,13 +6007,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review contact request"
+            "value" : "Contact"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "审核联系请求"
+            "value" : "联系客户"
           }
         }
       }
@@ -60944,13 +60944,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "原日期格式暂不识别；重新选择或明确清空后才能应用。取消会保留原文。"
+            "value" : "这个日期无法识别，请重新选择或清空。"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This original date format is unrecognized. Select a replacement or explicitly clear it before applying. Cancel preserves the original text."
+            "value" : "This date couldn't be read. Pick a new one or clear it."
           }
         }
       }
@@ -61465,13 +61465,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Apply your edited filters before using this action."
+            "value" : "Apply your filters first."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请先应用刚修改的筛选条件，再使用此操作。"
+            "value" : "请先应用筛选。"
           }
         }
       }
@@ -61516,13 +61516,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The statistics report customers, but this response contains no rows. Reload to try again."
+            "value" : "Reload to try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "统计中有客户，但本次返回的名单为空。请重新加载。"
+            "value" : "请重新加载。"
           }
         }
       }
@@ -61652,13 +61652,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Missing counts are not zero. Reload to check the current list."
+            "value" : "Reload to check again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "缺失的统计不代表零位客户，请重新加载。"
+            "value" : "请重新加载。"
           }
         }
       }
@@ -203196,6 +203196,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "合作经营"
+          }
+        }
+      }
+    },
+    "merchant.customer.noteVisibility" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notes are visible only to your store"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "备注仅本店可见"
           }
         }
       }
