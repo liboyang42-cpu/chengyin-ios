@@ -15,18 +15,9 @@ import SwiftUI
         OfficialReadScreen(reader: reader, isPrivate: true, requestID: "inbox", onLogin: onLogin,
                            issueCopy: OfficialInboxView.issueCopy, load: { try await reader.partyInbox() }) { rows in
             List {
-                Section {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("official.inbox.kicker").font(.caption).foregroundStyle(.secondary)
-                        Text("official.inbox.heroTitle").font(.headline)
-                        Text("official.inbox.heroBody").font(.footnote).foregroundStyle(.secondary)
-                    }.fixedSize(horizontal: false, vertical: true)
-                }
+                // Mini-program `official-inbox`: no intro, just the invitations or 暂无待处理的活动职责.
                 if rows.isEmpty {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("official.inbox.empty").font(.headline)
-                        Text("official.inbox.emptyDetail").font(.subheadline).foregroundStyle(.secondary)
-                    }.fixedSize(horizontal: false, vertical: true)
+                    ContentUnavailableView("official.inbox.empty", systemImage: "envelope.open")
                 }
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
                     VStack(alignment: .leading, spacing: 8) {
@@ -40,10 +31,8 @@ import SwiftUI
                         if let summary = row.responsibilitySummary, !summary.isEmpty, summary != row.title {
                             Text(verbatim: summary).font(.footnote)
                         }
-                        if let type = row.partyType { LabeledContent("official.partyType", value: type).font(.caption) }
                         Label(LocalizedStringKey(row.sourceStatusKey), systemImage: "envelope")
                         if let status = row.status, row.statusKey == "official.status.unknown" { Text(verbatim: status).font(.caption) }
-                        if actions == nil { Text("official.inviteActionsDeferred").font(.footnote).foregroundStyle(.secondary) }
                     }.accessibilityElement(children: .combine).accessibilityIdentifier("official.invite.\(row.id)")
                     if let actions { OfficialInviteResponseActions(coordinator: actions, invite: row, publisher: publisher) }
                 }
@@ -99,9 +88,7 @@ import SwiftUI
                                             Text(OfficialPrivateFactsText.broadcastStatusKey(facts.status)).font(.caption)
                                         }
                                         if let content = broadcast.content { Text(verbatim: content).lineLimit(3) }
-                                        if let reach = broadcast.reach { Text("official.published.reach \(reach)").font(.caption) }
-                                        else { Text("official.published.reachUnknown").font(.caption) }
-                                        Text("official.reachExplanation").font(.caption).foregroundStyle(.secondary)
+                                        if let reach = broadcast.reach { Text("official.published.reach \(reach)").font(.caption).foregroundStyle(.secondary) }
                                     }
                                 }.accessibilityIdentifier("official.broadcast.\(broadcast.id)")
                             }
@@ -123,18 +110,16 @@ import SwiftUI
                     .accessibilityIdentifier("official.published.eventStatus.\(event.id)")
             }
             // Source sub line: city, then " · category" only when the server sent one.
-            let city = OfficialPublishedPresentation.nonBlank(event.city).map { Text(verbatim: $0) } ?? Text("official.privateParity.published.cityUnknown")
+            let city = OfficialPublishedPresentation.nonBlank(event.city).map { Text(verbatim: $0) } ?? Text(verbatim: "—")
             Group {
                 if OfficialPublishedPresentation.nonBlank(event.category) != nil { city + Text(verbatim: " · ") + Text(LocalizedStringKey(event.categoryKey)) }
                 else { city }
             }.font(.subheadline).foregroundStyle(.secondary)
         }.fixedSize(horizontal: false, vertical: true)
     }
+    /// Mini-program `cy-empty` with a title only.
     private func emptyRow(_ title: LocalizedStringKey, _ detail: LocalizedStringKey) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title).font(.headline)
-            Text(detail).font(.subheadline).foregroundStyle(.secondary)
-        }.fixedSize(horizontal: false, vertical: true)
+        Text(title).foregroundStyle(.secondary)
     }
 }
 @MainActor struct OfficialBroadcastStatsView: View {
