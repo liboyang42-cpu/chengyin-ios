@@ -6,10 +6,7 @@ private struct NativeChannelScreenPresentation: ViewModifier {
     func body(content: Content) -> some View {
         content
             .font(Theme.Font.body)
-            .foregroundStyle(Theme.Color.textPrimary(in: domain))
             .environment(\.defaultMinListRowHeight, 44)
-            .scrollContentBackground(.hidden)
-            .background(Theme.Color.bgPage(in: domain))
             .navigationBarTitleDisplayMode(.inline)
     }
 }

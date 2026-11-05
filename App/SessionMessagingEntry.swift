@@ -26,7 +26,6 @@ import SwiftUI
                 .font(Theme.Font.body)
                 .padding(.horizontal)
                 .padding(.vertical, 4)
-                .background(Theme.Color.bgPage(in: domain))
                 .accessibilityIdentifier("channel.reportRecovery.normalEntry")
             }
     }

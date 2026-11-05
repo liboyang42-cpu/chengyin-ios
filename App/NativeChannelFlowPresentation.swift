@@ -6,9 +6,6 @@ private struct NativeChannelFlowPageStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
             .font(Theme.Font.body)
-            .scrollContentBackground(.hidden)
-            .background(Theme.Color.bgPage(in: domain))
-            .foregroundStyle(Theme.Color.textPrimary(in: domain))
             .tint(Theme.Color.accent(in: domain))
             .scrollDismissesKeyboard(.interactively)
             .navigationBarTitleDisplayMode(.inline)

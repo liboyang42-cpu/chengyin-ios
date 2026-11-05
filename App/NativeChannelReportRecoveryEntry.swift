@@ -25,8 +25,6 @@ import SwiftUI
             }
         }
         .font(Theme.Font.body)
-        .scrollContentBackground(.hidden)
-        .background(Theme.Color.bgPage(in: domain))
         .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .nativeChannelFlowPage()
         .navigationTitle(Text("recovery.title", tableName: "NativeChannelReport"))
@@ -38,7 +36,6 @@ import SwiftUI
         }
         .onChange(of: session.messagingViewIdentity) { _, _ in reopen() }
         .privacySensitive()
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
     private func suspend() { directory?.retire(); directory = nil }
@@ -203,8 +200,6 @@ import SwiftUI
         }
         .formStyle(.grouped)
         .font(Theme.Font.body)
-        .scrollContentBackground(.hidden)
-        .background(Theme.Color.bgPage(in: domain))
         .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .nativeChannelFlowPage()
         .navigationTitle(Text("recovery.title", tableName: "NativeChannelReport"))
@@ -218,7 +213,6 @@ import SwiftUI
             if phase != .active { readTask?.cancel(); readTask = nil }
         }
         .privacySensitive()
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
 }

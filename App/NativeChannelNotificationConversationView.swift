@@ -33,8 +33,6 @@ typealias NativeChannelNotificationScreenOperation = @MainActor (NativeChannelNo
         .formStyle(.grouped)
         .nativeChannelScreen()
         .font(Theme.Font.body)
-        .scrollContentBackground(.hidden)
-        .background(Theme.Color.bgPage(in: domain))
         .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .navigationTitle(model.scope?.isAccountDefault == true ? n("global.accountDefault")
             : NativeChannelNotificationPresentation.localized("notification.channel.title", locale: locale))
@@ -44,7 +42,6 @@ typealias NativeChannelNotificationScreenOperation = @MainActor (NativeChannelNo
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { reopen() } else { suspend() }
         }
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
     private func suspend() {
@@ -120,7 +117,6 @@ typealias NativeChannelNotificationScreenOperation = @MainActor (NativeChannelNo
         }
         .onDisappear { retryConfirmation = false }
         .onChange(of: model.isCurrent) { _, current in if !current { retryConfirmation = false } }
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
     private func run(_ operation: @escaping NativeChannelNotificationScreenOperation) {

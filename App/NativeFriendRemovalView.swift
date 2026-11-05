@@ -80,8 +80,6 @@ import SwiftUI
         }
         .formStyle(.grouped)
         .font(Theme.Font.body)
-        .scrollContentBackground(.hidden)
-        .background(Theme.Color.bgPage(in: domain))
         .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .navigationTitle(localized("friendRemoval.title"))
         .accessibilityIdentifier("friendRemoval.home")
@@ -105,7 +103,6 @@ import SwiftUI
             if let retryCommand { Text(verbatim: "#\(retryCommand.peerID) · v\(retryCommand.expectedVersion) · \(retryCommand.requestID.uuidString)") }
             text("friendRemoval.retryImpact")
         }
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
     private func perform(_ operation: @escaping @MainActor () async -> Void) {

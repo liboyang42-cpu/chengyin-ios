@@ -39,8 +39,6 @@ import SwiftUI
                     }
                     .formStyle(.grouped)
                     .font(Theme.Font.body)
-                    .scrollContentBackground(.hidden)
-                    .background(Theme.Color.bgPage(in: domain))
                     .foregroundStyle(Theme.Color.textPrimary(in: domain))
                 } else { Text("会话权限已变化，已隐藏原操作。") }
             }
@@ -50,7 +48,6 @@ import SwiftUI
             .navigationTitle("举报消息")
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("关闭") { dismiss() } } }
         }
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
 }

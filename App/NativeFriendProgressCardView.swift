@@ -41,7 +41,6 @@ import SwiftUI
         .task { await model.activate() }
         .onDisappear { model.invalidate() }
         .onChange(of: scenePhase) { _, phase in if phase == .active { Task { await model.activate() } } else { model.invalidate() } }
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
 }

@@ -27,14 +27,12 @@ import SwiftUI
                         .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                 }
                 .padding(.horizontal)
-                .background(Theme.Color.bgPage(in: domain))
                 .accessibilityIdentifier("friend.channelRecoveryHome")
             }
         }
         .task { await open() }
         .onChange(of: phase) { _, value in if value == .active { Task { await open() } } else { close() } }
         .onDisappear { close() }
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
     private func close() { generation &+= 1; flow?.deactivate(); flow = nil }
@@ -107,8 +105,6 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         .font(Theme.Font.body)
-        .scrollContentBackground(.hidden)
-        .background(Theme.Color.bgPage(in: domain))
         .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .navigationTitle("频道成员").privacySensitive()
         .task { await source.activate() }
@@ -127,14 +123,11 @@ import SwiftUI
                     }
                     .formStyle(.grouped)
                     .font(Theme.Font.body)
-                    .scrollContentBackground(.hidden)
-                    .background(Theme.Color.bgPage(in: domain))
                     .foregroundStyle(Theme.Color.textPrimary(in: domain))
                     .navigationTitle("好友操作确认")
                 }.privacySensitive()
             }
         }
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
 }

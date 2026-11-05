@@ -72,9 +72,6 @@ struct NativeChannelNotificationGlobalNavigation {
         }
         .nativeChannelScreen()
         .font(Theme.Font.body)
-        .scrollContentBackground(.hidden)
-        .background(Theme.Color.bgPage(in: domain))
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
         .navigationTitle(NativeChannelNotificationPresentation.localized("notification.global.title", locale: locale))
         .accessibilityIdentifier("notification.global.screen")

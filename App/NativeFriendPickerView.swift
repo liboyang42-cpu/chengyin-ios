@@ -40,7 +40,6 @@ import SwiftUI
         .onChange(of: flow.isCurrent) { _, valid in if !valid { search = "" } }
         .onDisappear { search = "" }
         .privacySensitive()
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
 }

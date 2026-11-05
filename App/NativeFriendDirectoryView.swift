@@ -94,8 +94,6 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         .font(Theme.Font.body)
-        .scrollContentBackground(.hidden)
-        .background(Theme.Color.bgPage(in: domain))
         .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .navigationTitle(localized("friendDirectory.title"))
         .accessibilityIdentifier("friendDirectory.home")
@@ -111,7 +109,6 @@ import SwiftUI
                     removalFactory: removalFactory, publicProfile: publicProfile, progressCard: progressCard, conversation: conversation).id(detail.id)
             }
         }
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
     private var detailBinding: Binding<Bool> {
@@ -243,8 +240,6 @@ import SwiftUI
         }
         .formStyle(.grouped)
         .font(Theme.Font.body)
-        .scrollContentBackground(.hidden)
-        .background(Theme.Color.bgPage(in: domain))
         .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .navigationTitle(localized("friendDirectory.detail"))
         .accessibilityIdentifier("friendDirectory.detail")
@@ -263,7 +258,6 @@ import SwiftUI
                 }
             }
         }
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
     private var childBinding: Binding<Bool> {

@@ -148,8 +148,6 @@ import SwiftUI
 
         .formStyle(.grouped)
         .font(Theme.Font.body)
-        .scrollContentBackground(.hidden)
-        .background(Theme.Color.bgPage(in: domain))
         .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .navigationTitle(localized("friendMeta.title"))
         .accessibilityIdentifier("friendMeta.editor").privacySensitive()
@@ -166,7 +164,6 @@ import SwiftUI
             retirePresentation()
             if phase == .active, visible { visit = UUID(); performPresented { await flow.load() } }
         }
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
     private func performPresented(_ action: @escaping @MainActor () async -> Void) {

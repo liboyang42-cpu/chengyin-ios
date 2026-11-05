@@ -105,7 +105,6 @@ import SwiftUI
         }.padding(Theme.Space.s3)
             .font(Theme.Font.body)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Theme.Color.bgPage(in: domain))
             .accessibilityIdentifier("ncm47.recovery")
     }
 }

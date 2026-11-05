@@ -67,9 +67,6 @@ import SwiftUI
             }
         }
         .nativeChannelScreen()
-        .scrollContentBackground(.hidden)
-        .background(Theme.Color.bgPage(in: domain))
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
         .searchable(text: $keyword, prompt: Text("search.keyword", tableName: "NativeChannelMessage"))
         .onSubmit(of: .search, search)

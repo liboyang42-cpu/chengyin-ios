@@ -143,8 +143,6 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         .font(Theme.Font.body)
-        .scrollContentBackground(.hidden)
-        .background(Theme.Color.bgPage(in: domain))
         .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .navigationTitle(localized("friend.title"))
         .accessibilityIdentifier("friend.home")
@@ -195,15 +193,12 @@ import SwiftUI
                     }
                     .formStyle(.grouped)
                     .font(Theme.Font.body)
-                    .scrollContentBackground(.hidden)
-                    .background(Theme.Color.bgPage(in: domain))
                     .foregroundStyle(Theme.Color.textPrimary(in: domain))
                     .navigationTitle(localized("friend.confirmTitle"))
                     .accessibilityIdentifier("friend.confirmation")
                 }
             }
         }
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
     private func localized(_ key: String) -> String {

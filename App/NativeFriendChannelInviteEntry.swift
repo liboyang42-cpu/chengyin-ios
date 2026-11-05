@@ -19,7 +19,6 @@ import SwiftUI
         .onChange(of: phase) { _, next in if next == .active { Task { await open() } } else { close() } }
         .onDisappear { close() }
         .privacySensitive()
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
     private func close() { generation &+= 1; flow?.deactivate(); flow = nil }
@@ -49,7 +48,6 @@ import SwiftUI
             .task { reopen() }
         .onChange(of: phase) { _, next in if next == .active { reopen() } else { close() } }
         .onDisappear { close() }
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
     private func close() { flow?.deactivate(); flow = nil }
@@ -189,8 +187,6 @@ import SwiftUI
         }
         .formStyle(.grouped)
         .font(Theme.Font.body)
-        .scrollContentBackground(.hidden)
-        .background(Theme.Color.bgPage(in: domain))
         .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .navigationTitle("好友定向邀请").privacySensitive()
         .task { await flow.activate() }
@@ -203,7 +199,6 @@ import SwiftUI
             }
         }
         .onDisappear { message = ""; checked = []; selectedChannel = nil; flow.deactivate() }
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
     private func landingIsTeam(_ flow: NativeFriendChannelInviteFlow) -> Bool { flow.landing?.guildKind == 3 }

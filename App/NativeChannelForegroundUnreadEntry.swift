@@ -19,7 +19,6 @@ import SwiftUI
         }.font(Theme.Font.body)
             .foregroundStyle(Theme.Color.textPrimary(in: domain))
             .privacySensitive()
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
 }
@@ -62,7 +61,6 @@ import SwiftUI
             else if phase != .active { onReadModelChanged?(nil); model?.deactivate(); permission.retire() }
         }
         .onChange(of: currentIdentity()) { _, value in if value != identity { retire() } }
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
     private func refresh() async {

@@ -101,8 +101,6 @@ extension EnvironmentValues {
                 }
                 .listStyle(.insetGrouped)
                 .font(Theme.Font.body)
-                .scrollContentBackground(.hidden)
-                .background(Theme.Color.bgPage(in: domain))
                 .foregroundStyle(Theme.Color.textPrimary(in: domain))
                 .id(ObjectIdentifier(flow)).task { await flow.activate() }
             } else { VStack { Text("当前账号或原好友队伍邀请能力尚未配置/已撤回。未打开旧随机组队能力。"); Button("重新读取能力") { open() } } }
@@ -114,7 +112,6 @@ extension EnvironmentValues {
         .onChange(of: phase) { _, value in if value == .active { open() } else { close() } }
         .onDisappear { close() }
         .privacySensitive()
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
     private func open() { close(); guard phase == .active else { return }; flow = makeFlow(mode) }

@@ -86,8 +86,6 @@ import SwiftUI
         }
         .formStyle(.grouped)
         .font(Theme.Font.body)
-        .scrollContentBackground(.hidden)
-        .background(Theme.Color.bgPage(in: domain))
         .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .navigationTitle(localized("blacklist.title"))
         .navigationBarTitleDisplayMode(.inline)
@@ -114,7 +112,6 @@ import SwiftUI
             if let original = settlement { Text(verbatim: "#\(original.peerID) · #\(original.expectedBlockID) · \(original.requestID.uuidString)") }
             text("blacklist.settleImpact")
         }
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
     private func performPresented(_ action: @escaping @MainActor () async -> Void) {

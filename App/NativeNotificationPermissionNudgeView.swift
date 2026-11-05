@@ -38,15 +38,12 @@ import SwiftUI
         }
         .formStyle(.grouped)
         .font(Theme.Font.body)
-        .scrollContentBackground(.hidden)
-        .background(Theme.Color.bgPage(in: domain))
         .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .disabled(model.busy)
         .navigationTitle(NativeChannelNotificationPresentation.localized("notification.permission.title", locale: locale))
         .task { await model.refresh(expectedRevision: model.revision) }
         .onChange(of: scenePhase) { _, phase in if phase == .active { let revision = model.revision; Task { await model.refresh(expectedRevision: revision) } } }
         .onDisappear { model.retire() }
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
     private func label(_ setting: NativeNotificationPermissionSetting) -> String {
