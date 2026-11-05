@@ -85362,33 +85362,35 @@
       }
     },
     "objects.disabled" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Object cards aren't available right now"
+            "value" : "Your collection can't be opened right now"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "物件卡暂不可用"
+            "value" : "藏品册暂时无法打开"
           }
         }
       }
     },
     "objects.empty" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No cards in this category"
+            "value" : "Nothing collected in this category yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此分类暂无物件卡"
+            "value" : "这一类还没收过东西"
           }
         }
       }
@@ -191751,7 +191753,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You have not collected anything yet"
+            "value" : "You haven't collected anything yet"
           }
         },
         "zh-Hans" : {

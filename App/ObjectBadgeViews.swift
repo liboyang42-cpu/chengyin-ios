@@ -44,17 +44,18 @@ struct ObjectBadgeWallLayoutSelection {
                     ObjectBadgeWallLayoutControl(selection: Binding(
                         get: { layoutSelection.value(for: layoutOwner) },
                         set: { layoutSelection.choose($0, rendered: owner, current: layoutOwner) }))
-                    if layout == .wall { Text("objects.badgeLayout.staticOnly").font(.caption).foregroundStyle(.secondary) }
                 }
                 ObjectBadgeWallParityHeader(wall: wall, focusBadgeCode: focusBadgeCode)
                 if wall.isPartial {
                     Section {
                         Text("profile.badges.partial")
                         if let message = wall.medalFailureMessage, !message.isEmpty { Text(verbatim: message) }
-                        Text("profile.badges.partialHint").foregroundStyle(.secondary)
                     }
                 }
-                if wall.isEmpty { Text("profile.badges.empty") }
+                if wall.isEmpty {
+                    ContentUnavailableView("profile.badges.empty", systemImage: "medal")
+                        .accessibilityIdentifier("profile.badges.emptyState")
+                }
                 if !wall.identities.isEmpty {
                     Section("profile.badges.identities") {
                         badgeRows(wall.identities.map { .identity($0) }, accessibilityPrefix: "profile.badge.identity", layout: layout)
@@ -76,7 +77,7 @@ struct ObjectBadgeWallLayoutSelection {
                 }
             }
         }.appNavigationTitle("profile.badges.title")
-            .toolbar { NavigationLink("nativeNav.badge.open") { BadgeRouteEntryView(reader: reader, media: media) } }
+            // The typed internal badge-path entry is not a player feature and is not offered here.
             .onChange(of: layoutOwner) { _, _ in layoutSelection.retire() }
     }
     @ViewBuilder private func badgeRows(_ badges: [ProfileBadgeSelection], accessibilityPrefix: String, layout: ObjectBadgeWallLayout) -> some View {
@@ -169,12 +170,11 @@ struct ObjectBadgeWallBadgeLabel: View {
                             .frame(width: 188, height: 188).padding(6)
                             .background(tint.opacity(style == "glow" ? 0.16 : 0.05), in: Circle())
                             .overlay(Circle().stroke(tint, lineWidth: style == "enamel" ? 3 : 1))
-                        if badge.name.isEmpty { Text(badge.familyKey).font(.headline) }
-                        else { Text(verbatim: badge.name).font(.headline) }
+                        if badge.name.isEmpty { Text(badge.familyKey).font(.title3.bold()) }
+                        else { Text(verbatim: badge.name).font(.title3.bold()) }
                         Label(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked",
                               systemImage: badge.isLocked ? "lock" : "checkmark.seal")
-                        Text(style == "enamel" ? "objects.enamel" : "objects.glow").font(.footnote)
-                        Text("objects.staticPreview").font(.caption).foregroundStyle(.secondary)
+                        Text(style == "enamel" ? "objects.enamel" : "objects.glow").font(.footnote).foregroundStyle(.secondary)
                     }.frame(maxWidth: .infinity).padding(.vertical, 16)
                 }
                 Section("profile.badges.details") {
@@ -211,8 +211,7 @@ struct ObjectBadgeWallBadgeLabel: View {
                 else { Text(verbatim: parameters.name).font(.headline) }
                 if !parameters.subtitle.isEmpty { Text(verbatim: parameters.subtitle).font(.caption) }
                 Text(LocalizedStringKey("objects.rarity." + String(parameters.rarity)))
-                Text(parameters.style == "enamel" ? "objects.enamel" : "objects.glow")
-                Text("objects.staticPreview").font(.caption)
+                Text(parameters.style == "enamel" ? "objects.enamel" : "objects.glow").font(.footnote).foregroundStyle(.secondary)
             } else { Text("objects.sessionChanged") }
         }.padding().appNavigationTitle("profile.badges.detail").privacySensitive()
     }
