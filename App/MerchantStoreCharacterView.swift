@@ -456,10 +456,6 @@ private struct StoreCharacterVoiceSheet: View {
                 case .ready:
                     Section {
                         t("storeCharacter.voice.readyBody").accessibilityIdentifier("aiNPC.voice.ready")
-                        if c.voice?.sample != nil {
-                            Button {} label: { t("storeCharacter.voice.playOriginal") }.disabled(true)
-                            t("storeCharacter.voice.playbackUnavailable").font(.footnote).foregroundStyle(.secondary)
-                        }
                         Button { c.resetRecording() } label: { t("storeCharacter.voice.rerecord") }.accessibilityIdentifier("aiNPC.voice.rerecord")
                     }
                 case .none, .failed:
@@ -519,7 +515,6 @@ private struct StoreCharacterVoiceSheet: View {
         Section {
             t("storeCharacter.voice.recordedTitle").font(.headline).accessibilityIdentifier("aiNPC.voice.recorded")
             (Text(verbatim: String(recording.durationSeconds)) + t("storeCharacter.voice.recordedHint")).font(.footnote).foregroundStyle(.secondary)
-            Button {} label: { t("storeCharacter.voice.play") }.disabled(true)
             Button { c.resetRecording() } label: { t("storeCharacter.voice.rerecord") }
                 .disabled(c.voiceBusy || c.voiceUnknown).accessibilityIdentifier("aiNPC.voice.reset")
             Button { c.prepareEnroll() } label: {

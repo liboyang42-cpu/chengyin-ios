@@ -36,7 +36,6 @@ import SwiftUI
                 } else { Text("merchant.industry.none") }
                 Button("merchant.industry.choose") { picker = .init(document: document) }
                     .disabled(!editable).accessibilityIdentifier("merchant.industry.open")
-                Text("merchant.industry.scope").font(.footnote).foregroundStyle(.secondary)
             }
             .sheet(item: Binding(get: { picker }, set: { value in
                 if value == nil { picker?.cancel() }; picker = value

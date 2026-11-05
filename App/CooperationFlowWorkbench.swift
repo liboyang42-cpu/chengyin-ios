@@ -32,7 +32,7 @@ import SwiftUI
             }
             Section("coopflow.supply") {
                 link("coopflow.templates", resource: .templates)
-                NavigationLink { CoopFlowTemplateEditor(currentCalendarSession: { reader.session }) } label: { Label("coopflow.template.new", systemImage: "plus.circle") }
+                // 添加常备权益 is hidden: its review screen ends at a submit that is not wired in the app.
             }
             Section("coopflow.workflows") {
                 NavigationLink { CoopFlowNewInvitationView(reader: reader, operationScope: operationScope) } label: { Label("context.coop.new", systemImage: "person.crop.circle.badge.plus") }

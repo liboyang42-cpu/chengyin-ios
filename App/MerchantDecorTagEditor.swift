@@ -65,7 +65,6 @@ import SwiftUI
         NavigationStack {
             Form {
                 Section {
-                    Text("merchant.decorTags.localDraft").font(.footnote)
                     LabeledContent("merchant.decorTags.selected", value: "\(picker.draft.selected.count) / 12")
                     if !picker.draft.canApply { Text("merchant.decorTags.limit").foregroundStyle(.secondary) }
                     ForEach(Array(picker.draft.selected.enumerated()), id: \.offset) { index, tag in
