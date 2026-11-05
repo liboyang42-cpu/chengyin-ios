@@ -82960,17 +82960,18 @@
       }
     },
     "nearby.applicant.ticket" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ticket checked when applying"
+            "value" : "Has a ticket"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "申请时已验票"
+            "value" : "已持票"
           }
         }
       }
@@ -83152,17 +83153,18 @@
       }
     },
     "nearby.context.title" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Selected map point"
+            "value" : "Map point"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "所选地图点位"
+            "value" : "地图点位"
           }
         }
       }
@@ -83504,17 +83506,18 @@
       }
     },
     "nearby.fixture" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Example content. No real application or team change is sent."
+            "value" : "Example content"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "示例内容，不会实际发送申请或更改队伍成员。"
+            "value" : "示例内容"
           }
         }
       }
@@ -83696,17 +83699,18 @@
       }
     },
     "nearby.mine" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "My teams and applications"
+            "value" : "My teams"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "我的队伍与申请"
+            "value" : "我的队伍"
           }
         }
       }
@@ -83840,11 +83844,12 @@
       }
     },
     "nearby.rejected.foot" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You cannot apply to this team again."
+            "value" : "You can't apply to this team again."
           }
         },
         "zh-Hans" : {
@@ -83856,33 +83861,35 @@
       }
     },
     "nearby.review" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review action"
+            "value" : "Confirm"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "核对操作"
+            "value" : "确认"
           }
         }
       }
     },
     "nearby.review.consequence" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Check the team and applicant. Applying requests membership; approval adds the applicant; rejection prevents reapplying; withdrawing removes your pending request. This is an example; nothing is actually sent."
+            "value" : "Check the team before you continue."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请核对队伍与申请人。申请即请求加入；同意会添加成员；拒绝后无法再次申请；撤回会移除待处理的申请。本页为示例，不会实际操作。"
+            "value" : "继续前请确认队伍信息。"
           }
         }
       }
@@ -83904,17 +83911,18 @@
       }
     },
     "nearby.review.liveConsequence" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Applying requests membership. Approval adds the applicant; rejection prevents reapplication; withdrawal removes your pending request. Confirm only the team and applicant shown here."
+            "value" : "Check the team before you continue. A declined applicant can't apply again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "申请请求加入；同意会添加成员；拒绝后无法再次申请；撤回会移除待处理请求。请仅确认此处显示的队伍与申请人。"
+            "value" : "继续前请确认队伍信息。被拒绝后不能再次申请。"
           }
         }
       }
@@ -83936,33 +83944,35 @@
       }
     },
     "nearby.search" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Find nearby teams"
+            "value" : "Search"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "查找附近队伍"
+            "value" : "搜索"
           }
         }
       }
     },
     "nearby.section" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Team section"
+            "value" : "Teams"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "队伍分类"
+            "value" : "队伍"
           }
         }
       }
@@ -83984,17 +83994,18 @@
       }
     },
     "nearby.simulate" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Simulate reviewed action"
+            "value" : "Continue"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "模拟已核对操作"
+            "value" : "继续"
           }
         }
       }
@@ -84128,17 +84139,18 @@
       }
     },
     "nearby.submitReviewed" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Submit reviewed action"
+            "value" : "Confirm"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "提交已核对操作"
+            "value" : "确认"
           }
         }
       }
@@ -84208,17 +84220,18 @@
       }
     },
     "nearby.unknown" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The result is unresolved. Repeating actions is locked, including after refresh or sign-in."
+            "value" : "Your last request is still being confirmed. Wait before trying again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "结果尚未确定，刷新或重新登录后也不能重复操作。"
+            "value" : "上一次操作还在确认中，请稍后再试。"
           }
         }
       }
