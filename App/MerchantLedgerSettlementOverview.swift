@@ -258,19 +258,17 @@ import UIKit
         List {
             if slot.isLoading { ProgressView("merchant.loading") }
             if let key = slot.failureKey {
-                Text(LocalizedStringKey(key))
-                Button("action.retry") { model.appear() }.disabled(slot.isLoading)
+                ContentUnavailableView {
+                    Label(LocalizedStringKey(key), systemImage: "exclamationmark.triangle")
+                } actions: {
+                    Button("action.retry") { model.appear() }.disabled(slot.isLoading)
+                }
             }
             if let snapshot = slot.snapshot, let batch = snapshot.document.sections.first(where: { $0.id == "batch" })?.rows.first {
                 let count = detailCount(snapshot.document)
                 Section {
                     MerchantLedgerBatchHero(hero: MerchantLedgerParity.batchHero(batch.fields))
                     MerchantLedgerBatchStatementCard(statement: MerchantLedgerParity.batchStatementSummary(batch.fields, lineCount: count))
-                    if count > 0 {
-                        Text(verbatim: returnedLineCount(count)).font(.footnote)
-                    }
-                    Text("merchant.ledgerSettlement.detailIncomplete", tableName: "MerchantLedgerSettlement")
-                        .font(.footnote).foregroundStyle(.secondary)
                 }
                 detailRows(snapshot.document, id: "earnings")
                 detailRows(snapshot.document, id: "adjustments")
@@ -286,10 +284,6 @@ import UIKit
         document.sections.reduce(0) { count, section in
             section.id == "earnings" || section.id == "adjustments" ? count + section.rows.count : count
         }
-    }
-    private func returnedLineCount(_ count: Int) -> String {
-        let format = Bundle.main.localizedString(forKey: "merchant.ledgerSettlement.returnedDetails %lld", value: "Detail lines returned in this response: %lld", table: "MerchantLedgerSettlement")
-        return String(format: format, locale: Locale.current, Int64(count))
     }
     @ViewBuilder private func detailRows(_ document: MerchantBusinessDocument, id: String) -> some View {
         let rows = document.sections.first(where: { $0.id == id })?.rows ?? []

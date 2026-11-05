@@ -51941,13 +51941,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aftercare status"
+            "value" : "Status"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "售后分组"
+            "value" : "状态"
           }
         }
       }
@@ -53845,13 +53845,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Settlement status"
+            "value" : "Status"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "结算状态"
+            "value" : "状态"
           }
         }
       }
@@ -54357,13 +54357,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Received"
+            "value" : "Saved"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已收到"
+            "value" : "已保存"
           }
         }
       }
@@ -54389,13 +54389,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Response received"
+            "value" : "Done"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已收到回执"
+            "value" : "已完成"
           }
         }
       }
@@ -56453,13 +56453,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A previous request has an unknown result. Sending again is locked, including after reopening. A list refresh cannot prove its outcome."
+            "value" : "We couldn't confirm your last action. To avoid doing it twice, it can't be sent again here."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "之前请求的结果尚不确定。再次提交已锁定，重新打开也不会解除。刷新列表不能证明该请求的结果。"
+            "value" : "上一次操作的结果暂未确认。为避免重复，这里暂不能再次提交。"
           }
         }
       }
@@ -172285,13 +172285,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No redemption records on this page."
+            "value" : "No records yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前页没有核销记录。"
+            "value" : "还没有记录"
           }
         }
       }
@@ -202754,6 +202754,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "协作邀请"
+          }
+        }
+      }
+    },
+    "merchant.business.customers.manageFilter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Segments and export for this filter"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按当前筛选管理分群与导出"
+          }
+        }
+      }
+    },
+    "merchant.business.customers.applyFirst" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply your filter first."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先应用当前筛选。"
           }
         }
       }

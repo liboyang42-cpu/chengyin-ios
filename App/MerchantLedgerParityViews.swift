@@ -92,15 +92,16 @@ struct MerchantLedgerBatchStatementCard: View {
     let statement: MerchantLedgerParity.BatchStatementSummary
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(verbatim: statement.title).font(.headline)
+            Text("merchant.settlementOverview.statement", tableName: "MerchantSettlementOverview").font(.headline)
             if let total = statement.totalText {
                 LabeledContent {
                     Text(verbatim: total).monospacedDigit()
                 } label: {
-                    Text(verbatim: "合计")
+                    Text("merchant.settlementOverview.serverTotal", tableName: "MerchantSettlementOverview")
                 }
-            } else if let empty = statement.emptyText {
-                Text(verbatim: empty).font(.footnote).foregroundStyle(.secondary)
+            } else if statement.emptyText != nil {
+                Text("merchant.settlementOverview.statementEmpty", tableName: "MerchantSettlementOverview")
+                    .font(.footnote).foregroundStyle(.secondary)
             }
             ForEach(Array(statement.stepTimestamps.enumerated()), id: \.offset) { _, stamp in
                 Text(verbatim: stamp).font(.caption).foregroundStyle(.secondary)
@@ -129,16 +130,10 @@ struct MerchantSettlementStatementCard: View {
             } label: {
                 Text("merchant.settlementOverview.serverTotal", tableName: "MerchantSettlementOverview")
             }
-            if statement.returnedDetailCount > 0 {
-                Text("merchant.settlementOverview.returnedDetails \(statement.returnedDetailCount)",
-                     tableName: "MerchantSettlementOverview")
-                    .font(.footnote)
-            } else {
+            if statement.returnedDetailCount == 0 {
                 Text("merchant.settlementOverview.statementEmpty", tableName: "MerchantSettlementOverview")
                     .font(.footnote).foregroundStyle(.secondary)
             }
-            Text("merchant.settlementOverview.detailIncomplete", tableName: "MerchantSettlementOverview")
-                .font(.footnote).foregroundStyle(.secondary)
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("merchant.settlementOverview.batchStatement")
