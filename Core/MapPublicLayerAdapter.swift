@@ -86,10 +86,10 @@ public enum MapPublicLayerAdapter {
             let reason = layer["reason"] as? String
             let read = bool((layer["capabilities"] as? [String: Any])?["read"])
             // These formerly unavailable sources require an explicit server public-read capability.
-            if (source == "story_node" || source == "theme") && status == "OK" && read != true {
+            if (source == "story_node" || source == "theme") && status == "OK" && read == nil {
                 return .rejected(.payloadRejected)
             }
-            guard let rawItems = layer["items"] as? [Any] else { return .rejected(.payloadRejected) }
+            guard let rawItems = layer["items"] as? [Any], rawItems.count <= session.limit else { return .rejected(.payloadRejected) }
             switch status {
             case "FAILED":
                 guard rawItems.isEmpty else { return .rejected(.payloadRejected) }
@@ -97,12 +97,19 @@ public enum MapPublicLayerAdapter {
                 pages[index].status = .failed
                 pages[index].reason = reason
                 pages[index].read = read
+                if read == false { pages[index].items = [] }
             case "UNAVAILABLE":
                 guard rawItems.isEmpty else { return .rejected(.payloadRejected) }
                 pages[index].status = .unavailable
                 pages[index].reason = reason
                 pages[index].read = read
+                pages[index].items = []
             case "OK":
+                // A negative server read capability retires cached rows as well as this page.
+                if read == false {
+                    pages[index] = MapPublicLayerPage(source: source, status: .unavailable, reason: reason, read: false, items: [])
+                    continue
+                }
                 guard let parsed = items(rawItems, source: session.layers[index]) else { return .rejected(.payloadRejected) }
                 if let blocked = unpublished(parsed, source: session.layers[index]) {
                     failed = true
@@ -125,7 +132,7 @@ public enum MapPublicLayerAdapter {
             applied.cursor = request.cursor
             applied.complete = false
         } else if let nextCursor = object["nextCursor"] as? String {
-            guard !nextCursor.isEmpty, nextCursor.count <= 2048 else { return .rejected(.payloadRejected) }
+            guard !nextCursor.isEmpty, nextCursor.count <= 2048, nextCursor != request.cursor else { return .rejected(.payloadRejected) }
             applied.cursor = nextCursor
             applied.complete = false
         } else if object["nextCursor"] == nil || object["nextCursor"] is NSNull {
@@ -593,3 +600,4 @@ public enum MapPublicIngest: Equatable {
     case stale
     case rejected(MapPublicAdapterFailure)
 }
+
