@@ -301,14 +301,8 @@ import Combine
                 switch outcome {
                 case .acknowledged:
                     Text("publishModes.acknowledged")
-                    Text(verbatim: locale.language.languageCode?.identifier == "zh"
-                        ? "请求已受理，发布状态仍需核实。请在我的项目查看服务端记录。"
-                        : "Request acknowledged. Publication still needs verification in My projects.")
                 case .unknown:
                     Text("publishModes.unknown")
-                    Text(verbatim: locale.language.languageCode?.identifier == "zh"
-                        ? "结果未知，原请求保持锁定。查看项目不会确认本次请求，也不会重新发送。"
-                        : "The outcome is unknown and the original request stays locked. Viewing projects does not resolve or resend it.")
                 case .notSent: Text("publishModes.notSent")
                 case .rejected(let reason):
                     Text("publishModes.rejected")

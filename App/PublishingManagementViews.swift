@@ -54,13 +54,23 @@ import SwiftUI
         .sheet(item: $review) { snapshot in
             NavigationStack {
                 List {
-                    Text(snapshot.baseline?.title ?? "")
-                    Text(LocalizedStringKey(snapshot.action == .remove ? "publishModes.deleteReview" : "publishModes.statusReview"))
-                    Text("publishModes.reviewNotice").foregroundStyle(.secondary)
-                    Button("publishModes.confirm", role: snapshot.action == .remove ? .destructive : nil) { Task { await submit(snapshot) } }.disabled(service?.mutationsConfigured != true || busy)
-                    Button("publishModes.cancel", role: .cancel) { service?.cancel(snapshot); review = nil }
-                }.navigationTitle(Text("publishModes.review"))
+                    Section {
+                        if snapshot.action == .remove {
+                            Text("publishModes.removeQuestion \(snapshot.baseline?.title ?? "")").font(.headline)
+                        } else if snapshot.baseline?.online == true {
+                            Text("publishModes.offlineQuestion \(snapshot.baseline?.title ?? "")").font(.headline)
+                        } else {
+                            Text("publishModes.onlineQuestion \(snapshot.baseline?.title ?? "")").font(.headline)
+                        }
+                    }
+                    Section {
+                        Button(LocalizedStringKey(snapshot.action == .remove ? "publishModes.remove" : snapshot.baseline?.online == true ? "publishModes.takeOffline" : "publishModes.putOnline"), role: snapshot.action == .remove ? .destructive : nil) { Task { await submit(snapshot) } }.disabled(service?.mutationsConfigured != true || busy)
+                        Button("publishModes.cancel", role: .cancel) { service?.cancel(snapshot); review = nil }
+                    }
+                }.navigationBarTitleDisplayMode(.inline)
             }
+            .presentationDetents([.medium])
+            .presentationDragIndicator(.visible)
         }
     }
     /// The result destination must not escape into detail editors or lifecycle actions.

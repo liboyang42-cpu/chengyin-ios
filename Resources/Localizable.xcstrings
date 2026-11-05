@@ -1,6 +1,57 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "publishModes.onlineQuestion %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Put “%@” online?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上架「%@」？"
+          }
+        }
+      }
+    },
+    "publishModes.offlineQuestion %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Take “%@” offline?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下架「%@」？"
+          }
+        }
+      }
+    },
+    "publishModes.removeQuestion %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete “%@”?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除「%@」？"
+          }
+        }
+      }
+    },
     "orderLifecycle.question.payment" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -120920,13 +120971,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Request received. Refresh to see the latest status."
+            "value" : "Submitted. Check My projects for the latest status."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请求已收到，请刷新查看最新状态。"
+            "value" : "已提交，可在我的项目查看最新状态。"
           }
         }
       }
@@ -122536,13 +122587,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The outcome is uncertain. This operation is locked across restarts to prevent duplicates. Do not resubmit; contact support to establish the result."
+            "value" : "We couldn’t confirm whether this went through. Don’t submit again; contact support if it doesn’t appear in My projects."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "结果尚不确定。为防止重复提交，本次操作已跨重启锁定。请勿重发，请联系客服核实结果。"
+            "value" : "暂时无法确认是否成功。请勿重复提交；如在我的项目中未看到，请联系客服。"
           }
         }
       }
