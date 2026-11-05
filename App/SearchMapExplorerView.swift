@@ -69,7 +69,6 @@ import SwiftUI
         ScrollViewReader { scroll in
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("searchMap.manualDisclosure").font(.footnote).foregroundStyle(.secondary)
                 if reader.isOfflineExample { Text("searchMap.offline").font(.caption) }
                 if let area, !area.label.isEmpty { Text(verbatim: area.label).font(.headline) }
                 if mode == .city {
@@ -99,7 +98,6 @@ import SwiftUI
                         if !reader.isOfflineExample { viewportControls }
                     } else {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("searchMap.appleMapDisclosure").font(.footnote)
                             Button("searchMap.showMap") { mapCameraIdentityArea = area; mapEnabled = true }.buttonStyle(.bordered).frame(minHeight: 44)
                                 .accessibilityIdentifier("searchMap.showMap")
                         }
@@ -242,10 +240,6 @@ import SwiftUI
                 .font(.footnote).fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("mapViewport.status")
             if let ticket {
-                Text("mapViewport.draft").font(.caption)
-                Text(verbatim: "\(ticket.viewport.center.latitude), \(ticket.viewport.center.longitude) · WGS84")
-                    .font(.caption).fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier("mapViewport.draft")
                 Button("mapViewport.clear") {
                     guard context == viewportContext, viewportSelection.current(in: context)?.id == ticket.id else { return }
                     invalidateViewport()

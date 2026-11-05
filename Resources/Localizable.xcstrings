@@ -48532,13 +48532,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Turn a layer back on to view its loaded points and result cards."
+            "value" : "Turn on a layer to see places."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重新打开图层即可查看已读取的点位和结果卡片。"
+            "value" : "打开一个图层查看地点。"
           }
         }
       }
@@ -48747,17 +48747,18 @@
       }
     },
     "mapPagination.filteredPage" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No activities on these pages match your filters. You can keep loading."
+            "value" : "Nothing here matches your filters. Keep loading."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已读取的活动暂未匹配当前筛选，可以继续加载。"
+            "value" : "这几页没有符合筛选的活动，可以继续加载。"
           }
         }
       }
@@ -48811,17 +48812,18 @@
       }
     },
     "mapPagination.retained" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your loaded results and map pins are still available."
+            "value" : "Your loaded results are still here."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已加载的结果和地图点位仍可查看。"
+            "value" : "已加载的结果仍保留。"
           }
         }
       }
@@ -48859,17 +48861,18 @@
       }
     },
     "mapRefresh.previousWhileLoading" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Previously loaded results remain visible while this refresh runs."
+            "value" : "Showing earlier results while updating."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "刷新期间仍显示之前加载的结果。"
+            "value" : "更新中，先显示之前的结果。"
           }
         }
       }
@@ -48978,13 +48981,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Search around this map center using the current filters. This does not use your device location."
+            "value" : "Search this area?"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "按当前筛选条件搜索此地图中心附近，不使用设备定位。"
+            "value" : "搜索这片区域？"
           }
         }
       }
@@ -49029,13 +49032,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Move the map and stop to choose a new search center. Moving alone does not search."
+            "value" : "Move the map to search another area."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "移动地图后停下，选择新的搜索中心；移动本身不会发起搜索。"
+            "value" : "移动地图，搜索其他区域。"
           }
         }
       }
@@ -49063,13 +49066,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Map-area search is unavailable for this connection. Your existing results are unchanged."
+            "value" : "Area search isn't available here."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前连接暂不支持地图区域搜索，已有结果保持不变。"
+            "value" : "这里暂不支持区域搜索。"
           }
         }
       }
@@ -95432,13 +95435,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dashed lines show stop order only. They are not walking directions. Your location is not collected."
+            "value" : "Lines show the order of stops."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "虚线仅表示地点顺序，不代表可步行路线。此页不采集你的位置。"
+            "value" : "连线表示地点顺序。"
           }
         }
       }
@@ -95551,13 +95554,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Map position unavailable. You can still open this task when eligible."
+            "value" : "Not on the map."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "地图位置暂不可用，符合条件时仍可打开任务。"
+            "value" : "地图上没有这个位置。"
           }
         }
       }
@@ -95772,13 +95775,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use the journey task list to check availability."
+            "value" : "Open it from the task list."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请通过旅程任务列表查看可用状态。"
+            "value" : "从任务列表打开。"
           }
         }
       }
@@ -132779,17 +132782,18 @@
       }
     },
     "searchMap.showMap" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Show Apple map"
+            "value" : "Show map"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "显示 Apple 地图"
+            "value" : "显示地图"
           }
         }
       }
