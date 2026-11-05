@@ -20707,13 +20707,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Clubs matching the merchant’s city or address"
+            "value" : "Clubs in your city"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "按店铺城市或地址匹配的俱乐部"
+            "value" : "同城俱乐部"
           }
         }
       }
@@ -202567,6 +202567,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "商家概览"
+          }
+        }
+      }
+    },
+    "club.tab.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discover"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "发现"
           }
         }
       }

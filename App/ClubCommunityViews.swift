@@ -229,13 +229,14 @@ struct ClubCommunityFeedView: View {
                 }
             }
             if let snapshot = model.snapshot {
-                if snapshot.clubCount == 0 { Text("club.community.joinFirst") }
-                else if snapshot.posts.isEmpty { Text("club.community.empty") }
                 if clubID == nil, snapshot.posts.isEmpty {
-                    // Cross-club feed (俱乐部 tab 帖文): the source names the next step for each empty case.
-                    Text(LocalizedStringKey(ClubTabPresentation.feedEmptyKeys(clubCount: snapshot.clubCount).detail))
-                        .font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("clubTab.feed.emptyHint")
-                }
+                    // Cross-club feed (发现 · 帖文): mini-program cy-empty shows one title, 还没有帖文.
+                    ContentUnavailableView(LocalizedStringKey(ClubTabPresentation.feedEmptyKeys(clubCount: snapshot.clubCount).title),
+                                           systemImage: "text.bubble")
+                        .listRowBackground(Color.clear)
+                        .accessibilityIdentifier("clubTab.feed.emptyHint")
+                } else if snapshot.clubCount == 0 { Text("club.community.joinFirst") }
+                else if snapshot.posts.isEmpty { Text("club.community.empty") }
                 ForEach(snapshot.posts) { post in
                     let target = discussionTarget(post, acceptedPosts: snapshot.posts)
                     VStack(alignment: .leading, spacing: 8) {
