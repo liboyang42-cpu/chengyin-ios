@@ -123,9 +123,6 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     }
     private var applicationForm: some View {
         Form {
-            Section {
-                Text("merchant.onboarding.regionalNotice").font(.footnote).foregroundStyle(.secondary)
-            }
             submissionSection
             switch model.step {
             case 1: basicSection
@@ -136,11 +133,21 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             if let error = model.errorKey {
                 Section { Text(LocalizedStringKey(error)).foregroundStyle(.red).accessibilityIdentifier("merchant.onboarding.error") }
             }
-            Section {
-                if model.isBusy { ProgressView("merchant.onboarding.working") }
-                if model.step > 1 {
-                    Button("merchant.onboarding.previous") { model.step -= 1; model.errorKey = nil }
+            if model.isBusy || model.step > 1 {
+                Section {
+                    if model.isBusy { ProgressView("merchant.onboarding.working") }
+                    if model.step > 1 {
+                        Button("merchant.onboarding.previous") { model.step -= 1; model.errorKey = nil }
+                            .disabled(model.isBusy || model.coordinator.submission.isLocked)
+                    }
                 }
+            }
+        }
+        .disabled(model.isBusy)
+        .scrollDismissesKeyboard(.interactively)
+        // Source wizard: one pinned primary action, 继续 on steps 1-3 and 提交申请 on step 4.
+        .questifyBottomAction {
+            Group {
                 if model.step < 4 {
                     Button("merchant.onboarding.next") { model.next() }
                         .accessibilityIdentifier("merchant.onboarding.next")
@@ -151,10 +158,9 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
                     .disabled(model.coordinator.identityGate != .registered || model.draft.blocker() != nil)
                     .accessibilityIdentifier("merchant.onboarding.submit")
                 }
-            }.disabled(model.isBusy || model.coordinator.submission.isLocked)
+            }
+            .disabled(model.isBusy || model.coordinator.submission.isLocked)
         }
-        .disabled(model.isBusy)
-        .scrollDismissesKeyboard(.interactively)
     }
     private var basicSection: some View {
         Section("merchant.onboarding.step.1") {
@@ -190,7 +196,6 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
         Group {
             identitySection
             Section("merchant.onboarding.step.3") {
-                Text("merchant.onboarding.licenseHint").font(.footnote).foregroundStyle(.secondary)
                 if model.draft.license != nil {
                     Label("merchant.onboarding.licenseUploaded", systemImage: "checkmark.circle")
                         .accessibilityIdentifier("merchant.onboarding.licenseUploaded")
@@ -292,7 +297,6 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             if let reason = application.displayedReason { Text(reason) }
             if !application.name.isEmpty { LabeledContent("merchant.onboarding.name", value: application.name) }
             if !application.createTime.isEmpty { LabeledContent("merchant.onboarding.submittedAt", value: application.createTime) }
-            Text("merchant.onboarding.statusDoesNotGrantAccess").font(.footnote).foregroundStyle(.secondary)
         }
     }
     private var refreshButton: some View {
