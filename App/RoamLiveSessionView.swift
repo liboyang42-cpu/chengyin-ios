@@ -38,7 +38,7 @@ import Combine
     private var currentBrowseReader: (any RoamExperienceReading)? {
         browseReader(for: browse.target?.context.kind ?? .history)
     }
-    var body: some View {
+    private var sessionContent: some View {
         List {
             if offlineExample { RoamExperienceNotice(offline: true) }
             // Mini-program pcard: goal line, then 用时 / 地盘 / 距离 (公里).
@@ -133,6 +133,9 @@ import Combine
         }
         .navigationTitle("roam.experience.live")
         .accessibilityIdentifier("roam.live.session")
+    }
+    private var sessionObservers: some View {
+        sessionContent
         .onAppear { owner.setForeground(scenePhase == .active); owner.prepare(); browse.appear() }
         .onDisappear { nearbyExpanded = true; browse.parentHidden(); owner.pause() }
         .onChange(of: owner.phase) { _, phase in
@@ -149,14 +152,10 @@ import Combine
         .onChange(of: localHistoryReader.map { ObjectIdentifier($0) }) { _, _ in browse.retireIfStale(owner: owner, reader: currentBrowseReader) }
         .onChange(of: albumMetadataReader?.scope) { _, _ in browse.retireIfStale(owner: owner, reader: currentBrowseReader) }
         .onChange(of: albumMetadataReader.map { ObjectIdentifier($0) }) { _, _ in browse.retireIfStale(owner: owner, reader: currentBrowseReader) }
-        .task(id: owner.phase) {
-            guard owner.phase == .active else { return }
-            while !Task.isCancelled && owner.phase == .active {
-                do { try await Task.sleep(for: .seconds(3)) } catch { return }
-                guard !Task.isCancelled, scenePhase == .active else { return }
-                await owner.pulse()
-            }
-        }
+    }
+    var body: some View {
+        sessionObservers
+        .task(id: owner.phase) { await pulseWhileActive() }
         .confirmationDialog("roam.live.finishConfirm", isPresented: $confirmFinish, titleVisibility: .visible) {
             Button("roam.live.finish") { Task { await owner.finish() } }.accessibilityIdentifier("roam.live.finish.confirm")
             Button("action.cancel", role: .cancel) {}
@@ -172,6 +171,14 @@ import Combine
                 RoamPausedBrowseSheetOwner(presentation: browse, target: target,
                     owner: owner, reader: browseReader(for: target.context.kind)).id(target.id)
             }
+        }
+    }
+    private func pulseWhileActive() async {
+        guard owner.phase == .active else { return }
+        while !Task.isCancelled && owner.phase == .active {
+            do { try await Task.sleep(for: .seconds(3)) } catch { return }
+            guard !Task.isCancelled, scenePhase == .active else { return }
+            await owner.pulse()
         }
     }
     /// Mini-program pcard: the goal line with the phase, then 用时 / 地盘 / 距离 (公里).
