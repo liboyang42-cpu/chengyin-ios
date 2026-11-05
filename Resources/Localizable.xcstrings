@@ -52037,13 +52037,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm action"
+            "value" : "Confirm"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认操作"
+            "value" : "确认"
           }
         }
       }
@@ -52181,13 +52181,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Submitting isn't available right now. Reviewing here won't change any business records."
+            "value" : "Submitting isn’t available right now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "提交暂不可用，在此查看不会更改业务记录。"
+            "value" : "提交暂不可用。"
           }
         }
       }

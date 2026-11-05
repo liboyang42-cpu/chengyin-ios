@@ -311,26 +311,26 @@ struct MerchantAftercareDecisionChange: Identifiable {
     var body: some View {
         NavigationStack {
             List {
-                Section("merchant.business.frozenReview") {
+                Section {
                     Text(LocalizedStringKey(review.mutation.titleKey)).font(.headline)
                     if case .addNote(let customer, _, let correction) = review.mutation, let note = correction {
                         MerchantNoteCorrectionTargetSummary(customer: customer, noteID: note, snapshot: review.baseline)
-                        Text("merchant.noteCorrection.append").font(.footnote).foregroundStyle(.secondary)
                     }
-                    LabeledContent("merchant.business.storeID", value: String(review.baseline.access.merchantID))
-                    LabeledContent("merchant.business.target", value: review.mutation.targetKey)
                     if case .json(let fields) = review.request.body {
-                        ForEach(fields.keys.sorted().filter { $0 != "requestId" }, id: \.self) { key in
+                        ForEach(fields.keys.sorted().filter { $0 != "id" && !$0.hasSuffix("Id") && !$0.hasSuffix("Ids") && !$0.hasSuffix("ID") }, id: \.self) { key in
                             if let value = fields[key], value.array == nil, value.object == nil { MerchantBusinessField(key: key, value: value) }
                             if let values = fields[key]?.array { LabeledContent(LocalizedStringKey("merchant.business.field." + String(key)), value: values.compactMap(\.numberText).joined(separator: ", ")) }
                         }
                     }
-                    Text("merchant.business.refreshBeforeSend").font(.footnote).foregroundStyle(.secondary)
                 }
                 if let issue { Text(LocalizedStringKey(issue)) }
                 if canExecute {
                     if isSynthetic { Text("merchant.business.synthetic") }
-                    Button(isSynthetic ? "merchant.business.confirmSynthetic" : "merchant.business.confirmProduction", action: confirm).disabled(busy).accessibilityIdentifier("merchant.business.confirm")
+                    Button(isSynthetic ? "merchant.business.confirmSynthetic" : "merchant.business.confirmProduction", action: confirm)
+                        .buttonStyle(.questifyPrimary)
+                        .frame(maxWidth: .infinity)
+                        .listRowBackground(Color.clear)
+                        .disabled(busy).accessibilityIdentifier("merchant.business.confirm")
                 } else { Text("merchant.business.disabled").accessibilityIdentifier("merchant.business.dispatchDisabled") }
                 if let editDraft {
                     Button("merchant.reviewDraftReturn.edit", action: editDraft).disabled(busy)
@@ -338,7 +338,7 @@ struct MerchantAftercareDecisionChange: Identifiable {
                         .accessibilityHint(Text("merchant.reviewDraftReturn.hint"))
                 }
                 Button("action.cancel", action: cancel).disabled(busy).accessibilityIdentifier("merchant.business.cancelReview")
-            }.navigationTitle("merchant.business.reviewDraft").interactiveDismissDisabled(busy)
+            }.navigationBarTitleDisplayMode(.inline).interactiveDismissDisabled(busy)
         }
     }
 }
