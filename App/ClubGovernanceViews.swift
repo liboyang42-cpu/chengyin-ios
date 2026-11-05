@@ -1303,7 +1303,6 @@ struct ClubGovernanceReadView: View {
             } else if let settlementSummary, !settlementSummary.isOwner, settlementSummary.hasTopics {
                 ClubOpsSettlementOwnerOnlyWithdraw()
             }
-            Text("club.gov.financialGate")
             if let presentation = try? ClubSettlementDetailPresentation(snapshot: snapshot, context: readContext) {
                 let sourceContext = readContext, sourceGeneration = snapshotGeneration, sourceNamespace = access.storageNamespace
                 let source = ClubSettlementReturnOwner.Source(presentation: presentation, context: sourceContext,
