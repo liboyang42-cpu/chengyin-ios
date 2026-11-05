@@ -209,6 +209,17 @@ import SwiftUI
         }
     }
     @ViewBuilder private func results(_ value: GlobalSearchResults, retainedKinds: [GlobalSearchKind]) -> some View {
+        // Mini-program `pages/search2/result`: result tabs first. Segmented when the labels fit, a menu otherwise,
+        // so counts never clip on small phones or at large text sizes.
+        Section {
+            ViewThatFits(in: .horizontal) {
+                kindPicker(value).pickerStyle(.segmented).fixedSize()
+                kindPicker(value).pickerStyle(.menu)
+            }
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
+        }
         if (loading && !value.rows.isEmpty) || !retainedKinds.isEmpty || !value.gatedKinds.isEmpty || !value.failedKinds.isEmpty {
             Section {
                 if loading && !value.rows.isEmpty {
@@ -237,22 +248,8 @@ import SwiftUI
         }
         let visible = value.rows.filter { selectedKind == nil || $0.kind == selectedKind }
         Section {
-            // Mini-program `pages/search2/result` result tabs, rendered as a native segmented control.
-            Picker("searchMap.resultKinds", selection: $selectedKind) {
-                Text("searchMap.all").tag(GlobalSearchKind?.none)
-                ForEach(GlobalSearchKind.allCases, id: \.self) { kind in
-                    (Text(kind.titleKey) + Text(verbatim: " \(value.count(kind))"))
-                        .tag(Optional(kind))
-                        .accessibilityIdentifier("searchMap.kind.\(kind.rawValue)")
-                }
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .frame(minHeight: 44)
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets())
             if visible.isEmpty && !loading && !value.allFailed && value.failedKinds.isEmpty && value.gatedKinds.isEmpty {
-                ContentUnavailableView("searchMap.empty", systemImage: "magnifyingglass", description: Text("searchMap.emptyHint"))
+                ContentUnavailableView("searchMap.empty", systemImage: "magnifyingglass")
             }
             ForEach(visible) { row in
                 NavigationLink { destination(row.destination) } label: { SearchMapCard(row: row, offline: reader.isOfflineExample) }
@@ -261,6 +258,17 @@ import SwiftUI
                     .questifyCardListRow()
             }
         }
+    }
+    private func kindPicker(_ value: GlobalSearchResults) -> some View {
+        Picker("searchMap.resultKinds", selection: $selectedKind) {
+            Text("searchMap.all").tag(GlobalSearchKind?.none)
+            ForEach(GlobalSearchKind.allCases, id: \.self) { kind in
+                (Text(kind.titleKey) + Text(verbatim: " \(value.count(kind))"))
+                    .tag(Optional(kind))
+                    .accessibilityIdentifier("searchMap.kind.\(kind.rawValue)")
+            }
+        }
+        .labelsHidden()
     }
     private func applyFilter(_ next: GlobalSearchQuery) {
         // Invalidate synchronously, including category-only searches cleared to an empty query.
