@@ -16,12 +16,48 @@ import Combine
     var draftStore: PublishingDraftStore? = nil
     var openProfessional: (ProjectEditDraft) -> Void
     var openResource: (PublishedResource) -> Void
+    /// Mini-program publish menu, second level 专业手动: an empty professional editor for the chosen route type.
+    var makeProfessional: ((ProjectEditProduct) -> AnyView)? = nil
+    /// Mini-program publish menu card 互动: template intro, naming, then the template editor.
+    var makeTemplateAuthoring: (() -> AnyView)? = nil
+    /// Mini-program: activity publishing is for club leaders; other roles never see the entry.
+    private var showsActivity: Bool { account == nil || account?.role == "club" }
     var body: some View {
+        // Same choices and order as the mini-program publish menu (cy-publish-sheet):
+        // a topic (city orientation or free explore, quick or professional), then interaction.
         List {
-            NavigationLink("publishModes.quick") { QuickPublishingView(placeSearch: placeSearch, account: account, draftStore: draftStore, makeAIDraft: makeAIDraft, openProfessional: openProfessional).id(account?.epoch) }
-            NavigationLink("publishModes.activity") { ActivityPublishingView(service: service, account: account, placeSearch: placeSearch, draftStore: draftStore, makeIdentityRegistration: makeIdentityRegistration, makeActivityTemplate: makeActivityTemplate, makeActivityCover: makeActivityCover, openResource: openResource) }
-            NavigationLink("publishModes.projects") { PublishingProjectsView(service: service, account: account, openResource: openResource) }
-            NavigationLink("publishModes.identity") { PublishingIdentityStatusView(service: service, account: account) }
+            Section("publishModes.section.topic") {
+                NavigationLink { QuickPublishingView(placeSearch: placeSearch, account: account, draftStore: draftStore, makeAIDraft: makeAIDraft, openProfessional: openProfessional).id(account?.epoch) } label: {
+                    Label("publishModes.quick", systemImage: "wand.and.stars")
+                }
+                if let makeProfessional {
+                    NavigationLink { makeProfessional(.city) } label: { Label("publishModes.pro.city", systemImage: "map") }
+                        .accessibilityIdentifier("publishModes.pro.city")
+                    NavigationLink { makeProfessional(.freeExplore) } label: { Label("publishModes.pro.freeExplore", systemImage: "location.magnifyingglass") }
+                        .accessibilityIdentifier("publishModes.pro.freeExplore")
+                }
+            }
+            if let makeTemplateAuthoring {
+                Section("publishModes.section.interaction") {
+                    NavigationLink { makeTemplateAuthoring() } label: { Label("publishModes.interaction", systemImage: "puzzlepiece.extension") }
+                        .accessibilityIdentifier("publishModes.interaction")
+                }
+            }
+            if showsActivity {
+                Section {
+                    NavigationLink { ActivityPublishingView(service: service, account: account, placeSearch: placeSearch, draftStore: draftStore, makeIdentityRegistration: makeIdentityRegistration, makeActivityTemplate: makeActivityTemplate, makeActivityCover: makeActivityCover, openResource: openResource) } label: {
+                        Label("publishModes.activity", systemImage: "calendar.badge.plus")
+                    }
+                }
+            }
+            Section {
+                NavigationLink { PublishingProjectsView(service: service, account: account, openResource: openResource) } label: {
+                    Label("publishModes.projects", systemImage: "square.stack")
+                }
+                NavigationLink { PublishingIdentityStatusView(service: service, account: account) } label: {
+                    Label("publishModes.identity", systemImage: "person.text.rectangle")
+                }
+            }
         }.navigationTitle(Text("publishModes.title")).accessibilityIdentifier("publishModes.home")
     }
 }

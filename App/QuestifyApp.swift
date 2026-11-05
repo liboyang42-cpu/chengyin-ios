@@ -278,7 +278,8 @@ struct SessionRootView: View {
                     }, couponWalletDestination: session.makeRoamCouponWalletDestination(reader: session.roamReader), mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory, entryReader: session.roamEntryNearbyReader, entryTeams: { await session.roamEntryTeams(area: $0) }, myTeamsDestination: { AnyView(SessionRoamNearbyTeamsView(initialTab: 1, onSignIn: { selectedTab = .mine })) }, nearbyTeamDestination: { AnyView(SessionRoamNearbyTeamsView(focusTeamID: $0, onSignIn: { selectedTab = .mine })) }, toolsReader: session.roamPassportToolsReader, passportToolsReader: session.roamPassportToolsReader, privateToolsReader: session.roamPrivateToolsReader)
                         .tabItem { rootTabLabel(.roam) }.tag(RootTab.roam)
                     NavigationStack {
-                        DiscoveryTemplateBrowserView(reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext)
+                        DiscoveryTemplateBrowserView(reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext,
+                            publishDestination: { AnyView(SessionPublishingModesView().environmentObject(session).id(session.publishingSession?.epoch)) })
                     }
                         .id(session.templateAuthoringViewIdentity)
                         .tabItem { rootTabLabel(.publish) }.tag(RootTab.publish)
