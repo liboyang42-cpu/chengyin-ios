@@ -145,12 +145,13 @@ struct MerchantCityNodeInlineError: View {
     @ViewBuilder private func ready(_ s: MerchantContentSnapshot) -> some View {
         let p = MerchantCityNodeHubProjection(list: s.value)
         intro(p.quota)
+        // Source 投放节点: the screen's one primary action. A full or empty quota is explained on tap.
         Button { goCreate(p.quota) } label: {
-            HStack { MerchantCityNodeCopy.text("merchantCityNode.place.action"); Spacer(); Image(systemName: "arrow.right") }
-                .font(.headline).padding().frame(maxWidth: .infinity)
-                .background(p.quota.state == .full || p.quota.state == .none ? Color.secondary.opacity(0.25) : Color.accentColor, in: RoundedRectangle(cornerRadius: 14))
-                .foregroundStyle(p.quota.state == .full || p.quota.state == .none ? Color.secondary : Color.white)
-        }.buttonStyle(.plain).accessibilityIdentifier("cityNodeHub.place")
+            MerchantCityNodeCopy.text("merchantCityNode.place.action").frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.questifyPrimary).controlSize(.large)
+        .opacity(p.quota.state == .full || p.quota.state == .none ? 0.5 : 1)
+        .accessibilityIdentifier("cityNodeHub.place")
         HStack(spacing: 12) {
             Button { openClaim() } label: { Label { MerchantCityNodeCopy.text("merchantCityNode.claim.open") } icon: { Image(systemName: "plus") } }
                 .buttonStyle(.bordered).accessibilityIdentifier("cityNodeHub.claim")
@@ -187,10 +188,6 @@ struct MerchantCityNodeInlineError: View {
             }.frame(maxWidth: .infinity).padding(.vertical, 28).accessibilityElement(children: .contain).accessibilityIdentifier("cityNodeHub.empty")
         }
         ForEach(p.nodes) { nodeRow($0) }
-        if !service.permitsWrites || !isOfflineFixture {
-            MerchantCityNodeCopy.text("merchantCityNode.write.disabled").font(.footnote).foregroundStyle(.secondary)
-                .accessibilityIdentifier("cityNodeHub.writesDisabled")
-        }
     }
 
     @ViewBuilder private func intro(_ quota: MerchantCityQuota) -> some View {
@@ -468,7 +465,6 @@ struct MerchantCityNodeInlineError: View {
                             .accessibilityIdentifier("cityNodeHub.poster.image")
                         if let name = code.nodeName { Text(verbatim: name).font(.headline).accessibilityIdentifier("cityNodeHub.poster.name") }
                         MerchantCityNodeCopy.text("merchantCityNode.poster.hintPrint").font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
-                        MerchantCityNodeCopy.text("merchantCityNode.poster.hintKeep").font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
                     case .failed(let message):
                         VStack(spacing: 10) {
                             MerchantCityNodeCopy.text("merchantCityNode.poster.failedTitle").font(.headline)
