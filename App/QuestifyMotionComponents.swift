@@ -54,13 +54,14 @@ struct QuestifyStatusBadge: View {
     @QuestifyReduceMotion private var reduceMotion
     @Environment(\.colorSchemeContrast) private var contrast
     var body: some View {
-        Label(title, systemImage: systemImage)
+        Label { Text(title).lineLimit(1).minimumScaleFactor(0.75) } icon: { Image(systemName: systemImage) }
             .font(.caption.weight(.semibold))
             .foregroundStyle(emphasized ? QuestifyPalette.accent : Color.primary)
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .background(emphasized ? QuestifyPalette.accent.opacity(contrast == .increased ? 0.16 : 0.09) : Color(uiColor: .tertiarySystemFill), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
             .fixedSize(horizontal: false, vertical: true)
+            .layoutPriority(1)
             .contentTransition(.opacity)
             .animation(reduceMotion ? nil : QuestifyMotion.content, value: stateKey)
             .accessibilityElement(children: .combine)
