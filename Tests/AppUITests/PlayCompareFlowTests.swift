@@ -54,7 +54,7 @@ final class PlayCompareFlowTests: XCTestCase {
     func testEmptySelectionIsReviewableAndCountsAsFailedAttempt() {
         let app = launch(inline: true)
         tap("playkit.submit.compare", app)
-        XCTAssertTrue(app.staticTexts["No entries marked. Submitting still counts as an attempt."].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Nothing marked yet."].waitForExistence(timeout: 3))
         tap("playkit.review.confirm", app)
         XCTAssertTrue(app.staticTexts["playkit.compare.receipt"].waitForExistence(timeout: 3))
         XCTAssertEqual(app.staticTexts["compare.fixture.writes"].label, "1")
@@ -62,7 +62,7 @@ final class PlayCompareFlowTests: XCTestCase {
         tap("playkit.compare.reload", app)
         let reloadSheet = app.sheets.firstMatch
         XCTAssertTrue(reloadSheet.waitForExistence(timeout: 3), app.debugDescription)
-        tapFixtureSheetAction("Replace selection with latest receipt", in: reloadSheet, app: app)
+        tapFixtureSheetAction("Restore my last submission", in: reloadSheet, app: app)
         confirm(app)
         XCTAssertEqual(app.staticTexts["compare.fixture.writes"].label, "2")
         XCTAssertFalse(app.buttons["playkit.submit.compare"].exists)

@@ -28,7 +28,7 @@ final class RoamExperienceFlowTests: XCTestCase {
         XCTAssertTrue(app.otherElements["roam.experience.error"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.otherElements["roam.experience.history.empty"].exists)
         XCTAssertTrue(app.buttons["roam.experience.retry"].exists)
-        XCTAssertTrue(app.staticTexts["Your roaming records could not be read. They have not been replaced."].exists)
+        XCTAssertTrue(app.staticTexts["Your roam history couldn't be loaded."].exists)
     }
     func testEmptyHistoryIsNotAnError() {
         let app = app("empty"); open("history", in: app)
@@ -118,7 +118,7 @@ final class RoamExperienceFlowTests: XCTestCase {
         XCTAssertEqual(consent.value as? String, "1", app.debugDescription)
         tapVisible(app.buttons["roam.live.start"], app: app)
         tapVisible(app.buttons["roam.live.pause"], app: app)
-        XCTAssertTrue(app.staticTexts["Paused; no location collection"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Paused"].waitForExistence(timeout: 5))
         tapVisible(app.buttons["roam.live.resume"], app: app)
         tapVisible(app.buttons["roam.live.finish"], app: app)
         // Query the presented native action instead of the unscoped SwiftUI action identifier.
@@ -126,7 +126,7 @@ final class RoamExperienceFlowTests: XCTestCase {
         XCTAssertTrue(confirmation.waitForExistence(timeout: 5), app.debugDescription)
         attachFixtureScreenshot(self, app: app, name: "Roam explicit finish native confirmation")
         tapFixtureSheetAction("End roam", in: confirmation, app: app)
-        XCTAssertTrue(app.staticTexts["Settled and saved"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Roam complete"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.alerts.count, 0)
     }
     func testOfflineLiveUnknownBootstrapIsRecoveredBeforeExplicitResume() {
@@ -135,9 +135,9 @@ final class RoamExperienceFlowTests: XCTestCase {
         tapFixtureNativeSwitch(consent, in: app)
         XCTAssertEqual(consent.value as? String, "1", app.debugDescription)
         tapVisible(app.buttons["roam.live.start"], app: app)
-        XCTAssertTrue(app.staticTexts["Status needs checking"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Needs a quick check"].waitForExistence(timeout: 5))
         tapVisible(app.buttons["roam.live.recover"], app: app)
-        XCTAssertTrue(app.staticTexts["Paused; no location collection"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Paused"].waitForExistence(timeout: 5))
         tapVisible(app.buttons["roam.live.resume"], app: app)
         XCTAssertTrue(app.buttons["roam.live.pause"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.alerts.count, 0)

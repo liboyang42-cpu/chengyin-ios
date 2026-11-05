@@ -182,12 +182,11 @@ import Combine
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(active ? "roam.live.goal" : phaseText)
                     .font(.title3.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("roam.live.phase")
                 Spacer(minLength: 0)
                 Circle().fill(active ? Color.green : Color.secondary).frame(width: 10, height: 10)
                     .accessibilityHidden(true)
             }
-            .accessibilityElement(children: .combine)
-            .accessibilityIdentifier("roam.live.phase")
             HStack(alignment: .top, spacing: 8) {
                 TimelineView(.animation(minimumInterval: 1, paused: owner.phase != .active || !owner.foreground)) { _ in
                     RoamLiveElapsedRow(seconds: owner.record == nil ? nil : owner.localForegroundElapsedSeconds)

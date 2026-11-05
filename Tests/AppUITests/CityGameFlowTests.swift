@@ -39,7 +39,7 @@ final class CityGameFlowTests: XCTestCase {
         let app = launch()
         tap("cityGame.action.ACQUIRE_PROPERTY.prop-cafe", app)
         waitFor(app.otherElements["cityGame.review"], app)
-        XCTAssertTrue(app.staticTexts["Only you pay. Teammates are never charged, and nothing is deducted if it fails."].exists)
+        XCTAssertTrue(app.staticTexts["Only you pay. Nothing is deducted if it fails."].exists)
         tap("cityGame.cancel", app)
         XCTAssertFalse(app.otherElements["cityGame.review"].exists)
         XCTAssertEqual(recorder("submissions", app), "0")

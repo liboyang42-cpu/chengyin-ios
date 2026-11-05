@@ -69,7 +69,7 @@ final class RoamSubpageParityFlowTests: XCTestCase {
 
     func testVoucherMissingParameterOffersOnlyBack() {
         let app = launch("voucherMissing")
-        XCTAssertTrue(app.staticTexts["这个核销码打不开"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["这个核销码无法打开"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["roamSub.w208.voucher.back"].exists)
         XCTAssertFalse(app.buttons["verificationCode.show"].exists)
     }
