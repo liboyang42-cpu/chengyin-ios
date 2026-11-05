@@ -899,32 +899,32 @@
     },
     "p23.selecting": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在核对原消息…"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Checking the original message…"
+            "value": "Checking the message…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在核对消息…"
           }
         }
       }
     },
     "p23.reload": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重新读取置顶"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reload pinned messages"
+            "value": "Retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
           }
         }
       }
@@ -947,16 +947,16 @@
     },
     "p23.confirm.action": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "确认取消置顶"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm unpin"
+            "value": "Unpin"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消置顶"
           }
         }
       }
@@ -995,16 +995,16 @@
     },
     "p23.changed": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原消息或权限已变化，请重新选择"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original message or permissions changed. Select it again."
+            "value": "This message or your permissions changed. Select it again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "消息或权限已变化，请重新选择。"
           }
         }
       }
