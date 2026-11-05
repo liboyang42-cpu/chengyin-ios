@@ -81,7 +81,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
     @ViewBuilder private var cancellation: some View {
         if let status = model.state.status {
             Section("compliance.serverStatus") {
-                Text(status.status).accessibilityIdentifier("compliance.serverStatus")
+                statusText(status.status).accessibilityIdentifier("compliance.serverStatus")
                 ForEach(Array(status.blockers.enumerated()), id: \.offset) { _, blocker in Text(blocker) }
                 if status.executeAfter != nil || status.pending { DeregistrationExecuteAfterRow(raw: status.executeAfter) }
             }
@@ -125,6 +125,15 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
         case .unknown: Text("compliance.unknown").accessibilityIdentifier("compliance.unknown")
         }
         Button("compliance.refresh") { Task { await model.coordinator.load() } }
+    }
+    /// Server status codes (PENDING / ELIGIBLE / BLOCKED) read as plain words, as the mini-program titles them.
+    private func statusText(_ raw: String) -> Text {
+        switch raw.uppercased() {
+        case "PENDING": return Text("compliance.status.pending")
+        case "ELIGIBLE": return Text("compliance.status.eligible")
+        case "BLOCKED": return Text("compliance.status.blocked")
+        default: return Text(verbatim: raw)
+        }
     }
     private var roam: some View {
         Section {
