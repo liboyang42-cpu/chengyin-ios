@@ -19,8 +19,8 @@ import SwiftUI
                 handle(.cancel, label: "cooperation.detail.withdraw")
                 Text("cooperation.detail.withdraw.hint").font(.footnote).foregroundStyle(.secondary)
             case .deposit:
-                Button("cooperation.detail.deposit.pay") {}.disabled(true).accessibilityIdentifier("cooperation.detail.deposit.pay")
-                Text("cooperation.financeUnavailable").font(.footnote).foregroundStyle(.secondary)
+                // 去缴纳保证金 has no payment path in the app; the owed amount is shown in 合作条款 above.
+                Text("cooperation.detail.deposit.owedFooter").foregroundStyle(.secondary)
             case .ongoing(let frozen):
                 Text(LocalizedStringKey(frozen ? "cooperation.detail.footer.ongoingFrozen" : "cooperation.detail.footer.ongoing")).foregroundStyle(.secondary)
             case .inactive: Text("cooperation.detail.footer.inactive").foregroundStyle(.secondary)

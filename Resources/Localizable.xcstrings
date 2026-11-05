@@ -180068,7 +180068,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Legacy merchant-node invitations are view-only"
+            "value" : "Older merchant-node invitations can only be viewed"
           }
         },
         "zh-Hans" : {
@@ -203213,6 +203213,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "备注仅本店可见"
+          }
+        }
+      }
+    },
+    "cooperation.detail.deposit.owedFooter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for the deposit"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "等待缴纳保证金"
           }
         }
       }
