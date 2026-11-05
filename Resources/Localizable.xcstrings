@@ -505,13 +505,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Keep the original order. Turn off an image to remove only that position."
+            "value" : "Turn off an image to remove it."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "图片保持原始顺序。关闭开关仅移除对应位置的图片。"
+            "value" : "关闭开关即可移除对应图片。"
           }
         }
       }
@@ -809,13 +809,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Phone information unavailable"
+            "value" : "—"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "手机号信息暂不可用"
+            "value" : "—"
           }
         }
       }
@@ -111061,13 +111061,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The avatar context changed. Discard the staged avatar and review a new selection."
+            "value" : "Something changed. Discard this avatar and choose again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "头像的使用环境已变化。请放弃草稿头像后重新选择并确认。"
+            "value" : "情况有变化，请放弃这张头像后重新选择。"
           }
         }
       }
@@ -111078,13 +111078,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This review includes your newly staged avatar."
+            "value" : "Your new avatar will be saved too."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本次确认包含已加入草稿的新头像。"
+            "value" : "新头像也会一起保存。"
           }
         }
       }
@@ -111112,13 +111112,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Discard staged avatar"
+            "value" : "Discard new avatar"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "放弃草稿头像"
+            "value" : "放弃新头像"
           }
         }
       }
@@ -111129,13 +111129,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Discard this staged avatar?"
+            "value" : "Discard this avatar?"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "放弃这张草稿头像？"
+            "value" : "放弃这张头像？"
           }
         }
       }
@@ -111163,13 +111163,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choose and crop a photo, review its upload, then stage it for your profile review."
+            "value" : "Choose a photo and crop it."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选择并裁剪照片，确认上传后，再加入资料修改草稿。"
+            "value" : "选择一张照片并裁剪。"
           }
         }
       }
@@ -111214,13 +111214,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Stage this avatar"
+            "value" : "Use this avatar"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "将此头像加入草稿"
+            "value" : "使用这张头像"
           }
         }
       }
@@ -111231,13 +111231,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "New avatar staged. Review and save your profile to apply it."
+            "value" : "New avatar ready. Save your profile to apply it."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "新头像已加入草稿。请确认并保存个人资料后应用。"
+            "value" : "新头像已就绪，保存资料后生效。"
           }
         }
       }
@@ -111248,13 +111248,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profile avatar"
+            "value" : "Avatar"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "个人头像"
+            "value" : "头像"
           }
         }
       }
@@ -111282,13 +111282,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This upload or its local record could not be confirmed. New uploads stay blocked; closing will not retry it."
+            "value" : "We couldn't confirm this upload. Close and try again later."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本次上传结果或本地记录暂时无法确认。已暂停新上传，关闭页面不会重试。"
+            "value" : "无法确认这次上传，请关闭后稍后再试。"
           }
         }
       }
@@ -111299,13 +111299,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm image upload"
+            "value" : "Upload"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认上传图片"
+            "value" : "上传"
           }
         }
       }
@@ -111316,13 +111316,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Upload sends this cropped image to your configured service. It does not save your profile."
+            "value" : "Uploading doesn't save your profile yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "上传会将这张裁剪后的图片发送至已配置的服务，不会自动保存个人资料。"
+            "value" : "上传后还需保存资料才会生效。"
           }
         }
       }
@@ -111333,13 +111333,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Image uploaded. Stage it to include it in your profile changes."
+            "value" : "Uploaded. Tap Use this avatar to add it to your changes."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "图片已上传。加入草稿后，才能随个人资料一起确认保存。"
+            "value" : "已上传。点“使用这张头像”加入本次修改。"
           }
         }
       }
@@ -111688,13 +111688,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your profile changed on the server. Review the refreshed details and edit again."
+            "value" : "Your profile changed elsewhere. Check the latest details and edit again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器上的资料已变化。请查看刷新后的资料并重新编辑。"
+            "value" : "资料已在别处更改，请查看最新资料后重新编辑。"
           }
         }
       }
@@ -111736,13 +111736,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Save these profile details to your account? Other existing profile fields will be preserved."
+            "value" : "Save these changes to your profile?"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "将这些资料保存到你的账号？其他现有资料将保留。"
+            "value" : "将这些更改保存到个人资料？"
           }
         }
       }
@@ -111774,7 +111774,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "个人简介"
+            "value" : "个人介绍"
           }
         }
       }
@@ -111784,13 +111784,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Could not safely load the complete profile. Reload before saving."
+            "value" : "Your profile didn't load completely. Reload before saving."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法安全读取完整资料。保存前请重新加载。"
+            "value" : "资料没有完整加载，保存前请重新加载。"
           }
         }
       }
@@ -111832,13 +111832,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The update was not sent. Review your changes again."
+            "value" : "Your changes weren't sent. Check them and try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "更新尚未发送。请重新确认更改。"
+            "value" : "更改未发送，请检查后重试。"
           }
         }
       }
@@ -111848,13 +111848,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The current profile matches your changes, but the original save request was not acknowledged and may still be running. Saving remains locked; checking again will not resend it."
+            "value" : "Your profile shows these changes, but we couldn't confirm the save. Saving is paused; checking again won't resend it."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前资料与你的更改一致，但原保存请求尚未收到确认，可能仍在处理中。保存仍被锁定；再次查询不会重新提交。"
+            "value" : "资料已显示这些更改，但无法确认保存结果。已暂停保存，再次查询不会重复提交。"
           }
         }
       }
@@ -111880,13 +111880,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your changes were rejected. Review the message and edit before trying again."
+            "value" : "Your changes weren't accepted. Check the message and edit before trying again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "更改被拒绝。请根据提示编辑后再试。"
+            "value" : "更改未被接受，请根据提示修改后再试。"
           }
         }
       }
@@ -111912,13 +111912,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review changes"
+            "value" : "Save"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "查看更改"
+            "value" : "保存"
           }
         }
       }
@@ -111944,13 +111944,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your profile was saved and verified."
+            "value" : "Profile saved."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "资料已保存并核实。"
+            "value" : "资料已保存。"
           }
         }
       }
@@ -111960,13 +111960,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Only your nickname and introduction are editable here. Existing photos, contact QR image and route preferences are preserved."
+            "value" : "Only your nickname and introduction can be edited here."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此处仅编辑昵称与简介。现有照片、联系二维码和路线偏好将保留。"
+            "value" : "此处可编辑昵称与个人介绍。"
           }
         }
       }
@@ -111982,7 +111982,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请登录后编辑资料。"
+            "value" : "登录后编辑资料。"
           }
         }
       }
@@ -112008,13 +112008,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profile editing isn't available right now."
+            "value" : "Your profile can't be edited right now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "资料编辑暂不可用。"
+            "value" : "暂时无法编辑资料。"
           }
         }
       }
@@ -112040,13 +112040,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The save result is not confirmed. Saving is locked to prevent a duplicate update. Check the result again; no update will be resent."
+            "value" : "We couldn't confirm the save. Saving is paused so nothing is sent twice. Check the result again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保存结果尚未确认。为避免重复更新，已锁定保存。请再次查询结果，不会重新提交更新。"
+            "value" : "无法确认保存结果。为避免重复提交，已暂停保存，请再次查询结果。"
           }
         }
       }
@@ -113264,13 +113264,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "放弃修改并重新载入"
+            "value" : "放弃并重新加载"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Discard changes and reload"
+            "value" : "Discard and reload"
           }
         }
       }
@@ -113281,13 +113281,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "载入成功后，将替换尚未保存的资料修改和暂存头像。载入失败时保留当前草稿。"
+            "value" : "重新加载会替换尚未保存的修改和新头像。"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A successful reload replaces unsaved profile changes and the staged avatar. If it fails, your draft is kept."
+            "value" : "Reloading replaces your unsaved changes and new avatar."
           }
         }
       }
@@ -113298,7 +113298,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重新载入个人资料？"
+            "value" : "重新加载个人资料？"
           }
         },
         "en" : {
@@ -156744,13 +156744,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "返回会放弃尚未保存的资料修改和暂存头像。结果未知的保存仍保持待核对状态，返回不会重试保存。"
+            "value" : "尚未保存的修改和新头像将被放弃。"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Going back discards unsaved profile changes and the staged avatar. An unresolved save stays pending; going back does not retry it."
+            "value" : "Your unsaved changes and new avatar will be discarded."
           }
         }
       }
@@ -156842,13 +156842,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "完成编辑只更新当前草稿，回到资料页后仍需确认保存。取消或下滑关闭会放弃本次字段编辑。"
+            "value" : "点完成后，回到资料页点保存即可生效。"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Done updates only this draft. Review and save from the profile page to submit changes. Cancel or swipe down to discard this field edit."
+            "value" : "Tap Done, then Save on your profile to apply."
           }
         }
       }
@@ -158519,13 +158519,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前资料响应未提供作品描述，暂不能编辑；已有图片仍可查看。"
+            "value" : "—"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This profile response did not include a portfolio description. You can still view existing images."
+            "value" : "—"
           }
         }
       }
@@ -158672,13 +158672,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "待移除"
+            "value" : "将移除"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pending removal"
+            "value" : "Will be removed"
           }
         }
       }
@@ -158723,13 +158723,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "完成只暂存保留或移除的选择，回到资料页后仍需审阅并保存。"
+            "value" : "点完成后，回到资料页点保存即可生效。"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Done only stages the choice to keep or remove this QR code. Review and save from the profile page to submit it."
+            "value" : "Tap Done, then Save on your profile to apply."
           }
         }
       }
@@ -158740,13 +158740,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂不支持新增或替换二维码。"
+            "value" : "App 内暂不支持新增二维码。"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Adding or replacing a QR code is not available yet."
+            "value" : "Adding a new QR code isn't in the app yet."
           }
         }
       }
@@ -160320,13 +160320,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Done only stages these removals. Review and save your profile to apply them."
+            "value" : "Tap Done, then Save on your profile to apply."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "完成仅暂存移除结果，请审阅并保存整页资料后生效。"
+            "value" : "点完成后，回到资料页点保存即可生效。"
           }
         }
       }
@@ -160368,13 +160368,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Stored preferences could not be safely read. Close this editor and reload your profile."
+            "value" : "Your preferences didn't load. Close and reload your profile."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法安全读取已存偏好，请关闭此窗口并重新加载资料。"
+            "value" : "路线偏好没加载出来，请关闭后重新加载资料。"
           }
         }
       }
@@ -160390,7 +160390,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保存后的偏好分类编号"
+            "value" : "保存后的路线偏好"
           }
         }
       }
@@ -160464,13 +160464,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "All work images are pending removal"
+            "value" : "All work images will be removed"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "全部作品图片待移除"
+            "value" : "全部作品图片将被移除"
           }
         }
       }
@@ -160512,13 +160512,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This removes every existing work image from your profile, including images beyond the preview limit. Your work description stays unchanged."
+            "value" : "This removes every work image from your profile. Your description stays."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此操作将从资料中移除全部现有作品图片，包括超出预览数量的图片。作品描述会保留。"
+            "value" : "将从资料中移除全部作品图片，作品描述保留。"
           }
         }
       }
@@ -160528,13 +160528,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Done only stages this choice. Review and save your full profile to apply it. Cancel keeps the page draft unchanged."
+            "value" : "Tap Done, then Save on your profile to apply."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "完成仅暂存选择，审阅并保存整页资料后生效。取消不会更改整页草稿。"
+            "value" : "点完成后，回到资料页点保存即可生效。"
           }
         }
       }
