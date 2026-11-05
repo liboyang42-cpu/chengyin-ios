@@ -34,7 +34,6 @@ import SwiftUI
                 ProgressView("homeFeed.loading")
             } else {
                 List {
-                    if reader.isOfflineExample { Text("homeFeed.example").font(.caption) }
                     if model.loading { ProgressView("homeFeed.loading") }
                     if showsHeroBanners || viewerNickname != nil || selectedCity != nil || onActionBanner != nil {
                         HomeHeroHeaderSectionView(nickname: viewerNickname, selectedCity: selectedCity, avatarSource: viewerAvatar) { banner in
@@ -190,7 +189,6 @@ extension HomeFeedItem {
 
 struct HomeFeedCard: View {
     let item: HomeFeedItem
-    private let liveStart: Date?
     private let sourceTimeZone: TimeZone?
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
@@ -198,30 +196,19 @@ struct HomeFeedCard: View {
     init(item: HomeFeedItem, sourceTimeZone: TimeZone? = nil) {
         self.item = item
         self.sourceTimeZone = sourceTimeZone
-        if case .activity = item { liveStart = HomeFeedDate.parse(item.startDate, sourceTimeZone: sourceTimeZone) }
-        else { liveStart = nil }
-    }
-    private var startDateText: String {
-        HomeFeedDate.display(item.startDate, locale: locale, sourceTimeZone: sourceTimeZone, displayTimeZone: timeZone)
     }
     private var typeSymbol: String {
         switch item { case .activity: return "figure.walk"; case .topic: return "map" }
     }
-    /// Mini-program `v2-fcard` + `v2-status`: the cover carries the title, then price, time and place.
+    /// Mini-program `v2-fcard` + `v2-status`: cover and title, one date · place line, then the starting price.
     var body: some View {
         QuestifyImageEntityCard(imageSource: safeImageSource, title: item.name, fallbackSymbol: typeSymbol,
-                                minimumHeight: dynamicTypeSize.isAccessibilitySize ? 300 : 280) {
-            if case .topic(let topic) = item { TopicTotalStops(count: topic.locationCount, identifier: "homeFeed.totalStops.\(topic.id)") }
-            QuestifyImageEntityMetadata(label: "homeFeed.date", value: startDateText, systemImage: "calendar")
-            QuestifyImageEntityMetadata(label: "homeFeed.place", value: item.place ?? "—", systemImage: "mappin")
-            let layout = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10)) : AnyLayout(HStackLayout(alignment: .bottom, spacing: 12))
-            layout {
-                priceBlock(showCurrencyWhenUnknown: isTopic)
-                if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
-                VStack(alignment: .leading, spacing: 6) {
-                    if item.isBeta { QuestifyStatusBadge(title: "homeFeed.beta", systemImage: "flask") }
-                    if let liveStart { HomeFeedLiveBadge(start: liveStart) }
-                }
+                                minimumHeight: dynamicTypeSize.isAccessibilitySize ? 300 : 260) {
+            if let meta = metaLine {
+                Text(verbatim: meta).foregroundStyle(.white.opacity(0.8))
+            }
+            if let price = priceText {
+                Text("playx.finishRoute.priceFrom \(price)").font(.headline).monospacedDigit()
             }
         }
     }
@@ -230,43 +217,32 @@ struct HomeFeedCard: View {
         if let url = QuestifyCardArtwork.safeURL(item.imageURL) { return url.absoluteString }
         return nil
     }
-    private var isTopic: Bool {
-        if case .topic = item { return true }
-        return false
+    private var metaLine: String? {
+        let place = item.place?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let parts = [startDateText, place].compactMap { $0 }.filter { !$0.isEmpty }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
-    private func priceBlock(showCurrencyWhenUnknown: Bool) -> some View {
-        let from = appLocalized("homeFeed.priceFrom", locale: locale)
-        let currency = appLocalized("homeFeed.currencyUnknown", locale: locale)
-        let known = item.amount.flatMap { $0 >= 0 ? $0 : nil }
-        let figure = known.map { $0.formatted(.number.precision(.fractionLength(2)).locale(locale)) }
-            ?? appLocalized("homeFeed.unknown", locale: locale)
-        let label = known != nil || showCurrencyWhenUnknown ? from + "\n" + currency : from
-        return RevolutAmountView(figure: figure, label: label)
-    }
-}
-
-/// One initial entry, display-granularity minute/hour boundaries, and the source start boundary. No per-card 1 Hz timer.
-private struct HomeFeedStartSchedule: TimelineSchedule {
-    let start: Date
-    func entries(from date: Date, mode: Mode) -> [Date] {
-        let base = start > date ? [date, start] : [date]
-        return HomeIndexParityPresentation.countdownScheduleDates(from: date, start: start, base: base)
-    }
-}
-
-private struct HomeFeedLiveBadge: View {
-    @Environment(\.locale) private var locale
-    let start: Date
-    var body: some View {
-        TimelineView(HomeFeedStartSchedule(start: start)) { context in
-            // Preserves the source's start <= now rule. No timezone or end-state is inferred.
-            if start <= context.date {
-                QuestifyStatusBadge(title: "homeFeed.live", systemImage: "clock")
-            } else if let countdown = HomeIndexParityPresentation.upcomingCountdownText(start: start, now: context.date, locale: locale) {
-                Text(verbatim: countdown)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-            }
+    /// Like the mini-program, a time without a zone reads as written; an explicit offset shows in local time.
+    private var startDateText: String? {
+        let utc = TimeZone(secondsFromGMT: 0)!
+        let displayZone: TimeZone
+        let date: Date
+        if let absolute = HomeFeedDate.parse(item.startDate, sourceTimeZone: sourceTimeZone) {
+            date = absolute; displayZone = timeZone
+        } else if let wallClock = HomeFeedDate.parse(item.startDate, sourceTimeZone: utc) {
+            date = wallClock; displayZone = utc
+        } else { return nil }
+        var calendar = Calendar(identifier: .gregorian); calendar.timeZone = displayZone
+        var style = Date.FormatStyle.dateTime.month(.abbreviated).day().hour().minute().locale(locale)
+        if calendar.component(.year, from: date) != calendar.component(.year, from: Date()) {
+            style = Date.FormatStyle.dateTime.year().month(.abbreviated).day().hour().minute().locale(locale)
         }
+        style.timeZone = displayZone
+        return date.formatted(style)
+    }
+    /// Unknown or negative amounts hide the price instead of printing a placeholder.
+    private var priceText: String? {
+        guard let amount = item.amount, amount >= 0 else { return nil }
+        return amount.formatted(.number.precision(.fractionLength(0...2)).locale(locale))
     }
 }
