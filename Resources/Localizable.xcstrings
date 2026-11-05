@@ -213272,6 +213272,40 @@
           }
         }
       }
+    },
+    "d7.channelRevisions.version %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version %lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第 %lld 版"
+          }
+        }
+      }
+    },
+    "d7.channelRevisions.empty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No edits yet"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂无编辑记录"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
