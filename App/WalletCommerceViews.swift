@@ -231,7 +231,7 @@ extension WalletScreen where Value == WithdrawalBalance {
             Picker("wallet.direction", selection: $direction) {
                 Text("wallet.all").tag("all"); Text("wallet.inflow").tag("income"); Text("wallet.outflow").tag("expense")
             }.pickerStyle(.menu)
-            if points { Text("wallet.loadedFilter"); NavigationLink("wallet.tasks") { WalletPointsTasksView(reader: reader) } }
+            if points { NavigationLink("wallet.tasks") { WalletPointsTasksView(reader: reader) } }
             if model.pager.hasLoadedPage && model.pager.loadedScope == reader.scope {
                 if points { LabeledContent("wallet.pointsBalance", value: format.points(model.pager.rows.first?.afterPoints)) }
                 if filtered.isEmpty && !model.pager.isLoading && !model.pager.failed {
@@ -270,7 +270,6 @@ extension WalletScreen where Value == WithdrawalBalance {
                     List {
                         if let row = model.pager.incomeDetailRow(selection, reader: reader) {
                             Section { ledgerRow(row) }
-                            Section { LabeledContent("wallet.entry", value: String(row.id)) }
                         } else {
                             Text(LocalizedStringKey(reader.scope == nil ? "wallet.login" : "wallet.failed"))
                                 .accessibilityIdentifier("wallet.income.detail.retired")

@@ -154595,13 +154595,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "currency unspecified"
+            "value" : "—"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "币种未提供"
+            "value" : "—"
           }
         }
       }
@@ -154883,13 +154883,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fund stages"
+            "value" : "Settlement"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "资金分段"
+            "value" : "结算进度"
           }
         }
       }
@@ -155523,13 +155523,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wallet"
+            "value" : "Account earnings"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "资产中心"
+            "value" : "账户收益"
           }
         }
       }
