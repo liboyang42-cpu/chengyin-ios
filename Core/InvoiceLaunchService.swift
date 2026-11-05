@@ -11,14 +11,17 @@ import FoundationNetworking
     private let current: () -> InvoiceLaunchSession?
     private let enabled: () -> Bool
     private let mutationsEnabled: () -> Bool
+    private let originalReceiptsEnabled: () -> Bool
+    var usesOriginalReceipts: Bool { originalReceiptsEnabled() }
     private let unauthorized: () -> Void
     private var revoked = false
     public init(session: InvoiceLaunchSession, transport: any HTTPTransport,
                 enabled: @escaping () -> Bool = { false },
                 mutationsEnabled: @escaping () -> Bool = { false },
+                originalReceiptsEnabled: @escaping () -> Bool = { false },
                 current: @escaping () -> InvoiceLaunchSession?, unauthorized: @escaping () -> Void = {}) {
         self.session = session; self.transport = transport; self.enabled = enabled
-        self.mutationsEnabled = mutationsEnabled; self.current = current; self.unauthorized = unauthorized
+        self.mutationsEnabled = mutationsEnabled; self.originalReceiptsEnabled = originalReceiptsEnabled; self.current = current; self.unauthorized = unauthorized
     }
     public func revoke() { revoked = true }
     func check(mutation: Bool = false) throws {
@@ -48,12 +51,35 @@ import FoundationNetworking
         let result: InvoiceLaunchApplication = try await read(.detail, body: InvoiceLaunchWire.encode(IDBody(id: id)))
         try result.validate(); guard result.id == id else { throw InvoiceLaunchIssue.malformed }; return result
     }
+    public func originalApplication(requestId: String) async throws -> InvoiceLaunchApplication {
+        guard InvoiceLaunchWire.requestID(requestId) else { throw InvoiceLaunchIssue.invalid }
+        let result: InvoiceLaunchApplication = try await read(.originalRequest, body: InvoiceLaunchWire.encode(RequestBody(requestId: requestId)))
+        try result.validate()
+        guard result.requestId == requestId else { throw InvoiceLaunchIssue.malformed }
+        return result
+    }
+    public func titleReceipt(requestId: String, targetID: Int64? = nil) async throws -> InvoiceLaunchTitleReceipt {
+        guard InvoiceLaunchWire.requestID(requestId) else { throw InvoiceLaunchIssue.invalid }
+        let result: InvoiceLaunchTitleReceipt = try await read(.titleRequest, body: InvoiceLaunchWire.encode(RequestBody(requestId: requestId)))
+        try result.validate(request: requestId, target: targetID); return result
+    }
+    func saveTitleWithRequest(_ draft: InvoiceLaunchTitleDraft, requestId: String) async throws -> InvoiceLaunchTitleReceipt {
+        guard InvoiceLaunchWire.requestID(requestId) else { throw InvoiceLaunchIssue.invalid }
+        // Flatten the original draft, matching the controller; never persist this PII payload.
+        var body = try JSONSerialization.jsonObject(with: InvoiceLaunchWire.encode(draft)) as! [String: Any]
+        body["requestId"] = requestId
+        do {
+            let result: InvoiceLaunchTitleReceipt = try await mutation(.saveTitleRequest, body: JSONSerialization.data(withJSONObject: body, options: [.sortedKeys]))
+            try result.validate(request: requestId, target: draft.id); return result
+        } catch { throw mutationIssue(error) }
+    }
+    private struct RequestBody: Encodable { let requestId: String }
     // Internal mutations force callers through the durable coordinator.
     func apply(_ command: InvoiceLaunchApply) async throws -> InvoiceLaunchApplication {
         try command.validate()
         do {
             let result: InvoiceLaunchApplication = try await mutation(.apply, body: InvoiceLaunchWire.encode(command))
-            try result.validate(); guard result.matches(command) else { throw InvoiceLaunchIssue.malformed }; return result
+            try result.validate(); guard (!usesOriginalReceipts || result.requestId == command.requestId), result.matches(command) else { throw InvoiceLaunchIssue.malformed }; return result
         } catch { throw mutationIssue(error) }
     }
     func saveTitle(_ draft: InvoiceLaunchTitleDraft) async throws -> InvoiceLaunchTitle {
@@ -95,6 +121,7 @@ import FoundationNetworking
         return .outcomeUnknown
     }
     private func execute<T: Decodable>(_ route: InvoiceLaunchRoute, body: Data, permitsEmpty: Bool = false) async throws -> T {
+        if route.needsOriginalReceipts && !usesOriginalReceipts { throw InvoiceLaunchIssue.originalReadUnavailable }
         var request = URLRequest(url: session.baseURL.appendingPathComponent(route.path))
         request.httpMethod = "POST"; request.httpBody = body; request.timeoutInterval = 20
         request.cachePolicy = .reloadIgnoringLocalCacheData
@@ -105,12 +132,14 @@ import FoundationNetworking
         try check(mutation: route.isMutation)
         let (data, status) = try await transport.send(request)
         try check(mutation: route.isMutation)
+        if route.needsOriginalReceipts && !usesOriginalReceipts { throw InvoiceLaunchIssue.originalReadUnavailable }
         guard data.count <= 1_048_576 else { throw InvoiceLaunchIssue.malformed }
         if status == 401 { unauthorized(); throw InvoiceLaunchIssue.unauthorized }
         guard status == 200 else { throw InvoiceLaunchIssue.unavailable }
         let header = try JSONDecoder().decode(Header.self, from: data)
         if header.code == 401 { unauthorized(); throw InvoiceLaunchIssue.unauthorized }
         if header.code != 200 {
+            if route == .originalRequest || route == .titleRequest { throw InvoiceLaunchIssue.outcomeUnknown }
             if let code = header.errorCode, Self.rollbacks.contains(code) { throw InvoiceLaunchIssue.rejected(code) }
             throw InvoiceLaunchIssue.unavailable
         }

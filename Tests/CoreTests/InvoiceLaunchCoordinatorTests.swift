@@ -245,4 +245,105 @@ import XCTest
             XCTAssertEqual(h.wire.requests.map { $0.url!.lastPathComponent }, ["delete"])
         }
     }
+    func testUnknownApplyRecoversOriginalRequestAfterRestartWithoutWrite() async throws {
+        let h = try S.Harness(); h.originalReceipts = true; h.wire.failNext = true
+        await S.expect(.outcomeUnknown) { _ = try await h.coordinator().apply(h.command()) }
+        let restarted = try S.Harness(memory: h.memory, captured: S.session(epoch: 2)); restarted.originalReceipts = true
+        var app = S.application(); app["requestId"] = "synthetic-original-request"
+        restarted.wire.responses = [try S.success(app)]
+        _ = try await restarted.coordinator().recover()
+        XCTAssertNil(try restarted.store.load())
+        XCTAssertEqual(restarted.wire.requests.map { $0.url!.path }, ["/native/api/invoice/request"])
+        let body = try JSONSerialization.jsonObject(with: restarted.wire.requests[0].httpBody!) as! [String: Any]
+        XCTAssertEqual(body["requestId"] as? String, "synthetic-original-request"); XCTAssertEqual(body.count, 1)
+    }
+    func testOriginalApplyMismatchAndNotFoundKeepExactJournal() async throws {
+        let h = try S.Harness(); h.originalReceipts = true; h.wire.failNext = true
+        await S.expect(.outcomeUnknown) { _ = try await h.coordinator().apply(h.command()) }
+        let original = try XCTUnwrap(h.store.load())
+        var wrong = S.application(orders: [99]); wrong["requestId"] = "synthetic-original-request"
+        for response in [try S.success(wrong), try S.failure("INVOICE_NOT_FOUND")] {
+            h.wire.responses = [response]
+            await S.expect(.outcomeUnknown) { _ = try await h.coordinator().recover() }
+            XCTAssertEqual(try h.store.load(), original)
+        }
+        let count = h.wire.requests.count
+        await S.expect(.pendingConflict) { _ = try await h.coordinator().apply(h.command()) }
+        XCTAssertEqual(h.wire.requests.count, count)
+    }
+    func testOriginalApplyCannotReplaceCheckpointedEntity() async throws {
+        let h = try S.Harness(); h.originalReceipts = true
+        var app = S.application(); app["requestId"] = "synthetic-original-request"
+        h.wire.responses = [try S.success(app)]
+        await S.expect(.outcomeUnknown) { _ = try await h.coordinator().apply(h.command()) }
+        XCTAssertEqual(try h.store.load()?.applicationID, 51)
+        app["id"] = "52"; h.wire.responses = [try S.success(app)]
+        await S.expect(.outcomeUnknown) { _ = try await h.coordinator().recover() }
+        XCTAssertEqual(try h.store.load()?.applicationID, 51)
+    }
+    func testOriginalTitleSavePersistsKeyBeforeSendingAndRecoversWithoutPII() async throws {
+        let h = try S.Harness(); h.originalReceipts = true; h.wire.failNext = true
+        let draft = try InvoiceLaunchTitleDraft(titleType: "COMPANY", titleName: "Synthetic private name", taxNo: "913456789012345678")
+        h.wire.beforeSend = { XCTAssertNotNil(try h.store.load()?.titleRequestID) }
+        await S.expect(.outcomeUnknown) { _ = try await h.coordinator().saveTitle(draft) }
+        let original = try XCTUnwrap(h.store.load()), request = try XCTUnwrap(original.titleRequestID)
+        let body = try JSONSerialization.jsonObject(with: h.wire.requests[0].httpBody!) as! [String: Any]
+        XCTAssertEqual(body["requestId"] as? String, request); XCTAssertEqual(body["titleName"] as? String, draft.titleName)
+        XCTAssertEqual(h.wire.requests[0].url?.path, "/native/api/invoice/titles/save-request")
+        let persisted = String(decoding: try XCTUnwrap(h.memory.values.values.first), as: UTF8.self)
+        XCTAssertFalse(persisted.contains(draft.titleName)); XCTAssertFalse(persisted.contains("913456789012345678"))
+        let restarted = try S.Harness(memory: h.memory, captured: S.session(epoch: 2)); restarted.originalReceipts = true
+        restarted.wire.responses = [try S.success(["requestId": request, "titleId": "11", "status": "SAVED"])]
+        let result = try await restarted.coordinator().recover()
+        if case .titleSaved(let receipt) = result { XCTAssertEqual(receipt.titleId, 11) } else { XCTFail("Expected original receipt") }
+        XCTAssertNil(try restarted.store.load())
+        XCTAssertEqual(restarted.wire.requests.map { $0.url!.path }, ["/native/api/invoice/titles/request"])
+    }
+    func testOriginalTitleNotFoundRetainsKeyAndNeverFallsBackToLegacySave() async throws {
+        let h = try S.Harness(); h.originalReceipts = true; h.wire.failNext = true
+        let draft = try InvoiceLaunchTitleDraft(titleType: "PERSONAL", titleName: "Synthetic title")
+        await S.expect(.outcomeUnknown) { _ = try await h.coordinator().saveTitle(draft) }
+        let original = try XCTUnwrap(h.store.load())
+        h.wire.responses = [try S.failure("INVOICE_NOT_FOUND")]
+        await S.expect(.outcomeUnknown) { _ = try await h.coordinator().recover() }
+        XCTAssertEqual(try h.store.load(), original)
+        h.originalReceipts = false
+        await S.expect(.outcomeUnknown) { _ = try await h.coordinator().recover() }
+        await S.expect(.pendingConflict) { _ = try await h.coordinator().saveTitle(draft) }
+        XCTAssertEqual(h.wire.requests.count, 2); XCTAssertEqual(try h.store.load(), original)
+    }
+    func testOriginalTitleSuccessUsesReceiptIDThenReadsMaskedTitle() async throws {
+        let h = try S.Harness(); h.originalReceipts = true
+        h.wire.beforeSend = {
+            if h.wire.requests.count == 1 {
+                let request = try XCTUnwrap(h.store.load()?.titleRequestID)
+                h.wire.responses = [try S.success(["requestId": request, "titleId": "11", "status": "SAVED"]), try S.success([S.title])]
+            }
+        }
+        let draft = try InvoiceLaunchTitleDraft(titleType: "PERSONAL", titleName: "Synthetic title")
+        let result = try await h.coordinator().saveTitle(draft)
+        XCTAssertEqual(result.id, 11); XCTAssertNil(try h.store.load())
+        XCTAssertEqual(h.wire.requests.map { $0.url!.path }, ["/native/api/invoice/titles/save-request", "/native/api/invoice/titles"])
+    }
+    func testStaleOriginalResponseCannotClearPreviousAccountJournal() async throws {
+        let h = try S.Harness(); h.originalReceipts = true; h.wire.failNext = true
+        await S.expect(.outcomeUnknown) { _ = try await h.coordinator().apply(h.command()) }
+        let original = try XCTUnwrap(h.store.load())
+        var app = S.application(); app["requestId"] = "synthetic-original-request"
+        h.wire.responses = [try S.success(app)]; h.wire.afterSend = { h.current = try? S.session(account: 8) }
+        await S.expect(.outcomeUnknown) { _ = try await h.coordinator().recover() }
+        XCTAssertEqual(try h.store.load(), original)
+    }
+
+    func testOriginalApplyGrantWithdrawalDoesNotDowngradeToEntityRead() async throws {
+        let h = try S.Harness(); h.originalReceipts = true
+        var app = S.application(); app["requestId"] = "synthetic-original-request"
+        h.wire.responses = [try S.success(app)]
+        await S.expect(.outcomeUnknown) { _ = try await h.coordinator().apply(h.command()) }
+        let original = try XCTUnwrap(h.store.load()); XCTAssertEqual(original.applicationID, 51)
+        let count = h.wire.requests.count; h.originalReceipts = false
+        await S.expect(.outcomeUnknown) { _ = try await h.coordinator().recover() }
+        XCTAssertEqual(try h.store.load(), original); XCTAssertEqual(h.wire.requests.count, count)
+    }
+
 }

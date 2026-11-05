@@ -59,10 +59,11 @@ import FoundationNetworking
     @MainActor final class Harness {
         let captured: InvoiceLaunchSession
         var current: InvoiceLaunchSession?
-        var enabled = true, mutations = true, unauthorized = 0
+        var enabled = true, mutations = true, originalReceipts = false, unauthorized = 0
         let memory: Memory, wire = Wire()
         lazy var service = InvoiceLaunchService(session: captured, transport: wire,
             enabled: { [unowned self] in enabled }, mutationsEnabled: { [unowned self] in mutations },
+            originalReceiptsEnabled: { [unowned self] in originalReceipts },
             current: { [unowned self] in current }, unauthorized: { [unowned self] in unauthorized += 1 })
         lazy var store = InvoiceLaunchPendingStore(session: captured, storage: memory)
         init(memory: Memory? = nil, captured: InvoiceLaunchSession? = nil) throws {
@@ -81,8 +82,9 @@ import FoundationNetworking
 @MainActor final class InvoiceLaunchServiceTests: XCTestCase {
     private typealias S = InvoiceLaunchTestSupport
     func testFrozenRouteInventoryAndDefaultClosed() async throws {
-        XCTAssertEqual(InvoiceLaunchRoute.allCases.count, 8)
-        XCTAssertFalse(InvoiceLaunchRoute.allCases.contains { $0.path.hasSuffix("/request") })
+        XCTAssertEqual(InvoiceLaunchRoute.allCases.count, 11)
+        XCTAssertEqual(InvoiceLaunchRoute.allCases.filter { !$0.needsOriginalReceipts }.count, 8)
+        XCTAssertEqual(Set(InvoiceLaunchRoute.allCases.filter(\.needsOriginalReceipts).map(\.rawValue)), ["request", "titles/request", "titles/save-request"])
         let wire = S.Wire(), session = try S.session()
         let service = InvoiceLaunchService(session: session, transport: wire, current: { session })
         await S.expect(.disabled) { _ = try await service.titles() }
@@ -159,4 +161,66 @@ import FoundationNetworking
         XCTAssertNil(try h.store.load()?.acknowledgedTitleID)
         XCTAssertEqual(h.wire.requests.count, 1)
     }
+    func testC6StringIDsDecodeWithoutPrecisionLoss() async throws {
+        let h = try S.Harness(); var title = S.title; title["id"] = "9223372036854775807"
+        h.wire.responses = [try S.success([title])]
+        let titles = try await h.service.titles(); XCTAssertEqual(titles.first?.id, Int64.max)
+        var app = S.application(); app["id"] = "51"; app["requestId"] = "original"
+        app["orders"] = [["orderId": "21", "amount": 7.125], ["orderId": "22", "amount": 7.125]]
+        h.wire.responses = [try S.success(app)]
+        let value = try await h.service.detail(id: 51)
+        XCTAssertEqual(value.orders.map(\.orderId), [21, 22]); XCTAssertEqual(value.requestId, "original")
+    }
+    func testMalformedStringIDsNeverBecomeAnotherEntity() async throws {
+        let values: [Any] = ["0", "-1", "01", "+1", " 11", "11.0", "1e1", "9223372036854775808", true, 11.5]
+        for value in values {
+            let h = try S.Harness(); var title = S.title; title["id"] = value
+            h.wire.responses = [try S.success([title])]
+            do { _ = try await h.service.titles(); XCTFail("Expected invalid ID rejection") } catch {}
+        }
+    }
+    func testEligibleIssuerProjectionIsOptionalAndExact() async throws {
+        let h = try S.Harness()
+        h.wire.responses = [try S.success([["orderId": "21", "issuerId": "9007199254740993", "issuerName": "Synthetic issuer", "amount": 7.125],
+                                          ["orderId": "22", "issuerId": NSNull(), "amount": 1]])]
+        let orders = try await h.service.eligibleOrders()
+        XCTAssertEqual(orders[0].issuerId, 9_007_199_254_740_993); XCTAssertEqual(orders[0].issuerName, "Synthetic issuer")
+        XCTAssertNil(orders[1].issuerId)
+    }
+    func testOriginalReadsAreSeparatelyClosedByDefault() async throws {
+        let h = try S.Harness()
+        await S.expect(.originalReadUnavailable) { _ = try await h.service.originalApplication(requestId: "original") }
+        await S.expect(.originalReadUnavailable) { _ = try await h.service.titleReceipt(requestId: "original") }
+        XCTAssertTrue(h.wire.requests.isEmpty)
+    }
+    func testOriginalReadRequiresExactRequestIdentity() async throws {
+        let h = try S.Harness(); h.originalReceipts = true
+        for request: String? in [nil, "other"] {
+            var app = S.application(); app["requestId"] = request
+            h.wire.responses = [try S.success(app)]
+            await S.expect(.malformed) { _ = try await h.service.originalApplication(requestId: "original") }
+        }
+    }
+    func testTitleReceiptRejectsWrongIdentityStatusAndTarget() async throws {
+        let h = try S.Harness(); h.originalReceipts = true
+        for receipt in [["requestId": "other", "titleId": "11", "status": "SAVED"],
+                        ["requestId": "original", "titleId": "12", "status": "SAVED"],
+                        ["requestId": "original", "titleId": "11", "status": "PENDING"]] {
+            h.wire.responses = [try S.success(receipt)]
+            await S.expect(.malformed) { _ = try await h.service.titleReceipt(requestId: "original", targetID: 11) }
+        }
+    }
+    func testOriginalNotFoundIsUnknownNotRollback() async throws {
+        let h = try S.Harness(); h.originalReceipts = true
+        h.wire.responses = [try S.failure("INVOICE_NOT_FOUND"), try S.failure("INVOICE_NOT_FOUND")]
+        await S.expect(.outcomeUnknown) { _ = try await h.service.originalApplication(requestId: "original") }
+        await S.expect(.outcomeUnknown) { _ = try await h.service.titleReceipt(requestId: "original") }
+    }
+    func testOriginalReadGrantRevokedDuringResponseCannotBeAccepted() async throws {
+        let h = try S.Harness(); h.originalReceipts = true
+        h.wire.responses = [try S.success(["requestId": "original", "titleId": "11", "status": "SAVED"])]
+        h.wire.afterSend = { h.originalReceipts = false }
+        await S.expect(.originalReadUnavailable) { _ = try await h.service.titleReceipt(requestId: "original") }
+    }
+
 }

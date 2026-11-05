@@ -3,6 +3,7 @@ import Foundation
 public enum InvoiceLaunchRecovery: Equatable {
     /// Entity facts, not a receipt attributing the write to a particular request.
     case none, application(InvoiceLaunchApplication), title(InvoiceLaunchTitle), titleAbsent(Int64)
+    case titleSaved(InvoiceLaunchTitleReceipt)
 }
 
 /// Main-actor serialization plus the shared durable journal prevents double taps and
@@ -33,21 +34,33 @@ public enum InvoiceLaunchRecovery: Equatable {
     }
     public func apply(_ command: InvoiceLaunchApply) async throws -> InvoiceLaunchApplication {
         try command.validate(); try begin(mutation: true); defer { busy = false }
-        var pending = InvoiceLaunchPending(kind: .apply, apply: command)
+        var pending = InvoiceLaunchPending(kind: .apply, apply: command, originalApplicationReceipt: service.usesOriginalReceipts ? true : nil)
         try store.save(pending)
         let response = try await dispatch(pending) { try await service.apply(command) }
         return try await readback {
             try service.check()
+            guard pending.originalApplicationReceipt != true || response.requestId == command.requestId else { throw InvoiceLaunchIssue.outcomeUnknown }
             pending = try store.checkpoint(pending, applicationID: response.id)
             let result = try await service.detail(id: response.id)
-            guard result.matches(command), result.applicationNo == response.applicationNo else { throw InvoiceLaunchIssue.outcomeUnknown }
+            guard (pending.originalApplicationReceipt != true || result.requestId == command.requestId), result.matches(command), result.applicationNo == response.applicationNo else { throw InvoiceLaunchIssue.outcomeUnknown }
             try service.check(); try store.clear(pending); return result
         }
     }
     public func saveTitle(_ draft: InvoiceLaunchTitleDraft) async throws -> InvoiceLaunchTitle {
         try begin(mutation: true); defer { busy = false }
-        var pending = InvoiceLaunchPending(kind: .saveTitle, targetID: draft.id)
+        var pending = InvoiceLaunchPending(kind: .saveTitle, targetID: draft.id,
+            titleRequestID: service.usesOriginalReceipts ? UUID().uuidString : nil)
         try store.save(pending)
+        if let request = pending.titleRequestID {
+            let receipt = try await dispatch(pending) { try await service.saveTitleWithRequest(draft, requestId: request) }
+            return try await readback {
+                try service.check()
+                pending = try store.checkpointTitle(pending, acknowledgedTitleID: receipt.titleId)
+                let titles = try await service.titles()
+                guard let title = titles.first(where: { $0.id == receipt.titleId }) else { throw InvoiceLaunchIssue.outcomeUnknown }
+                try service.check(); try store.clear(pending); return title
+            }
+        }
         let response = try await dispatch(pending) { try await service.saveTitle(draft) }
         return try await readback {
             try service.check()
@@ -88,6 +101,13 @@ public enum InvoiceLaunchRecovery: Equatable {
         guard let pending = try store.load() else { return .none }
         switch pending.kind {
         case .apply:
+            if (service.usesOriginalReceipts || pending.originalApplicationReceipt == true), let command = pending.apply {
+                return try await readback {
+                    let result = try await service.originalApplication(requestId: command.requestId)
+                    guard result.matches(command), pending.applicationID == nil || pending.applicationID == result.id else { throw InvoiceLaunchIssue.outcomeUnknown }
+                    try service.check(); try store.clear(pending); return .application(result)
+                }
+            }
             guard let id = pending.applicationID, let command = pending.apply else { throw InvoiceLaunchIssue.originalReadUnavailable }
             return try await readback {
                 let result = try await service.detail(id: id)
@@ -112,6 +132,14 @@ public enum InvoiceLaunchRecovery: Equatable {
                 try service.check(); try store.clear(pending); return .titleAbsent(id)
             }
         case .saveTitle:
+            if let request = pending.titleRequestID {
+                return try await readback {
+                    let receipt = try await service.titleReceipt(requestId: request, targetID: pending.targetID)
+                    guard pending.acknowledgedTitleID == nil || pending.acknowledgedTitleID == receipt.titleId else { throw InvoiceLaunchIssue.outcomeUnknown }
+                    // Exact original receipt is sufficient even if the title was subsequently deleted.
+                    try service.check(); try store.clear(pending); return .titleSaved(receipt)
+                }
+            }
             // A received success can durably identify the original saved entity.
             // A transport-unknown save has no such evidence: neither matching an
             // existing title nor replaying legacy save can confirm that request.

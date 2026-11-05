@@ -13,15 +13,19 @@ public struct InvoiceLaunchPending: Codable, Equatable {
     public let kind: Kind
     public let apply: InvoiceLaunchApply?
     public let targetID: Int64?
+    /// Original title-save key only, never title/tax input. Missing in legacy journals.
+    public let titleRequestID: String?
+    public let originalApplicationReceipt: Bool?
     public private(set) var applicationID: Int64?
     /// ID from a validated, session-bound save response, not an inferred title
     /// match or a server request receipt. Missing in earlier v1 records.
     public private(set) var acknowledgedTitleID: Int64?
-    init(kind: Kind, apply: InvoiceLaunchApply? = nil, targetID: Int64? = nil) {
-        operationID = UUID(); self.kind = kind; self.apply = apply; self.targetID = targetID
+    init(kind: Kind, apply: InvoiceLaunchApply? = nil, targetID: Int64? = nil, titleRequestID: String? = nil, originalApplicationReceipt: Bool? = nil) {
+        operationID = UUID(); self.kind = kind; self.apply = apply; self.targetID = targetID; self.titleRequestID = titleRequestID; self.originalApplicationReceipt = originalApplicationReceipt
     }
     func validate() throws {
-        guard targetID.map({ $0 > 0 }) != false, applicationID.map({ $0 > 0 }) != false,
+        guard (originalApplicationReceipt == nil || kind == .apply), titleRequestID.map(InvoiceLaunchWire.requestID) != false,
+              (titleRequestID == nil || kind == .saveTitle), targetID.map({ $0 > 0 }) != false, applicationID.map({ $0 > 0 }) != false,
               acknowledgedTitleID.map({ $0 > 0 }) != false else { throw InvoiceLaunchIssue.storageUnavailable }
         switch kind {
         case .apply:
