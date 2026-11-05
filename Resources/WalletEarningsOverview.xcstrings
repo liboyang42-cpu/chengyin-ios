@@ -41,13 +41,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading funds stages"
+            "value": "Loading…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在读取资金阶段"
+            "value": "正在加载…"
           }
         }
       }
@@ -58,13 +58,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No amount is in a funds stage"
+            "value": "No funds waiting to settle"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "没有进行中的资金阶段"
+            "value": "暂无待结算资金"
           }
         }
       }
@@ -75,13 +75,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't load funds stages"
+            "value": "Couldn't load"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "资金阶段读取失败"
+            "value": "加载失败"
           }
         }
       }
@@ -126,13 +126,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign in to view funds stages"
+            "value": "Sign in to see your earnings"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "登录后查看资金阶段"
+            "value": "登录后查看收益"
           }
         }
       }
@@ -143,13 +143,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unknown"
+            "value": "—"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未知"
+            "value": "—"
           }
         }
       }
@@ -194,7 +194,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign in to view organizer share"
+            "value": "Sign in to see organizer share"
           }
         },
         "zh-Hans": {
@@ -211,13 +211,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Organizer share is in CNY and is not added to the wallet balance or funds stages"
+            "value": "Organizer share is settled separately, in CNY"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "主办分润以人民币计，不与钱包余额或资金阶段相加"
+            "value": "主办分润单独结算，以人民币计"
           }
         }
       }
