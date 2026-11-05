@@ -92,7 +92,8 @@ private struct MessagingConversationListView: View {
             }
             .listStyle(.insetGrouped)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                // Leading on the tab root (no Back button here) so the trailing side keeps two actions.
+                ToolbarItem(placement: .topBarLeading) {
                     if expanded != nil {
                         Button("im.readAll.title", systemImage: "envelope.open") {
                             presentReadAll(conversations)
