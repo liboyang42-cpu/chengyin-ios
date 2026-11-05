@@ -10,7 +10,7 @@ import SwiftUI
     var body: some View {
         Group {
             if let flow { NativeChannelChainView(flow: flow, current: current) }
-            else if attempted { ContentUnavailableView("原接龙当前不可用", systemImage: "list.number", description: Text("需要当前频道身份和独立接口授权。")) }
+            else if attempted { ContentUnavailableView("d7.chain.unavailable", systemImage: "list.number") }
             else { ProgressView() }
         }.task {
             guard !attempted else { return }
@@ -34,78 +34,98 @@ import SwiftUI
     private var available: Bool { current() && scene == .active }
     var body: some View {
         Form {
-            if !flow.isCurrent { Text("当前身份、频道或原消息已不可用。").fixedSize(horizontal: false, vertical: true) }
+            if !flow.isCurrent { ContentUnavailableView("d7.chain.unavailable", systemImage: "list.number") }
             else {
                 status
                 // A confirmed original receipt survives a separate current-roster read failure.
                 // Scope/account/receipt authority still gates this memory-only projection.
                 if let confirmed = flow.lastConfirmedRequest {
                     Section {
-                        Text(verbatim: confirmed.requestID).font(Theme.Font.label).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-                        Text(label(confirmed.operation)).font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-                        if confirmed.resultRedacted { Text("request.redacted", tableName: "NativeChannelMessage") }
-                    } header: { Text("request.applied", tableName: "NativeChannelMessage") }
+                        Label { Text(label(confirmed.operation)).fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: "checkmark.circle") }
+                    } header: { Text("d7.chain.done") }
                         .accessibilityIdentifier("channel.chain.originalReceipt")
                 }
                 if let review = flow.review { reviewSection(review) }
                 else if let pending = flow.pending { recoverySection(pending) }
                 if let page = flow.page {
-                    Section("原接龙") {
+                    Section {
                         Text(page.chain.title).font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true)
-                        LabeledContent("状态", value: page.chain.status == "CLOSED" ? "已关闭" : (page.chain.accepting ? "进行中" : "已截止"))
-                        LabeledContent("当前参加", value: page.chain.maxSlots == 0 ? "\(page.chain.activeCount) / 不限" : "\(page.chain.activeCount) / \(page.chain.maxSlots)")
-                        if let end = page.chain.deadlineAt { LabeledContent("截止时间") { Text(Date(timeIntervalSince1970: Double(end) / 1000), style: .date).fixedSize(horizontal: false, vertical: true); Text(Date(timeIntervalSince1970: Double(end) / 1000), style: .time).fixedSize(horizontal: false, vertical: true) } }
-                        Button("刷新原结果") { run { _ in await flow.refresh() } }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy || flow.review != nil)
-                    }
-                    Section("接龙名单") {
-                        if flow.entries.isEmpty { Text("暂无接龙记录").fixedSize(horizontal: false, vertical: true) }
-                        ForEach(flow.entries) { entry in
-                            VStack(alignment: .leading, spacing: Theme.Space.s2) {
-                                Text("第 \(entry.position) 位\(entry.memberId == flow.service.actorID ? " · 我" : "")").fixedSize(horizontal: false, vertical: true).font(Theme.Font.label).foregroundStyle(.secondary)
-                                if entry.status == "ACTIVE", let text = entry.content { Text(text).fixedSize(horizontal: false, vertical: true) }
-                                else { Text("已撤回").fixedSize(horizontal: false, vertical: true).foregroundStyle(.secondary) }
-                            }
+                        LabeledContent("d7.chain.status") {
+                            if page.chain.status == "CLOSED" { Text("d7.chain.status.closed") }
+                            else if page.chain.accepting { Text("d7.chain.status.open") }
+                            else { Text("d7.chain.status.ended") }
                         }
-                        if page.hasMore { Button("展开后续记录") { run { _ in await flow.more() } }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy || flow.review != nil) }
+                        LabeledContent("d7.chain.joined") {
+                            if page.chain.maxSlots == 0 { Text("d7.chain.joined.unlimited \(page.chain.activeCount)").monospacedDigit() }
+                            else { Text("d7.chain.joined.limited \(page.chain.activeCount) \(page.chain.maxSlots)").monospacedDigit() }
+                        }
+                        if let end = page.chain.deadlineAt {
+                            LabeledContent("d7.chain.deadline") { Text(Date(timeIntervalSince1970: Double(end) / 1000), format: .dateTime.month().day().hour().minute()) }
+                        }
+                        Button("d7.channelActivity.refresh") { run { _ in await flow.refresh() } }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy || flow.review != nil)
                     }
-                    if flow.pending == nil, flow.review == nil {
-                        Section("我的接龙") {
-                            if let mine = page.mine {
-                                Text(mine.status == "ACTIVE" ? "已参加（第 \(mine.position) 位）" : "已撤回；重新参加沿用原序号").fixedSize(horizontal: false, vertical: true)
-                                if mine.status == "ACTIVE", let original = mine.content {
-                                    Text(original).fixedSize(horizontal: false, vertical: true)
-                                    Button("载入我的原内容") { content = original }.font(Theme.Font.button).frame(minHeight: 44).disabled(!flow.canJoin)
+                    Section("d7.chain.entries") {
+                        if flow.entries.isEmpty { Text("d7.chain.entries.empty").foregroundStyle(.secondary) }
+                        ForEach(flow.entries) { entry in
+                            HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s3) {
+                                Text(verbatim: String(entry.position)).font(Theme.Font.label).foregroundStyle(.secondary).monospacedDigit().frame(minWidth: 24, alignment: .leading)
+                                VStack(alignment: .leading, spacing: Theme.Space.s1) {
+                                    if entry.status == "ACTIVE", let text = entry.content { Text(text).fixedSize(horizontal: false, vertical: true) }
+                                    else { Text("d7.chain.withdrawn").foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
+                                    if entry.memberId == flow.service.actorID { Text("d7.chain.me").font(Theme.Font.label).foregroundStyle(.secondary) }
                                 }
                             }
-                            TextField("接龙内容", text: $content, axis: .vertical).disabled(!flow.canJoin)
-                            Button(page.mine?.status == "ACTIVE" ? "确认修改我的接龙…" : "确认参加接龙…") { flow.prepareJoin(content: content) }.font(Theme.Font.button).frame(minHeight: 44).disabled(!flow.canJoin)
-                            Button("撤回我的接龙…", role: .destructive) { flow.prepareWithdraw() }.font(Theme.Font.button).frame(minHeight: 44).disabled(!flow.canWithdraw)
-                            if flow.canClose { Button("关闭我创建的接龙…", role: .destructive) { flow.prepareClose() }.font(Theme.Font.button).frame(minHeight: 44) }
-                            if !page.chain.canParticipate { Text("当前仅可查看原结果，不能参加或修改。").fixedSize(horizontal: false, vertical: true) }
+                        }
+                        if page.hasMore { Button("d7.chain.showMore") { run { _ in await flow.more() } }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy || flow.review != nil) }
+                    }
+                    if flow.pending == nil, flow.review == nil {
+                        Section("d7.chain.mine") {
+                            if let mine = page.mine {
+                                if mine.status == "ACTIVE" { LabeledContent("d7.chain.status") { Text("d7.chain.mine.joined \(mine.position)") } }
+                                else { LabeledContent("d7.chain.status") { Text("d7.chain.withdrawn") } }
+                                if mine.status == "ACTIVE", let original = mine.content, page.chain.canParticipate {
+                                    Button("d7.chain.mine.useEntry") { content = original }.font(Theme.Font.button).frame(minHeight: 44).disabled(!flow.canJoin)
+                                }
+                            }
+                            if page.chain.canParticipate {
+                                TextField("d7.chain.mine.field", text: $content, axis: .vertical).disabled(!flow.canJoin)
+                                if page.mine?.status == "ACTIVE" {
+                                    Button("d7.chain.mine.update") { flow.prepareJoin(content: content) }.nativeChannelPrimaryAction().disabled(!flow.canJoin)
+                                } else {
+                                    Button("d7.chain.mine.join") { flow.prepareJoin(content: content) }.nativeChannelPrimaryAction().disabled(!flow.canJoin)
+                                }
+                                if page.mine?.status == "ACTIVE" {
+                                    Button("d7.chain.mine.withdraw", role: .destructive) { flow.prepareWithdraw() }.font(Theme.Font.button).frame(minHeight: 44).disabled(!flow.canWithdraw)
+                                }
+                            } else { Text("d7.chain.mine.cannotJoin").foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
+                            if flow.canClose { Button("d7.chain.close", role: .destructive) { flow.prepareClose() }.font(Theme.Font.button).frame(minHeight: 44) }
                         }
                     }
                 } else if flow.reference != nil, !flow.busy, flow.phase != .appliedRedacted {
-                    Section { Text("原结果尚不可读；不是空名单或操作失败。").fixedSize(horizontal: false, vertical: true)
-                        Button("重新读取原接龙") { run { _ in await flow.refresh() } }.font(Theme.Font.button).frame(minHeight: 44).disabled(!flow.service.canRead || flow.review != nil)
+                    ContentUnavailableView {
+                        Label("d7.chain.loadFailed", systemImage: "list.number")
+                    } actions: {
+                        Button("d7.channelActivity.retry") { run { _ in await flow.refresh() } }.font(Theme.Font.button).frame(minHeight: 44).disabled(!flow.service.canRead || flow.review != nil)
                     }
                 } else if flow.reference == nil, flow.pending == nil, flow.review == nil {
-                    Section("发起接龙") {
-                        TextField("标题", text: $title)
-                        TextField("人数上限，0 为不限", text: $maxSlots).keyboardType(.numberPad)
-                        Toggle("设置截止时间", isOn: $hasDeadline)
-                        if hasDeadline { DatePicker("截止时间", selection: $deadline, displayedComponents: [.date, .hourAndMinute]) }
-                        Button("核对并创建…") {
-                            guard let maximum = Int(maxSlots) else { return }
-                            flow.prepareCreate(title: title, maxSlots: maximum, deadline: hasDeadline ? deadline : nil)
-                        }.nativeChannelPrimaryAction().disabled(!flow.canCreate || Int(maxSlots) == nil)
-                        if !flow.canCreate { Text("创建、读取和原请求恢复需各自独立授权。").fixedSize(horizontal: false, vertical: true) }
-                    }.disabled(!flow.canCreate)
+                    if flow.service.allows(.create), flow.service.canRead, flow.service.canRecover {
+                        Section("d7.chain.create") {
+                            TextField("d7.chain.create.title", text: $title)
+                            TextField("d7.chain.create.maxSlots", text: $maxSlots).keyboardType(.numberPad)
+                            Toggle("d7.chain.create.hasDeadline", isOn: $hasDeadline)
+                            if hasDeadline { DatePicker("d7.chain.deadline", selection: $deadline, displayedComponents: [.date, .hourAndMinute]) }
+                            Button("d7.chain.create.submit") {
+                                guard let maximum = Int(maxSlots) else { return }
+                                flow.prepareCreate(title: title, maxSlots: maximum, deadline: hasDeadline ? deadline : nil)
+                            }.nativeChannelPrimaryAction().disabled(!flow.canCreate || Int(maxSlots) == nil)
+                        }.disabled(!flow.canCreate)
+                    } else { ContentUnavailableView("d7.chain.unavailable", systemImage: "list.number") }
                 }
             }
         }
         .font(Theme.Font.body)
         .nativeChannelScreen()
-        .navigationTitle("原频道接龙")
+        .navigationTitle("d7.chain.title")
         .privacySensitive()
         .task(id: available) {
             if available { await flow.activate(current: current) }
@@ -114,51 +134,55 @@ import SwiftUI
         .onChange(of: current()) { _, valid in if !valid { retireScreen() } }
         .onChange(of: scene) { _, phase in if phase != .active { retireScreen() } }
         .onDisappear { retireScreen() }
-        .confirmationDialog("只重试原请求；不会创建新的请求或更改内容", isPresented: $retryPresented, titleVisibility: .visible) {
-            Button("先查原结果，再重试同一请求") { run { current in await flow.retryOriginal(); guard current() else { return }; await refreshAfterSettlement() } }
-            Button("取消", role: .cancel) {}
+        .confirmationDialog("d7.chain.retry.title", isPresented: $retryPresented, titleVisibility: .visible) {
+            Button("d7.channelActivity.retry") { run { current in await flow.retryOriginal(); guard current() else { return }; await refreshAfterSettlement() } }
+            Button("d7.channelActivity.cancel", role: .cancel) {}
         }
     }
     @ViewBuilder private var status: some View {
         switch flow.phase {
-        case .reading: ProgressView("读取原结果…").font(Theme.Font.body)
-        case .submitting: ProgressView("原请求已提交，等待确认…").font(Theme.Font.body)
-        case .unknown: Text("原请求结果待确认；不会自动重发或替换。").nativeChannelNotice(systemImage: "clock")
-        case .applied: Text("原请求已完成，正在读取当前结果。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-        case .appliedRedacted: Text("原请求已完成；当前权限或消息状态不允许展示结果。").nativeChannelNotice(systemImage: "lock")
+        case .reading: ProgressView("d7.channelActivity.loading").font(Theme.Font.body)
+        case .submitting: ProgressView("d7.channelActivity.sending").font(Theme.Font.body)
+        case .unknown: Text("d7.chain.notice.unknown").nativeChannelNotice(systemImage: "clock")
+        case .applied: Text("d7.chain.notice.applied").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+        case .appliedRedacted: Text("d7.chain.notice.redacted").nativeChannelNotice(systemImage: "checkmark.circle")
         case .rejected(let code):
-            if code == "SCREENING_PENDING" { Text("请返回频道逐条确认规则；此请求不会自动重发。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
-            else { Text("原请求未提交成功或原状态已变，请刷新后重新核对。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
-        case .failed: Text("原结果读取失败，未推断为空名单。").nativeChannelNotice(systemImage: "exclamationmark.circle")
-        case .persistenceFailed: Text("原请求记录无法安全保存或核对，已停止操作。请勿清除存储或另发请求。").nativeChannelNotice(systemImage: "exclamationmark.circle")
+            if code == "SCREENING_PENDING" { Text("d7.channelActivity.rulesPending").nativeChannelNotice(systemImage: "exclamationmark.circle") }
+            else { Text("d7.chain.notice.rejected").nativeChannelNotice(systemImage: "exclamationmark.circle") }
+        case .persistenceFailed: Text("d7.channelActivity.saveFailed").nativeChannelNotice(systemImage: "exclamationmark.circle")
         default: EmptyView()
         }
     }
     @ViewBuilder private func reviewSection(_ command: NativeChannelChainCommand) -> some View {
-        Section("核对原操作") {
+        Section("d7.chain.review.title") {
             Text(label(command.operation)).font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true)
             if let title = command.title { Text(title).font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
-            if let slots = command.maxSlots { Text(slots == 0 ? "人数不限" : "最多 \(slots) 人").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
-            if let end = command.deadlineAt { Text(Date(timeIntervalSince1970: Double(end) / 1000), style: .date).font(Theme.Font.body).fixedSize(horizontal: false, vertical: true); Text(Date(timeIntervalSince1970: Double(end) / 1000), style: .time).font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
+            if let slots = command.maxSlots {
+                LabeledContent("d7.chain.review.maxSlots") {
+                    if slots == 0 { Text("d7.chain.review.unlimited") } else { Text("d7.chain.review.people \(slots)").monospacedDigit() }
+                }
+            }
+            if let end = command.deadlineAt {
+                LabeledContent("d7.chain.deadline") { Text(Date(timeIntervalSince1970: Double(end) / 1000), format: .dateTime.month().day().hour().minute()) }
+            }
             if let text = command.content { Text(text).font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
-            Text("确认前会重读当前原状态；服务器仍核对成员、权限、可见性和容量。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-            Button("确认原操作") { run { current in await flow.confirm(); guard current() else { return }; await refreshAfterSettlement() } }.nativeChannelPrimaryAction().disabled(flow.busy)
-            Button("取消核对", role: .cancel) { flow.cancelReview() }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy)
+            Button("d7.chain.review.confirm") { run { current in await flow.confirm(); guard current() else { return }; await refreshAfterSettlement() } }.nativeChannelPrimaryAction().disabled(flow.busy)
+            Button("d7.channelActivity.cancel", role: .cancel) { flow.cancelReview() }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy)
         }
     }
     @ViewBuilder private func recoverySection(_ command: NativeChannelChainCommand) -> some View {
-        Section("原请求恢复") {
+        Section("d7.chain.pending.title") {
             if flow.ownsPending {
                 Text(label(command.operation)).font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true)
                 if let title = command.title { Text(title).font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
                 if let text = command.content { Text(text).font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
-                Button("只查询原请求结果") { run { current in await flow.recover(); guard current() else { return }; await refreshAfterSettlement() } }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy || !flow.service.canRecover)
-                Button("核对并重试同一原请求…") { retryPresented = true }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy || !flow.service.canRecover || !flow.service.allows(command.operation))
-            } else { Text("本频道另一个接龙原操作待确认，请返回频道工具栏的接龙入口恢复。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
+                Button("d7.chain.pending.check") { run { current in await flow.recover(); guard current() else { return }; await refreshAfterSettlement() } }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy || !flow.service.canRecover)
+                Button("d7.chain.pending.retry") { retryPresented = true }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy || !flow.service.canRecover || !flow.service.allows(command.operation))
+            } else { Text("d7.chain.pending.other").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
         }
     }
-    private func label(_ operation: NativeChannelChainCommand.Operation) -> String {
-        switch operation { case .create: return "创建接龙"; case .join: return "参加或更新自己的接龙"; case .withdraw: return "撤回自己的接龙（释放一个名额）"; case .close: return "关闭自己创建的接龙" }
+    private func label(_ operation: NativeChannelChainCommand.Operation) -> LocalizedStringKey {
+        switch operation { case .create: return "d7.chain.op.create"; case .join: return "d7.chain.op.join"; case .withdraw: return "d7.chain.op.withdraw"; case .close: return "d7.chain.op.close" }
     }
     private func run(_ work: @escaping NativeChannelActivityScreenWork) {
         operation.start(current: { available && flow.isCurrent }, work: work)
