@@ -14842,13 +14842,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Club workspace"
+            "value" : "Club management"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "俱乐部工作台"
+            "value" : "俱乐部管理"
           }
         }
       }
@@ -16219,13 +16219,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dissolution blockers"
+            "value" : "Dissolve club"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "解散阻塞事项"
+            "value" : "解散俱乐部"
           }
         }
       }
@@ -16236,7 +16236,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Edition reports"
+            "value" : "Session reports"
           }
         },
         "zh-Hans" : {
@@ -20452,13 +20452,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Club workspace"
+            "value" : "Manage"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "俱乐部工作台"
+            "value" : "管理"
           }
         }
       }
@@ -203417,6 +203417,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "还没有场次"
+          }
+        }
+      }
+    },
+    "club.gov.yourRoles" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your roles"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的身份"
           }
         }
       }

@@ -1129,8 +1129,29 @@ struct ClubGovernanceReadView: View {
         customerTopic = target
     }
     private func link(_ target: ClubGovernanceRead, _ targetScope: ClubGovernanceScope? = nil) -> some View {
-        NavigationLink { ClubGovernanceReadView(operation: target, scope: targetScope ?? scope, identity: identity, access: access, coordinator: coordinator) } label: { Label(LocalizedStringKey("club.gov." + target.rawValue), systemImage: "chevron.right.circle") }
+        NavigationLink { ClubGovernanceReadView(operation: target, scope: targetScope ?? scope, identity: identity, access: access, coordinator: coordinator) } label: { Label(LocalizedStringKey("club.gov." + target.rawValue), systemImage: Self.symbol(target)) }
             .accessibilityIdentifier("club.gov.route." + target.rawValue)
+    }
+    /// One meaningful icon per workspace entry instead of the same chevron on every row.
+    static func symbol(_ read: ClubGovernanceRead) -> String {
+        switch read {
+        case .stats, .topicStats: return "chart.bar"
+        case .customers, .topicCustomers, .customer: return "person.2"
+        case .settlement: return "yensign.circle"
+        case .eventTopics, .series, .occurrences: return "calendar"
+        case .bans, .members: return "hand.raised"
+        case .cases: return "exclamationmark.bubble"
+        case .roles: return "person.badge.key"
+        case .audienceCounts: return "megaphone"
+        case .topics, .topicOverview: return "map"
+        case .editions: return "square.stack"
+        case .dissolutionBlockers: return "trash"
+        case .leaderboard: return "trophy"
+        case .posts, .feed: return "text.bubble"
+        case .topicSettings: return "gearshape"
+        case .recruit: return "storefront"
+        default: return "chevron.right.circle"
+        }
     }
     @ViewBuilder private func enrollmentLink(focusTopicID: Int? = nil) -> some View {
         if let clubID = scope.clubID {
@@ -1176,10 +1197,13 @@ struct ClubGovernanceReadView: View {
     @ViewBuilder private func content(_ snapshot: ClubGovernanceSnapshot) -> some View {
         let value = snapshot.value
         if operation == .access {
-            Section("club.gov.roles") {
-                ForEach(snapshot.permissions?.roleCodes ?? [], id: \.self) { code in
-                    if ["CLUB_OWNER", "CLUB_CO_OWNER", "CLUB_OPERATOR", "CLUB_MEMBER", "EVENT_LEAD", "EVENT_CHECKIN"].contains(code) { Text(LocalizedStringKey("club.gov.role." + code)) }
-                    else { Text(verbatim: code) }
+            // Viewer's own roles, by name. Unrecognised internal codes are not shown.
+            let knownRoles = (snapshot.permissions?.roleCodes ?? []).filter { ["CLUB_OWNER", "CLUB_CO_OWNER", "CLUB_OPERATOR", "CLUB_MEMBER", "EVENT_LEAD", "EVENT_CHECKIN"].contains($0) }
+            if !knownRoles.isEmpty {
+                Section("club.gov.yourRoles") {
+                    ForEach(knownRoles, id: \.self) { code in
+                        Label(LocalizedStringKey("club.gov.role." + code), systemImage: "person.badge.key")
+                    }
                 }
             }
             Section("club.gov.workspace") {
@@ -1309,7 +1333,7 @@ struct ClubGovernanceReadView: View {
         } else if operation == .dissolutionBlockers {
             Section("club.gov.deposits") { dataRows(value["deposits"].array ?? []) }
             Section("club.gov.settlements") { dataRows(value["settlements"].array ?? []) }
-            Text("club.gov.financialGate"); edit(.dissolve)
+            edit(.dissolve).foregroundStyle(.red)
         } else if operation == .settlement {
             let settlementSummary = try? ClubOpsSettlementSummary(value: value, scope: scope)
             if let settlementSummary, settlementSummary.hasTopics { ClubOpsSettlementSummaryCard(summary: settlementSummary) }
