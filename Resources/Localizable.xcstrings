@@ -7264,7 +7264,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "优惠券详情，此处暂不提供核销码。"
+            "value" : "App 内暂不提供核销码。"
           }
         }
       }
@@ -33170,13 +33170,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Only a current server-issued code can be shown. Showing it does not confirm redemption."
+            "value" : "Showing this code doesn't mean it has been redeemed."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅展示当前服务端签发的有效凭证。出示码不代表核销成功。"
+            "value" : "出示核销码不代表已核销。"
           }
         }
       }
@@ -33442,13 +33442,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The account changed. Reopen the coupon from your wallet."
+            "value" : "Your account changed. Open the coupon again from My coupons."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "账号已变化，请从券包重新打开此券。"
+            "value" : "账号已变化，请从我的优惠券重新打开。"
           }
         }
       }
