@@ -17,7 +17,6 @@ struct MerchantInsightRecentVisitorsSection: View {
                     Text("merchant.insightVisitors.empty").foregroundStyle(.secondary)
                         .accessibilityIdentifier("merchant.insightVisitors.empty")
                 case .loaded(let rows):
-                    Text("merchant.insightVisitors.scope").font(.footnote).foregroundStyle(.secondary)
                     ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
                         VStack(alignment: .leading, spacing: 6) {
                             if let name = row.nickname { Text(verbatim: name).font(.headline) }

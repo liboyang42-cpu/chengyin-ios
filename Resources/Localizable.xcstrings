@@ -65087,13 +65087,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The response reports zero visitors, check-ins and redemptions in its reporting window."
+            "value" : "No visits, check-ins or redemptions in this period."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器明确返回本期到店、打卡和核销均为0。"
+            "value" : "这段时间没有到店、打卡和核销。"
           }
         }
       }
@@ -65206,13 +65206,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The new and returning visitor counts are incomplete."
+            "value" : "New and returning counts aren't available yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "新客与回头客人数暂未完整返回。"
+            "value" : "新客与回头客暂未返回。"
           }
         }
       }
@@ -65240,13 +65240,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The three attribution counts are incomplete; unavailable values are not shown as zero."
+            "value" : "Visit data isn't complete yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "归因三项数据未完整返回，暂不显示为0。"
+            "value" : "基础数据暂未完整返回。"
           }
         }
       }
@@ -65376,13 +65376,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "View merchant profile"
+            "value" : "View store"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "查看商家主页"
+            "value" : "看店铺"
           }
         }
       }
@@ -65393,13 +65393,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Locate topic in recruitment list"
+            "value" : "View topic"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在招募列表定位主题"
+            "value" : "看看"
           }
         }
       }
@@ -65529,13 +65529,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The cooperation profile’s configuration status is unavailable."
+            "value" : "Profile status couldn't be loaded"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "承接资料的配置状态暂未确认。"
+            "value" : "承接资料状态暂未取回"
           }
         }
       }
@@ -65563,13 +65563,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No recent visits were returned in this response."
+            "value" : "No recent visitors yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本次没有返回最近到店记录。"
+            "value" : "最近还没有玩家到店"
           }
         }
       }
@@ -65665,13 +65665,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The recent visitor summary is unavailable."
+            "value" : "Recent visitors couldn't be loaded"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "最近到店摘要暂未取回。"
+            "value" : "最近到店玩家暂未取回"
           }
         }
       }
@@ -76164,13 +76164,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Suggestions are unavailable; measured facts remain available"
+            "value" : "Interpretation isn't available right now"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂时无法生成建议，经营事实仍可查看"
+            "value" : "经营解读暂时无法生成"
           }
         }
       }
@@ -76521,13 +76521,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Measured business facts"
+            "value" : "Business data"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "经营数据事实"
+            "value" : "经营数据"
           }
         }
       }
@@ -76742,13 +76742,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Small sample: interpret these results cautiously"
+            "value" : "Data is still limited; read this as a rough guide"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "样本较少，请谨慎解读"
+            "value" : "数据还少，以下解读仅供参考"
           }
         }
       }
@@ -77235,13 +77235,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Suggestions are generated advice, separate from measured facts."
+            "value" : "Generated by AI from your business data."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "建议为 AI 生成内容，与经营数据事实分开呈现"
+            "value" : "以下内容由 AI 根据经营数据生成。"
           }
         }
       }

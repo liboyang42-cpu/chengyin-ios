@@ -114,11 +114,9 @@ import SwiftUI
     }
     private func value(_ number: Int?) -> String { number.map(String.init) ?? "—" }
     private func percent(_ number: Double?) -> String { number.map { String(format: "%.1f%%", $0 * 100) } ?? "—" }
+    // Source ai-insight order: visits/check-ins/redemptions, hours and new vs returning, recent visitors,
+    // recommended topics, recommended partners, business interpretation. The cooperation profile comes last.
     @ViewBuilder private func insightSections(_ insight: MerchantMarketingInsight) -> some View {
-        insightProfile(insight)
-        MerchantInsightRecentVisitorsSection(visitors: .init(insight.metadata["recentVisitors"]),
-            isCurrent: !model.busy && model.service.scope != nil && loadedRecommendationOrigin != nil
-                && loadedRecommendationOrigin == recommendationOrigin && model.insight == insight)
         MerchantInsightAttributionSummary(summary: .init(insight.facts),
             isCurrent: !model.busy && model.service.scope != nil && loadedRecommendationOrigin != nil
                 && loadedRecommendationOrigin == recommendationOrigin && model.insight == insight, facts: insight.facts)
@@ -128,21 +126,18 @@ import SwiftUI
             if insight.facts["lowSample"].isTrue { Text("merchantMarketing.lowSample") }
             LabeledContent("merchantMarketing.checkins", value: value(insight.facts["checkin"]["total"].integer))
             LabeledContent("merchantMarketing.redemptionRate", value: percent(insight.facts["checkin"]["redeemRate"].decimal))
-            Text("merchant.insightAttribution.redemptionScope").font(.footnote).foregroundStyle(.secondary)
             LabeledContent("merchantMarketing.repeatRate", value: percent(insight.facts["checkin"]["repeatRate"].decimal))
-            Text("merchant.insightAttribution.repeatScope").font(.footnote).foregroundStyle(.secondary)
-            if MerchantInsightAttribution(insight.facts).window == nil {
-                Text("merchant.insightAttribution.windowUnknown").font(.footnote).foregroundStyle(.secondary)
-            }
             LabeledContent("merchantMarketing.wait", value: value(insight.facts["checkin"]["avgWaitMinutes"].integer))
             LabeledContent("merchantMarketing.members", value: value(insight.facts["crowd"]["members"].integer))
             LabeledContent("merchantMarketing.offers", value: value(insight.facts["supply"]["activeOffers"].integer))
             LabeledContent("merchantMarketing.quotaRate", value: percent(insight.facts["supply"]["quotaUsedRate"].decimal))
             ForEach(Array((insight.facts["checkin"]["hourBuckets"].array ?? []).enumerated()), id: \.offset) { _, bucket in
-                VStack(alignment: .leading) {
-                    LabeledContent("merchantMarketing.hour", value: value(bucket["hour"].integer))
-                    LabeledContent("merchantMarketing.checkins", value: value(bucket["count"].integer))
-                }.accessibilityElement(children: .combine)
+                // Source 到店时段: one row per hour slot with its check-in count.
+                LabeledContent {
+                    Text(verbatim: value(bucket["count"].integer)).monospacedDigit()
+                } label: {
+                    Text(verbatim: bucket["hour"].integer.map { String(format: "%02d:00", $0) } ?? "—")
+                }
             }
             LabeledContent("merchantMarketing.maleRate", value: percent(insight.facts["crowd"]["sexRatio"]["male"].decimal))
             LabeledContent("merchantMarketing.femaleRate", value: percent(insight.facts["crowd"]["sexRatio"]["female"].decimal))
@@ -150,6 +145,9 @@ import SwiftUI
                 if let text = interest.text { LabeledContent("merchantMarketing.interest", value: text) }
             }
         }
+        MerchantInsightRecentVisitorsSection(visitors: .init(insight.metadata["recentVisitors"]),
+            isCurrent: !model.busy && model.service.scope != nil && loadedRecommendationOrigin != nil
+                && loadedRecommendationOrigin == recommendationOrigin && model.insight == insight)
         Section("merchantMarketing.recommendedTopics") {
             recommendationRows(insight.recommendedTopics, kind: .topic, insight: insight)
             if let origin = loadedRecommendationOrigin, origin == recommendationOrigin,
@@ -205,6 +203,7 @@ import SwiftUI
                 }
             }
         }
+        insightProfile(insight)
     }
     private func recommendationRows(_ rows: [MerchantMarketingValue], kind: MerchantInsightRecommendationRoute.Kind, insight: MerchantMarketingInsight) -> some View {
         let scope = model.service.scope

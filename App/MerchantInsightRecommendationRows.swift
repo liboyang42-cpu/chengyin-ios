@@ -16,9 +16,6 @@ struct MerchantInsightRecommendationRows: View {
                 if let origin, let route = item.route(origin: origin) {
                     Button(LocalizedStringKey(kind == .topic ? "merchant.insightNavigation.topic" : "merchant.insightNavigation.partner")) { open(route) }
                         .accessibilityIdentifier("merchant.insightNavigation." + kind.rawValue + "." + String(route.targetID))
-                } else {
-                    Text("merchant.insightNavigation.unavailable").font(.footnote).foregroundStyle(.secondary)
-                        .accessibilityIdentifier("merchant.insightNavigation.unavailable." + kind.rawValue + "." + String(index))
                 }
             }
         }
