@@ -79464,13 +79464,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Card buttons"
+            "value" : "Actions"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "卡片按钮"
+            "value" : "操作"
           }
         }
       }
@@ -79617,13 +79617,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Result record"
+            "value" : "Result"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "处理结果记录"
+            "value" : "处理结果"
           }
         }
       }
@@ -79634,13 +79634,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Route card"
+            "value" : "Route"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "路线卡片"
+            "value" : "路线"
           }
         }
       }
@@ -79668,13 +79668,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Activity signup card"
+            "value" : "Sign-up"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "活动报名卡片"
+            "value" : "活动报名"
           }
         }
       }
@@ -79719,13 +79719,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Card preview unavailable"
+            "value" : "Card unavailable"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂无卡片预览"
+            "value" : "卡片无法显示"
           }
         }
       }
@@ -79940,13 +79940,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Image message · preview unavailable"
+            "value" : "Photo"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "图片消息 · 暂无预览"
+            "value" : "图片"
           }
         }
       }
@@ -80161,13 +80161,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Server time"
+            "value" : "Sent"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器时间"
+            "value" : "发送时间"
           }
         }
       }
@@ -80178,13 +80178,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Message information"
+            "value" : "Details"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "消息信息"
+            "value" : "详情"
           }
         }
       }
@@ -80212,13 +80212,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No text content"
+            "value" : "—"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "没有文本内容"
+            "value" : "—"
           }
         }
       }
@@ -80753,13 +80753,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This message type is not supported yet"
+            "value" : "Message can't be shown"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂不支持显示此类型的消息"
+            "value" : "无法显示此消息"
           }
         }
       }
@@ -109709,13 +109709,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Poll reference unavailable"
+            "value" : "Poll unavailable"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "投票信息不可用"
+            "value" : "投票不可用"
           }
         }
       }
@@ -202705,6 +202705,125 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "搜索"
+          }
+        }
+      }
+    },
+    "messaging.attachment.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View attachment"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看附件"
+          }
+        }
+      }
+    },
+    "messaging.voice.play" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play voice message"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放语音"
+          }
+        }
+      }
+    },
+    "messaging.file.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open file"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开文件"
+          }
+        }
+      }
+    },
+    "messaging.video.play" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play video"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放视频"
+          }
+        }
+      }
+    },
+    "messaging.governance.section" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moderation"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "频道处置"
+          }
+        }
+      }
+    },
+    "messaging.governance.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View decision and appeal"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看处置与申诉进度"
+          }
+        }
+      }
+    },
+    "messaging.governance.unavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't load this. Go back and try again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂时无法查看，请返回后重试"
           }
         }
       }

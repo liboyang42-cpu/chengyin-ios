@@ -28,7 +28,7 @@ struct MessagingMessageDetailView: View {
                     }
                     if message.isPayloadVisible, message.type == 2, let preview = expanded?.attachmentPreview?(message) {
                         Section {
-                            NavigationLink("原附件审核状态与受权预览") {
+                            NavigationLink("messaging.attachment.open") {
                                 NativeChannelAttachmentPreviewEntry(flow: preview, current: {
                                     reader.identity == identity && currentSnapshot == message && message.isPayloadVisible
                                 })
@@ -45,21 +45,21 @@ struct MessagingMessageDetailView: View {
                     }
                     if IMVoiceReference.read(message) != nil, let owner = expanded?.voiceCoordinator?(message.conversationID) {
                         Section {
-                            NavigationLink("读取并播放原语音") { IMVoicePlaybackView(message: message, owner: owner, current: {
+                            NavigationLink("messaging.voice.play") { IMVoicePlaybackView(message: message, owner: owner, current: {
                                 reader.identity == identity && currentSnapshot == message && message.isPayloadVisible
                             }) }
                         }
                     }
                     if IMFileReference.read(message) != nil, let owner = expanded?.fileCoordinator?(message.conversationID) {
                         Section {
-                            NavigationLink("读取并预览原文件") { IMFilePreviewView(message: message, owner: owner, current: {
+                            NavigationLink("messaging.file.open") { IMFilePreviewView(message: message, owner: owner, current: {
                                 reader.identity == identity && currentSnapshot == message && message.isPayloadVisible
                             }) }
                         }
                     }
                     if IMVideoReference.read(message) != nil, let owner = expanded?.videoCoordinator?(message.conversationID) {
                         Section {
-                            NavigationLink("读取原视频与封面") { IMVideoPlaybackView(message: message, owner: owner, current: {
+                            NavigationLink("messaging.video.play") { IMVideoPlaybackView(message: message, owner: owner, current: {
                                 reader.identity == identity && currentSnapshot == message && message.isPayloadVisible
                             }) }
                         }
@@ -86,15 +86,15 @@ struct MessagingMessageDetailView: View {
                         }
                     }
                     if let notice = NativeChannelGovernanceNotice.parse(message: message, conversation: conversation, identity: identity) {
-                        Section("原频道处置") {
+                        Section("messaging.governance.section") {
                             NavigationLink {
                                 if reader.identity == identity, currentSnapshot == message,
                                    let destination = expanded?.channelGovernanceDestination?(notice) { destination }
-                                else { Text("当前无法读取原处置与申诉进度。请返回后重试。") }
-                            } label: { Label("查看原处置与申诉进度", systemImage: "doc.text.magnifyingglass") }
+                                else {
+                                    ContentUnavailableView("messaging.governance.unavailable", systemImage: "exclamationmark.circle")
+                                }
+                            } label: { Label("messaging.governance.open", systemImage: "doc.text.magnifyingglass") }
                             .accessibilityIdentifier("channel.governance.originalNotice")
-                            Text("目的页将回读本人的原处置记录；通知内容不授予操作权限。")
-                                .font(.footnote).foregroundStyle(.secondary)
                         }
                     }
                     Section("messaging.message.details") {
@@ -102,9 +102,6 @@ struct MessagingMessageDetailView: View {
                             MessagingSenderName(message: message, conversation: conversation, accountID: identity?.accountID ?? 0)
                         }
                         MessagingOptionalRow(title: "messaging.message.created", value: message.createdAt)
-                        LabeledContent("messaging.message.id", value: String(message.id))
-                        LabeledContent("messaging.message.conversation", value: String(message.conversationID))
-                        if let type = message.type { LabeledContent("messaging.message.type", value: String(type)) }
                     }
                     if message.isPayloadVisible, expanded != nil, message.card != nil {
                         Section("messaging.card.actions") {
@@ -125,8 +122,6 @@ struct MessagingMessageDetailView: View {
                                 if let topicReader = expanded?.topicReader {
                                     IMRouteCardPreview(topicID: topicID, isSignup: card.kind == .signup, reader: topicReader)
                                 }
-                                LabeledContent("messaging.card.topicID", value: String(topicID))
-                                Text("messaging.card.routeHint").foregroundStyle(.secondary)
                             }
                         }
                         if card.kind == .location, let latitude = card.latitude, let longitude = card.longitude {
@@ -135,20 +130,16 @@ struct MessagingMessageDetailView: View {
                         if expanded == nil, !card.buttonLabels.isEmpty {
                             Section("messaging.card.actions") {
                                 ForEach(Array(card.buttonLabels.enumerated()), id: \.offset) { _, label in Text(verbatim: label) }
-                                Text("messaging.card.actionsHint").font(.footnote).foregroundStyle(.secondary)
                             }
                         }
                         if message.senderID == 0, let result = card.result {
                             Section("messaging.card.result") {
-                                MessagingOptionalRow(title: "messaging.card.taskID", value: result.taskID)
-                                MessagingOptionalRow(title: "messaging.card.businessID", value: result.businessID)
                                 MessagingOptionalRow(title: "messaging.card.outcome", value: result.outcome)
                                 MessagingOptionalRow(title: "messaging.card.reason", value: result.reason)
                                 MessagingOptionalRow(title: "messaging.card.followUp", value: result.followUp)
                             }
                         }
                     }
-                    Section { Text("messaging.snapshotHint").font(.footnote).foregroundStyle(.secondary) }
                 }.environment(\.defaultMinListRowHeight, 44)
                 .accessibilityIdentifier("messaging.message.detail")
             } else {
@@ -162,14 +153,15 @@ struct MessagingMessageDetailView: View {
             if reader.identity == identity, currentSnapshot?.isPayloadVisible == true, let result = selectedReview {
                 NavigationStack {
                     List {
-                        MessagingOptionalRow(title: "messaging.card.taskID", value: result.taskID)
-                        MessagingOptionalRow(title: "messaging.card.businessID", value: result.businessID)
                         MessagingOptionalRow(title: "messaging.card.outcome", value: result.outcome)
                         MessagingOptionalRow(title: "messaging.card.reason", value: result.reason)
                         MessagingOptionalRow(title: "messaging.card.followUp", value: result.followUp)
                     }.navigationTitle(Text("im.full.reviewResult"))
-                    .toolbar { Button("action.cancel") { selectedReview = nil } }
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar { Button("action.done") { selectedReview = nil } }
                 }.privacySensitive()
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
             }
         }
         .onChange(of: currentSnapshot) { _, _ in selectedTopicID = nil; selectedReview = nil }
@@ -203,7 +195,6 @@ struct MessagingMessageContent: View {
             if message.pollReference != nil {
                 VStack(alignment: .leading, spacing: 6) {
                     Label("poll.title", systemImage: "chart.bar.xaxis").font(.headline)
-                    Text("poll.cardHint").font(.caption)
                 }.accessibilityIdentifier("poll.messageCard")
             } else { Label("poll.invalidCard", systemImage: "exclamationmark.bubble").accessibilityIdentifier("poll.invalidCard") }
         case 13:
@@ -230,23 +221,17 @@ private struct MessagingCardContent: View {
                 Label("messaging.card.location", systemImage: "mappin.and.ellipse").font(.headline)
                 if let title = card.title { Text(verbatim: title) }
                 if let address = card.address { Text(verbatim: address).foregroundStyle(.secondary) }
-                if let latitude = card.latitude, let longitude = card.longitude {
-                    Text(verbatim: "\(latitude), \(longitude)").font(.caption).foregroundStyle(.secondary)
-                }
             case .route:
                 Label("messaging.card.route", systemImage: "point.topleft.down.to.point.bottomright.curvepath").font(.headline)
-                if let id = card.topicID { Text(verbatim: "#\(id)") }
-                Text("messaging.card.routeHint").font(.caption).foregroundStyle(.secondary)
+                if let title = card.title { Text(verbatim: title) }
             case .signup:
                 Label("messaging.card.signup", systemImage: "ticket").font(.headline)
-                if let id = card.topicID { Text(verbatim: "#\(id)") }
-                Text("messaging.card.routeHint").font(.caption).foregroundStyle(.secondary)
+                if let title = card.title { Text(verbatim: title) }
             case .generic:
                 if let title = card.title { Text(verbatim: title).font(.headline) }
                 else { Text("messaging.card.notification").font(.headline) }
                 if let subtitle = card.subtitle { Text(verbatim: subtitle) }
                 if let meta = card.meta { Text(verbatim: meta).font(.caption).foregroundStyle(.secondary) }
-                if isTrustedSystem, card.result != nil { Label("messaging.card.hasResult", systemImage: "doc.text").font(.caption) }
             }
         }
     }
