@@ -39,15 +39,15 @@ import SwiftUI
                 if let detailIssue { SquareIssueView(error: detailIssue) { Task { await reload() } } }
                 if let post {
                     Section {
-                        SquarePostContent(post: post, mediaScope: reader.scope).accessibilityIdentifier("square.detailPost")
+                        SquarePostContent(post: post, mediaScope: reader.scope, showsCounts: actions?.identity.accountID == nil).accessibilityIdentifier("square.detailPost")
                         if !post.videos.isEmpty { SquarePostVideoList(videos: post.videos) }
                         SquareRelatedTopicLink(post: post, source: .init(id: id, generation: contentGeneration), squareReader: reader) { relatedTopic = $0 }
+                        if let actions, actions.identity.accountID != nil {
+                            postActions(post, actions: actions)
+                        }
                         if let accountReader, post.memberID > 0 {
                             NavigationLink { SocialPublicProfileView(memberID: post.memberID, reader: accountReader, squareReader: reader, actions: actions) } label: { Label("social.viewAuthor", systemImage: "person.crop.circle") }
                                 .accessibilityIdentifier("social.viewAuthor")
-                        }
-                        if let actions {
-                            postActions(post, actions: actions)
                         }
                     }
                 }
@@ -61,10 +61,7 @@ import SwiftUI
                         if commentsLoading { ProgressView("square.commentsLoading") }
                         else if comments.items.isEmpty && commentIssue == nil {
                             // Source empty comments: 还没有评论 / 说说你对这条动态的想法吧.
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("square.xcx.noCommentsTitle").font(.headline).accessibilityIdentifier("square.noComments")
-                                Text("square.xcx.noCommentsDetail").font(.footnote).foregroundStyle(.secondary)
-                            }
+                            Text("square.xcx.noCommentsTitle").foregroundStyle(.secondary).accessibilityIdentifier("square.noComments")
                         }
                         if !commentsLoading && comments.hasMore && commentIssue == nil {
                             Button("square.moreComments") { Task { await loadComments(operation: generation, captured: key) } }.accessibilityIdentifier("square.moreComments")
@@ -74,6 +71,12 @@ import SwiftUI
             }
         }
         .appNavigationTitle("square.detail")
+        .toolbar {
+            // Mini-program `ph-more`: edit, delete and report live in one overflow menu.
+            if let post, let actions, actions.identity.accountID != nil, loadedKey == key {
+                ToolbarItem(placement: .topBarTrailing) { postMenu(post, actions: actions) }
+            }
+        }
         .safeAreaInset(edge: .bottom) {
             if let post, let actions, actions.identity.accountID != nil, loadedKey == key {
                 // Source sticky bar "留下你的评论"; opens the existing reviewed comment editor.
@@ -113,44 +116,57 @@ import SwiftUI
         .onDisappear { generation += 1; detailLoading = false; commentsLoading = false }
         .accessibilityIdentifier("square.detail")
     }
-    @ViewBuilder private func postActions(_ post: SquarePost, actions: SocialActionCoordinator) -> some View {
-        if actions.identity.accountID != nil {
-            // Source action row: like / comment (focuses the composer) / favorite, each through the existing reviewed editor.
-            HStack(spacing: 24) {
-                Button { editor = .init(purpose: .like, target: .post(post.id), text: "") } label: {
-                    Label { Text(verbatim: String(max(0, post.likeCount))) } icon: { Image(systemName: post.isLiked == 1 ? "heart.fill" : "heart") }
-                }.accessibilityLabel(Text("square.xcx.likesA11y \(max(0, post.likeCount))")).accessibilityIdentifier("square.detail.like")
+    /// Mini-program `actions`: like, comment and favourite with their counts. Favourite only where it can work.
+    private func postActions(_ post: SquarePost, actions: SocialActionCoordinator) -> some View {
+        HStack(spacing: 28) {
+            Button { editor = .init(purpose: .like, target: .post(post.id), text: "") } label: {
+                Label { Text(max(0, post.likeCount), format: .number) } icon: { Image(systemName: post.isLiked == 1 ? "heart.fill" : "heart") }
+            }
+            .tint(post.isLiked == 1 ? .red : .primary)
+            .accessibilityLabel(Text("square.xcx.likesA11y \(max(0, post.likeCount))")).accessibilityIdentifier("square.detail.like")
+            if post.viewerCanComment {
                 Button { editor = .init(purpose: .comment, target: .post(post.id), text: "") } label: {
-                    Label { Text(verbatim: String(max(0, post.commentCount))) } icon: { Image(systemName: "bubble.right") }
-                }.disabled(!post.viewerCanComment).accessibilityLabel(Text("square.xcx.commentsA11y \(max(0, post.commentCount))")).accessibilityIdentifier("square.detail.comment")
+                    Label { Text(max(0, post.commentCount), format: .number) } icon: { Image(systemName: "bubble.right") }
+                }
+                .tint(.primary)
+                .accessibilityLabel(Text("square.xcx.commentsA11y \(max(0, post.commentCount))")).accessibilityIdentifier("square.detail.comment")
+            } else {
+                Label { Text(max(0, post.commentCount), format: .number) } icon: { Image(systemName: "bubble.right") }
+                    .foregroundStyle(.secondary)
+                    .accessibilityLabel(Text("square.xcx.commentsA11y \(max(0, post.commentCount))"))
+            }
+            if post.generation == .communityV1 {
                 Button { editor = .init(purpose: .bookmark, target: .post(post.id), text: "") } label: { Image(systemName: "star") }
-                    .disabled(post.generation != .communityV1).accessibilityLabel(Text("social.editor.bookmark")).accessibilityIdentifier("square.detail.bookmark")
-            }.buttonStyle(.borderless).font(.subheadline)
-            Button("social.editor.comment") { editor = .init(purpose: .comment, target: .post(post.id), text: "") }.disabled(!post.viewerCanComment)
-            Menu {
-                Button("social.editor.like") { editor = .init(purpose: .like, target: .post(post.id), text: "") }
-                Button("social.editor.bookmark") { editor = .init(purpose: .bookmark, target: .post(post.id), text: "") }
-                    .disabled(post.generation != .communityV1)
-                if post.memberID == actions.identity.accountID {
-                    Button("social.editor.editPost") { if workspace != nil { showsWorkspaceEdit = true } else { editor = .init(purpose: .editPost, target: .post(post.id), text: post.contents ?? "") } }
-                        .disabled(contentGeneration == .communityV1 && workspace == nil)
+                    .tint(.primary)
+                    .accessibilityLabel(Text("social.editor.bookmark")).accessibilityIdentifier("square.detail.bookmark")
+            }
+            Spacer(minLength: 0)
+        }
+        .buttonStyle(.borderless).font(.body).labelStyle(.titleAndIcon)
+        .frame(minHeight: 44)
+    }
+    private func postMenu(_ post: SquarePost, actions: SocialActionCoordinator) -> some View {
+        Menu {
+            if post.memberID == actions.identity.accountID {
+                if workspace != nil || contentGeneration != .communityV1 {
+                    Button("square.edit", systemImage: "pencil") { if workspace != nil { showsWorkspaceEdit = true } else { editor = .init(purpose: .editPost, target: .post(post.id), text: post.contents ?? "") } }
                 }
-                if post.memberID == actions.identity.accountID {
-                    let target = SquareDeletionTarget(post: post)
-                    Button("square.xcx.delete.post", role: .destructive) { if let target { deletion?.prepare(target) } }
-                        .disabled(target.map { deletion?.isAllowed($0) != true } ?? true).accessibilityIdentifier("square.delete.postEntry")
+                if let target = SquareDeletionTarget(post: post), deletion?.isAllowed(target) == true {
+                    Button("square.xcx.delete.post", systemImage: "trash", role: .destructive) { deletion?.prepare(target) }
+                        .accessibilityIdentifier("square.delete.postEntry")
                 }
-                Button("social.editor.report") {
+            }
+            if post.generation != .unknown {
+                Button("square.report", systemImage: "exclamationmark.bubble") {
                     if post.generation == .legacySquare { editor = .init(purpose: .report, target: .post(post.id), text: "") }
                     else if let target = try? SquareReportTarget(post: post) { reportTarget = .init(target: target) }
-                }.disabled(post.generation == .unknown)
-                    .accessibilityIdentifier("squareReport.postEntry")
-            } label: {
-                Text("social.actions").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                    .contentShape(Rectangle())
-            }.buttonStyle(.borderless).accessibilityIdentifier("social.post.actions")
-            if post.generation == .legacySquare { Text("squareReport.legacyBookmarkBoundary").font(.footnote).foregroundStyle(.secondary) }
-        } else { Text("social.signIn").font(.footnote) }
+                }
+                .accessibilityIdentifier("squareReport.postEntry")
+            }
+        } label: {
+            Label("social.actions", systemImage: "ellipsis.circle").labelStyle(.iconOnly).frame(minWidth: 44, minHeight: 44)
+        }
+        .accessibilityIdentifier("social.post.actions")
     }
     @ViewBuilder private func commentRow(_ comment: SquareComment) -> some View {
         if comment.lifecycle == "DELETED" {
@@ -159,38 +175,63 @@ import SwiftUI
                 .padding(.leading, comment.parentID == nil ? 0 : 12)
         } else { liveCommentRow(comment) }
     }
+    /// Mini-program comment row: avatar, name and time; the text; then like count, reply and the overflow actions.
     private func liveCommentRow(_ comment: SquareComment) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let nickname = comment.nickname, !nickname.isEmpty { Text(verbatim: nickname).font(.headline) }
-            else { Text("square.unknownAuthor").font(.headline) }
-            if let accountReader, comment.memberID > 0 {
-                NavigationLink { SocialPublicProfileView(memberID: comment.memberID, reader: accountReader, squareReader: reader, actions: actions) } label: { Text("social.viewAuthor") }
-            }
-            if let actions, actions.identity.accountID != nil {
-                Menu {
-                    Button("social.reply") { editor = .init(purpose: .comment, target: .comment(postID: id, commentID: comment.id), text: "") }.disabled(post?.viewerCanComment != true)
-                    if comment.memberID == actions.identity.accountID, let post {
-                        let target = SquareDeletionTarget(post: post, comment: comment)
-                        Button("square.xcx.delete.comment", role: .destructive) { if let target { deletion?.prepare(target) } }
-                            .disabled(target.map { deletion?.isAllowed($0) != true } ?? true).accessibilityIdentifier("square.delete.commentEntry.\(comment.id)")
+        HStack(alignment: .top, spacing: 10) {
+            SquareAuthorAvatar(source: comment.avatar, size: 32)
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .firstTextBaseline) {
+                    if let accountReader, comment.memberID > 0 {
+                        NavigationLink { SocialPublicProfileView(memberID: comment.memberID, reader: accountReader, squareReader: reader, actions: actions) } label: { commentAuthor(comment) }
+                            .buttonStyle(.borderless).tint(.primary)
+                    } else {
+                        commentAuthor(comment)
                     }
-                    Button("social.editor.commentLike") { editor = .init(purpose: .commentLike, target: .comment(postID: id, commentID: comment.id), text: "", enabled: comment.isLiked == 0) }
-                    Button("social.editor.report") {
-                        if comment.generation == .legacySquare { editor = .init(purpose: .report, target: .comment(postID: id, commentID: comment.id), text: "") }
-                        else if let post, let target = try? SquareReportTarget(post: post, comment: comment) { reportTarget = .init(target: target) }
-                    }.disabled(comment.generation == .unknown)
-                        .accessibilityIdentifier("squareReport.commentEntry.\(comment.id)")
-                } label: {
-                    Text("social.actions").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                        .contentShape(Rectangle())
-                }.buttonStyle(.borderless).accessibilityIdentifier("social.comment.actions.\(comment.id)")
+                    Spacer(minLength: 8)
+                    if !comment.createTime.isEmpty { SquareXcxRelativeTime(createTime: comment.createTime, now: Date()).font(.caption).foregroundStyle(.secondary) }
+                }
+                if let name = comment.replyName(in: comments.items) {
+                    Text("square.replyingTo \(name)").font(.caption).foregroundStyle(.secondary)
+                }
+                if let contents = comment.contents { Text(verbatim: contents).textSelection(.enabled) }
+                NativeMediaGalleryEntry(sources: comment.images, scope: reader.scope, titleKey: "media.destination.squareImages")
+                HStack(spacing: 20) {
+                    Label { Text(max(0, comment.likeCount), format: .number) } icon: { Image(systemName: comment.isLiked == 0 ? "heart" : "heart.fill") }
+                        .font(.caption).foregroundStyle(.secondary)
+                        .accessibilityLabel(Text("square.xcx.likesA11y \(max(0, comment.likeCount))"))
+                    Spacer(minLength: 0)
+                    if let actions, actions.identity.accountID != nil {
+                        Menu {
+                            if post?.viewerCanComment == true {
+                                Button("social.reply", systemImage: "arrowshape.turn.up.left") { editor = .init(purpose: .comment, target: .comment(postID: id, commentID: comment.id), text: "") }
+                            }
+                            Button(comment.isLiked == 0 ? LocalizedStringKey("square.like") : LocalizedStringKey("square.unlike"), systemImage: comment.isLiked == 0 ? "heart" : "heart.slash") { editor = .init(purpose: .commentLike, target: .comment(postID: id, commentID: comment.id), text: "", enabled: comment.isLiked == 0) }
+                            if comment.generation != .unknown {
+                                Button("square.report", systemImage: "exclamationmark.bubble") {
+                                    if comment.generation == .legacySquare { editor = .init(purpose: .report, target: .comment(postID: id, commentID: comment.id), text: "") }
+                                    else if let post, let target = try? SquareReportTarget(post: post, comment: comment) { reportTarget = .init(target: target) }
+                                }
+                                .accessibilityIdentifier("squareReport.commentEntry.\(comment.id)")
+                            }
+                            if comment.memberID == actions.identity.accountID, let post,
+                               let target = SquareDeletionTarget(post: post, comment: comment), deletion?.isAllowed(target) == true {
+                                Button("square.xcx.delete.comment", systemImage: "trash", role: .destructive) { deletion?.prepare(target) }
+                                    .accessibilityIdentifier("square.delete.commentEntry.\(comment.id)")
+                            }
+                        } label: {
+                            Label("social.actions", systemImage: "ellipsis").labelStyle(.iconOnly).frame(minWidth: 44, minHeight: 32)
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityIdentifier("social.comment.actions.\(comment.id)")
+                    }
+                }
             }
-            if let name = comment.replyName(in: comments.items) { LabeledContent("square.replyTo", value: name).font(.caption) }
-            if let contents = comment.contents { Text(verbatim: contents).textSelection(.enabled) }
-            NativeMediaGalleryEntry(sources: comment.images, scope: reader.scope, titleKey: "media.destination.squareImages")
-            LabeledContent("square.likes", value: String(max(0, comment.likeCount))).font(.caption)
-            if !comment.createTime.isEmpty { SquareXcxRelativeTime(createTime: comment.createTime, now: Date()).font(.caption).foregroundStyle(.secondary) }
-        }.padding(.leading, comment.parentID == nil ? 0 : 12)
+        }
+        .padding(.leading, comment.parentID == nil ? 0 : 24)
+    }
+    @ViewBuilder private func commentAuthor(_ comment: SquareComment) -> some View {
+        if let nickname = comment.nickname, !nickname.isEmpty { Text(verbatim: nickname).font(.subheadline.weight(.semibold)) }
+        else { Text("square.unknownAuthor").font(.subheadline.weight(.semibold)) }
     }
     private struct DeletionRoute: Identifiable { let target: SquareDeletionTarget; var id: SquareDeletionTarget { target } }
     private var deletionBinding: Binding<DeletionRoute?> {

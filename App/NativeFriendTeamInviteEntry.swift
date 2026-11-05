@@ -20,102 +20,108 @@ extension EnvironmentValues {
         Group {
             if let flow {
                 List {
-                    Section {
-                        Text("只处理队长明确选择的原好友，不随机撮合、不自动入队。邀请不占名额；本人确认后仍遵循原票、容量和公开队伍审批规则。").font(Theme.Font.label)
-                        if let issue = flow.issue { Text(verbatim: issue) }
-                        Button("刷新原邀请与当前资格") { Task { await flow.refresh() } }.disabled(flow.busy)
+                    if flow.busy { ProgressView().frame(maxWidth: .infinity) }
+                    if let issue = flow.issue {
+                        Section { Label { Text(nativeFriendInviteIssueKey(issue)) } icon: { Image(systemName: "info.circle").foregroundStyle(.secondary) } }
                     }
                     if case .team = mode { NativeFriendPickerView(flow: flow) }
                     if let context = flow.reviewContext {
                         let review = context.command
-                        Section("明确确认") {
-                            Text("队伍：\(context.teamName) · #\(review.teamID)")
-                            Text(verbatim: review.requestID).font(Theme.Font.label).textSelection(.enabled)
+                        Section {
+                            LabeledContent { Text(verbatim: context.teamName.isEmpty ? "—" : context.teamName) } label: { Text("d7.teamInvite.team") }
                             ForEach(context.peers) { peer in
-                                Text("\(peer.friend.displayName) · #\(peer.id) · 关系版本 \(peer.friend.version)")
+                                Text(verbatim: peer.friend.displayName)
                             }
-                            if let offerID = review.body.offerId { Text("原邀请：" + offerID).font(Theme.Font.label).textSelection(.enabled) }
-                            if review.action == "FRIEND_OFFER" { Text("向已选 \(review.body.peers?.count ?? 0) 位好友发送队长邀请；不会替任何人同意或预占人数。") }
-                            else if review.action == "FRIEND_CONFIRM" { Text(review.body.joinMode == 2 ? "确认后仅提交本人同意，仍等待队长按原规则审核；尚未入队。" : "确认加入当前原队伍；服务端重新核验票、名额、屏蔽和队伍状态。") }
-                            else { Text(review.action == "FRIEND_DECLINE" ? "明确拒绝这份邀请；不会产生退队记录或扣减人数。" : "撤销尚未被本人确认的邀请；不撤销已成立的个人申请或成员资格。") }
-                            Button("确认本次原操作") { Task { await flow.confirm() } }.disabled(!flow.canWrite)
-                            Button("返回，不发送") { flow.cancelReview() }.disabled(flow.busy)
-                        }
+                            if review.action == "FRIEND_OFFER" { Text("d7.teamInvite.offerSummary \(review.body.peers?.count ?? 0)") }
+                            else if review.action == "FRIEND_CONFIRM" { Text(LocalizedStringKey(review.body.joinMode == 2 ? "d7.teamInvite.confirmReview" : "d7.teamInvite.confirmJoin")) }
+                            else { Text(LocalizedStringKey(review.action == "FRIEND_DECLINE" ? "d7.teamInvite.declineSummary" : "d7.teamInvite.revokeSummary")) }
+                            Button { Task { await flow.confirm() } } label: { Text("d7.friendInvite.confirm").frame(maxWidth: .infinity) }
+                                .buttonStyle(.questifyPrimary).listRowBackground(Color.clear)
+                                .disabled(!flow.canWrite)
+                            Button { flow.cancelReview() } label: { Text("d7.friendInvite.cancel").frame(maxWidth: .infinity) }
+                                .disabled(flow.busy)
+                        } header: { Text("d7.friendInvite.confirmTitle") }
                     }
-                    if let pending = flow.pending {
-                        Section("原请求恢复") {
-                            Text(verbatim: pending.requestID).font(Theme.Font.label).textSelection(.enabled)
-                            Text("冻结队伍 #\(pending.teamID)")
-                            ForEach(pending.body.peers ?? [], id: \.id) { peer in
-                                Text("原选择好友 #\(peer.id) · 关系版本 \(peer.version)").font(Theme.Font.label)
-                            }
-                            if let offerID = pending.body.offerId { Text("原邀请：" + offerID).font(Theme.Font.label).textSelection(.enabled) }
-                            Text("记录已先保存到本人保护存储。未知结果不自动重发，也不创建另一请求。")
-                            Button("仅回读原请求") { Task { await flow.recover() } }.disabled(!flow.canRecover)
+                    if flow.pending != nil {
+                        Section {
+                            Text("d7.friendInvite.unknown")
+                            Button { Task { await flow.recover() } } label: { Text("d7.friendInvite.checkResult") }.disabled(!flow.canRecover)
                         }
                     }
                     if let receipt = flow.receipt {
-                        Section("同一原请求结果") {
-                            Text(verbatim: receipt.requestId).font(Theme.Font.label).textSelection(.enabled)
-                            if let teamID = receipt.teamId { Text("原请求队伍 #\(teamID)") }
-                            Text(receipt.outcome == "APPLIED" ? "原操作已记录；不代表对方已接受、已经入队或仍有当前权限。" : "原请求已明确拒绝；没有自动重发或扩大选择。")
-                            if let error = receipt.errorCode { Text(verbatim: error).font(Theme.Font.label) }
+                        Section {
+                            Text(LocalizedStringKey(receipt.outcome == "APPLIED" ? "d7.friendInvite.done" : "d7.friendInvite.rejected"))
                             ForEach(receipt.friendOffer?.offers ?? []) { issued in
-                                VStack(alignment: .leading, spacing: Theme.Space.s2) {
-                                    Text("原选择好友 #" + issued.peerID)
-                                    Text(verbatim: issued.offerID).font(Theme.Font.label).textSelection(.enabled)
-                                    NavigationLink("重新读取此原邀请的当前状态") {
-                                        NativeFriendTeamInviteEntry(mode: .offer(issued.offerID), makeFlow: makeFlow)
-                                    }
-                                }
+                                NavigationLink {
+                                    NativeFriendTeamInviteEntry(mode: .offer(issued.offerID), makeFlow: makeFlow)
+                                } label: { Text("d7.teamInvite.viewInvitation") }
                             }
-                            if let offerID = receipt.friendOffer?.offerID { Text("已处理原邀请：" + offerID).font(Theme.Font.label).textSelection(.enabled) }
-                            if receipt.outcome == "APPLIED", receipt.action == "FRIEND_OFFER", receipt.friendOffer == nil {
-                                Text("旧原回执没有逐人邀请编号；不会用当前历史列表猜测本次结果。")
-                            }
-                            Text("以下当前状态与这份历史回执分开读取；当前名单不可读不会改写同一请求结果。").font(Theme.Font.label)
-                        }
+                        } header: { Text("d7.friendInvite.result") }
                     }
                     ForEach(flow.offers) { offer in
                         Section {
-                            if let inviter = offer.inviter { Text("\(inviter.displayName) 邀请你加入") }
-                            Text(verbatim: offer.name); Text(verbatim: offer.stateLabel)
+                            VStack(alignment: .leading, spacing: Theme.Space.s1) {
+                                Text(verbatim: offer.name).font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true)
+                                if let inviter = offer.inviter { Text("d7.teamInvite.invitedBy \(inviter.displayName)").foregroundStyle(.secondary) }
+                                Text(offerStateKey(offer.state)).font(Theme.Font.label).foregroundStyle(.secondary)
+                            }
                             if case .offer = mode {
                                 if offer.canAct {
                                     if offer.recipient {
-                                        Button(offer.joinMode == 2 ? "本人确认并等待原审核" : "本人确认加入") { flow.prepare(offer, action: "FRIEND_CONFIRM") }.disabled(!flow.canWrite || flow.hasPickerReview)
-                                        Button("拒绝这份邀请", role: .destructive) { flow.prepare(offer, action: "FRIEND_DECLINE") }.disabled(!flow.canWrite || flow.hasPickerReview)
+                                        Button { flow.prepare(offer, action: "FRIEND_CONFIRM") } label: { Text(LocalizedStringKey(offer.joinMode == 2 ? "d7.teamInvite.requestJoin" : "d7.teamInvite.join")) }
+                                            .disabled(!flow.canWrite || flow.hasPickerReview)
+                                        Button(role: .destructive) { flow.prepare(offer, action: "FRIEND_DECLINE") } label: { Text("d7.teamInvite.decline") }
+                                            .disabled(!flow.canWrite || flow.hasPickerReview)
                                     } else {
-                                        Button("撤销未确认邀请", role: .destructive) { flow.prepare(offer, action: "FRIEND_REVOKE") }.disabled(!flow.canWrite || flow.hasPickerReview)
+                                        Button(role: .destructive) { flow.prepare(offer, action: "FRIEND_REVOKE") } label: { Text("d7.teamInvite.revoke") }
+                                            .disabled(!flow.canWrite || flow.hasPickerReview)
                                     }
                                 }
                                 if offer.state == "JOINED", let id = Int(offer.teamID), id > 0 {
-                                    NavigationLink("重新读取原队伍详情") { SessionTeamDetailView(lookup: .id(id)) }
+                                    NavigationLink { SessionTeamDetailView(lookup: .id(id)) } label: { Text("d7.teamInvite.viewTeam") }
                                 }
                             } else {
-                                NavigationLink("读取这份原邀请") { NativeFriendTeamInviteEntry(mode: .offer(offer.offerID), makeFlow: makeFlow) }
+                                NavigationLink { NativeFriendTeamInviteEntry(mode: .offer(offer.offerID), makeFlow: makeFlow) } label: { Text("d7.teamInvite.viewInvitation") }
                             }
                         }
                     }
-                    if flow.canMore { Button("继续读取本人历史") { Task { await flow.loadMine(more: true) } }.disabled(flow.busy) }
+                    if case .mine = mode, flow.offers.isEmpty, !flow.busy, flow.receipt == nil, flow.pending == nil, flow.issue == nil {
+                        ContentUnavailableView { Label("d7.teamInvite.empty", systemImage: "person.3") }
+                    }
+                    if flow.canMore { Button { Task { await flow.loadMine(more: true) } } label: { Text("d7.friendInvite.loadMore") }.disabled(flow.busy) }
                 }
                 .listStyle(.insetGrouped)
-                .font(Theme.Font.body)
-                .scrollContentBackground(.hidden)
-                .background(Theme.Color.bgPage(in: domain))
-                .foregroundStyle(Theme.Color.textPrimary(in: domain))
+                .refreshable { if !flow.busy { await flow.refresh() } }
                 .id(ObjectIdentifier(flow)).task { await flow.activate() }
-            } else { VStack { Text("当前账号或原好友队伍邀请能力尚未配置/已撤回。未打开旧随机组队能力。"); Button("重新读取能力") { open() } } }
+            } else {
+                ContentUnavailableView {
+                    Label("d7.teamInvite.unavailable", systemImage: "person.3")
+                } actions: {
+                    Button { open() } label: { Text("d7.friendInvite.tryAgain") }.buttonStyle(.bordered)
+                }
+            }
         }
         .font(Theme.Font.body)
-        .foregroundStyle(Theme.Color.textPrimary(in: domain))
-        .navigationTitle("原好友队伍邀请")
+        .appNavigationTitle("d7.teamInvite.title")
         .onAppear { if flow == nil { open() } }
         .onChange(of: phase) { _, value in if value == .active { open() } else { close() } }
         .onDisappear { close() }
         .privacySensitive()
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
+    }
+    private func offerStateKey(_ state: String) -> LocalizedStringKey {
+        switch state {
+        case "WAITING_CONFIRM": return "d7.teamInvite.state.waiting"
+        case "PENDING_REVIEW": return "d7.friendInvite.state.pendingReview"
+        case "JOINED": return "d7.friendInvite.state.joined"
+        case "DECLINED": return "d7.friendInvite.state.declined"
+        case "REJECTED": return "d7.friendInvite.state.rejected"
+        case "WITHDRAWN": return "d7.friendInvite.state.withdrawn"
+        case "REVOKED": return "d7.friendInvite.state.revoked"
+        case "EXPIRED": return "d7.friendInvite.state.expired"
+        case "ACCESS_ENDED": return "d7.friendInvite.state.accessEnded"
+        default: return "d7.friendInvite.state.unknown"
+        }
     }
     private func open() { close(); guard phase == .active else { return }; flow = makeFlow(mode) }
     private func close() { flow?.deactivate(); flow = nil }

@@ -9,7 +9,7 @@ import SwiftUI
     var body: some View {
         Group {
             if let flow { NativeChannelCheckinView(flow: flow, current: current, reminderDate: reminderDate) }
-            else if attempted { ContentUnavailableView("频道日签当前不可用", systemImage: "calendar.badge.checkmark", description: Text("需要当前频道身份与独立接口授权。")) }
+            else if attempted { ContentUnavailableView("d7.checkin.unavailable", systemImage: "calendar.badge.checkmark") }
             else { ProgressView() }
         }.task { guard !attempted else { return }; attempted = true; if current() { flow = makeFlow() } }
     }
@@ -24,85 +24,87 @@ import SwiftUI
     private var available: Bool { current() && scene == .active }
     var body: some View {
         Form {
-            if !flow.isCurrent { Text("当前身份或频道已不可用。").fixedSize(horizontal: false, vertical: true) }
+            if !flow.isCurrent { ContentUnavailableView("d7.checkin.unavailable", systemImage: "calendar.badge.checkmark") }
             else {
                 notice
-                if let reminderDate { Text("原提醒日期：\(reminderDate)。签到须按本页服务器日期重新核对，不按旧卡补签。").fixedSize(horizontal: false, vertical: true) }
+                if let reminderDate { LabeledContent("d7.checkin.reminderDate", value: reminderDate) }
                 if let pending = flow.pending {
-                    Section("原签到请求待确认") {
-                        Text("原服务器日期：\(pending.checkinDate)").fixedSize(horizontal: false, vertical: true)
-                        Text("不会自动重发，也不会把原请求改成今天的签到。").fixedSize(horizontal: false, vertical: true)
-                        Button("只查询原结果") { run { current in await flow.recover(); guard current() else { return }; await refreshSettled() } }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy || !flow.service.canRecover)
-                        Button("核对并重试同一原请求…") { retry = true }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy || !flow.service.canRecover || !flow.service.canWrite)
+                    Section("d7.checkin.pending.title") {
+                        LabeledContent("d7.checkin.date", value: pending.checkinDate)
+                        Button("d7.checkin.pending.check") { run { current in await flow.recover(); guard current() else { return }; await refreshSettled() } }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy || !flow.service.canRecover)
+                        Button("d7.checkin.pending.retry") { retry = true }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy || !flow.service.canRecover || !flow.service.canWrite)
                     }
                 }
                 if let review = flow.review {
-                    Section("核对签到") {
-                        Text("频道日签 · \(review.checkinDate) · Asia/Shanghai").fixedSize(horizontal: false, vertical: true)
-                        Text("这是频道日签，不是到场核销，不改玩法成长，不承诺积分或奖励。").fixedSize(horizontal: false, vertical: true)
-                        Button("确认原日期签到") { run { current in await flow.confirm(); guard current() else { return }; await refreshSettled() } }.nativeChannelPrimaryAction().disabled(flow.busy)
-                        Button("取消", role: .cancel) { flow.cancelReview() }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy)
+                    Section("d7.checkin.review.title") {
+                        LabeledContent("d7.checkin.date", value: review.checkinDate)
+                        Button("d7.checkin.review.confirm") { run { current in await flow.confirm(); guard current() else { return }; await refreshSettled() } }.nativeChannelPrimaryAction().disabled(flow.busy)
+                        Button("d7.channelActivity.cancel", role: .cancel) { flow.cancelReview() }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy)
                     }
                 }
                 if let status = flow.status {
-                    Section("我的频道日签") {
-                        Text("服务器日期：\(status.checkinDate)").fixedSize(horizontal: false, vertical: true)
-                        Text("日界：\(status.timezone)").fixedSize(horizontal: false, vertical: true)
-                        Text(status.checked ? "今日已签" : "今日尚未签到").fixedSize(horizontal: false, vertical: true)
-                        if let through = status.streakThrough { Text("截至 \(through)，连续 \(status.streak) 天").fixedSize(horizontal: false, vertical: true) }
-                        else { Text("当前没有连续签到记录").fixedSize(horizontal: false, vertical: true) }
-                        if let fact = status.fact { Text(Date(timeIntervalSince1970: Double(fact.checkedAt) / 1000), style: .time).fixedSize(horizontal: false, vertical: true) }
-                        Button("核对并签到…") { flow.prepare() }.font(Theme.Font.button).frame(minHeight: 44).disabled(!flow.canCheckin)
-                        Button("刷新原状态") { run { _ in await flow.refresh() } }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy || flow.review != nil)
-                    }
-                    Section("补签说明") {
-                        Text("补签仅由运营后台办理，成员不能自助补签；补签不增加连续天数。").fixedSize(horizontal: false, vertical: true)
-                        if !status.makeupPolicy.configured { Text("尚无已发布补签政策，当前不可补签。").fixedSize(horizontal: false, vertical: true) }
-                        else if !status.makeupPolicy.enabled { Text("当前已发布政策未启用补签。").fixedSize(horizontal: false, vertical: true) }
-                        else if let days = status.makeupPolicy.windowDays, let version = status.makeupPolicy.version {
-                            Text("已发布政策版本 \(version)：运营可处理此前 \(days) 天内的日期，不含今天。").fixedSize(horizontal: false, vertical: true)
+                    Section {
+                        QuestifyHeroValue(value: Text("d7.checkin.streak.value \(status.streak)"), caption: Text("d7.checkin.streak.caption"))
+                            .monospacedDigit()
+                        if status.checked { Label("d7.checkin.checkedToday", systemImage: "checkmark.seal.fill").fixedSize(horizontal: false, vertical: true) }
+                        else { Label("d7.checkin.notCheckedToday", systemImage: "calendar").fixedSize(horizontal: false, vertical: true) }
+                        LabeledContent("d7.checkin.date", value: status.checkinDate)
+                        if let fact = status.fact {
+                            LabeledContent("d7.checkin.checkedAt") { Text(Date(timeIntervalSince1970: Double(fact.checkedAt) / 1000), style: .time) }
                         }
-                        Text("签到奖励规则尚未配置，不显示或承诺奖励到账。").fixedSize(horizontal: false, vertical: true)
+                        if !status.checked, flow.review == nil, flow.pending == nil {
+                            Button("d7.checkin.checkIn") { flow.prepare() }.nativeChannelPrimaryAction().disabled(!flow.canCheckin)
+                        }
+                        Button("d7.channelActivity.refresh") { run { _ in await flow.refresh() } }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy || flow.review != nil)
                     }
-                    Section("最近 30 天原记录") {
-                        if status.history.isEmpty { Text("当前可读范围没有记录").fixedSize(horizontal: false, vertical: true) }
+                    if status.makeupPolicy.configured, status.makeupPolicy.enabled, let days = status.makeupPolicy.windowDays, status.makeupPolicy.version != nil {
+                        Section { Text("d7.checkin.makeup \(days)").fixedSize(horizontal: false, vertical: true) }
+                    }
+                    Section("d7.checkin.history") {
+                        if status.history.isEmpty { Text("d7.checkin.history.empty").foregroundStyle(.secondary) }
                         ForEach(status.history) { day in
-                            LabeledContent(day.checkinDate, value: day.kind == "MAKEUP" ? "运营补签 · 不增加连续天数" : "已签到")
+                            LabeledContent {
+                                if day.kind == "MAKEUP" { Text("d7.checkin.history.makeup") } else { Text("d7.checkin.history.checked") }
+                            } label: { Text(verbatim: day.checkinDate) }
                         }
                     }
                 } else if !flow.busy, flow.phase != .redacted {
-                    Text("日签原状态尚不可读；不推断为未签到。").fixedSize(horizontal: false, vertical: true)
-                    Button("读取原状态") { run { _ in await flow.refresh() } }.font(Theme.Font.button).frame(minHeight: 44).disabled(!flow.service.canRead || flow.review != nil)
+                    ContentUnavailableView {
+                        Label("d7.checkin.loadFailed", systemImage: "calendar.badge.exclamationmark")
+                    } actions: {
+                        Button("d7.channelActivity.retry") { run { _ in await flow.refresh() } }.font(Theme.Font.button).frame(minHeight: 44).disabled(!flow.service.canRead || flow.review != nil)
+                    }
                 }
                 if flow.service.canRank {
-                    NavigationLink("频道打卡榜 · 最近 30 天") { NativeChannelCheckinRankView(service: flow.service, current: current) }
+                    NavigationLink("d7.checkin.leaderboard") { NativeChannelCheckinRankView(service: flow.service, current: current) }
                         .disabled(flow.busy || flow.review != nil)
                 }
             }
         }
         .font(Theme.Font.body)
         .nativeChannelScreen()
-        .navigationTitle("频道日签").privacySensitive()
+        .navigationTitle("d7.checkin.title").privacySensitive()
         .task(id: available) { if available { await flow.activate(current: current) } else { stop() } }
         .onChange(of: current()) { _, valid in if !valid { stop() } }
         .onChange(of: scene) { _, value in if value != .active { stop() } }
         .onDisappear { stop() }
-        .confirmationDialog("先读取原结果，再重试同一请求与同一日期", isPresented: $retry, titleVisibility: .visible) {
-            Button("核对并重试原请求") { run { current in await flow.retryOriginal(); guard current() else { return }; await refreshSettled() } }
-            Button("取消", role: .cancel) {}
+        .confirmationDialog("d7.checkin.retry.title", isPresented: $retry, titleVisibility: .visible) {
+            Button("d7.channelActivity.retry") { run { current in await flow.retryOriginal(); guard current() else { return }; await refreshSettled() } }
+            Button("d7.channelActivity.cancel", role: .cancel) {}
         }
     }
     @ViewBuilder private var notice: some View {
         switch flow.phase {
-        case .reading: ProgressView("读取原状态…").font(Theme.Font.body)
-        case .submitting: ProgressView("原签到已提交，等待结果…").font(Theme.Font.body)
-        case .unknown: Text("原请求结果待确认；没有宣称签到失败或成功。").nativeChannelNotice(systemImage: "clock")
-        case .applied: Text("原签到请求已完成，正在读取当前状态。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-        case .redacted: Text("原签到已完成；当前权限不允许展示结果。").nativeChannelNotice(systemImage: "lock")
-        case .expiredUnapplied: Text("服务端在原会话锁内确认：原请求未写入且原日期已结束，不能再执行。今天签到仍需重新核对。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-        case .rejected(let code): Text(code == "SCREENING_PENDING" ? "请返回频道逐条确认规则；不会自动重发。" : "原日期或状态已变，或请求未获允许。请刷新后重新核对。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-        case .failed: Text("原状态读取失败，未推断为未签到。").nativeChannelNotice(systemImage: "exclamationmark.circle")
-        case .persistenceFailed: Text("原请求记录无法安全保存或核对，已停止写入；请勿清除原记录。").nativeChannelNotice(systemImage: "exclamationmark.circle")
+        case .reading: ProgressView("d7.channelActivity.loading").font(Theme.Font.body)
+        case .submitting: ProgressView("d7.checkin.submitting").font(Theme.Font.body)
+        case .unknown: Text("d7.checkin.notice.unknown").nativeChannelNotice(systemImage: "clock")
+        case .applied: Text("d7.checkin.notice.applied").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+        case .redacted: Text("d7.checkin.notice.redacted").nativeChannelNotice(systemImage: "checkmark.seal")
+        case .expiredUnapplied: Text("d7.checkin.notice.expired").nativeChannelNotice(systemImage: "calendar.badge.exclamationmark")
+        case .rejected(let code):
+            if code == "SCREENING_PENDING" { Text("d7.channelActivity.rulesPending").nativeChannelNotice(systemImage: "exclamationmark.circle") }
+            else { Text("d7.checkin.notice.rejected").nativeChannelNotice(systemImage: "exclamationmark.circle") }
+        case .persistenceFailed: Text("d7.channelActivity.saveFailed").nativeChannelNotice(systemImage: "exclamationmark.circle")
         default: EmptyView()
         }
     }
@@ -123,34 +125,43 @@ import SwiftUI
     private var available: Bool { current() && service.isCurrent && scene == .active }
     var body: some View {
         List {
-            if !available { Text("当前频道榜不可用").fixedSize(horizontal: false, vertical: true) }
+            if !available { ContentUnavailableView("d7.checkinRank.unavailable", systemImage: "list.number") }
             else {
-                if busy { ProgressView("读取原签到事实…") }
-                if failed { Text("原榜读取失败，不显示旧榜或空榜成功。").fixedSize(horizontal: false, vertical: true) }
+                if busy { ProgressView("d7.channelActivity.loading") }
+                if failed { ContentUnavailableView("d7.checkinRank.loadFailed", systemImage: "exclamationmark.circle") }
                 if let page {
-                    Section("我的记录") { row(page.me); Text("截至服务器日期 \(page.checkinDate) · \(page.timezone)").fixedSize(horizontal: false, vertical: true) }
+                    Section("d7.checkinRank.me") { row(page.me) }
                     if page.othersVisible {
-                        Section("最近 30 天 · 前 \(page.limit)") {
+                        Section("d7.checkinRank.top \(page.limit)") {
                             ForEach(page.list) { row($0) }
-                            if page.list.isEmpty { Text("当前可见成员没有签到记录").fixedSize(horizontal: false, vertical: true) }
-                            if page.hasMore { Button("明确展开前 50 位") { Task { await load(50) } }.font(Theme.Font.button).frame(minHeight: 44).disabled(busy) }
+                            if page.list.isEmpty { Text("d7.checkin.history.empty").foregroundStyle(.secondary) }
+                            if page.hasMore { Button("d7.checkinRank.showTop50") { Task { await load(50) } }.font(Theme.Font.button).frame(minHeight: 44).disabled(busy) }
                         }
-                    } else { Text("原成员列表权限不允许展示他人，保留我的记录；未推断他人名次。").fixedSize(horizontal: false, vertical: true) }
-                    Text("只统计本频道日期；连续天数不参与排序，MAKEUP 单独标记，不代表积分、成长或到场。").fixedSize(horizontal: false, vertical: true)
+                    }
                 }
-                Button("刷新原榜（默认前 10）") { Task { await load(10) } }.font(Theme.Font.button).frame(minHeight: 44).disabled(busy)
+                Button("d7.channelActivity.refresh") { Task { await load(10) } }.font(Theme.Font.button).frame(minHeight: 44).disabled(busy)
             }
-        }.font(Theme.Font.body).nativeChannelScreen().listStyle(.insetGrouped).navigationTitle("频道打卡榜").privacySensitive()
+        }.font(Theme.Font.body).nativeChannelScreen().listStyle(.insetGrouped).navigationTitle("d7.checkinRank.title").privacySensitive()
         .task(id: available) { if available { active = true; await load(10) } else { stop() } }
         .onChange(of: current()) { _, valid in if !valid { stop() } }
         .onChange(of: scene) { _, value in if value != .active { stop() } }
         .onDisappear { stop() }
     }
     private func row(_ row: NativeChannelCheckinRankRow) -> some View {
-        VStack(alignment: .leading, spacing: Theme.Space.s1) {
-            Text("\(row.rank.map { "第 \($0) 位 · " } ?? "")\(row.memberId == service.actorID ? "我" : (row.nickname ?? "频道成员"))").font(Theme.Font.body.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
-            Text("\(row.days) 天 · 其中 MAKEUP \(row.makeupDays) 天 · 原最近连续 \(row.streak) 天").fixedSize(horizontal: false, vertical: true).font(Theme.Font.label).monospacedDigit()
+        HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s3) {
+            Text(verbatim: row.rank.map { String($0) } ?? "—").font(Theme.Font.body.weight(.semibold)).monospacedDigit().frame(minWidth: 28, alignment: .leading)
+            VStack(alignment: .leading, spacing: Theme.Space.s1) {
+                Group {
+                    if row.memberId == service.actorID { Text("d7.checkinRank.me") }
+                    else if let nickname = row.nickname { Text(verbatim: nickname) }
+                    else { Text("d7.checkinRank.member") }
+                }.font(Theme.Font.body.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
+                Text("d7.checkinRank.detail \(row.streak) \(row.makeupDays)").font(Theme.Font.label).foregroundStyle(.secondary).monospacedDigit().fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: Theme.Space.s2)
+            Text("d7.checkinRank.days \(row.days)").monospacedDigit()
         }
+        .accessibilityElement(children: .combine)
     }
     private func load(_ limit: Int) async {
         guard active, available, !busy else { return }; generation &+= 1; let run = generation; busy = true; page = nil; failed = false

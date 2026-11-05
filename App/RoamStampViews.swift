@@ -103,7 +103,6 @@ struct RoamStampCard: View {
                 else { Label("roam.experience.imageUnavailable", systemImage: "photo") }
                 if let caption = stamp.caption, !caption.isEmpty { Text(verbatim: caption).font(.title3).multilineTextAlignment(.leading) }
                 if let date = stamp.createTime { Text(verbatim: date.replacingOccurrences(of: "T", with: " ")).font(.caption).foregroundStyle(.secondary) }
-                if stamp.checkState == 0 { Text("roam.experience.reviewNotSubmitted").font(.caption).foregroundStyle(.secondary) }
             }
         }
     }
@@ -132,7 +131,6 @@ private struct RoamStampImage: View {
                 if canShowStamp {
                     RoamExperienceNotice(offline: offline)
                     RoamStampCard(stamp: stamp, offline: offline, allowsRemoteImages: allowsRemoteImages && (readOnlyScope?.allowsRemoteImages ?? true))
-                    Text("roam.experience.albumPrivacy").font(.caption).foregroundStyle(.secondary)
                 } else { RoamStampReadOnlyUnavailable() }
             }.padding()
         }.navigationTitle("roam.experience.cityStamp")

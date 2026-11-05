@@ -65,6 +65,8 @@ import Foundation
         // idempotent read intent before any further page/read operation.
         if let failedOperation, case .read = failedOperation, failedOperation != operation { return }
         isLoading = true; activeOperation = operation; issue = nil; generation += 1
+        // A previous cutoff's receipt cannot describe this in-flight intent.
+        if case .read = operation { receipt = nil }
         let request = generation
         onChange?()
         defer { if request == generation { activeOperation = nil; isLoading = false; onChange?() } }
@@ -97,7 +99,7 @@ import Foundation
             guard request == generation else { return }
             if !isCurrent {
                 // A retired authority must never expose or retry the former viewer's payload.
-                history = .init(conversationID: conversation.id); receipt = nil; loaded = false; seenThrough = nil
+                history = .init(conversationID: conversation.id); receipt = nil; loaded = false; seenThrough = nil; seenPosition = -1
                 failedOperation = nil
             } else if error is CancellationError {
                 // Task cancellation alone is not a server rollback. Preserve the
@@ -107,16 +109,29 @@ import Foundation
                 if case .read = operation { receipt = nil }
             } else {
                 issue = error; failedOperation = operation
-                if case .read = operation, let failure = error as? MessagingReadFailure,
-                   failure.httpStatus == nil, let code = failure.code, [400,401,403,404,409].contains(code) {
+                let failure = error as? MessagingReadFailure
+                // HTTP status takes precedence over envelope metadata: an HTTP
+                // 5xx with a rejection code still leaves the write uncertain.
+                let rejection = failure.map { failure in
+                    [400,401,403,404,409].contains(failure.httpStatus ?? failure.code ?? 0)
+                } ?? false
+                if case .read = operation, rejection {
                     // A structured rejection from this transactional endpoint is
                     // not an unknown write. Recover with a fresh authorized page.
                     failedOperation = .latest
                 }
-                if let failure = error as? MessagingReadFailure,
-                   failure.isForbidden || failure.isClosed || failure.isUnauthorized || failure.code == 404
-                    || failure.errorCode == "IM_CONVERSATION_CLOSED" {
-                    history = .init(conversationID: conversation.id); receipt = nil; loaded = false; seenThrough = nil
+                let accessRejected = failure.map { failure in
+                    (failure.httpStatus == nil || rejection) &&
+                    (failure.isForbidden || failure.isClosed || failure.isUnauthorized || failure.code == 404
+                     || failure.httpStatus == 404 || failure.errorCode == "IM_CONVERSATION_CLOSED")
+                } ?? false
+                // MessagingSessionReader deliberately maps structured 401s to
+                // APIError.unauthorized, even before its session owner retires.
+                if (error as? APIError) == .unauthorized || accessRejected {
+                    history = .init(conversationID: conversation.id); receipt = nil; loaded = false; seenThrough = nil; seenPosition = -1
+                    // The old page/read target no longer exists locally. A
+                    // subsequent explicit retry must reacquire the latest page.
+                    failedOperation = .latest
                 }
             }
         }

@@ -24,13 +24,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "These saved team settings are unsupported or absent from an older local draft. They are preserved; full saving is blocked. Reload the current editor before continuing."
+            "value": "These team settings can't be edited here. Reload the editor before continuing."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前组队设置暂不支持，或旧版本地草稿缺少已保存的设置。原始内容会保留，完整保存已阻止。请重新加载当前编辑器后继续。"
+            "value": "组队设置无法在此编辑，请重新载入编辑器后继续。"
           }
         }
       }
@@ -41,13 +41,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose when players can form a team for this city-orienteering theme. Apply changes only this local draft."
+            "value": "Choose when players can form a team for this topic."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "设置经典定向主题的组队入口。应用只修改当前本地草稿。"
+            "value": "设置玩家何时可以组队。"
           }
         }
       }
@@ -143,13 +143,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "When no value was saved, the server defaults are Off and 4. Applying without a change keeps the original stored shape."
+            "value": "By default teams are off, up to 4 players."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未保存设置时，服务端默认关闭组队、人数上限为 4。不作修改直接应用会保留原始存储形式。"
+            "value": "默认不开启组队，最多 4 人。"
           }
         }
       }

@@ -198,13 +198,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Package ID"
+            "value": "Package"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "玩法包 ID"
+            "value": "玩法包"
           }
         }
       }
@@ -694,13 +694,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Local adaptation allowed"
+            "value": "Adaptation allowed"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "允许本地改编"
+            "value": "允许改编"
           }
         }
       }

@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Current destination ID"
+            "value": "Current next stop"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前目标节点 ID"
+            "value": "当前下一站"
           }
         }
       }
@@ -102,13 +102,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read-only: every chapter and node must have an unambiguous identity, and every graph reference must use an existing server node ID."
+            "value": "This route can't be edited here because some stops are duplicated or not saved yet."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "只读：章节和节点必须具有唯一身份，所有图引用必须使用现有服务端节点 ID。"
+            "value": "部分地点重复或尚未保存，此路线暂不能在此编辑。"
           }
         }
       }
@@ -134,13 +134,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read-only: this outcome does not identify exactly one existing route edge."
+            "value": "This result doesn't lead to exactly one next stop, so it can't be edited here."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "只读：此结果无法唯一对应一条现有路线边。"
+            "value": "此结果没有唯一的下一站，暂不能在此编辑。"
           }
         }
       }

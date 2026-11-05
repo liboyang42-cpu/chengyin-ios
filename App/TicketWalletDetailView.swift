@@ -74,7 +74,6 @@ import SwiftUI
                         Text(LocalizedStringKey("ticketWallet.redemption." + String(ticket.redemption.rawValue)))
                             .accessibilityIdentifier("ticketWallet.redemption.notice")
                     } icon: { Image(systemName: "info.circle").accessibilityHidden(true) }
-                    Text("ticketWallet.noCode").font(.footnote).foregroundStyle(.secondary)
                 }
             }
         }

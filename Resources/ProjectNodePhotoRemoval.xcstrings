@@ -102,13 +102,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This changes the node’s photo list in the current draft. It uses the editor’s usual autosave and Save local action. Stored image files remain in place."
+            "value": "Changes this stop's photos. Save the draft to keep the change."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此操作更改当前草稿中的节点照片列表，沿用编辑器的自动保存和“保存到本地”操作。已存储的图片文件保持不变。"
+            "value": "修改此地点的照片，保存草稿后生效。"
           }
         }
       }

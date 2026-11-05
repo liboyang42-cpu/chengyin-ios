@@ -98,7 +98,7 @@ struct NativeChannelProgressEntryIdentity: Hashable {
                 NativeChannelProgressLoadedView(model: model, teams: teams, close: close)
                     .id(owner.visitID)
             } else if owner.entryIdentity == inputIdentity, owner.attempted {
-                ContentUnavailableView { Label { Text("closed", tableName: "NativeChannelProgress") } icon: { Image(systemName: "lock") } }
+                ContentUnavailableView { Label { Text("d7.channelProgress.closed", tableName: "NativeChannelProgress") } icon: { Image(systemName: "chart.bar") } }
             } else { ProgressView() }
         }
         .task(id: inputIdentity) { reopen() }
@@ -137,18 +137,19 @@ struct NativeChannelProgressEntryIdentity: Hashable {
     var body: some View {
         NavigationStack(path: $path) {
             List {
-                if !model.isCurrent { Text("closed", tableName: "NativeChannelProgress") }
+                if !model.isCurrent { Text("d7.channelProgress.closed", tableName: "NativeChannelProgress") }
                 if model.busy { ProgressView() }
                 if let overview = model.overview {
                     Section {
-                        if !overview.visible { Text("hidden", tableName: "NativeChannelProgress") }
+                        if !overview.visible { Text("d7.channelProgress.hidden", tableName: "NativeChannelProgress").foregroundStyle(.secondary) }
                         else if let members = overview.members {
-                            LabeledContent { Text(verbatim: String(members.total)) } label: { Text("participants", tableName: "NativeChannelProgress") }
+                            LabeledContent { Text(verbatim: String(members.total)) } label: { Text("d7.channelProgress.participants", tableName: "NativeChannelProgress") }
                             LabeledContent { Text(verbatim: String(members.completed)) } label: { Text("completed", tableName: "NativeChannelProgress") }
                             if let percent = members.avgPercent { LabeledContent { Text(verbatim: "\(percent)%") } label: { Text("average", tableName: "NativeChannelProgress") } }
-                            if members.totalCapped { Text("capped", tableName: "NativeChannelProgress").font(.caption) }
-                            ForEach(Array((overview.teams ?? []).enumerated()), id: \.offset) { _, team in
-                                Text(verbatim: "\(team.rollup) · \(team.done)/\(team.required)")
+                            ForEach(Array((overview.teams ?? []).enumerated()), id: \.offset) { index, team in
+                                LabeledContent { Text(verbatim: "\(team.done)/\(team.required)") } label: {
+                                    Text("d7.channelProgress.teamNumber \(index + 1)", tableName: "NativeChannelProgress")
+                                }
                             }
                         }
                     } header: { Text("overview", tableName: "NativeChannelProgress") }
@@ -157,18 +158,19 @@ struct NativeChannelProgressEntryIdentity: Hashable {
                 Section {
                     ForEach(model.definitions) { board in
                         NavigationLink(value: board.boardKey) {
-                            VStack(alignment: .leading) {
-                                Text(verbatim: board.title)
-                                Text(verbatim: "\(board.metric) · \(board.period) · \(board.subjectType)").font(Theme.Font.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                            }
+                            Text(verbatim: board.title)
                         }.disabled(model.busy).accessibilityIdentifier("channelProgress.board.\(board.boardKey)")
                     }
-                    if model.isCurrent && !model.busy && model.definitions.isEmpty && model.issue("definitions") == nil { Text("noBoards", tableName: "NativeChannelProgress") }
-                } header: { Text("boards", tableName: "NativeChannelProgress") }
+                    if model.isCurrent && !model.busy && model.definitions.isEmpty && model.issue("definitions") == nil {
+                        Text("d7.channelProgress.noBoards", tableName: "NativeChannelProgress").foregroundStyle(.secondary)
+                    }
+                } header: { Text("d7.channelProgress.boards", tableName: "NativeChannelProgress") }
                 NativeChannelProgressIssueView(model: model, part: "definitions")
                 if model.isCurrent {
-                    NavigationLink { NativeChannelProgressPrivacyView(model: model) } label: { Label { Text("privacy", tableName: "NativeChannelProgress") } icon: { Image(systemName: "hand.raised") } }
-                        .disabled(model.busy).accessibilityIdentifier("channelProgress.privacyEntry")
+                    Section {
+                        NavigationLink { NativeChannelProgressPrivacyView(model: model) } label: { Label { Text("privacy", tableName: "NativeChannelProgress") } icon: { Image(systemName: "hand.raised") } }
+                            .disabled(model.busy).accessibilityIdentifier("channelProgress.privacyEntry")
+                    }
                 }
             }
             .navigationTitle(Text("title", tableName: "NativeChannelProgress"))
@@ -176,7 +178,7 @@ struct NativeChannelProgressEntryIdentity: Hashable {
             .refreshable { await model.loadDirectory() }
             .navigationDestination(for: String.self) { key in
                 if let board = model.definitions.first(where: { $0.boardKey == key }) { NativeChannelProgressBoardView(model: model, board: board, teamOptions: teams(board)) }
-                else { Text("closed", tableName: "NativeChannelProgress") }
+                else { ContentUnavailableView { Label { Text("d7.channelProgress.closed", tableName: "NativeChannelProgress") } icon: { Image(systemName: "chart.bar") } } }
             }
         }.nativeChannelScreen()
         .onChange(of: model.isCurrent) { _, current in if !current { path = NavigationPath() } }
@@ -188,17 +190,16 @@ struct NativeChannelProgressEntryIdentity: Hashable {
     let part: String
     var body: some View {
         if let issue = model.issue(part) {
-            VStack(alignment: .leading) {
-                Text("unconfirmed", tableName: "NativeChannelProgress")
-                Text(LocalizedStringKey(issueKey(issue)), tableName: "NativeChannelProgress").font(.caption).foregroundStyle(.secondary)
-            }.accessibilityIdentifier("channelProgress.issue.\(part)")
+            Label { Text(LocalizedStringKey(issueKey(issue)), tableName: "NativeChannelProgress") } icon: { Image(systemName: "exclamationmark.circle") }
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier("channelProgress.issue.\(part)")
         }
     }
     private func issueKey(_ code: String) -> String {
-        if code == "PROGRESS_PERIOD_ZONE_UNRESOLVED" { return "periodUnavailable" }
-        if code == "METRIC_SOURCE_UNSUPPORTED" { return "metricUnavailable" }
-        if code.contains("HISTORY") { return "historyUnavailable" }
-        if code.contains("SNAPSHOT") { return "archiveUnavailable" }
-        return "retryRead"
+        if code == "PROGRESS_PERIOD_ZONE_UNRESOLVED" { return "d7.channelProgress.periodUnavailable" }
+        if code == "METRIC_SOURCE_UNSUPPORTED" { return "d7.channelProgress.metricUnavailable" }
+        if code.contains("HISTORY") { return "d7.channelProgress.historyUnavailable" }
+        if code.contains("SNAPSHOT") { return "d7.channelProgress.archiveUnavailable" }
+        return "d7.channelProgress.retryRead"
     }
 }

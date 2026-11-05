@@ -51,7 +51,6 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             Form {
-                Section { Text("merchant.crmDate.localOnly").font(.footnote); Text("merchant.crmDate.rangeHint").font(.footnote) }
                 dateField("merchant.business.sourceStart", .start)
                 dateField("merchant.business.sourceEnd", .end)
                 if !draft.isValid { Text("merchant.crmDate.invalid").foregroundStyle(.red) }

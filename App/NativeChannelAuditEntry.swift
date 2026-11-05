@@ -13,80 +13,68 @@ import SwiftUI
             if let flow, flow.isCurrent {
                 List {
                     if flow.source == .lifecycle {
-                        Section {
-                            Text("原 im_channel_op_log 生命周期日志，与治理审计链是不同来源。此处不声称 hash 链或三路锚点证明，也不把原日志编号当治理 action_id。")
-                        }
-                        ForEach(flow.operations) { row in
-                            Section(row.action) {
-                                NativeChannelFlowFact(label:Text("原日志编号"),value:row.id)
-                                NativeChannelFlowFact(label:Text("频道"),value:row.channelID)
-                                if let value = row.fromStatus { LabeledContent("原 from_status", value: String(value)) }
-                                if let value = row.toStatus { LabeledContent("原 to_status", value: String(value)) }
-                                if let actor = row.operatorID { NativeChannelFlowFact(label:Text("原 operator_id"),value:actor) }
-                                else { Text("原记录未提供操作成员编号") }
-                                if let request = row.requestID { NativeChannelFlowReference(label:Text("请求编号"),value:request) }
-                                Text("原 create_time：\(row.createdAt)")
-                                if let reason = row.reason { Text(reason).fixedSize(horizontal: false, vertical: true) }
+                        if !flow.operations.isEmpty {
+                            Section {
+                                ForEach(flow.operations) { row in
+                                    NativeChannelAuditRow(action: row.action, actor: row.operatorID, date: row.createdAt, reason: row.reason)
+                                }
                             }
                         }
                     } else {
-                    Section {
-                        Text("仅显示原审计源允许的快照。原链验证不等于外部锚点或历史补证。")
-                        Button("验证原审计链") { Task { await flow.verifyOriginalChain() } }.disabled(!flow.canVerify)
-                        if let proof = flow.verification {
-                            Text(proof.chainOK ? "当前原链校验一致" : "未能确认完整原审计链")
-                            LabeledContent("已核对原记录", value: String(proof.checkedRows))
-                            LabeledContent("无原链证明记录", value: String(proof.unprovenOriginalRows))
-                            NativeChannelFlowFact(label:Text("核对至原记录"),value:proof.verifiedThroughOriginalID)
-                            NativeChannelFlowReference(label:Text("原链头"),value:proof.headHash)
-                            if !proof.linkedProjectionOK { Text("原链不一致，未显示相关快照。") }
-                            if proof.frozen { Text("原审计链写入已冻结；此页面不提供解除冻结操作。") }
-                            if let anchors = proof.anchorEvidence {
-                                Text(proof.externallyAnchored ? "同一原链头的三路记录齐全（弱等价锚点）" : "此原链头尚无完整三路锚点")
-                                ForEach(anchors.channels, id: \.channel) { item in
-                                    NativeChannelFlowFact(label:Text(verbatim:item.channel),value:item.state)
+                        Section("d7.channelAudit.integrity") {
+                            Button("d7.channelAudit.verify") { Task { await flow.verifyOriginalChain() } }.disabled(!flow.canVerify)
+                            if let proof = flow.verification {
+                                LabeledContent("d7.channelAudit.result") {
+                                    Text(proof.chainOK ? LocalizedStringKey("d7.channelAudit.intact") : LocalizedStringKey("d7.channelAudit.notVerified"))
                                 }
-                                Text("OSS 对象读回、SMTP 服务器接受、后台页面截图存档分别计证。SMTP 接受不等于收件人收到；页面存档不等于外部接收。UNKNOWN 不算完成，亦非 WORM 保证。")
-                            } else {
-                                Text("未提供外部锚点。")
+                                LabeledContent("d7.channelAudit.checked", value: String(proof.checkedRows))
+                                if proof.unprovenOriginalRows > 0 { LabeledContent("d7.channelAudit.unverified", value: String(proof.unprovenOriginalRows)) }
+                                if !proof.linkedProjectionOK { Text("d7.channelAudit.hiddenUnverified").foregroundStyle(.secondary) }
+                                if proof.frozen { Text("d7.channelAudit.frozen").foregroundStyle(.secondary) }
+                                if proof.anchorEvidence != nil {
+                                    LabeledContent("d7.channelAudit.backups") {
+                                        Text(proof.externallyAnchored ? LocalizedStringKey("d7.channelAudit.backupsComplete") : LocalizedStringKey("d7.channelAudit.backupsIncomplete"))
+                                    }
+                                }
                             }
-                            Text("旧记录不会被自动补成当时的证明。")
                         }
-                    }
-                    ForEach(flow.rows) { row in
-                        Section(row.action) {
-                            NativeChannelFlowFact(label:Text("记录"),value:row.id)
-                            NativeChannelFlowFact(label:Text("频道"),value:row.channelID)
-                            NativeChannelFlowFact(label:Text("原主体类型"),value:row.actorType)
-                            if let actor = row.actorID { NativeChannelFlowFact(label:Text("主体编号"),value:actor) }
-                            NativeChannelFlowFact(label:Text("原目标类型"),value:row.targetType)
-                            if let target = row.targetID { NativeChannelFlowFact(label:Text("目标编号"),value:target) }
-                            Text(row.createdAt)
-                            if let reason = row.reason { Text(reason).fixedSize(horizontal: false, vertical: true) }
-                            if let changes = row.changes { Text(changes).font(.caption).textSelection(.enabled).fixedSize(horizontal: false, vertical: true) }
-                            else { Text("原变更快照不可用") }
-                            if row.redacted { Text("部分信息已由原服务端隐藏") }
+                        if !flow.rows.isEmpty {
+                            Section {
+                                ForEach(flow.rows) { row in
+                                    NavigationLink { NativeChannelAuditDetail(row: row) } label: {
+                                        NativeChannelAuditRow(action: row.action, actor: row.actorID, date: row.createdAt, reason: nil)
+                                    }
+                                }
+                            }
                         }
-                    }
                     }
                     if flow.state == .ready,
                        (flow.source == .lifecycle ? flow.operations.isEmpty : flow.rows.isEmpty) {
-                        NativeChannelFlowNotice(title:Text("暂无可显示的审计记录"),symbol:"doc.text.magnifyingglass")
+                        ContentUnavailableView { Label("d7.channelAudit.empty", systemImage: "doc.text.magnifyingglass") }
                     }
-                    if flow.state == .loading { ProgressView() }
-                    if flow.state == .unavailable { NativeChannelFlowNotice(title:Text("原权限或审计来源暂不可用，未保留旧快照。"),symbol:"lock.shield") }
-                    Button("刷新原审计记录") { Task { await flow.refresh() } }
-                    if flow.canLoadMore { Button("读取更早记录") { Task { await flow.more() } } }
+                    if flow.state == .loading { ProgressView().frame(maxWidth: .infinity) }
+                    if flow.state == .unavailable {
+                        ContentUnavailableView {
+                            Label("d7.channelAudit.loadFailed", systemImage: "exclamationmark.triangle")
+                        } actions: {
+                            Button("d7.channelAudit.tryAgain") { Task { await flow.refresh() } }
+                        }
+                    }
+                    if flow.canLoadMore { Button("d7.channelAudit.loadMore") { Task { await flow.more() } } }
+                }
+                .refreshable { await flow.refresh() }
+            } else if unavailable {
+                ContentUnavailableView {
+                    Label("d7.channelAudit.unavailable", systemImage: "lock.shield")
+                } actions: {
+                    Button("d7.channelAudit.tryAgain") { Task { await open() } }
                 }
             } else {
-                VStack {
-                    Text(unavailable ? "当前原审计权限或来源不可用" : "正在核对原频道权限")
-                    Button("重新读取原权限") { Task { await open() } }
-                }
+                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .nativeChannelFlowPage()
-        .navigationTitle(flow?.source == .lifecycle ? "频道管理变更记录" : "频道审计记录")
+        .navigationTitle(flow?.source == .lifecycle ? LocalizedStringKey("d7.channelAudit.historyTitle") : LocalizedStringKey("d7.channelAudit.title"))
         .task { await open() }
         .task {
             while !Task.isCancelled {
@@ -112,5 +100,55 @@ import SwiftUI
             guard run == generation, scenePhase == .active, !Task.isCancelled else { owner.deactivate(); return }
             flow = owner; unavailable = !owner.isCurrent
         } catch { if run == generation { unavailable = true } }
+    }
+}
+
+/// One log entry: what happened, who did it, and when.
+private struct NativeChannelAuditRow: View {
+    let action: String
+    let actor: String?
+    let date: String
+    let reason: String?
+    var body: some View {
+        VStack(alignment: .leading, spacing: Theme.Space.s1) {
+            Text(verbatim: action).font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true)
+            HStack(alignment: .firstTextBaseline) {
+                if let actor { Text("d7.channelAudit.byMember \(actor)") } else { Text(verbatim: "—") }
+                Spacer(minLength: Theme.Space.s2)
+                Text(verbatim: date)
+            }
+            .font(.subheadline).foregroundStyle(.secondary)
+            if let reason, !reason.isEmpty { Text(reason).fixedSize(horizontal: false, vertical: true) }
+        }
+        .padding(.vertical, Theme.Space.s1)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// Full entry: action, people, date, reason and the recorded changes.
+private struct NativeChannelAuditDetail: View {
+    let row: NativeChannelAuditFlow.Row
+    var body: some View {
+        List {
+            Section {
+                LabeledContent("d7.channelAudit.action") { Text(verbatim: row.action) }
+                LabeledContent("d7.channelAudit.by") {
+                    if let actor = row.actorID { Text("d7.channelAudit.byMember \(actor)") } else { Text(verbatim: "—") }
+                }
+                LabeledContent("d7.channelAudit.date") { Text(verbatim: row.createdAt) }
+                if let reason = row.reason, !reason.isEmpty {
+                    LabeledContent("d7.channelAudit.reason") { Text(reason).multilineTextAlignment(.trailing) }
+                }
+            }
+            Section("d7.channelAudit.changes") {
+                if let changes = row.changes {
+                    Text(changes).font(.caption.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                } else { Text(verbatim: "—") }
+                if row.redacted { Text("d7.channelAudit.redacted").foregroundStyle(.secondary) }
+            }
+        }
+        .nativeChannelFlowPage()
+        .navigationTitle(Text(verbatim: row.action))
+        .privacySensitive()
     }
 }

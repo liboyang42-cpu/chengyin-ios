@@ -6,11 +6,13 @@ import SwiftUI
     let scope: NativeChannelManagementScope
     let makeFlow: (NativeChannelManagementScope) -> NativeChannelManagementCoordinator?
     var destinations = NativeChannelManagementDestinations()
+    /// The space's display name from the source screen, shown as the channel home's header.
+    var spaceName: String? = nil
     @StateObject private var directoryRoute = NativeChannelManagementRouteState()
     var body: some View {
         let visit = directoryRoute.binding
         NavigationLink(isActive: visit) {
-            NativeChannelManagementLaunchView(scope: scope, makeFlow: makeFlow, destinations: destinations, routeIsPresented: visit)
+            NativeChannelManagementLaunchView(scope: scope, makeFlow: makeFlow, destinations: destinations, routeIsPresented: visit, spaceName: spaceName)
                 .id(directoryRoute.visitID)
         } label: {
             Label { Text("directory", tableName: "NativeChannelManagement") } icon: { Image(systemName: "number.square") }
@@ -23,6 +25,7 @@ import SwiftUI
     let makeFlow: (NativeChannelManagementScope) -> NativeChannelManagementCoordinator?
     let destinations: NativeChannelManagementDestinations
     let routeIsPresented: Binding<Bool>
+    var spaceName: String? = nil
     @State private var model: NativeChannelManagementCoordinator?
     @State private var attempted = false
     @State private var ownerVisit = UUID()
@@ -31,11 +34,13 @@ import SwiftUI
         let parentVisit = routeIsPresented
         Group {
             if let model {
-                NativeChannelManagementDirectoryView(model: model, destinations: destinations, parentRouteIsActive: { [weak model] in parentVisit.wrappedValue && model?.isCurrent == true })
+                NativeChannelManagementDirectoryView(model: model, destinations: destinations, parentRouteIsActive: { [weak model] in parentVisit.wrappedValue && model?.isCurrent == true },
+                                                     spaceName: spaceName)
                     .id(ownerVisit)
             } else if attempted {
-                VStack {
-                    NativeChannelManagementUnavailableView()
+                ContentUnavailableView {
+                    Label { Text("unavailable", tableName: "NativeChannelManagement") } icon: { Image(systemName: "lock.shield") }
+                } actions: {
                     Button { reopen() } label: { Text("refresh", tableName: "NativeChannelManagement") }
                         .disabled(scenePhase != .active)
                         .accessibilityIdentifier("ncm.launch.retry")
@@ -97,7 +102,7 @@ extension EnvironmentValues {
             NativeChannelManagementEntry(scope: scope, makeFlow: { selected in
                 guard selected == scope, let flow = makeFlow(selected), flow.scope == scope else { return nil }
                 return flow
-            }, destinations: destinations)
+            }, destinations: destinations, spaceName: detail.team.title)
             // Only explicitly supplied TEAM-safe adapters. Never turns a team ID into a conversation ID or grants Webhook.
             .accessibilityIdentifier("ncm.team.normalEntry")
         }

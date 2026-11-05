@@ -104,8 +104,7 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
                         .accessibilityIdentifier("playerJourney.refreshing")
                 }
                 if visible.isEmpty {
-                    ContentUnavailableView(LocalizedStringKey(filter.emptyTitleKey), systemImage: "ticket",
-                        description: Text(LocalizedStringKey(filter.emptyDetailKey)))
+                    ContentUnavailableView(LocalizedStringKey(filter.emptyTitleKey), systemImage: "ticket")
                         .accessibilityIdentifier("playerJourney.empty")
                 }
                 ForEach(visible) { row in
@@ -298,7 +297,7 @@ private struct ParticipationCoverPlaceholder: View {
             if !reader.isAuthenticated { PlayerJourneyLogin(signIn: signIn) }
             else if loading && rows == nil { ProgressView("playerJourney.loading") }
             else if let rows {
-                if rows.isEmpty { ContentUnavailableView("playerJourney.completed.empty", systemImage: "figure.walk", description: Text("playerJourney.completed.emptyDetail")) }
+                if rows.isEmpty { ContentUnavailableView("playerJourney.completed.empty", systemImage: "figure.walk") }
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
                     Button { if let destination = row.destination { open(destination) } } label: {
                         VStack(alignment: .leading, spacing: 8) {

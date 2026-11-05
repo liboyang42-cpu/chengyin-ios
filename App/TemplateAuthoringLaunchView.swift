@@ -28,7 +28,6 @@ extension AppSession {
     @State private var editorVisit: UUID?
     var body: some View {
         List {
-            Section { Text("templateAuthor.introBody"); Text("templateAuthor.unavailable").foregroundStyle(.secondary) }
             Section {
                 Button { editorVisit = UUID() } label: {
                     Label("templateAuthor.title", systemImage: "square.and.pencil")

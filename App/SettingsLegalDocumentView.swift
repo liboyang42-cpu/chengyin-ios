@@ -40,7 +40,6 @@ import SwiftUI
                     } icon: { Image(systemName: "doc.questionmark").accessibilityHidden(true) }
                     .font(.headline)
                     Text(LocalizedStringKey(reason.messageKey)).foregroundStyle(.secondary)
-                    Text("settingsNative.legal.noAcceptance").font(.footnote).foregroundStyle(.secondary)
                 case .loaded(.sourceDocument(let document)):
                     Text("settingsNative.legal.sourceNotice").font(.footnote).foregroundStyle(.primary)
                         .accessibilityIdentifier("settingsNative.legal.sourceNotice")
@@ -66,7 +65,6 @@ import SwiftUI
                         Text("settingsNative.legal.effectiveDate")
                         Text(verbatim: document.effectiveDate)
                     }.font(.caption).foregroundStyle(.secondary)
-                    Text("settingsNative.legal.noAcceptance").font(.footnote).foregroundStyle(.secondary)
                 }
             }
             .frame(maxWidth: 720, alignment: .leading).padding()

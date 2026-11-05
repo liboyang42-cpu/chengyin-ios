@@ -22,70 +22,64 @@ import SwiftUI
                 if flow.hasPending {
                     Section {
                         Label { Text("recovery.pending", tableName: "NativeChannelAppealDetails") } icon: { Image(systemName: "clock.arrow.circlepath") }
-                        if let id = flow.requestID {
-                            Text(verbatim: id).font(.callout).textSelection(.enabled)
-                                .accessibilityLabel(Text("recovery.requestID", tableName: "NativeChannelAppealDetails"))
-                                .accessibilityValue(id)
+                        if flow.canRecover {
+                            Button { Task { await flow.refresh() } } label: { Text("recovery.readOriginal", tableName: "NativeChannelAppealDetails") }
                         }
-                        Text("recovery.explanation", tableName: "NativeChannelAppealDetails")
-                            .font(.footnote).foregroundStyle(.secondary)
-                        Button { Task { await flow.refresh() } } label: { Text("recovery.readOriginal", tableName: "NativeChannelAppealDetails") }.disabled(!flow.canRecover)
-                        Button { retryConfirmation = true } label: { Text("recovery.reviewRetry", tableName: "NativeChannelAppealDetails") }.disabled(!flow.canRetry)
+                        if flow.canRetry {
+                            Button { retryConfirmation = true } label: { Text("recovery.reviewRetry", tableName: "NativeChannelAppealDetails") }
+                        }
                     } header: { Text("recovery.title", tableName: "NativeChannelAppealDetails") }
                 } else if flow.state == .reviewing {
                     Section {
                         Text(LocalizedStringKey(NativeChannelAppealPresentation.operationTitleKey(flow.reviewedOperation)), tableName: "NativeChannelAppealDetails").font(.headline)
                         Text(verbatim: flow.reviewedText).textSelection(.enabled)
-                        Button { Task { await flow.confirm() } } label: { Text("review.confirm", tableName: "NativeChannelAppealDetails") }
-                        Button(role: .cancel) { flow.cancelReview() } label: { Text("action.cancel", tableName: "NativeChannelAppealDetails") }
                     } header: { Text("review.title", tableName: "NativeChannelAppealDetails") }
+                    Section {
+                        Button { Task { await flow.confirm() } } label: { Text("review.confirm", tableName: "NativeChannelAppealDetails").frame(maxWidth: .infinity) }
+                            .nativeChannelFlowAction()
+                        Button(role: .cancel) { flow.cancelReview() } label: { Text("action.cancel", tableName: "NativeChannelAppealDetails").frame(maxWidth: .infinity) }
+                    }
                 } else if hasAvailableOperation {
                     Section {
                         TextField(text: $explanation, axis: .vertical) { Text("input.placeholder", tableName: "NativeChannelAppealDetails") }
+                            .lineLimit(3...8)
                             .accessibilityIdentifier("channel.appeal.explanation")
-                        HStack(alignment: .firstTextBaseline) {
-                            Text("input.limit", tableName: "NativeChannelAppealDetails")
+                        HStack {
+                            if explanationCount > 500 {
+                                Text("input.tooLong", tableName: "NativeChannelAppealDetails").foregroundStyle(.red)
+                            }
                             Spacer(minLength: 8)
-                            Text(verbatim: "\(explanationCount)/500").monospacedDigit()
-                        }.font(.footnote).foregroundStyle(.secondary)
-                        if !validExplanation {
-                            Text(explanationCount > 500 ? "input.tooLong" : "input.required", tableName: "NativeChannelAppealDetails")
-                                .font(.footnote)
-                        }
-                        Text("input.explanation", tableName: "NativeChannelAppealDetails")
-                            .font(.footnote).foregroundStyle(.secondary)
+                            Text(verbatim: "\(explanationCount)/500").monospacedDigit().foregroundStyle(explanationCount > 500 ? AnyShapeStyle(.red) : AnyShapeStyle(.secondary))
+                        }.font(.footnote)
+                    } header: { Text("input.title", tableName: "NativeChannelAppealDetails") }
+                    Section {
                         if flow.canSubmit {
-                            Button { _ = flow.prepare(.submit, text: explanation) } label: { Text("action.submit", tableName: "NativeChannelAppealDetails") }.disabled(!validExplanation)
+                            Button { _ = flow.prepare(.submit, text: explanation) } label: { Text("action.submit", tableName: "NativeChannelAppealDetails").frame(maxWidth: .infinity) }
+                                .nativeChannelFlowAction().disabled(!validExplanation)
                         }
                         if flow.canSupplement {
                             Button { _ = flow.prepare(.evidence, text: explanation) } label: { Text("action.evidence", tableName: "NativeChannelAppealDetails") }.disabled(!validExplanation)
                         }
                         if flow.canWithdraw {
-                            Button { _ = flow.prepare(.withdraw, text: explanation) } label: { Text("action.withdraw", tableName: "NativeChannelAppealDetails") }.disabled(!validExplanation)
+                            Button(role: .destructive) { _ = flow.prepare(.withdraw, text: explanation) } label: { Text("action.withdraw", tableName: "NativeChannelAppealDetails") }.disabled(!validExplanation)
                         }
-                    } header: { Text("input.title", tableName: "NativeChannelAppealDetails") }
+                    }
                 }
                 actionFactsSection
                 appealDetailsSection
-                Section {
-                    Button { Task { await flow.refresh() } } label: {
-                        Label { Text("refresh.action", tableName: "NativeChannelAppealDetails") } icon: { Image(systemName: "arrow.clockwise") }
-                    }.disabled(reading)
-                    Text("refresh.readOnly", tableName: "NativeChannelAppealDetails")
-                        .font(.footnote).foregroundStyle(.secondary)
-                }
             } else if flow.state == .idle {
                 ProgressView { Text("progress.reading", tableName: "NativeChannelAppealDetails") }
             } else {
-                Section {
-                    Label { Text("session.unavailable", tableName: "NativeChannelAppealDetails") } icon: { Image(systemName: "lock.shield") }
-                }
+                ContentUnavailableView { Label { Text("session.unavailable", tableName: "NativeChannelAppealDetails") } icon: { Image(systemName: "lock.shield") } }
             }
         }
         .formStyle(.grouped)
         .font(.body)
         .foregroundStyle(.primary)
         .navigationTitle(Text("entry.title", tableName: "NativeChannelAppealDetails"))
+        .navigationBarTitleDisplayMode(.inline)
+        // Pull to refresh replaces the refresh row; the same read-only refresh runs.
+        .refreshable { if flow.isCurrent, !reading { await flow.refresh() } }
         .task { await flow.activate() }
         .onDisappear { retryConfirmation = false; flow.deactivate() }
         .onChange(of: scenePhase) { _, phase in
@@ -104,7 +98,6 @@ import SwiftUI
                 Text(LocalizedStringKey(NativeChannelAppealPresentation.statusTitleKey(flow.appealStatus)), tableName: "NativeChannelAppealDetails")
                     .font(.headline).accessibilityAddTraits(.isHeader)
                     .accessibilityIdentifier("channel.appeal.currentStatus")
-                LabeledContent { Text(verbatim: flow.appealStatus) } label: { Text("progress.serverStatus", tableName: "NativeChannelAppealDetails") }.font(.footnote).foregroundStyle(.secondary)
             }
             if reading {
                 HStack(alignment: .top, spacing: 12) {
@@ -112,14 +105,11 @@ import SwiftUI
                     Text(flow.state == .submitting ? "progress.submitting" : "progress.reading", tableName: "NativeChannelAppealDetails")
                 }.accessibilityElement(children: .combine)
             }
-            LabeledContent { Text(verbatim: flow.notice.actionID) } label: { Text("progress.actionID", tableName: "NativeChannelAppealDetails") }.font(.callout).textSelection(.enabled)
             if !flow.actionReason.isEmpty { Text(verbatim: flow.actionReason) }
             if !flow.deadline.isEmpty { LabeledContent { Text(verbatim: flow.deadline) } label: { Text("progress.deadline", tableName: "NativeChannelAppealDetails") } }
             if !flow.decisionReason.isEmpty { Text(verbatim: flow.decisionReason).textSelection(.enabled) }
             if flow.state == .applied {
                 Label { Text("result.confirmed", tableName: "NativeChannelAppealDetails") } icon: { Image(systemName: "checkmark.circle") }
-                Text("result.currentSeparate", tableName: "NativeChannelAppealDetails")
-                    .font(.footnote).foregroundStyle(.secondary)
             }
             if flow.currentReadFailed {
                 Text("progress.currentReadFailed", tableName: "NativeChannelAppealDetails")
@@ -127,15 +117,9 @@ import SwiftUI
             if flow.state == .unavailable {
                 Text("source.unavailable", tableName: "NativeChannelAppealDetails")
             }
-            if flow.locatorUnavailable {
-                Text("locator.unavailable", tableName: "NativeChannelAppealDetails")
-                    .font(.footnote).foregroundStyle(.secondary)
-            }
             if ["UPHELD", "REVERSED", "WITHDRAWN"].contains(flow.appealStatus) {
-                Text("status.closed", tableName: "NativeChannelAppealDetails").font(.footnote)
+                Text("status.closed", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
             }
-            Text("result.acceptedNotReversed", tableName: "NativeChannelAppealDetails")
-                .font(.footnote).foregroundStyle(.secondary)
         } header: { Text("progress.title", tableName: "NativeChannelAppealDetails") }
     }
     @ViewBuilder private var appealDetailsSection: some View {
@@ -153,69 +137,62 @@ import SwiftUI
                     LabeledContent { Text(verbatim: String(count)) } label: { Text("evidenceCount", tableName: "NativeChannelAppealDetails") }
                 }
                 ForEach(details.evidence) { item in
-                    VStack(alignment: .leading) {
-                        Text(item.supplement ? "supplement" : "originalEvidence", tableName: "NativeChannelAppealDetails").font(.subheadline)
+                    VStack(alignment: .leading, spacing: Theme.Space.s1) {
+                        Text(item.supplement ? "supplement" : "originalEvidence", tableName: "NativeChannelAppealDetails").font(.subheadline).foregroundStyle(.secondary)
                         if let text = item.text { Text(verbatim: text).textSelection(.enabled) }
                         if !item.messageIDs.isEmpty {
-                            LabeledContent { Text(verbatim: item.messageIDs.joined(separator: ", ")) } label: { Text("messageReferences", tableName: "NativeChannelAppealDetails") }
+                            LabeledContent { Text(verbatim: String(item.messageIDs.count)) } label: { Text("messageReferences", tableName: "NativeChannelAppealDetails") }
                         }
                         if let count = item.attachmentCount {
                             LabeledContent { Text(verbatim: String(count)) } label: { Text("attachmentReferences", tableName: "NativeChannelAppealDetails") }
-                            Text("attachmentsNotOpened", tableName: "NativeChannelAppealDetails").font(.subheadline)
                         }
-                        if item.text == nil && item.messageIDs.isEmpty && item.attachmentCount == nil { Text("unsupportedEvidence", tableName: "NativeChannelAppealDetails") }
+                        if item.text == nil && item.messageIDs.isEmpty && item.attachmentCount == nil { Text(verbatim: "—") }
                     }
                 }
                 if details.evidenceUnavailable { Text("evidenceUnavailable", tableName: "NativeChannelAppealDetails") }
-                if details.evidence.isEmpty && !details.evidenceUnavailable { Text("noTextEvidence", tableName: "NativeChannelAppealDetails") }
+                if details.evidence.isEmpty && !details.evidenceUnavailable { Text("noTextEvidence", tableName: "NativeChannelAppealDetails").foregroundStyle(.secondary) }
             } header: { Text("materials", tableName: "NativeChannelAppealDetails") }
             Section {
                 ForEach(details.timeline) { item in
-                    VStack(alignment: .leading) {
+                    VStack(alignment: .leading, spacing: Theme.Space.s1) {
                         if let event = item.event { Text(verbatim: event).font(.subheadline) }
-                        originalFact("eventAt", item.at)
+                        Text(verbatim: item.at ?? "—").font(.footnote).foregroundStyle(.secondary)
                         if let reason = item.reason { Text(verbatim: reason) }
                     }
                 }
                 if details.timelineUnavailable { Text("timelineUnavailable", tableName: "NativeChannelAppealDetails") }
-                else if details.timeline.isEmpty { Text("noTimeline", tableName: "NativeChannelAppealDetails") }
+                else if details.timeline.isEmpty { Text("noTimeline", tableName: "NativeChannelAppealDetails").foregroundStyle(.secondary) }
             } header: { Text("timeline", tableName: "NativeChannelAppealDetails") }
         }
     }
     private func originalFact(_ key: String, _ value: String?) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(LocalizedStringKey(key), tableName: "NativeChannelAppealDetails")
-                .font(.subheadline).foregroundStyle(.secondary)
-            if let value { Text(verbatim: value).textSelection(.enabled) }
-            else { Text("unknown", tableName: "NativeChannelAppealDetails") }
-        }.accessibilityElement(children: .combine)
+        LabeledContent {
+            Text(verbatim: value ?? "—").textSelection(.enabled)
+        } label: { Text(LocalizedStringKey(key), tableName: "NativeChannelAppealDetails") }
     }
     @ViewBuilder private var actionFactsSection: some View {
-        Section {
-            if let facts = flow.actionFacts {
+        if let facts = flow.actionFacts {
+            Section {
                 fact("channel.actionFacts.type", facts.type)
                 fact("channel.actionFacts.status", facts.status)
-                fact("channel.actionFacts.reasonCode", facts.reasonCode)
-                fact("channel.actionFacts.scopeType", facts.scopeType)
-                fact("channel.actionFacts.scopeID", facts.scopeID)
                 fact("channel.actionFacts.startsAt", facts.startsAt)
                 fact("channel.actionFacts.expiresAt", facts.expiresAt)
                 fact("channel.actionFacts.durationSeconds", facts.durationSeconds.map { String($0) })
-                Text("channel.actionFacts.noTrustedCountdown", tableName: "NativeChannelAppealDetails")
-                    .font(.footnote)
-            } else if flow.actionFactsUnavailable {
-                Text("channel.actionFacts.unavailable", tableName: "NativeChannelAppealDetails")
+            } header: {
+                Text("channel.actionFacts.title", tableName: "NativeChannelAppealDetails")
             }
-        } header: {
-            Text("channel.actionFacts.title", tableName: "NativeChannelAppealDetails")
+        } else if flow.actionFactsUnavailable {
+            Section {
+                Text("channel.actionFacts.unavailable", tableName: "NativeChannelAppealDetails")
+            } header: {
+                Text("channel.actionFacts.title", tableName: "NativeChannelAppealDetails")
+            }
         }
     }
     private func fact(_ key: String, _ value: String?) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(LocalizedStringKey(key), tableName: "NativeChannelAppealDetails").font(.subheadline)
-            if let value { Text(verbatim: value).textSelection(.enabled) }
-            else { Text("channel.actionFacts.unknown", tableName: "NativeChannelAppealDetails") }
-        }
+        LabeledContent {
+            Text(verbatim: value ?? "—").textSelection(.enabled)
+        } label: { Text(LocalizedStringKey(key), tableName: "NativeChannelAppealDetails") }
     }
 }
 

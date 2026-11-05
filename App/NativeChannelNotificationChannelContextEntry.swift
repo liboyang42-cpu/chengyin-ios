@@ -4,7 +4,7 @@ import SwiftUI
 /// context source. The notification factory still requires independent authority.
 @MainActor struct NativeChannelNotificationChannelContextEntry: View {
     @Environment(\.locale) private var locale
-    private func n(_ key: String) -> String { NativeChannelNotificationPresentation.localized("notification." + key, locale: locale) }
+    private func c(_ key: String) -> String { NativeChannelNotificationCopy.text(key, locale: locale) }
     let channels: any NativeChannelManagementIntegrationContextProviding
     let channelID: NativeChannelManagementID
     let permission: NativeNotificationPermissionState
@@ -18,20 +18,20 @@ import SwiftUI
             if let captured, channels.contextIsCurrent(captured) {
                 Group {
                     if let model { NativeChannelNotificationConversationView(model: model, permission: permission) }
-                    else { ContentUnavailableView(n("entry.channelUnavailable"), systemImage: "bell.slash") }
+                    else { ContentUnavailableView(c("entry.unavailable"), systemImage: "bell.slash") }
                 }.toolbar {
                         if captured.ownerType == "CLUB", captured.serverPermissionNames.contains("VIEW_CHANNEL"),
                            captured.serverPermissionNames.contains("MANAGE_CHANNEL"), let makeSharedDefaultFlow {
                             ToolbarItem {
-                                NavigationLink(n("channel.clubDefault")) {
+                                NavigationLink(c("channel.clubDefault")) {
                                     NativeClubNotificationDefaultView(makeFlow: { makeSharedDefaultFlow(captured) },
                                         sourceCurrent: { channels.contextIsCurrent(captured) })
                                 }
                             }
                         }
                     }
-            } else if attempted { ContentUnavailableView(n("entry.channelUnavailable"), systemImage: "bell.slash") }
-            else { ProgressView().accessibilityLabel(n("state.loading")) }
+            } else if attempted { ContentUnavailableView(c("entry.unavailable"), systemImage: "bell.slash") }
+            else { ProgressView().accessibilityLabel(c("state.loading")) }
         }.nativeChannelScreen().task(id: channelID) {
             do {
                 let context = try await channels.currentChannelContext(channelID: channelID)

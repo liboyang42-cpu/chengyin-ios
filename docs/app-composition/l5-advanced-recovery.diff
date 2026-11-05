@@ -1,0 +1,85 @@
+diff --git a/App/AppSession.swift b/App/AppSession.swift
+--- a/App/AppSession.swift
++++ b/App/AppSession.swift
+@@ -2320,11 +2320,31 @@
+     func playAdvanced(scope: PlaySessionScope, nodeID: Int, topicID: Int?, lifetime: PlayInteractionLifetime? = nil) -> PlayAdvancedCoordinator? {
+         guard let lifetime, lifetime.isCurrent, scope.isValid, nodeID > 0, let topicID, topicID > 0, let api = dormantPlayRuntimeService() else { return nil }
+         let key = playRuntimeKey(scope, suffix: "advanced:\(nodeID)")
+-        if let retained = retainedPlayAdvanced[key], retained.readLifetimeID == lifetime.identity || retained.blocksReadRebinding { return retained }
++        if let retained = retainedPlayAdvanced[key], retained.readLifetimeID == lifetime.identity || retained.blocksReadRebinding && retained.hasCurrentReadLifetime { return retained }
+         let activityID: Int
+         switch scope { case .activity(let id): activityID = id; case .topic(let id): guard id == topicID else { return nil }; activityID = 0 }
++        guard let regional = regionalConfiguration, let storageScope,
++              let captured = currentRuntimeDependencyContext,
++              let recoveryScope = try? PlayAdvancedRecoveryScope(activityID: activityID, topicID: topicID, nodeID: nodeID) else { return nil }
++        let viewer = compositionViewerRevision
++        let current: () -> PlayExperienceSession? = { [weak self] in
++            guard let self, self.compositionViewerRevision == viewer,
++                  self.currentRuntimeDependencyContext == captured else { return nil }
++            // Bind the actual existing role without granting it any new capability.
++            return try? PlayExperienceSession(accountID: captured.session.accountID, epoch: captured.session.epoch,
++                namespace: captured.session.namespace, token: captured.session.token, role: captured.role)
++        }
++        guard let owner = current() else { return nil }
++        let recovery: any PlayAdvancedRecovery
++        #if canImport(Security) && canImport(Darwin)
++        do { recovery = try PlayAdvancedRecoverySystemFactory.make(session: owner, scope: recoveryScope,
++            regionalConfiguration: regional, storageScope: storageScope) }
++        catch { recovery = PlayUnavailableAdvancedRecovery() }
++        #else
++        recovery = PlayUnavailableAdvancedRecovery()
++        #endif
+         let model = PlayAdvancedCoordinator(activityID: activityID, topicID: topicID, nodeID: nodeID, service: api.bound(to: lifetime),
+-            currentSession: { [weak self] in self?.currentPlayRuntimeSession })
++            recovery: recovery, currentSession: current)
+         retainedPlayAdvanced[key] = model; return model
+     }
+     func playPreference(scope: PlaySessionScope, nodeID: Int, lifetime: PlayInteractionLifetime? = nil) -> PlayPreferenceCoordinator? {
+diff --git a/Questify.xcodeproj/project.pbxproj b/Questify.xcodeproj/project.pbxproj
+--- a/Questify.xcodeproj/project.pbxproj
++++ b/Questify.xcodeproj/project.pbxproj
+@@ -20053,6 +20053,26 @@
+ 		"FDF75E2B5D7A0403BF9C9CEA" = {
+ 			"isa" = "PBXBuildFile";
+ 			"fileRef" = "A6789437BE3582CC18F90CCB";
++		};
++		"39C0C28A1E54BACF3091B353" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/PlayAdvancedRecovery.swift";
++			"sourceTree" = "<group>";
++		};
++		"286BEA77DE3992B514AC8AD8" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "39C0C28A1E54BACF3091B353";
++		};
++		"C0299069B8B035894748D812" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/PlayAdvancedRecoveryStorage.swift";
++			"sourceTree" = "<group>";
++		};
++		"7628EC673D377DCAF6F563C7" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "C0299069B8B035894748D812";
+ 		};
+ 		"EB72E63EF10052E6BA089EA4" = {
+ 			"isa" = "PBXFileReference";
+@@ -29533,6 +29553,8 @@
+ 				"2F6687FB99BDDF553669969E",
+ 				"A6789437BE3582CC18F90CCB",
+ 				"EB72E63EF10052E6BA089EA4",
++				"39C0C28A1E54BACF3091B353",
++				"C0299069B8B035894748D812",
+ 				"D0BF71203A552C85633773B8",
+ 				"F4F9C0D93E027A3421C7E0C1",
+ 				"32EBB0F423B515D834BCD8D9",
+@@ -33060,6 +33082,8 @@
+ 				"D34752830917594D5C665ADD",
+ 				"FDF75E2B5D7A0403BF9C9CEA",
+ 				"3F907E7C3B690D5A29CD3682",
++				"286BEA77DE3992B514AC8AD8",
++				"7628EC673D377DCAF6F563C7",
+ 				"05469B7837C132C57B921B09",
+ 				"376A5FCC496BD021B59EA1A6",
+ 				"8A86495060E75DF314F80D47",

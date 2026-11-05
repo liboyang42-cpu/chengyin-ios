@@ -96,7 +96,6 @@ extension EnvironmentValues {
         Section {
             Button(action: { controller.open(factory) }, label: { Text("projectNodeCreate.create", tableName: "ProjectNodeTemplateCreation") })
                 .disabled(factory == nil || !controller.available).accessibilityIdentifier("projectNodeCreate.create")
-            Text("projectNodeCreate.scope", tableName: "ProjectNodeTemplateCreation").font(.caption)
             if factory == nil || (original == nil && (!controller.available || controller.unavailable)) {
                 Text("projectNodeCreate.unavailable", tableName: "ProjectNodeTemplateCreation").font(.caption)
             }

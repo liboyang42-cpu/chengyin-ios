@@ -54,13 +54,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This is the saved chapter-level reference. Viewing it does not load or play audio."
+            "value": "Current chapter narration."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这里显示章节级现存引用；查看不会加载或播放音频。"
+            "value": "当前章节旁白。"
           }
         }
       }
@@ -70,13 +70,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This saved reference exceeds the chapter limit of 512 UTF-16 units. It is kept unchanged until you explicitly clear it."
+            "value": "This narration link is too long. It's kept until you clear it."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此现存引用超出章节的 512 个 UTF-16 单元上限；明确清除前会原样保留。"
+            "value": "此旁白链接过长，清除前会保留。"
           }
         }
       }
@@ -118,13 +118,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This removes the narration reference from the working draft. It does not delete the uploaded file or change story audio blocks."
+            "value": "Removes the narration from this chapter. Story audio blocks aren't affected."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这会清除当前草稿中的旁白引用，不会删除已上传文件或更改故事音频块。"
+            "value": "将移除本章旁白，故事中的音频块不受影响。"
           }
         }
       }
@@ -166,13 +166,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose one mp3, m4a or aac file up to 10 MiB. Selection stays on this device until explicit upload. Only explicit Apply replaces this chapter’s narration and saves locally."
+            "value": "Choose an mp3, m4a or aac file up to 10 MB."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "选择一个不超过 10 MiB 的 mp3、m4a 或 aac 文件。明确上传前只在本机暂存；明确应用后才替换本章旁白并保存到本机。"
+            "value": "选择不超过 10 MB 的 mp3、m4a 或 aac 文件。"
           }
         }
       }
@@ -198,13 +198,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The returned reference exceeds the chapter limit of 512 UTF-16 units. Its receipt is retained and cannot be applied."
+            "value": "The uploaded file's link is too long to use for this chapter."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "返回引用超过章节的 512 个 UTF-16 单元上限，回执已保留，无法应用。"
+            "value": "上传文件的链接过长，无法用于本章。"
           }
         }
       }
@@ -214,13 +214,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apply to this chapter and save locally"
+            "value": "Use for this chapter"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "应用到本章并保存到本机"
+            "value": "用于本章"
           }
         }
       }

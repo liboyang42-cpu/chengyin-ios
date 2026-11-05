@@ -28,10 +28,7 @@ import SwiftUI
                 if let value = browser.value, value.claimId == claimId, let info = value.packageInfo {
                     Section {
                         PackageValueRow(key: "version", value: info.versionLabel)
-                        PackageValueRow(key: "schema", value: String(info.schemaVersion))
-                        PackageValueRow(key: "contentHash", value: info.contentHash)
                         PackageValueRow(key: "termsVersion", value: info.termsVersion)
-                        PackageValueRow(key: "termsHash", value: info.termsHash)
                         PackageValueRow(key: "validUntil", value: info.validUntil)
                         PackageValueRow(key: "checkedAt", value: value.checkedAt)
                     } header: { packageText("snapshot") }

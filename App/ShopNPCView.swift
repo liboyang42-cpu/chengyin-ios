@@ -57,7 +57,6 @@ import SwiftUI
                                     }
                                     if message.mine, message.source == .voice {
                                         if message.voiceTranscriptMissing { Text("shopNPCQuestionReuse.transcriptUnavailable").font(.footnote).foregroundStyle(.secondary) }
-                                        else { Text("shopNPCQuestionReuse.voiceSource").font(.caption).foregroundStyle(.secondary) }
                                     }
                                     if message.hasReusableQuestion {
                                         ShopNPCQuestionReuseButton(coordinator: coordinator, messageID: message.id, draft: $draft, enabled: canCompose)
@@ -176,7 +175,8 @@ import SwiftUI
             Text("shopNPC.review").font(.headline).accessibilityAddTraits(.isHeader)
             switch review.content {
             case .text(let text): Text(verbatim: text).textSelection(.enabled)
-            case .voice(let clip): Text("shopNPC.voiceReview"); Text(verbatim: "\(clip.bytes.count) bytes · \(Int(clip.duration)) s")
+            case .voice(let clip): Label { Text("shopNPC.voiceReview") } icon: { Image(systemName: "waveform") }
+                Text(verbatim: "\(Int(clip.duration)) s").font(.subheadline.monospacedDigit()).foregroundStyle(.secondary)
             }
             Text("shopNPC.transmissionDisclosure").font(.footnote)
             if coordinator.failure == .unknownOutcome || coordinator.failure == .malformed || coordinator.failure == .replyProcessing || coordinator.failure == .replyRetryable {

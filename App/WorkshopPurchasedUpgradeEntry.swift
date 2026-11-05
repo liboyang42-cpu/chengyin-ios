@@ -150,7 +150,7 @@ typealias WorkshopPurchasedUpgradeFactory = () -> WorkshopPurchasedUpgradeHandle
                     let result = await handlers.compare(item)
                     Self.performAcceptCompare(token: token, current: compareToken, item: item, result: result, checking: &checking, unavailable: &unavailable, presentation: &presentation, showing: &showing, flow: flow, lease: liveAccount.lease)
                 }
-            } label: { Text(verbatim: "比较版本 / 升级草稿") }
+            } label: { Text("workshopUpgrade.compare") }
                 .disabled(checking)
                 .accessibilityIdentifier("workshopPurchased.upgrade.compare")
             if checking {
@@ -159,12 +159,12 @@ typealias WorkshopPurchasedUpgradeFactory = () -> WorkshopPurchasedUpgradeHandle
                     Self.performCancel(showing: &showing, compareToken: &compareToken, flow: armedFlow)
                     armedFlow = nil
                     checking = false
-                } label: { Text(verbatim: "取消") }
+                } label: { Text("workshopUpgrade.cancel") }
                     .accessibilityIdentifier("workshopPurchased.upgrade.cancelCompare")
             }
-            if unavailable { Text(verbatim: "暂无可信的新版本信息，无法比较。").font(.footnote).accessibilityIdentifier("workshopPurchased.upgrade.unavailable") }
-            if draftSaved { Text(verbatim: receipt.map { "已保存本地升级草稿 \($0.requestId)；现有版本与场次保持不变。" } ?? "已保存本地升级草稿；现有版本与场次保持不变。").font(.footnote).accessibilityIdentifier("workshopPurchased.upgrade.draftSaved") }
-            if saveFailed { Text(verbatim: "升级草稿没有保存，现有版本与场次保持不变。").font(.footnote).accessibilityIdentifier("workshopPurchased.upgrade.saveFailed") }
+            if unavailable { Text("workshopUpgrade.noNewVersion").font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("workshopPurchased.upgrade.unavailable") }
+            if draftSaved { Text("workshopUpgrade.savedUnchanged").font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("workshopPurchased.upgrade.draftSaved") }
+            if saveFailed { Text("workshopUpgrade.error.failed").font(.footnote).foregroundStyle(.red).accessibilityIdentifier("workshopPurchased.upgrade.saveFailed") }
         }
         .background(WorkshopUpgradeLeasePublish(live: liveAccount, flow: handlers.flow))
         .onAppear { Self.performRestore(item: item, handlers: handlers, draftSaved: &draftSaved, receipt: &receipt) }
@@ -187,8 +187,8 @@ typealias WorkshopPurchasedUpgradeFactory = () -> WorkshopPurchasedUpgradeHandle
                         guard let token = compareToken else { throw WorkshopUpgradeDraftIssue.stalePresentation }
                         _ = try Self.performCommitDraft(draft, handlers: handlers, item: item, presentation: presentation, token: token, current: compareToken, draftSaved: &draftSaved, showing: &showing, saveFailed: &saveFailed, receipt: &receipt)
                     }
-                    .navigationTitle(Text(verbatim: "版本比较"))
-                    .toolbar { ToolbarItem(placement: .topBarLeading) { Button { Self.performCancel(showing: &showing, compareToken: &compareToken, flow: armedFlow); armedFlow = nil } label: { Text(verbatim: "返回") }.accessibilityIdentifier("workshopPurchased.upgrade.back") } }
+                    .navigationTitle(Text("workshopUpgrade.title")).navigationBarTitleDisplayMode(.inline)
+                    .toolbar { ToolbarItem(placement: .topBarLeading) { Button { Self.performCancel(showing: &showing, compareToken: &compareToken, flow: armedFlow); armedFlow = nil } label: { Text("workshopUpgrade.back") }.accessibilityIdentifier("workshopPurchased.upgrade.back") } }
                 }
             }
         }

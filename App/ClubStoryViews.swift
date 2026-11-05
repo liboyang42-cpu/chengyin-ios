@@ -71,10 +71,8 @@ struct ClubStoryEmptyState: View {
     let title: LocalizedStringKey
     let detail: LocalizedStringKey
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title).font(.headline)
-            Text(detail).font(.subheadline).foregroundStyle(.secondary)
-        }.padding(.vertical, 12)
+        // Mini-program cy-empty: title only; the explanatory detail line is no longer shown.
+        Text(title).foregroundStyle(.secondary).padding(.vertical, 8)
     }
 }
 struct ClubStoryChapterTitle: View {

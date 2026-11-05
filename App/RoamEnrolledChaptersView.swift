@@ -62,7 +62,6 @@ import SwiftUI
     var body: some View {
         List {
             Section {
-                Text("roam.chapters.hint").font(.footnote).foregroundStyle(.secondary)
                 if tickets.isOfflineExample { Text("ticketWallet.offlineExample").font(.caption) }
             }
             if let issue = model.issue {

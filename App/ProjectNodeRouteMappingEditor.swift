@@ -60,12 +60,10 @@ import SwiftUI
         let original = controller.presentation
         let mapping = controller.mapping
         Section {
-            Text("projectRouteMapping.scope", tableName: "ProjectNodeRouteMapping").font(.caption)
             if let reason = mapping.reason { ProjectNodeRouteMappingReason(reason: reason) }
             ForEach(mapping.rows) { row in
                 VStack(alignment: .leading, spacing: 6) {
                     Text(verbatim: row.label)
-                    Text(verbatim: row.triggerType + ":" + row.outcomeCode + " · " + row.id).font(.caption).foregroundStyle(.secondary)
                     LabeledContent { Text(verbatim: String(row.targetID)) } label: { Text("projectRouteMapping.current", tableName: "ProjectNodeRouteMapping") }
                     if let reason = row.reason { ProjectNodeRouteMappingReason(reason: reason) }
                     Button { controller.open(edgeID: row.id) } label: { Text("projectRouteMapping.choose", tableName: "ProjectNodeRouteMapping") }

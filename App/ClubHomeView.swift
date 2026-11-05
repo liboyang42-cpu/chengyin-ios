@@ -43,20 +43,21 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                         }
                     }
                 }
-                if ClubTabPresentation.isEmpty(home, nearby: locality.nearby(home.nearby, in: discoveryScope), merchant: discoveryScope.isMerchantViewer) {
-                    Section { ClubTabEmptyState(merchant: discoveryScope.isMerchantViewer) }
-                }
-                if !discoveryScope.isMerchantViewer {
-                    clubSection("club.owned", rows: home.owned, empty: "club.emptyOwned", identifier: "club.home.owned", section: .owned)
-                    clubSection("club.joined", rows: home.joined, empty: "club.emptyJoined", identifier: "club.home.joined", section: .joined)
-                } else { localityStatus }
-                clubSection("club.nearby", rows: locality.nearby(home.nearby, in: discoveryScope),
-                            empty: discoveryScope.isMerchantViewer && locality.phase(in: discoveryScope) == .ready
-                                ? "club.locality.empty" : "club.emptyNearby", identifier: "club.home.nearby")
-                Section {
-                    if let community {
-                        NavigationLink { ClubCommunityFeedView(context: community, identity: reader.clubIdentity) } label: { Label("club.community.feed", systemImage: "text.bubble") }
+                // Mini-program club tab is one list: created → joined → nearby (merchants: nearby only), no group headers.
+                let nearby = locality.nearby(home.nearby, in: discoveryScope)
+                if discoveryScope.isMerchantViewer {
+                    localityStatus
+                    merchantNearbySection(nearby)
+                } else if ClubTabPresentation.isEmpty(home, nearby: nearby, merchant: false) {
+                    Section { ClubTabEmptyState(merchant: false) }
+                } else {
+                    Section {
+                        clubRows(home.owned, identifier: "club.home.owned", section: .owned)
+                        clubRows(home.joined, identifier: "club.home.joined", section: .joined)
+                        clubRows(nearby, identifier: "club.home.nearby", section: .nearby)
                     }
+                }
+                Section {
                     if let governance = management?.governance {
                         ClubGovernanceHomeEntries(feedContext: .init(viewerRevision: management?.viewerRevision ?? governance.viewerRevision,
                             readerIdentity: ObjectIdentifier(reader), destination: { id in
@@ -92,7 +93,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         }
         }
         }
-        .appNavigationTitle("club.title")
+        .appNavigationTitle(community == nil ? "club.title" : "club.tab.title")
         .environment(\.clubEnrollmentProfile, management?.governance?.enrollmentProfile)
         .environment(\.clubCustomerTopics, management?.governance?.customerTopics ?? .init())
         .environment(\.clubPostPlayHost, ClubPostPlayHost.session(reader as? AppSession))
@@ -101,25 +102,36 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         }
         .onDisappear { locality.leaveScreen() }
     }
+    /// Merchant-only status above the list. Ready state becomes the list's section header instead.
     @ViewBuilder private var localityStatus: some View {
+        switch locality.phase(in: discoveryScope) {
+        case .idle, .loading:
+            Section {
+                ProgressView("club.locality.loading").frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier("club.home.locality.loading")
+            }
+        case .unavailable:
+            Section {
+                Label("club.locality.unavailable", systemImage: "exclamationmark.triangle")
+                    .foregroundStyle(.orange)
+                    .accessibilityIdentifier("club.home.locality.unavailable")
+                Button("action.retry") { Task { await loadLocality() } }
+                    .accessibilityIdentifier("club.home.locality.retry")
+            }
+        case .ready:
+            EmptyView()
+        }
+    }
+    private func merchantNearbySection(_ rows: [ClubRecord]) -> some View {
         Section {
-            switch locality.phase(in: discoveryScope) {
-            case .idle, .loading:
-                VStack(alignment: .leading, spacing: 6) {
-                    ProgressView("club.locality.loading")
-                    Text("club.locality.loadingHint").font(.footnote).foregroundStyle(.secondary)
-                }.accessibilityIdentifier("club.home.locality.loading")
-            case .unavailable:
-                VStack(alignment: .leading, spacing: 6) {
-                    Label("club.locality.unavailable", systemImage: "exclamationmark.triangle")
-                        .accessibilityIdentifier("club.home.locality.unavailable")
-                    Text("club.locality.unavailableHint").font(.footnote).foregroundStyle(.secondary)
-                    Button("action.retry") { Task { await loadLocality() } }
-                        .accessibilityIdentifier("club.home.locality.retry")
-                }
-            case .ready:
-                Text("club.locality.ready").font(.footnote).foregroundStyle(.secondary)
-                    .accessibilityIdentifier("club.home.locality.ready")
+            if rows.isEmpty {
+                Text(locality.phase(in: discoveryScope) == .ready ? "club.tab.empty.merchant" : "club.emptyNearby")
+                    .foregroundStyle(.secondary).accessibilityIdentifier("club.home.nearby.empty")
+            }
+            clubRows(rows, identifier: "club.home.nearby", section: .nearby)
+        } header: {
+            if locality.phase(in: discoveryScope) == .ready {
+                Text("club.locality.ready").accessibilityIdentifier("club.home.locality.ready")
             }
         }
     }
@@ -134,22 +146,19 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             locality.fail(request, current: discoveryScope)
         }
     }
-    private func clubSection(_ title: LocalizedStringKey, rows: [ClubRecord], empty: LocalizedStringKey,
-                             identifier: String, section: ClubTabPresentation.Section = .nearby) -> some View {
-        Section(title) {
-            if rows.isEmpty { Text(empty).foregroundStyle(.secondary).accessibilityIdentifier(identifier + ".empty") }
-            ForEach(Array(rows.enumerated()), id: \.offset) { _, club in
-                NavigationLink {
-                    ClubDetailView(id: club.id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community)
-                } label: {
-                    VStack(alignment: .leading, spacing: 6) {
-                        ClubRow(club: club)
-                        ClubTabTagLine(club: club, section: section)
-                    }
+    @ViewBuilder private func clubRows(_ rows: [ClubRecord], identifier: String,
+                                       section: ClubTabPresentation.Section) -> some View {
+        ForEach(Array(rows.enumerated()), id: \.offset) { _, club in
+            NavigationLink {
+                ClubDetailView(id: club.id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community)
+            } label: {
+                VStack(alignment: .leading, spacing: 6) {
+                    ClubRow(club: club)
+                    ClubTabTagLine(club: club, section: section)
                 }
-                    .buttonStyle(QuestifyCardButtonStyle()).questifyCardListRow()
-                    .accessibilityIdentifier(identifier + ".\(club.id)")
             }
+                .buttonStyle(QuestifyCardButtonStyle()).questifyCardListRow()
+                .accessibilityIdentifier(identifier + ".\(club.id)")
         }
     }
     private func eventRow(_ event: ClubHomeEvent) -> some View {

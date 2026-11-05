@@ -67,7 +67,6 @@ import SwiftUI
         NavigationStack {
             Form {
                 Section {
-                    Text("merchant.coopField.boundary").font(.footnote).foregroundStyle(.secondary)
                     if session.buffer.field == .demand {
                         TextEditor(text: text).frame(minHeight: 160)
                             .accessibilityLabel(Text(LocalizedStringKey(session.buffer.field.titleKey)))

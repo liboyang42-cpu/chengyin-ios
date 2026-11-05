@@ -4,6 +4,7 @@ import SwiftUI
     let client: any NativeChannelMessageAccess
     let messageID: NativeChannelMessageID
     @Environment(\.scenePhase) private var phase
+    @Environment(\.dismiss) private var dismiss
     @State private var rows: [NativeChannelMessageRevision] = []
     @State private var cursor: Int64?
     @State private var hasMore = false
@@ -15,23 +16,27 @@ import SwiftUI
         List {
             if phase == .active && identity != nil && client.identity == identity && client.allows(.revisions) {
                 ForEach(rows) { row in
-                    VStack(alignment: .leading) {
-                        Text("v\(row.revision_no)").font(Theme.Font.label).foregroundStyle(.secondary).monospacedDigit()
+                    VStack(alignment: .leading, spacing: Theme.Space.s1) {
+                        Text("d7.channelRevisions.version \(row.revision_no)").font(.footnote).foregroundStyle(.secondary).monospacedDigit()
                         if let content = row.content { Text(verbatim: content).fixedSize(horizontal: false, vertical: true).textSelection(.enabled) }
-                        else { Text("message.unavailable", tableName: "NativeChannelMessage") }
+                        else { Text("message.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
                     }
                 }
                 if hasMore { Button { Task { await load() } } label: { Text("search.more", tableName: "NativeChannelMessage") }.disabled(loading) }
+                if rows.isEmpty && !loading && !failed && !hasMore {
+                    ContentUnavailableView { Label("d7.channelRevisions.empty", systemImage: "clock.arrow.circlepath") }
+                }
             }
-            if loading { ProgressView() }
+            if loading { ProgressView().frame(maxWidth: .infinity) }
             if failed {
-                Text("load.failed", tableName: "NativeChannelMessage").nativeChannelNotice(systemImage: "exclamationmark.circle")
-                Button { Task { await load() } } label: { Text("history.retry", tableName: "NativeChannelMessage") }
+                Label { Text("load.failed", tableName: "NativeChannelMessage") } icon: { Image(systemName: "exclamationmark.triangle") }
+                Button { Task { await load() } } label: { Text("messaging.retry") }
                     .disabled(phase != .active || loading || identity == nil || client.identity != identity || !client.allows(.revisions))
                     .accessibilityIdentifier("ncm47.revisions.retry")
             }
         }.nativeChannelScreen().listStyle(.insetGrouped)
         .navigationTitle(Text("revisions.title", tableName: "NativeChannelMessage"))
+        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } } }
         .task(id: phase) {
             clear()
             guard phase == .active else { return }

@@ -275,7 +275,6 @@ struct ProfileIdentityShareSourceTicket: Equatable {
                 }
                 Section {
                     Text("profile.identityShare.disclosure").font(.footnote)
-                    Text("profile.identityShare.destination").font(.footnote).foregroundStyle(.secondary)
                     Button("profile.identityShare.continue", systemImage: "square.and.arrow.up") { model.beginHandoff(value) }
                         .disabled(!model.canShare || model.handoff != nil)
                         .accessibilityIdentifier("profile.identityShare.continue")

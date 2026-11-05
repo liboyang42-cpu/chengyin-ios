@@ -50,8 +50,6 @@ private struct ProfileComplaintPresentationKey: Hashable {
             Section {
                 Text("profile.complaint.pageSubtitle").font(.subheadline)
                     .accessibilityIdentifier("profile.complaint.pageSubtitle")
-                Text("profile.complaint.localOnly").font(.footnote)
-                    .accessibilityIdentifier("profile.complaint.localOnly")
             }
             if !model.contextMatches {
                 Text("profile.complaint.retired").accessibilityIdentifier("profile.complaint.retired")
@@ -83,7 +81,6 @@ private struct ProfileComplaintPresentationKey: Hashable {
                     if topics.isEmpty && model.issue == nil && !model.isLoading {
                         Section {
                             Text("profile.complaint.sourceEmpty").accessibilityIdentifier("profile.complaint.empty")
-                            Text("profile.complaint.sourceEmptyHint").font(.footnote).foregroundStyle(.secondary)
                         }
                     } else if !topics.isEmpty {
                         editor(topics).disabled(!model.canEdit)
@@ -142,7 +139,6 @@ private struct ProfileComplaintPresentationKey: Hashable {
                     .frame(minHeight: 140).focused($focused, equals: .reason)
                     .accessibilityLabel(Text("profile.complaint.reason"))
                     .accessibilityIdentifier("profile.complaint.reason")
-                Text("profile.complaint.reasonHint").font(.caption).foregroundStyle(.secondary)
             }
             Section("profile.complaint.contact") {
                 TextField("profile.complaint.optional", text: Binding(get: { model.draft.contact },
@@ -150,11 +146,10 @@ private struct ProfileComplaintPresentationKey: Hashable {
                     .focused($focused, equals: .contact).textInputAutocapitalization(.never)
                     .accessibilityLabel(Text("profile.complaint.contact"))
                     .accessibilityIdentifier("profile.complaint.contact")
-                Text("profile.complaint.contactHint").font(.caption).foregroundStyle(.secondary)
             }
             Section {
                 if let validation = model.validation {
-                    Text(LocalizedStringKey(validation.titleKey)).foregroundStyle(.secondary)
+                    Text(LocalizedStringKey(validation.titleKey)).font(.footnote).foregroundStyle(.red)
                         .accessibilityIdentifier("profile.complaint.validation")
                 }
                 Button("profile.complaint.review") {

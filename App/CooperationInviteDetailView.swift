@@ -114,7 +114,6 @@ import UIKit
             if !row.legacyReadonly && row.depositRefundPending {
                 Section("cooperation.deposit") {
                     Label("cooperation.refundPending", systemImage: "clock")
-                    Text("cooperation.financeUnavailable").font(.footnote).foregroundStyle(.secondary)
                 }
             }
             Section { CooperationReadOnlyNotice() }

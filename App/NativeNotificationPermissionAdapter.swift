@@ -43,19 +43,6 @@ import UserNotifications
 @MainActor final class NativeOriginalUnreadBadgeState: ObservableObject {
     enum Status: Equatable {
         case suspended, reading, unavailable, systemDisabled, applied(Int64, serverGeneration: Int64?), systemFailed
-        var explanation: String {
-            switch self {
-            case .suspended: return "当前未同步图标角标；没有把未知未读当作零。"
-            case .reading: return "正在回读原服务器未读与系统角标设置。"
-            case .unavailable: return "原未读结果或授权不可用；保留现有系统角标，没有标记消息已读。"
-            case .systemDisabled: return "系统角标未启用或权限状态未知；原消息与未读不变，不会自动请求权限。"
-            case .applied(let total, let serverGeneration):
-                return "已按原服务器未读绝对数 \(total) 提交系统角标设置；" +
-                    (serverGeneration.map { "原已读代际 \($0)。" } ?? "服务器代际未启用，仅原前台回读恢复。") +
-                    "不代表桌面显示或推送送达，也不能撤回已提交的旧 APNs 角标。"
-            case .systemFailed: return "系统角标设置结果未确认；未清零、未标记已读，可从原服务重新读取。"
-            }
-        }
     }
     @Published private var storedStatus: Status = .suspended
     @Published private var working = false

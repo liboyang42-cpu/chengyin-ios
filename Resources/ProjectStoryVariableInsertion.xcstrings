@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Append token"
+            "value": "Insert"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "添加到末尾"
+            "value": "插入"
           }
         }
       }
@@ -70,13 +70,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Select a declared profile key, then append its token to the end of this text. Existing text stays unchanged. This updates the working draft and uses the usual autosave or Save local flow."
+            "value": "Choose a variable to add to the end of this text."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "选择已声明的建档键，将其变量标记添加到这段文字末尾。原有文字保持不变。此操作更新当前草稿，沿用自动保存或“保存到本地”流程。"
+            "value": "选择变量添加到这段文字末尾。"
           }
         }
       }
@@ -102,13 +102,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The template snapshots cannot establish unique profile keys. Existing text and tokens are unchanged."
+            "value": "No variables are available yet."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前模板快照无法确认唯一的建档键。原文及变量标记保持不变。"
+            "value": "暂无可用变量。"
           }
         }
       }

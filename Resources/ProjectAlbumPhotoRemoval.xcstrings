@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Remove this photo reference from the local album draft? Other photos and their captions stay unchanged. The uploaded media itself will not be deleted."
+            "value": "Remove this photo from the album? Other photos and captions stay."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "从本地相册草稿中移除这张照片引用？其他照片及说明保持不变，不会删除已上传的媒体文件。"
+            "value": "从相册中移除这张照片？其他照片和说明保持不变。"
           }
         }
       }

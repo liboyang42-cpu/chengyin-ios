@@ -89,6 +89,10 @@ public struct NativeChannelChainPage: Decodable {
         guard last >= 0 else { throw APIError.invalidRequest }
         for entry in list { try entry.validate(chain: chain.id); guard let position = Int64(entry.position), position > last else { throw APIError.malformedResponse }; last = position }
         if let mine { try mine.validate(chain: chain.id); guard mine.memberId == actor, mine.status != "ACTIVE" || chain.activeCount > 0 else { throw APIError.malformedResponse } }
+        // A withdrawn personal row must never coexist with an older visible copy.
+        if let personal = list.first(where: { $0.memberId == actor || $0.id == mine?.id }) {
+            guard personal == mine else { throw APIError.malformedResponse }
+        }
     }
 }
 private struct NativeChannelChainReceipt: Decodable {
@@ -111,7 +115,7 @@ private struct NativeChannelChainReceipt: Decodable {
         guard operation == command.operation.rawValue, requestHash == command.digest else { throw APIError.malformedResponse }
         if state == "PENDING" { guard result == nil, resultRedacted == nil else { throw APIError.malformedResponse }; return }
         if resultRedacted == true { guard result == nil else { throw APIError.malformedResponse }; return }
-        guard resultRedacted == false, let result, validChainID(result.chainVersion), result.activeCount >= 0,
+        guard resultRedacted == false, let result, validChainID(result.chainVersion), (0...Int(Int32.max)).contains(result.activeCount),
               command.chainId == nil || command.chainId == result.chainId else { throw APIError.malformedResponse }
         _ = try result.reference(conversation: command.conversationId)
         switch command.operation {
@@ -176,6 +180,7 @@ private enum NativeChannelChainFailure: Error { case rejected(Int, String) }
     private let unauthorized: () -> Void
     private var retired = false
     public var actorID: String { String(context.session.accountID) }
+    fileprivate func matches(_ context: RuntimeDependencyContext) -> Bool { self.context == context }
     public var isCurrent: Bool { guard !retired, current() else { retired = true; return false }; return true }
     public init(context: RuntimeDependencyContext, conversationID: String, transport: any HTTPTransport,
                 permits: @escaping (String, String) -> Bool, current: @escaping () -> Bool, unauthorized: @escaping () -> Void) throws {
@@ -197,10 +202,11 @@ private enum NativeChannelChainFailure: Error { case rejected(Int, String) }
         if let body { request.httpBody = body; request.setValue("application/json", forHTTPHeaderField: "Content-Type") }
         return request
     }
-    private func send<Value: Decodable>(_ request: URLRequest, sourceCurrent: () -> Bool) async throws -> Value {
-        guard isCurrent, sourceCurrent(), !Task.isCancelled else { throw APIError.notConfigured }
+    private func send<Value: Decodable>(_ request: URLRequest, path: String, sourceCurrent: () -> Bool) async throws -> Value {
+        guard isCurrent, sourceCurrent(), !Task.isCancelled, allows(request.httpMethod ?? "", path) else { throw APIError.notConfigured }
         let (data, status) = try await transport.send(request)
-        try Task.checkCancellation(); guard isCurrent, sourceCurrent() else { throw APIError.notConfigured }
+        try Task.checkCancellation()
+        guard isCurrent, sourceCurrent(), allows(request.httpMethod ?? "", path) else { throw APIError.notConfigured }
         guard data.count <= 512 * 1024 else { throw APIError.malformedResponse }
         let header = try? JSONDecoder().decode(NativeChainHeader.self, from: data)
         if status == 401 || header?.code == 401 { unauthorized(); retired = true; throw APIError.unauthorized }
@@ -214,20 +220,20 @@ private enum NativeChannelChainFailure: Error { case rejected(Int, String) }
     fileprivate func page(_ reference: NativeChannelChainReference, cursor: String, sourceCurrent: () -> Bool) async throws -> NativeChannelChainPage {
         guard reference.conversationID == conversationID else { throw APIError.invalidRequest }
         let request = try request(method: "GET", path: "api/im/chain/info", query: ["conversation_id": conversationID, "chain_id": reference.chainID, "cursor": cursor, "limit": "50"])
-        let page: NativeChannelChainPage = try await send(request, sourceCurrent: sourceCurrent)
+        let page: NativeChannelChainPage = try await send(request, path: "api/im/chain/info", sourceCurrent: sourceCurrent)
         try page.validate(reference: reference, actor: actorID, cursor: cursor); return page
     }
     fileprivate func receipt(_ command: NativeChannelChainCommand, sourceCurrent: () -> Bool) async throws -> NativeChannelChainReceipt {
         guard command.conversationId == conversationID else { throw APIError.invalidRequest }
         let request = try request(method: "GET", path: "api/im/interaction/request", query: ["conversation_id": conversationID, "request_id": command.requestId])
-        let receipt: NativeChannelChainReceipt = try await send(request, sourceCurrent: sourceCurrent)
+        let receipt: NativeChannelChainReceipt = try await send(request, path: "api/im/interaction/request", sourceCurrent: sourceCurrent)
         try receipt.validate(command: command, actor: actorID); return receipt
     }
     fileprivate func perform(_ command: NativeChannelChainCommand, sourceCurrent: () -> Bool) async throws -> NativeChannelChainReceipt {
         try command.validate(); guard command.conversationId == conversationID else { throw APIError.invalidRequest }
         let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
         let request = try request(method: "POST", path: command.path, body: encoder.encode(command))
-        let receipt: NativeChannelChainReceipt = try await send(request, sourceCurrent: sourceCurrent)
+        let receipt: NativeChannelChainReceipt = try await send(request, path: command.path, sourceCurrent: sourceCurrent)
         try receipt.validate(command: command, actor: actorID); return receipt
     }
 }
@@ -260,41 +266,56 @@ public struct NativeChannelChainConfirmedRequest: Equatable {
     private let initialReference: NativeChannelChainReference?
     private var active = false
     private var generation: UInt64 = 0
+    private var visitGeneration: UInt64 = 0
     @ObservationIgnored private var sourceCurrent: () -> Bool = { false }
     public var isCurrent: Bool { active && sourceCurrent() && service.isCurrent }
     public var ownsPending: Bool { pending != nil && (initialReference == nil || pending?.chainId == initialReference?.chainID) }
     public var canCreate: Bool { isCurrent && phase != .persistenceFailed && !busy && pending == nil && review == nil && reference == nil && service.canRecover && service.canRead && service.allows(.create) }
     public var canJoin: Bool {
-        isCurrent && !busy && pending == nil && review == nil && service.canRecover && service.allows(.join)
+        isCurrent && !busy && pending == nil && review == nil && service.canRead && service.canRecover && service.allows(.join)
             && page?.chain.canParticipate == true && page?.chain.accepting == true
             && (page?.mine?.status == "ACTIVE" || page?.chain.maxSlots == 0 || (page.map { $0.chain.activeCount < $0.chain.maxSlots } ?? false))
     }
-    public var canWithdraw: Bool { isCurrent && !busy && pending == nil && review == nil && service.canRecover && service.allows(.withdraw) && page?.chain.canParticipate == true && page?.chain.accepting == true && page?.mine?.status == "ACTIVE" }
-    public var canClose: Bool { isCurrent && !busy && pending == nil && review == nil && service.canRecover && service.allows(.close) && page?.chain.canClose == true }
+    public var canWithdraw: Bool { isCurrent && !busy && pending == nil && review == nil && service.canRead && service.canRecover && service.allows(.withdraw) && page?.chain.canParticipate == true && page?.chain.accepting == true && page?.mine?.status == "ACTIVE" }
+    public var canClose: Bool { isCurrent && !busy && pending == nil && review == nil && service.canRead && service.canRecover && service.allows(.close) && page?.chain.canClose == true }
     public init(service: NativeChannelChainService, context: RuntimeDependencyContext, storage: any ProjectEditDataStorage, reference: NativeChannelChainReference?) throws {
-        guard service.actorID == String(context.session.accountID), reference == nil || reference?.conversationID == service.conversationID else { throw APIError.invalidRequest }
+        guard service.matches(context), reference == nil || reference?.conversationID == service.conversationID else { throw APIError.invalidRequest }
         self.service = service; self.reference = reference; initialReference = reference
         journal = .init(storage: storage, context: context, channel: service.conversationID)
     }
     public func activate(current: @escaping () -> Bool) async {
-        guard !Task.isCancelled else { return }
-        confirmedRequest = nil
-        sourceCurrent = current; active = true; generation &+= 1; phase = .idle
+        guard !Task.isCancelled else { deactivate(); return }
+        // Re-entry retires the previous visit even when its transport is suspended.
+        // The journal survives; an unconfirmed review and in-flight UI state do not.
+        deactivate()
+        sourceCurrent = current; active = true; phase = .idle
+        let visit = visitGeneration
         guard isCurrent else { deactivate(); return }
         do { pending = try journal.restore() } catch { phase = .persistenceFailed; return }
         if ownsPending { await recover() } else if pending != nil { phase = .unknown }
+        guard visitGeneration == visit, isCurrent, !Task.isCancelled else { return }
         if isCurrent, reference != nil, phase != .appliedRedacted, phase != .persistenceFailed { await refresh() }
     }
     public func deactivate() {
         confirmedRequest = nil
-        active = false; generation &+= 1; busy = false; page = nil; entries = []; review = nil; pending = nil; readFailed = false; phase = .closed
+        active = false; generation &+= 1; visitGeneration &+= 1; busy = false; page = nil; entries = []; review = nil; pending = nil; readFailed = false; phase = .closed
         // Retain durable intent. Disappearance cannot prove that a dispatched write rolled back.
     }
-    private func current(_ run: UInt64) -> Bool { generation == run && isCurrent && !Task.isCancelled }
+    private func current(_ run: UInt64) -> Bool {
+        guard generation == run else { return false }
+        guard isCurrent, !Task.isCancelled else { deactivate(); return false }
+        return true
+    }
     public func refresh() async { await read(more: false) }
     public func more() async { await read(more: true) }
     private func read(more: Bool) async {
-        guard isCurrent, !busy, review == nil, service.canRead, let reference else { return }
+        guard isCurrent else { deactivate(); return }
+        guard service.canRead else {
+            page = nil; entries = []; review = nil; readFailed = true
+            if pending == nil { phase = .failed }
+            return
+        }
+        guard !busy, review == nil, let reference else { return }
         let cursor = more ? page?.nextCursor : "0"
         guard let cursor else { return }
         let version = page?.chain.version
@@ -312,7 +333,11 @@ public struct NativeChannelChainConfirmedRequest: Equatable {
                 guard current(run) else { return }; page = fresh; entries = fresh.list
             } else {
                 let oldIDs = Set(entries.map(\.id))
-                guard !more || value.list.allSatisfy({ !oldIDs.contains($0.id) }) else { throw APIError.malformedResponse }
+                let oldMembers = Set(entries.map(\.memberId))
+                guard !more || value.list.allSatisfy({ !oldIDs.contains($0.id) && !oldMembers.contains($0.memberId) }) else { throw APIError.malformedResponse }
+                if more, let personal = entries.first(where: { $0.memberId == service.actorID || $0.id == value.mine?.id }) {
+                    guard personal == value.mine else { throw APIError.malformedResponse }
+                }
                 page = value; entries = more ? entries + value.list : value.list
             }
             if pending == nil { phase = .idle }
@@ -350,7 +375,12 @@ public struct NativeChannelChainConfirmedRequest: Equatable {
     }
     public func cancelReview() { guard !busy else { return }; review = nil; phase = pending == nil ? .idle : .unknown }
     public func confirm() async {
-        guard isCurrent, !busy, pending == nil, let command = review, service.canRecover,
+        guard isCurrent, !busy, pending == nil, let command = review else { return }
+        guard service.canRead else {
+            page = nil; entries = []; review = nil; readFailed = true; phase = .failed
+            return
+        }
+        guard service.canRecover,
               service.allows(command.operation), journal.acquire() else { return }
         generation &+= 1; let run = generation; busy = true
         defer { journal.release(); if generation == run { busy = false } }
@@ -358,7 +388,13 @@ public struct NativeChannelChainConfirmedRequest: Equatable {
             // The frozen review remains unchanged; a fresh original read still owns
             // current capacity, author, status, membership and message visibility.
             if let reference {
-                let latest = try await service.page(reference, cursor: "0", sourceCurrent: { self.current(run) })
+                let latest: NativeChannelChainPage
+                do { latest = try await service.page(reference, cursor: "0", sourceCurrent: { self.current(run) }) }
+                catch {
+                    guard current(run) else { return }
+                    page = nil; entries = []; review = nil; readFailed = true; phase = .failed
+                    return
+                }
                 guard current(run), command.chainId == reference.chainID else { return }
                 page = latest; entries = latest.list
                 switch command.operation {
@@ -371,6 +407,10 @@ public struct NativeChannelChainConfirmedRequest: Equatable {
                 }
             }
             guard current(run) else { return }
+            guard service.canRead, service.canRecover, service.allows(command.operation) else {
+                page = nil; entries = []; review = nil; readFailed = true; phase = .failed
+                return
+            }
             do { try journal.save(command) } catch { phase = .persistenceFailed; return }
             pending = command; review = nil; phase = .submitting
             guard current(run) else { return }
@@ -399,7 +439,7 @@ public struct NativeChannelChainConfirmedRequest: Equatable {
             guard current(run) else { return }
             if receipt.state == "APPLIED" { try settle(receipt, command: command); return }
             guard receipt.state == "NOT_FOUND" else { phase = .unknown; return }
-            guard current(run), try journal.restore()?.digest == command.digest else { throw APIError.invalidRequest }
+            guard current(run), let saved = try journal.restore(), saved == command, saved.digest == command.digest else { throw APIError.invalidRequest }
             phase = .submitting; await dispatch(command, run: run, retry: true)
         } catch { if current(run) { phase = .unknown } }
     }

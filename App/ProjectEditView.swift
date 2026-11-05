@@ -308,14 +308,10 @@ import SwiftUI
         let submissionIncarnation = model.editorIncarnation
         let copiedTarget = copiedCoordinator
         Form {
-            Section {
-                if model.coordinator.isReadOnly {
-                    Label("roam.experience.readOnly", systemImage: "lock.fill")
+            if model.coordinator.isReadOnly {
+                Section {
+                    Label("projectEdit.viewOnly", systemImage: "lock.fill")
                         .accessibilityIdentifier("projectRemote.readOnly")
-                } else {
-                    QuestifyStatusBadge(title: LocalizedStringKey(model.coordinator.canSimulate ? "projectEdit.fixtureBadge" : "projectEdit.localBadge"), systemImage: "square.and.pencil")
-                    Text(LocalizedStringKey(model.coordinator.canSimulate ? "projectEdit.fixtureNotice" : "projectEdit.unconfigured"))
-                        .foregroundStyle(.secondary)
                 }
             }
             if model.coordinator.session == nil {
@@ -325,14 +321,6 @@ import SwiftUI
                 PublisherXPBudgetSection(topicID: topicID, client: publisherClient)
             }
             if model.coordinator.snapshot != nil {
-                if let id = model.coordinator.snapshot?.topicID {
-                    Section("projectRemote.readback") {
-                        LabeledContent("projectRemote.topicID", value: String(id))
-                        ProjectRemoteVersionRow(revision: model.draft.baseRevision)
-                        Text(LocalizedStringKey(model.draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore"))
-                            .accessibilityIdentifier("projectRemote.mode")
-                    }
-                }
                 ProjectSubmissionEvidenceSection(model: model)
                 OwnedTopicCoverEntrySection(model: model, controller: ownedCover)
                 ApprovedReleaseAuthorReadSection(model: model, controller: approvedRelease)
@@ -372,15 +360,10 @@ import SwiftUI
                             .disabled(!model.fullEdit).accessibilityIdentifier("publishModes.applySeed")
                     }
                 }
+                // Mini-program publish/fabu order: topic details (with cover and mode),
+                // tickets, chapters, the pending area, then the optional topic systems.
                 basicFields
                 ProjectTopicMediaHost(editor: model)
-                CollectSetAuthorEntry(model: model)
-                NativeRpgResourceAuthorEntry(model: model)
-                NativeRpgConditionAuthorEntry(model: model)
-                NativeRpgEnvironmentAuthorEntry(model: model)
-                NativeRpgGrowthAuthorEntrySection(model: model)
-                NativeRpgPassiveRulesAuthorEntry(model: model)
-                // Mini-program order: topic details, then mode and tickets, then chapters.
                 Section("projectEdit.tickets") {
                     ForEach(model.draft.tickets) { ticket in
                         NavigationLink { ProjectEditTicketView(model: model, ticketID: ticket.id) } label: {
@@ -390,9 +373,15 @@ import SwiftUI
                     Button("projectEdit.addTicket", systemImage: "plus") { model.draft.tickets.append(.init()) }
                         .disabled(!model.fullEdit).accessibilityIdentifier("projectEdit.addTicket")
                 }
+                chapterStructure(opening: opening).id("project-issue-anchor-chapters")
                 ProjectEditPendingSection(model: model, controller: pending)
                 ProjectDraftStoryPreviewEntry(model: model)
-                chapterStructure(opening: opening).id("project-issue-anchor-chapters")
+                CollectSetAuthorEntry(model: model)
+                NativeRpgResourceAuthorEntry(model: model)
+                NativeRpgConditionAuthorEntry(model: model)
+                NativeRpgEnvironmentAuthorEntry(model: model)
+                NativeRpgGrowthAuthorEntrySection(model: model)
+                NativeRpgPassiveRulesAuthorEntry(model: model)
                 ProjectTeamConfigurationEntry(model: model)
                 ProjectClubLeadFields(model: model).id("project-issue-anchor-clubLead")
                 ProjectEditCompletionRulesForm(rules: model.completionRules, city: model.draft.product == .city, fullEdit: model.fullEdit, totalNodes: model.draft.chapters.reduce(0) { $0 + $1.nodes.count }).id("project-issue-anchor-completionRules")
@@ -547,9 +536,10 @@ import SwiftUI
     private func chapterLabel(_ chapter: ProjectEditChapter) -> some View {
         let nodeCount = chapter.nodes.count
         let nodeCountLabel: Text = Text("projectEdit.nodeCount") + Text(verbatim: ": \(nodeCount)")
-        return VStack(alignment: .leading, spacing: 4) {
+        return HStack {
             ProjectEditName(value: chapter.name, fallback: "projectEdit.untitledChapter")
-            Text(verbatim: String(nodeCount)).font(.caption).foregroundStyle(.secondary)
+            Spacer()
+            Text("projectEdit.nodeCountValue \(nodeCount)").foregroundStyle(.secondary)
                 .accessibilityLabel(nodeCountLabel)
         }
     }
@@ -567,7 +557,10 @@ import SwiftUI
                 ProjectThoughtDefinitionsEntry(model: model)
             }.disabled(!model.canEdit)
             Section("projectEdit.schedule") {
-                Text(LocalizedStringKey(model.draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore"))
+                LabeledContent("projectEdit.mode") {
+                    Text(LocalizedStringKey(model.draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore"))
+                        .accessibilityIdentifier("projectRemote.mode")
+                }
                 ProjectEditDateField(title: "projectEdit.startDate", value: $model.draft.startDate, identifier: "projectEdit.startDate").dateEditing(.init(model: model, field: .start)).id("project-issue-anchor-start")
                 ProjectEditDateField(title: "projectEdit.endDate", value: $model.draft.endDate, identifier: "projectEdit.endDate").dateEditing(.init(model: model, field: .end)).id("project-issue-anchor-end")
                 if model.draft.product == .freeExplore {
@@ -592,12 +585,27 @@ struct ProjectEditReferenceField: View {
 /// Manual IDs remain available when the scoped category reader is unavailable.
 @MainActor struct ProjectEditCategoryField: View {
     @Binding var selection: [Int]
+    @Environment(\.projectCategoryReader) private var categoryReader
     var categoryModel: ProjectEditModel? = nil
     func categoryEditing(_ model: ProjectEditModel) -> Self { var result = self; result.categoryModel = model; return result }
     @State private var text = ""
     @State private var invalid = false
     @FocusState private var focused: Bool
     var body: some View {
+        // The category picker is the normal way in; typed IDs only when no category list can be read.
+        if let categoryModel, categoryReader != nil {
+            HStack {
+                ProjectCategoryPickerEntry(model: categoryModel)
+                Spacer()
+                Text(verbatim: selection.isEmpty ? "—" : appLocalized("publishModes.selectedCount \(selection.count)", locale: locale))
+                    .foregroundStyle(.secondary)
+            }
+        } else {
+            manualEntry
+        }
+    }
+    @Environment(\.locale) private var locale
+    private var manualEntry: some View {
         VStack(alignment: .leading) {
             TextField("projectEdit.categories", text: $text).keyboardType(.numbersAndPunctuation).focused($focused)
                 .accessibilityIdentifier("projectEdit.categories")
@@ -608,7 +616,7 @@ struct ProjectEditReferenceField: View {
                     // Invalid text clears selection; review must not silently send old IDs.
                     selection = invalid ? [] : ids
                 }
-            Text(LocalizedStringKey(invalid ? "projectEdit.validation.categories" : "projectEdit.categoriesHint")).font(.caption).foregroundStyle(invalid ? Color.red : Color.secondary)
+            if invalid { Text("projectEdit.validation.categories").font(.footnote).foregroundStyle(.red) }
             if let categoryModel { ProjectCategoryPickerEntry(model: categoryModel) }
         }.onAppear { text = selection.map(String.init).joined(separator: ",") }
             .onChange(of: selection) { _, value in if !focused { text = value.map(String.init).joined(separator: ",") } }

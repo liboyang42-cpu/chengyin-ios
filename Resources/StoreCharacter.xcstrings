@@ -1590,13 +1590,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Voice mode"
+            "value": "Record voice"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Voice mode"
+            "value": "录制声音"
           }
         }
       }

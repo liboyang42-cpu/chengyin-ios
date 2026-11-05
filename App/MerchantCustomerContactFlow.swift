@@ -57,9 +57,7 @@ import SwiftUI
             List {
                 Section {
                     Text(verbatim: flow.selection.record.title).font(.headline)
-                    LabeledContent("merchant.contactFlow.customer", value: String(flow.selection.customerID.rawValue))
                     Text(LocalizedStringKey("merchant.engagement.contact." + flow.selection.purpose.rawValue))
-                    Text("merchant.contactFlow.privacy").font(.footnote)
                 }
                 if !flow.isCurrent { Text("merchant.contactFlow.stale") }
                 else {

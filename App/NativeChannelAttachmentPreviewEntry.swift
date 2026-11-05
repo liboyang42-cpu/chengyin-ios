@@ -19,12 +19,7 @@ import ImageIO
         let _ = revision
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.Space.s4) {
-                Text("preview.disclosure", tableName: "NativeChannelAttachmentPreview")
-                    .font(Theme.Font.label).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
                 VStack(alignment: .leading, spacing: Theme.Space.s3) {
-                    Text("preview.status.title", tableName: "NativeChannelAttachmentPreview")
-                        .font(Theme.Font.sectionTitle).accessibilityAddTraits(.isHeader)
                     if !current() || !flow.isCurrent {
                         status("preview.changed")
                     } else {
@@ -44,6 +39,7 @@ import ImageIO
                             if let image {
                                 Image(uiImage: image).resizable().scaledToFit()
                                     .frame(maxWidth: 1200, maxHeight: 1200)
+                                    .frame(maxWidth: .infinity)
                                     .accessibilityLabel(Text("preview.image", tableName: "NativeChannelAttachmentPreview"))
                                     .accessibilityIdentifier("attachmentPreview.image")
                             }
@@ -52,7 +48,7 @@ import ImageIO
                     }
                 }.frame(maxWidth: .infinity, alignment: .leading)
                 if current() && flow.isCurrent {
-                    if flow.visibleState != .loading && flow.visibleState != .displayed {
+                    if flow.enabled && flow.visibleState != .loading && flow.visibleState != .displayed {
                         Button {
                             loadTask?.cancel()
                             loadTask = Task {
@@ -63,17 +59,16 @@ import ImageIO
                         } label: {
                             Text("preview.load", tableName: "NativeChannelAttachmentPreview")
                                 .fixedSize(horizontal: false, vertical: true)
-                                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                                .contentShape(Rectangle())
-                        }.font(Theme.Font.button).disabled(!flow.enabled)
+                                .frame(maxWidth: .infinity)
+                        }.nativeChannelPrimaryAction()
                             .accessibilityIdentifier("attachmentPreview.load")
                     }
                     Button { clear() } label: {
                         Text("preview.clear", tableName: "NativeChannelAttachmentPreview")
                             .fixedSize(horizontal: false, vertical: true)
-                            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                            .frame(maxWidth: .infinity, minHeight: 44)
                             .contentShape(Rectangle())
-                    }.font(Theme.Font.button).accessibilityIdentifier("attachmentPreview.clear")
+                    }.font(Theme.Font.button).buttonStyle(.borderless).accessibilityIdentifier("attachmentPreview.clear")
                 }
             }.font(Theme.Font.body).padding()
         }.nativeChannelScreen().privacySensitive()

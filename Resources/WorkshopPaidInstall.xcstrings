@@ -339,16 +339,16 @@
     },
     "workshopPaidInstall.materializationRequired": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "副本尚未转换为专业编辑器模板，也未发布。安装编号不能作为玩法模板编号使用。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The copy has not been materialized as a professional editor template or published. An installation ID is not a play template ID."
+            "value": "This copy isn't a play template yet and isn't published."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此副本尚未成为玩法模板，也未发布。"
           }
         }
       }

@@ -61,7 +61,6 @@ struct RoamAreaPicker: View {
                 }
                 Section {
                     Text("roam.area.coordinateSystem").font(.footnote).foregroundStyle(.secondary)
-                    Text("roam.area.memoryOnly").font(.footnote).foregroundStyle(.secondary)
                 }
             }
             .appNavigationTitle("roam.area.title")

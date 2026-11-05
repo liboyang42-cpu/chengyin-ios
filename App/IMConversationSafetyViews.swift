@@ -39,7 +39,7 @@ struct IMSafetyCopy {
             confirmKey = "im.safety.block.confirm"; doneKey = "im.safety.block.done"; doneDetailKey = "im.safety.block.doneDetail"
             failureKey = "im.safety.block.failed"
         case .unblock:
-            titleKey = "im.safety.unblock.title"; contentKey = "im.safety.unblock.content"; consequenceKeys = []
+            titleKey = "im.safety.unblock.title"; contentKey = nil; consequenceKeys = []
             confirmKey = "im.safety.unblock.confirm"; doneKey = "im.safety.unblock.done"; doneDetailKey = nil
             failureKey = "im.safety.unblock.failed"
         case .report:
@@ -70,6 +70,8 @@ struct IMSafetyCopy {
                 }
         }
         .accessibilityIdentifier("im.safety.sheet")
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
         .interactiveDismissDisabled(isInFlight)
         // A dispatched request is never cancelled by dismissal; its owner keeps the
         // unknown/acknowledged state. Only an acknowledged action refreshes the host.
@@ -137,7 +139,6 @@ struct IMSafetyCopy {
         case .notApplied:
             Section {
                 Label("im.safety.notApplied", systemImage: "arrow.uturn.backward.circle").accessibilityIdentifier("im.safety.notApplied")
-                Text("im.safety.notAppliedHint")
                 Button("im.safety.retrySame") { run { await model.owner.retryUnchanged() } }.accessibilityIdentifier("im.safety.retry")
             }
         }

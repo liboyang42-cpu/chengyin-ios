@@ -3,7 +3,7 @@ import SwiftUI
 /// Offline SwiftUI sheet presenting `WorkshopModUpgradePresentation` (W18.4 capability diff,
 /// pinned existing runs notice, re-review requirement, buyer confirmation gate, M11-3
 /// perpetual-purchased-version disclosure, and U08 H5 design-only rejection notice).
-/// Uses `Text(verbatim:)` throughout so no new `.xcstrings` keys are required.
+/// Fixed copy uses localized keys; texts produced by the presentation model are shown verbatim.
 @MainActor
 public struct WorkshopModUpgradeSheetView: View {
     public let presentation: WorkshopModUpgradePresentation
@@ -24,7 +24,7 @@ public struct WorkshopModUpgradeSheetView: View {
     public var body: some View {
         List {
             if let manifestNotice = presentation.manifestIssueNotice {
-                Section(header: Text(verbatim: "模组包校验提示")) {
+                Section(header: Text("workshopUpgrade.manifestTitle")) {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(verbatim: manifestNotice.titleText)
                             .font(.headline)
@@ -51,19 +51,19 @@ public struct WorkshopModUpgradeSheetView: View {
                 .accessibilityIdentifier("workshop.upgrade.perpetualUseDisclosure")
             }
 
-            Section(header: Text(verbatim: "版本与能力差异对比")) {
+            Section(header: Text("workshopUpgrade.diffTitle")) {
                 Text(verbatim: presentation.versionTransitionText)
                     .font(.subheadline.weight(.medium))
                     .accessibilityIdentifier("workshop.upgrade.versionTransition")
 
                 if presentation.addedCapabilities.isEmpty && presentation.removedCapabilities.isEmpty {
-                    Text(verbatim: "能力声明无增减（仅内容哈希与版本号更新）")
+                    Text("workshopUpgrade.noFeatureChange")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 } else {
                     if !presentation.addedCapabilities.isEmpty {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(verbatim: "新增能力")
+                            Text("workshopUpgrade.added")
                                 .font(.caption.weight(.semibold))
                                 .foregroundStyle(.green)
                             ForEach(presentation.addedCapabilities, id: \.self) { cap in
@@ -76,7 +76,7 @@ public struct WorkshopModUpgradeSheetView: View {
 
                     if !presentation.removedCapabilities.isEmpty {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(verbatim: "移除能力")
+                            Text("workshopUpgrade.removed")
                                 .font(.caption.weight(.semibold))
                                 .foregroundStyle(.orange)
                             ForEach(presentation.removedCapabilities, id: \.self) { cap in
@@ -90,7 +90,7 @@ public struct WorkshopModUpgradeSheetView: View {
 
                 if !presentation.unchangedCapabilities.isEmpty {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(verbatim: "保持不变能力")
+                        Text("workshopUpgrade.unchanged")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Text(verbatim: presentation.unchangedCapabilities.joined(separator: ", "))
@@ -101,7 +101,7 @@ public struct WorkshopModUpgradeSheetView: View {
                 }
             }
 
-            Section(header: Text(verbatim: "升级保障与重审规则")) {
+            Section(header: Text("workshopUpgrade.rulesTitle")) {
                 Text(verbatim: presentation.pinnedExistingRunsNotice)
                     .font(.subheadline)
                     .accessibilityIdentifier("workshop.upgrade.pinnedRunsNotice")
@@ -114,7 +114,7 @@ public struct WorkshopModUpgradeSheetView: View {
                     .accessibilityIdentifier("workshop.upgrade.coverageNotice")
             }
 
-            Section(header: Text(verbatim: "买方显式确认")) {
+            Section(header: Text("workshopUpgrade.confirmTitle")) {
                 Toggle(isOn: $confirmedByBuyer) {
                     Text(verbatim: presentation.confirmationPromptText)
                         .font(.subheadline)
@@ -122,21 +122,22 @@ public struct WorkshopModUpgradeSheetView: View {
                 .accessibilityIdentifier("workshop.upgrade.confirmToggle")
 
                 Button(action: submitUpgradeDraft) {
-                    Text(verbatim: "生成新版本本地升级草稿")
+                    Text("workshopUpgrade.confirmButton")
                         .frame(maxWidth: .infinity)
                 }
+                .buttonStyle(.questifyPrimary)
                 .disabled(confirmedRequestId != nil || !presentation.canConfirmUpgrade(confirmedByBuyer: confirmedByBuyer))
                 .accessibilityIdentifier("workshop.upgrade.confirmButton")
 
-                if let confirmedRequestId {
-                    Text(verbatim: "已生成本地升级草稿请求：\(confirmedRequestId)")
+                if confirmedRequestId != nil {
+                    Text("workshopUpgrade.saved")
                         .font(.footnote)
                         .foregroundStyle(.green)
                         .accessibilityIdentifier("workshop.upgrade.confirmedReceipt")
                 }
 
                 if let errorNotice {
-                    Text(verbatim: errorNotice)
+                    Text(LocalizedStringKey(errorNotice))
                         .font(.footnote)
                         .foregroundStyle(.red)
                         .accessibilityIdentifier("workshop.upgrade.errorNotice")
@@ -153,12 +154,12 @@ public struct WorkshopModUpgradeSheetView: View {
             request = try presentation.makeUpgradeDraftRequest(confirmedByBuyer: confirmedByBuyer)
         } catch {
             confirmedRequestId = nil
-            errorNotice = "升级草稿请求未通过校验，请核对授权与确认状态。"
+            errorNotice = "workshopUpgrade.error.invalid"
             return
         }
         guard let onConfirmDraft else {
             confirmedRequestId = nil
-            errorNotice = "本机保存未接通，未保存升级草稿。"
+            errorNotice = "workshopUpgrade.error.unavailable"
             return
         }
         do {
@@ -167,10 +168,10 @@ public struct WorkshopModUpgradeSheetView: View {
             confirmedRequestId = request.requestId
         } catch WorkshopUpgradeDraftIssue.unavailable {
             confirmedRequestId = nil
-            errorNotice = "本机保存未接通，未保存升级草稿。"
+            errorNotice = "workshopUpgrade.error.unavailable"
         } catch {
             confirmedRequestId = nil
-            errorNotice = "升级草稿未能保存，现有版本与场次保持不变。"
+            errorNotice = "workshopUpgrade.error.failed"
         }
     }
 }

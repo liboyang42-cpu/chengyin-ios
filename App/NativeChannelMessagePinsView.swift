@@ -12,16 +12,21 @@ import SwiftUI
     @State private var pinSelection: NativeChannelMessagePinSelection?
     @State private var localIssue = false
     @Environment(\.scenePhase) private var phase
+    @Environment(\.dismiss) private var dismiss
     var locateOriginal: ((NativeChannelMessageID) -> Void)?
     var body: some View {
         List {
-            if coordinator.pins.loading { ProgressView() }
-            else if !coordinator.pins.isCurrent { Text("access.closed", tableName: "NativeChannelMessage") }
+            if coordinator.pins.loading { ProgressView().frame(maxWidth: .infinity) }
+            else if !coordinator.pins.isCurrent {
+                ContentUnavailableView { Label { Text("access.closed", tableName: "NativeChannelMessage") } icon: { Image(systemName: "lock") } }
+            }
             else {
-                if coordinator.pins.rows.isEmpty && !coordinator.pins.failed { Text("pins.empty", tableName: "NativeChannelMessage").nativeChannelNotice(systemImage: "pin") }
+                if coordinator.pins.rows.isEmpty && !coordinator.pins.failed {
+                    ContentUnavailableView { Label { Text("pins.empty", tableName: "NativeChannelMessage") } icon: { Image(systemName: "pin") } }
+                }
                 ForEach(coordinator.pins.rows) { pin in
                     Button { if coordinator.pins.isCurrent { locateOriginal?(pin.message_id) } } label: {
-                        HStack { Image(systemName: "pin.fill"); Text(verbatim: pin.summary).lineLimit(typeSize.isAccessibilitySize ? nil : 3).fixedSize(horizontal: false, vertical: true) }
+                        Label { Text(verbatim: pin.summary).lineLimit(typeSize.isAccessibilitySize ? nil : 3).fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: "pin.fill").foregroundStyle(.secondary) }
                     }.disabled(locateOriginal == nil)
                     .accessibilityIdentifier("ncm47.pin.\(pin.id.rawValue)")
                     .swipeActions {
@@ -35,15 +40,24 @@ import SwiftUI
             }
             if selecting { ProgressView(copy.text("p23.selecting")) }
             if coordinator.pins.failed {
-                Text("load.failed", tableName: "NativeChannelMessage")
-                Button(copy.text("p23.reload")) { reload() }
-                    .disabled(!coordinator.pins.isCurrent || phase != .active)
+                Section {
+                    Label { Text("load.failed", tableName: "NativeChannelMessage") } icon: { Image(systemName: "exclamationmark.triangle") }
+                    Button(copy.text("p23.reload")) { reload() }
+                        .disabled(!coordinator.pins.isCurrent || phase != .active)
+                }
             }
             NativeChannelMessageRecoveryView(coordinator: coordinator)
         }
         .nativeChannelScreen().listStyle(.insetGrouped)
         .navigationTitle(Text("pins.title", tableName: "NativeChannelMessage"))
-        .toolbar { EditButton().disabled(!coordinator.canStart || !coordinator.pins.isCurrent || coordinator.pins.loading) }
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } }
+            if coordinator.client.allows(.mutate(.sort)) {
+                ToolbarItem(placement: .primaryAction) {
+                    EditButton().disabled(!coordinator.canStart || !coordinator.pins.isCurrent || coordinator.pins.loading)
+                }
+            }
+        }
         .task(id: phase) {
             guard phase == .active else { retireRead(); return }
             await coordinator.pins.activate()
@@ -57,12 +71,10 @@ import SwiftUI
         }
         .refreshable { await coordinator.pins.reload() }
         .confirmationDialog(copy.text("p23.confirm.title"), isPresented: Binding(
-            get: { pinSelection != nil }, set: { if !$0 { pinSelection = nil } }), presenting: pinSelection) { selection in
+            get: { pinSelection != nil }, set: { if !$0 { pinSelection = nil } }), titleVisibility: .visible, presenting: pinSelection) { selection in
             Button(copy.text("p23.confirm.action"), role: .destructive) { confirmRemoval(selection) }
                 .disabled(!coordinator.canStart || !selectionIsCurrent(selection))
             Button(copy.text("p23.cancel"), role: .cancel) { pinSelection = nil }
-        } message: { selection in
-            Text(verbatim: copy.format("p23.confirm.detail", selection.command.binding.channelID.rawValue, selection.snapshot.id.rawValue, String(selection.snapshot.version)))
         }
         .alert(copy.text("p23.changed"), isPresented: $localIssue) { Button(copy.text("p23.ok"), role: .cancel) {} }
         .onChange(of: coordinator.pins.isCurrent) { _, current in if !current { retireRead() } }

@@ -8,9 +8,9 @@ final class IMExpandedUITests: XCTestCase {
         app.launchArguments = ["--im-expanded-fixture", "message-empty"]
         app.launch()
         XCTAssertTrue(app.descendants(matching: .any)["messaging.list.empty"].waitForExistence(timeout: 5))
-        // Source tabs: 私信 (0) / 系统 (1). System never offers Square.
+        // All (0) / Channels (1) / Direct (2). Channels never offers Square.
         let tabs = app.segmentedControls["messaging.list.scope"]
-        XCTAssertEqual(tabs.buttons.count, 2)
+        XCTAssertEqual(tabs.buttons.count, 3)
         tabs.buttons.element(boundBy: 1).tap()
         XCTAssertFalse(app.buttons["messaging.list.emptySquare"].exists)
         tabs.buttons.element(boundBy: 0).tap()

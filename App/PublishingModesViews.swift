@@ -16,12 +16,48 @@ import Combine
     var draftStore: PublishingDraftStore? = nil
     var openProfessional: (ProjectEditDraft) -> Void
     var openResource: (PublishedResource) -> Void
+    /// Mini-program publish menu, second level 专业手动: an empty professional editor for the chosen route type.
+    var makeProfessional: ((ProjectEditProduct) -> AnyView)? = nil
+    /// Mini-program publish menu card 互动: template intro, naming, then the template editor.
+    var makeTemplateAuthoring: (() -> AnyView)? = nil
+    /// Mini-program: activity publishing is for club leaders; other roles never see the entry.
+    private var showsActivity: Bool { account == nil || account?.role == "club" }
     var body: some View {
+        // Same choices and order as the mini-program publish menu (cy-publish-sheet):
+        // a topic (city orientation or free explore, quick or professional), then interaction.
         List {
-            NavigationLink("publishModes.quick") { QuickPublishingView(placeSearch: placeSearch, account: account, draftStore: draftStore, makeAIDraft: makeAIDraft, openProfessional: openProfessional).id(account?.epoch) }
-            NavigationLink("publishModes.activity") { ActivityPublishingView(service: service, account: account, placeSearch: placeSearch, draftStore: draftStore, makeIdentityRegistration: makeIdentityRegistration, makeActivityTemplate: makeActivityTemplate, makeActivityCover: makeActivityCover, openResource: openResource) }
-            NavigationLink("publishModes.projects") { PublishingProjectsView(service: service, account: account, openResource: openResource) }
-            NavigationLink("publishModes.identity") { PublishingIdentityStatusView(service: service, account: account) }
+            Section("publishModes.section.topic") {
+                NavigationLink { QuickPublishingView(placeSearch: placeSearch, account: account, draftStore: draftStore, makeAIDraft: makeAIDraft, openProfessional: openProfessional).id(account?.epoch) } label: {
+                    Label("publishModes.quick", systemImage: "wand.and.stars")
+                }
+                if let makeProfessional {
+                    NavigationLink { makeProfessional(.city) } label: { Label("publishModes.pro.city", systemImage: "map") }
+                        .accessibilityIdentifier("publishModes.pro.city")
+                    NavigationLink { makeProfessional(.freeExplore) } label: { Label("publishModes.pro.freeExplore", systemImage: "location.magnifyingglass") }
+                        .accessibilityIdentifier("publishModes.pro.freeExplore")
+                }
+            }
+            if let makeTemplateAuthoring {
+                Section("publishModes.section.interaction") {
+                    NavigationLink { makeTemplateAuthoring() } label: { Label("publishModes.interaction", systemImage: "puzzlepiece.extension") }
+                        .accessibilityIdentifier("publishModes.interaction")
+                }
+            }
+            if showsActivity {
+                Section {
+                    NavigationLink { ActivityPublishingView(service: service, account: account, placeSearch: placeSearch, draftStore: draftStore, makeIdentityRegistration: makeIdentityRegistration, makeActivityTemplate: makeActivityTemplate, makeActivityCover: makeActivityCover, openResource: openResource) } label: {
+                        Label("publishModes.activity", systemImage: "calendar.badge.plus")
+                    }
+                }
+            }
+            Section {
+                NavigationLink { PublishingProjectsView(service: service, account: account, openResource: openResource) } label: {
+                    Label("publishModes.projects", systemImage: "square.stack")
+                }
+                NavigationLink { PublishingIdentityStatusView(service: service, account: account) } label: {
+                    Label("publishModes.identity", systemImage: "person.text.rectangle")
+                }
+            }
         }.navigationTitle(Text("publishModes.title")).accessibilityIdentifier("publishModes.home")
     }
 }
@@ -37,37 +73,57 @@ import Combine
     var body: some View {
         let _ = journey.bind(account: account)
         let draft = journey.draftBinding()
+        // Mini-program publish/simple order: AI draft, the draft (route type, name, story),
+        // the stops to confirm on the map, then one primary action into the editor.
         Form {
             Section {
-                Button("contextPublish.ai.title", action: journey.openAIAction(makeClient: makeAIDraft))
-                    .accessibilityIdentifier("contextPublish.ai.open")
+                Button(action: journey.openAIAction(makeClient: makeAIDraft)) {
+                    Label("contextPublish.ai.title", systemImage: "sparkles")
+                }.accessibilityIdentifier("contextPublish.ai.open")
             }
             Section("publishModes.details") {
+                Picker("publishModes.product", selection: draft.product) { Text("projectEdit.city").tag(ProjectEditProduct.city); Text("projectEdit.freeExplore").tag(ProjectEditProduct.freeExplore) }
                 TextField("publishModes.name", text: draft.title).accessibilityIdentifier("publishModes.quick.name")
                 TextField("publishModes.description", text: draft.description, axis: .vertical).lineLimit(3...8)
-                Picker("publishModes.product", selection: draft.product) { Text("projectEdit.city").tag(ProjectEditProduct.city); Text("projectEdit.freeExplore").tag(ProjectEditProduct.freeExplore) }
             }
             ForEach(draft.nodes) { $node in
+                let index = (draft.wrappedValue.nodes.firstIndex { $0.id == node.id } ?? 0) + 1
                 Section {
                     TextField("publishModes.name", text: $node.name)
-                    TextField("publishModes.description", text: $node.description, axis: .vertical)
-                    Button(action: journey.openPlaceAction(node.id)) { Label(node.confirmedPlace?.name ?? appLocalized("publishModes.choosePlace", locale: locale), systemImage: "mappin.and.ellipse") }
-                    if let place = node.confirmedPlace { Text(place.address).foregroundStyle(.secondary); Text("\(place.latitude), \(place.longitude)").font(.caption) }
+                    TextField("publishModes.description", text: $node.description, axis: .vertical).lineLimit(2...6)
+                    Button(action: journey.openPlaceAction(node.id)) {
+                        HStack {
+                            Label {
+                                Text(verbatim: node.confirmedPlace.map { $0.address.isEmpty ? $0.name : $0.address } ?? appLocalized("publishModes.choosePlace", locale: locale))
+                                    .foregroundStyle(node.confirmedPlace == nil ? Color.accentColor : Color.primary)
+                            } icon: { Image(systemName: node.confirmedPlace == nil ? "mappin.and.ellipse" : "checkmark.circle.fill") }
+                            Spacer()
+                            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+                        }
+                    }
                     Button("publishModes.remove", role: .destructive, action: journey.removeNodeAction(node.id))
-                }
+                } header: { Text("publishModes.stopNumber \(index)") }
             }
             Section {
-                Button("publishModes.saveLocal", action: journey.saveAction(store: draftStore))
-                    .disabled(account == nil || draftStore == nil)
-                Button("publishModes.restoreLocal", action: journey.restoreAction(store: draftStore))
-                    .disabled(account == nil || draftStore == nil)
-                if !journey.storageMessage.isEmpty { Text(LocalizedStringKey(journey.storageMessage)) }
+                Button(action: journey.addNodeAction()) { Label("publishModes.addNode", systemImage: "plus.circle") }
+                    .accessibilityIdentifier("publishModes.quick.add")
             }
-            Button("publishModes.addNode", action: journey.addNodeAction()).accessibilityIdentifier("publishModes.quick.add")
-            if journey.problem { Text("publishModes.confirmEveryPlace").foregroundStyle(.red) }
-            Button("publishModes.continueEditor", action: journey.handoffAction(openProfessional))
-                .accessibilityIdentifier("publishModes.quick.continue")
+            if account != nil && draftStore != nil {
+                Section {
+                    Button("publishModes.saveLocal", action: journey.saveAction(store: draftStore))
+                    Button("publishModes.restoreLocal", action: journey.restoreAction(store: draftStore))
+                    if !journey.storageMessage.isEmpty { Text(LocalizedStringKey(journey.storageMessage)) }
+                }
+            }
         }.disabled(!journey.canEdit).navigationTitle(Text("publishModes.quick"))
+        .questifyBottomAction {
+            VStack(spacing: 8) {
+                if journey.problem { Text("publishModes.confirmEveryPlace").font(.footnote).foregroundStyle(.red).multilineTextAlignment(.center) }
+                Button(action: journey.handoffAction(openProfessional)) { Text("publishModes.continueEditor").frame(maxWidth: .infinity) }
+                    .disabled(!journey.canEdit)
+                    .accessibilityIdentifier("publishModes.quick.continue")
+            }
+        }
         .onAppear { journey.appear(active: scenePhase == .active) }
         .onChange(of: scenePhase) { _, phase in journey.setActive(phase == .active) }
         .background { QuickPublishingJourneyLifetime(owner: journey).frame(width: 0, height: 0) }
@@ -140,55 +196,101 @@ import Combine
         }
         .sheet(isPresented: Binding(get: { picker != nil }, set: { if !$0 { picker = nil } })) { pickerSheet }
         .sheet(isPresented: $localReview) {
+            let snapshot = review
             NavigationStack {
                 List {
-                    Text(draft.name); Text(draft.description); Text(draft.start + " → " + draft.end)
-                    Text("\(draft.tickets.count) " + appLocalized("publishModes.ticket", locale: locale))
-                    let snapshot = review
-                    Button("publishModes.confirm") { if let snapshot { Task { await submit(snapshot) } } }
-                        .disabled(snapshot == nil || busy || service?.mutationsConfigured != true)
-                    Button("publishModes.cancel", role: .cancel) {
-                        guard review == snapshot else { return }
-                        if let snapshot { service?.cancel(snapshot) }; review = nil; localReview = false
+                    Section {
+                        LabeledContent("publishParity.activity.title", value: draft.name)
+                        LabeledContent("publishModes.addressName", value: draft.addressName.isEmpty ? "—" : draft.addressName)
+                        LabeledContent("publishModes.start", value: draft.start.isEmpty ? "—" : draft.start)
+                        LabeledContent("publishModes.end", value: draft.end.isEmpty ? "—" : draft.end)
+                        LabeledContent("publishModes.ticket", value: String(draft.tickets.count))
                     }
-                }.navigationTitle(Text("publishModes.review"))
+                    if !draft.description.isEmpty {
+                        Section("publishParity.activity.description") { Text(draft.description) }
+                    }
+                }
+                .navigationTitle(Text("publishModes.review")).navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("publishModes.cancel", role: .cancel) {
+                            guard review == snapshot else { return }
+                            if let snapshot { service?.cancel(snapshot) }; review = nil; localReview = false
+                        }
+                    }
+                }
+                .questifyBottomAction {
+                    Button { if let snapshot { Task { await submit(snapshot) } } } label: { Text("publishModes.confirm").frame(maxWidth: .infinity) }
+                        .disabled(snapshot == nil || busy || service?.mutationsConfigured != true)
+                }
             }
+            .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
     }
     private func publishingForm(templateSelectionAction: UUID, templateReadID: UUID) -> some View {
+        // Mini-program publish/activity: step dots, then per step —
+        // basics (title, venue, dates, type), content (description, cover, template),
+        // tickets (collaborators, ticket options, add ticket, publisher identity).
+        // Input errors sit in red under the field they refer to.
         Form {
-            Section { Text("publishModes.clubOnly") }
             Section { ActivityPublishingWizardChrome(step: wizardStep, block: wizardBlock) }
             if ActivityPublishingWizard.clamp(wizardStep) == 0 {
                 Section {
-                    TextField("publishParity.activity.title", text: $draft.name)
-                    clearButton(.name)
+                    HStack {
+                        TextField("publishParity.activity.title", text: $draft.name)
+                        clearButton(.name)
+                    }
+                    fieldError("name")
                     TextField("publishModes.addressName", text: $draft.addressName)
-                    Button("publishModes.choosePlace") { picker = "place" }
-                    if let place = draft.place { Text(place.name); Text(place.address).font(.caption) }
-                    TextField("publishModes.start", text: $draft.start).accessibilityIdentifier("publishModes.activity.start")
-                    TextField("publishModes.end", text: $draft.end)
+                    fieldError("addressName")
+                    Button { picker = "place" } label: {
+                        chooserRow("publishModes.choosePlace", value: draft.place.map { $0.address.isEmpty ? $0.name : $0.address })
+                    }
+                }.disabled(!editable)
+                Section {
                     Button {
                         localClear.invalidate()
                         timeRange.open(account: account, draftID: draftID, draft: draft, now: Date(), timeZoneID: TimeZone.autoupdatingCurrent.identifier)
-                    } label: { Text("publishModes.chooseTimeRange") }
+                    } label: { chooserRow("publishModes.chooseTimeRange", value: nil, icon: "calendar") }
                         .disabled(!mayEditTimeRange || !timeRange.canOpen(account: account, draftID: draftID, draft: draft, now: Date()))
                         .accessibilityIdentifier("publishModes.activity.timeRange.open")
-                    Button("publishParity.activity.type") { picker = "category" }; Text(draft.categoryIDs.map(String.init).joined(separator: ", "))
+                    TextField("publishModes.start", text: $draft.start).accessibilityIdentifier("publishModes.activity.start")
+                    fieldError("startDate")
+                    TextField("publishModes.end", text: $draft.end)
+                    fieldError("endDate")
+                }.disabled(!editable)
+                Section {
+                    Button { picker = "category" } label: {
+                        chooserRow("publishParity.activity.type", value: draft.categoryIDs.isEmpty ? nil : appLocalized("publishModes.selectedCount \(draft.categoryIDs.count)", locale: locale))
+                    }
+                    fieldError("categoryIds")
                 }.disabled(!editable)
             }
             if ActivityPublishingWizard.clamp(wizardStep) == 1 {
                 Section {
-                    TextField("publishParity.activity.description", text: $draft.description, axis: .vertical).lineLimit(3...8)
-                    clearButton(.description)
-                    TextField("publishModes.cover", text: $draft.coverURL).textInputAutocapitalization(.never).autocorrectionDisabled()
-                    Button("publishModes.template") {
+                    HStack(alignment: .top) {
+                        TextField("publishParity.activity.description", text: $draft.description, axis: .vertical).lineLimit(3...8)
+                        clearButton(.description)
+                    }
+                    fieldError("description")
+                    // Without the cover upload service, an existing cover link is the only way to set one.
+                    if makeActivityCover == nil {
+                        TextField("publishModes.cover", text: $draft.coverURL).textInputAutocapitalization(.never).autocorrectionDisabled()
+                    }
+                }.disabled(!editable)
+                Section("publishModes.coverSection") {
+                    ActivityCoverAuthoringSection(owner: cover)
+                    fieldError("imgUrl")
+                }
+                Section {
+                    Button {
                         localClear.invalidate(); timeRange.retire()
                         templateSelection.begin(service: service, expected: templateSelectionAction, allowed: mayEditTimeRange)
+                    } label: {
+                        chooserRow("publishModes.template", value: draft.playTemplateID == nil ? nil : appLocalized("publishModes.selected", locale: locale))
                     }.accessibilityIdentifier("activityTemplate.open")
-                    Text(draft.playTemplateID.map { String($0.rawValue) } ?? "—")
+                    fieldError("templateId")
                 }.disabled(!editable)
-                Section { ActivityCoverAuthoringSection(owner: cover) }
                 if templateSelection.open {
                     ActivityTemplateSelectionSection(owner: templateSelection, apply: { stamp in
                         templateSelection.apply(expected: stamp, draft: $draft, session: account, draftID: draftID,
@@ -198,49 +300,77 @@ import Combine
             }
             if ActivityPublishingWizard.clamp(wizardStep) == 2 {
                 Section {
-                    Button("publishModes.collaborators") { picker = "collaborator" }
-                    Text(draft.collaboratorMemberIDs.map(String.init).joined(separator: ", "))
+                    Button { picker = "collaborator" } label: {
+                        chooserRow("publishModes.collaborators", value: draft.collaboratorMemberIDs.isEmpty ? nil : appLocalized("publishModes.selectedCount \(draft.collaboratorMemberIDs.count)", locale: locale))
+                    }
+                    fieldError("collaborators")
                 }.disabled(!editable)
                 ForEach($draft.tickets) { $ticket in
-                    Section("publishModes.ticket") {
-                        TextField("publishParity.ticket.name", text: $ticket.name)
-                        clearButton(.ticketName(ticket.id))
-                        TextField("publishParity.ticket.price", text: $ticket.price).keyboardType(.decimalPad)
-                        TextField("publishParity.ticket.stock", text: $ticket.stock).keyboardType(.numberPad)
-                        clearButton(.ticketStock(ticket.id))
-                        TextField("publishModes.start", text: $ticket.start)
-                        TextField("publishModes.end", text: $ticket.end)
-                        Button("publishModes.remove", role: .destructive) { draft.tickets.removeAll { $0.id == ticket.id } }
-                    }.disabled(!editable)
+                    let index = draft.tickets.firstIndex { $0.id == ticket.id } ?? 0
+                        Section {
+                            HStack {
+                                TextField("publishParity.ticket.name", text: $ticket.name)
+                                clearButton(.ticketName(ticket.id))
+                            }
+                            fieldError("ticketName\(index)")
+                            TextField("publishParity.ticket.price", text: $ticket.price).keyboardType(.decimalPad)
+                            fieldError("ticketPrice\(index)")
+                            HStack {
+                                TextField("publishParity.ticket.stock", text: $ticket.stock).keyboardType(.numberPad)
+                                clearButton(.ticketStock(ticket.id))
+                            }
+                            fieldError("ticketStock\(index)")
+                            TextField("publishModes.start", text: $ticket.start)
+                            fieldError("ticketStart\(index)")
+                            TextField("publishModes.end", text: $ticket.end)
+                            fieldError("ticketEnd\(index)")
+                            Button("publishModes.remove", role: .destructive) { draft.tickets.removeAll { $0.id == ticket.id } }
+                        } header: { Text("publishModes.ticketNumber \(index + 1)") }
+                        .disabled(!editable)
                 }
                 // Mini-program publish/activity: 添加票单 directly follows the ticket list, before publisher identity.
-                Button("publishModes.addTicket") { draft.tickets.append(.init()) }.disabled(!editable)
+                Section {
+                    Button { draft.tickets.append(.init()) } label: { Label("publishModes.addTicket", systemImage: "plus.circle") }
+                        .disabled(!editable)
+                    if wizardBlock == "ticket" { fieldError("ticket") }
+                }
                 if requiresIdentity {
                     PublisherIdentityRegistrationSection(owner: identityRegistration, makeService: makeIdentityRegistration, enabled: mayClear)
                 }
             }
-            Section {
-                Button("publishModes.saveLocal") {
-                    guard let account, let draftStore else { return }
-                    do { try draftStore.saveActive(PublishingLocalDraft(session: account, identity: draftID, activity: draft), session: account); message = "publishModes.savedLocal" }
-                    catch { message = "publishModes.storageFailed" }
-                }.disabled(!editable || account == nil || draftStore == nil)
-                Button("publishModes.restoreLocal") {
-                    localClear.invalidate(); timeRange.retire()
-                    guard let account, let draftStore else { return }
-                    do {
-                        if let saved = try draftStore.loadActive(activity: true, session: account), let activity = saved.activity {
-                            draft = activity; draftID = saved.identity; message = "publishModes.restoredLocal"
-                            wizardStep = ActivityPublishingWizard.located(ActivityPublishingWizard.steps.count, draft: activity)
-                            wizardBlock = ActivityPublishingWizard.blockingField(wizardStep, activity)
-                        } else { message = "publishModes.noSavedLocal" }
-                    } catch { message = "publishModes.storageFailed" }
-                }.disabled(!editable || account == nil || draftStore == nil)
+            if account != nil && draftStore != nil {
+                Section {
+                    Button("publishModes.saveLocal") {
+                        guard let account, let draftStore else { return }
+                        do { try draftStore.saveActive(PublishingLocalDraft(session: account, identity: draftID, activity: draft), session: account); message = "publishModes.savedLocal" }
+                        catch { message = "publishModes.storageFailed" }
+                    }.disabled(!editable)
+                    Button("publishModes.restoreLocal") {
+                        localClear.invalidate(); timeRange.retire()
+                        guard let account, let draftStore else { return }
+                        do {
+                            if let saved = try draftStore.loadActive(activity: true, session: account), let activity = saved.activity {
+                                draft = activity; draftID = saved.identity; message = "publishModes.restoredLocal"
+                                wizardStep = ActivityPublishingWizard.located(ActivityPublishingWizard.steps.count, draft: activity)
+                                wizardBlock = ActivityPublishingWizard.blockingField(wizardStep, activity)
+                            } else { message = "publishModes.noSavedLocal" }
+                        } catch { message = "publishModes.storageFailed" }
+                    }.disabled(!editable)
+                }
             }
-            if !message.isEmpty { Text(LocalizedStringKey(message)).accessibilityIdentifier("publishModes.message") }
             submissionResult
-            ActivityPublishingWizardNavigation(step: wizardStep, enabled: editable, onCancel: cancelWizard, onBack: goBack, onNext: goNext, onReview: { Task { await prepare() } })
         }.navigationTitle(Text("publishModes.activity"))
+        .questifyBottomAction {
+            VStack(spacing: 8) {
+                if !message.isEmpty {
+                    Text(LocalizedStringKey(message)).font(.footnote)
+                        .foregroundStyle(message == "publishModes.invalid" || message == "publishModes.storageFailed" ? Color.red : Color.secondary)
+                        .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("publishModes.message")
+                }
+                ActivityPublishingWizardNavigation(step: wizardStep, enabled: editable, onCancel: cancelWizard, onBack: goBack, onNext: goNext, onReview: { Task { await prepare() } })
+            }
+        }
         .onChange(of: draft) { _, _ in timeRange.retire(); if let review { service?.cancel(review) }; review = nil; localReview = false }
         .onChange(of: account) { _, _ in
             cover.accountChanged(); localClear.invalidate(); timeRange.retire(); service?.invalidateReviews()
@@ -276,10 +406,26 @@ import Combine
         editable && review == nil && !localReview && picker == nil &&
             (service == nil || service?.currentSession == account)
     }
+    /// Red input error under the field the wizard stopped on.
+    @ViewBuilder private func fieldError(_ field: String) -> some View {
+        if wizardBlock == field {
+            Text(verbatim: ActivityPublishingWizardValidationPresentation(locale: locale).message(for: field))
+                .font(.footnote).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("publishModes.activity.wizard.validation")
+        }
+    }
+    private func chooserRow(_ title: LocalizedStringKey, value: String?, icon: String? = nil) -> some View {
+        HStack {
+            if let icon { Label(title, systemImage: icon).foregroundStyle(Color.primary) } else { Text(title).foregroundStyle(Color.primary) }
+            Spacer()
+            Text(verbatim: value ?? "—").foregroundStyle(.secondary).lineLimit(1)
+            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+        }
+    }
     private func clearButton(_ field: ActivityPublishingLocalClearOwner.Field) -> some View {
         let action = localClear.action(field, draft: $draft, account: account, draftID: draftID, allowed: { mayClear })
         return Button(action: action) {
-            Text(verbatim: locale.language.languageCode?.identifier == "zh" ? "清空" : "Clear")
+            Label("publishModes.clear", systemImage: "xmark.circle.fill").labelStyle(.iconOnly).foregroundStyle(.secondary)
         }.buttonStyle(.borderless)
             .disabled(!mayClear || !localClear.canClear(field, draft: draft, account: account, draftID: draftID))
             .accessibilityIdentifier("publishModes.activity.clear." + field.id)
@@ -613,46 +759,53 @@ struct ActivityPublishingTimeRangeDraft {
         _draft = State(initialValue: original.draft)
     }
     private var current: Bool { owner.current(original, timeZoneID: TimeZone.autoupdatingCurrent.identifier) }
-    private func text(_ en: String, _ zh: String) -> String { locale.language.languageCode?.identifier == "zh" ? zh : en }
     var body: some View {
+        // Mini-program 设置活动时间 sheet: start / end switch, the picker, then one primary step button.
         NavigationStack {
             Form {
                 Section {
-                    Text(verbatim: text("Choose the start, then the end. Nothing changes until Apply.", "先选择开始，再选择结束。点击应用前不修改草稿。"))
-                    Text(verbatim: text("Picker uses your phone time zone; the preview uses Beijing time.", "选择器使用手机时区；下方预览为北京时间。"))
-                }
+                    Button { editingEnd = false; failure = false } label: {
+                        LabeledContent("publishModes.start", value: ProjectEditDateSelection.beijingValue(draft.start) ?? "—")
+                            .fontWeight(editingEnd ? .regular : .semibold)
+                    }.foregroundStyle(Color.primary)
+                    LabeledContent("publishModes.end", value: editingEnd ? (ProjectEditDateSelection.beijingValue(draft.end) ?? "—") : "—")
+                        .fontWeight(editingEnd ? .semibold : .regular)
+                } header: { Text("publishModes.beijingTime") }
                 Section {
                     DatePicker(selection: editingEnd ? $draft.end : $draft.start, displayedComponents: [.date, .hourAndMinute]) {
                         Text(LocalizedStringKey(editingEnd ? "publishModes.end" : "publishModes.start"))
-                    }.environment(\.timeZone, TimeZone(identifier: original.timeZoneID) ?? .gmt)
+                    }.datePickerStyle(.graphical)
+                        .environment(\.timeZone, TimeZone(identifier: original.timeZoneID) ?? .gmt)
                         .accessibilityIdentifier("publishModes.activity.timeRange.date")
-                    LabeledContent("publishModes.start", value: ProjectEditDateSelection.beijingValue(draft.start) ?? "—")
-                    LabeledContent("publishModes.end", value: ProjectEditDateSelection.beijingValue(draft.end) ?? "—")
+                    if failure || (editingEnd && draft.end <= draft.start) {
+                        Text("publishModes.timeRange.invalid").font(.footnote).foregroundStyle(.red)
+                            .accessibilityIdentifier("publishModes.activity.timeRange.invalid")
+                    }
                 } header: { Text(LocalizedStringKey(editingEnd ? "publishModes.end" : "publishModes.start")) }
-                if failure || (editingEnd && draft.end <= draft.start) {
-                    Text(verbatim: text("The end must be later than the start. Reopen if the draft or account changed.", "结束时间必须晚于开始时间；草稿或账户改变后请重新打开。"))
-                        .accessibilityIdentifier("publishModes.activity.timeRange.invalid")
-                }
-                if editingEnd {
-                    Button { editingEnd = false; failure = false } label: { Text("publishModes.start") }
-                    Button {
-                        guard current else { return }; failure = !apply(draft)
-                    } label: { Text(verbatim: text("Apply", "应用")) }
-                        .disabled(!current || draft.end <= draft.start).accessibilityIdentifier("publishModes.activity.timeRange.apply")
-                } else {
-                    Button {
-                        guard current else { return }
-                        if draft.end <= draft.start { draft.end = draft.start.addingTimeInterval(3600) }
-                        editingEnd = true; failure = false
-                    } label: { Text(verbatim: text("Next: end time", "下一步：结束时间")) }
-                        .accessibilityIdentifier("publishModes.activity.timeRange.next")
-                }
             }.disabled(!current)
-                .navigationTitle(Text(verbatim: text("Activity time", "活动时间")))
+                .navigationTitle(Text("publishModes.timeRange.title")).navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) {
                     Button("publishModes.cancel") { owner.close(original) }.accessibilityIdentifier("publishModes.activity.timeRange.cancel")
                 } }
-        }.onAppear { owner.sheetAppeared(original, timeZoneID: TimeZone.autoupdatingCurrent.identifier) }
+                .questifyBottomAction {
+                    if editingEnd {
+                        Button {
+                            guard current else { return }; failure = !apply(draft)
+                        } label: { Text("publishModes.done").frame(maxWidth: .infinity) }
+                            .disabled(!current || draft.end <= draft.start).accessibilityIdentifier("publishModes.activity.timeRange.apply")
+                    } else {
+                        Button {
+                            guard current else { return }
+                            if draft.end <= draft.start { draft.end = draft.start.addingTimeInterval(3600) }
+                            editingEnd = true; failure = false
+                        } label: { Text("publishModes.wizard.next").frame(maxWidth: .infinity) }
+                            .disabled(!current)
+                            .accessibilityIdentifier("publishModes.activity.timeRange.next")
+                    }
+                }
+        }
+        .presentationDragIndicator(.visible)
+        .onAppear { owner.sheetAppeared(original, timeZoneID: TimeZone.autoupdatingCurrent.identifier) }
             .onDisappear { owner.close(original) }
     }
 }
@@ -672,20 +825,32 @@ struct ActivityPublishingTimeRangeDraft {
     var body: some View {
         NavigationStack {
             List {
-                if busy { ProgressView() }
-                if failed { Text("publishModes.readFailed"); Button("publishModes.retry") { Task { await load() } } }
-                if !busy && !failed && rows.isEmpty { Text("publishModes.empty") }
+                if busy { ProgressView().frame(maxWidth: .infinity) }
+                if failed {
+                    ContentUnavailableView {
+                        Label("publishModes.readFailed", systemImage: "exclamationmark.triangle")
+                    } actions: { Button("publishModes.retry") { Task { await load() } } }
+                }
+                if !busy && !failed && rows.isEmpty { ContentUnavailableView("publishModes.empty", systemImage: "magnifyingglass") }
                 ForEach(rows) { row in
                     Button {
                         if selected.contains(row.id) { selected.removeAll { $0 == row.id } }
                         else if kind == "template" { selected = [row.id] } else { selected.append(row.id) }
                     } label: {
-                        HStack { VStack(alignment: .leading) { Text(row.name); if !row.detail.isEmpty { Text(row.detail).font(.caption) } }; Spacer(); if selected.contains(row.id) { Image(systemName: "checkmark") } }
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(row.name).foregroundStyle(Color.primary)
+                                if !row.detail.isEmpty { Text(row.detail).font(.footnote).foregroundStyle(.secondary) }
+                            }
+                            Spacer()
+                            if selected.contains(row.id) { Image(systemName: "checkmark").foregroundStyle(Color.accentColor) }
+                        }
                     }.accessibilityValue(selected.contains(row.id) ? Text("publishModes.selected") : Text("publishModes.notSelected"))
                 }
             }.searchable(text: $keyword).onSubmit(of: .search) { Task { await load() } }
             .onChange(of: keyword) { _, value in if value.isEmpty { Task { await load() } } }
-            .navigationTitle(Text("publishModes.choose"))
+            .navigationTitle(Text(LocalizedStringKey(kind == "category" ? "publishParity.activity.type" : kind == "collaborator" ? "publishModes.collaborators" : "publishModes.template")))
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("publishModes.cancel") { dismiss() } }; ToolbarItem(placement: .confirmationAction) { Button("publishModes.done") { onConfirm(selected) } } }
             .task { await load() }.onDisappear { generation += 1 }
         }
@@ -711,19 +876,30 @@ struct ActivityPublishingTimeRangeDraft {
     var body: some View {
         NavigationStack {
             List {
-                if busy { ProgressView() }
-                if failed || provider == nil { Text("publishModes.mapUnavailable") }
+                if busy { ProgressView().frame(maxWidth: .infinity) }
+                if failed || provider == nil { Text("publishModes.mapUnavailable").foregroundStyle(.red) }
                 if let selected {
                     Map(initialPosition: .region(.init(center: .init(latitude: selected.latitude, longitude: selected.longitude), span: .init(latitudeDelta: 0.01, longitudeDelta: 0.01)))) {
                         Marker(selected.name, coordinate: .init(latitude: selected.latitude, longitude: selected.longitude))
                     }.frame(height: 240).id(selected.id).accessibilityLabel(Text(selected.name))
-                    Text(selected.address); Text("\(selected.latitude), \(selected.longitude)")
+                    .listRowInsets(EdgeInsets())
                 }
-                ForEach(rows) { place in Button { selected = place } label: { VStack(alignment: .leading) { Text(place.name); Text(place.address).font(.caption) } } }
-                if rows.isEmpty && !busy { Text("publishModes.searchPlace") }
+                ForEach(rows) { place in
+                    Button { selected = place } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(place.name).foregroundStyle(Color.primary)
+                                Text(place.address).font(.footnote).foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            if selected?.id == place.id { Image(systemName: "checkmark").foregroundStyle(Color.accentColor) }
+                        }
+                    }
+                }
+                if rows.isEmpty && !busy && !failed && provider != nil { ContentUnavailableView("publishModes.searchPlace", systemImage: "mappin.and.ellipse") }
             }.searchable(text: $keyword).onSubmit(of: .search) { Task { await search() } }
             .onChange(of: keyword) { _, value in if value.isEmpty { generation += 1; selected = nil; rows = []; busy = false } }
-            .navigationTitle(Text("publishModes.choosePlace"))
+            .navigationTitle(Text("publishModes.choosePlace")).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("publishModes.cancel") { dismiss() } }; ToolbarItem(placement: .confirmationAction) { Button("publishModes.confirmPlace") { if let selected { onConfirm(selected) } }.disabled(selected == nil) } }
             .onDisappear { generation += 1 }
         }

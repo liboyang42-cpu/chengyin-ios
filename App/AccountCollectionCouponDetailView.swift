@@ -49,7 +49,6 @@ import SwiftUI
                        AccountCollectionCoupon.calendarDay(coupon.endTime) == nil {
                         Text("accountCollection.coupon.validityUnknown")
                     }
-                    Text("accountCollection.coupon.calendarHint").font(.footnote).foregroundStyle(.secondary)
                 }
                 if AccountCollectionCoupon.calendarDay(coupon.receivedTime) != nil || AccountCollectionCoupon.calendarDay(coupon.usedTime) != nil {
                     Section("accountCollection.coupon.history") {

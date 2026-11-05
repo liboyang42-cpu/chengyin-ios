@@ -523,6 +523,13 @@ struct ProfileEditView: View {
                 Text("profile.edit.unavailable")
             } else {
                 if model.coordinator.snapshot != nil {
+                    // Mini-program pages/gerenziliao order: avatar, nickname + introduction, phone, works, contact QR, route preferences.
+                    ProfileAvatarDraftSection(model: model, dependencies: avatarDependencies)
+                    Section {
+                        textFieldRow(.name, value: model.draft.name)
+                        textFieldRow(.introduction, value: model.draft.introduction)
+                    } header: { Text("profile.edit.details") }
+                        .disabled(!model.canBeginTextEdit)
                     if let phone = model.coordinator.phoneDisplay {
                         Section {
                             LabeledContent("profile.phone.title") {
@@ -532,14 +539,8 @@ struct ProfileEditView: View {
                                 case .unavailable: Text("profile.phone.unavailable")
                                 }
                             }.privacySensitive().accessibilityIdentifier("profile.phone.value")
-                            Text("profile.phone.readOnly").font(.footnote).foregroundStyle(.secondary)
                         }
                     }
-                    Section {
-                        textFieldRow(.name, value: model.draft.name)
-                        textFieldRow(.introduction, value: model.draft.introduction)
-                    } header: { Text("profile.edit.details") }
-                        .disabled(!model.canBeginTextEdit)
                     Section("profile.case.title") {
                         textFieldRow(.caseIntroduction, value: model.draft.caseIntroduction ?? model.coordinator.snapshot?.caseIntroduction ?? "")
                             .disabled(!model.canBeginTextEdit)
@@ -554,7 +555,6 @@ struct ProfileEditView: View {
                     ProfileContactQRSection(wechat: model.coordinator.snapshot?.wechat ?? "", removes: model.draft.removesContactQR) {
                         model.beginTextEdit(.contactQR)
                     }.disabled(!model.canBeginTextEdit)
-                    ProfileAvatarDraftSection(model: model, dependencies: avatarDependencies)
                     Section("context.preferences.title") {
                         LabeledContent("context.preferences.selected", value: String(selectedPreferences.count))
                         Button("profile.preferenceRemoval.open") { model.beginTextEdit(.preferences) }
@@ -563,10 +563,6 @@ struct ProfileEditView: View {
                         Button("context.preferences.edit") { model.beginPreferencePicker(reader: categoryReader) }
                             .disabled(!model.canBeginTextEdit).accessibilityIdentifier("profile.edit.preferences")
                     }
-                    Button { Task { await model.prepare() } } label: { Text("profile.edit.review") }
-                        .disabled(model.busy || model.coordinator.isLocked || !model.draft.isValid
-                                  || model.textEdit != nil || !(model.coordinator.snapshot.map { model.draft.hasChanges(comparedTo: $0) } ?? false))
-                        .accessibilityIdentifier("profile.edit.review")
                 }
                 if let key = model.coordinator.messageKey {
                     Text(LocalizedStringKey(key)).accessibilityIdentifier("profile.edit.status")
@@ -581,6 +577,14 @@ struct ProfileEditView: View {
     }
     private var editorNavigation: some View {
         editorForm
+        .questifyBottomAction {
+            if model.coordinator.identity != nil, model.coordinator.isConfigured, model.coordinator.snapshot != nil {
+                            Button { Task { await model.prepare() } } label: { Text("profile.edit.review") }
+                                .disabled(model.busy || model.coordinator.isLocked || !model.draft.isValid
+                                          || model.textEdit != nil || !(model.coordinator.snapshot.map { model.draft.hasChanges(comparedTo: $0) } ?? false))
+                                .accessibilityIdentifier("profile.edit.review")
+            }
+        }
         .background(ProfileAvatarOwnerAnchor(model: model).frame(width: 0, height: 0))
         .appNavigationTitle("profile.edit.title")
         .navigationBarBackButtonHidden(true)

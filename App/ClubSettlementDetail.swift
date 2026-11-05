@@ -219,7 +219,11 @@ import UIKit
     let active: () -> Bool
     var body: some View {
         Group {
-            if presentation.records.isEmpty { Text("clubOps.settlement.empty", tableName: "ClubOpsCustomer").accessibilityIdentifier("clubOps.settlement.empty") }
+            if presentation.records.isEmpty {
+                ContentUnavailableView {
+                    Label { Text("clubOps.settlement.empty", tableName: "ClubOpsCustomer") } icon: { Image(systemName: "yensign.circle") }
+                }.accessibilityIdentifier("clubOps.settlement.empty")
+            }
             ForEach(presentation.records) { row in
                 if let target = presentation.target(recordID: row.id, context: context, snapshotGeneration: snapshotGeneration, namespace: namespace) {
                     Button {
@@ -230,8 +234,10 @@ import UIKit
                             HStack(alignment: .firstTextBaseline) {
                                 Text(verbatim: row.name).font(.headline)
                                 Spacer()
-                                if let amount = row.amountText { Text(verbatim: amount).font(.headline) }
+                                if let amount = row.amountText { Text(verbatim: amount).font(.headline).monospacedDigit() }
                                 else { Text("clubOps.settlement.rowUnverified", tableName: "ClubOpsCustomer").font(.headline) }
+                                Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+                                    .accessibilityHidden(true)
                             }
                             Text(LocalizedStringKey(row.status.localizationKey)).font(.caption)
                                 .padding(.horizontal, 8).padding(.vertical, 2)
@@ -239,11 +245,11 @@ import UIKit
                             LabeledContent("club.settlementDetail.original") { Text(verbatim: row.originalAmountText) }
                             LabeledContent("club.settlementDetail.adjustment") { Text(verbatim: row.executedAdjustmentText) }
                             LabeledContent("club.settlementDetail.net") { Text(verbatim: row.netAmountText) }
-                            Text(verbatim: row.arrivedText)
-                            if row.status == .void || row.status == .unverified { Text(verbatim: row.paidText) }
-                            Label("club.settlementDetail.open", systemImage: "chevron.right.circle")
-                        }
-                    }.buttonStyle(.borderless).accessibilityIdentifier("club.settlementDetail.open.\(row.id)")
+                            Text(verbatim: row.arrivedText).font(.subheadline).foregroundStyle(.secondary)
+                            if row.status == .void || row.status == .unverified { Text(verbatim: row.paidText).font(.subheadline).foregroundStyle(.secondary) }
+                        }.foregroundStyle(.primary)
+                    }.buttonStyle(.plain).accessibilityIdentifier("club.settlementDetail.open.\(row.id)")
+                        .accessibilityHint(Text("club.settlementDetail.open"))
                 }
             }
         }

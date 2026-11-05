@@ -24,13 +24,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Search my quotable templates"
+            "value": "Search my templates"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "搜索可引用模板"
+            "value": "搜索我的模板"
           }
         }
       }

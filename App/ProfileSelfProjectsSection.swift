@@ -91,7 +91,6 @@ struct ProfileSelfProjectSelection: Identifiable, Hashable {
                         ProfileSelfProjectsBrowser(reader: reader, detail: detail)
                     } label: { Label("profile.selfProjects.all", systemImage: "square.stack") }
                         .accessibilityIdentifier("profile.selfProjects.all")
-                    Text("profile.selfProjects.previewNote").font(.caption).foregroundStyle(.secondary)
                 }
             }
         }

@@ -8,7 +8,8 @@ final class NearbyTeamUITests: XCTestCase {
     }
     func testManualContextAndReviewCancellation() {
         let app = launch()
-        XCTAssertTrue(app.textFields["nearby.latitude"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["nearby.radius"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.textFields["nearby.latitude"].exists, "A supplied map point needs no typed coordinates")
         let apply = app.buttons["nearby.apply.501"]
         XCTAssertTrue(revealFixtureElement(apply, in: app), app.debugDescription)
         XCTAssertTrue(apply.isHittable); apply.tap()
@@ -18,7 +19,8 @@ final class NearbyTeamUITests: XCTestCase {
     }
     func testSimulationUsesPendingStateAndNoLocationAlert() {
         let app = launch(); let apply = app.buttons["nearby.apply.501"]
-        XCTAssertTrue(app.textFields["nearby.latitude"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["nearby.radius"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.textFields["nearby.latitude"].exists, "A supplied map point needs no typed coordinates")
         XCTAssertTrue(revealFixtureElement(apply, in: app), app.debugDescription); apply.tap()
         app.buttons["nearby.confirm"].tap()
         XCTAssertTrue(app.buttons["nearby.withdraw.501"].waitForExistence(timeout: 3))

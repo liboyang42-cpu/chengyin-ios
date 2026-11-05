@@ -481,25 +481,7 @@ struct TemplateCheckPresetConfiguration {
 enum TemplateCheckPresetText {
     case title, scope, luck, off, high, low, both, ladder, warning, retained, unsupported, preview, apply, applied, cancel, reload
     func value(_ locale: Locale) -> String {
-        let chinese = locale.language.languageCode?.identifier == "zh"
-        switch self {
-        case .title: return chinese ? "检定条件修正预设" : "Check modifier presets"
-        case .scope: return chinese ? "仅应用到当前未保存草稿，不会保存、发布或发起检定。" : "Apply to the current unsaved draft only. This does not save, publish or run a check."
-        case .luck: return chinese ? "幸运修正" : "Luck modifier"
-        case .off: return chinese ? "关闭幸运预设" : "Luck presets off"
-        case .high: return chinese ? "幸运 ≥ 3 时加1" : "Luck ≥ 3 adds 1"
-        case .low: return chinese ? "幸运 ≤ 0 时减1" : "Luck ≤ 0 subtracts 1"
-        case .both: return chinese ? "同时使用两档幸运修正" : "Use both luck modifiers"
-        case .ladder: return chinese ? "生命值越低越困难" : "Lower HP makes checks harder"
-        case .warning: return chinese ? "HP ≤ 6 减1，HP ≤ 3 再减1，两档累计最多减2。" : "HP ≤ 6 subtracts 1; HP ≤ 3 subtracts another 1. The ladder totals at most -2."
-        case .retained: return chinese ? "其他条件修正与字段保持原样，所有命中修正逐项累加。" : "Other modifiers and fields are retained. All matching modifiers are added together."
-        case .unsupported: return chinese ? "配置存在未知、自定义冲突、重复或超出数量限制，请使用原条件编辑器检查。本页不会覆盖。" : "Unknown, conflicting, duplicate or over-limit modifiers require the original editor. This page will not overwrite them."
-        case .preview: return chinese ? "本地修正合计（其他状态使用示例值）" : "Local modifier total (other state uses sample values)"
-        case .apply: return chinese ? "应用到当前草稿" : "Apply to current draft"
-        case .applied: return chinese ? "已应用到草稿，尚未保存或发布。" : "Applied to the draft. Not saved or published."
-        case .cancel: return chinese ? "取消未应用的选择" : "Cancel unapplied selection"
-        case .reload: return chinese ? "重新读取当前配置" : "Reload current configuration"
-        }
+        appLocalized(String.LocalizationValue(stringLiteral: "templateCheckPreset." + String(describing: self)), locale: locale)
     }
 }
 

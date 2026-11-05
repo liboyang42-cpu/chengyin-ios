@@ -7,51 +7,53 @@ import SwiftUI
     var body: some View {
         List {
             if let coordinator = model.coordinator, model.available, coordinator.selected != nil {
-                Section(nativeWebhookLocalized("筛选")) {
-                    Picker(nativeWebhookLocalized("接收结果"), selection: $filter) {
-                        Text(nativeWebhookLocalized("全部状态")).tag(Optional<NativeWebhookInboundState>.none)
+                Section {
+                    Picker(nativeWebhookLocalized("d7.webhook.field.status"), selection: $filter) {
+                        Text(nativeWebhookLocalized("d7.webhook.filter.all")).tag(Optional<NativeWebhookInboundState>.none)
                         ForEach(NativeWebhookInboundState.allCases, id: \.rawValue) { state in
-                            Text(nativeWebhookLocalized(NativeWebhookPresentation.inbound(state))).tag(Optional(state))
+                            Text(nativeWebhookInboundText(state)).tag(Optional(state))
                         }
                     }
                     .disabled(coordinator.busy).accessibilityIdentifier("webhook.inboundLogs.filter")
                 }
                 NativeWebhookStatusSection(model: model)
-                Section(nativeWebhookLocalized("接收记录")) {
+                Section {
                     if coordinator.inboundLogs.isEmpty && !coordinator.busy {
-                        NativeChannelFlowNotice(title:Text(verbatim:nativeWebhookLocalized("当前筛选没有接收记录。")),symbol:"tray").accessibilityIdentifier("webhook.inboundLogs.empty")
+                        ContentUnavailableView(nativeWebhookLocalized("d7.webhook.inbound.empty"), systemImage: "tray")
+                            .accessibilityIdentifier("webhook.inboundLogs.empty")
                     }
                     ForEach(coordinator.inboundLogs) { log in
-                        VStack(alignment: .leading, spacing: Theme.Space.s3) {
-                            Label(nativeWebhookLocalized(NativeWebhookPresentation.inbound(log.state)),systemImage:log.state == .unknown ? "clock.arrow.circlepath":"arrow.down.doc").font(Theme.Font.sectionTitle)
-                            NativeChannelFlowReference(label:Text(verbatim:nativeWebhookLocalized("记录编号")),value:log.id.rawValue)
-                            if let time = log.createdAt { NativeChannelFlowFact(label:Text(verbatim:nativeWebhookLocalized("接收时间")),value:time.rawValue) }
-                            if let code = log.reason { NativeChannelFlowFact(label:Text(verbatim:nativeWebhookLocalized("原因")),value:code) }
-                            if let id = log.messageID { NativeChannelFlowFact(label:Text(verbatim:nativeWebhookLocalized("原消息编号")),value:id.rawValue) }
-                            if let time = log.createTime { NativeChannelFlowFact(label:Text(verbatim:nativeWebhookLocalized("原消息时间")),value:time.rawValue) }
-                            if log.state == .unknown {
-                                Text(nativeWebhookLocalized("原消息结果尚未确认。请重新读取日志核对，不会创建另一条消息。"))
-                                    .font(.caption).foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: Theme.Space.s2) {
+                            HStack(alignment: .firstTextBaseline) {
+                                Label(nativeWebhookInboundText(log.state), systemImage: log.state == .unknown ? "clock.arrow.circlepath" : "arrow.down.doc")
+                                    .font(Theme.Font.sectionTitle)
+                                Spacer(minLength: Theme.Space.s2)
+                                if let time = log.createdAt {
+                                    Text(time.date, format: .dateTime.month().day().hour().minute()).font(.subheadline).foregroundStyle(.secondary)
+                                }
                             }
+                            if let code = log.reason { LabeledContent(nativeWebhookLocalized("d7.webhook.field.reason"), value: code) }
+                            if let time = log.createTime { NativeWebhookTimeRow(label: nativeWebhookLocalized("d7.webhook.inbound.postedAt"), time: time) }
                         }
                         .padding(.vertical,Theme.Space.s2)
                         .accessibilityIdentifier("webhook.inbound.\(log.id.rawValue)")
                     }
                     if coordinator.hasMoreLogs {
-                        Button(nativeWebhookLocalized("加载更多")) { Task { await read(nextPage: true) } }
+                        Button(nativeWebhookLocalized("d7.webhook.loadMore")) { Task { await read(nextPage: true) } }
                             .disabled(coordinator.busy).accessibilityIdentifier("webhook.inboundLogs.more")
                     }
                 }
                 Section {
-                    Button(nativeWebhookLocalized("重新读取日志")) { Task { await read() } }
+                    Button(nativeWebhookLocalized("d7.webhook.reload")) { Task { await read() } }
                         .disabled(coordinator.busy).accessibilityIdentifier("webhook.inboundLogs.refresh")
                 }
             } else {
-                Section { Text(nativeWebhookLocalized("当前频道或集成详情已失效，请返回列表重新核对。")) }
+                ContentUnavailableView(nativeWebhookLocalized("d7.webhook.detail.loadFailed"), systemImage: "exclamationmark.circle",
+                    description: Text(verbatim: nativeWebhookLocalized("d7.webhook.goBack")))
             }
         }
         .nativeChannelFlowPage()
-        .navigationTitle(nativeWebhookLocalized("入站日志"))
+        .navigationTitle(nativeWebhookLocalized("d7.webhook.inbound.title"))
         .task { await read() }
         .onChange(of: filter) { _ in Task { await read() } }
         .refreshable { await read() }

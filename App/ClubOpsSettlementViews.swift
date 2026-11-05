@@ -19,14 +19,15 @@ struct ClubOpsSettlementSummaryCard: View {
     }
 }
 
-/// Co-owners and administrators see the same contact route disabled; no wallet read and no payout path.
+/// Co-owners and administrators: no wallet read and no payout path. The mini-program shows a disabled
+/// withdraw button plus 「仅主理人可发起提现」; native shows only the fact, never a dead button.
 struct ClubOpsSettlementOwnerOnlyWithdraw: View {
     var body: some View {
         Section {
-            Button {} label: { Text("club.ownerFunds.contact") }
-                .disabled(true)
+            Label { Text(LocalizedStringKey(ClubOpsWithdrawHint.ownerOnly.localizationKey), tableName: "ClubOpsCustomer") }
+                icon: { Image(systemName: "lock") }
+                .foregroundStyle(.secondary)
                 .accessibilityIdentifier("clubOps.settlement.withdraw.ownerOnly")
-            Text(LocalizedStringKey(ClubOpsWithdrawHint.ownerOnly.localizationKey), tableName: "ClubOpsCustomer").font(.footnote)
         }
     }
 }

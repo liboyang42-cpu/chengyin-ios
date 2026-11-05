@@ -91,7 +91,6 @@ struct ProfileSettingsProfileRoute: Hashable {
             Section {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("member.settings.signedOut", tableName: "MemberProfile")
-                    Text("member.settings.signedOutHint", tableName: "MemberProfile").font(.footnote).foregroundStyle(.secondary)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier("settingsNative.profileSignedOut")
             }
         }

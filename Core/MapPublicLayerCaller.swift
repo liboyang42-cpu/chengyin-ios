@@ -7,6 +7,7 @@ import Observation
 @MainActor public struct MapPublicLayerTransport {
     private let reader: any SearchMapReading
     public init(reader: any SearchMapReading) { self.reader = reader }
+    fileprivate var scope: UUID { reader.scope }
     public func post(area: RoamSearchArea, body: Data) async throws -> Data {
         try await reader.publicLayers(area: area, body: body)
     }
@@ -37,12 +38,17 @@ import Observation
     public private(set) var accountGeneration: UInt64 = 0
     public private(set) var queryGeneration: UInt64 = 0
     public private(set) var session: MapPublicLayerSession?
-    public private(set) var ready: [MapLayerItem] = []
+    private var acceptedReady: [MapLayerItem] = []
+    public var ready: [MapLayerItem] {
+        synchronizeReaderContext()
+        return acceptedReady
+    }
     public private(set) var detail: ShownDetail?
     public private(set) var failure: Failure?
     public private(set) var loading = false
     private var detailGeneration: UInt64 = 0
     private var last: Query?
+    private var readerScope: UUID
     private let transport: MapPublicLayerTransport
     private let cityNode: @MainActor (Int) async throws -> String
     private let merchant: @MainActor (Int) async throws -> String
@@ -50,6 +56,7 @@ import Observation
 
     public init(reader: any SearchMapReading, activity: @escaping @MainActor (Int) async throws -> String) {
         transport = MapPublicLayerTransport(reader: reader)
+        readerScope = reader.scope
         cityNode = { (try await reader.cityNode(id: $0)).name }
         merchant = { try await reader.merchant(id: $0).merchant.name ?? "" }
         self.activity = activity
@@ -63,7 +70,7 @@ import Observation
         queryGeneration &+= 1
         detailGeneration &+= 1
         session = nil
-        ready = []
+        acceptedReady = []
         detail = nil
         last = nil
         loading = false
@@ -78,8 +85,17 @@ import Observation
     }
 
     public func submit(_ query: Query) async {
-        guard query.viewerID == accountID, query.viewerID > 0 else { failure = .viewer; return }
-        if query != last { session = nil }
+        synchronizeReaderContext()
+        guard query.viewerID == accountID, query.viewerID > 0 else {
+            abandon()
+            session = nil
+            acceptedReady = []
+            detail = nil
+            last = nil
+            failure = .viewer
+            return
+        }
+        if query != last { session = nil; acceptedReady = [] }
         last = query
         queryGeneration &+= 1
         detailGeneration &+= 1
@@ -88,12 +104,14 @@ import Observation
     }
 
     public func nextPage() async {
-        guard session?.complete == false else { return }
+        synchronizeReaderContext()
+        guard !loading, session?.complete == false else { return }
         await run(restart: false)
     }
 
     /// Detail return starts a new query generation, then reloads that same box.
     public func returned() async {
+        synchronizeReaderContext()
         detailGeneration &+= 1
         queryGeneration &+= 1
         detail = nil
@@ -114,7 +132,7 @@ import Observation
     }
 
     public func openDetail(_ item: MapLayerItem) async {
-        guard let route = Self.detail(for: item) else { return }
+        guard ready.contains(item), let route = Self.detail(for: item) else { return }
         let account = accountGeneration, query = queryGeneration, viewer = accountID
         detailGeneration &+= 1
         let ticket = detailGeneration
@@ -125,16 +143,25 @@ import Observation
             case .merchant(let id): text = try await merchant(id)
             case .activity(let id): text = try await activity(id)
             }
+            synchronizeReaderContext()
             guard accountGeneration == account, queryGeneration == query, detailGeneration == ticket, accountID == viewer else { return }
             detail = ShownDetail(route: route, text: text)
             failure = nil
         } catch {
+            synchronizeReaderContext()
             guard accountGeneration == account, queryGeneration == query, detailGeneration == ticket, accountID == viewer else { return }
             failure = Self.failure(error)
+            if Self.isReadDenied(error) {
+                session = nil
+                acceptedReady = []
+                detail = nil
+                detailGeneration &+= 1
+            }
         }
     }
 
     public func project(theme: MapVisualHostThemeSnapshot) throws -> [MapAnnotationVisualProjection] {
+        synchronizeReaderContext()
         guard let session else { return [] }
         return try MapVisualHostBridge.projectAcceptedPublicLayers(session, visibleLayers: Self.visibleLayers, theme: theme)
     }
@@ -145,6 +172,7 @@ import Observation
             return
         }
         let account = accountGeneration, ticket = queryGeneration, viewer = query.viewerID
+        let capturedReaderScope = transport.scope
         loading = true
         failure = nil
         do {
@@ -169,11 +197,13 @@ import Observation
             session = issued.session
             guard let area = Self.area(query) else { throw MapPublicAdapterFailure.bboxRejected }
             let payload = try await transport.post(area: area, body: Data(issued.request.body.utf8))
-            guard accountGeneration == account, queryGeneration == ticket, accountID == viewer, let current = session else { loading = false; return }
+            synchronizeReaderContext()
+            guard accountGeneration == account, queryGeneration == ticket, accountID == viewer, let current = session else { return }
+            guard transport.scope == capturedReaderScope else { return }
             switch MapPublicLayerAdapter.accept(current, request: issued.request, json: payload) {
             case .applied(let applied):
                 session = applied
-                ready = MapPublicLayerAdapter.readyItems(in: applied)
+                acceptedReady = MapPublicLayerAdapter.readyItems(in: applied)
                 failure = nil
             case .stale:
                 break
@@ -181,11 +211,38 @@ import Observation
                 failure = .rejected
             }
         } catch is CancellationError {
+            synchronizeReaderContext()
         } catch {
-            guard accountGeneration == account, queryGeneration == ticket, accountID == viewer else { loading = false; return }
+            synchronizeReaderContext()
+            guard accountGeneration == account, queryGeneration == ticket, accountID == viewer else { return }
             failure = Self.failure(error)
+            if Self.isReadDenied(error) {
+                session = nil
+                acceptedReady = []
+                detail = nil
+                detailGeneration &+= 1
+            }
         }
         if accountGeneration == account, queryGeneration == ticket { loading = false }
+    }
+
+    private func synchronizeReaderContext() {
+        let current = transport.scope
+        guard current != readerScope else { return }
+        readerScope = current
+        abandon()
+        session = nil
+        acceptedReady = []
+        detail = nil
+        last = nil
+        failure = nil
+    }
+
+    private static func isReadDenied(_ error: Error) -> Bool {
+        switch error as? APIError {
+        case .unauthorized, .notConfigured, .invalidConfiguration, .httpStatus(403), .businessCode(403): return true
+        default: return false
+        }
     }
 
     /// Center of the box the caller already typed. Not a device fix.
@@ -203,3 +260,4 @@ import Observation
         return .failed
     }
 }
+

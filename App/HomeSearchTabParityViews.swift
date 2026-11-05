@@ -297,7 +297,7 @@ struct MerchantRootModeSwitchBannerView: View {
                 Button {
                     onSelectMode?(.consumer)
                 } label: {
-                    Text(verbatim: RootTabBarParity.consumerModeTitle)
+                    Text("rootMode.consumer")
                         .font(.caption.weight(.semibold))
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
@@ -310,7 +310,7 @@ struct MerchantRootModeSwitchBannerView: View {
                     Button {
                         onSelectMode?(.merchant)
                     } label: {
-                        Text(verbatim: RootTabBarParity.merchantModeTitle)
+                        Text("rootMode.merchant")
                             .font(.caption.weight(.semibold))
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
@@ -331,7 +331,7 @@ struct MerchantRootModeSwitchBannerView: View {
                         VStack(spacing: 4) {
                             Image(systemName: descriptor.systemImage)
                                 .font(.subheadline)
-                            Text(verbatim: descriptor.primaryTitle)
+                            Text(LocalizedStringKey(descriptor.titleKey))
                                 .font(.caption2.weight(isSelected ? .semibold : .regular))
                         }
                         .frame(maxWidth: .infinity)
@@ -936,14 +936,14 @@ struct MerchantAccountModeSwitchRow: View {
                 Button {
                     modeSwitch(.consumer)
                 } label: {
-                    Label(RootTabBarParity.consumerModeTitle, systemImage: "arrow.uturn.backward.circle")
+                    Label("rootMode.consumer", systemImage: "arrow.uturn.backward.circle")
                 }
                 .accessibilityIdentifier("account.consumerRootSwitch")
             } else {
                 Button {
                     modeSwitch(.merchant)
                 } label: {
-                    Label(RootTabBarParity.merchantModeTitle, systemImage: "square.grid.2x2")
+                    Label("rootMode.merchant", systemImage: "square.grid.2x2")
                 }
                 .disabled(modeSwitch.isVerifying)
                 .accessibilityIdentifier("account.merchantRootSwitch")
@@ -1157,14 +1157,14 @@ struct SessionMerchantRootContainerView: View {
         Button {
             onReturnToConsumer(nil)
         } label: {
-            Label(RootTabBarParity.consumerModeTitle, systemImage: "arrow.uturn.backward.circle")
+            Label("rootMode.consumer", systemImage: "arrow.uturn.backward.circle")
         }
         .accessibilityIdentifier("merchant.rootMode.switchToConsumer")
     }
 
     private func merchantTabLabel(_ tab: MerchantRootBusinessTab) -> some View {
         let descriptor = tab.descriptor
-        return Label(descriptor.primaryTitle, systemImage: descriptor.systemImage)
+        return Label(LocalizedStringKey(descriptor.titleKey), systemImage: descriptor.systemImage)
     }
 }
 

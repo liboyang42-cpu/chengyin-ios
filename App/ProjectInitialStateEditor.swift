@@ -88,7 +88,6 @@ import SwiftUI
                 if !controller.isCurrent(original) { Text("projectStarter.stale") }
                 else if buffer.readOnly { Text("projectInitialState.unsupported", tableName: "ProjectInitialState") }
                 else {
-                    Text("projectInitialState.scope", tableName: "ProjectInitialState").font(.caption)
                     ForEach(ProjectInitialState.Kind.allCases, id: \.self) { kind in
                         Section {
                             Toggle(isOn: .init(get: { resource(kind).wrappedValue.enabled }, set: { buffer.setEnabled($0, kind: kind); invalid = false })) {

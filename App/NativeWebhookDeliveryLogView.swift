@@ -8,46 +8,48 @@ import SwiftUI
     var body: some View {
         List {
             if let coordinator = model.coordinator, model.available, let resource = coordinator.selected {
-                Section(nativeWebhookLocalized("筛选")) {
-                    Picker(nativeWebhookLocalized("投递状态"), selection: $filter) {
-                        Text(nativeWebhookLocalized("全部状态")).tag(Optional<NativeWebhookDeliveryState>.none)
+                Section {
+                    Picker(nativeWebhookLocalized("d7.webhook.field.status"), selection: $filter) {
+                        Text(nativeWebhookLocalized("d7.webhook.filter.all")).tag(Optional<NativeWebhookDeliveryState>.none)
                         ForEach(NativeWebhookDeliveryState.allCases, id: \.rawValue) { state in
-                            Text(nativeWebhookLocalized(NativeWebhookPresentation.delivery(state))).tag(Optional(state))
+                            Text(nativeWebhookDeliveryText(state)).tag(Optional(state))
                         }
                     }.accessibilityIdentifier("webhook.deliveryLogs.filter")
-                    Toggle(nativeWebhookLocalized("读取公开事件内容"), isOn: $includePayload)
+                    Toggle(nativeWebhookLocalized("d7.webhook.deliveries.showContent"), isOn: $includePayload)
                         .accessibilityIdentifier("webhook.deliveryLogs.includePayload")
-                    if includePayload { Text(nativeWebhookLocalized("仅回读服务端当前仍允许的原事件快照。")) }
                 }.disabled(coordinator.busy)
                 NativeWebhookStatusSection(model: model)
-                Section(nativeWebhookLocalized("投递记录")) {
+                Section {
                     if coordinator.deliveries.isEmpty && !coordinator.busy {
-                        NativeChannelFlowNotice(title:Text(verbatim:nativeWebhookLocalized("当前筛选没有投递记录。")),symbol:"tray").accessibilityIdentifier("webhook.deliveryLogs.empty")
+                        ContentUnavailableView(nativeWebhookLocalized("d7.webhook.deliveries.empty"), systemImage: "tray")
+                            .accessibilityIdentifier("webhook.deliveryLogs.empty")
                     }
                     ForEach(coordinator.deliveries) { delivery in
-                        VStack(alignment: .leading, spacing: Theme.Space.s3) {
-                            Label(nativeWebhookLocalized(NativeWebhookPresentation.delivery(delivery.state)),systemImage:delivery.state == .unknown ? "clock.arrow.circlepath":"arrow.up.doc").font(Theme.Font.sectionTitle)
-                            NativeChannelFlowReference(label:Text(verbatim:nativeWebhookLocalized("投递编号")),value:delivery.deliveryID.rawValue)
-                            NativeChannelFlowReference(label:Text(verbatim:nativeWebhookLocalized("事件编号")),value:delivery.eventID)
-                            Text(delivery.eventType).font(.caption).fixedSize(horizontal: false, vertical: true)
-                            LabeledContent(nativeWebhookLocalized("尝试次数"), value: String(delivery.attempt))
-                            if let time = delivery.createdAt { NativeChannelFlowFact(label:Text(verbatim:nativeWebhookLocalized("记录时间")),value:time.rawValue) }
-                            if let code = delivery.reason { NativeChannelFlowFact(label:Text(verbatim:nativeWebhookLocalized("原因")),value:code) }
-                            if let status = delivery.httpStatus { LabeledContent(nativeWebhookLocalized("HTTP 状态"), value: String(status)) }
-                            if let latency = delivery.latencyMilliseconds { LabeledContent(nativeWebhookLocalized("耗时（毫秒）"), value: String(latency)) }
-                            if let time = delivery.nextRetryAt { NativeChannelFlowFact(label:Text(verbatim:nativeWebhookLocalized("下次重试")),value:time.rawValue) }
-                            if delivery.state == .unknown {
-                                Text(nativeWebhookLocalized("远端是否已接收尚未确认。此记录不会自动重新发送。"))
-                                    .font(.caption).foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: Theme.Space.s2) {
+                            HStack(alignment: .firstTextBaseline) {
+                                Label(nativeWebhookDeliveryText(delivery.state), systemImage: delivery.state == .unknown ? "clock.arrow.circlepath" : "arrow.up.doc")
+                                    .font(Theme.Font.sectionTitle)
+                                Spacer(minLength: Theme.Space.s2)
+                                if let time = delivery.createdAt {
+                                    Text(time.date, format: .dateTime.month().day().hour().minute()).font(.subheadline).foregroundStyle(.secondary)
+                                }
                             }
+                            Text(verbatim: delivery.eventType).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                            LabeledContent(nativeWebhookLocalized("d7.webhook.deliveries.attempts"), value: String(delivery.attempt))
+                            if let code = delivery.reason { LabeledContent(nativeWebhookLocalized("d7.webhook.field.reason"), value: code) }
+                            if let status = delivery.httpStatus { LabeledContent(nativeWebhookLocalized("d7.webhook.deliveries.responseCode"), value: String(status)) }
+                            if let latency = delivery.latencyMilliseconds {
+                                LabeledContent(nativeWebhookLocalized("d7.webhook.deliveries.responseTime"), value: String(format: nativeWebhookLocalized("d7.webhook.deliveries.ms %lld"), latency))
+                            }
+                            if let time = delivery.nextRetryAt { NativeWebhookTimeRow(label: nativeWebhookLocalized("d7.webhook.deliveries.nextRetry"), time: time) }
                             if includePayload, let payload = delivery.payload {
-                                DisclosureGroup(nativeWebhookLocalized("原公开事件快照")) {
+                                DisclosureGroup(nativeWebhookLocalized("d7.webhook.deliveries.content")) {
                                     Text(payloadText(payload)).font(.caption.monospaced())
                                         .privacySensitive().textSelection(.disabled)
                                 }.accessibilityIdentifier("webhook.delivery.payload.\(delivery.id.rawValue)")
                             }
                             if delivery.offersExplicitRetry {
-                                Button(nativeWebhookLocalized("重试原投递")) {
+                                Button(nativeWebhookLocalized("d7.webhook.deliveries.retry")) {
                                     model.action(.retry(deliveryID: delivery.deliveryID), resource: resource, delivery: delivery)
                                 }
                                 .disabled(!model.canMutate || resource.status != .active)
@@ -58,20 +60,21 @@ import SwiftUI
                         .accessibilityIdentifier("webhook.delivery.\(delivery.id.rawValue)")
                     }
                     if coordinator.hasMoreLogs {
-                        Button(nativeWebhookLocalized("加载更多")) { Task { await read(nextPage: true) } }
+                        Button(nativeWebhookLocalized("d7.webhook.loadMore")) { Task { await read(nextPage: true) } }
                             .disabled(coordinator.busy).accessibilityIdentifier("webhook.deliveryLogs.more")
                     }
                 }
                 Section {
-                    Button(nativeWebhookLocalized("重新读取日志")) { Task { await read() } }
+                    Button(nativeWebhookLocalized("d7.webhook.reload")) { Task { await read() } }
                         .disabled(coordinator.busy).accessibilityIdentifier("webhook.deliveryLogs.refresh")
                 }
             } else {
-                Section { Text(nativeWebhookLocalized("当前频道或集成详情已失效，请返回列表重新核对。")) }
+                ContentUnavailableView(nativeWebhookLocalized("d7.webhook.detail.loadFailed"), systemImage: "exclamationmark.circle",
+                    description: Text(verbatim: nativeWebhookLocalized("d7.webhook.goBack")))
             }
         }
         .nativeChannelFlowPage()
-        .navigationTitle(nativeWebhookLocalized("投递日志"))
+        .navigationTitle(nativeWebhookLocalized("d7.webhook.deliveries.title"))
         .task { await read() }
         .onChange(of: filter) { _ in Task { await read() } }
         .onChange(of: includePayload) { _ in Task { await read() } }
@@ -83,7 +86,7 @@ import SwiftUI
     }
     private func payloadText(_ payload: NativeWebhookJSON) -> String {
         guard let data = try? NativeWebhookHTTPService.encoded(payload), let text = String(data: data, encoding: .utf8) else {
-            return nativeWebhookLocalized("事件内容暂不可显示。")
+            return nativeWebhookLocalized("d7.webhook.deliveries.contentUnavailable")
         }
         return text
     }

@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Edit the topic’s initial declarations locally. Apply keeps them in this draft; use the existing review and save flow to submit. Existing runs retain their frozen settings."
+            "value": "Set the starting values for this topic. Runs already in progress keep theirs."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在本地编辑本主题的初始属性声明。应用后保留在当前草稿，再通过原有审核与保存流程提交。已有对局保留各自冻结的设置。"
+            "value": "设置本主题的初始属性，进行中的对局保持原设置。"
           }
         }
       }
@@ -54,13 +54,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This explicitly changes the existing stateEnabled setting. Adding or removing a declaration does not toggle it. Energy, luck and check settings are preserved."
+            "value": "Turns attributes on or off for this topic. Energy, luck and check settings are kept."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此开关显式修改现有 stateEnabled 设置。添加或移除声明不会自动切换；精力、幸运与检定设置均保留。"
+            "value": "开启或关闭本主题的属性，精力、幸运与检定设置均保留。"
           }
         }
       }
@@ -70,13 +70,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stable key"
+            "value": "Code"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "稳定标识"
+            "value": "标识"
           }
         }
       }
@@ -86,13 +86,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Existing keys cannot be renamed here."
+            "value": "Existing codes can't be renamed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已有标识不能在此改名。"
+            "value": "已有标识不能改名。"
           }
         }
       }
@@ -214,13 +214,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Up to 32 declarations. Keys start with clue., relation., tag. or counter., followed by 1–48 lowercase letters, digits or underscores; the first character after the dot must be a letter. Labels allow up to 24 UTF-16 units."
+            "value": "Up to 32. Codes start with clue., relation., tag. or counter., then lowercase letters, digits or _. Names up to 24 characters."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "最多 32 项声明。标识以 clue.、relation.、tag. 或 counter. 开头，点后为 1 至 48 位小写字母、数字或下划线，首位须为字母。名称最多 24 个 UTF-16 单元。"
+            "value": "最多 32 项。标识以 clue.、relation.、tag. 或 counter. 开头，后接小写字母、数字或下划线。名称最多 24 字。"
           }
         }
       }
@@ -278,13 +278,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only this declaration will be removed from the local draft. Registered keys, references and existing-run snapshots are not deleted or rewritten. The server’s existing save and reference checks still apply."
+            "value": "Removes this attribute from the draft. Places that use it must be fixed before publishing."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅从本地草稿移除这项初始声明。已注册标识、引用和已有对局快照不会被删除或改写；仍须通过服务端原有的保存与引用检查。"
+            "value": "从草稿中移除此属性，引用它的地方需在发布前修正。"
           }
         }
       }
@@ -310,13 +310,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check unique valid keys, labels, integer values and bounds. This draft could not be applied."
+            "value": "Check that codes are unique and values are whole numbers within range."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请检查标识是否合法且不重复、名称、整数值及上下限。本次尚未应用到草稿。"
+            "value": "请检查标识不重复，数值为范围内的整数。"
           }
         }
       }

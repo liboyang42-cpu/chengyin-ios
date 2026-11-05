@@ -166,13 +166,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Visibility unknown (not treated as public)"
+            "value": "Visibility unknown"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "可见性未知（不按公开处理）"
+            "value": "可见性未知"
           }
         }
       }

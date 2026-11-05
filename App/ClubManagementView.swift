@@ -64,14 +64,10 @@ struct ClubManagementView: View {
                 }
                 status
                 if contextMatches, let snapshot {
-                    Section { Text(verbatim: snapshot.club.name) }
-                    Section("club.management.requests") {
-                        ClubOpsJoinRequestsIntro(count: snapshot.requests.count)
+                    // Mini-program club/join-requests: title, the 「N 条待审 · 可直接通过或拒绝」 line, then the cards.
+                    Section {
                         if snapshot.requests.isEmpty {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("club.management.empty")
-                                Text("club.management.emptyHint").font(.caption).foregroundStyle(.secondary)
-                            }
+                            ContentUnavailableView("club.management.empty", systemImage: "person.badge.clock")
                         }
                         ForEach(snapshot.requests) { request in
                             Button { selection = .request(request.id) } label: {
@@ -85,6 +81,11 @@ struct ClubManagementView: View {
                             }
                             .accessibilityIdentifier("club.management.request.\(request.id)")
                         }
+                    } header: {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("club.management.requests")
+                            if !snapshot.requests.isEmpty { ClubOpsJoinRequestsIntro(count: snapshot.requests.count).textCase(nil) }
+                        }
                     }
                     if snapshot.club.isOwner {
                         Section("club.management.members") {
@@ -92,7 +93,10 @@ struct ClubManagementView: View {
                                 Text(LocalizedStringKey(snapshot.club.memberCount > 0 ? "club.management.members_unavailable" : "club.management.members_empty"))
                             }
                             ForEach(snapshot.members) { member in
-                                Button { selection = .member(member.id) } label: { Text(verbatim: member.nickname ?? "#\(member.id)") }
+                                Button { selection = .member(member.id) } label: {
+                                    if let name = ClubOpsJoinRequestPresentation.displayName(member.nickname) { Text(verbatim: name) }
+                                    else { Text("clubOpsJN.join.playerFallback", tableName: "ClubOpsJoinNotify") }
+                                }
                                 .accessibilityIdentifier("club.management.member.\(member.id)")
                             }
                         }
@@ -101,7 +105,6 @@ struct ClubManagementView: View {
                 Button("club.management.refresh") { Task { await refresh() } }
                     .disabled(loading || state == .checking || state == .awaitingConfirmation || state == .submitting)
                     .accessibilityIdentifier("club.management.refresh")
-                Text("club.management.deferred").font(.footnote).foregroundStyle(.secondary)
             }
         }
         .appNavigationTitle("club.management.title")
@@ -132,8 +135,7 @@ struct ClubManagementView: View {
                     if let request = snapshot.requests.first(where: { $0.id == id }) {
                         if let name = ClubOpsJoinRequestPresentation.displayName(request.nickname) { Text(verbatim: name) }
                         else { Text("clubOpsJN.join.playerFallback", tableName: "ClubOpsJoinNotify") }
-                        Text(verbatim: "#\(id)")
-                        if let time = request.joinTime { Text(verbatim: time) }
+                        if let time = request.requestTimeText { Text("club.management.requestedAt \(time)").foregroundStyle(.secondary) }
                         if let message = request.joinMessage, !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("club.application.messageReceived").font(.caption).foregroundStyle(.secondary)
@@ -147,8 +149,8 @@ struct ClubManagementView: View {
                     }
                 case .member(let id):
                     if let member = snapshot.members.first(where: { $0.id == id }) {
-                        Text(verbatim: member.nickname ?? "#\(id)")
-                        Text(verbatim: "#\(id)")
+                        if let name = ClubOpsJoinRequestPresentation.displayName(member.nickname) { Text(verbatim: name).font(.headline) }
+                        else { Text("clubOpsJN.join.playerFallback", tableName: "ClubOpsJoinNotify").font(.headline) }
                         if snapshot.allows(.remove, memberID: id) { action(.remove, memberID: id) }
                     }
                 }

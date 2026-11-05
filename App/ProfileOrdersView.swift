@@ -58,7 +58,7 @@ struct ProfileOrdersView: View {
                                     ProfileOrderRow(order: order, historyState: order.historyState(now: clock.date))
                                 }.accessibilityIdentifier("profile.order.\(order.id)")
                             }
-                        } footer: { Text("profile.readOnly") }
+                        }
                     }
                 }
             }
@@ -248,19 +248,13 @@ struct ProfileOrderDetailView: View {
                     if let count = order.pointUsed { LabeledContent("profile.orders.pointsUsed", value: String(count)) }
                     if let amount = order.pointDeductAmount { LabeledContent("profile.orders.pointsDeduction") { ProfileOrderAmountLabel(amount: amount) } }
                     if let amount = order.pointPaymentAmount { LabeledContent("profile.orders.pointsMoney") { ProfileOrderAmountLabel(amount: amount) } }
-                    if let code = order.pointsReturned { LabeledContent("profile.orders.pointsReturnedCode", value: String(code)) }
-                    // The source shows only the payment method label; keep the code only when no label exists.
-                    if order.sourcePaymentTypeLabelKey == nil, let code = order.paymentType,
-                       order.paymentTypeLabel?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false {
-                        LabeledContent("profile.orders.paymentTypeCode", value: String(code))
-                    }
+                    // The source shows only the payment method label; a bare method code is not shown.
                     if let amount = order.refundAmount { LabeledContent("profile.orders.refundAmount") { ProfileOrderAmountLabel(amount: amount) } }
                     if let code = order.refundApplicationStatus {
                         LabeledContent("profile.orderParity.refundApplication") { ProfileOrderCodeText(label: .refundApplication(code)) }
                     }
                     ProfileOptionalRow(key: "profile.orders.manualRefund", value: order.manualRefundCaseStatus)
                     ProfileOptionalRow(key: "profile.orders.refundDeadline", value: order.refundDeadlineDisplay)
-                    Text("profile.orders.moneyFactsHint").foregroundStyle(.secondary)
                 }
                 ProfileOrderSourceDetailSections(order: order)
                 if let lifecycleCoordinator {
@@ -289,7 +283,6 @@ struct ProfileOrderDetailView: View {
                         }.accessibilityIdentifier("profile.orders.supportLookup")
                     }
                 }
-                Section { Text("profile.readOnly").foregroundStyle(.secondary) }
             }
             }
         }
@@ -365,7 +358,6 @@ struct ProfileOrderTicketScheduleRows: View {
                 .accessibilityIdentifier("profile.order.ticketSchedule")
             ProfileOrderTicketTimeRow(label: "profile.orders.start", value: schedule.start)
             ProfileOrderTicketTimeRow(label: "profile.orders.end", value: schedule.end)
-            Text("profileTicketSchedule.phoneTimeZone").font(.caption).foregroundStyle(.secondary)
         } else {
             if schedule.start != .absent || schedule.end != .absent {
                 Text("profileTicketSchedule.ownerTimes").font(.caption).foregroundStyle(.secondary)
@@ -471,7 +463,7 @@ private struct ProfileOrderCodeText: View {
     var body: some View {
         switch label {
         case .key(let key): Text(LocalizedStringKey(key))
-        case .raw(let code): Text("profile.orderParity.rawCode \(String(code))")
+        case .raw: Text(verbatim: "—")
         }
     }
 }

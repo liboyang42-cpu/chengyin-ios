@@ -48,7 +48,6 @@ import SwiftUI
         Section {
             Button(role: .destructive, action: { controller.open() }, label: { Text("projectNodeGameplay.remove", tableName: "ProjectNodeGameplayRemoval") })
                 .disabled(!controller.available).accessibilityIdentifier("projectNodeGameplay.remove")
-            Text("projectNodeGameplay.scope", tableName: "ProjectNodeGameplayRemoval").font(.caption)
             if controller.saveUnconfirmed { Text("projectNodeGameplay.saveUnconfirmed", tableName: "ProjectNodeGameplayRemoval") }
             else if !controller.available { Text("projectNodeGameplay.unavailable", tableName: "ProjectNodeGameplayRemoval").font(.caption) }
         }

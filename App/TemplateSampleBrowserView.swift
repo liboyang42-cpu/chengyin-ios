@@ -109,7 +109,7 @@ import Combine
                 NavigationLink("templateSampleCoverage.open") { TemplateAdditionalSampleBrowserView(model: model) }
                     .accessibilityIdentifier("templateSampleCoverage.open")
             }
-            Section { Text("templateSamples.scope"); Text("templateSamples.configureScope").font(.footnote).foregroundStyle(.secondary) }
+            Section { Text("templateSamples.scope") }
             if controller.unavailable { Section { Text("templateSamples.unavailable") } }
             ForEach(TemplateSamplePreview.Group.allCases) { group in
                 Section(LocalizedStringKey(group.labelKey)) {

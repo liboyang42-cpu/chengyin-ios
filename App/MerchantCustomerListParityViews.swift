@@ -71,7 +71,7 @@ struct MerchantCustomerNoteEditorAccessory: View {
     var onClear: () -> Void = {}
     var body: some View {
         HStack {
-            Text(verbatim: MerchantCustomerListParity.noteCorrectionHint)
+            Text("merchant.customer.noteVisibility")
                 .font(.caption)
                 .foregroundStyle(.secondary)
             Spacer()

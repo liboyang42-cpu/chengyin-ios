@@ -9,7 +9,6 @@ import SwiftUI
         VStack(alignment: .leading, spacing: 16) {
             Label("nativePlatform.steps.title", systemImage: "figure.walk").font(.title2.bold())
                 .accessibilityIdentifier("nativePlatform.steps.host")
-            Text("nativePlatform.steps.boundary").font(.footnote)
             if let goal = segment["goal"].integer { LabeledContent("playkit.walk.goal") { Text(verbatim: String(goal)) } }
             if let enrollment = runtime?.enrollment {
                 NavigationLink("nativeEnrollment.manage") { NativeEnrollmentView(model: enrollment, privacyURL: runtime?.acceptance.privacyNoticeURL) }
@@ -34,7 +33,6 @@ import SwiftUI
             if let issue = stage.issue { Text(LocalizedStringKey("nativePlatform.issue." + issue.rawValue)).accessibilityIdentifier("nativePlatform.steps.issue") }
             if stage.phase == "review", let sample = stage.reading, let challenge = stage.challenge {
                 Text(verbatim: String(sample.steps)).font(.system(.largeTitle, design: .rounded).bold()).monospacedDigit().accessibilityIdentifier("nativePlatform.steps.count")
-                LabeledContent("nativePlatform.timeZone") { Text(verbatim: challenge.timeZone) }
                 LabeledContent("nativePlatform.steps.day") { Text(verbatim: challenge.dayKey) }
                 Text("nativePlatform.steps.sharePurpose").font(.footnote)
                 Button("nativePlatform.steps.send") { Task { await stage.submitReviewed(); await refresh() } }

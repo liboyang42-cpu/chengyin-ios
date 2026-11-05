@@ -198,11 +198,13 @@ extension EnvironmentValues {
                     }
                     ForEach(controller.rows) { row in
                         Button { controller.choose(row, in: original) } label: {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text(verbatim: row.name).font(.headline).foregroundStyle(.primary)
-                                if let coordinate = row.coordinate { Text(verbatim: "GCJ-02: \(coordinate.latitude), \(coordinate.longitude)").font(.footnote).foregroundStyle(.secondary) }
-                                if !ProjectNodePlaceSelection.permits(row) { Text("projectPlace.invalidResult", tableName: "ProjectNodePlacePicker") }
-                                if controller.selected == row { Image(systemName: "checkmark") }
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(verbatim: row.name).foregroundStyle(.primary)
+                                    if !ProjectNodePlaceSelection.permits(row) { Text("projectPlace.invalidResult", tableName: "ProjectNodePlacePicker").font(.footnote).foregroundStyle(.secondary) }
+                                }
+                                Spacer()
+                                if controller.selected == row { Image(systemName: "checkmark").foregroundStyle(Color.accentColor) }
                             }
                         }.frame(minHeight: 44).padding(.vertical, 4)
                             .disabled(!ProjectNodePlaceSelection.permits(row))

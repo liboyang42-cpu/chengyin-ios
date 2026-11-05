@@ -3,112 +3,112 @@
   "strings": {
     "source.required": {
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading channel messages…"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "正在加载频道消息…"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Checking channel messages…"
           }
         }
       }
     },
     "access.closed": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前访问已关闭"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Access is closed"
+            "value": "You no longer have access."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你已无法访问。"
           }
         }
       }
     },
     "request.unknown": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原操作结果尚未确认，保留原请求。请查询原结果。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original result is unconfirmed. Keep the original request and check its receipt."
+            "value": "We couldn't confirm your last change. Check its status."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂未确认上次操作的结果，请查看状态。"
           }
         }
       }
     },
     "request.lookup": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "查询原请求结果"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check original request"
+            "value": "Check status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看状态"
           }
         }
       }
     },
     "request.rejected": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原操作被拒绝，草稿已保留"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original operation was rejected. Your draft is retained."
+            "value": "Your change wasn't saved. Your draft is kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "操作未成功，草稿已保留。"
           }
         }
       }
     },
     "request.keepDraft": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "确认拒绝并继续编辑草稿"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Acknowledge rejection and continue editing"
+            "value": "Keep editing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续编辑"
           }
         }
       }
     },
     "request.storage": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无法确认安全存储，请保留当前草稿"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Secure storage could not be verified. Keep your draft."
+            "value": "Couldn't save on this device. Keep your draft and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法在本机保存，请保留草稿后重试。"
           }
         }
       }
@@ -147,32 +147,32 @@
     },
     "history.retry": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重新读取当前消息"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reload current messages"
+            "value": "Reload messages"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新加载消息"
           }
         }
       }
     },
     "message.unavailable": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原消息不可见"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original message unavailable"
+            "value": "Message unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "消息不可见"
           }
         }
       }
@@ -227,112 +227,112 @@
     },
     "message.quote": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "引用"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Reply"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回复"
           }
         }
       }
     },
     "message.edit": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "编辑消息"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Edit message"
+            "value": "Edit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑"
           }
         }
       }
     },
     "message.recall": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "撤回消息"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recall message"
+            "value": "Recall"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤回"
           }
         }
       }
     },
     "message.recallConfirm": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "确认撤回这条消息？撤回结果以最终确认为准。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recall this message? We'll confirm whether the recall succeeded."
+            "value": "Recall this message?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认撤回这条消息？"
           }
         }
       }
     },
     "message.reason": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "撤回理由（管理他人消息须填写）"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recall reason (required when moderating another author)"
+            "value": "Reason (required for others' messages)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤回理由（撤回他人消息时必填）"
           }
         }
       }
     },
     "message.save": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保存编辑"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Save edit"
+            "value": "Save"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存"
           }
         }
       }
     },
     "message.changed": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "消息或权限已变更，请刷新后继续；草稿已保留"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The message or your permissions have changed. Reload to continue; your draft is kept."
+            "value": "This message has changed. Refresh to continue."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "消息已变化，请刷新后继续。"
           }
         }
       }
@@ -371,32 +371,32 @@
     },
     "quote.blocked": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原消息已被屏蔽"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original message blocked"
+            "value": "Message blocked"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "消息已被屏蔽"
           }
         }
       }
     },
     "pins.title": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "频道置顶"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Channel pins"
+            "value": "Pinned messages"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "置顶消息"
           }
         }
       }
@@ -451,64 +451,64 @@
     },
     "search.title": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "搜索频道消息"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Search channel messages"
+            "value": "Search messages"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索消息"
           }
         }
       }
     },
     "search.author": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "发送者会员 ID（可选）"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Author member ID (optional)"
+            "value": "Sender ID (optional)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送者编号（选填）"
           }
         }
       }
     },
     "search.from": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "开始日期 YYYY-MM-DD 或带时区时间"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "From: YYYY-MM-DD or a timestamp with offset"
+            "value": "From (YYYY-MM-DD)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始日期（YYYY-MM-DD）"
           }
         }
       }
     },
     "search.to": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "结束日期 YYYY-MM-DD 或带时区时间"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "To: YYYY-MM-DD or a timestamp with offset"
+            "value": "To (YYYY-MM-DD)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束日期（YYYY-MM-DD）"
           }
         }
       }
@@ -579,16 +579,16 @@
     },
     "search.keyword": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "搜索关键词"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Search keyword"
+            "value": "Search"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索"
           }
         }
       }
@@ -627,96 +627,96 @@
     },
     "load.failed": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "读取失败，请重试"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Could not load. Try again."
+            "value": "Couldn't load. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载失败，请重试。"
           }
         }
       }
     },
     "revisions.title": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "编辑版本"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Edit revisions"
+            "value": "Edit history"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑记录"
           }
         }
       }
     },
     "attachment.sourceRequired": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此附件暂时无法打开，可用图片可按原方式预览。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This attachment can't be opened right now. Available images open in the usual preview."
+            "value": "This attachment can't be opened right now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此附件暂时无法打开。"
           }
         }
       }
     },
     "type.open": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "打开原业务详情"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open existing detail"
+            "value": "Open"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开"
           }
         }
       }
     },
     "type.sourceRequired": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂不支持此类消息"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This message type isn't supported yet."
+            "value": "This message can't be shown here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此消息暂无法在这里显示。"
           }
         }
       }
     },
     "type.unknown": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "不支持的消息"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unsupported message"
+            "value": "Message can't be shown"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法显示此消息"
           }
         }
       }
@@ -835,16 +835,16 @@
     },
     "search.retention": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "可搜索起点"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Searchable from"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可搜索起始日期"
           }
         }
       }
@@ -867,64 +867,64 @@
     },
     "search.retentionClipped": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "部分日期超出当前可搜索范围"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Some requested dates are outside the searchable range"
+            "value": "Some dates are outside the searchable range"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分日期超出可搜索范围"
           }
         }
       }
     },
     "search.shortAndClipped": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "短关键词和日期范围均受到限制"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Both the short keyword and date range limit these results"
+            "value": "Short keyword and date range limit these results"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关键词较短且日期超出范围，结果可能不完整"
           }
         }
       }
     },
     "p23.selecting": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在核对原消息…"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Checking the original message…"
+            "value": "Checking the message…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在核对消息…"
           }
         }
       }
     },
     "p23.reload": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重新读取置顶"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reload pinned messages"
+            "value": "Retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
           }
         }
       }
@@ -947,16 +947,16 @@
     },
     "p23.confirm.action": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "确认取消置顶"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm unpin"
+            "value": "Unpin"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消置顶"
           }
         }
       }
@@ -995,16 +995,16 @@
     },
     "p23.changed": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原消息或权限已变化，请重新选择"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original message or permissions changed. Select it again."
+            "value": "This message or your permissions changed. Select it again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "消息或权限已变化，请重新选择。"
           }
         }
       }
@@ -1027,16 +1027,16 @@
     },
     "p23.pending": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "待核原请求：%@ · %@ · 消息 %@"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original request awaiting confirmation: %@ · %@ · Message %@"
+            "value": "%@: waiting for confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@：等待确认"
           }
         }
       }
@@ -1059,16 +1059,16 @@
     },
     "p23.applied": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原请求结果：已确认 · %@ · 消息 %@"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original request confirmed · %@ · Message %@"
+            "value": "%@: done"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@：已完成"
           }
         }
       }
@@ -1091,48 +1091,48 @@
     },
     "p23.current.reading": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前置顶列表：正在独立读取。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Current pinned list: an independent read is in progress."
+            "value": "Checking pinned messages…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取置顶消息…"
           }
         }
       }
     },
     "p23.current.matches": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前置顶列表：与该次操作目标一致；不作为原请求回执。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Current pinned list: matches this operation’s target; this is not the original request receipt."
+            "value": "Pinned messages are up to date."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "置顶消息已是最新。"
           }
         }
       }
     },
     "p23.current.differs": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前置顶列表：与该次操作目标不同，可能已有后续更改；不撤销原请求结果。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Current pinned list: differs from this operation’s target, possibly due to later changes; the original request outcome remains confirmed."
+            "value": "Pinned messages have changed since then."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "置顶消息之后又有变化。"
           }
         }
       }
@@ -1155,16 +1155,16 @@
     },
     "p23.current.refresh": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "只重新读取当前置顶列表"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only reload the current pinned list"
+            "value": "Refresh pins"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新置顶"
           }
         }
       }

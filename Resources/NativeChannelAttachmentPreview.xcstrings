@@ -3,16 +3,16 @@
   "strings": {
     "preview.title": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原附件预览"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original attachment preview"
+            "value": "Image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片"
           }
         }
       }
@@ -51,224 +51,224 @@
     },
     "preview.changed": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前权限或消息已变化。请返回原频道，重新读取当前消息。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Access or the message has changed. Return to the original channel and read the current message again."
+            "value": "This image is no longer available. Go back and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片已不可用，请返回后重试。"
           }
         }
       }
     },
     "preview.idle": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "尚未加载。重新进入会重新读取原授权，不复用旧签名链接。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not loaded. Reopening requires a fresh authorization check; an old signed link is never reused."
+            "value": "Image not loaded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片尚未加载"
           }
         }
       }
     },
     "preview.loading": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "核对原审核与受权附件"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Checking original review and attachment authorization"
+            "value": "Loading image…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载图片…"
           }
         }
       }
     },
     "preview.pending": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原附件审核中，不能预览或下载。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original attachment is under review and cannot be previewed or downloaded."
+            "value": "This image is still under review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片审核中，暂时不能查看。"
           }
         }
       }
     },
     "preview.rejected": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原附件审核已拒绝，不能预览或下载。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original attachment was rejected and cannot be previewed or downloaded."
+            "value": "This image didn't pass review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片未通过审核。"
           }
         }
       }
     },
     "preview.expired": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "短时链接已失效，已清理显示。需要重新核对原权限后获取新链接。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The short-lived link expired and the image was cleared. Check current access again to obtain a new link."
+            "value": "The link expired. Load the image again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "链接已过期，请重新加载。"
           }
         }
       }
     },
     "preview.unsupported": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前文件内容不受支持，未打开外部应用或执行文件。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This file content is not supported. No external app was opened and no file was executed."
+            "value": "This file type isn't supported."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不支持此文件类型。"
           }
         }
       }
     },
     "preview.sourceUnconfirmed": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原附件身份尚未确认，未加载文件。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original attachment identity is unconfirmed. No file was loaded."
+            "value": "This image can't be verified."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法确认这张图片。"
           }
         }
       }
     },
     "preview.unavailable": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原消息已撤回、不可见或当前无权限。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original message was withdrawn, is unavailable, or is not accessible to you."
+            "value": "The message was recalled or isn't available to you."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "消息已撤回或你无权查看。"
           }
         }
       }
     },
     "preview.unknown": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原授权或附件结果未知，已停止预览；不会自动使用旧链接。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Authorization or the attachment result is unknown. Previewing stopped; the old link will not be reused automatically."
+            "value": "Couldn't load the image. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片加载失败，请重试。"
           }
         }
       }
     },
     "preview.image": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已授权原图片"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Authorized original image"
+            "value": "Image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片"
           }
         }
       }
     },
     "preview.notConfigured": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "附件预览暂不可用"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Attachment preview isn't available right now."
+            "value": "Images can't be opened right now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法查看图片。"
           }
         }
       }
     },
     "preview.load": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "明确读取原授权并预览"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check original authorization and preview"
+            "value": "Load image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载图片"
           }
         }
       }
     },
     "preview.clear": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "清除本次临时预览"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Clear this temporary preview"
+            "value": "Clear image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除图片"
           }
         }
       }

@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Author-only practice. Feedback compares your answer with this draft on this device. It does not complete a player task, award points or publish anything."
+            "value": "Practice only. Nothing is recorded."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅供作者本地试答。反馈只与本机当前草稿答案比对，不代表玩家通关，不发积分，也不发布内容。"
+            "value": "仅供试答，不做记录。"
           }
         }
       }
@@ -54,13 +54,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Local practice feedback"
+            "value": "Result"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本地试答反馈"
+            "value": "结果"
           }
         }
       }
@@ -102,13 +102,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This answer is incomplete or no longer valid. Retry with the current question."
+            "value": "This answer is incomplete. Try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "答案不完整或已失效，请重新试答当前题目。"
+            "value": "答案不完整，请再试一次。"
           }
         }
       }

@@ -1,0 +1,124 @@
+diff --git a/App/AppCompositionRoot.swift b/App/AppCompositionRoot.swift
+index 8dcee370eac7a235cbeb2ce184a3d6fe2fe0a85e..76d56bd2ffc40f9da0da47ce1858d51ccc752970 100644
+--- a/App/AppCompositionRoot.swift
++++ b/App/AppCompositionRoot.swift
+@@ -74,0 +75,24 @@
++    // Disabled until the frozen invoice contract and test deployment are reviewed.
++    // Login/server flags do not create these local route approvals.
++    var invoiceLaunchReadsApproved: @MainActor (RuntimeDependencyContext) -> Bool = { _ in false }
++    var invoiceLaunchWritesApproved: @MainActor (RuntimeDependencyContext) -> Bool = { _ in false }
++    func makeInvoiceLaunchService(context: RuntimeDependencyContext,
++                                  current: @escaping () -> RuntimeDependencyContext?,
++                                  unauthorized: @escaping () -> Void) -> InvoiceLaunchService? {
++        guard case .reviewed(let reviewed) = deployment, context.market == .china,
++              reviewed.regional.market == context.market,
++              reviewed.regional.apiConfiguration?.baseURL == context.baseURL,
++              reviewed.storageScope.service == context.session.namespace,
++              let session = try? InvoiceLaunchSession(baseURL: context.baseURL, namespace: context.session.namespace,
++                  accountID: Int64(context.session.accountID), role: context.role, epoch: context.session.epoch,
++                  token: context.session.token) else { return nil }
++        return InvoiceLaunchService(session: session, transport: makeTransport(),
++            enabled: { current() == context && self.invoiceLaunchReadsApproved(context) },
++            mutationsEnabled: { current() == context && self.invoiceLaunchWritesApproved(context) },
++            current: {
++                guard let value = current(), value.market == .china else { return nil }
++                return try? InvoiceLaunchSession(baseURL: value.baseURL, namespace: value.session.namespace,
++                    accountID: Int64(value.session.accountID), role: value.role, epoch: value.session.epoch,
++                    token: value.session.token)
++            }, unauthorized: unauthorized)
++    }
+@@ -2479,0 +2504,3 @@
++
++// Reuse unlocked, device-only Keychain storage; the invoice journal has its own keys.
++extension TemplateAuthoringSecureStorage: InvoiceLaunchStorage {}
+diff --git a/App/AppSession.swift b/App/AppSession.swift
+index 71a95534f52f604aca62c475970d408f4623fa1d..9858f8008528d7c294ac6464b8feea66b5dba579 100644
+--- a/App/AppSession.swift
++++ b/App/AppSession.swift
+@@ -6,0 +7,27 @@
++    private var retainedInvoiceLaunch: (session: InvoiceLaunchSession, viewer: UInt64, coordinator: InvoiceLaunchCoordinator)?
++    private func invalidateInvoiceLaunch() {
++        retainedInvoiceLaunch?.coordinator.service.revoke()
++        retainedInvoiceLaunch = nil // Durable pending record survives logout.
++    }
++    func makeInvoiceLaunchCoordinator() -> InvoiceLaunchCoordinator? {
++        guard let context = currentRuntimeDependencyContext, context.market == .china, let storageScope,
++              let session = try? InvoiceLaunchSession(baseURL: context.baseURL, namespace: context.session.namespace,
++                  accountID: Int64(context.session.accountID), role: context.role, epoch: context.session.epoch,
++                  token: context.session.token) else { invalidateInvoiceLaunch(); return nil }
++        let viewer = compositionViewerRevision
++        if let retainedInvoiceLaunch, retainedInvoiceLaunch.session == session, retainedInvoiceLaunch.viewer == viewer {
++            return retainedInvoiceLaunch.coordinator
++        }
++        invalidateInvoiceLaunch()
++        let current: () -> RuntimeDependencyContext? = { [weak self] in
++            guard let self, self.compositionViewerRevision == viewer else { return nil }
++            return self.currentRuntimeDependencyContext
++        }
++        guard let service = composition.makeInvoiceLaunchService(context: context, current: current, unauthorized: { [weak self] in
++            guard let self, current() == context else { return }
++            self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
++        }), let coordinator = try? InvoiceLaunchCoordinator(service: service,
++            store: InvoiceLaunchPendingStore(session: session, storage: TemplateAuthoringSecureStorage(scope: storageScope))) else { return nil }
++        retainedInvoiceLaunch = (session, viewer, coordinator)
++        return coordinator
++    }
+@@ -5155,0 +5183 @@
++        invalidateInvoiceLaunch()
+@@ -5236,0 +5265 @@
++        invalidateInvoiceLaunch()
+diff --git a/Questify.xcodeproj/project.pbxproj b/Questify.xcodeproj/project.pbxproj
+index 7d69d96f1a37715b68d83a9970d117920e892ece..5bc33855f129236c05b4f1f198a321651ec37786 100644
+--- a/Questify.xcodeproj/project.pbxproj
++++ b/Questify.xcodeproj/project.pbxproj
+@@ -7,0 +8,40 @@
++		"7FDB2053D554BFCB39DF3E67" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/InvoiceLaunchContracts.swift";
++			"sourceTree" = "<group>";
++		};
++		"D1B5161D88E4152093EEFD72" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "7FDB2053D554BFCB39DF3E67";
++		};
++		"4C18149BFF8C97C42031A43D" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/InvoiceLaunchCoordinator.swift";
++			"sourceTree" = "<group>";
++		};
++		"69501895B860EDCF5499550F" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "4C18149BFF8C97C42031A43D";
++		};
++		"E9EAE2C4C06A8C7EBE567DDC" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/InvoiceLaunchPendingStore.swift";
++			"sourceTree" = "<group>";
++		};
++		"C713A985379BE8093637514D" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "E9EAE2C4C06A8C7EBE567DDC";
++		};
++		"637F4F607FEB93CD89EB0E6E" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/InvoiceLaunchService.swift";
++			"sourceTree" = "<group>";
++		};
++		"01D6BA50545C2916D6A726C0" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "637F4F607FEB93CD89EB0E6E";
++		};
+@@ -27300,0 +27341,4 @@
++				"7FDB2053D554BFCB39DF3E67",
++				"4C18149BFF8C97C42031A43D",
++				"E9EAE2C4C06A8C7EBE567DDC",
++				"637F4F607FEB93CD89EB0E6E",
+@@ -30893,0 +30938,4 @@
++				"D1B5161D88E4152093EEFD72",
++				"69501895B860EDCF5499550F",
++				"C713A985379BE8093637514D",
++				"01D6BA50545C2916D6A726C0",

@@ -35,10 +35,6 @@ struct ActivityReviewsSection: View {
                         Text("activity.reviews.previewUnavailable")
                             .accessibilityIdentifier("activity.reviews.previewUnavailable")
                     }
-                } else {
-                    Text("activity.reviews.previewHint")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
                 }
             }
             .fixedSize(horizontal: false, vertical: true)
@@ -57,30 +53,43 @@ private struct ActivityReviewCard: View {
     let index: Int
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Group {
-                if let name = review.authorName { Text(verbatim: name) }
-                else { Text("activity.reviews.authorUnknown") }
+        // Mini-program `activity-comment`: name and time, stars, then the text.
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline) {
+                Group {
+                    if let name = review.authorName { Text(verbatim: name) }
+                    else { Text("activity.reviews.authorUnknown") }
+                }
+                .font(.headline)
+                .accessibilityIdentifier("activity.reviews.author.\(index)")
+                Spacer(minLength: 8)
+                if let date = review.createTime {
+                    Text(verbatim: date)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
-            .font(.headline)
-            .accessibilityIdentifier("activity.reviews.author.\(index)")
-            if let date = review.createTime {
-                Text(verbatim: date)
+            Group {
+                if let rating = review.rating {
+                    HStack(spacing: 2) {
+                        ForEach(0..<5, id: \.self) { star in
+                            Image(systemName: star < rating ? "star.fill" : "star")
+                        }
+                    }
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(QuestifyPalette.accent)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text(verbatim: "\(rating) / 5"))
+                } else {
+                    Text(verbatim: "—").font(.subheadline).foregroundStyle(.secondary)
+                }
             }
-            LabeledContent("activity.reviews.rating") {
-                if let rating = review.rating { Text(verbatim: "\(rating) / 5") }
-                else { Text("activity.reviews.ratingUnknown") }
-            }
-            .font(.subheadline)
             .accessibilityIdentifier("activity.reviews.rating.\(index)")
-            Group {
-                if let contents = review.contents { Text(verbatim: contents) }
-                else { Text("activity.reviews.textUnavailable").foregroundStyle(.secondary) }
+            if let contents = review.contents {
+                Text(verbatim: contents)
+                    .textSelection(.enabled)
+                    .accessibilityIdentifier("activity.reviews.text.\(index)")
             }
-            .textSelection(.enabled)
-            .accessibilityIdentifier("activity.reviews.text.\(index)")
         }
         .fixedSize(horizontal: false, vertical: true)
         .questifyCardSurface()

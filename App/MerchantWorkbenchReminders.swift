@@ -48,10 +48,7 @@ import SwiftUI
         Label { text } icon: { Image(systemName: "exclamationmark.circle.fill").foregroundStyle(.orange) }
     }
     private func unavailable(_ text: Text, id: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            reminder(text)
-            Text("merchant.workbench.reminderUnavailable").font(.footnote).foregroundStyle(.secondary)
-        }
+        reminder(text)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("merchant.workbench.reminder." + id)
     }

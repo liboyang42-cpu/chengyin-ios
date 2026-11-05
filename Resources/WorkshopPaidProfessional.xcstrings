@@ -51,32 +51,32 @@
     },
     "workshopPaidProfessional.notConfigured": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此读取或创建能力尚未配置。登录、已购记录或正文读取许可不会自动开放创建。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This read or creation capability is not configured. Sign-in, ownership metadata and body-read permission do not enable creation."
+            "value": "Creating a draft from this purchase isn't available yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不能用此购买创建草稿。"
           }
         }
       }
     },
     "workshopPaidProfessional.storageBlocked": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本机待处理记录无法安全读取或保存。已阻止新请求，原记录保留。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending intent could not be safely read or saved. New requests are blocked; existing data is retained."
+            "value": "Couldn't save on this device. New requests are paused; nothing was lost."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法保存到本机，已暂停新请求，原有内容未丢失。"
           }
         }
       }
@@ -131,32 +131,32 @@
     },
     "workshopPaidProfessional.submitting": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在确认服务器结果…"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirming server outcome…"
+            "value": "Confirming…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在确认…"
           }
         }
       }
     },
     "workshopPaidProfessional.unknownNote": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "结果未知时保留原请求编号。返回或关闭页面不会取消已经提交的操作。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "An unknown outcome retains its request ID. Closing this screen does not cancel an already submitted operation."
+            "value": "If the result is unclear, closing this screen doesn't cancel the request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果不确定时，关闭此页面不会取消已提交的请求。"
           }
         }
       }
@@ -403,16 +403,16 @@
     },
     "workshopPaidProfessional.mode.UNRESOLVED": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "玩法模式未解析，仅供查看"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unresolved mode: read-only"
+            "value": "Mode not set — view only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模式未确定，仅可查看"
           }
         }
       }
@@ -579,48 +579,48 @@
     },
     "workshopPaidProfessional.verbatimFields": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "服务器从原安装项核验并转换上述原文字段，包括商家说明；不会自动补玩法方法、奖励、人数、时长或分类。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server verifies and converts these original fields from the installed item, including merchant instructions. It does not invent a validation method, rewards, player count, duration or category."
+            "value": "These fields are copied from what you bought. Gameplay, rewards, players, duration and category aren't filled in for you."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以上字段来自所购内容，不会自动补充玩法、奖励、人数、时长或分类。"
           }
         }
       }
     },
     "workshopPaidProfessional.original": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "所购版本原文"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Purchased-version source"
+            "value": "What you bought"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所购原文"
           }
         }
       }
     },
     "workshopPaidProfessional.creationLimits": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此确认只创建带来源保护的私有草稿。服务器将再次核验许可、安装来源、草稿版本、目标归属与模式；不会自动接节点、发布或开局。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This confirmation creates only a guarded private draft. The server rechecks the licence, installed source, draft revision, target ownership and mode. It does not attach nodes, publish or start a run."
+            "value": "Creates a private draft only. It doesn't add stops, publish or start a run."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅创建私有草稿，不会添加地点、发布或开局。"
           }
         }
       }
@@ -707,16 +707,16 @@
     },
     "workshopPaidProfessional.historicalCreation": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "服务器已记录创建。此历史编号不证明草稿当前可编辑，也不构成发布或运行许可。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Creation was recorded. This historical ID does not establish current editability or permission to publish or run."
+            "value": "A draft was created earlier."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此前已创建草稿。"
           }
         }
       }
@@ -803,16 +803,16 @@
     },
     "workshopPaidProfessional.cancelPending": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请求服务器关闭待定操作"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Close pending operation on server"
+            "value": "Cancel request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消请求"
           }
         }
       }
@@ -835,16 +835,16 @@
     },
     "workshopPaidProfessional.state.NOT_FOUND": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂未发现请求，仍不能认定未创建或更换编号。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Request not found yet. This does not prove no creation or permit replacing the ID."
+            "value": "Not found yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂未找到。"
           }
         }
       }

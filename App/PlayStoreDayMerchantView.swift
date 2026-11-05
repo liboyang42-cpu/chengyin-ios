@@ -76,11 +76,14 @@ import SwiftUI
     private func L(_ key: String.LocalizationValue) -> String { String(localized: key, table: "PlayStoreDay") }
 
     private func stateView(_ key: String.LocalizationValue, id: String) -> some View {
-        VStack(spacing: 16) {
-            Text(L(key)).multilineTextAlignment(.center)
+        ContentUnavailableView {
+            Label { Text(L(key)) } icon: { Image(systemName: id == "signedOut" ? "person.crop.circle" : id == "failed" ? "exclamationmark.triangle" : "storefront") }
+        } actions: {
             Button { Task { await model.load() } } label: { Text("playStoreDay.refresh", tableName: "PlayStoreDay") }
+                .buttonStyle(.bordered)
                 .disabled(model.phase == .loading).accessibilityIdentifier("storeDayPage.refresh")
-        }.padding().frame(maxWidth: .infinity).accessibilityElement(children: .contain).accessibilityIdentifier("storeDayPage.state." + id)
+        }
+        .accessibilityElement(children: .contain).accessibilityIdentifier("storeDayPage.state." + id)
     }
 
     // MARK: Page
@@ -157,9 +160,9 @@ import SwiftUI
         VStack(alignment: .leading, spacing: 12) {
             Text("playStoreDay.section.reference", tableName: "PlayStoreDay").font(.headline)
             HStack {
-                stat(node.inStoreLoad.map(String.init) ?? "0", L("playStoreDay.stat.load"), id: "load")
-                stat(node.servicePerHour.map(Self.number) ?? "0", L("playStoreDay.stat.perHour"), id: "perHour")
-                stat(node.expectedWaitMinutes.map(String.init) ?? "0", L("playStoreDay.stat.wait"), id: "wait")
+                stat(node.inStoreLoad.map(String.init) ?? "—", L("playStoreDay.stat.load"), id: "load")
+                stat(node.servicePerHour.map(Self.number) ?? "—", L("playStoreDay.stat.perHour"), id: "perHour")
+                stat(node.expectedWaitMinutes.map(String.init) ?? "—", L("playStoreDay.stat.wait"), id: "wait")
             }
         }
     }

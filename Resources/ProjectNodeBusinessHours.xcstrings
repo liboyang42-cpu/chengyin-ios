@@ -150,13 +150,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This replaces only the stored HH:mm-HH:mm text in the working draft, using the usual autosave or Save local flow. It does not determine dates, timezone, overnight meaning, booking availability or whether a place is open."
+            "value": "Opening hours shown to players, as HH:mm-HH:mm."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅替换当前草稿中的 HH:mm-HH:mm 时间文字，沿用自动保存或“保存到本地”流程。不判断日期、时区、跨夜含义、预订情况或场所是否营业。"
+            "value": "向玩家展示的营业时间，格式 HH:mm-HH:mm。"
           }
         }
       }

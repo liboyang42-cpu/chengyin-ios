@@ -53,7 +53,6 @@ import SwiftUI
                             LabeledContent("profile.caseSubset.originalImage", value: String(index + 1))
                         }.accessibilityIdentifier("profile.caseSubset.keep.\(index)")
                     }
-                    Text("profile.caseSubset.positionHint").font(.footnote).foregroundStyle(.secondary)
                     if let reader {
                         NativeMediaGalleryEntry(sources: ProfileCasePortfolio(casePics: edit.snapshot.casePics).images,
                             scope: edit.id, titleKey: "profile.case.images", reader: reader)

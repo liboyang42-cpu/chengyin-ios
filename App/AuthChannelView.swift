@@ -70,7 +70,6 @@ struct AuthChannelView: View {
                     .disabled(!model.canStart || !validPhone || !validCode)
                     .accessibilityIdentifier("auth.channels.phoneSignIn")
                 } header: { Text("auth.channels.phoneTitle") }
-                  footer: { Text("auth.channels.codeLifetime") }
                 } else { Section { Text("region.usLoginPending").accessibilityIdentifier("region.auth.pending") } }
                 if model.state.smsSent {
                     Section { Label("auth.channels.smsSent", systemImage: "checkmark.circle") }

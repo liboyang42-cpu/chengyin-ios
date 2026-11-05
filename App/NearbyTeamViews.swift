@@ -38,10 +38,10 @@ import SwiftUI
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 20) {
-                notice
                 Picker("nearby.section", selection: $tab) {
                     Text("nearby.title").tag(0); Text("nearby.mine").tag(1)
                 }.pickerStyle(.segmented).accessibilityIdentifier("nearby.section")
+                notice
                 if tab == 0 {
                     contextControls
                     NearbyTeamCountLine(loaded: coordinator.context != nil, count: coordinator.teams.count)
@@ -51,7 +51,6 @@ import SwiftUI
                     } else if !model.running && coordinator.teams.isEmpty {
                         ContentUnavailableView("nearby.empty", systemImage: "person.3", description: Text("nearby.w208.listEmpty"))
                     }
-                    LabeledContent("nearby.recruitingCount") { Text(verbatim: String(coordinator.teams.count)) }
                     if viewMode == .map {
                         if let center = mapCenter {
                             NearbyTeamMapSection(center: center, teams: coordinator.teams, focusedID: focusedTeamID) { focusedTeamID = $0 }
@@ -68,14 +67,21 @@ import SwiftUI
                                         mineCount: NearbyTeamBridge.activeCount(NearbyTeamBridge.myRows(joined: joinedTeams, applications: coordinator.myApplications))) { tab = 1 }
                     applicantSection
                 } else { mineSection }
-                Button("nearby.refresh") { Task { await refresh() } }.frame(minHeight: 44)
-                    .disabled(model.running || !coordinator.authenticated).accessibilityIdentifier("nearby.refresh")
             }.padding()
-        }.appNavigationTitle("nearby.title")
+        }
+        .refreshable { if coordinator.authenticated && !model.running { await refresh() } }
+        .appNavigationTitle("nearby.title")
             .toolbar {
                 if tab == 0 { ToolbarItem(placement: .topBarTrailing) { NearbyTeamViewModePicker(mode: $viewMode) } }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { Task { await refresh() } } label: { Label("nearby.refresh", systemImage: "arrow.clockwise") }
+                        .disabled(model.running || !coordinator.authenticated).accessibilityIdentifier("nearby.refresh")
+                }
             }
-            .sheet(item: model.review) { review in NearbyTeamReviewView(model: model, snapshot: review) }
+            .sheet(item: model.review) { review in
+                NearbyTeamReviewView(model: model, snapshot: review)
+                    .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+            }
             .task {
                 coordinator.resume()
                 if let context = initialContext {
@@ -87,27 +93,36 @@ import SwiftUI
             .onChange(of: tab) { _, value in if value == 1 { Task { await loadMine() } } }
             .onDisappear { coordinator.leave() }
     }
-    private var notice: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label(coordinator.synthetic ? "nearby.fixture" : coordinator.canSubmit ? "nearby.review.enabled" : "nearby.dormant", systemImage: coordinator.synthetic ? "testtube.2" : "lock.shield")
-            Text("nearby.context.notice")
-            if coordinator.uncertain { Label("nearby.unknown", systemImage: "exclamationmark.triangle") }
-            if let key = coordinator.messageKey {
-                Text(LocalizedStringKey(key)).accessibilityIdentifier("nearby.message")
-            }
-            if !coordinator.serverMessage.isEmpty { Text(verbatim: coordinator.serverMessage).accessibilityIdentifier("nearby.serverMessage") }
-            if !coordinator.errorCode.isEmpty { Text(verbatim: coordinator.errorCode).font(.caption.monospaced()) }
-        }.font(.footnote).fixedSize(horizontal: false, vertical: true).padding()
-            .frame(maxWidth: .infinity, alignment: .leading).background(.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
+    /// Only real states reach the player: example marker, an unresolved action, and messages from the server.
+    @ViewBuilder private var notice: some View {
+        let hasMessage = coordinator.messageKey != nil || !coordinator.serverMessage.isEmpty
+        if coordinator.synthetic || coordinator.uncertain || hasMessage {
+            VStack(alignment: .leading, spacing: 8) {
+                if coordinator.synthetic { Label("nearby.fixture", systemImage: "testtube.2") }
+                if coordinator.uncertain { Label("nearby.unknown", systemImage: "exclamationmark.triangle") }
+                if let key = coordinator.messageKey {
+                    Text(LocalizedStringKey(key)).accessibilityIdentifier("nearby.message")
+                }
+                if !coordinator.serverMessage.isEmpty { Text(verbatim: coordinator.serverMessage).accessibilityIdentifier("nearby.serverMessage") }
+            }.font(.footnote).fixedSize(horizontal: false, vertical: true).padding()
+                .frame(maxWidth: .infinity, alignment: .leading).background(.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
+        }
     }
+    /// Mini-program 范围 control. Coordinates are only typed in when the host gave no map point.
     private var contextControls: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("nearby.context.title").font(.headline)
-            TextField("nearby.latitude", text: $latitude).textFieldStyle(.roundedBorder).accessibilityIdentifier("nearby.latitude")
-            TextField("nearby.longitude", text: $longitude).textFieldStyle(.roundedBorder).accessibilityIdentifier("nearby.longitude")
-            Picker("nearby.radius", selection: $radius) { ForEach(NearbyQueryContext.radii, id: \.self) { radius in Text(verbatim: "\(radius / 1000) km").tag(radius) } }
-                .accessibilityIdentifier("nearby.radius")
-            Button("nearby.search") { Task { await refresh() } }.frame(minHeight: 44).disabled(model.running).accessibilityIdentifier("nearby.search")
+            if initialContext == nil {
+                Text("nearby.context.title").font(.headline)
+                TextField("nearby.latitude", text: $latitude).textFieldStyle(.roundedBorder).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("nearby.latitude")
+                TextField("nearby.longitude", text: $longitude).textFieldStyle(.roundedBorder).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("nearby.longitude")
+            }
+            HStack {
+                Picker("nearby.radius", selection: $radius) { ForEach(NearbyQueryContext.radii, id: \.self) { radius in Text(verbatim: "\(radius / 1000) km").tag(radius) } }
+                    .accessibilityIdentifier("nearby.radius")
+                Spacer(minLength: 8)
+                Button("nearby.search") { Task { await refresh() } }.buttonStyle(.bordered)
+                    .frame(minHeight: 44).disabled(model.running).accessibilityIdentifier("nearby.search")
+            }
         }
     }
     private func refresh() async {
@@ -164,19 +179,19 @@ import SwiftUI
             switch team.mode {
             case "leader":
                 Text("nearby.w208.leaderSub \(team.joinedCount) \(team.maxMembers) \(NearbyTeamPresentation.remainingSeats(team))").font(.subheadline)
-                LabeledContent("nearby.applicants") { Text(verbatim: "\(team.pendingCount)") }
-                Text("nearby.leader.foot").font(.footnote)
-                Button("nearby.applicants") { Task { await model.run { await coordinator.loadApplicants(teamID: team.id) } } }.frame(minHeight: 44).disabled(model.running)
+                Button { Task { await model.run { await coordinator.loadApplicants(teamID: team.id) } } } label: {
+                    Label { Text("nearby.applicants") + Text(verbatim: " · \(team.pendingCount)") } icon: { Image(systemName: "person.badge.plus") }
+                }.buttonStyle(.bordered).frame(minHeight: 44).disabled(model.running)
             case "joined": routeButton("nearby.enter", destination: .team(team.id))
             case "pending": expiry(team.applyExpireTime); actionButton(.withdraw(team.id))
-            case "rejected": Text("nearby.rejected.foot").font(.footnote)
-            case "apply": Text("nearby.apply.foot").font(.footnote); actionButton(.apply(team.id))
+            case "rejected": Text("nearby.rejected.foot").font(.footnote).foregroundStyle(.secondary)
+            case "apply": actionButton(.apply(team.id))
             case "buy":
                 // xcx falls back to the topic page when the team has no activity session.
                 if let destination = NearbyTeamBridge.purchaseDestination(team) ?? team.topicID.flatMap({ $0 > 0 ? NearbyTeamDestination.topic($0) : nil }) {
                     routeButton("nearby.w208.buyTicket", destination: destination)
                 }
-            default: Text("nearby.actionUnavailable").font(.footnote)
+            default: EmptyView()
             }
         }.fixedSize(horizontal: false, vertical: true).padding().frame(maxWidth: .infinity, alignment: .leading)
             .background(.secondary.opacity(0.06), in: RoundedRectangle(cornerRadius: 20))
@@ -272,15 +287,20 @@ import SwiftUI
                         .accessibilityIdentifier("nearby.application.\(application.id.rawValue)")
         }
     }
-    private func actionButton(_ action: NearbyTeamAction) -> some View {
-        Button(LocalizedStringKey(action.key)) { model.prepare(action) }.frame(minHeight: 44)
-            .disabled(model.running || !coordinator.allowed(action)).accessibilityIdentifier("nearby.\(action.operation).\(action.teamID.rawValue)")
+    /// Hidden when this build cannot send team actions, instead of a button that leads nowhere.
+    @ViewBuilder private func actionButton(_ action: NearbyTeamAction) -> some View {
+        if coordinator.canSubmit {
+            Button(LocalizedStringKey(action.key)) { model.prepare(action) }.buttonStyle(.borderedProminent).frame(minHeight: 44)
+                .disabled(model.running || !coordinator.allowed(action)).accessibilityIdentifier("nearby.\(action.operation).\(action.teamID.rawValue)")
+        }
     }
-    private func routeButton(_ key: LocalizedStringKey, destination: NearbyTeamDestination) -> some View { Button(key) { navigate(destination) }.frame(minHeight: 44) }
+    private func routeButton(_ key: LocalizedStringKey, destination: NearbyTeamDestination) -> some View {
+        Button(key) { navigate(destination) }.buttonStyle(.borderedProminent).frame(minHeight: 44)
+    }
     @ViewBuilder private func expiry(_ value: NearbyServerTime?) -> some View {
         if let minutes = value?.remainingMinutes(now: Date()) {
             LabeledContent("nearby.expiry") { Text(verbatim: "\(minutes < 60 ? minutes : minutes / 60)"); Text(minutes < 60 ? "nearby.minutes" : "nearby.hours") }
-        } else { Text("nearby.expiry.rule").font(.footnote) }
+        }
     }
 }
 @MainActor private struct NearbyTeamReviewView: View {
@@ -292,18 +312,19 @@ import SwiftUI
                 VStack(alignment: .leading, spacing: 18) {
                     Text(LocalizedStringKey(snapshot.action.key)).font(.title2.bold())
                     Text(verbatim: snapshot.team?.title ?? snapshot.application?.title ?? "").font(.headline)
-                    LabeledContent("nearby.teamID") { Text(verbatim: String(snapshot.action.teamID.rawValue)) }
-                    if let applicant = snapshot.applicant {
-                        Text(verbatim: applicant.name)
-                        LabeledContent("nearby.applicantID") { Text(verbatim: String(applicant.memberID.rawValue)) }
+                    if let applicant = snapshot.applicant, !applicant.name.isEmpty {
+                        Label { Text(verbatim: applicant.name) } icon: { Image(systemName: "person.crop.circle") }
                     }
-                    Text(model.coordinator.synthetic ? "nearby.review.consequence" : "nearby.review.liveConsequence").fixedSize(horizontal: false, vertical: true)
-                    Text(model.coordinator.synthetic ? "nearby.fixture" : model.coordinator.canSubmit ? "nearby.review.enabled" : "nearby.dormant").font(.footnote)
-                    Button(model.coordinator.synthetic ? "nearby.simulate" : "nearby.submitReviewed") { Task { await model.run { await model.coordinator.confirm(snapshot) } } }
-                        .frame(minHeight: 44).disabled(model.running || !model.coordinator.canSubmit).accessibilityIdentifier("nearby.confirm")
-                    Button("nearby.cancel", role: .cancel) { model.cancel() }.frame(minHeight: 44).accessibilityIdentifier("nearby.cancel")
+                    Text(model.coordinator.synthetic ? "nearby.review.consequence" : "nearby.review.liveConsequence")
+                        .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    Button { Task { await model.run { await model.coordinator.confirm(snapshot) } } } label: {
+                        Text(model.coordinator.synthetic ? "nearby.simulate" : "nearby.submitReviewed").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.questifyPrimary)
+                    .frame(minHeight: 44).disabled(model.running || !model.coordinator.canSubmit).accessibilityIdentifier("nearby.confirm")
+                    Button("nearby.cancel", role: .cancel) { model.cancel() }.frame(maxWidth: .infinity, minHeight: 44).accessibilityIdentifier("nearby.cancel")
                 }.padding()
-            }.navigationTitle("nearby.review")
+            }.navigationTitle("nearby.review").navigationBarTitleDisplayMode(.inline)
         }
     }
 }

@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This draft could not be saved on this device. Keep editing, retry the local save, or leave and lose these unsaved changes."
+            "value": "This draft couldn't be saved. Keep editing, try saving again, or leave without saving."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本机草稿保存失败。你可以继续编辑、重试本地保存，或明确离开并放弃本次未保存的修改。"
+            "value": "草稿保存失败。可继续编辑、重试保存，或不保存直接离开。"
           }
         }
       }

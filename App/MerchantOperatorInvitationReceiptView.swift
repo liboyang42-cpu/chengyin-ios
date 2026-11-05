@@ -105,7 +105,6 @@ import SwiftUI
                             }.disabled(!model.canReveal || model.busy).accessibilityIdentifier("merchant.operatorInvite.reveal")
                         }
                         Text("merchant.operatorInvite.recipientInstructions").font(.footnote)
-                        Text("merchant.operatorInvite.memoryLifetime").font(.footnote).foregroundStyle(.secondary)
                     } else {
                         Text("merchant.operatorInvite.unavailable").font(.footnote).foregroundStyle(.secondary)
                     }

@@ -12,7 +12,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "移除好友"
+            "value": "删除好友"
           }
         }
       }
@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recover a removal result"
+            "value": "Pending removals"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "恢复移除结果"
+            "value": "待确认的删除"
           }
         }
       }
@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This removes your friendship from both friend lists and clears both sides’ friend remarks, group membership and stars."
+            "value": "You'll no longer be friends. Remarks, groups and special care on both sides are cleared. Your chats stay."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "将从双方好友列表移除这段关系，并清除双方对此好友的备注、分组归属和星标。"
+            "value": "你们将不再是好友，双方的备注、分组和特别关心会被清除，聊天记录保留。"
           }
         }
       }
@@ -86,13 +86,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Removal access is currently closed. Saved requests are kept."
+            "value": "You can't remove friends right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "移除权限暂未开放，已保存的原请求仍保留。"
+            "value": "暂时无法删除好友。"
           }
         }
       }
@@ -102,13 +102,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original result is not confirmed. A missing friend row does not prove success. Do not send another removal."
+            "value": "We couldn't confirm the removal. Check the result before trying again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原请求结果尚未确认。好友行消失不代表移除成功，请勿重复发起。"
+            "value": "删除结果未确认，请先查看结果，不要重复操作。"
           }
         }
       }
@@ -118,13 +118,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read original receipt"
+            "value": "Check result"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "读取原请求回执"
+            "value": "查看结果"
           }
         }
       }
@@ -150,13 +150,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No saved removal request for this account."
+            "value": "Nothing to check"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此账号没有待恢复的移除请求。"
+            "value": "没有待确认的删除"
           }
         }
       }
@@ -182,13 +182,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm removal"
+            "value": "Remove"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "确认移除"
+            "value": "删除"
           }
         }
       }
@@ -198,13 +198,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel without removing"
+            "value": "Cancel"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "取消，不执行移除"
+            "value": "取消"
           }
         }
       }
@@ -214,13 +214,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review removal"
+            "value": "Remove friend"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看移除确认"
+            "value": "删除好友"
           }
         }
       }
@@ -230,13 +230,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original removal was applied."
+            "value": "Friend removed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原移除请求已执行。"
+            "value": "已删除好友。"
           }
         }
       }
@@ -246,13 +246,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original request ended without removing this relationship."
+            "value": "The friend wasn't removed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原请求已结束，未执行此关系移除。"
+            "value": "未删除好友。"
           }
         }
       }
@@ -278,13 +278,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Currently friends"
+            "value": "Friends"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前是好友"
+            "value": "好友"
           }
         }
       }
@@ -294,13 +294,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Currently not friends"
+            "value": "Not friends"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前不是好友"
+            "value": "非好友"
           }
         }
       }
@@ -310,13 +310,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Current relationship"
+            "value": "Status"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前关系"
+            "value": "关系状态"
           }
         }
       }
@@ -358,13 +358,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Keep waiting"
+            "value": "Not now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "保留待确认"
+            "value": "暂不"
           }
         }
       }
@@ -390,13 +390,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original request could not be stored safely. No new removal was sent."
+            "value": "Couldn't save this request. Nothing was removed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无法安全保存原请求，未发起新的移除。"
+            "value": "请求保存失败，未执行删除。"
           }
         }
       }
@@ -406,13 +406,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This relationship changed. Return to the friends list and refresh before a new confirmation."
+            "value": "This friendship changed. Go back and refresh."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这段关系已变化，请返回刷新好友列表后重新确认。"
+            "value": "好友关系已变化，请返回刷新。"
           }
         }
       }
@@ -422,13 +422,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Could not verify this relationship. No removal was sent."
+            "value": "Couldn't check this friendship. Nothing was removed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无法核实这段关系，未发起移除。"
+            "value": "无法确认好友关系，未执行删除。"
           }
         }
       }
@@ -438,13 +438,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The removal was not sent."
+            "value": "Nothing was removed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "移除尚未发送。"
+            "value": "未执行删除。"
           }
         }
       }
@@ -454,13 +454,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original result confirmed; current relationship could not be read."
+            "value": "Removal confirmed. Couldn't load the current status."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原请求结果已确认，当前关系暂无法读取。"
+            "value": "删除结果已确认，当前关系暂时无法加载。"
           }
         }
       }
@@ -470,13 +470,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This original result is confirmed, but other saved requests could not be checked."
+            "value": "Result confirmed. Couldn't check other pending removals."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此原请求结果已确认，但暂无法检查其他已保存请求。"
+            "value": "结果已确认，其他待确认的删除暂时无法检查。"
           }
         }
       }
@@ -486,13 +486,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continue original removal"
+            "value": "Try again"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "继续原删除请求"
+            "value": "重试"
           }
         }
       }
@@ -502,13 +502,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continue removal for the original version?"
+            "value": "Try removing again?"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "继续执行原版本的删除？"
+            "value": "重新尝试删除？"
           }
         }
       }
@@ -518,13 +518,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check result, then retry the original request"
+            "value": "Try again"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "先查询，再按原请求重试"
+            "value": "重试"
           }
         }
       }
@@ -534,13 +534,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only the displayed original request and friendship version will be retried, never a newer friendship. An unknown outcome keeps the original request saved."
+            "value": "We'll check the last result first, then try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "只重试这里显示的原请求和原好友版本，不会改用新的好友关系。结果不明时仍保留原请求。"
+            "value": "将先查看上次结果，再重试。"
+          }
+        }
+      }
+    },
+    "d7.friendRemoval.confirmTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove this friend?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除该好友？"
           }
         }
       }

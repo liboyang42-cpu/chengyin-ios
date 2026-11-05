@@ -35,55 +35,73 @@ import SwiftUI
             if current {
                 if let quoteUsingOriginalSend { Button { quoteUsingOriginalSend(snapshot.id) } label: { Label { Text("message.quote", tableName: "NativeChannelMessage") } icon: { Image(systemName: "arrowshape.turn.up.left") } } }
                 if canEdit {
-                    Button { coordinator.prepareEdit(snapshot); editing = true } label: { Text("message.edit", tableName: "NativeChannelMessage") }.disabled(!canConfirmEditRecall)
-                }
-                if canRecall {
-                    Button(role: .destructive) { reason = ""; recalling = true } label: { Text("message.recall", tableName: "NativeChannelMessage") }.disabled(!canConfirmEditRecall)
+                    Button { coordinator.prepareEdit(snapshot); editing = true } label: { Label { Text("message.edit", tableName: "NativeChannelMessage") } icon: { Image(systemName: "pencil") } }.disabled(!canConfirmEditRecall)
                 }
                 if snapshot.pinned != nil, coordinator.client.allows(.mutate(snapshot.pinned == true ? .unpin : .pin)) {
-                    Button { preparePin() } label: { Text(snapshot.pinned == true ? "pins.remove" : "pins.add", tableName: "NativeChannelMessage") }.disabled(!coordinator.canStart || phase != .active || !coordinator.client.allows(.receipt))
+                    Button { preparePin() } label: {
+                        Label { Text(snapshot.pinned == true ? "pins.remove" : "pins.add", tableName: "NativeChannelMessage") } icon: { Image(systemName: snapshot.pinned == true ? "pin.slash" : "pin") }
+                    }.disabled(!coordinator.canStart || phase != .active || !coordinator.client.allows(.receipt))
                 }
-                if coordinator.client.allows(.revisions) { Button { revisions = true } label: { Text("revisions.title", tableName: "NativeChannelMessage") } }
-                if let reportUsingExistingOwner { Button { reportUsingExistingOwner(snapshot.id) } label: { Text("message.report", tableName: "NativeChannelMessage") } }
+                if coordinator.client.allows(.revisions) { Button { revisions = true } label: { Label { Text("revisions.title", tableName: "NativeChannelMessage") } icon: { Image(systemName: "clock.arrow.circlepath") } } }
+                if let reportUsingExistingOwner { Button { reportUsingExistingOwner(snapshot.id) } label: { Label { Text("message.report", tableName: "NativeChannelMessage") } icon: { Image(systemName: "exclamationmark.bubble") } } }
+                // Destructive actions sit last, apart from the rest.
+                if canRecall {
+                    Divider()
+                    Button(role: .destructive) { reason = ""; recalling = true } label: { Label { Text("message.recall", tableName: "NativeChannelMessage") } icon: { Image(systemName: "arrow.uturn.backward") } }.disabled(!canConfirmEditRecall)
+                }
             }
         }
         .sheet(isPresented: $editing) {
             NavigationStack {
                 Form {
-                    TextEditor(text: $coordinator.draft).font(Theme.Font.body).frame(minHeight: 160).accessibilityIdentifier("ncm47.edit.draft")
-                        .disabled(!canConfirmEditRecall || !canEdit)
-                    Text("message.mentionsRetained", tableName: "NativeChannelMessage").font(Theme.Font.label).foregroundStyle(.secondary)
-                    editRecallScope
-                    Button { confirmEditRecall(.edit) } label: { Text("message.save", tableName: "NativeChannelMessage") }
-                        .disabled(!canConfirmEditRecall || !canEdit || coordinator.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || coordinator.draft.unicodeScalars.count > 2000)
+                    Section {
+                        TextEditor(text: $coordinator.draft).font(Theme.Font.body).frame(minHeight: 120).accessibilityIdentifier("ncm47.edit.draft")
+                            .disabled(!canConfirmEditRecall || !canEdit)
+                        if coordinator.draft.unicodeScalars.count > 2000 {
+                            Text("d7.channelMessage.tooLong").font(.footnote).foregroundStyle(.red)
+                        }
+                    }
+                    Section {
+                        Button { confirmEditRecall(.edit) } label: { Text("message.save", tableName: "NativeChannelMessage").frame(maxWidth: .infinity) }
+                            .nativeChannelFlowAction()
+                            .disabled(!canConfirmEditRecall || !canEdit || coordinator.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || coordinator.draft.unicodeScalars.count > 2000)
+                    }
                     NativeChannelMessageRecoveryView(coordinator: coordinator)
                 }.nativeChannelScreen().navigationTitle(Text("message.edit", tableName: "NativeChannelMessage"))
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("关闭") { closeEditRecall() } } }
+                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { closeEditRecall() } } }
             }.privacySensitive().onDisappear { editRecallGeneration += 1 }
+            .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $recalling) {
             NavigationStack {
                 Form {
-                    Text("message.recallConfirm", tableName: "NativeChannelMessage")
-                    TextField("", text: $reason, prompt: Text("message.reason", tableName: "NativeChannelMessage"))
-                        .disabled(!canConfirmEditRecall || !canRecall)
-                    editRecallScope
-                    Text("撤回他人消息需要至少 4 个字符的原因；权限与时限由原服务最终校验。") .font(.caption)
-                    Button(role: .destructive) { confirmEditRecall(.recall) } label: { Text("message.recall", tableName: "NativeChannelMessage") }
-                        .disabled(!canConfirmEditRecall || !canRecall || !validRecallReason)
+                    Section {
+                        TextField("", text: $reason, prompt: Text("message.reason", tableName: "NativeChannelMessage"), axis: .vertical)
+                            .lineLimit(1...4)
+                            .disabled(!canConfirmEditRecall || !canRecall)
+                        if !reason.isEmpty && !validRecallReason {
+                            Text("d7.channelMessage.reasonLength").font(.footnote).foregroundStyle(.red)
+                        }
+                    } header: { Text("message.recallConfirm", tableName: "NativeChannelMessage") }
+                    Section {
+                        Button(role: .destructive) { confirmEditRecall(.recall) } label: { Text("message.recall", tableName: "NativeChannelMessage").frame(maxWidth: .infinity) }
+                            .disabled(!canConfirmEditRecall || !canRecall || !validRecallReason)
+                    }
                     NativeChannelMessageRecoveryView(coordinator: coordinator)
                 }.nativeChannelScreen().navigationTitle(Text("message.recall", tableName: "NativeChannelMessage"))
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("关闭") { closeEditRecall() } } }
+                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { closeEditRecall() } } }
             }.privacySensitive().onDisappear { editRecallGeneration += 1; reason = "" }
+            .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
-        .sheet(isPresented: $revisions) { NavigationStack { NativeChannelMessageRevisionView(client: coordinator.client, messageID: snapshot.id) } }
-        .confirmationDialog("确认更改这条消息的置顶状态？", isPresented: Binding(
-            get: { pinSelection != nil }, set: { if !$0 { pinSelection = nil } }), presenting: pinSelection) { selection in
-            Button(selection.command.operation == .pin ? "确认置顶" : "确认取消置顶") { confirmPin(selection) }
+        .sheet(isPresented: $revisions) {
+            NavigationStack { NativeChannelMessageRevisionView(client: coordinator.client, messageID: snapshot.id) }
+                .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+        }
+        .confirmationDialog("d7.channelMessage.pinTitle", isPresented: Binding(
+            get: { pinSelection != nil }, set: { if !$0 { pinSelection = nil } }), titleVisibility: .visible, presenting: pinSelection) { selection in
+            Button { confirmPin(selection) } label: { Text(selection.command.operation == .pin ? "pins.add" : "pins.remove", tableName: "NativeChannelMessage") }
                 .disabled(!current || !coordinator.canStart || phase != .active || !selection.isCurrent(coordinator.client))
-            Button("取消", role: .cancel) { pinSelection = nil }
-        } message: { selection in
-            Text("频道 \(selection.command.binding.channelID.rawValue) · 消息 \(selection.snapshot.id.rawValue) · 版本 \(selection.snapshot.version)。确认后只提交这一次原请求；结果不明时只查询，不自动重试。")
+            Button("action.cancel", role: .cancel) { pinSelection = nil }
         }
         .onChange(of: current) { _, valid in if !valid { pinSelection = nil } }
         .onChange(of: phase) { _, value in if value != .active { pinSelection = nil } }
@@ -93,7 +111,7 @@ import SwiftUI
         .onChange(of: coordinator.client.allows(.receipt)) { _, valid in if !valid { pinSelection = nil; closeEditRecall() } }
         .onChange(of: phase) { _, value in if value != .active { closeEditRecall() } }
         .onDisappear { closeEditRecall() }
-        .alert(Text("message.changed", tableName: "NativeChannelMessage"), isPresented: $localIssue) { Button("OK", role: .cancel) {} }
+        .alert(Text("message.changed", tableName: "NativeChannelMessage"), isPresented: $localIssue) { Button("d7.channelChat.ok", role: .cancel) {} }
     }
     private func preparePin() {
         guard phase == .active, current, coordinator.canStart else { return }
@@ -110,9 +128,6 @@ import SwiftUI
                   currentSnapshot() == selection.snapshot else { return }
             await coordinator.submit(selection.command)
         }
-    }
-    private var editRecallScope: some View {
-        Text("频道 \(coordinator.client.binding.channelID.rawValue) · 消息 \(snapshot.id.rawValue) · 原版本 \(snapshot.version)。只提交本次确认；结果不明时保留原 UUID，只查询，不重发。关闭不会取消已提交的原请求。") .font(.caption)
     }
     private var validRecallReason: Bool {
         let trimmed = reason.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -156,26 +171,24 @@ import SwiftUI
     var body: some View {
         if coordinator.isCurrent, coordinator.client.allows(.receipt) {
             if let pending = coordinator.original, pending.operation == .edit || pending.operation == .recall {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("待核原请求：\(pending.operation.rawValue) · 消息 \(pending.messageID?.rawValue ?? "") · UUID \(pending.requestID)")
-                    Text("重进或重启后只查询这个 UUID。当前正文、消息消失和写入应答都不能代替原请求回执；UNKNOWN 期间不能另发编辑或撤回。")
-                }.accessibilityIdentifier("ncm47.editRecall.originalPending")
+                Label { Text("d7.channelMessage.changePending") } icon: { Image(systemName: "clock") }
+                    .font(.footnote).fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("ncm47.editRecall.originalPending")
             }
             if coordinator.original == nil, let readback = coordinator.editRecallReadback.observation {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("原请求结果：已确认 · \(readback.operation.rawValue) · 消息 \(readback.messageID.rawValue) · 结果版本 \(readback.appliedVersion)")
-                    Text("同一 UUID 回执：\(readback.requestID)")
-                    switch readback.state {
-                    case .reading: Text("当前消息：正在从原上下文独立读取。")
-                    case .visible(let version, let atAppliedEditVersion):
-                        Text(atAppliedEditVersion
-                             ? "本次独立读回：消息可见，版本 \(version) 与编辑回执一致；正文仍由原消息展示。"
-                             : "本次独立读回：消息可见，当前版本 \(version)，可能已有后续编辑或恢复；不改变原请求已确认结果。")
-                    case .unavailable: Text("本次独立读回：原消息当前不可读，可能已撤回、隐藏或不可见；不把缺失再当作撤回证明。")
-                    case .failed: Text("当前消息尚未取得有效读回；原请求已确认结果不受影响。")
-                    case .accessClosed: Text("当前消息读取权限不可用，先前观察已隐藏；不扩大原回执权限。")
-                    }
-                    Button("只重新读取当前消息") { Task { await coordinator.editRecallReadback.refresh() } }
+                    Text(LocalizedStringKey(readback.operation == .recall ? "d7.channelMessage.recallDone" : "d7.channelMessage.editDone"))
+                    Group {
+                        switch readback.state {
+                        case .reading: Text("d7.channelMessage.reading")
+                        case .visible(_, let atAppliedEditVersion):
+                            Text(LocalizedStringKey(atAppliedEditVersion ? "d7.channelMessage.upToDate" : "d7.channelMessage.changedSince"))
+                        case .unavailable: Text("d7.channelMessage.notVisible")
+                        case .failed: Text("d7.channelMessage.readFailed")
+                        case .accessClosed: Text("access.closed", tableName: "NativeChannelMessage")
+                        }
+                    }.foregroundStyle(.secondary)
+                    Button("d7.channelMessage.refresh") { Task { await coordinator.editRecallReadback.refresh() } }
                         .disabled(coordinator.busy || coordinator.editRecallReadback.refreshing || !coordinator.editRecallReadback.canRefresh)
                 }.accessibilityIdentifier("ncm47.editRecall.receiptAndCurrentMessage")
             }

@@ -16,6 +16,8 @@ import SwiftUI
     var reportFlow: NativeChannelReportFlow? = nil
     var notificationFlow: NativeChannelNotificationCoordinator? = nil
     var historyRouteIsActive: () -> Bool = { false }
+    /// The destination's existing mention picker, offered from the composer's `+`.
+    var mentionAction: (() -> Void)? = nil
     @Environment(\.scenePhase) private var previewScene
     @State private var previewSelection: AttachmentSelection?
     @State private var previewUnavailable = false
@@ -53,9 +55,7 @@ import SwiftUI
                 messageVisibility: { original in
                     guard let row = wire.snapshot(for: original) else { return false }; return coordinator.canDisplay(row)
                 }, acknowledgementControls: { rendered in
-                    guard let notificationFlow else {
-                        return AnyView(Text("channel.receiptUnavailable", tableName: "NativeChannel").font(.footnote))
-                    }
+                    guard let notificationFlow else { return AnyView(EmptyView()) }
                     return AnyView(NativeChannelOriginalNotificationAck(model: notificationFlow,
                         messages: rendered, currentMessage: { message in
                             guard history.isCurrent, history.loaded,
@@ -63,75 +63,15 @@ import SwiftUI
                                   let snapshot = wire.snapshot(for: message) else { return false }
                             return coordinator.canDisplay(snapshot)
                         }))
-                }, retainWhileCovered: historyRouteIsActive)
-        }, locateOriginalMessage: locateOriginal)
-        .toolbar {
-            if expanded != nil {
-                Menu {
-                    if expanded?.attachmentPreview != nil, !previewMessages.isEmpty {
-                        Menu("预览原图片附件", systemImage: "photo") {
-                            ForEach(previewMessages) { message in
-                                Button("消息 \(message.id)") { openAttachment(message) }
-                            }
-                        }.accessibilityIdentifier("channel.message.attachmentPreviewEntry")
-                    }
-                    if expanded?.checkinCoordinator != nil {
-                        Button("频道日签与打卡榜", systemImage: "calendar.badge.checkmark") { checkinPresented = true }
-                            .disabled(!history.isCurrent || !history.loaded || history.isLoading)
-                            .accessibilityIdentifier("channel.message.originalCheckinEntry")
-                    }
-                    if expanded?.chainCoordinator != nil {
-                        Button("接龙与原请求恢复", systemImage: "list.number") { chainPresented = true }
-                            .disabled(!history.isCurrent || !history.loaded || history.isLoading)
-                            .accessibilityIdentifier("channel.message.originalChainEntry")
-                    }
-                    if let owner=expanded?.coordinator(history.conversation.id),owner.isCurrent,
-                       (owner.writer.canSendRoute && owner.writer.canReadRouteShareSource) || owner.canRecoverRoute {
-                        Button("分享路线卡",systemImage:"map") { routePresented=true }
-                            .disabled(!history.isCurrent || !history.loaded || history.isLoading)
-                    }
-                    if let owner=expanded?.coordinator(history.conversation.id),owner.isCurrent,
-                       owner.writer.canSendStaticLocation || owner.canRecoverStaticLocation {
-                        Button("静态地点",systemImage:"mappin") { locationPresented=true }
-                            .disabled(!history.isCurrent || !history.loaded || history.isLoading)
-                    }
-                    if history.conversation.supportsGroupPolls,
-                       let poll = expanded?.pollCoordinator?(history.conversation.id,nil), poll.isCurrent, (poll.canRead || poll.canRecoverCreationReceipt) {
-                        Button("poll.create",systemImage:"chart.bar.xaxis") { pollPresented=true }
-                            .disabled(!history.isCurrent || !history.loaded || history.isLoading)
-                            .accessibilityIdentifier("channel.message.originalPollEntry")
-                    }
-                    if expanded?.coordinator(history.conversation.id) != nil,
-                       expanded?.uploadCoordinator(history.conversation.id) != nil {
-                        Button("im.full.selectImage", systemImage: "photo") { imagePresented = true }
-                            .disabled(!history.isCurrent || !history.loaded || history.isLoading)
-                            .accessibilityIdentifier("channel.message.originalImageEntry")
-                    }
-                    if let voice = expanded?.voiceCoordinator?(history.conversation.id), voice.isCurrent {
-                        Button("语音消息", systemImage: "waveform") { voicePresented = true }
-                            .disabled(!history.isCurrent || !history.loaded || history.isLoading)
-                    }
-                    if let file = expanded?.fileCoordinator?(history.conversation.id), file.isCurrent {
-                        Button("文件消息", systemImage: "doc") { filePresented = true }
-                            .disabled(!history.isCurrent || !history.loaded || history.isLoading)
-                    }
-                    if let video = expanded?.videoCoordinator?(history.conversation.id), video.isCurrent {
-                        Button("视频消息", systemImage: "video") { videoPresented = true }
-                            .disabled(!history.isCurrent || !history.loaded || history.isLoading)
-                    }
-                } label: {
-                    Label("频道工具", systemImage: "plus")
-                }.accessibilityIdentifier("channel.message.tools")
-            }
-            if let reportFlow, reportFlow.isCurrent, reportFlow.hasPending {
-                Button("原举报结果") { reportPresented = true }
-            }
-        }
+                }, retainWhileCovered: historyRouteIsActive,
+                composerAccessory: composerTools)
+        }, locateOriginalMessage: locateOriginal, moreActions: moreActions)
         .sheet(item: $previewSelection, onDismiss: clearAttachment) { selection in
             NavigationStack {
                 NativeChannelAttachmentPreviewEntry(flow: selection.flow,
                     current: { attachmentIsCurrent(selection) })
             }
+            .presentationDragIndicator(.visible)
         }
         .task(id: previewSelection?.id) {
             guard let selection = previewSelection else { return }
@@ -141,8 +81,8 @@ import SwiftUI
             }
         }
         .onChange(of: previewScene) { _, phase in if phase != .active { clearAttachment() } }
-        .alert("原附件预览当前不可用", isPresented: $previewUnavailable) {
-            Button("关闭", role: .cancel) {}
+        .alert("d7.channelChat.imageUnavailable", isPresented: $previewUnavailable) {
+            Button("action.close", role: .cancel) {}
         }
         .onChange(of: history.client.identity) { _, _ in clearAttachment() }
         .onDisappear { clearAttachment() }
@@ -151,35 +91,35 @@ import SwiftUI
                 NavigationStack { IMVoiceComposeView(owner: voice, current: {
                     history.isCurrent && history.loaded && !history.isLoading && history.client.identity == voice.scope.identity
                 }) }
-            } else { Text("当前身份或会话不可用") }
+            } else { sessionUnavailable }
         }
         .sheet(isPresented: $filePresented) {
             if let file = expanded?.fileCoordinator?(history.conversation.id), file.isCurrent {
                 NavigationStack { IMFileComposeView(owner: file, current: {
                     history.isCurrent && history.loaded && !history.isLoading && history.client.identity == file.scope.identity
                 }) }
-            } else { Text("当前身份或会话不可用") }
+            } else { sessionUnavailable }
         }
         .sheet(isPresented: $videoPresented) {
             if let video = expanded?.videoCoordinator?(history.conversation.id), video.isCurrent {
                 NavigationStack { IMVideoComposeView(owner: video, current: {
                     history.isCurrent && history.loaded && !history.isLoading && history.client.identity == video.scope.identity
                 }) }
-            } else { Text("当前身份或会话不可用") }
+            } else { sessionUnavailable }
         }
         .sheet(isPresented:$routePresented) {
             if let expanded,let owner=expanded.coordinator(history.conversation.id),owner.isCurrent {
                 NavigationStack { IMRouteShareComposeView(owner:owner,reader:expanded.topicReader,current:{
                     history.isCurrent && history.loaded && !history.isLoading && history.client.identity == owner.scope.identity
                 }) }
-            } else { Text("当前身份或会话不可用") }
+            } else { sessionUnavailable }
         }
         .sheet(isPresented:$locationPresented) {
             if let owner=expanded?.coordinator(history.conversation.id),owner.isCurrent {
                 NavigationStack { IMStaticLocationComposeView(owner:owner,current:{
                     history.isCurrent && history.loaded && !history.isLoading && history.client.identity == owner.scope.identity
                 }) }
-            } else { Text("当前身份或会话不可用") }
+            } else { sessionUnavailable }
         }
         .sheet(isPresented: $checkinPresented) {
             NavigationStack {
@@ -228,6 +168,87 @@ import SwiftUI
         }
         .onChange(of: history.client.identity) { _, _ in safety = nil; reportPresented = false; pollPresented = false; chainPresented = false; checkinPresented = false }
         .onDisappear { safety = nil; reportPresented = false; pollPresented = false; chainPresented = false; checkinPresented = false }
+    }
+    /// The composer's leading `+`: the existing channel send and tool entries.
+    @ViewBuilder private var toolsMenu: some View {
+        let unready = !history.isCurrent || !history.loaded || history.isLoading
+        Menu {
+            if let mentionAction {
+                Button("d7.channelChat.mention", systemImage: "at", action: mentionAction)
+            }
+            if expanded?.coordinator(history.conversation.id) != nil,
+               expanded?.uploadCoordinator(history.conversation.id) != nil {
+                Button("d7.channelChat.photo", systemImage: "photo") { imagePresented = true }
+                    .disabled(unready)
+                    .accessibilityIdentifier("channel.message.originalImageEntry")
+            }
+            if let video = expanded?.videoCoordinator?(history.conversation.id), video.isCurrent {
+                Button("d7.channelChat.video", systemImage: "video") { videoPresented = true }
+                    .disabled(unready)
+            }
+            if let voice = expanded?.voiceCoordinator?(history.conversation.id), voice.isCurrent {
+                Button("d7.channelChat.voice", systemImage: "waveform") { voicePresented = true }
+                    .disabled(unready)
+            }
+            if let file = expanded?.fileCoordinator?(history.conversation.id), file.isCurrent {
+                Button("d7.channelChat.file", systemImage: "doc") { filePresented = true }
+                    .disabled(unready)
+            }
+            if let owner=expanded?.coordinator(history.conversation.id),owner.isCurrent,
+               owner.writer.canSendStaticLocation || owner.canRecoverStaticLocation {
+                Button("d7.channelChat.location",systemImage:"mappin") { locationPresented=true }
+                    .disabled(unready)
+            }
+            if let owner=expanded?.coordinator(history.conversation.id),owner.isCurrent,
+               (owner.writer.canSendRoute && owner.writer.canReadRouteShareSource) || owner.canRecoverRoute {
+                Button("d7.channelChat.route",systemImage:"map") { routePresented=true }
+                    .disabled(unready)
+            }
+            if history.conversation.supportsGroupPolls,
+               let poll = expanded?.pollCoordinator?(history.conversation.id,nil), poll.isCurrent, (poll.canRead || poll.canRecoverCreationReceipt) {
+                Button("poll.create",systemImage:"chart.bar.xaxis") { pollPresented=true }
+                    .disabled(unready)
+                    .accessibilityIdentifier("channel.message.originalPollEntry")
+            }
+            if expanded?.chainCoordinator != nil {
+                Button("d7.channelChat.chain", systemImage: "list.number") { chainPresented = true }
+                    .disabled(unready)
+                    .accessibilityIdentifier("channel.message.originalChainEntry")
+            }
+            if expanded?.checkinCoordinator != nil {
+                Button("d7.channelChat.checkin", systemImage: "calendar.badge.checkmark") { checkinPresented = true }
+                    .disabled(unready)
+                    .accessibilityIdentifier("channel.message.originalCheckinEntry")
+            }
+            if expanded?.attachmentPreview != nil, !previewMessages.isEmpty {
+                Menu("d7.channelChat.images", systemImage: "photo.on.rectangle") {
+                    ForEach(previewMessages) { message in
+                        Button { openAttachment(message) } label: { Text(verbatim: imageTitle(message)) }
+                    }
+                }.accessibilityIdentifier("channel.message.attachmentPreviewEntry")
+            }
+        } label: {
+            Label("d7.channelChat.tools", systemImage: "plus").labelStyle(.iconOnly)
+                .font(.title3.weight(.medium)).frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
+        }
+        .accessibilityIdentifier("channel.message.tools")
+    }
+    private var composerTools: AnyView? {
+        guard expanded != nil || mentionAction != nil else { return nil }
+        return AnyView(toolsMenu)
+    }
+    /// Report status and other host actions that join the toolbar's … menu.
+    private var moreActions: AnyView? {
+        guard let reportFlow, reportFlow.isCurrent, reportFlow.hasPending else { return nil }
+        return AnyView(Button("d7.channelChat.reportStatus", systemImage: "flag") { reportPresented = true })
+    }
+    private var sessionUnavailable: some View {
+        ContentUnavailableView { Label("d7.channelChat.sessionUnavailable", systemImage: "bubble.left") }
+    }
+    /// Sender and time identify an image; message IDs are never shown.
+    private func imageTitle(_ message: MessagingMessage) -> String {
+        let parts = [message.senderName, message.createdAt].compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+        return parts.isEmpty ? "—" : parts.joined(separator: " · ")
     }
     private var previewMessages: [MessagingMessage] {
         guard previewScene == .active, history.isCurrent, history.loaded, !history.isLoading,
@@ -321,7 +342,7 @@ import SwiftUI
                       let last = messages.last, validTarget(last) else { return }
                 reviewed = .init(message: last, owner: ObjectIdentifier(model), generation: ticket)
                 confirmationPresented = true
-            } label: { Text("channel.markSeen", tableName: "NativeChannel") }
+            } label: { Text("channel.markSeen", tableName: "NativeChannel").frame(maxWidth: .infinity) }
                 .disabled(!owns(ticket) || screenTask != nil || !model.canAck || messages.last.map(validTarget) != true)
                 .accessibilityIdentifier("channel.history.originalNotificationAck")
             NativeChannelNotificationStatusSection(model: model, perform: { operation in
@@ -334,12 +355,10 @@ import SwiftUI
             .disabled(!owns(ticket) || screenTask != nil)
         }
         .font(Theme.Font.body)
-        .confirmationDialog("确认将此频道已显示消息标为已读？", isPresented: $confirmationPresented,
+        .confirmationDialog("d7.channelChat.markReadTitle", isPresented: $confirmationPresented,
                             titleVisibility: .visible, presenting: reviewed) { review in
-            Button("确认到这条原消息为止") { confirm(review) }
-            Button("取消", role: .cancel) { reviewed = nil }
-        } message: { review in
-            Text("频道 \(review.message.conversationID)，截至消息 \(review.message.id)。只提交这一原已读位置；原结果未知时保留请求，不从列表未读数或投递日志推断成功。")
+            Button("d7.channelChat.markReadConfirm") { confirm(review) }
+            Button("action.cancel", role: .cancel) { reviewed = nil }
         }
         .onAppear { visible = true; cancelQueued() }
         .onDisappear { visible = false; cancelQueued() }
@@ -433,14 +452,13 @@ import SwiftUI
                     case .closed: Text("im.full.closed")
                     case .acknowledged:
                         Text("im.full.acknowledged")
-                        Text("发送回执不代表内容审核通过。请进入图片页查询原结果及独立可见消息。")
                     case .idle: EmptyView()
                     }
                 }
             }
         }
         .nativeChannelScreen()
-        .navigationTitle(Text("im.full.selectImage"))
+        .navigationTitle(Text("d7.channelChat.photo"))
         .onAppear { model.observe() }
         .task(id: active) {
             // This remains ordinary image readback, never a strict-channel proof.

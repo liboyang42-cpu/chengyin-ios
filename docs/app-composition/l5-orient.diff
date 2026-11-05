@@ -1,0 +1,175 @@
+# L5 scoring completion, 2026-11-05. Incremental base 13714dd37dfa9353ddb52de7aad306c413fee729.
+# The shared diff below STILL targets integration base 08be33155c71d87d4008839fcf83f6cc22aef000.
+# Prior b5db490454a4b4393ccb1b724068aed24d215e18 and 13714dd remain preserved; apply this commit after 13714dd.
+# Shared PBX/AppSession/entry/composition hunks are UNCHANGED from 13714dd; Claude alone applies them.
+# This lane changes only four existing OrientSession Core files, one new scoring test file, and this handoff header.
+# Verified source contract: public hengyin c6eac3b8cebf7311e8f00f208d294c3c8212aaec. This is NOT a deployment attestation.
+# Read ApiOrientScoringController, OrientScoringServiceImpl, OrientPlayerWire, OrientScoreAppeal and the actual
+# chengyinhub-xcx/subpackageMember/orient-score/index.js and utils/orient-score-view.js callers.
+# Owner evidence: issue #131 has this lane's exclusive claim; other ordinary selector branch f019155a has no OrientSession/scoring files.
+# Reference #575 remains mismatched: public iOS 404, public hengyin C09 channel replies with no assignee/comments. No foreign work rewritten.
+# Existing frozen58 default remains. New sync/leaderboard/appeal/dispute APIs require explicit .currentC6 AND existing exact endpoint grants.
+# Added synchronizeScore(key:): persists a SYNC command before POST /api/orient/scoring/session/{realId}/sync.
+# SYNC accepts only state=SYNCED, kind=SYNC and exact session/member/original key, with authoritative added/totalCenti.
+# Timeout/cancellation/conflict/NOT_FOUND retain the original journal. recoverPending GETs /api/orient/scoring/receipt?kind=SYNC.
+# Explicit retryPending reuses exactly the same command/key; a later score read may legitimately have a different total.
+# Added loadPersonalLeaderboard(): GET /api/orient/scoring/session/{realId}/leaderboard.
+# Preserve server SCORE/ROUTE mode, ties, exact signed scores, null elapsedMs and a personal row outside the top 50.
+# rowKey is an anonymous display key, NEVER a member/session ID or navigation target. No local ranking or identity reconstruction.
+# Revoked/forbidden board reads clear the old board and never fall back to an alternate endpoint or fabricated rank.
+# observeFinish now also reads the c6 personal board after server FINISHED, score and team ranking. No POST /finish is invented.
+# Added appeal(confirmed:entryID:nodeID:reason:key:) and dispute(confirmed:reason:key:).
+# Reasons canonicalize once using the backend trim/500 UTF-16-unit limit, BEFORE persistence. Scoring keys match [A-Za-z0-9:_.-]{1,96}.
+# POST /api/orient/scoring/appeal or /dispute uses FORM fields. Appeal targets an actual entry/node; dispute carries no invented target.
+# POST bean responses and GET wrapped {state,kind,idempotencyKey,record} receipts are separately checked against session/member/key/targets/reason.
+# PENDING submission is not acceptance. Fresh score.appealRecords/disputeRecords determine current server review status.
+# Readback must match the original request bytes; Swift's canonically equivalent Unicode strings are not interchangeable server payloads.
+# Fresh list evidence is required before clearing review recovery. Missing/ambiguous/malformed or not-yet-read facts retain the original operation.
+# No manual "recovery" record or REVIEWED status is manufactured to attest an unknown original write.
+# UI owner integration checklist: wire ordinary score view to synchronizeScore/loadPersonalLeaderboard/appeal/dispute;
+# render pending readback before allowing another write, require confirmation and reason input, and show server processing status.
+# Exact added grants required: api/orient/scoring/receipt, api/orient/scoring/appeal, api/orient/scoring/dispute,
+# and the actual per-session /sync and /leaderboard paths. This patch CREATES OR EXPANDS NO GRANT.
+# Existing discovery/select/prepare/start/leave/resume/task/alternative/finish/settlement behavior and durable owner binding remain covered.
+# Verification: Swift 6.0.3 Linux isolated actual-source target; 74 XCTest cases. Original 51 assertions/files unchanged.
+# Test target copies the four production files + unchanged APIConfiguration/AuthRequestBuilder/AuthService/Account from base 13714dd.
+# Gitleaks scans only the deliverable delta. Full Core/Xcode/UI/device/real backend and actual deployment flags remain unverified.
+# Real normal-entry wiring is still Claude's responsibility; code/tests/upload do not assert full launch or live-journey acceptance.
+# No shared file, backend, permission/auth/RBAC, production, transaction rule, CI or public issue comment was changed.
+--- a/App/AppSession.swift
++++ b/App/AppSession.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import CryptoKit
+ import Combine
+ import SwiftUI
+ 
+@@ -2305,6 +2306,56 @@
+         return RuntimeDependencyFactory(api: api, configuration: runtimeDependencies.configuration,
+             transport: runtimeHTTPTransport,
+             current: { [weak self] in self?.currentRuntimeDependencyContext })
++    }
++    // Orient lifecycle grants remain explicit endpoint approvals in the existing factory.
++    // Dynamic score/task paths must also be approved for real server-issued IDs.
++    private var retainedOrientSessions: [String: OrientSessionCoordinator] = [:]
++    func orientSession(topicID: Int, activityID: Int, productType: Int, contract: OrientSessionContract = .frozen58) -> OrientSessionCoordinator? {
++        guard !committingAuthenticatedSession,
++              let scope = try? OrientSessionScope(topicID: topicID, activityID: activityID, productType: productType),
++              let api = regionalConfiguration?.apiConfiguration, let storageScope,
++              let captured = currentRuntimeDependencyContext,
++              let factory = runtimeDependencyFactory, let approved = factory.accepted,
++              approved.play.contains(.reads),
++              let owner = try? OrientSessionRecoveryOwner(namespace: storageScope.service,
++                  accountID: captured.session.accountID, role: captured.role),
++              let identity = try? OrientSessionIdentity(owner: owner, epoch: captured.session.epoch,
++                  token: captured.session.token) else { return nil }
++        var required: Set<String> = ["api/play/orient/session", "api/play/orient/session/prepare",
++            "api/play/orient/session/start", "api/play/orient/session/abandon", "api/play/orient/session/receipt",
++            "api/orient/safety/check", "api/orient/team/lobby", "api/orient/team/ranking"]
++        if contract == .currentC6 { required.insert("api/play/orient/session/current") }
++        let contractKey = contract == .currentC6 ? "c6" : "58"
++        guard required.isSubset(of: approved.endpoints.paths) else { return nil }
++        let viewer = compositionViewerRevision
++        let key = playRuntimeKey(.topic(topicID), suffix: "orient:\(contractKey):\(activityID):\(viewer):\(approved.endpoints.paths.sorted().joined(separator: "|"))")
++        if let retained = retainedOrientSessions[key] { return retained }
++        let current: () -> OrientSessionIdentity? = { [weak self] in
++            guard let self, self.compositionViewerRevision == viewer,
++                  self.currentRuntimeDependencyContext == captured,
++                  self.runtimeDependencyFactory?.accepted?.endpoints.paths == approved.endpoints.paths else { return nil }
++            return identity
++        }
++        do {
++            let support = try FileManager.default.url(for: .applicationSupportDirectory,
++                in: .userDomainMask, appropriateFor: nil, create: true)
++            let namespaceDigest = SHA256.hash(data: Data(owner.namespace.utf8))
++                .map { String(format: "%02x", $0) }.joined()
++            let slot = support.appendingPathComponent("OrientSessions", isDirectory: true)
++                .appendingPathComponent(namespaceDigest, isDirectory: true)
++                .appendingPathComponent(String(owner.accountID), isDirectory: true)
++                .appendingPathComponent(owner.role, isDirectory: true)
++                .appendingPathComponent("\(topicID)-\(activityID).json")
++            let recovery = try OrientSessionFileRecovery(fileURL: slot)
++            let coordinator = try OrientSessionCoordinator(scope: scope,
++                service: OrientSessionService(configuration: api, transport: factory.transport, contract: contract),
++                recovery: recovery, currentIdentity: current, onUnauthorized: { [weak self] lease in
++                    guard current() == lease else { return }
++                    self?.expireIfMatching(error: APIError.unauthorized, stamp: lease.epoch, credential: lease.token)
++                })
++            retainedOrientSessions[key] = coordinator
++            return coordinator
++        } catch { return nil }
+     }
+     private var currentPlayRuntimeSession: PlayExperienceSession? {
+         guard let account, let token, let namespace = storageScope?.service else { return nil }
+
+--- a/Questify.xcodeproj/project.pbxproj
++++ b/Questify.xcodeproj/project.pbxproj
+@@ -5,6 +5,46 @@
+ 	};
+ 	"objectVersion" = 56;
+ 	"objects" = {
++		"238803F900848A1EC5EBB85A" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/OrientSessionContracts.swift";
++			"sourceTree" = "<group>";
++		};
++		"59CAD4757E117185138E683B" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "238803F900848A1EC5EBB85A";
++		};
++		"5DE1772C75609AD06850C59F" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/OrientSessionCoordinator.swift";
++			"sourceTree" = "<group>";
++		};
++		"F1F0A0663004139FFBE679B7" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "5DE1772C75609AD06850C59F";
++		};
++		"0CEE604AA4ED9E24CD961C4F" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/OrientSessionRecovery.swift";
++			"sourceTree" = "<group>";
++		};
++		"A80DD3A7E7B19B22FA74C665" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "0CEE604AA4ED9E24CD961C4F";
++		};
++		"A5133F51975559ECE4787F9B" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/OrientSessionService.swift";
++			"sourceTree" = "<group>";
++		};
++		"78280BB23A5017F3B0E4C311" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "A5133F51975559ECE4787F9B";
++		};
+ 		"630D1CFA5FEBD33A996B0FD1" = {
+ 			"isa" = "PBXFileReference";
+ 			"lastKnownFileType" = "sourcecode.swift";
+@@ -27298,6 +27338,10 @@
+ 		"19F479106CE8C3BA8C106518" = {
+ 			"isa" = "PBXGroup";
+ 			"children" = (
++				"238803F900848A1EC5EBB85A",
++				"5DE1772C75609AD06850C59F",
++				"0CEE604AA4ED9E24CD961C4F",
++				"A5133F51975559ECE4787F9B",
+ 				"630D1CFA5FEBD33A996B0FD1",
+ 				"BD8A1744099E3CC953FE9FFD",
+ 				"1C05F0EA73C477B9583A1D92",
+@@ -30891,6 +30935,10 @@
+ 			"isa" = "PBXSourcesBuildPhase";
+ 			"buildActionMask" = 2147483647;
+ 			"files" = (
++				"59CAD4757E117185138E683B",
++				"F1F0A0663004139FFBE679B7",
++				"A80DD3A7E7B19B22FA74C665",
++				"78280BB23A5017F3B0E4C311",
+ 				"F24AD3F36FD050591D646093",
+ 				"AE2CD2CAF671FB06CBA37E0D",
+ 				"30B1D308D233AC486091C54C",

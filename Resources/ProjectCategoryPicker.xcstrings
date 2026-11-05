@@ -70,13 +70,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Categories can't be loaded right now. You can still enter a category ID manually."
+            "value": "Categories can't be loaded right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "分类暂时无法加载，仍可手动输入分类ID。"
+            "value": "分类暂时无法加载。"
           }
         }
       }
@@ -102,13 +102,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Saved or selected IDs not shown in the current list are kept unless you explicitly deselect them."
+            "value": "Categories you chose earlier stay selected unless you untick them."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前列表未展示的已保存或已选ID会继续保留，只有明确取消勾选才会移除。"
+            "value": "之前选择的类别会保留，取消勾选才会移除。"
           }
         }
       }

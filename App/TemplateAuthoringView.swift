@@ -214,10 +214,8 @@ import Combine
     }
     var body: some View {
         Form {
-            Section {
-                QuestifyStatusBadge(title: "templateAuthor.localBadge", systemImage: "square.and.pencil")
-                Text(LocalizedStringKey(model.coordinator.canSubmit ? "templateAuthor.httpReview" : "templateAuthor.unavailable")).foregroundStyle(.secondary)
-                if model.coordinator.session == nil { Text("templateAuthor.signIn").accessibilityIdentifier("templateAuthor.signIn") }
+            if model.coordinator.session == nil {
+                Section { Text("templateAuthor.signIn").accessibilityIdentifier("templateAuthor.signIn") }
             }
             restoreSection
             if model.coordinator.session != nil {
@@ -275,37 +273,54 @@ import Combine
         }
     }
     private var intro: some View {
-        Section("templateAuthor.introTitle") {
-            Text("templateAuthor.introBody")
-            Label("templateAuthor.introFinish", systemImage: "checkmark.circle")
-            Label("templateAuthor.introStory", systemImage: "book")
-            Label("templateAuthor.introReward", systemImage: "gift")
+        // Mini-program publish/template-intro: covers, value proposition, 开始创建. No explanatory rows.
+        Section {
             TemplateAuthoringIntroExperience(model: model, reader: metadataReader, onContinue: { step = .name })
         }
     }
     private var name: some View {
+        // Mini-program: naming comes right after the intro, then the editor.
         Section("templateAuthor.nameStep") {
-            TextField("templateAuthor.field.title", text: $model.draft.title).accessibilityIdentifier("templateAuthor.field.title")
-            TemplateBasicFieldClearButton(model: model, field: .title)
-            Button("templateAuthor.continue") { step = .edit }.disabled(!model.draft.canSave || !model.canEdit).accessibilityIdentifier("templateAuthor.continue")
+            HStack {
+                TextField("templateAuthor.field.title", text: $model.draft.title).accessibilityIdentifier("templateAuthor.field.title")
+                TemplateBasicFieldClearButton(model: model, field: .title)
+            }
+            Button { step = .edit } label: { Text("templateAuthor.continue").frame(maxWidth: .infinity) }
+                .buttonStyle(.questifyPrimary).controlSize(.large)
+                .disabled(!model.draft.canSave || !model.canEdit).accessibilityIdentifier("templateAuthor.continue")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
         }
     }
+    /// Mini-program publish/temp order: cover and name, template info, rules, completion
+    /// (game), reward and story, tools; then save draft, preview and publish.
     @ViewBuilder private var editor: some View {
         Group {
+            Section {
+                HStack(alignment: .bottom) {
+                    TemplateAuthoringField("title", text: $model.draft.title)
+                    TemplateBasicFieldClearButton(model: model, field: .title)
+                }
+                HStack(alignment: .bottom) {
+                    TemplateAuthoringField("imgUrl", text: model.optional(\.imgUrl))
+                    TemplateBasicFieldClearButton(model: model, field: .cover)
+                }
+            }
             Section("templateAuthor.basics") {
-                TemplateAuthoringField("title", text: $model.draft.title)
-                TemplateBasicFieldClearButton(model: model, field: .title)
-                TemplateAuthoringField("description", text: $model.draft.description, multiline: true)
-                TemplateBasicFieldClearButton(model: model, field: .description)
+                HStack(alignment: .bottom) {
+                    TemplateAuthoringField("description", text: $model.draft.description, multiline: true)
+                    TemplateBasicFieldClearButton(model: model, field: .description)
+                }
+                if model.draft.publishIssues.contains("templateAuthor.validation.descriptionLength") {
+                    Text("templateAuthor.validation.descriptionLength").font(.footnote).foregroundStyle(.red)
+                }
+                TemplateAuthoringField("requiredMaterials", text: model.optional(\.requiredMaterials))
+                TemplateAuthoringVenueField(model: model)
                 TemplateAuthoringMetadataFields(model: model, reader: metadataReader)
                 TemplateAuthoringField("difficulty", text: model.optional(\.difficulty))
-                TemplateAuthoringVenueField(model: model)
-                TemplateAuthoringField("requiredMaterials", text: model.optional(\.requiredMaterials))
-                TemplateAuthoringField("categoryId", text: model.number(\.categoryId))
-                TemplateAuthoringRuleFields(model: model)
-                TemplateAuthoringField("imgUrl", text: model.optional(\.imgUrl))
-                TemplateBasicFieldClearButton(model: model, field: .cover)
                 Toggle("templateAuthor.sync", isOn: .init(get: { model.draft.isSync == 1 }, set: { model.draft.isSync = $0 ? 1 : 0 }))
+            }
+            Section {
+                TemplateAuthoringRuleFields(model: model)
             }
             Section("templateAuthor.finish") {
                 Toggle("templateAuthor.moduleEnabled", isOn: $model.draft.finishEnabled)
@@ -322,20 +337,29 @@ import Combine
                 NavigationLink("templateModules.title") { TemplateOptionalModuleManager(model: model) }
                     .accessibilityIdentifier("templateModules.open")
             }
-            Section(String(localized: LocalizedStringResource("templateMedia.title", defaultValue: "Local media review", locale: locale))) {
+            Section(String(localized: LocalizedStringResource("templateMedia.title", defaultValue: "Media", locale: locale))) {
                 TemplateMediaReviewFields(controller: media)
             }
-            Section {
-                Button("templateAuthor.saveLocal") { model.save() }.accessibilityIdentifier("templateAuthor.saveLocal")
-                Button("templateAuthor.preview") { preview = true }.disabled(!model.draft.publishIssues.isEmpty || model.draft.validationMethod == .preference).accessibilityIdentifier("templateAuthor.preview")
-                if model.draft.validationMethod.isLocalConfigurationOnly { Text("templateAuthor.localConfigurationOnly") }
-                Button("templateAuthor.reviewDraft") { model.prepare(.saveDraft) }.disabled(!model.draft.canSave || model.draft.validationMethod.isLocalConfigurationOnly).accessibilityIdentifier("templateAuthor.reviewDraft")
-                if onSavedDraft == nil {
-                    Button("templateAuthor.reviewPublish") { model.prepare(.publish) }.disabled(!model.draft.publishIssues.isEmpty || model.draft.validationMethod.isLocalConfigurationOnly).accessibilityIdentifier("templateAuthor.reviewPublish")
+            if !model.draft.publishIssues.isEmpty {
+                Section("templateAuthor.validationTitle") {
+                    ForEach(Array(Set(model.draft.publishIssues)).sorted(), id: \.self) {
+                        Text(LocalizedStringKey($0)).font(.footnote).foregroundStyle(.red)
+                    }
                 }
             }
-            if !model.draft.publishIssues.isEmpty {
-                Section("templateAuthor.validationTitle") { ForEach(Array(Set(model.draft.publishIssues)).sorted(), id: \.self) { Text(LocalizedStringKey($0)).foregroundStyle(.red) } }
+            Section {
+                if model.draft.validationMethod.isLocalConfigurationOnly { Text("templateAuthor.localConfigurationOnly").font(.footnote).foregroundStyle(.secondary) }
+                if onSavedDraft == nil {
+                    Button { model.prepare(.publish) } label: { Text("templateAuthor.reviewPublish").frame(maxWidth: .infinity) }
+                        .buttonStyle(.questifyPrimary).controlSize(.large)
+                        .disabled(!model.draft.publishIssues.isEmpty || model.draft.validationMethod.isLocalConfigurationOnly).accessibilityIdentifier("templateAuthor.reviewPublish")
+                        .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+                }
+            }
+            Section {
+                Button("templateAuthor.reviewDraft") { model.prepare(.saveDraft) }.disabled(!model.draft.canSave || model.draft.validationMethod.isLocalConfigurationOnly).accessibilityIdentifier("templateAuthor.reviewDraft")
+                Button("templateAuthor.preview") { preview = true }.disabled(!model.draft.publishIssues.isEmpty || model.draft.validationMethod == .preference).accessibilityIdentifier("templateAuthor.preview")
+                Button("templateAuthor.saveLocal") { model.save() }.accessibilityIdentifier("templateAuthor.saveLocal")
             }
         }.disabled(!model.canEdit)
     }
@@ -367,11 +391,10 @@ struct TemplateAuthoringReviewView: View {
     let cancel: () -> Void
     var body: some View {
         Form {
-            Section("templateAuthor.reviewTitle") {
+            Section {
                 Text(verbatim: review.title).font(.headline)
                 Text(review.request.path.hasSuffix("publish") ? "templateAuthor.publishReview" : "templateAuthor.draftReview")
-                Text(LocalizedStringKey(canSubmit ? "templateAuthor.httpReview" : "templateAuthor.unavailable"))
-                if let id = review.draft?.originalTemplateID { LabeledContent("templateAuthor.original", value: String(id.rawValue)) }
+                if !canSubmit && !canSimulate { Text("templateAuthor.unavailable").foregroundStyle(.secondary) }
             }
             if let draft = review.draft, !draft.advanced.enabledConfigurationLabelKeys.isEmpty {
                 Section("creatorComposition.review") {
@@ -382,11 +405,18 @@ struct TemplateAuthoringReviewView: View {
                 }
             }
             if canSimulate {
-                Section { Text("templateAuthor.fixtureNotice"); Button("templateAuthor.confirmSimulation", action: confirm).accessibilityIdentifier("templateAuthor.confirmSimulation") }
-            } else if canSubmit {
-                Section { Button("templateAuthor.confirmRequest", action: confirm).accessibilityIdentifier("templateAuthor.confirmRequest") }
+                Section { Text("templateAuthor.fixtureNotice").foregroundStyle(.secondary) }
             }
-        }.navigationTitle("templateAuthor.reviewTitle")
+        }.navigationTitle("templateAuthor.reviewTitle").navigationBarTitleDisplayMode(.inline)
+            .questifyBottomAction {
+                if canSimulate {
+                    Button(action: confirm) { Text("templateAuthor.confirmSimulation").frame(maxWidth: .infinity) }
+                        .accessibilityIdentifier("templateAuthor.confirmSimulation")
+                } else if canSubmit {
+                    Button(action: confirm) { Text("templateAuthor.confirmRequest").frame(maxWidth: .infinity) }
+                        .accessibilityIdentifier("templateAuthor.confirmRequest")
+                }
+            }
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("templateAuthor.cancel", action: cancel).accessibilityIdentifier("templateAuthor.cancelReview") } }
     }
 }
@@ -397,7 +427,7 @@ struct TemplateAuthoringReviewView: View {
     @Environment(\.templateConfiguredRehearsals) private var configuredRehearsals
     var body: some View {
         List {
-            Section { Text("templateAuthor.previewNotice").foregroundStyle(.secondary); Text(verbatim: draft.title).font(.title2); Text(verbatim: draft.description) }
+            Section { Text(verbatim: draft.title).font(.title2.bold()); Text(verbatim: draft.description) }
             Section("templateAuthor.finish") {
                 Text(LocalizedStringKey(draft.validationMethod.labelKey))
                 if draft.validationMethod.rawValue == 7 {
@@ -442,7 +472,8 @@ struct TemplateAuthoringReviewView: View {
             }
             if let raw = draft.preferenceJson { Section("templateAuthor.preference.title") { TemplatePreferencePreviewView(raw: raw) } }
             if draft.rewardEnabled { Section("templateAuthor.reward") {
-                Text("templateAuthor.rewardPreview")
+                if let medal = draft.medalName, !medal.isEmpty { LabeledContent("templateAuthor.field.medalName", value: medal) }
+                if let feedback = draft.feedbackText, !feedback.isEmpty { Text(verbatim: feedback) }
                 if let style = draft.medalStyle, !(draft.medalName ?? "").isEmpty || !(draft.medalImg ?? "").isEmpty {
                     LabeledContent("templateAuthor.field.medalStyle", value: style)
                 }
@@ -485,14 +516,13 @@ enum TemplateBasicClearField {
         }
     }
     func label(_ locale: Locale) -> String {
-        let chinese = locale.language.languageCode?.identifier == "zh"
         switch self {
-        case .title: return chinese ? "清空标题" : "Clear title"
-        case .description: return chinese ? "清空描述" : "Clear description"
-        case .cover: return chinese ? "清空封面引用" : "Clear cover reference"
-        case .questionImage: return chinese ? "清空题干配图引用" : "Clear question image reference"
-        case .questionAudio: return chinese ? "清空题干音频引用" : "Clear question audio reference"
-        case .optionMedia(let letter): return chinese ? "清空选项 \(letter.rawValue) 媒体引用" : "Clear option \(letter.rawValue) media references"
+        case .title: return appLocalized("templateBasicClear.title", locale: locale)
+        case .description: return appLocalized("templateBasicClear.description", locale: locale)
+        case .cover: return appLocalized("templateBasicClear.cover", locale: locale)
+        case .questionImage: return appLocalized("templateBasicClear.questionImage", locale: locale)
+        case .questionAudio: return appLocalized("templateBasicClear.questionAudio", locale: locale)
+        case .optionMedia(let letter): return appLocalized("templateBasicClear.optionMedia \(letter.rawValue)", locale: locale)
         }
     }
     // The existing projection validates the schema. This narrow lexical guard also
@@ -585,15 +615,29 @@ enum TemplateBasicClearField {
     }
 }
 
+/// Trailing clear control. Next to a field it is the native ✕; on its own row it reads as a labelled action.
+/// It stays mounted (lifecycle drives the controller) and is invisible while there is nothing to clear.
 @MainActor struct TemplateBasicFieldClearButton: View {
     @StateObject private var controller: TemplateBasicFieldClearController
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
-    init(model: TemplateAuthoringModel, field: TemplateBasicClearField) {
-        _controller = StateObject(wrappedValue: .init(model: model, field: field))
+    private let iconOnly: Bool
+    init(model: TemplateAuthoringModel, field: TemplateBasicClearField, iconOnly: Bool = true) {
+        _controller = StateObject(wrappedValue: .init(model: model, field: field)); self.iconOnly = iconOnly
     }
     var body: some View {
-        Button(controller.field.label(locale), action: controller.clearAction())
+        Button(action: controller.clearAction()) {
+            if iconOnly {
+                Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary).imageScale(.large)
+                    .frame(minWidth: 32, minHeight: 32)
+            } else {
+                Label { Text(verbatim: controller.field.label(locale)) } icon: { Image(systemName: "xmark.circle") }
+            }
+        }
+            .buttonStyle(.borderless)
+            .accessibilityLabel(Text(verbatim: controller.field.label(locale)))
+            .opacity(iconOnly && !controller.canClear ? 0 : 1)
+            .accessibilityHidden(iconOnly && !controller.canClear)
             .disabled(!controller.canClear)
             .accessibilityIdentifier("templateBasicClear." + controller.field.rawValue)
             .onAppear { controller.appear(sceneIsActive: scenePhase == .active) }

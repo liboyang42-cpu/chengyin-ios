@@ -40,6 +40,7 @@ import SwiftUI
         self.removalFactory = removalFactory; self.publicProfile = publicProfile; self.progressCard = progressCard; self.conversation = conversation
     }
     private var flow: NativeFriendDirectoryFlow { model.flow }
+    private var filterActive: Bool { flow.filter.groupID != nil || flow.filter.starredOnly }
     var body: some View {
         List {
             Section {
@@ -47,38 +48,35 @@ import SwiftUI
                     var filter = flow.filter; filter.section = value; Task { await flow.select(filter) }
                 })) {
                     ForEach(NativeFriendDirectorySection.allCases, id: \.self) { section in
-                        Text(verbatim: localized("friendDirectory." + section.rawValue) + (flow.counts[section.rawValue].map { " (\($0))" } ?? "")).tag(section)
+                        text("friendDirectory." + section.rawValue).tag(section)
                     }
-                }.accessibilityIdentifier("friendDirectory.partition")
-                Picker(localized("friendDirectory.group"), selection: Binding(get: { flow.filter.groupID }, set: { value in
-                    var filter = flow.filter; filter.groupID = value; Task { await flow.select(filter) }
-                })) {
-                    text("friendDirectory.allGroups").tag(Int64?.none)
-                    ForEach(flow.groups) { group in
-                        Text(verbatim: group.isDefault == 1 ? localized("friendDirectory.defaultGroup") : group.name).tag(Optional(group.id ?? 0))
-                    }
-                }.accessibilityIdentifier("friendDirectory.group")
-                Toggle(isOn: Binding(get: { flow.filter.starredOnly }, set: { value in
-                    var filter = flow.filter; filter.starredOnly = value; Task { await flow.select(filter) }
-                })) { text("friendDirectory.starredOnly") }.accessibilityIdentifier("friendDirectory.starredOnly")
-                text("friendDirectory.privacy").font(Theme.Font.label).foregroundStyle(Theme.Color.textSecondary(in: domain))
+                }
+                .pickerStyle(.segmented).labelsHidden()
+                .accessibilityIdentifier("friendDirectory.partition")
+                .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
             }
-            if flow.busy { ProgressView().accessibilityIdentifier("friendDirectory.loading") }
+            if flow.busy { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("friendDirectory.loading") }
             if flow.phase == .closed { text("friendDirectory.closed") }
             if let issue = flow.issue {
                 Section {
-                    text(issue).accessibilityIdentifier("friendDirectory.issue")
+                    Label { text(issue) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.secondary) }
+                        .accessibilityIdentifier("friendDirectory.issue")
                     Button { Task { await flow.retry() } } label: { text(flow.paginationFailed ? "friendDirectory.retryPage" : "friendDirectory.refresh") }.disabled(flow.busy)
                 }
             }
             Section {
-                if flow.phase == .ready && flow.items.isEmpty { text("friendDirectory.empty").accessibilityIdentifier("friendDirectory.empty") }
+                if flow.phase == .ready && flow.items.isEmpty {
+                    ContentUnavailableView { Label { text("friendDirectory.empty") } icon: { Image(systemName: "person.2") } }
+                        .accessibilityIdentifier("friendDirectory.empty")
+                }
                 ForEach(flow.items) { item in
                     Button { model.open(item) } label: {
-                        HStack {
-                            Text(verbatim: item.displayName.isEmpty ? "#\(item.peerID)" : item.displayName).fixedSize(horizontal: false, vertical: true)
+                        HStack(spacing: Theme.Space.s3) {
+                            Image(systemName: "person.crop.circle.fill").font(.title2).foregroundStyle(.secondary).accessibilityHidden(true)
+                            Text(verbatim: item.displayName.isEmpty ? "—" : item.displayName).foregroundStyle(.primary).fixedSize(horizontal: false, vertical: true)
+                            if item.starred == 1 { Image(systemName: "star.fill").font(Theme.Font.label).foregroundStyle(.yellow).accessibilityLabel(Text("friendMeta.starred", tableName: "NativeFriendMetadata")) }
                             Spacer()
-                            if item.starred == 1 { Image(systemName: "star.fill").accessibilityLabel(text("friendDirectory.starredOnly")) }
+                            Image(systemName: "chevron.right").font(Theme.Font.label.weight(.semibold)).foregroundStyle(.tertiary).accessibilityHidden(true)
                         }
                     }.disabled(flow.busy).accessibilityIdentifier("friendDirectory.peer.\(item.peerID)")
                 }
@@ -86,24 +84,39 @@ import SwiftUI
                     Button { Task { await flow.loadMore() } } label: { text("friendDirectory.more") }
                         .disabled(flow.busy).accessibilityIdentifier("friendDirectory.more")
                 }
-            } header: { text("friendDirectory." + flow.filter.section.rawValue) }
-            Section {
-                text("friendDirectory.requestsExplanation").font(Theme.Font.label)
-                Button { dismiss() } label: { text("friendDirectory.requests") }.accessibilityIdentifier("friendDirectory.requests")
-            } header: { text("friendDirectory.pending") }
+            } header: {
+                Text(verbatim: localized("friendDirectory." + flow.filter.section.rawValue) + (flow.counts[flow.filter.section.rawValue].map { " · \($0)" } ?? ""))
+            }
         }
         .listStyle(.insetGrouped)
         .font(Theme.Font.body)
-        .scrollContentBackground(.hidden)
-        .background(Theme.Color.bgPage(in: domain))
-        .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .navigationTitle(localized("friendDirectory.title"))
         .accessibilityIdentifier("friendDirectory.home")
         .task { await flow.load() }
         .refreshable { await flow.load() }
         .onDisappear { flow.invalidate() }
         .onChange(of: scenePhase) { _, value in if value == .active { if model.selection == nil { Task { await flow.load() } } } else { flow.invalidate() } }
-        .toolbar { Button { Task { await flow.load() } } label: { Image(systemName: "arrow.clockwise") }.disabled(flow.busy) }
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Menu {
+                    Picker(localized("friendDirectory.group"), selection: Binding(get: { flow.filter.groupID }, set: { value in
+                        var filter = flow.filter; filter.groupID = value; Task { await flow.select(filter) }
+                    })) {
+                        text("friendDirectory.allGroups").tag(Int64?.none)
+                        ForEach(flow.groups) { group in
+                            Text(verbatim: group.isDefault == 1 ? localized("friendDirectory.defaultGroup") : group.name).tag(Optional(group.id ?? 0))
+                        }
+                    }.accessibilityIdentifier("friendDirectory.group")
+                    Toggle(isOn: Binding(get: { flow.filter.starredOnly }, set: { value in
+                        var filter = flow.filter; filter.starredOnly = value; Task { await flow.select(filter) }
+                    })) { text("friendDirectory.starredOnly") }.accessibilityIdentifier("friendDirectory.starredOnly")
+                } label: {
+                    Label { text("d7.friendDirectory.filter") } icon: {
+                        Image(systemName: filterActive ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
+                    }
+                }.disabled(flow.busy)
+            }
+        }
         // Always hosted outside ForEach: clearing the parent's rows cannot remove this destination.
         .navigationDestination(isPresented: detailBinding) {
             if let detail = model.selection {
@@ -111,7 +124,6 @@ import SwiftUI
                     removalFactory: removalFactory, publicProfile: publicProfile, progressCard: progressCard, conversation: conversation).id(detail.id)
             }
         }
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
     private var detailBinding: Binding<Bool> {
@@ -210,45 +222,70 @@ import SwiftUI
     }
     private var flow: NativeFriendDirectoryDetailFlow { model.flow }
     var body: some View {
-        Form {
-            Text(verbatim: "#\(flow.peerID)").accessibilityIdentifier("friendDirectory.detailPeer")
-            if flow.busy { ProgressView() }
-            if let issue = flow.issue { text(issue).accessibilityIdentifier("friendDirectory.detailIssue") }
+        List {
+            Section {
+                VStack(spacing: Theme.Space.s3) {
+                    Image(systemName: "person.crop.circle.fill").font(.largeTitle).imageScale(.large).foregroundStyle(.secondary).accessibilityHidden(true)
+                    if let item = flow.detail?.item {
+                        QuestifyHeroValue(value: Text(verbatim: item.displayName.isEmpty ? "—" : item.displayName))
+                            .accessibilityIdentifier("friendDirectory.detailName")
+                    } else if flow.busy {
+                        ProgressView()
+                    }
+                    if let detail = flow.detail {
+                        HStack(alignment: .top, spacing: Theme.Space.s2) {
+                            if detail.conversationID != nil {
+                                QuestifyRoundAction(title: "d7.friendProfile.message", systemImage: "message.fill") { Task { await model.openConversation() } }
+                                    .disabled(!flow.canOpen).accessibilityIdentifier("friendDirectory.chat")
+                            }
+                            if publicProfile != nil {
+                                QuestifyRoundAction(title: "d7.friendProfile.profile", systemImage: "person.text.rectangle") { Task { await model.openProfile() } }
+                                    .disabled(!flow.canOpen).accessibilityIdentifier("friendDirectory.profile")
+                            }
+                            if let metadataFactory {
+                                QuestifyRoundAction(title: "d7.friendProfile.settings", systemImage: "slider.horizontal.3") { model.openMetadata(using: metadataFactory) }
+                                    .disabled(!flow.canOpen).accessibilityIdentifier("friendDirectory.metadata")
+                            }
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .listRowBackground(Color.clear)
+            }
+            if let issue = flow.issue {
+                Section {
+                    Label { text(issue) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.secondary) }
+                        .accessibilityIdentifier("friendDirectory.detailIssue")
+                    Button { Task { await flow.load() } } label: { text("friendDirectory.refresh") }.disabled(flow.busy)
+                }
+            }
             if let detail = flow.detail {
                 let item = detail.item
-                Text(verbatim: item.displayName).font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("friendDirectory.detailName")
-                text(item.starred == 1 ? "friendDirectory.starred" : "friendDirectory.notStarred")
+                Section {
+                    LabeledContent {
+                        text(item.starred == 1 ? "friendDirectory.starred" : "friendDirectory.notStarred")
+                    } label: { Text("friendMeta.starred", tableName: "NativeFriendMetadata") }
+                }
                 if let progressCard, flow.canOpen {
                     progressCard(item, { flow.isCurrent && flow.canOpen && flow.detail?.item.peerID == item.peerID && flow.detail?.item.version == item.version })
                 }
-                if publicProfile != nil {
-                    Button { Task { await model.openProfile() } } label: { text("friendDirectory.profile") }
-                        .disabled(!flow.canOpen).accessibilityIdentifier("friendDirectory.profile")
-                }
-                if let metadataFactory {
-                    Button { model.openMetadata(using: metadataFactory) } label: { Text("friendMeta.title", tableName: "NativeFriendMetadata") }
-                        .disabled(!flow.canOpen).accessibilityIdentifier("friendDirectory.metadata")
-                }
                 if let removalFactory {
-                    Button { model.openRemoval(using: removalFactory) } label: { Text("friendRemoval.title", tableName: "NativeFriendRemoval") }
-                        .disabled(!flow.canOpen).accessibilityIdentifier("friendDirectory.remove")
-                }
-                if detail.conversationID != nil {
-                    Button { Task { await model.openConversation() } } label: { text("friendDirectory.chat") }
-                        .disabled(!flow.canOpen).accessibilityIdentifier("friendDirectory.chat")
+                    Section {
+                        Button(role: .destructive) { model.openRemoval(using: removalFactory) } label: {
+                            Text("friendRemoval.title", tableName: "NativeFriendRemoval").frame(maxWidth: .infinity)
+                        }
+                            .disabled(!flow.canOpen).accessibilityIdentifier("friendDirectory.remove")
+                    }
                 }
             }
-            Button { Task { await flow.load() } } label: { text("friendDirectory.refresh") }.disabled(flow.busy)
-            Button { dismiss() } label: { text("friendDirectory.back") }.accessibilityIdentifier("friendDirectory.back")
         }
-        .formStyle(.grouped)
+        .listStyle(.insetGrouped)
         .font(Theme.Font.body)
-        .scrollContentBackground(.hidden)
-        .background(Theme.Color.bgPage(in: domain))
-        .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .navigationTitle(localized("friendDirectory.detail"))
+        .navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("friendDirectory.detail")
         .task { await flow.load() }
+        .refreshable { await flow.load() }
         .onDisappear { flow.invalidate() }
         .onChange(of: scenePhase) { _, value in if value == .active { if model.child == nil { Task { await flow.load() } } } else { model.retire() } }
         // Child route owns only the original flow/peer identity; it does not require retained detail data.
@@ -263,7 +300,6 @@ import SwiftUI
                 }
             }
         }
-        .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }
     private var childBinding: Binding<Bool> {

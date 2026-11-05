@@ -18,6 +18,8 @@ private func nativeChannelLocalized(_ key: String, locale: Locale) -> String {
     var messageVisibility: ((MessagingMessage) -> Bool)? = nil
     var acknowledgementControls: (([MessagingMessage]) -> AnyView)? = nil
     var retainWhileCovered: () -> Bool = { false }
+    /// The host's channel tools, shown as the composer's leading `+`.
+    var composerAccessory: AnyView? = nil
     @State private var revision = 0
     @State private var task: Task<Void, Never>?
     @Environment(\.dismiss) private var dismiss
@@ -41,10 +43,14 @@ private func nativeChannelLocalized(_ key: String, locale: Locale) -> String {
                         }
                     }
                     if model.history.older.hasMore {
-                        Button { run { await model.older() } } label: { Text("channel.older", tableName: "NativeChannel") }
+                        Button { run { await model.older() } } label: { Text("channel.older", tableName: "NativeChannel").frame(maxWidth: .infinity) }
                             .disabled(model.isLoading).accessibilityIdentifier("channel.history.older")
+                            .listRowSeparator(.hidden)
                     }
-                    if model.loaded && renderedMessages.isEmpty { Text("channel.noMessages", tableName: "NativeChannel") }
+                    if model.loaded && renderedMessages.isEmpty {
+                        Text("channel.noMessages", tableName: "NativeChannel").font(.headline).foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity).padding(.vertical, Theme.Space.s4).listRowSeparator(.hidden)
+                    }
                     // Same row rules as direct chat: grouped time, avatar and name on received rows only.
                     let dividers = IMInboxTime.dividers(for: renderedMessages, now: Date())
                     ForEach(renderedMessages) { message in
@@ -85,30 +91,37 @@ private func nativeChannelLocalized(_ key: String, locale: Locale) -> String {
                                                   bottom: Theme.Space.s1, trailing: Theme.Space.pageX))
                     }
                     if model.loaded {
-                        if model.client.canLoadNewer {
+                        // Only paging through a newer backlog is a button; fresh messages come with pull to refresh.
+                        if model.client.canLoadNewer && model.history.hasMoreNewer {
                             Button {
                                 run { await model.newer() }
-                            } label: { Text(nativeChannelLocalized(model.history.hasMoreNewer ? "channel.moreNewer" : "channel.checkNewer", locale: locale)) }.disabled(model.isLoading).accessibilityIdentifier("channel.history.newer")
-                        } else { Text("channel.newerUnavailable", tableName: "NativeChannel").font(Theme.Font.label) }
-                        if acknowledgementControls == nil {
-                        if model.client.canReadThrough {
+                            } label: { Text("channel.moreNewer", tableName: "NativeChannel").frame(maxWidth: .infinity) }
+                                .disabled(model.isLoading).accessibilityIdentifier("channel.history.newer")
+                                .listRowSeparator(.hidden)
+                        }
+                        if acknowledgementControls == nil, model.client.canReadThrough {
                             Button {
                                 if let last = renderedMessages.last?.id { model.observed(last) }
                                 run { await model.markSeen() }
-                            } label: { Text("channel.markSeen", tableName: "NativeChannel") }
+                            } label: { Text("channel.markSeen", tableName: "NativeChannel").frame(maxWidth: .infinity) }
                                 .disabled(model.isLoading || renderedMessages.isEmpty)
                                 .accessibilityIdentifier("channel.history.markSeen")
-                        } else { Text("channel.receiptUnavailable", tableName: "NativeChannel").font(Theme.Font.label) }
+                                .listRowSeparator(.hidden)
                         }
                     }
-                    if let acknowledgementControls { acknowledgementControls(renderedMessages) }
+                    if let acknowledgementControls { acknowledgementControls(renderedMessages).listRowSeparator(.hidden) }
                     if let receipt = model.receipt {
-                        HStack { Text("channel.unreadRemaining", tableName: "NativeChannel"); Text(String(receipt.unread)) }
+                        LabeledContent { Text(receipt.unread, format: .number) } label: { Text("channel.unreadRemaining", tableName: "NativeChannel") }
+                            .font(.footnote).foregroundStyle(.secondary)
                             .accessibilityIdentifier("channel.history.readResult")
+                            .listRowSeparator(.hidden)
                     }
-                    if model.isLoading { ProgressView("messaging.loading") }
-                    Button { dismiss() } label: { Text("channel.return", tableName: "NativeChannel") }.accessibilityIdentifier("channel.history.return")
-                }.listStyle(.plain)
+                    if model.isLoading { ProgressView("messaging.loading").frame(maxWidth: .infinity).listRowSeparator(.hidden) }
+                }
+                .listStyle(.plain)
+                // Few messages sit just above the composer and grow upward, as in direct chat.
+                .defaultScrollAnchor(.bottom)
+                .scrollDismissesKeyboard(.interactively)
             }
         }
         .font(Theme.Font.body)
@@ -125,7 +138,12 @@ private func nativeChannelLocalized(_ key: String, locale: Locale) -> String {
         .safeAreaInset(edge: .bottom) {
             if let textCoordinator {
                 NativeChannelTextComposer(coordinator: textCoordinator, historyReady: historyReady,
-                    onReturnToHistory: { run { await model.load() } }, onReturnToDirectory: { dismiss() })
+                    onReturnToHistory: { run { await model.load() } }, onReturnToDirectory: { dismiss() },
+                    accessory: composerAccessory)
+            } else if model.isCurrent, let composerAccessory {
+                // No text composer: the `+` still sits where the composer would be.
+                HStack { composerAccessory; Spacer(minLength: 0) }
+                    .padding(.horizontal, Theme.Space.pageX).padding(.vertical, Theme.Space.s2).background(.background)
             }
         }
         .navigationTitle(nativeChannelLocalized("channel.history", locale: locale))

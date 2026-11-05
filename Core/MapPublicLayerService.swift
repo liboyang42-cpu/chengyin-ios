@@ -242,6 +242,9 @@ public struct MapPublicLayerService: MapPublicLayerServing {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(token, forHTTPHeaderField: "Authorization")
         request.httpBody = Data(layerRequest.body.utf8)
+        guard MapPublicLayerReadRoute(request: request, baseURL: configuration.baseURL) != nil else {
+            throw APIError.invalidRequest
+        }
 
         try Task.checkCancellation()
         let (data, status) = try await transport.send(request)
@@ -253,7 +256,11 @@ public struct MapPublicLayerService: MapPublicLayerServing {
               let rawObject = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw APIError.malformedResponse
         }
-        if let code = rawObject["code"] as? Int {
+        if rawObject.keys.contains("code") {
+            guard let envelope = try? JSONDecoder().decode(EnvelopeCode.self, from: data) else {
+                throw APIError.malformedResponse
+            }
+            let code = envelope.code
             if code == 401 { throw APIError.unauthorized }
             guard code == 200 else { throw APIError.businessCode(code) }
             guard let payloadObject = rawObject["data"] as? [String: Any],
@@ -268,6 +275,8 @@ public struct MapPublicLayerService: MapPublicLayerServing {
         }
         return data
     }
+
+    private struct EnvelopeCode: Decodable { let code: Int }
 }
 
 /// Validated theme entity destination for `theme` (`MapSourceType.themeNode`).
@@ -410,11 +419,13 @@ public struct MapPublicLayerDetailRoute: Identifiable, Equatable, Hashable {
     }
 
     public var pages: [MapPublicLayerPage] {
+        guard synchronizeContext() else { return [] }
         guard let session else { return [] }
         return session.pages
     }
 
     public var readyItems: [MapLayerItem] {
+        guard synchronizeContext() else { return [] }
         guard let session else { return [] }
         return MapPublicLayerAdapter.readyItems(in: session)
     }
@@ -425,6 +436,7 @@ public struct MapPublicLayerDetailRoute: Identifiable, Equatable, Hashable {
     }
 
     public var withheldItems: [MapPublicWithheldItem] {
+        guard synchronizeContext() else { return [] }
         guard let session else { return [] }
         return MapPublicLayerAdapter.withheld(in: session)
     }
@@ -434,16 +446,19 @@ public struct MapPublicLayerDetailRoute: Identifiable, Equatable, Hashable {
     }
 
     public var canLoadNextPage: Bool {
+        guard synchronizeContext() else { return false }
         guard let session else { return false }
         return isConfigured && isAuthenticated && !isLoading && !hasFailedLayer && !session.complete && session.cursor != nil
     }
 
     public var canRetry: Bool {
+        guard synchronizeContext() else { return false }
         guard session != nil else { return false }
         return isConfigured && isAuthenticated && !isLoading && hasFailedLayer
     }
 
     public var isComplete: Bool {
+        guard synchronizeContext() else { return false }
         guard let session else { return false }
         return session.complete && !hasFailedLayer
     }
@@ -468,6 +483,7 @@ public struct MapPublicLayerDetailRoute: Identifiable, Equatable, Hashable {
     }
 
     public func purgeAllState() {
+        activeScope = UUID()
         taskOwner.cancel()
         session = nil
         viewportSource = nil
@@ -677,6 +693,7 @@ public struct MapPublicLayerDetailRoute: Identifiable, Equatable, Hashable {
                   (manualAreaSelection?.revision ?? 0) == capturedAreaRevision,
                   let activeSession = session else {
                 _ = synchronizeContext()
+                retireChangedManualArea(issuedRequest, scope: capturedScope, areaRevision: capturedAreaRevision)
                 return
             }
             let outcome = MapPublicLayerAdapter.accept(activeSession, request: issuedRequest, json: rawData)
@@ -702,16 +719,24 @@ public struct MapPublicLayerDetailRoute: Identifiable, Equatable, Hashable {
                 errorKey = "mapPublicLayers.payloadRejected"
             }
         } catch is CancellationError {
-            return
+            guard !Task.isCancelled else { return }
+            _ = synchronizeContext()
+            retireChangedManualArea(issuedRequest, scope: capturedScope, areaRevision: capturedAreaRevision)
+            guard activeScope == capturedScope, session?.token == issuedRequest.attempt else { return }
+            isLoading = false
+            transportFailed = true
+            errorKey = "searchMap.failed"
         } catch {
             guard !Task.isCancelled,
                   currentContext() == capturedContext,
                   activeScope == capturedScope,
+                  isConfigured,
                   (manualAreaSelection?.revision ?? 0) == capturedAreaRevision,
                   let activeSession = session,
                   activeSession.token == issuedRequest.attempt,
                   activeSession.fingerprint == issuedRequest.fingerprint else {
                 _ = synchronizeContext()
+                retireChangedManualArea(issuedRequest, scope: capturedScope, areaRevision: capturedAreaRevision)
                 return
             }
             if error as? APIError == .unauthorized {
@@ -720,10 +745,21 @@ public struct MapPublicLayerDetailRoute: Identifiable, Equatable, Hashable {
                 errorKey = "mapPublicLayers.signInRequired"
                 return
             }
+            if error as? APIError == .httpStatus(403) || error as? APIError == .businessCode(403) {
+                purgeAllState()
+                errorKey = "searchMap.failed"
+                return
+            }
             isLoading = false
             transportFailed = true
             errorKey = Self.issueKey(for: error)
         }
+    }
+
+    private func retireChangedManualArea(_ request: MapPublicLayerRequest, scope: UUID, areaRevision: UInt64) {
+        guard activeScope == scope, session?.token == request.attempt,
+              (manualAreaSelection?.revision ?? 0) != areaRevision else { return }
+        purgeAllState()
     }
 
     private static func issueKey(for error: Error) -> String {
@@ -737,6 +773,7 @@ public struct MapPublicLayerDetailRoute: Identifiable, Equatable, Hashable {
 
     /// Returns the authoritative wire item for a ready `MapSourceKey` so parent theme/chapter metadata can be inspected without guessing IDs.
     public func wireItem(for key: MapSourceKey) -> MapPublicWireItem? {
+        guard synchronizeContext() else { return nil }
         guard let currentSession = session,
               let sourceID = Int(key.id),
               sourceID > 0 else { return nil }
@@ -865,3 +902,4 @@ public struct MapPublicLayerDetailRoute: Identifiable, Equatable, Hashable {
         "public-layer-item-\(key.type.rawValue)-\(key.id)"
     }
 }
+

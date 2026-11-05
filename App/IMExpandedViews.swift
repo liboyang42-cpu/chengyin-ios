@@ -139,10 +139,14 @@ struct IMExpandedSubmission: Equatable {
     let admission: ChannelAdmissionRoute?
     let directory: ChannelDirectoryAdmissionRequest?
     let showsAdmissionEntry: Bool
+    /// The loaded conversation's muted value. Nil (absent/unknown) shows explicit mute and unmute rows
+    /// instead of a toggle, so no state is inferred.
+    let isMuted: Bool?
     @State private var directoryPage: ChannelAdmissionGovernanceView?
     @State private var directoryFailed = false
     @State private var selectedTopic: TopicSummary?
     @State private var showingTopics = false
+    @State private var acknowledgedMuted: Bool?
     @State private var name = ""
     @State private var address = ""
     @State private var latitude = ""
@@ -150,6 +154,7 @@ struct IMExpandedSubmission: Equatable {
     init(coordinator: IMExpandedCoordinator, identity: MessagingReadIdentity?, uploadOwner: IMImageUploadCoordinator? = nil, topicReader: (any TopicReading)? = nil, replyPolicy: IMConversationReplyPolicy? = nil,
          isConversationCurrent: @escaping () -> Bool = { true }, readCursor: Int? = nil,
          admission: ChannelAdmissionRoute? = nil, directory: ChannelDirectoryAdmissionRequest? = nil, showsAdmissionEntry: Bool = false,
+         isMuted: Bool? = nil,
          onConversationMutationAccepted: @escaping (IMScope) -> Void = { _ in }, onReceipt: @escaping (IMMutationReceipt) -> Void) {
         _model = StateObject(wrappedValue: IMExpandedViewModel(coordinator)); self.identity = identity; self.uploadOwner = uploadOwner; self.topicReader = topicReader; self.onReceipt = onReceipt
         self.replyPolicy = replyPolicy ?? .init(conversationID: coordinator.scope.conversationID, conversation: nil)
@@ -158,51 +163,45 @@ struct IMExpandedSubmission: Equatable {
         self.admission = admission
         self.directory = directory
         self.showsAdmissionEntry = showsAdmissionEntry
+        self.isMuted = isMuted
         self.onConversationMutationAccepted = onConversationMutationAccepted
     }
     private var permitsReply: Bool { replyPolicy.permitsReply && isConversationCurrent() && identity == model.owner.scope.identity && model.owner.isCurrent }
     private func permits(_ mutation: IMMutation) -> Bool {
         isConversationCurrent() && identity == model.owner.scope.identity && model.owner.isCurrent && replyPolicy.permits(mutation)
     }
+    private var writerReady: Bool { model.owner.writer.isConfigured }
+    private var hasPendingState: Bool { if case .idle = model.state { return false }; return true }
+    private var displayedMuted: Bool? { acknowledgedMuted ?? isMuted }
     var body: some View {
         Form {
-            if !model.owner.writer.isConfigured { Text("im.full.disabled") }
-            Section("im.full.conversation") {
-                Button("im.full.read") { review(readMutation()) }
-                Button("im.full.mute") { review(.mute(conversationID: model.owner.scope.conversationID, muted: true)) }
-                Button("im.full.unmute") { review(.mute(conversationID: model.owner.scope.conversationID, muted: false)) }
+            if hasPendingState {
+                Section { pendingRows }
             }
-            if showsAdmissionEntry {
-                Section("admission.title") {
-                    if let directoryPage {
-                        NavigationLink { directoryPage } label: { Text("admission.title") }
-                            .accessibilityIdentifier("admission.entry")
-                    } else if let directory, !directoryFailed {
-                        Button("admission.title") {
-                            Task {
-                                do {
-                                    directoryPage = try await ChannelAdmissionParent.page(
-                                        configuration: directory.configuration, transport: directory.transport,
-                                        token: directory.token, accountID: directory.accountID, epoch: directory.epoch,
-                                        channelID: directory.channelID, spaceID: directory.spaceID, kind: directory.kind)
-                                } catch { directoryFailed = true }
-                            }
-                        }.accessibilityIdentifier("admission.entry")
-                    } else if let admission, let identity, identity.accountID == admission.accountID, identity.epoch == admission.epoch,
-                              let page = try? admission.page() {
-                        NavigationLink { page } label: { Text("admission.title") }
-                            .accessibilityIdentifier("admission.entry")
+            if writerReady {
+                Section {
+                    Button { review(readMutation()) } label: { Label("d7.chatInfo.markRead", systemImage: "checkmark.message") }
+                    if let muted = displayedMuted {
+                        Toggle(isOn: Binding(get: { muted }, set: { value in
+                            review(.mute(conversationID: model.owner.scope.conversationID, muted: value))
+                        })) { Label("d7.chatInfo.mute", systemImage: "bell.slash") }
                     } else {
-                        Text("admission.unavailable").accessibilityIdentifier("admission.unavailable")
+                        Button { review(.mute(conversationID: model.owner.scope.conversationID, muted: true)) } label: {
+                            Label("d7.chatInfo.mute", systemImage: "bell.slash")
+                        }
+                        Button { review(.mute(conversationID: model.owner.scope.conversationID, muted: false)) } label: {
+                            Label("d7.chatInfo.unmute", systemImage: "bell")
+                        }
                     }
                 }
             }
+            if showsAdmissionEntry { admissionSection }
             if replyPolicy.isSystemNotice {
                 Section { Text("im.reply.systemNotice").accessibilityIdentifier("im.reply.controlsNotice") }
             }
-            if permitsReply {
+            if permitsReply && writerReady {
                 if let uploadOwner {
-                    Section("im.full.image") {
+                    Section {
                         NavigationLink {
                             IMImageComposeView(owner: uploadOwner, identity: identity, canReply: { permitsReply }) { url in
                                 // The child owns its appearance while this navigation parent is offscreen.
@@ -210,47 +209,36 @@ struct IMExpandedSubmission: Equatable {
                                       let intent = try? IMOutgoingIntent(scope: model.owner.scope, payload: .image(url)) else { return false }
                                 return model.owner.review(.send(intent))
                             }
-                        } label: { Label("im.full.selectImage", systemImage: "photo") }
+                        } label: { Label("d7.chatInfo.sendPhoto", systemImage: "photo") }
                     }
                 }
-                Section("im.full.route") {
-                    if let selectedTopic { Text(verbatim: selectedTopic.name) }
-                    Button("context.route.choose") { if model.appearance != nil && permitsReply { showingTopics = true } }.disabled(topicReader == nil)
+                if topicReader != nil {
+                    Section("d7.chatInfo.route") {
+                        Button { if model.appearance != nil && permitsReply { showingTopics = true } } label: {
+                            if let selectedTopic { Label { Text(verbatim: selectedTopic.name) } icon: { Image(systemName: "map") } }
+                            else { Label("context.route.choose", systemImage: "map") }
+                        }
                         .accessibilityIdentifier("context.im.chooseRoute")
-                    Button("im.full.review") {
-                        if let row = selectedTopic, let intent = try? IMOutgoingIntent(scope: model.owner.scope, payload: .route(topicID: row.id)) { review(.send(intent)) }
-                    }.disabled(selectedTopic == nil || !model.owner.writer.isConfigured)
+                        if let selectedTopic {
+                            Button("d7.chatInfo.sendRoute") {
+                                if let intent = try? IMOutgoingIntent(scope: model.owner.scope, payload: .route(topicID: selectedTopic.id)) { review(.send(intent)) }
+                            }
+                        }
+                    }
                 }
-                Section("im.full.location") {
+                Section("d7.chatInfo.location") {
                     TextField("im.full.name", text: $name)
                     TextField("im.full.address", text: $address)
                     TextField("im.full.latitude", text: $latitude).keyboardType(.numbersAndPunctuation)
                     TextField("im.full.longitude", text: $longitude).keyboardType(.numbersAndPunctuation)
-                    Text("im.full.locationConsent").font(.footnote)
-                    Button("im.full.review") {
+                    Button("d7.chatInfo.sendLocation") {
                         if let lat = Double(latitude), let lng = Double(longitude), (-90...90).contains(lat), (-180...180).contains(lng),
                            let intent = try? IMOutgoingIntent(scope: model.owner.scope, payload: .location(name: name, address: address, latitude: lat, longitude: lng)) { review(.send(intent)) }
                     }
                 }
             }
-            Section {
-                switch model.state {
-                case .reviewing(let mutation):
-                    if permits(mutation) {
-                        IMMutationSummary(mutation: mutation)
-                        Button("im.full.confirm") { submit(.confirm) }.accessibilityIdentifier("im.full.confirm")
-                        Button("action.cancel", role: .cancel) { model.owner.cancelReview() }
-                    } else { Text("im.reply.unavailable") }
-                case .submitting: ProgressView("im.full.submitting")
-                case .outcomeUnknown(let mutation):
-                    Text("im.full.unknown")
-                    if permits(mutation) { Button("im.full.retrySame") { submit(.retry) } }
-                    else { Text("im.reply.unavailable") }
-                case .rejected: Text("im.full.rejected")
-                case .closed: Text("im.full.closed")
-                case .acknowledged: Text("im.full.acknowledged")
-                case .idle: EmptyView()
-                }
+            if !writerReady && !showsAdmissionEntry && !replyPolicy.isSystemNotice && !hasPendingState {
+                ContentUnavailableView("d7.chatInfo.unavailable", systemImage: "bubble.left.and.exclamationmark.bubble.right")
             }
         }
         .disabled(identity != model.owner.scope.identity || !isConversationCurrent())
@@ -260,15 +248,70 @@ struct IMExpandedSubmission: Equatable {
                 NavigationStack { ContextualTopicPicker(reader: topicReader) { row in
                     guard let appearance, model.appearance == appearance, permitsReply else { return }; selectedTopic = row
                 } }
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
             }
         }
         .navigationTitle(Text("im.full.title")).privacySensitive()
         .accessibilityIdentifier("im.full.controls")
         .onAppear { model.observe() }
-        .onChange(of: identity) { _, _ in clearDrafts(); model.invalidateQueued(); model.state = model.owner.visibleState }
+        .onChange(of: model.state) { _, state in if case .acknowledged(.muted(let value)) = state { acknowledgedMuted = value } }
+        .onChange(of: identity) { _, _ in clearDrafts(); acknowledgedMuted = nil; model.invalidateQueued(); model.state = model.owner.visibleState }
         .onChange(of: permitsReply) { _, allowed in if !allowed { clearDrafts(); model.invalidateQueued() } }
         .onChange(of: isConversationCurrent()) { _, current in if !current { clearDrafts(); model.invalidateQueued() } }
         .onDisappear { clearDrafts(); model.retire() }
+    }
+    @ViewBuilder private var pendingRows: some View {
+        switch model.state {
+        case .reviewing(let mutation):
+            if permits(mutation) {
+                IMMutationSummary(mutation: mutation)
+                Button("d7.chatInfo.confirm") { submit(.confirm) }.fontWeight(.semibold).accessibilityIdentifier("im.full.confirm")
+                Button("action.cancel", role: .cancel) { model.owner.cancelReview() }
+            } else { Text("d7.chatInfo.replyUnavailable") }
+        case .submitting: ProgressView("im.full.submitting")
+        case .outcomeUnknown(let mutation):
+            Text("d7.chatInfo.unknown")
+            if permits(mutation) { Button("d7.chatInfo.tryAgain") { submit(.retry) } }
+            else { Text("d7.chatInfo.replyUnavailable") }
+        case .rejected: Text("d7.chatInfo.rejected")
+        case .closed: Text("im.full.closed")
+        case .acknowledged: Label("d7.chatInfo.done", systemImage: "checkmark.circle")
+        case .idle: EmptyView()
+        }
+    }
+    @ViewBuilder private var admissionSection: some View {
+        if let directoryPage {
+            Section {
+                NavigationLink { directoryPage } label: { Label("d7.chatInfo.members", systemImage: "person.2") }
+                    .accessibilityIdentifier("admission.entry")
+            }
+        } else if let directory, !directoryFailed {
+            Section {
+                Button {
+                    Task {
+                        do {
+                            directoryPage = try await ChannelAdmissionParent.page(
+                                configuration: directory.configuration, transport: directory.transport,
+                                token: directory.token, accountID: directory.accountID, epoch: directory.epoch,
+                                channelID: directory.channelID, spaceID: directory.spaceID, kind: directory.kind)
+                        } catch { directoryFailed = true }
+                    }
+                } label: { Label("d7.chatInfo.members", systemImage: "person.2") }
+                .accessibilityIdentifier("admission.entry")
+            }
+        } else if let admission, let identity, identity.accountID == admission.accountID, identity.epoch == admission.epoch,
+                  let page = try? admission.page() {
+            Section {
+                NavigationLink { page } label: { Label("d7.chatInfo.members", systemImage: "person.2") }
+                    .accessibilityIdentifier("admission.entry")
+            }
+        } else if directoryFailed, directory != nil {
+            Section {
+                Text("d7.chatInfo.membersFailed").accessibilityIdentifier("admission.unavailable")
+                Button("messaging.retry") { directoryFailed = false }
+            }
+        }
     }
     /// The loaded history supplies the cursor. Opening this page does not mark it read.
     private func readMutation() -> IMMutation {
@@ -291,27 +334,50 @@ struct IMExpandedSubmission: Equatable {
     }
     private func clearDrafts() { selectedTopic = nil; showingTopics = false; name = ""; address = ""; latitude = ""; longitude = "" }
 }
+/// Message duration as m:ss, using the view's locale.
+struct IMDurationText: View {
+    let milliseconds: Int
+    var body: some View { Text(Duration.milliseconds(milliseconds), format: .time(pattern: .minuteSecond)).monospacedDigit() }
+}
+/// File size in the system's file-size style (KB, MB), using the view's locale.
+struct IMByteCountText: View {
+    let bytes: Int
+    var body: some View { Text(Int64(bytes), format: .byteCount(style: .file)).monospacedDigit() }
+}
+/// What the pending action will do, in the user's terms. Identifiers and request keys stay internal.
 struct IMMutationSummary: View {
     let mutation: IMMutation
     var body: some View {
         switch mutation {
-        case .start(let id): Text("im.full.start"); Text(verbatim: String(id))
-        case .read(let id): Text("im.full.read"); Text(verbatim: String(id))
-        case .readCursor(let id, let last, let requestID):
-            Text("im.full.read"); Text(verbatim: String(id)); Text(verbatim: String(last)); Text(verbatim: requestID)
-        case .mute(let id, let muted): Text(LocalizedStringKey(muted ? "im.full.mute" : "im.full.unmute")); Text(verbatim: String(id))
+        case .start(let id):
+            LabeledContent("d7.imSummary.startWith") { Text(verbatim: String(id)) }
+        case .read, .readCursor:
+            Label("d7.chatInfo.markRead", systemImage: "checkmark.message")
+        case .mute(_, let muted):
+            if muted { Label("d7.chatInfo.mute", systemImage: "bell.slash") }
+            else { Label("d7.chatInfo.unmute", systemImage: "bell") }
         case .send(let intent):
-            Text("im.full.sendTo"); Text(verbatim: String(intent.scope.conversationID))
             switch intent.payload {
-            case .route(let id): Text("im.full.route"); Text(verbatim: String(id))
-            case .image: Text("im.full.image")
-            case .video(let reference): Text("原视频消息").font(.body).fixedSize(horizontal: false, vertical: true); Text(verbatim: "\(Double(reference.durationMS)/1000) 秒 · \(reference.size) 字节").font(.body).fixedSize(horizontal: false, vertical: true)
-            case .file(let reference): Text("原文件消息").font(.body).fixedSize(horizontal: false, vertical: true); Text(verbatim: "\(reference.name) · \(reference.size) 字节").font(.body).fixedSize(horizontal: false, vertical: true)
-            case .voice(let reference): Text("原语音消息").font(.body).fixedSize(horizontal: false, vertical: true); Text(verbatim: "\(Double(reference.durationMS)/1000) 秒").font(.body).fixedSize(horizontal: false, vertical: true)
+            case .route: Label("d7.imSummary.route", systemImage: "map")
+            case .image: Label("d7.imSummary.photo", systemImage: "photo")
+            case .video(let reference):
+                Label("d7.imSummary.video", systemImage: "video")
+                LabeledContent("d7.imSummary.duration") { IMDurationText(milliseconds: reference.durationMS) }
+                LabeledContent("d7.imSummary.size") { IMByteCountText(bytes: reference.size) }
+            case .file(let reference):
+                Label { Text(verbatim: reference.name) } icon: { Image(systemName: "doc") }
+                LabeledContent("d7.imSummary.size") { IMByteCountText(bytes: reference.size) }
+            case .voice(let reference):
+                Label("d7.imSummary.voice", systemImage: "waveform")
+                LabeledContent("d7.imSummary.duration") { IMDurationText(milliseconds: reference.durationMS) }
             case .staticLocation(let place):
-                Text("静态地点，非实时位置").font(.body).fixedSize(horizontal: false, vertical: true);Text(verbatim:place.name).font(.body).fixedSize(horizontal: false, vertical: true);Text(verbatim:place.address).font(.body).fixedSize(horizontal: false, vertical: true)
-                Text(verbatim:"WGS84 · \(place.lat), \(place.lng)（四位小数）").font(.body).fixedSize(horizontal: false, vertical: true)
-            case .location(let name, let address, let lat, let lng): Text(verbatim: name); Text(verbatim: address); Text(verbatim: "\(lat), \(lng)")
+                Label { Text(verbatim: place.name) } icon: { Image(systemName: "mappin.and.ellipse") }
+                if !place.address.isEmpty { Text(verbatim: place.address) }
+            case .location(let name, let address, let lat, let lng):
+                Label {
+                    if name.isEmpty { Text(verbatim: "\(lat), \(lng)") } else { Text(verbatim: name) }
+                } icon: { Image(systemName: "mappin.and.ellipse") }
+                if !address.isEmpty { Text(verbatim: address) }
             }
         }
     }
@@ -321,13 +387,12 @@ struct IMMutationSummary: View {
     let onDestination: (IMCardDestination) -> Void
     var body: some View {
         VStack(alignment: .leading) {
-            ForEach(Array(IMCardAction.actions(for: message).enumerated()), id: \.offset) { _, action in
+            // Actions this version can't open are left out rather than shown disabled.
+            ForEach(Array(IMCardAction.actions(for: message).filter { $0.destination != .unsupported }.enumerated()), id: \.offset) { _, action in
                 Button { onDestination(action.destination) } label: {
                     if action.label.hasPrefix("im.full.") { Text(LocalizedStringKey(action.label)) } else { Text(verbatim: action.label) }
                 }
-                .disabled(action.destination == .unsupported)
                 .foregroundStyle(action.isReject ? Color.red : Color.accentColor)
-                if action.destination == .unsupported { Text("im.full.unsupportedAction").font(.caption) }
             }
         }.accessibilityIdentifier("im.full.cardActions")
     }
@@ -349,18 +414,32 @@ struct IMMutationSummary: View {
     }
     var body: some View {
         Form {
-            if !model.owner.writer.isConfigured { Text("im.full.disabled") }
-            TextField("im.full.memberID", text: $target).keyboardType(.numberPad)
-            Button("im.full.review") { if let id = Int(target) { model.owner.review(targetMemberID: id) } }
-            switch model.state {
-            case .reviewing(let mutation): IMMutationSummary(mutation: mutation); Button("im.full.confirm") { Task { await model.owner.confirm() } }
-            case .submitting: ProgressView("im.full.submitting")
-            case .outcomeUnknown: Text("im.full.unknown"); Button("im.full.retrySame") { Task { await model.owner.retryUnchanged() } }
-            case .acknowledged: Text("im.full.acknowledged")
-            default: EmptyView()
+            if model.owner.writer.isConfigured {
+                Section {
+                    TextField("d7.newChat.memberID", text: $target).keyboardType(.numberPad)
+                    Button("d7.newChat.next") { if let id = Int(target) { model.owner.review(targetMemberID: id) } }
+                        .disabled(Int(target) == nil)
+                }
+                switch model.state {
+                case .reviewing(let mutation):
+                    Section {
+                        IMMutationSummary(mutation: mutation)
+                        Button("d7.newChat.start") { Task { await model.owner.confirm() } }.imFlowPrimaryAction()
+                    }
+                case .submitting: Section { ProgressView("im.full.submitting") }
+                case .outcomeUnknown:
+                    Section {
+                        Text("d7.chatInfo.unknown")
+                        Button("d7.chatInfo.tryAgain") { Task { await model.owner.retryUnchanged() } }
+                    }
+                case .acknowledged: Section { Label("d7.chatInfo.done", systemImage: "checkmark.circle") }
+                default: EmptyView()
+                }
+            } else {
+                ContentUnavailableView("d7.newChat.unavailable", systemImage: "bubble.left.and.bubble.right")
             }
         }.disabled(identity != model.owner.identity || !model.owner.writer.isConfigured)
-        .navigationTitle(Text("im.full.start")).privacySensitive().accessibilityIdentifier("im.full.start")
+        .navigationTitle(Text("d7.newChat.title")).privacySensitive().accessibilityIdentifier("im.full.start")
         .onAppear { model.observe() }
         .onChange(of: model.state) { _, state in if case .acknowledged(.started(let id)) = state { onStarted(id) } }
         .onChange(of: identity) { _, _ in target = ""; model.state = model.owner.visibleState }
@@ -424,24 +503,33 @@ struct IMUploadSubmission: Equatable {
     }
     var body: some View {
         Form {
-            Text("im.full.imageConsent")
-            if !model.owner.isConfigured { Text("im.full.disabled") }
-            switch model.state {
-            case .idle, .failed:
-                Button("im.full.selectImage") { submit(.select) }
-            case .selected(let selection):
-                Text(verbatim: "\(selection.bytes.count) bytes")
-                Text("im.full.uploadConsent")
-                Button("im.full.upload") { submit(.upload) }
-                Button("action.cancel", role: .cancel) { model.invalidateQueued(); model.owner.clear() }
-            case .selecting, .uploading: ProgressView("im.full.submitting")
-            case .uploaded(let url):
-                Text("im.full.uploaded")
-                Button("im.full.review") { if model.apply(url, canReply: canReply(), consume: onReviewImage) { dismiss() } }
-            case .outcomeUnknown: Text("im.full.uploadUnknown")
+            if model.owner.isConfigured {
+                Section {
+                    switch model.state {
+                    case .idle, .failed:
+                        if case .failed = model.state {
+                            IMFlowStateMessage(text: Text("d7.imPhoto.failed"), symbol: "exclamationmark.circle", tone: .attention)
+                        }
+                        Button { submit(.select) } label: { Label("d7.imPhoto.choose", systemImage: "photo") }
+                    case .selected(let selection):
+                        LabeledContent("d7.imSummary.size") { IMByteCountText(bytes: selection.bytes.count) }
+                        Button("d7.imCompose.upload") { submit(.upload) }.imFlowPrimaryAction()
+                        Button("action.cancel", role: .cancel) { model.invalidateQueued(); model.owner.clear() }
+                    case .selecting: ProgressView()
+                    case .uploading: ProgressView("d7.imCompose.uploading")
+                    case .uploaded(let url):
+                        Label("d7.imPhoto.ready", systemImage: "checkmark.circle")
+                        Button("d7.imCompose.continue") { if model.apply(url, canReply: canReply(), consume: onReviewImage) { dismiss() } }
+                            .imFlowPrimaryAction()
+                    case .outcomeUnknown:
+                        IMFlowStateMessage(text: Text("d7.imCompose.uploadUnknown"), symbol: "clock.arrow.circlepath")
+                    }
+                }
+            } else {
+                ContentUnavailableView("d7.imPhoto.unavailable", systemImage: "photo")
             }
         }.disabled(identity != model.owner.scope.identity || !model.owner.isConfigured || !canReply())
-        .navigationTitle(Text("im.full.image")).privacySensitive().accessibilityIdentifier("im.full.imageCompose")
+        .navigationTitle(Text("d7.imPhoto.title")).privacySensitive().accessibilityIdentifier("im.full.imageCompose")
         .onAppear { model.observe() }
         .onChange(of: identity) { _, _ in model.invalidateQueued(); model.owner.clear() }
         .onChange(of: canReply()) { _, allowed in if !allowed { model.invalidateQueued(); model.owner.clear() } }
@@ -464,6 +552,7 @@ private extension IMOutgoingPayload {
 @MainActor struct IMStaticLocationComposeView: View {
     @StateObject private var model: IMExpandedViewModel
     @Environment(\.scenePhase) private var phase
+    @Environment(\.dismiss) private var dismiss
     @State private var operationTask: Task<Void, Never>?
     @State private var operationID: UUID?
     let current: () -> Bool
@@ -481,45 +570,62 @@ private extension IMOutgoingPayload {
             if available {
                 switch model.state {
                 case .idle:
-                    Section("选择静态地点") {
-                        Button("在地图上点选地点（不使用GPS）") { pickingMap=true }.font(Theme.Font.button)
-                        Text("输入已知地点；不会读取设备位置。仅支持明确 WGS84 来源，不能把导航/私有剧情点许可当分享授权。").fixedSize(horizontal: false, vertical: true).font(.footnote)
-                        TextField("地点名称",text:$name);TextField("地址（可选）",text:$address)
-                        TextField("纬度",text:$latitude).keyboardType(.numbersAndPunctuation)
-                        TextField("经度",text:$longitude).keyboardType(.numbersAndPunctuation)
-                        Toggle("我确认来源坐标为 WGS84",isOn:$confirmedDatum)
-                        Button("确认地点与收件会话") {
-                            guard available,confirmedDatum,let lat=Double(latitude),let lng=Double(longitude),
-                                  let place=try? IMStaticLocation(name:name,address:address,latitude:lat,longitude:lng,datum:"WGS84"),
-                                  let intent=try? IMOutgoingIntent(scope:model.owner.scope,payload:.staticLocation(place)) else { return }
-                            _ = model.owner.review(.send(intent))
-                        }.font(Theme.Font.button).disabled(!confirmedDatum || !model.owner.writer.canSendStaticLocation)
+                    if model.owner.writer.canSendStaticLocation {
+                        Section {
+                            Button { pickingMap=true } label: { Label("d7.imLocation.pickOnMap", systemImage: "map") }
+                        }
+                        Section {
+                            TextField("im.full.name",text:$name)
+                            TextField("d7.imLocation.addressOptional",text:$address)
+                            TextField("im.full.latitude",text:$latitude).keyboardType(.numbersAndPunctuation)
+                            TextField("im.full.longitude",text:$longitude).keyboardType(.numbersAndPunctuation)
+                            Toggle("d7.imLocation.gpsCoordinates",isOn:$confirmedDatum)
+                        }
+                        Section {
+                            Button("d7.imCompose.continue") {
+                                guard available,confirmedDatum,let lat=Double(latitude),let lng=Double(longitude),
+                                      let place=try? IMStaticLocation(name:name,address:address,latitude:lat,longitude:lng,datum:"WGS84"),
+                                      let intent=try? IMOutgoingIntent(scope:model.owner.scope,payload:.staticLocation(place)) else { return }
+                                _ = model.owner.review(.send(intent))
+                            }.imFlowPrimaryAction().disabled(!confirmedDatum)
+                        }
+                    } else {
+                        ContentUnavailableView("d7.imLocation.unavailable", systemImage: "mappin.slash")
                     }
                 case .reviewing(let mutation):
                     if isLocation(mutation) {
-                        IMMutationSummary(mutation:mutation)
-                        Text("将向此会话发送上述四位坐标与地址。不是实时位置，也不提供导航。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-                        Button("确认发送此地点") { submit(.confirm) }.imFlowPrimaryAction()
-                        Button("取消",role:.cancel) { model.owner.cancelReview() }.font(Theme.Font.button)
-                    } else { Text("请先处理当前会话的原请求").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
+                        Section { IMMutationSummary(mutation:mutation) }
+                        Section {
+                            Button("d7.imLocation.send") { submit(.confirm) }.imFlowPrimaryAction()
+                            Button("action.cancel",role:.cancel) { model.owner.cancelReview() }
+                        }
+                    } else { Text("d7.imCompose.otherPending") }
                 case .outcomeUnknown(let mutation):
                     if isLocation(mutation) {
-                        IMMutationSummary(mutation:mutation);Text("结果未知，保留原请求，不自动发送。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-                        if model.owner.canRecoverStaticLocation { Button("读取原结果，不重发") { submit(.recoverStaticLocation) }.font(Theme.Font.button) }
-                        // Recovery never grants new SEND. Explicit retry remains the same original key and bytes.
-                        if model.owner.writer.canSendStaticLocation { Button("明确重试同一个原地点请求") { submit(.retry) }.font(Theme.Font.button) }
-                    } else { Text("请先恢复当前会话的其他原请求").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
-                case .submitting: ProgressView()
+                        Section {
+                            IMMutationSummary(mutation:mutation)
+                            IMFlowStateMessage(text: Text("d7.imCompose.sendUnknown"), symbol: "clock.arrow.circlepath")
+                        }
+                        Section {
+                            if model.owner.canRecoverStaticLocation { Button("d7.imCompose.checkSent") { submit(.recoverStaticLocation) } }
+                            // Recovery never grants new SEND. Explicit retry remains the same original key and bytes.
+                            if model.owner.writer.canSendStaticLocation { Button("d7.chatInfo.tryAgain") { submit(.retry) } }
+                        }
+                    } else { Text("d7.imCompose.otherPending") }
+                case .submitting: ProgressView("d7.imCompose.sending")
                 case .acknowledged:
-                    Text("原地点消息已确认").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-                    if model.owner.writer.canSendStaticLocation {
-                        Button("重新选择另一个地点") { clear();model.owner.finishStaticLocationResult() }.font(Theme.Font.button)
+                    Section {
+                        IMFlowStateMessage(text: Text("d7.imLocation.sent"), symbol: "checkmark.circle", tone: .success)
+                        if model.owner.writer.canSendStaticLocation {
+                            Button("d7.imLocation.sendAnother") { clear();model.owner.finishStaticLocationResult() }
+                        }
                     }
-                case .rejected: Text("请求被拒绝；原记录保留，不替换地点或请求号").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-                case .closed: Text("当前会话不可用").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+                case .rejected: IMFlowStateMessage(text: Text("d7.imCompose.rejected"), symbol: "exclamationmark.circle", tone: .attention)
+                case .closed: IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock")
                 }
-            } else { Text("当前身份或会话权限已失效").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
-        }.imFlowForm().navigationTitle("静态地点分享").privacySensitive()
+            } else { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
+        }.imFlowForm().navigationTitle(Text("d7.imLocation.title")).privacySensitive()
+         .toolbar { ToolbarItem(placement:.cancellationAction) { Button("action.close") { dismiss() } } }
          .onChange(of:latitude) { _,_ in if pickedMapSignature != latitude+"|"+longitude { confirmedDatum=false;pickedMapSignature=nil } }
          .onChange(of:longitude) { _,_ in if pickedMapSignature != latitude+"|"+longitude { confirmedDatum=false;pickedMapSignature=nil } }
          .sheet(isPresented:$pickingMap) {
@@ -528,6 +634,8 @@ private extension IMOutgoingPayload {
                  name=place.name;address=place.address;latitude=String(place.lat);longitude=String(place.lng)
                  pickedMapSignature=latitude+"|"+longitude;confirmedDatum=true
              }
+             .presentationDetents([.large])
+             .presentationDragIndicator(.visible)
          }
          .onAppear { if available { model.observe() } }
          .onDisappear { stopOperation();model.retire();clear() }
@@ -553,6 +661,7 @@ private extension IMOutgoingPayload {
 @MainActor struct IMRouteShareComposeView:View {
     @StateObject private var model:IMExpandedViewModel
     @Environment(\.scenePhase) private var phase
+    @Environment(\.dismiss) private var dismiss
     @State private var operationTask: Task<Void, Never>?
     @State private var operationID: UUID?
     let reader:any TopicReading
@@ -563,44 +672,67 @@ private extension IMOutgoingPayload {
         _model=StateObject(wrappedValue:IMExpandedViewModel(owner));self.reader=reader;self.current=current
     }
     private var available:Bool { phase == .active && current() && model.owner.isCurrent }
+    private var canShare:Bool { model.owner.writer.canReadRouteShareSource && model.owner.writer.canSendRoute }
     var body:some View {
         Form {
             if available {
-                Text(verbatim:"目标会话：\(model.owner.scope.conversationID)").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
                 switch model.state {
                 case .idle:
-                    if let selected { Text(verbatim:selected.name).font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
-                    Button("从原路线列表选择") { picking=true }.font(Theme.Font.button)
-                    Text("可查看或导航不代表可公开分享；选择后由原后端核对公开分享来源。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-                    Button("核对公开分享来源") { reviewSelectedSource() }.font(Theme.Font.button)
-                        .disabled(selected == nil || !model.owner.writer.canReadRouteShareSource || !model.owner.writer.canSendRoute)
-                    if model.owner.routeShareUnavailable { Text("该路线暂不可分享，不返回隐藏原因或内容。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
+                    if canShare {
+                        Section {
+                            Button { picking=true } label: {
+                                if let selected { Label { Text(verbatim:selected.name) } icon: { Image(systemName:"map") } }
+                                else { Label("context.route.choose", systemImage:"map") }
+                            }
+                            if model.owner.routeShareUnavailable {
+                                IMFlowStateMessage(text: Text("d7.imRoute.notShareable"), symbol: "exclamationmark.circle", tone: .attention)
+                            }
+                        }
+                        if selected != nil {
+                            Section {
+                                Button("d7.imCompose.continue") { reviewSelectedSource() }.imFlowPrimaryAction()
+                            }
+                        }
+                    } else {
+                        ContentUnavailableView("d7.imRoute.unavailable", systemImage: "map")
+                    }
                 case .reviewing(let mutation):
                     if isRoute(mutation),let source=model.owner.selectedRouteShareSource {
-                        Text(verbatim:source.name).font(Theme.Font.body).fixedSize(horizontal: false, vertical: true);IMMutationSummary(mutation:mutation)
-                        Text("只发送路线引用，不复制隐藏节点或轨迹，不附带导航/解锁权限。接收者打开时仍须满足原访问规则。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-                        Button("确认向此会话发送路线卡") { submit(.confirm) }.imFlowPrimaryAction()
-                        Button("取消",role:.cancel) { model.owner.cancelReview() }.font(Theme.Font.button)
-                    } else { Text("请先处理此会话的其他原请求").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
+                        Section { Label { Text(verbatim:source.name) } icon: { Image(systemName:"map") } }
+                        Section {
+                            Button("d7.imRoute.send") { submit(.confirm) }.imFlowPrimaryAction()
+                            Button("action.cancel",role:.cancel) { model.owner.cancelReview() }
+                        }
+                    } else { Text("d7.imCompose.otherPending") }
                 case .outcomeUnknown(let mutation):
                     if isRoute(mutation) {
-                        IMMutationSummary(mutation:mutation);Text("结果未知；保留同一个原路线ID与请求号，不自动重发。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-                        if model.owner.canRecoverRoute { Button("读取原路线卡结果，不重发") { submit(.recoverRoute) }.font(Theme.Font.button) }
-                        if model.owner.writer.canSendRoute { Button("明确重试同一个原请求") { submit(.retry) }.font(Theme.Font.button) }
-                    } else { Text("请先恢复此会话的其他原请求").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
-                case .submitting:ProgressView()
+                        Section {
+                            IMMutationSummary(mutation:mutation)
+                            IMFlowStateMessage(text: Text("d7.imCompose.sendUnknown"), symbol: "clock.arrow.circlepath")
+                        }
+                        Section {
+                            if model.owner.canRecoverRoute { Button("d7.imCompose.checkSent") { submit(.recoverRoute) } }
+                            if model.owner.writer.canSendRoute { Button("d7.chatInfo.tryAgain") { submit(.retry) } }
+                        }
+                    } else { Text("d7.imCompose.otherPending") }
+                case .submitting:ProgressView("d7.imCompose.sending")
                 case .acknowledged:
-                    Text("原消息结果已确认；路线是否仍可查看以接收方当前读取为准。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-                    Button("重新选择另一条路线") { selected=nil;model.owner.finishRouteResult() }.font(Theme.Font.button)
-                case .rejected:Text("请求被拒绝，原请求保持不变").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-                case .closed:Text("当前会话不可用").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+                    Section {
+                        IMFlowStateMessage(text: Text("d7.imRoute.sent"), symbol: "checkmark.circle", tone: .success)
+                        Button("d7.imRoute.sendAnother") { selected=nil;model.owner.finishRouteResult() }
+                    }
+                case .rejected:IMFlowStateMessage(text: Text("d7.imCompose.rejected"), symbol: "exclamationmark.circle", tone: .attention)
+                case .closed:IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock")
                 }
-            } else { Text("当前身份或会话权限已失效").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
-        }.imFlowForm().navigationTitle("分享原路线卡").privacySensitive()
+            } else { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
+        }.imFlowForm().navigationTitle(Text("d7.imRoute.title")).privacySensitive()
+        .toolbar { ToolbarItem(placement:.cancellationAction) { Button("action.close") { dismiss() } } }
         .sheet(isPresented:$picking) {
             if available { NavigationStack { ContextualTopicPicker(reader:reader) { row in
                 guard available,model.appearance != nil else{return};selected=row
-            } } }
+            } }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible) }
         }
         .onAppear { if available { model.observe() } }
         .onDisappear { stopOperation();model.retire();selected=nil;picking=false }
@@ -654,41 +786,51 @@ private extension IMOutgoingPayload {
     var body:some View {
         NavigationStack {
             Form {
-                if !available { Text("当前会话或身份已失效，不能返回地点").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
+                if !available { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
                 else if !consented {
-                    Text("打开系统地图后，地图服务会收到你浏览区域的地图请求。此页不读取GPS、当前位置或实时轨迹，不查询业务POI或隐藏路线点。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-                    Text("地图点选只准备静态地点；返回后仍须单独确认目标会话和发送。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-                    Button("同意加载地图并手动点选") { if available { consented=true } }.font(Theme.Font.button)
+                    // Loading tiles sends the browsed area to the map service; the consent gate stays explicit.
+                    Section {
+                        Text("d7.imMap.consent")
+                        Button("d7.imMap.load") { if available { consented=true } }
+                    }
                 } else {
-                    Text("平移、缩放地图后点选，或使用“选取当前地图中心”。没有默认已选地点。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-                    MapReader { proxy in
-                        Map(position:$position,interactionModes:[.pan,.zoom]) {
-                            if let picked { Marker("已选静态地点",coordinate:picked) }
-                        }.frame(height:360)
-                        .onMapCameraChange(frequency:.onEnd) { context in
-                            guard available,consented else{return};renderedCenter=context.region.center
+                    Section {
+                        MapReader { proxy in
+                            Map(position:$position,interactionModes:[.pan,.zoom]) {
+                                if let picked { Marker("d7.imMap.selected",coordinate:picked) }
+                            }.frame(height:360)
+                            .onMapCameraChange(frequency:.onEnd) { context in
+                                guard available,consented else{return};renderedCenter=context.region.center
+                            }
+                            .onTapGesture { point in
+                                guard available,consented,let coordinate=proxy.convert(point,from:.local) else { selectionUnavailable=true;return }
+                                choose(coordinate)
+                            }
                         }
-                        .onTapGesture { point in
-                            guard available,consented,let coordinate=proxy.convert(point,from:.local) else { selectionUnavailable=true;return }
-                            choose(coordinate)
+                        .listRowInsets(EdgeInsets())
+                        if let renderedCenter {
+                            Button { choose(renderedCenter) } label: { Label("d7.imMap.useCenter", systemImage: "scope") }
+                        }
+                        if selectionUnavailable {
+                            IMFlowStateMessage(text: Text("d7.imMap.tapAgain"), symbol: "exclamationmark.circle", tone: .attention)
                         }
                     }
-                    Button("选取当前地图中心") { if let renderedCenter { choose(renderedCenter) } }.font(Theme.Font.button)
-                        .disabled(renderedCenter == nil)
-                    if selectionUnavailable { Text("无法确认此点坐标，请重新点选；不会代填坐标。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
                     if let picked {
-                        Text(verbatim:"MapKit WGS84 · \(picked.latitude), \(picked.longitude)（四位小数）").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-                        TextField("为地点填写名称",text:$name)
-                        TextField("地址说明（可选，不自动查询）",text:$address)
-                        Text("这是地图上的静态大致位置，不表示你现在位于此处，也不提供导航。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-                        Button("使用此点并返回确认页") {
-                            guard available,consented,let value else{return}
-                            selected(value);dismiss()
-                        }.font(Theme.Font.button).disabled(value == nil)
+                        Section {
+                            LabeledContent("d7.imMap.coordinates") { Text(verbatim:"\(picked.latitude), \(picked.longitude)").monospacedDigit() }
+                            TextField("im.full.name",text:$name)
+                            TextField("d7.imLocation.addressOptional",text:$address)
+                        }
+                        Section {
+                            Button("d7.imMap.use") {
+                                guard available,consented,let value else{return}
+                                selected(value);dismiss()
+                            }.imFlowPrimaryAction().disabled(value == nil)
+                        }
                     }
                 }
-            }.imFlowForm().navigationTitle("地图选择静态地点").privacySensitive()
-            .toolbar { ToolbarItem(placement:.cancellationAction) { Button("取消") { dismiss() } } }
+            }.imFlowForm().navigationTitle(Text("d7.imMap.title")).privacySensitive()
+            .toolbar { ToolbarItem(placement:.cancellationAction) { Button("action.cancel") { dismiss() } } }
             .onDisappear { retire() }
             .onChange(of:available) { _,valid in if !valid { retire() } }
         }

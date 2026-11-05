@@ -81,9 +81,6 @@ private struct CreatorContentIssueView: View {
                     if page.isTruncated { Text("creatorContent.truncated").accessibilityIdentifier("creatorContent.truncated") }
                     let rowScope = key.scope
                     MyProjectCreateActivityRow(type: query.type, rowCount: page.rows.count)
-                    if MyProjectRowOperationsMenu.hasOperations(page.rows, merchantScopeAccess: loadedAccess) {
-                        Text("myProject.longPressHint").font(.caption).foregroundStyle(.secondary)
-                    }
                     ForEach(MyProjectListPresentation.sorted(page.rows)) { project in
                         if let destination = project.destination {
                             Button {
@@ -99,8 +96,6 @@ private struct CreatorContentIssueView: View {
                             card(project).questifyCardListRow()
                         }
                     }
-                    Text("creatorContent.readOnly").font(.caption)
-                        .accessibilityIdentifier("creatorContent.readOnly")
                 }
             }
         }
@@ -128,10 +123,7 @@ private struct CreatorContentIssueView: View {
             // Mini-program myproject footer: co-host acceptance text, otherwise always "N 报名 · N 浏览", then the owner identity.
             if let pending = project.pendingVerifyCount { Text("myProject.pendingVerify \(pending)") }
             else if let acceptance = MyProjectListPresentation.acceptanceText(project) { Text(verbatim: acceptance) }
-            else {
-                LabeledContent("creatorContent.signups", value: String(project.signupCount))
-                LabeledContent("creatorContent.views", value: String(project.viewCount))
-            }
+            else { Text("myProject.statsLine \(project.signupCount) \(project.viewCount)") }
             Text(LocalizedStringKey(project.ownerType == "club" ? "creatorContent.filter.club"
                 : project.ownerType == "merchant" ? "creatorContent.filter.merchant" : "creatorContent.filter.member"))
                 .font(.caption).foregroundStyle(.secondary)

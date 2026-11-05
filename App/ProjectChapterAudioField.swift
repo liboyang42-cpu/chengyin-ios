@@ -92,7 +92,6 @@ import SwiftUI
                 if opening == nil && upload == nil {
                     Text("projectChapterAudio.uploadUnavailable", tableName: "ProjectChapterAudio").font(.caption)
                 }
-                Text("projectChapterAudio.scope", tableName: "ProjectChapterAudio").font(.caption).foregroundStyle(.secondary)
             }
         } header: { Text("projectChapterAudio.title", tableName: "ProjectChapterAudio") }
         .confirmationDialog(Text("projectChapterAudio.clearTitle", tableName: "ProjectChapterAudio"),
