@@ -20757,13 +20757,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The server acknowledged the action. Current membership is shown only after refresh."
+            "value" : "Done. Refresh to see the updated list."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器已确认操作，刷新后才显示当前成员状态。"
+            "value" : "已完成，刷新后显示最新名单。"
           }
         }
       }
@@ -20779,7 +20779,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "通过申请"
+            "value" : "通过"
           }
         }
       }
@@ -20853,13 +20853,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The server has not granted access to this management view."
+            "value" : "You don't have access to manage this club."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器未授予此管理页面的访问权限。"
+            "value" : "你没有管理这个俱乐部的权限。"
           }
         }
       }
@@ -20949,13 +20949,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No members returned"
+            "value" : "No members yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未返回成员"
+            "value" : "暂无成员"
           }
         }
       }
@@ -21013,13 +21013,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Refresh current state"
+            "value" : "Refresh"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "刷新当前状态"
+            "value" : "刷新"
           }
         }
       }
@@ -21035,7 +21035,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "拒绝申请"
+            "value" : "拒绝"
           }
         }
       }
@@ -21061,13 +21061,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The server rejected this action."
+            "value" : "This action wasn't accepted."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器拒绝了此操作。"
+            "value" : "操作未被接受。"
           }
         }
       }
@@ -21115,7 +21115,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "申请详情"
+            "value" : "入会申请"
           }
         }
       }
@@ -21125,7 +21125,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Join applications"
+            "value" : "Join requests"
           }
         },
         "zh-Hans" : {
@@ -21173,13 +21173,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Showing the previous list. Refresh to review applications or manage members."
+            "value" : "Showing the last list. Refresh before reviewing applications or managing members."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在显示上次名单。请刷新成功后再审核申请或管理成员。"
+            "value" : "正在显示上次名单，请刷新后再审核申请或管理成员。"
           }
         }
       }
@@ -21237,13 +21237,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Management details are unavailable. Refresh to check your access."
+            "value" : "Couldn't load club management. Refresh to try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂时无法加载管理信息，请刷新确认权限。"
+            "value" : "俱乐部管理没加载成功，请刷新重试。"
           }
         }
       }
@@ -21269,13 +21269,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The outcome is unknown. Refresh to view current state. Repeating actions is locked for this club in this session."
+            "value" : "We couldn't confirm the result. Refresh to check; repeating this action is paused for now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "操作结果尚未确认。请刷新查看当前状态，此会话已锁定该俱乐部的重复操作。"
+            "value" : "暂时无法确认结果。请刷新查看，重复操作已暂停。"
           }
         }
       }
