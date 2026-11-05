@@ -261,13 +261,11 @@ struct RoamShareLinkDormantNotice: View {
                     Label(LocalizedStringKey(card.primaryKey), systemImage: "qrcode")
                 }.buttonStyle(.questifyPrimary).frame(minHeight: 44)
                     .accessibilityIdentifier("roamSub.w208.poi.primary")
-            } else {
-                Button(LocalizedStringKey(card.primaryKey)) {}.buttonStyle(.questifyPrimary).frame(minHeight: 44)
-                    .disabled(true).accessibilityIdentifier("roamSub.w208.poi.primary")
-                if card.primary == .interact {
-                    Text("roamSub.w208.poi.interactDormant").font(.caption).foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+            } else if card.primary != .interact {
+                // Completed / pending states are status, not an action.
+                Label(LocalizedStringKey(card.primaryKey), systemImage: card.primary == .completed ? "checkmark.seal" : "lock")
+                    .font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("roamSub.w208.poi.primary")
             }
         }.accessibilityElement(children: .contain).accessibilityIdentifier("roamSub.w208.poi.node")
     }

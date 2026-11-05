@@ -136,6 +136,7 @@ struct RoamItemDetailView: View {
             .onChange(of: reader.searchArea) { _, _ in merchantRetry.cancel(); eventNavigation = nil; routeTopicNavigation = nil; playerProfileNavigation = nil; featuredActivityNavigation = nil; featuredCouponWalletNavigation = nil }
             .onDisappear { merchantRetry.cancel(); eventIsVisible = false; eventPresentationID = UUID(); readOwner.deactivate(); generation += 1; loading = false }
         }
+        .presentationDragIndicator(.visible)
         .accessibilityIdentifier("roam.detail")
     }
     private var content: some View {
@@ -151,20 +152,30 @@ struct RoamItemDetailView: View {
             case .event(let event): eventContent(event)
             case .player(let player): playerContent(player)
             }
-            Section { Text("roam.readOnlyNotice").font(.footnote).foregroundStyle(.secondary) }
         }
     }
     @ViewBuilder private func placeContent(_ place: RoamPlace) -> some View {
         if eventScope != nil, currentPlace == place {
             Section {
                 RoamPlaceReadStatusLabel(status: place.readStatus)
-                Text("roamPlaceRead.notice").font(.footnote).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
             }.accessibilityIdentifier("roamPlaceRead.detail")
         }
         if let node {
             if !node.isPublished {
                 Section { Label("roam.notPublished", systemImage: "eye.slash") }
+            }
+            // Mini-program order: merchant hero and 招牌主推, the node card, then 地点详情.
+            if let merchant { merchantContent(merchant) }
+            else if merchantFailed {
+                merchantRetrySection(node: node)
+            }
+            Section { RoamPOINodeParityCard(node: node, stampDestination: stampDestination) }
+            Section("roam.yourStatus") {
+                Label(LocalizedStringKey(node.completed ? "roam.completed" : "roam.notCompleted"), systemImage: node.completed ? "checkmark.circle" : "circle")
+                if node.favorited { Label("roam.favorited", systemImage: "heart.fill") }
+                NavigationLink { if let posterDestination { posterDestination(node) } else { AnyView(RoamPosterScanView(node: node)) } } label: { Label("media.poster.title", systemImage: "qrcode.viewfinder") }
+                    .accessibilityIdentifier("media.poster.open")
+                NavigationLink { if let stampDestination { stampDestination() } else { AnyView(RoamStampCameraView()) } } label: { Label("media.stamp.title", systemImage: "camera") }
             }
             Section("roam.about") {
                 if let text = node.description ?? place.description { Text(verbatim: text) }
@@ -176,19 +187,6 @@ struct RoamItemDetailView: View {
                 }
                 if let xp = place.xp, xp >= 0 { LabeledContent("roam.potentialXP") { Text(xp, format: .number) } }
                 PlatformExternalMapHost(destination: .init(name: node.name, address: node.merchantAddress ?? place.address, latitude: node.coordinate?.latitude, longitude: node.coordinate?.longitude), scope: mediaScope, makeModel: makeExternalMaps)
-                if node.coordinate == nil { Label("roam.noCoordinates", systemImage: "mappin.slash") }
-            }
-            Section { RoamPOINodeParityCard(node: node, stampDestination: stampDestination) }
-            Section("roam.yourStatus") {
-                Label(LocalizedStringKey(node.completed ? "roam.completed" : "roam.notCompleted"), systemImage: node.completed ? "checkmark.circle" : "circle")
-                if node.favorited { Label("roam.favorited", systemImage: "heart.fill") }
-                NavigationLink { if let posterDestination { posterDestination(node) } else { AnyView(RoamPosterScanView(node: node)) } } label: { Label("media.poster.title", systemImage: "qrcode.viewfinder") }
-                    .accessibilityIdentifier("media.poster.open")
-                NavigationLink { if let stampDestination { stampDestination() } else { AnyView(RoamStampCameraView()) } } label: { Label("media.stamp.title", systemImage: "camera") }
-            }
-            if let merchant { merchantContent(merchant) }
-            else if merchantFailed {
-                merchantRetrySection(node: node)
             }
         }
     }
@@ -253,11 +251,10 @@ struct RoamItemDetailView: View {
         if let featured = detail.featured {
             Section("roam.featured") {
                 Text(verbatim: featured.name)
-                Text("roam.featuredReadOnly").font(.caption).foregroundStyle(.secondary)
                 if let renderedNode = node, let renderedPlace = currentPlace {
-                    if RoamFeaturedActivityTarget(node: renderedNode, detail: detail) != nil {
+                    if RoamFeaturedActivityTarget(node: renderedNode, detail: detail) != nil, eventDestination != nil {
                         featuredActivityButton(place: renderedPlace, node: renderedNode, detail: detail)
-                    } else if RoamFeaturedCouponWalletTarget(node: renderedNode, detail: detail) != nil {
+                    } else if RoamFeaturedCouponWalletTarget(node: renderedNode, detail: detail) != nil, couponWalletDestination != nil {
                         featuredCouponWalletButton(place: renderedPlace, node: renderedNode, detail: detail)
                     }
                 }
@@ -283,10 +280,6 @@ struct RoamItemDetailView: View {
                           eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil ||
                           featuredActivityNavigation != nil || featuredCouponWalletNavigation != nil)
                 .accessibilityIdentifier("roamFeaturedCouponWallet.open")
-            if couponWalletDestination == nil || renderedScope == nil {
-                Text("roamEvent.unavailable").font(.footnote).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
         }
     }
     private func featuredActivityButton(place: RoamPlace, node: RoamNodeDetail, detail: RoamMerchantDetail) -> some View {
@@ -306,10 +299,6 @@ struct RoamItemDetailView: View {
                 .disabled(eventDestination == nil || renderedScope == nil || !eventIsVisible || loading || issue != nil || merchantFailed ||
                           eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil || featuredActivityNavigation != nil || featuredCouponWalletNavigation != nil)
                 .accessibilityIdentifier("roamFeaturedActivity.open")
-            if eventDestination == nil || renderedScope == nil {
-                Text("roamEvent.unavailable").font(.footnote).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
         }
     }
     @ViewBuilder private func routeContent(_ route: RoamRouteNode) -> some View {
@@ -318,9 +307,8 @@ struct RoamItemDetailView: View {
             if let address = route.address { LabeledContent("roam.address", value: address) }
             if let distance = route.distance, distance >= 0 { RoamDistanceLabel(meters: distance) }
             if route.coordinate == nil { Label("roam.noCoordinates", systemImage: "mappin.slash") }
-            Text("roam.routeReadOnly").font(.caption).foregroundStyle(.secondary)
         }
-        if RoamRouteTopicDestination(route: route) != nil {
+        if RoamRouteTopicDestination(route: route) != nil, eventDestination != nil {
             Section {
                 Button {
                     guard eventIsVisible, eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil, featuredActivityNavigation == nil, featuredCouponWalletNavigation == nil, eventDestination != nil,
@@ -331,10 +319,6 @@ struct RoamItemDetailView: View {
                     .frame(minHeight: 44)
                     .disabled(eventDestination == nil || renderedScope == nil || !eventIsVisible || eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil || featuredActivityNavigation != nil || featuredCouponWalletNavigation != nil)
                     .accessibilityIdentifier("roamRouteTopic.open.\(route.id)")
-                if eventDestination == nil || renderedScope == nil {
-                    Text("roamEvent.unavailable").font(.footnote).foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
             }
         }
     }
@@ -351,8 +335,8 @@ struct RoamItemDetailView: View {
             }
             if event.coordinate == nil { Label("roam.noCoordinates", systemImage: "mappin.slash") }
         }
-        Section {
-            if let target = RoamEventDestination(event: event) {
+        if let target = RoamEventDestination(event: event), eventDestination != nil {
+            Section {
                 Button {
                     guard eventIsVisible, eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil, featuredActivityNavigation == nil, featuredCouponWalletNavigation == nil, eventDestination != nil,
                           let selection = RoamEventNavigationSelection(event: event, currentEvent: currentEvent,
@@ -367,21 +351,16 @@ struct RoamItemDetailView: View {
                     .disabled(eventDestination == nil || renderedScope == nil || !eventIsVisible || eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil || featuredActivityNavigation != nil || featuredCouponWalletNavigation != nil)
                     .accessibilityIdentifier("roamEvent.open.\(event.id)")
             }
-            if eventDestination == nil || renderedScope == nil {
-                Text("roamEvent.unavailable").font(.footnote).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
         }
     }
     @ViewBuilder private func playerContent(_ player: RoamPlayer) -> some View {
         let renderedScope = eventScope
         Section {
-            Text("roam.playerPrivacy")
             LabeledContent("roam.exploration") { Text(verbatim: "\(player.explorePct)%") }
             LabeledContent("roam.shopsVisited") { Text(player.shops, format: .number) }
             LabeledContent("roam.walkingMinutes") { Text(player.elapsedSec / 60, format: .number) }
-            Text("roam.playerSnapshot").font(.caption).foregroundStyle(.secondary)
         }
+        if player.id > 0, playerProfileDestination != nil {
         Section {
             Button {
                 guard eventIsVisible, eventNavigation == nil, routeTopicNavigation == nil, playerProfileNavigation == nil, featuredActivityNavigation == nil, featuredCouponWalletNavigation == nil,
@@ -394,10 +373,7 @@ struct RoamItemDetailView: View {
                 .disabled(player.id <= 0 || playerProfileDestination == nil || renderedScope == nil || !eventIsVisible ||
                           eventNavigation != nil || routeTopicNavigation != nil || playerProfileNavigation != nil || featuredActivityNavigation != nil || featuredCouponWalletNavigation != nil)
                 .accessibilityIdentifier("roamPlayerProfile.open.\(player.id)")
-            if playerProfileDestination == nil || renderedScope == nil {
-                Text("roamPlayerProfile.unavailable").font(.footnote).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+        }
         }
     }
     private func startLoad() {

@@ -52,9 +52,8 @@ final class RoamSubpageParityFlowTests: XCTestCase {
         XCTAssertTrue(element("roamSub.w208.voucher.disabled", app).waitForExistence(timeout: 5), "No approved factory: no code request")
         app.terminate()
         app = launch("poiLive")
-        XCTAssertTrue(app.buttons["roamSub.w208.poi.primary"].waitForExistence(timeout: 5))
-        XCTAssertEqual(app.buttons["roamSub.w208.poi.primary"].label, "开始互动")
-        XCTAssertFalse(app.buttons["roamSub.w208.poi.primary"].isEnabled)
+        XCTAssertTrue(element("roamSub.w208.poi.node", app).waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["roamSub.w208.poi.primary"].exists, "An interaction that cannot start is hidden, not disabled")
     }
 
     func testPOIUnavailableAndMissingHaveNoRetry() {

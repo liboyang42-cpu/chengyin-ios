@@ -299,7 +299,7 @@ final class ModuleFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["module.fixture.notice"].waitForExistence(timeout:10))
         tap(app.buttons["roam.display.toggle"])
         tap(app.buttons["roam.row.place-901"])
-        XCTAssertTrue(app.navigationBars["Map details"].waitForExistence(timeout:5))
+        XCTAssertTrue(app.navigationBars["Place"].waitForExistence(timeout:5))
         capture("Map detail – synthetic data")
     }
     func testParticipantCreateRequiresConfirmationAndReadsBack() {
