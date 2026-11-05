@@ -134431,17 +134431,18 @@
       }
     },
     "shopNPC.disclosure" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "AI replies may be inaccurate and do not complete game tasks."
+            "value" : "AI replies may be wrong and don't complete tasks."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "AI 回答可能不准确，且不会完成游戏任务"
+            "value" : "AI 回答可能有误，也不会完成任务。"
           }
         }
       }
@@ -134495,17 +134496,18 @@
       }
     },
     "shopNPC.pauseNotice" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your conversation is hidden while paused. Restore it after the current account and node access are checked. Restoring never sends a message."
+            "value" : "Your chat is hidden while paused."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂停时对话内容已隐藏。恢复前将重新核验当前账号和节点权限，恢复不会发送消息。"
+            "value" : "暂停时对话已隐藏。"
           }
         }
       }
@@ -134623,49 +134625,52 @@
       }
     },
     "shopNPC.retryNotice" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Stopping only ends local waiting. The server may have received the request. A confirmed retry uses the same request ID; it does not prove that the earlier request was cancelled."
+            "value" : "It may already have been sent. Trying again won't send it twice."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "停止等待仅作用于本机，服务器可能已收到请求。确认重试将使用原请求编号，并不代表先前请求已撤销。"
+            "value" : "可能已经发出，重试不会重复发送。"
           }
         }
       }
     },
     "shopNPC.review" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review before sending"
+            "value" : "Send this?"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "发送前检查"
+            "value" : "发送这条？"
           }
         }
       }
     },
     "shopNPC.reviewText" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review question"
+            "value" : "Next"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "检查问题"
+            "value" : "下一步"
           }
         }
       }
@@ -134687,17 +134692,18 @@
       }
     },
     "shopNPC.stale" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This session changed. Reopen the conversation."
+            "value" : "Open the chat again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "会话已变更，请重新打开对话"
+            "value" : "请重新打开对话。"
           }
         }
       }
@@ -134751,17 +134757,18 @@
       }
     },
     "shopNPC.transmissionDisclosure" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm to send this question or voice to the configured shop AI service. Voice can incur transcription and AI processing costs."
+            "value" : "Your question goes to the shop's AI. Voice is transcribed first."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认后将问题或语音发送至配置的店铺 AI 服务，语音可能产生转写及 AI 处理费用"
+            "value" : "问题会发送给店铺 AI，语音会先转成文字。"
           }
         }
       }
@@ -134783,33 +134790,35 @@
       }
     },
     "shopNPC.voiceDisclosure" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recording requires microphone permission. Stopping only prepares a review; nothing is sent automatically."
+            "value" : "Nothing is sent until you confirm."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "录音需要麦克风权限，停止仅准备审核，不会自动发送"
+            "value" : "确认前不会发送。"
           }
         }
       }
     },
     "shopNPC.voiceReview" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recorded voice will be sent for transcription and an AI reply."
+            "value" : "Voice question"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "录音将发送用于语音识别及 AI 回复"
+            "value" : "语音提问"
           }
         }
       }
@@ -135091,13 +135100,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Service notice, not an AI answer"
+            "value" : "Notice"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务提示，并非 AI 回答"
+            "value" : "提示"
           }
         }
       }
