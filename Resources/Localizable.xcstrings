@@ -92331,13 +92331,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This deletes the shared participant record, including any saved address on the same record. This cannot be undone."
+            "value" : "Any address saved with this participant is deleted too. This can't be undone."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这将删除共用的参与人记录，包括同一条记录中保存的地址。此操作无法撤销。"
+            "value" : "与该参与人一起保存的地址也会被删除，且无法恢复。"
           }
         }
       }
@@ -92365,13 +92365,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Save the following name and mobile number to your account. Any existing address details will be preserved."
+            "value" : "Save this name and mobile number to your account?"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "将以下姓名和手机号保存到你的账号。已有的地址信息将会保留。"
+            "value" : "将此姓名和手机号保存到你的账号？"
           }
         }
       }
@@ -92552,13 +92552,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The service rejected this change. Review the details before confirming again."
+            "value" : "This change wasn't accepted. Check the details and try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务未接受这次修改。请检查信息后重新确认。"
+            "value" : "这次修改未被接受，请检查信息后重试。"
           }
         }
       }
@@ -92609,7 +92609,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "账号会话已变化。请重新加载页面后再修改。"
+            "value" : "账号已变化，请重新加载页面后再修改。"
           }
         }
       }
@@ -92620,13 +92620,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Participant and saved address details share one record. Deleting it removes both."
+            "value" : "Any address saved with this participant is deleted too."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "参与人与保存的地址信息共用同一条记录，删除时会一并移除。"
+            "value" : "与该参与人一起保存的地址也会被删除。"
           }
         }
       }
@@ -92654,13 +92654,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The request may have reached the service. To avoid duplicate changes, further changes are paused. Check the saved records below before taking any further action."
+            "value" : "We couldn't confirm your last change. To avoid saving it twice, changes are paused. Check the saved records below first."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请求可能已送达服务。为避免重复修改，后续修改已暂停。请先查看保存的记录，再决定下一步。"
+            "value" : "无法确认上次修改是否成功。为避免重复保存，已暂停修改，请先查看下方保存的记录。"
           }
         }
       }
@@ -112097,7 +112097,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在加载…"
+            "value" : "加载中…"
           }
         }
       }
@@ -113349,13 +113349,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Account data unavailable"
+            "value" : "Your details can't be shown right now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "个人资料暂不可用"
+            "value" : "暂时无法显示你的资料"
           }
         }
       }
@@ -170969,13 +170969,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an 11-digit mobile number beginning with 13–19. Do not use a masked number."
+            "value" : "Enter an 11-digit mobile number starting with 13–19."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请填写以 13–19 开头的 11 位手机号，不要使用隐藏号码。"
+            "value" : "请填写以 13–19 开头的 11 位手机号。"
           }
         }
       }
@@ -202647,6 +202647,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "取消关注"
+          }
+        }
+      }
+    },
+    "profile.localCover.cropReset" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "还原"
           }
         }
       }
