@@ -14774,13 +14774,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Request acknowledged"
+            "value" : "Submitted"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请求已受理"
+            "value" : "已提交"
           }
         }
       }
@@ -15284,13 +15284,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Return to editing"
+            "value" : "Edit"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "返回编辑"
+            "value" : "返回修改"
           }
         }
       }
@@ -15930,13 +15930,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm action"
+            "value" : "Confirm"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认操作"
+            "value" : "确认"
           }
         }
       }
@@ -19653,13 +19653,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review exact changes"
+            "value" : "Continue"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "审核具体修改"
+            "value" : "下一步"
           }
         }
       }
@@ -20316,13 +20316,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The result is unconfirmed. Do not submit again; check the original record"
+            "value" : "We couldn’t confirm the result. Don’t submit again; check the record first."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "结果尚未确认，请勿重复提交，请核查原记录"
+            "value" : "暂时无法确认结果。请勿重复提交，先查看原记录。"
           }
         }
       }
