@@ -48509,13 +48509,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "All result layers are hidden"
+            "value" : "Everything is hidden"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "所有结果图层均已隐藏"
+            "value" : "已全部隐藏"
           }
         }
       }
@@ -48560,13 +48560,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Display layers"
+            "value" : "Show on map"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "显示图层"
+            "value" : "地图显示"
           }
         }
       }
@@ -48873,13 +48873,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Refresh these results"
+            "value" : "Refresh"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "刷新当前结果"
+            "value" : "刷新"
           }
         }
       }
@@ -48889,13 +48889,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Activity refresh failed. Previously loaded activity results are still shown."
+            "value" : "Couldn't refresh activities"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "活动刷新失败，仍显示之前加载的活动结果。"
+            "value" : "活动刷新失败"
           }
         }
       }
@@ -48905,13 +48905,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "City point refresh failed. Previously loaded city points are still shown."
+            "value" : "Couldn't refresh shop spots"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "城市点位刷新失败，仍显示之前加载的城市点位。"
+            "value" : "商家节点刷新失败"
           }
         }
       }
@@ -48955,13 +48955,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Discard map selection"
+            "value" : "Cancel"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "取消地图选择"
+            "value" : "取消"
           }
         }
       }
@@ -48972,13 +48972,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Search around this map center using the current filters. This does not use your device location."
+            "value" : "Search around the map centre"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "按当前筛选条件搜索此地图中心附近，不使用设备定位。"
+            "value" : "搜索地图中心附近"
           }
         }
       }
@@ -49006,13 +49006,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This map selection changed or could not be converted. Move the map to choose again."
+            "value" : "The map moved. Move it again to pick an area."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "地图选择已变化或无法转换。请移动地图重新选择。"
+            "value" : "地图位置已变化，请重新移动地图"
           }
         }
       }
@@ -49023,13 +49023,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Move the map and stop to choose a new search center. Moving alone does not search."
+            "value" : "Move the map to search another area"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "移动地图后停下，选择新的搜索中心；移动本身不会发起搜索。"
+            "value" : "移动地图可搜索其他区域"
           }
         }
       }
@@ -49057,13 +49057,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Map-area search is unavailable for this connection. Your existing results are unchanged."
+            "value" : "Searching by map area isn't available right now"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前连接暂不支持地图区域搜索，已有结果保持不变。"
+            "value" : "暂时无法按地图区域搜索"
           }
         }
       }
@@ -131477,13 +131477,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "City lookup is unavailable. Use the manual search center."
+            "value" : "Couldn't find your city. Choose a search center."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "城市查询暂不可用，请使用手动搜索中心"
+            "value" : "暂时无法识别城市，请选择搜索中心"
           }
         }
       }
@@ -131493,13 +131493,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "City nodes"
+            "value" : "Shop spots"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "城市节点"
+            "value" : "商家节点"
           }
         }
       }
@@ -131541,13 +131541,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "City lookup is busy. Choose a search center manually or retry later."
+            "value" : "Couldn't find your city. Choose a search center or try again later."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "城市查询繁忙，请手动选择搜索中心或稍后重试"
+            "value" : "暂时无法识别城市，请选择搜索中心或稍后重试"
           }
         }
       }
@@ -131781,13 +131781,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saved by your account"
+            "value" : "Saved"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此账号已收藏"
+            "value" : "已收藏"
           }
         }
       }
@@ -131989,13 +131989,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This map layer could not be updated"
+            "value" : "Couldn't load this part of the map"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此地图图层未能更新"
+            "value" : "这部分地图内容加载失败"
           }
         }
       }
@@ -132005,13 +132005,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Activities shown only in the list"
+            "value" : "Activities without a location, list only"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅在列表显示的活动"
+            "value" : "无位置、仅在列表显示的活动"
           }
         }
       }
@@ -132197,13 +132197,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Node details"
+            "value" : "Place details"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "节点详情"
+            "value" : "地点详情"
           }
         }
       }
@@ -132213,13 +132213,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "About this node"
+            "value" : "About this place"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "节点信息"
+            "value" : "地点信息"
           }
         }
       }
@@ -132661,13 +132661,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Show Apple map"
+            "value" : "Show map"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "显示 Apple 地图"
+            "value" : "显示地图"
           }
         }
       }
@@ -202618,6 +202618,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "暂时没有活动"
+          }
+        }
+      }
+    },
+    "searchMap.mapTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Map"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "地图"
           }
         }
       }
