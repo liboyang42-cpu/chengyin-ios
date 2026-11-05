@@ -214,13 +214,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Source availability"
+            "value": "Availability"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "来源状态"
+            "value": "上架状态"
           }
         }
       }
@@ -262,13 +262,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read-only records of free acquisitions by this individual account. Status reflects the server’s stated check time."
+            "value": "Plays you got for free with this account."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅查询当前个人账号的免费领取记录。状态对应服务器所示的查询时间。"
+            "value": "当前账号免费领取的玩法。"
           }
         }
       }
@@ -374,13 +374,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Source is listed. This does not enable installation or content use."
+            "value": "Listed"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "来源仍在架。此状态不会启用安装或内容使用。"
+            "value": "在架"
           }
         }
       }
@@ -390,13 +390,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Source retired from acquisition. Retirement alone does not rewrite the original frozen rights."
+            "value": "No longer offered. What you got stays yours."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "来源已停止新领取。普通下架本身不改变原冻结权利。"
+            "value": "已停止领取，你已获得的权利不变。"
           }
         }
       }
@@ -406,13 +406,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Source blocked for safety or legal review. This view does not determine refund or existing-use outcomes."
+            "value": "Blocked for safety or legal review."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "来源因安全或法律事项被停用。本页面不决定退款或既有使用的后续处置。"
+            "value": "因安全或法律原因停用。"
           }
         }
       }
@@ -422,13 +422,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Source status cannot be confirmed."
+            "value": "—"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无法确认来源状态。"
+            "value": "—"
           }
         }
       }
@@ -438,13 +438,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The account session changed. Reopen this page after signing in."
+            "value": "Your account changed. Sign in and open this page again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "账号会话已变化，请登录后重新打开此页面。"
+            "value": "账号已变化，请登录后重新打开此页面。"
           }
         }
       }
@@ -550,13 +550,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read-only metadata from the verified immutable free-acquisition snapshot. These frozen policy fields do not enable content access or any new operation."
+            "value": "The version and terms you got."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅展示经校验的免费领取不可变快照信息。冻结的许可字段不会启用内容访问或任何新增操作。"
+            "value": "你获得的版本与条款。"
           }
         }
       }
@@ -614,13 +614,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The account session changed. Reopen this page after signing in."
+            "value": "Your account changed. Sign in and open this page again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "账号会话已变化，请登录后重新打开此页。"
+            "value": "账号已变化，请登录后重新打开此页。"
           }
         }
       }
@@ -662,13 +662,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Source schema version"
+            "value": "Format version"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "来源结构版本"
+            "value": "格式版本"
           }
         }
       }
@@ -966,13 +966,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Required resource placeholders"
+            "value": "Resources to add"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "必需资源占位数量"
+            "value": "需添加的资源"
           }
         }
       }
@@ -982,13 +982,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A complete released manifest, asset rights and dependency closure are not available through this snapshot."
+            "value": "Full package details aren't available."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此快照暂不提供完整发布清单、素材权利或依赖闭包。"
+            "value": "暂无完整的玩法包信息。"
           }
         }
       }
@@ -1094,13 +1094,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Local adaptation"
+            "value": "Adaptation allowed"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "允许本地改编"
+            "value": "允许改编"
           }
         }
       }

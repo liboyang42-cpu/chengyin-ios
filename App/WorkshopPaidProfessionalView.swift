@@ -156,17 +156,16 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
             Section {
                 fact("targetName", target.name); fact("targetID", String(target.topicId))
                 professionalText("mode." + target.mode.rawValue)
-                fact("fingerprint", target.ownerModeFingerprint)
-                fact("draftRevision", String(draft.targetRevision)); fact("draftHash", draft.targetPayloadHash)
+                fact("draftRevision", String(draft.targetRevision))
             } header: { professionalText("targetReview") }
             Section {
-                fact("version", body.purchasedVersionID); fact("sourceHash", body.contentHash)
-                fact("termsVersion", body.termsVersion); fact("termsHash", body.termsHash)
+                fact("version", body.purchasedVersionID)
+                fact("termsVersion", body.termsVersion)
                 ForEach(WorkshopPaidInstalledTextFields.names, id: \.self) { name in
                     if let value = body.sourceFields[name] {
                         DisclosureGroup {
                             if value.isEmpty {
-                                Text(locale.language.languageCode?.identifier == "zh" ? "本次快照中此字段为空。" : "This field is empty in this snapshot.")
+                                Text("workshopPaid.emptyField")
                                     .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                             } else {
                                 Text(verbatim: value).fixedSize(horizontal: false, vertical: true)
@@ -198,7 +197,6 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
                     if let reason = result.rejectionCode { fact("rejection", reason) }
                     if let creation = result.creation, let id = creation.templateId {
                         fact("templateID", String(id)); professionalText("historicalCreation")
-                        if let hash = creation.templateContentHash { fact("templateHash", hash) }
                         Button {
                             guard let rawID = controller.generatedTemplateID(displayed, expected: result),
                                   let integerID = Int(exactly: rawID),

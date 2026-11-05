@@ -179,16 +179,16 @@
     },
     "workshopCreator.noTarget": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "尚无可选择的包版本和完整条款。可以查看原文；完整条款可用后才能确认。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No package version with complete terms is available. You can review the source; confirmation requires complete terms."
+            "value": "No version with complete terms yet. You can read the original; confirming needs complete terms."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚无条款完整的版本。可以查看原文；条款完整后才能确认。"
           }
         }
       }
@@ -211,16 +211,16 @@
     },
     "workshopCreator.offerVersion": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "报价版本标识"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Offer version reference"
+            "value": "Offer version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报价版本"
           }
         }
       }
@@ -355,16 +355,16 @@
     },
     "workshopCreator.package": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "包标识"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Package reference"
+            "value": "Package"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩法包"
           }
         }
       }
@@ -419,16 +419,16 @@
     },
     "workshopCreator.refresh": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重新核对原文"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh source review"
+            "value": "Refresh"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新"
           }
         }
       }
@@ -451,32 +451,32 @@
     },
     "workshopCreator.unknown": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "结果尚未确认。已保留原请求编号，请先核对记录。未找到记录也不会自动重新声明。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The outcome is unconfirmed. The original request ID is retained. Check the record first; a missing record never causes an automatic resubmission."
+            "value": "We couldn't confirm the result. Check the record before trying again; nothing is resent automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法确认结果，请先核对记录再重试，不会自动重新提交。"
           }
         }
       }
     },
     "workshopCreator.storage": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本机恢复记录无法安全读取或保存，声明未继续。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The local recovery record could not be safely read or saved. The declaration cannot continue."
+            "value": "Couldn't save on this device, so the declaration can't continue."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法保存到本机，声明无法继续。"
           }
         }
       }
@@ -499,16 +499,16 @@
     },
     "workshopCreator.failed": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无法核对该原创文字源或声明记录。请刷新后重试。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original text source or declaration could not be verified. Refresh to try again."
+            "value": "Couldn't check the original or the declaration. Refresh and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法核对原文或声明，请刷新后重试。"
           }
         }
       }

@@ -39,10 +39,9 @@ import SwiftUI
         List {
             Section {
                 Text(creatorString("workshopCreator.boundary")).foregroundStyle(.secondary)
-                LabeledContent(creatorString("workshopCreator.source"), value: String(controller.sourceTemplateId))
             }
             if controller.phase == .loading || controller.phase == .submitting { ProgressView(creatorString("workshopCreator.loading")) }
-            if let issue = controller.issue { Text(creatorString(issueKey(issue))).accessibilityIdentifier("workshopCreator.issue") }
+            if let issue = controller.issue { Text(creatorString(issueKey(issue))).foregroundStyle(.red).accessibilityIdentifier("workshopCreator.issue") }
             if let pending = controller.pending {
                 Section(creatorString("workshopCreator.request")) { Text(verbatim: pending.requestId).font(.caption).textSelection(.enabled) }
             }
@@ -57,7 +56,6 @@ import SwiftUI
                             }
                         }
                     }
-                    Text(verbatim: preview.packageContentHash).font(.caption).textSelection(.enabled)
                 }
                 if !preview.omittedPlanningMetadata.isEmpty {
                     Section(creatorString("workshopCreator.omitted")) {
@@ -84,7 +82,6 @@ import SwiftUI
                         LabeledContent(creatorString("workshopCreator.offerVersion"), value: target.offerVersion)
                         LabeledContent(creatorString("workshopCreator.termsVersion"), value: target.termsVersion)
                         Text(verbatim: target.termsDocument).textSelection(.enabled)
-                        Text(verbatim: target.termsDocumentHash).font(.caption).textSelection(.enabled)
                     }
                     if let detail = pendingDetail {
                         Section(creatorString("workshopPending.choices")) {

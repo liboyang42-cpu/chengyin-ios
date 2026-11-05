@@ -95,14 +95,14 @@ struct WorkshopPurchasedAccountLink: View {
                 let item = detail.item
                 Section {
                     PurchasedFact("license", item.licenseId); PurchasedFact("module", item.moduleId)
-                    PurchasedFact("version", item.purchasedVersionId); PurchasedFact("contentHash", item.contentHash)
+                    PurchasedFact("version", item.purchasedVersionId)
                     purchasedText("status." + item.status.rawValue).accessibilityIdentifier("workshopPurchased.status")
                     PurchasedFact("acquiredAt", item.acquiredAt); PurchasedFact("checkedAt", detail.checkedAt)
                     purchasedText("perpetual").font(.headline)
                     purchasedText("durationScope").fixedSize(horizontal: false, vertical: true)
                 } header: { purchasedText("record") }
                 Section {
-                    PurchasedFact("termsVersion", item.termsVersion); PurchasedFact("termsHash", item.termsHash)
+                    PurchasedFact("termsVersion", item.termsVersion)
                     PurchasedPolicy("commercialUse", item.commercialUse.rawValue)
                     PurchasedPolicy("adaptation", item.adaptation.rawValue)
                     PurchasedPolicy("translation", item.translation.rawValue)
