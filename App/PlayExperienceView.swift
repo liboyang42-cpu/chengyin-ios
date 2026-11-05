@@ -258,7 +258,7 @@ import SwiftUI
             HStack(alignment: .firstTextBaseline) {
                 Text("playx.run.elapsed").font(.subheadline).foregroundStyle(.secondary)
                 Spacer(minLength: 8)
-                Text(verbatim: String(format: "%02d:%02d", seconds / 60, seconds % 60))
+                Text(verbatim: String(format: "%02ld:%02ld", seconds / 60, seconds % 60))
                     .font(.system(.title, design: .rounded).weight(.bold)).monospacedDigit()
                     .accessibilityIdentifier("playx.run.clock")
             }

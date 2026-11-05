@@ -98740,13 +98740,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unsubmitted input and this attempt's measurements will be cleared. Anything already submitted still needs its result checked."
+            "value" : "What you haven't submitted will be cleared."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未提交的输入和本次测量将被清除。已提交的内容仍需核对结果。"
+            "value" : "未提交的内容会被清除。"
           }
         }
       }
@@ -99658,13 +99658,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A request is unresolved. New submissions are locked until its exact result is checked or the same request is retried."
+            "value" : "Your last answer is still being checked."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "有请求结果尚未确认。核对结果或重试原请求前，不能发起新提交。"
+            "value" : "上一次提交还在确认中。"
           }
         }
       }
@@ -99726,13 +99726,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No visual-review decision was available for this attempt"
+            "value" : "This photo couldn't be judged. Try another."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这次未能获得视觉审核结论"
+            "value" : "这张照片没能判定，换一张试试。"
           }
         }
       }
@@ -100474,13 +100474,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Check the pending request"
+            "value" : "Check result"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "核对待确认请求"
+            "value" : "查看结果"
           }
         }
       }
@@ -100576,13 +100576,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Retry the exact reviewed request"
+            "value" : "Try again"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重试已核对的原请求"
+            "value" : "重试"
           }
         }
       }
@@ -100712,13 +100712,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Waiting for result"
+            "value" : "Checking…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "等待结果"
+            "value" : "正在判定…"
           }
         }
       }
@@ -101154,13 +101154,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your session changed. Return to the task and reopen it."
+            "value" : "Your account changed. Go back and open this task again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "登录会话已变化，请返回任务后重新打开。"
+            "value" : "账号已变化，请返回后重新打开任务。"
           }
         }
       }
@@ -101171,13 +101171,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Session seconds remaining"
+            "value" : "Time left"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "会话剩余秒数"
+            "value" : "剩余时间"
           }
         }
       }
