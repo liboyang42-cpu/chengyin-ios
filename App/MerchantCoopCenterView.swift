@@ -129,6 +129,7 @@ func mcc(_ key: String, _ locale: Locale) -> String {
                         }
                     }.padding(16)
                 }
+                .refreshable { model.loadAll() }
                 .onChange(of: model.focusedRouteID) { _, id in
                     guard let id, tab == .plaza else { return }
                     withAnimation { proxy.scrollTo("route." + id, anchor: .top) }
