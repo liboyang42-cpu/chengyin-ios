@@ -103,10 +103,8 @@ enum OfficialDetailID {
                         }
                         if presentation.missions.isEmpty { Text("official.detailParity.tasks.empty") }
                         if topicNameFailed {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("official.w206.detail.topicName.failed").font(.subheadline)
-                                Text("official.w206.detail.topicName.stillOpen").font(.footnote).foregroundStyle(.secondary)
-                            }.accessibilityElement(children: .combine).accessibilityIdentifier(OfficialDetailID.topicNameError)
+                            Text("official.w206.detail.topicName.failed").font(.subheadline).foregroundStyle(.secondary)
+                                .accessibilityIdentifier(OfficialDetailID.topicNameError)
                         }
                         ForEach(presentation.missions, id: \.index) { mission in
                             let topicID = mission.binding?.themeTopicID
@@ -178,7 +176,6 @@ enum OfficialDetailID {
                         Text("official.signInForProgress")
                         if let onLogin { Button("official.signIn", action: onLogin).frame(minHeight: 44) }
                     }
-                    Text("official.actionsDeferred").font(.footnote).foregroundStyle(.secondary)
                 }
                 if reader.isAuthenticated, let actions {
                     let lease = OfficialDetailReturnLease(eventID: id, scope: reader.scope, visit: visit)
@@ -190,16 +187,19 @@ enum OfficialDetailID {
                         readback = UUID()
                     })
                 }
-                Section {
-                    // Source CTA wording. Only the theme CTA navigates (to its bound topic);
-                    // roam routes are not wired here and signup stays with OfficialParticipationActions.
-                    if let topicLinks, let topic = OfficialDetailTopicLinks.ctaTopic(event, cta: presentation.cta) {
+                // Source CTA wording. Only the theme CTA navigates (to its bound topic); signup stays with
+                // OfficialParticipationActions. An action label that cannot act here is not drawn as a button:
+                // only the waiting / ended states remain, as plain status text.
+                if let topicLinks, let topic = OfficialDetailTopicLinks.ctaTopic(event, cta: presentation.cta) {
+                    Section {
                         NavigationLink { topicLinks.destination(topic) } label: {
                             Text(LocalizedStringKey(presentation.cta.key)).font(.headline).frame(maxWidth: .infinity, minHeight: 44)
                         }.accessibilityIdentifier(OfficialDetailID.ctaTopic)
-                    } else {
-                        Text(LocalizedStringKey(presentation.cta.key)).font(.headline)
-                            .foregroundStyle(presentation.cta.isSourceAction ? Color.accentColor : Color.secondary)
+                    }
+                } else if !presentation.cta.isSourceAction {
+                    Section {
+                        Text(LocalizedStringKey(presentation.cta.key))
+                            .foregroundStyle(.secondary)
                             .frame(maxWidth: .infinity, minHeight: 44)
                             .accessibilityIdentifier(OfficialDetailID.cta)
                     }

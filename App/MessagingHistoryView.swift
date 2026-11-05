@@ -160,7 +160,9 @@ struct MessagingHistoryView: View {
         .appNavigationTitle("messaging.history.title")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
+            // Conversation settings sit top-right with the more menu (spec: title plus up to two actions),
+            // not beside the back button where a second "…" read as a duplicate.
+            ToolbarItem(placement: .topBarTrailing) {
                 if currentHistoryReady,
                    let owner = expanded?.coordinator(conversationID) {
                     NavigationLink {
@@ -173,7 +175,7 @@ struct MessagingHistoryView: View {
                             directory: directory,
                             showsAdmissionEntry: directory != nil || conversation?.kind == .group,
                             onConversationMutationAccepted: onConversationMutationAccepted) { _ in Task { await reload() } }
-                    } label: { Label("im.full.title", systemImage: "ellipsis.circle") }
+                    } label: { Label("im.full.title", systemImage: "info.circle") }
                     .accessibilityIdentifier("im.full.controlsEntry")
                 }
             }

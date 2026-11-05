@@ -72,10 +72,9 @@ private struct MessagingConversationListView: View {
                                 }
                             }
                         } else {
+                            // The segmented control already names this list; no repeated section title.
                             Section {
                                 ForEach(visible) { conversation in conversationRow(conversation) }
-                            } header: {
-                                IMInboxTabLabel(tab: tab, badge: 0)
                             }
                         }
                         if displayLimit < rows.count {

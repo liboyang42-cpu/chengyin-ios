@@ -15,10 +15,7 @@ import SwiftUI
             Section {
                 SocialReadScreen(reader: reader, requestKey: "information-list", load: { try await reader.informationList() }) { rows in
                     if rows.isEmpty {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("guideXcx.docsEmpty").font(.headline)
-                            Text("guideXcx.docsEmptyDetail").font(.footnote).foregroundStyle(.secondary)
-                        }.accessibilityElement(children: .combine).accessibilityIdentifier("social.guide.docsEmpty")
+                        Text("guideXcx.docsEmpty").foregroundStyle(.secondary).accessibilityIdentifier("social.guide.docsEmpty")
                     }
                     ForEach(rows) { row in
                         NavigationLink {

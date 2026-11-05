@@ -82,9 +82,10 @@ import SwiftUI
                         .accessibilityIdentifier("teamMembershipRetired")
                 }
                 if let detail = model.coordinator.detail {
-                    TeamCard(team: detail.team, confirmedJoinMode: model.coordinator.confirmedJoinMode).accessibilityIdentifier("team.detail.card")
+                    // Mini-program `team-head` is the one header: title, status, mode, members and start time.
                     TeamPageHeader(detail: detail, kind: pageKind, confirmedJoinMode: model.coordinator.confirmedJoinMode)
-                    Text("team.ticketSeparation").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                        .accessibilityElement(children: .contain)
+                        .accessibilityIdentifier("team.detail.card")
                     if let channelManagementHooks,
                        let source = NativeTeamChannelManagementSource(coordinator: model.coordinator, lookup: lookup, readOnly: readOnly) {
                         NativeChannelManagementTeamEntry(destinations: channelManagementHooks.destinations, detail: source.detail, makeFlow: { selected in

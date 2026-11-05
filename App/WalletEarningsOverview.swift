@@ -79,7 +79,6 @@ enum WalletFundsStagePhase: Equatable {
                 Text("wallet.earnings.stages.unknown", tableName: "WalletEarningsOverview")
                     .accessibilityIdentifier("wallet.earnings.stages.unknown")
                     .accessibilityLabel(Text("wallet.earnings.stages.unknown", tableName: "WalletEarningsOverview"))
-                separate
             case .empty, .known:
                 if let value = funds.value, WalletFundsStageClassifier.showsAmounts(phase) {
                     amounts(value, phase: phase)
@@ -115,13 +114,6 @@ enum WalletFundsStagePhase: Equatable {
             .accessibilityLabel(Text("wallet.available"))
             .accessibilityValue(Text(verbatim: format.amount(value.withdrawable, currency: value.currency)))
             .privacySensitive()
-        Text("wallet.notPayout")
-        separate
-    }
-    private var separate: some View {
-        Text("wallet.earnings.stages.separate", tableName: "WalletEarningsOverview")
-            .font(.footnote).foregroundStyle(.secondary)
-            .accessibilityIdentifier("wallet.earnings.stages.separate")
     }
 }
 

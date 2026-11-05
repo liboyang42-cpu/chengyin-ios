@@ -87,7 +87,6 @@ struct RegistrationSheetView: View {
                             }
                             if let snapshot = flow.durableStatus {
                                 Text(LocalizedStringKey(RegistrationUIStatus.registrationKey(snapshot.registrationStatus)))
-                                Text("registration.waitlist.orderReadback").font(.caption).foregroundStyle(.secondary)
                             }
                         }
                         recoveredOrderSection
@@ -210,7 +209,6 @@ struct RegistrationSheetView: View {
                     orderReader.identity?.accountID != destination.identity.accountID ||
                     orderReader.identity?.epoch != destination.identity.epoch)
                 .accessibilityIdentifier("registration.recovered.openOrder")
-                Text("registration.form.separateStatusHint").font(.caption).foregroundStyle(.secondary)
             }
         }
     }
@@ -228,7 +226,6 @@ struct RegistrationSheetView: View {
                     orderReader.identity?.accountID != destination.identity.accountID ||
                     orderReader.identity?.epoch != destination.identity.epoch)
                 .accessibilityIdentifier("registration.result.openOrder")
-                Text("registration.form.separateStatusHint").font(.caption).foregroundStyle(.secondary)
             }
         }
     }
@@ -267,7 +264,7 @@ struct RegistrationSheetView: View {
             }
             Label {
                 if let venue = checkout.venue { Text(verbatim: venue) }
-                else { Text("registrationParity.venueUnconfirmed") }
+                else { Text(verbatim: "—") }
             } icon: { Image(systemName: "mappin.and.ellipse") }
                 .accessibilityIdentifier("registration.activity.venue")
         }
@@ -316,7 +313,7 @@ struct RegistrationSheetView: View {
             if !flow.draft.phone.isEmpty, flow.draft.validation == .invalidPhone {
                 Text("registration.form.phoneHint").font(.caption).foregroundStyle(.red)
             }
-        } header: { Text("registrationParity.section.participants") } footer: { Text("registration.form.contactHint") }
+        } header: { Text("registrationParity.section.participants") }
         .disabled(!flow.canEdit)
     }
     private var ticketSection: some View {
@@ -376,13 +373,11 @@ struct RegistrationSheetView: View {
                                     }
                                 } else { Text("registration.waitlist.state.EXPIRED") }
                             }
-                            Text("registration.waitlist.singleTicket").font(.caption).foregroundStyle(.secondary)
                             Button("registration.waitlist.reviewOffer") { Task { await flow.reviewWaitlistOffer() } }
                                 .disabled(!flow.canEdit || flow.isReadingWaitlist)
                                 .accessibilityIdentifier("registration.waitlist.reviewOffer")
                         }
                         if status.registrationID != nil {
-                            Text("registration.waitlist.orderReadback").font(.caption).foregroundStyle(.secondary)
                             if let destination = flow.waitlistOrderDestination, let orderReader {
                                 Button("profile.orders.detail") {
                                     guard orderDestination == nil, flow.waitlistOrderDestination == destination,
@@ -409,7 +404,7 @@ struct RegistrationSheetView: View {
                             .accessibilityIdentifier("registration.waitlist.cancel")
                     }
                 }
-            } header: { Text("registration.waitlist.title") } footer: { Text("registration.waitlist.noAutoPayment") }
+            } header: { Text("registration.waitlist.title") }
         }
     }
     private var quoteSection: some View {
@@ -458,7 +453,7 @@ struct RegistrationSheetView: View {
             Button("registration.form.refreshQuote") { Task { await flow.requestQuote() } }
                 .disabled(!flow.quoteEnabled || !flow.canEdit || flow.isQuoting)
                 .accessibilityIdentifier("registration.form.refreshQuote")
-        } header: { Text("registration.form.fees") } footer: { Text("registration.form.currencyHint") }
+        } header: { Text("registration.form.fees") }
     }
     private var confirmationSection: some View {
         Section {
@@ -587,7 +582,6 @@ private struct RegistrationOperationSections: View {
                 statusRow("registration.form.registrationCode", snapshot.registrationStatus)
                 statusRow("registration.form.paymentCode", snapshot.paymentStatus)
                 statusRow("registration.form.verificationCode", snapshot.verificationStatus)
-                Text("registration.form.separateStatusHint").font(.caption).foregroundStyle(.secondary)
             }.accessibilityIdentifier("registration.form.statusSnapshot")
         }
     }

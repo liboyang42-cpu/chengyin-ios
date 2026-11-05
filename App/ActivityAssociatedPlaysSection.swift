@@ -14,8 +14,6 @@ struct ActivityAssociatedPlaysSection: View {
                         .questifyCardListRow()
                         .accessibilityIdentifier("activityAssociated.row.\(index)")
                 }
-                Text("activityAssociated.readOnly").font(.footnote).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
             }.accessibilityIdentifier("activityAssociated.section")
         }
     }

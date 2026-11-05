@@ -8453,13 +8453,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The required club is not available from this activity response."
+            "value" : "This club can't be opened right now"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本次活动回复中的俱乐部入口暂不可用。"
+            "value" : "暂时无法打开对应俱乐部"
           }
         }
       }
@@ -8476,7 +8476,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "玩家"
+            "value" : "城瘾玩家"
           }
         }
       }
@@ -8504,13 +8504,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Count unavailable"
+            "value" : "—"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "评价数量暂不可用"
+            "value" : "—"
           }
         }
       }
@@ -8527,7 +8527,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂无评价"
+            "value" : "还没有评价"
           }
         }
       }
@@ -8555,13 +8555,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review preview unavailable"
+            "value" : "No reviews yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "评价预览暂不可用"
+            "value" : "还没有评价"
           }
         }
       }
@@ -8589,13 +8589,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rating unavailable"
+            "value" : "—"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "评分暂不可用"
+            "value" : "—"
           }
         }
       }
@@ -8775,13 +8775,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "View theme route"
+            "value" : "Theme route"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "查看主题路线"
+            "value" : "主题路线"
           }
         }
       }
@@ -8809,13 +8809,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Duration unavailable"
+            "value" : "—"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "时长待确认"
+            "value" : "—"
           }
         }
       }
@@ -8843,13 +8843,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Player count unavailable"
+            "value" : "—"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "人数待确认"
+            "value" : "—"
           }
         }
       }
@@ -39867,7 +39867,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "My published content"
+            "value" : "My projects"
           }
         },
         "zh-Hans" : {
@@ -40059,13 +40059,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Showing the first 200 results. Narrow the filters to find more content."
+            "value" : "Showing the latest 200"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅显示前 200 条，请筛选以查找更多内容。"
+            "value" : "仅显示最近 200 条"
           }
         }
       }
@@ -41959,13 +41959,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "What to prepare"
+            "value" : "Materials needed"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "需要准备"
+            "value" : "所需物料"
           }
         }
       }
@@ -42291,13 +42291,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Duration (seconds)"
+            "value" : "Estimated time"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "时长（秒）"
+            "value" : "预计用时"
           }
         }
       }
@@ -42396,7 +42396,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "规则说明"
+            "value" : "规则"
           }
         }
       }
@@ -42779,13 +42779,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Route template preview"
+            "value" : "Route template"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "主题模板预览"
+            "value" : "主题模板"
           }
         }
       }
@@ -43866,13 +43866,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Refreshing. Earlier results stay visible until new ones load."
+            "value" : "Updating…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在更新，新结果加载前会保留此前的结果。"
+            "value" : "正在更新…"
           }
         }
       }
@@ -43882,13 +43882,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Some results couldn't be refreshed and may be out of date."
+            "value" : "Some results may be out of date"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "部分结果未能更新，内容可能已过时。"
+            "value" : "部分结果可能不是最新"
           }
         }
       }
@@ -45717,13 +45717,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Conversation actions"
+            "value" : "Conversation info"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "会话操作"
+            "value" : "会话信息"
           }
         }
       }
@@ -46190,13 +46190,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "System notifications are one-way. You can read them and manage notifications here."
+            "value" : "System notifications can't be replied to"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "系统通知不支持回复，有新动态会出现在这里"
+            "value" : "系统通知不支持回复"
           }
         }
       }
@@ -48509,13 +48509,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "All result layers are hidden"
+            "value" : "Everything is hidden"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "所有结果图层均已隐藏"
+            "value" : "已全部隐藏"
           }
         }
       }
@@ -48560,13 +48560,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Display layers"
+            "value" : "Show on map"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "显示图层"
+            "value" : "地图显示"
           }
         }
       }
@@ -48873,13 +48873,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Refresh these results"
+            "value" : "Refresh"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "刷新当前结果"
+            "value" : "刷新"
           }
         }
       }
@@ -48889,13 +48889,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Activity refresh failed. Previously loaded activity results are still shown."
+            "value" : "Couldn't refresh activities"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "活动刷新失败，仍显示之前加载的活动结果。"
+            "value" : "活动刷新失败"
           }
         }
       }
@@ -48905,13 +48905,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "City point refresh failed. Previously loaded city points are still shown."
+            "value" : "Couldn't refresh shop spots"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "城市点位刷新失败，仍显示之前加载的城市点位。"
+            "value" : "商家节点刷新失败"
           }
         }
       }
@@ -48955,13 +48955,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Discard map selection"
+            "value" : "Cancel"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "取消地图选择"
+            "value" : "取消"
           }
         }
       }
@@ -48972,13 +48972,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Search around this map center using the current filters. This does not use your device location."
+            "value" : "Search around the map centre"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "按当前筛选条件搜索此地图中心附近，不使用设备定位。"
+            "value" : "搜索地图中心附近"
           }
         }
       }
@@ -49006,13 +49006,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This map selection changed or could not be converted. Move the map to choose again."
+            "value" : "The map moved. Move it again to pick an area."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "地图选择已变化或无法转换。请移动地图重新选择。"
+            "value" : "地图位置已变化，请重新移动地图"
           }
         }
       }
@@ -49023,13 +49023,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Move the map and stop to choose a new search center. Moving alone does not search."
+            "value" : "Move the map to search another area"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "移动地图后停下，选择新的搜索中心；移动本身不会发起搜索。"
+            "value" : "移动地图可搜索其他区域"
           }
         }
       }
@@ -49057,13 +49057,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Map-area search is unavailable for this connection. Your existing results are unchanged."
+            "value" : "Searching by map area isn't available right now"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前连接暂不支持地图区域搜索，已有结果保持不变。"
+            "value" : "暂时无法按地图区域搜索"
           }
         }
       }
@@ -57251,13 +57251,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This step applies for the chapter. Once it updates, set up the stop from My chapter applications. The two are submitted separately."
+            "value" : "Once accepted, set up the stop in My chapter applications."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此步骤提交章节申请。更新后，请在“我的章节申请”中配置点位。两次提交分别处理。"
+            "value" : "通过后在「我的章节申请」里配置点位"
           }
         }
       }
@@ -57475,13 +57475,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter the service time as YYYY-MM-DD HH:mm (local time). We'll check whether it's eligible."
+            "value" : "Format YYYY-MM-DD HH:mm, local time"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请按 YYYY-MM-DD HH:mm 输入服务时间（当地时间），我们会校验是否符合要求。"
+            "value" : "格式 YYYY-MM-DD HH:mm（当地时间）"
           }
         }
       }
@@ -58051,13 +58051,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Instance last reviewed"
+            "value" : "Last confirmed"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "实例最近复核时间"
+            "value" : "最近确认时间"
           }
         }
       }
@@ -58627,13 +58627,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pending count"
+            "value" : "Pending"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "待处理数量"
+            "value" : "待处理"
           }
         }
       }
@@ -59507,13 +59507,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "I am participating"
+            "value" : "My part in this route"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "我承接的"
+            "value" : "我在这条路线上的承接"
           }
         }
       }
@@ -59651,13 +59651,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No host or participant workspace was returned"
+            "value" : "You're not hosting or taking part in this route"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未返回主办或承接工作台"
+            "value" : "你还没有主办或承接这条路线"
           }
         }
       }
@@ -59667,13 +59667,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Station changes are reviewed after you submit. Signing up doesn't mean you've won the slot."
+            "value" : "Changes take effect after review"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "点位修改提交后需审核；报名成功不等于中标。"
+            "value" : "修改需审核后生效"
           }
         }
       }
@@ -59683,13 +59683,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Node review"
+            "value" : "Stop review"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "点位审核"
+            "value" : "节点审核"
           }
         }
       }
@@ -59827,13 +59827,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A successful placement submission creates a pending application. It does not put the node online."
+            "value" : "Goes live after review"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "投放提交成功后形成待审申请，不代表据点已上线。"
+            "value" : "审核通过后上线"
           }
         }
       }
@@ -59891,13 +59891,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Project workspace"
+            "value" : "Route workspace"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "项目工作台"
+            "value" : "路线工作台"
           }
         }
       }
@@ -60179,13 +60179,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Venue and registration content"
+            "value" : "Hosting details"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "场地与报名内容"
+            "value" : "承接信息"
           }
         }
       }
@@ -60323,13 +60323,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm instance supply review"
+            "value" : "Confirm supply is unchanged"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认实例供给已复核"
+            "value" : "供给无变化，重新确认"
           }
         }
       }
@@ -80582,13 +80582,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Search loaded conversations"
+            "value" : "Search"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "搜索已加载的会话"
+            "value" : "搜索"
           }
         }
       }
@@ -80599,13 +80599,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Change the filter or search the names and previews already loaded."
+            "value" : "Try another name or keyword"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请调整筛选，或搜索已加载的名称和消息摘要。"
+            "value" : "换个名字或关键词试试"
           }
         }
       }
@@ -88410,13 +88410,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No verified action is currently available"
+            "value" : "Nothing to do right now"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前没有可核实的操作"
+            "value" : "暂时没有需要你操作的事项"
           }
         }
       }
@@ -123682,7 +123682,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Quote details"
+            "value" : "Price details"
           }
         },
         "zh-Hans" : {
@@ -123733,13 +123733,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The quote is incomplete. A known total and signature are required before confirmation."
+            "value" : "The price couldn't be confirmed. Refresh to try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "报价不完整。确认前需要明确总额和有效报价签名。"
+            "value" : "价格暂时无法确认，请刷新后再试"
           }
         }
       }
@@ -124090,13 +124090,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Price quotes aren't available right now."
+            "value" : "Prices can't be shown right now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "报价暂不可用。"
+            "value" : "暂时无法显示价格"
           }
         }
       }
@@ -124124,13 +124124,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Request a fresh quote for this selection"
+            "value" : "Refresh to see the latest price"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请为当前选择获取最新报价"
+            "value" : "刷新以查看最新价格"
           }
         }
       }
@@ -124192,13 +124192,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Refresh quote"
+            "value" : "Refresh price"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "刷新报价"
+            "value" : "刷新价格"
           }
         }
       }
@@ -124413,13 +124413,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Live registration requires separate consent to share your name and mobile number with the organizer for registration verification."
+            "value" : "Your name and mobile number go to the organiser to verify your registration."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "实时报名需要单独同意将姓名、手机号提供给主办方，用于报名核验。"
+            "value" : "同意将姓名、手机号提供给主办方，用于报名核验"
           }
         }
       }
@@ -124532,13 +124532,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Status couldn't be loaded. Your existing submission stays locked."
+            "value" : "Couldn't load the registration status."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法获取状态，原报名提交仍保持锁定。"
+            "value" : "暂时无法获取报名状态"
           }
         }
       }
@@ -125135,13 +125135,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A previous registration request is retained for this ticket. Creating another order is blocked, including after restarting the app."
+            "value" : "A registration for this ticket is already in progress."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此票种已有保留的报名请求。重启应用后也不会重复创建订单。"
+            "value" : "这个票种已有一笔报名正在处理中"
           }
         }
       }
@@ -131419,7 +131419,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "分类"
+            "value" : "类别"
           }
         }
       }
@@ -131477,13 +131477,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "City lookup is unavailable. Use the manual search center."
+            "value" : "Couldn't find your city. Choose a search center."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "城市查询暂不可用，请使用手动搜索中心"
+            "value" : "暂时无法识别城市，请选择搜索中心"
           }
         }
       }
@@ -131493,13 +131493,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "City nodes"
+            "value" : "Shop spots"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "城市节点"
+            "value" : "商家节点"
           }
         }
       }
@@ -131541,13 +131541,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "City lookup is busy. Choose a search center manually or retry later."
+            "value" : "Couldn't find your city. Choose a search center or try again later."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "城市查询繁忙，请手动选择搜索中心或稍后重试"
+            "value" : "暂时无法识别城市，请选择搜索中心或稍后重试"
           }
         }
       }
@@ -131573,13 +131573,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "City-node search"
+            "value" : "Find activities and topics on the map"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "城市节点搜索"
+            "value" : "在地图上找活动与主题节点"
           }
         }
       }
@@ -131589,13 +131589,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Clear history"
+            "value" : "Clear"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "清空历史"
+            "value" : "清空"
           }
         }
       }
@@ -131717,13 +131717,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Through YYYY-MM-DD"
+            "value" : "End date (YYYY-MM-DD)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "结束日期 YYYY-MM-DD"
+            "value" : "结束日期（YYYY-MM-DD）"
           }
         }
       }
@@ -131781,13 +131781,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saved by your account"
+            "value" : "Saved"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此账号已收藏"
+            "value" : "已收藏"
           }
         }
       }
@@ -131861,13 +131861,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recent searches"
+            "value" : "Search history"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "最近搜索"
+            "value" : "搜索历史"
           }
         }
       }
@@ -131877,13 +131877,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recent-search storage is unavailable. This session can still search."
+            "value" : "Search history can't be saved right now"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "最近搜索存储暂不可用，本次会话仍可继续搜索"
+            "value" : "暂时无法保存搜索历史"
           }
         }
       }
@@ -131989,13 +131989,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This map layer could not be updated"
+            "value" : "Couldn't load this part of the map"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此地图图层未能更新"
+            "value" : "这部分地图内容加载失败"
           }
         }
       }
@@ -132005,13 +132005,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Activities shown only in the list"
+            "value" : "Activities without a location, list only"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅在列表显示的活动"
+            "value" : "无位置、仅在列表显示的活动"
           }
         }
       }
@@ -132059,7 +132059,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "最高价格（0–1000）"
+            "value" : "最高区间（0–1000）"
           }
         }
       }
@@ -132091,7 +132091,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "最低价格（0–1000）"
+            "value" : "最低区间（0–1000）"
           }
         }
       }
@@ -132149,13 +132149,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nearby route nodes"
+            "value" : "Nearby on the map"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "附近路线节点"
+            "value" : "附近"
           }
         }
       }
@@ -132197,13 +132197,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Node details"
+            "value" : "Place details"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "节点详情"
+            "value" : "地点详情"
           }
         }
       }
@@ -132213,13 +132213,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "About this node"
+            "value" : "About this place"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "节点信息"
+            "value" : "地点信息"
           }
         }
       }
@@ -132389,13 +132389,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Listed starting price"
+            "value" : "Price"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "标示起价"
+            "value" : "价格"
           }
         }
       }
@@ -132453,13 +132453,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reset filters"
+            "value" : "Reset"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重置筛选"
+            "value" : "重置"
           }
         }
       }
@@ -132661,13 +132661,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Show Apple map"
+            "value" : "Show map"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "显示 Apple 地图"
+            "value" : "显示地图"
           }
         }
       }
@@ -132709,13 +132709,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "From YYYY-MM-DD"
+            "value" : "Start date (YYYY-MM-DD)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "开始日期 YYYY-MM-DD"
+            "value" : "开始日期（YYYY-MM-DD）"
           }
         }
       }
@@ -132789,13 +132789,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Global search"
+            "value" : "Search"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "全局搜索"
+            "value" : "搜索"
           }
         }
       }
@@ -135746,13 +135746,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ways to explore"
+            "value" : "Ways to play"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "探索方式"
+            "value" : "三种玩法"
           }
         }
       }
@@ -135843,13 +135843,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Browse all templates"
+            "value" : "More plays"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "浏览全部模板"
+            "value" : "更多玩法"
           }
         }
       }
@@ -135928,13 +135928,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Game templates are unavailable in this context."
+            "value" : "No ready-made plays right now"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前暂时无法查看玩法模板。"
+            "value" : "暂时没有现成玩法"
           }
         }
       }
@@ -138277,7 +138277,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "点赞数"
+            "value" : "点赞"
           }
         }
       }
@@ -141484,13 +141484,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Copying only places the existing code on this device’s clipboard. It does not send an invitation or create a link."
+            "value" : "Copy the code and send it to your teammates"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "复制仅将现有邀请码放入本机剪贴板，不会发送邀请或创建链接。"
+            "value" : "复制邀请码后发给队友"
           }
         }
       }
@@ -141552,13 +141552,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Joining provides access to the team chat. It does not register you or buy a ticket. Leaving and ticket refunds are separate."
+            "value" : "You'll join the team chat automatically"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "加入后会进入队伍群聊。入队不会代替报名或购票。退队与退票互不联动。"
+            "value" : "入队后自动进群聊"
           }
         }
       }
@@ -141688,13 +141688,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Role not provided"
+            "value" : "Teammate"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "角色未提供"
+            "value" : "队员"
           }
         }
       }
@@ -141773,13 +141773,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Member count not provided"
+            "value" : "—"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "成员人数未提供"
+            "value" : "—"
           }
         }
       }
@@ -142429,13 +142429,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Adopt as a local play draft"
+            "value" : "Use this play"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "套用为本地玩法草稿"
+            "value" : "应用"
           }
         }
       }
@@ -150029,7 +150029,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Availability"
+            "value" : "Status"
           }
         },
         "zh-Hans" : {
@@ -150269,13 +150269,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Duration (seconds)"
+            "value" : "Estimated time"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "时长（秒）"
+            "value" : "预计用时"
           }
         }
       }
@@ -150350,13 +150350,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Estimates use the straight-line distance between adjacent stops at 80 m/min. Actual walking routes and times may differ."
+            "value" : "Walking times are estimates"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "按相邻站点的直线距离、每分钟 80 米估算。实际步行路线和用时可能不同。"
+            "value" : "步行时间为估算"
           }
         }
       }
@@ -150448,13 +150448,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Some chapters are locked. Only supplied chapters are shown."
+            "value" : "Some chapters unlock after you join"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "部分章节尚未解锁，仅展示已下发章节。"
+            "value" : "部分章节参与后解锁"
           }
         }
       }
@@ -150480,13 +150480,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Participating merchants"
+            "value" : "Participating shops"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "承接商家"
+            "value" : "参与商家"
           }
         }
       }
@@ -150512,13 +150512,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No chapters available to view"
+            "value" : "Route coming soon"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂无可查看章节"
+            "value" : "路线配置中"
           }
         }
       }
@@ -150544,13 +150544,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No sessions supplied"
+            "value" : "No sessions yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂无场次信息"
+            "value" : "暂无场次"
           }
         }
       }
@@ -151034,13 +151034,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Visible stops in this chapter"
+            "value" : "Stops"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本章可见站点"
+            "value" : "站点"
           }
         }
       }
@@ -154595,13 +154595,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "currency unspecified"
+            "value" : "—"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "币种未提供"
+            "value" : "—"
           }
         }
       }
@@ -154883,13 +154883,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fund stages"
+            "value" : "Settlement"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "资金分段"
+            "value" : "结算进度"
           }
         }
       }
@@ -155523,13 +155523,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wallet"
+            "value" : "Account earnings"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "资产中心"
+            "value" : "账户收益"
           }
         }
       }
@@ -183799,13 +183799,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Seats to be confirmed"
+            "value" : "Seats left —"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "余席待确认"
+            "value" : "余席 —"
           }
         }
       }
@@ -183884,13 +183884,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No ticket types available"
+            "value" : "No tickets yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂无可选票种"
+            "value" : "暂无票种"
           }
         }
       }
@@ -188181,7 +188181,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hosted by Chengyin Official"
+            "value" : "Hosted by Questify"
           }
         },
         "zh-Hans" : {
@@ -190276,13 +190276,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rules and play details"
+            "value" : "The play page's rules apply"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "规则与玩法细节"
+            "value" : "实际玩法以游玩页规则为准"
           }
         }
       }
@@ -191236,13 +191236,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Location is requested only when you choose a place, to match the hosting area and guide arrivals; you can still fill in the rest if you decline."
+            "value" : "Used for the map and arrival directions. You can still fill in the rest if you decline."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选择地点时才会请求定位，用于匹配承接范围与到场导航；拒绝后仍可继续填写其他资料。"
+            "value" : "用于地图与到场导航，拒绝不影响填写"
           }
         }
       }
@@ -191252,13 +191252,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "5:3 landscape photos recommended · at least 1, up to 9"
+            "value" : "5:3 landscape, 1–9 photos"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "建议 5:3 横图 · 至少 1 张，最多 9 张"
+            "value" : "5:3 横图，1–9 张"
           }
         }
       }
@@ -191332,13 +191332,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Signing up is not winning the stop; it counts once the organizer confirms you."
+            "value" : "Takes effect once the organiser confirms, usually in 1–3 days"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "报名成功不等于中标，主理人确认后才算接上这一站"
+            "value" : "主理人确认后生效，预计 1–3 天"
           }
         }
       }
@@ -193946,13 +193946,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You received a team invitation. Teaming up does not affect whether the activity runs, and joining does not register you or buy a ticket."
+            "value" : "The invite code can't be used to check in, and joining doesn't register you or buy a ticket"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你收到一份组队邀请。组队与否不影响活动举行，入队不会代替报名或购票。"
+            "value" : "邀请码不能用于签到或核销，入队不代替报名或购票"
           }
         }
       }
@@ -196065,13 +196065,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Node plays are not available from this entry"
+            "value" : "Find node plays in your template list"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此入口暂不提供节点玩法列表"
+            "value" : "节点玩法请在模板列表中查看"
           }
         }
       }
@@ -202567,6 +202567,1383 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "商家概览"
+          }
+        }
+      }
+    },
+    "homeFeed.editorsPicks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Editor's picks"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑精选"
+          }
+        }
+      }
+    },
+    "homeFeed.editorsPicksEmpty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No featured routes yet"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂时没有精选主题"
+          }
+        }
+      }
+    },
+    "homeFeed.activitiesEmpty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No activities right now"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂时没有活动"
+          }
+        }
+      }
+    },
+    "searchMap.mapTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Map"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "地图"
+          }
+        }
+      }
+    },
+    "square.levelBadge %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lv.%lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lv.%lld"
+          }
+        }
+      }
+    },
+    "square.replyingTo %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Replying to %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回复 %@"
+          }
+        }
+      }
+    },
+    "square.like" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Like"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点赞"
+          }
+        }
+      }
+    },
+    "square.unlike" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlike"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消点赞"
+          }
+        }
+      }
+    },
+    "square.edit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑"
+          }
+        }
+      }
+    },
+    "square.report" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Report"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "举报"
+          }
+        }
+      }
+    },
+    "activity.reviewPointsNote" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Points for a first genuine review follow the platform's current rules"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "首次真实评价的积分以平台当前规则为准"
+          }
+        }
+      }
+    },
+    "publisherPricing.format" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Format"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "玩法"
+          }
+        }
+      }
+    },
+    "publisherPricing.guided" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guided"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有人带"
+          }
+        }
+      }
+    },
+    "publisherPricing.selfGuided" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Self-guided"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无人带"
+          }
+        }
+      }
+    },
+    "publisherPricing.leadCost" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lead cost"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "带队成本"
+          }
+        }
+      }
+    },
+    "publisherPricing.totalLeadCostForThisGroup" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Total lead cost for this group"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本团带队总成本"
+          }
+        }
+      }
+    },
+    "publisherPricing.groupSize" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Group size"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "成团人数"
+          }
+        }
+      }
+    },
+    "publisherPricing.guidedPricingNeedsAGroupSize" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guided pricing needs a group size above 0, otherwise the lead cost is counted as zero."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有人带定价需填写成团人数（大于 0），否则带队成本会被算成 0 元"
+          }
+        }
+      }
+    },
+    "publisherPricing.recalculateMinimum" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recalculate minimum"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新计算最低价"
+          }
+        }
+      }
+    },
+    "publisherPricing.refreshMinimumPrice" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refresh minimum price"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刷新最低价"
+          }
+        }
+      }
+    },
+    "publisherPricing.checkingTheLatestPricing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Checking the latest pricing…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在核对最新定价…"
+          }
+        }
+      }
+    },
+    "publisherPricing.minimumPrice" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Minimum price"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最低价"
+          }
+        }
+      }
+    },
+    "publisherPricing.theFinalPriceCanTBe" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The final price can't be lower than this"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "终价不可低于此值"
+          }
+        }
+      }
+    },
+    "publisherPricing.yourFinalPrice" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your final price"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的终价"
+          }
+        }
+      }
+    },
+    "publisherPricing.finalPrice" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Final price"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "终价"
+          }
+        }
+      }
+    },
+    "publisherPricing.minimum" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Minimum"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最低价"
+          }
+        }
+      }
+    },
+    "publisherPricing.local" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同城"
+          }
+        }
+      }
+    },
+    "publisherPricing.notEnoughSamplesNoReferencePrice" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not enough samples; no reference price shown"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "样本不足，暂不展示参考价"
+          }
+        }
+      }
+    },
+    "publisherPricing.notAboveTheLocalReferencePrice" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not above the local reference price"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未高于同城参考价"
+          }
+        }
+      }
+    },
+    "publisherPricing.partnerClub" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partner club"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "合作俱乐部"
+          }
+        }
+      }
+    },
+    "publisherPricing.hostingMerchant" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hosting merchant"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "承接商家"
+          }
+        }
+      }
+    },
+    "publisherPricing.partnerLineup" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partner lineup"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "合作阵容"
+          }
+        }
+      }
+    },
+    "publisherPricing.youCanSetThePriceOnce" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can set the price once the partner lineup is locked"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "合作阵容锁定后可定价"
+          }
+        }
+      }
+    },
+    "publisherPricing.confirmFinalPriceAndSubmitFor" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirm final price and submit for sale review"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "确认终价并提交开售审核"
+          }
+        }
+      }
+    },
+    "publisherPricing.review" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Review"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "审阅"
+          }
+        }
+      }
+    },
+    "publisherPricing.salesOpenAtThisPriceAnd" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sales open at this price, and the partner lineup and settlement terms lock."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此终价将开售，合作阵容和结算条款锁定。"
+          }
+        }
+      }
+    },
+    "publisherPricing.confirmOpeningSales" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirm opening sales"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "确认开售"
+          }
+        }
+      }
+    },
+    "publisherPricing.confirmFinalPrice" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirm final price"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "确认终价"
+          }
+        }
+      }
+    },
+    "publisherPricing.chapterSupplyPerks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chapter supply · perks"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "章节供给 · 给权益"
+          }
+        }
+      }
+    },
+    "publisherPricing.chapterSupplyReferral" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chapter supply · referral"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "章节供给 · 引流"
+          }
+        }
+      }
+    },
+    "publisherPricing.referral" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Referral"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "引流型"
+          }
+        }
+      }
+    },
+    "publisherPricing.thisPartnerLinkIsNoLonger" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This partner link is no longer valid"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "合作链接已失效"
+          }
+        }
+      }
+    },
+    "publisherPricing.goBackAndOpenItAgain" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go back and open it again"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请返回重新进入"
+          }
+        }
+      }
+    },
+    "publisherPricing.loadingPartnerInformation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading partner information"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "合作信息加载中"
+          }
+        }
+      }
+    },
+    "publisherPricing.noProfileYet" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No profile yet"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂无档案"
+          }
+        }
+      }
+    },
+    "publisherPricing.partnershipTerms" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partnership terms"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "合作条款"
+          }
+        }
+      }
+    },
+    "publisherPricing.settlement" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settlement"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "结算方式"
+          }
+        }
+      }
+    },
+    "publisherPricing.revenueShare" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revenue share"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分成型"
+          }
+        }
+      }
+    },
+    "publisherPricing.fixed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fixed"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "固定型"
+          }
+        }
+      }
+    },
+    "publisherPricing.share" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分成比例"
+          }
+        }
+      }
+    },
+    "publisherPricing.fixedFee" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fixed fee"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "固定合作费"
+          }
+        }
+      }
+    },
+    "publisherPricing.perPerson" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " per person"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "/人"
+          }
+        }
+      }
+    },
+    "publisherPricing.locked" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Locked"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "锁定时间"
+          }
+        }
+      }
+    },
+    "publisherPricing.whenSalesOpen" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When sales open"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开售即锁定"
+          }
+        }
+      }
+    },
+    "publisherPricing.termsFreezeWhenSalesOpenSettlement" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terms freeze when sales open; settlement shares actual ticket revenue."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开售后条款冻结，按实际票款参与分成结算。"
+          }
+        }
+      }
+    },
+    "publisherPricing.termsFreezeWhenSalesOpenSettlement44" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terms freeze when sales open; settlement counts actual redeemed people."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开售后条款冻结，按实际核销人头结算。"
+          }
+        }
+      }
+    },
+    "publisherPricing.theLineupFreezesWhenSalesOpen" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The lineup freezes when sales open; referral partnerships have no cash share."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开售后阵容冻结；引流型合作不产生现金分成。"
+          }
+        }
+      }
+    },
+    "publisherPricing.leader" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leader"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主理人"
+          }
+        }
+      }
+    },
+    "publisherPricing.city" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "City"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所在城市"
+          }
+        }
+      }
+    },
+    "publisherPricing.clubType" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Club type"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "俱乐部类型"
+          }
+        }
+      }
+    },
+    "publisherPricing.members" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Members"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "成员数"
+          }
+        }
+      }
+    },
+    "publisherPricing.people" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " people"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " 人"
+          }
+        }
+      }
+    },
+    "publisherPricing.level" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Level"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "等级"
+          }
+        }
+      }
+    },
+    "publisherPricing.category" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Category"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "品类"
+          }
+        }
+      }
+    },
+    "publisherPricing.capacity" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capacity"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可容纳"
+          }
+        }
+      }
+    },
+    "publisherPricing.suitableRoutes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suitable routes"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "适合路线"
+          }
+        }
+      }
+    },
+    "publisherPricing.availableTimes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Available times"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可承接时段"
+          }
+        }
+      }
+    },
+    "publisherPricing.charging" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Charging"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收费方式"
+          }
+        }
+      }
+    },
+    "publisherPricing.paidHosting" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paid hosting"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收费承接"
+          }
+        }
+      }
+    },
+    "publisherPricing.freeHosting" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free hosting"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "免费承接"
+          }
+        }
+      }
+    },
+    "publisherPricing.partnershipNeeds" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partnership needs"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "合作诉求"
+          }
+        }
+      }
+    },
+    "publisherPricing.openingHours" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opening hours"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "营业时间"
+          }
+        }
+      }
+    },
+    "publisherPricing.address" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Address"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "门店地址"
+          }
+        }
+      }
+    },
+    "publisherPricing.aboveReference %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld%% above the local reference"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "高于同城参考 %lld%%"
+          }
+        }
+      }
+    },
+    "publisherPricing.reference %@ %@ %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ average for similar listings ¥%2$@ (%3$lld samples)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@同类已开售均价 ¥%2$@（%3$lld 个样本）"
+          }
+        }
+      }
+    },
+    "publisherPricing.terms.chapterRevshare %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chapter supply · ¥%@ per redemption"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "章节供给 · ¥%@/核销人次"
+          }
+        }
+      }
+    },
+    "publisherPricing.terms.share %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revenue share · %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分成型 · %@"
+          }
+        }
+      }
+    },
+    "publisherPricing.terms.fixed %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fixed · ¥%@ per person"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "固定 · ¥%@/人"
+          }
+        }
+      }
+    },
+    "publisherPricing.terms.fixedUnknown" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fixed · —"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "固定 · —"
+          }
+        }
+      }
+    },
+    "myProject.statsLine %lld %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld signups · %2$lld views"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld 报名 · %2$lld 浏览"
+          }
+        }
+      }
+    },
+    "social.guideTemplates.playedTimes %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Played %lld times"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已玩 %lld 次"
           }
         }
       }
