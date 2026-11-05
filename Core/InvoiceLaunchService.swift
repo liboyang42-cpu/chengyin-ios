@@ -114,7 +114,13 @@ import FoundationNetworking
             if let code = header.errorCode, Self.rollbacks.contains(code) { throw InvoiceLaunchIssue.rejected(code) }
             throw InvoiceLaunchIssue.unavailable
         }
-        if permitsEmpty, let empty = EmptyReceipt() as? T { return empty }
+        if permitsEmpty, let empty = EmptyReceipt() as? T {
+            // Frozen titles/delete returns no data. An arbitrary object, array
+            // or scalar is not a deletion acknowledgement, even with code 200.
+            guard let object = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  object["data"] == nil || object["data"] is NSNull else { throw InvoiceLaunchIssue.malformed }
+            return empty
+        }
         guard let result = try JSONDecoder().decode(Envelope<T>.self, from: data).data else { throw InvoiceLaunchIssue.malformed }
         return result
     }

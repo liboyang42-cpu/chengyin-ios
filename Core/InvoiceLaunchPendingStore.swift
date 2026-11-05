@@ -14,21 +14,27 @@ public struct InvoiceLaunchPending: Codable, Equatable {
     public let apply: InvoiceLaunchApply?
     public let targetID: Int64?
     public private(set) var applicationID: Int64?
+    /// ID from a validated, session-bound save response, not an inferred title
+    /// match or a server request receipt. Missing in earlier v1 records.
+    public private(set) var acknowledgedTitleID: Int64?
     init(kind: Kind, apply: InvoiceLaunchApply? = nil, targetID: Int64? = nil) {
         operationID = UUID(); self.kind = kind; self.apply = apply; self.targetID = targetID
     }
     func validate() throws {
-        guard targetID.map({ $0 > 0 }) != false, applicationID.map({ $0 > 0 }) != false else { throw InvoiceLaunchIssue.storageUnavailable }
+        guard targetID.map({ $0 > 0 }) != false, applicationID.map({ $0 > 0 }) != false,
+              acknowledgedTitleID.map({ $0 > 0 }) != false else { throw InvoiceLaunchIssue.storageUnavailable }
         switch kind {
         case .apply:
-            guard let apply, targetID == nil else { throw InvoiceLaunchIssue.storageUnavailable }; try apply.validate()
+            guard let apply, targetID == nil, acknowledgedTitleID == nil else { throw InvoiceLaunchIssue.storageUnavailable }; try apply.validate()
         case .saveTitle:
-            guard apply == nil, applicationID == nil else { throw InvoiceLaunchIssue.storageUnavailable }
+            guard apply == nil, applicationID == nil,
+                  acknowledgedTitleID == nil || targetID == nil || acknowledgedTitleID == targetID else { throw InvoiceLaunchIssue.storageUnavailable }
         case .deleteTitle, .cancel:
-            guard apply == nil, targetID != nil, applicationID == nil else { throw InvoiceLaunchIssue.storageUnavailable }
+            guard apply == nil, targetID != nil, applicationID == nil, acknowledgedTitleID == nil else { throw InvoiceLaunchIssue.storageUnavailable }
         }
     }
     mutating func recordApplication(_ id: Int64) { applicationID = id }
+    mutating func recordAcknowledgedTitle(_ id: Int64) { acknowledgedTitleID = id }
 }
 @MainActor public final class InvoiceLaunchPendingStore {
     let ownerKey: String
@@ -53,8 +59,17 @@ public struct InvoiceLaunchPending: Codable, Equatable {
         try persist(pending)
     }
     func checkpoint(_ pending: InvoiceLaunchPending, applicationID: Int64) throws -> InvoiceLaunchPending {
-        guard applicationID > 0, pending.kind == .apply, try load() == pending else { throw InvoiceLaunchIssue.pendingConflict }
+        guard applicationID > 0, pending.kind == .apply,
+              pending.applicationID == nil || pending.applicationID == applicationID,
+              try load() == pending else { throw InvoiceLaunchIssue.pendingConflict }
         var updated = pending; updated.recordApplication(applicationID); try persist(updated); return updated
+    }
+    func checkpointTitle(_ pending: InvoiceLaunchPending, acknowledgedTitleID: Int64) throws -> InvoiceLaunchPending {
+        guard acknowledgedTitleID > 0, pending.kind == .saveTitle,
+              pending.targetID == nil || pending.targetID == acknowledgedTitleID,
+              pending.acknowledgedTitleID == nil || pending.acknowledgedTitleID == acknowledgedTitleID,
+              try load() == pending else { throw InvoiceLaunchIssue.pendingConflict }
+        var updated = pending; updated.recordAcknowledgedTitle(acknowledgedTitleID); try persist(updated); return updated
     }
     private func persist(_ pending: InvoiceLaunchPending) throws {
         do {

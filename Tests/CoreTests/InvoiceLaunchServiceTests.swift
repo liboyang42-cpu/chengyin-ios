@@ -145,4 +145,18 @@ import FoundationNetworking
         XCTAssertEqual(application.documentStatus, .unknown)
         XCTAssertEqual(h.wire.requests.count, 1)
     }
+    func testFrozenDeletionAcknowledgementPermitsAbsentOrNullDataOnly() async throws {
+        let h = try S.Harness()
+        h.wire.responses = [(try S.data(["code": 200]), 200), try S.success(NSNull())]
+        try await h.service.deleteTitle(id: 11); try await h.service.deleteTitle(id: 11)
+        XCTAssertEqual(h.wire.requests.map { $0.url!.lastPathComponent }, ["delete", "delete"])
+    }
+    func testMismatchedSavedTitleIDCannotBecomeCheckpointEvidence() async throws {
+        let h = try S.Harness(); var other = S.title; other["id"] = 12
+        h.wire.responses = [try S.success(other)]
+        let draft = try InvoiceLaunchTitleDraft(id: 11, titleType: "PERSONAL", titleName: "Synthetic title")
+        await S.expect(.outcomeUnknown) { _ = try await h.coordinator().saveTitle(draft) }
+        XCTAssertNil(try h.store.load()?.acknowledgedTitleID)
+        XCTAssertEqual(h.wire.requests.count, 1)
+    }
 }

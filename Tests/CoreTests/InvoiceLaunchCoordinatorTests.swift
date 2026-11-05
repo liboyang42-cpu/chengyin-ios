@@ -186,4 +186,63 @@ import XCTest
             XCTAssertEqual(h.wire.requests.map { $0.url!.lastPathComponent }, ["cancel", "detail"])
         }
     }
+    func testAcknowledgedTitleSaveRecoversOriginalIDAfterRestartWithoutAnotherWrite() async throws {
+        let h = try S.Harness(); h.wire.responses = [try S.success(S.title)]
+        let draft = try InvoiceLaunchTitleDraft(titleType: "PERSONAL", titleName: "Synthetic title")
+        await S.expect(.outcomeUnknown) { _ = try await h.coordinator().saveTitle(draft) }
+        XCTAssertEqual(try h.store.load()?.acknowledgedTitleID, 11)
+        XCTAssertEqual(h.wire.requests.map { $0.url!.lastPathComponent }, ["save", "titles"])
+        let restarted = try S.Harness(memory: h.memory, captured: S.session(epoch: 2))
+        restarted.wire.responses = [try S.success([S.title])]
+        let result = try await restarted.coordinator().recover()
+        if case .title(let title) = result { XCTAssertEqual(title.id, 11) } else { XCTFail("Expected original acknowledged title") }
+        XCTAssertEqual(restarted.wire.requests.map { $0.url!.lastPathComponent }, ["titles"])
+        XCTAssertNil(try restarted.store.load())
+    }
+    func testUnknownEditCannotUseExistingTargetAsProofOfSave() async throws {
+        let h = try S.Harness(); h.wire.failNext = true
+        let draft = try InvoiceLaunchTitleDraft(id: 11, titleType: "PERSONAL", titleName: "Synthetic title")
+        await S.expect(.outcomeUnknown) { _ = try await h.coordinator().saveTitle(draft) }
+        XCTAssertNil(try h.store.load()?.acknowledgedTitleID)
+        let restarted = try S.Harness(memory: h.memory, captured: S.session(epoch: 2))
+        restarted.wire.responses = [try S.success([S.title])]
+        await S.expect(.originalReadUnavailable) { _ = try await restarted.coordinator().recover() }
+        XCTAssertTrue(restarted.wire.requests.isEmpty)
+        await S.expect(.pendingConflict) { _ = try await restarted.coordinator().saveTitle(draft) }
+    }
+    func testFailedTitleCheckpointDoesNotGuessAcknowledgementFromMemory() async throws {
+        let h = try S.Harness(); h.wire.responses = [try S.success(S.title)]
+        h.wire.afterSend = { h.memory.failWrite = true }
+        await S.expect(.storageUnavailable) {
+            _ = try await h.coordinator().saveTitle(InvoiceLaunchTitleDraft(titleType: "PERSONAL", titleName: "Synthetic title"))
+        }
+        XCTAssertNil(try h.store.load()?.acknowledgedTitleID)
+        await S.expect(.originalReadUnavailable) { _ = try await h.coordinator().recover() }
+        XCTAssertEqual(h.wire.requests.count, 1)
+    }
+    func testMissingOrRejectedAcknowledgedTitleReadNeverUnlocksOrWritesAgain() async throws {
+        let h = try S.Harness(), pending = InvoiceLaunchPending(kind: .saveTitle)
+        try h.store.save(pending); _ = try h.store.checkpointTitle(pending, acknowledgedTitleID: 11)
+        var unrelated = S.title; unrelated["id"] = 12
+        h.wire.responses = [try S.success([unrelated]), try S.failure("INVOICE_TITLE_NOT_FOUND")]
+        await S.expect(.outcomeUnknown) { _ = try await h.coordinator().recover() }
+        await S.expect(.outcomeUnknown) { _ = try await h.coordinator().recover() }
+        XCTAssertEqual(try h.store.load()?.acknowledgedTitleID, 11)
+        XCTAssertEqual(h.wire.requests.map { $0.url!.lastPathComponent }, ["titles", "titles"])
+    }
+    func testLateAcknowledgedTitleReadCannotClearAnotherSessionsPending() async throws {
+        let h = try S.Harness(), pending = InvoiceLaunchPending(kind: .saveTitle)
+        try h.store.save(pending); let checkpoint = try h.store.checkpointTitle(pending, acknowledgedTitleID: 11)
+        h.wire.responses = [try S.success([S.title])]; h.wire.afterSend = { h.current = nil }
+        await S.expect(.outcomeUnknown) { _ = try await h.coordinator().recover() }
+        XCTAssertEqual(try h.store.load(), checkpoint)
+    }
+    func testMalformedDeletionSuccessKeepsOriginalWithoutReadingOrRetrying() async throws {
+        for body in [[:] as [String: Any], [] as [Any], "unexpected", true, 0] as [Any] {
+            let h = try S.Harness(); h.wire.responses = [try S.success(body)]
+            await S.expect(.outcomeUnknown) { try await h.coordinator().deleteTitle(id: 11) }
+            XCTAssertEqual(try h.store.load()?.targetID, 11)
+            XCTAssertEqual(h.wire.requests.map { $0.url!.lastPathComponent }, ["delete"])
+        }
+    }
 }

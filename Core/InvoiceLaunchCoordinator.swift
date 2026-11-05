@@ -2,7 +2,7 @@ import Foundation
 
 public enum InvoiceLaunchRecovery: Equatable {
     /// Entity facts, not a receipt attributing the write to a particular request.
-    case none, application(InvoiceLaunchApplication), titleAbsent(Int64)
+    case none, application(InvoiceLaunchApplication), title(InvoiceLaunchTitle), titleAbsent(Int64)
 }
 
 /// Main-actor serialization plus the shared durable journal prevents double taps and
@@ -46,10 +46,12 @@ public enum InvoiceLaunchRecovery: Equatable {
     }
     public func saveTitle(_ draft: InvoiceLaunchTitleDraft) async throws -> InvoiceLaunchTitle {
         try begin(mutation: true); defer { busy = false }
-        let pending = InvoiceLaunchPending(kind: .saveTitle, targetID: draft.id)
+        var pending = InvoiceLaunchPending(kind: .saveTitle, targetID: draft.id)
         try store.save(pending)
         let response = try await dispatch(pending) { try await service.saveTitle(draft) }
         return try await readback {
+            try service.check()
+            pending = try store.checkpointTitle(pending, acknowledgedTitleID: response.id)
             let titles = try await service.titles()
             guard titles.contains(response) else { throw InvoiceLaunchIssue.outcomeUnknown }
             try service.check(); try store.clear(pending); return response
@@ -110,9 +112,15 @@ public enum InvoiceLaunchRecovery: Equatable {
                 try service.check(); try store.clear(pending); return .titleAbsent(id)
             }
         case .saveTitle:
-            // /titles/save is not idempotent and /titles/request is not on the
-            // frozen backend. Even an equal title projection proves no receipt.
-            throw InvoiceLaunchIssue.originalReadUnavailable
+            // A received success can durably identify the original saved entity.
+            // A transport-unknown save has no such evidence: neither matching an
+            // existing title nor replaying legacy save can confirm that request.
+            guard let id = pending.acknowledgedTitleID else { throw InvoiceLaunchIssue.originalReadUnavailable }
+            return try await readback {
+                let titles = try await service.titles()
+                guard let title = titles.first(where: { $0.id == id }) else { throw InvoiceLaunchIssue.outcomeUnknown }
+                try service.check(); try store.clear(pending); return .title(title)
+            }
         }
     }
     private func readback<T>(_ operation: () async throws -> T) async throws -> T {

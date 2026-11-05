@@ -1,11 +1,13 @@
-# L4 invoice handoff — continuation 2026-11-05
+# L4 invoice handoff — acknowledged-save recovery 2026-11-05
 
 Status: independent implementation and isolated tests complete; **not launch complete**.
 The shared composition patch is delivered for Claude review, not applied. No live invoice
 application, title change or cancellation was sent. No CI, PR or issue comment was created.
 
 - Public target: `liboyang42-cpu/chengyin-ios`, issue #130.
-- Continuation branch: `codex/l4-invoice-followup-20261105`.
+- Current branch: `codex/l4-invoice-save-readback-20261105`.
+- Parent migration delivery: `codex/l4-invoice-followup-20261105`,
+  `d8bac81d6f80ac71898a4c1b69a6a5a16fbc9cf0` (preserved).
 - Preserved original delivery: `codex/l4-invoice-launch`, head
   `533b2a5c53bb19d7c0386ecc41b575c818498207`. Original branch was not changed.
 - Continuation iOS base: `08be33155c71d87d4008839fcf83f6cc22aef000`.
@@ -27,10 +29,14 @@ has no assignee or comments at this read; this continuation does not post one.
 
 This branch migrates the original four Core sources, three tests and two handoff
 files onto the pinned integration base; it does not introduce a parallel invoice
-implementation. The original service and journal remain byte-identical. Existing
+implementation. At the parent migration commit the original service and journal remained
+byte-identical. This child adds the acknowledgement metadata and envelope checks
+described below. Existing
 API/auth/storage dependencies were compared before reusing them. Do not cherry-pick
-both the original nine-file commit and this nine-file continuation. Integrate one
-complete continuation patch, resolving any later owner changes against its base.
+both the original nine-file commit and this nine-file continuation. The current child is a delta on that continuation; integrate the parent and
+child together, or the combined diff from the integration base. Do not apply the
+child alone to integration, where its source files are still absent. Resolve any
+later owner changes against the stated base.
 
 Additional independent work completed:
 
@@ -67,6 +73,56 @@ The shared zero-context diff requires these exact preimage blobs before use:
 
 Check with `git hash-object <path>`. If any preimage differs, Claude must rebase the
 patch rather than applying line-number insertions blindly to changed shared files.
+
+## Mini-program comparison and concrete gaps repaired
+
+The public reference `hengyin` c6eac3 was re-read at these real paths:
+
+- `chengyinhub-xcx/subpackageMember/invoice/index.js`: entry/history and original request recovery.
+- `chengyinhub-xcx/subpackageMember/invoice-apply/index.js`: frozen order IDs, request correlation, server readback.
+- `chengyinhub-xcx/subpackageMember/invoice-titles/index.js`: title list and pending-save lock.
+- `chengyinhub-xcx/subpackageMember/invoice-title-edit/index.js`: sensitive input in memory, saved-result query.
+- `chengyinhub-xcx/subpackageMember/invoice-detail/index.js`: original application detail and cancellation facts.
+- `chengyinhub-xcx/subpackageMember/invoice/base.js` and `utils/user-invoice.js`: owner/epoch fencing, response classification and wire fields.
+
+These are public reference sources, not an approved replacement for the frozen
+58f4cc4 adapter. Their request receipts, issuer fields, reconciliation fields and
+additional processing states require an explicit backend-contract decision. For
+example, the newer apply page groups by `issuerId`; that field is absent from the
+frozen eligible-order projection. Copying its grouping and rules into this adapter
+would fabricate a contract. The reference detail intentionally displays an invoice
+number; it does not implement a document download. Document UNKNOWN is a factual
+boundary, not evidence that the existing mini-program is missing a download feature.
+
+This pass repaired two executable gaps without changing routes or permissions:
+
+1. A validated successful `titles/save` response now durably checkpoints only its
+   returned `acknowledgedTitleID` before the independent list read. After a failed
+   list read or process restart, `recover()` reads `titles` and returns `.title`
+   only for that exact acknowledged ID. This returns the current entity fact, not
+   a fabricated server request receipt or original content snapshot. The proof
+   comes from the original received mutation success, not similarity in the list.
+   Unknown saves without that checkpoint—including edits with a known input ID—
+   still return `originalReadUnavailable`, cannot be resubmitted and cannot be
+   resolved by seeing an existing equal title. A missing acknowledged ID or failed
+   read also retains pending. Legacy v1 records decode without the optional field;
+   no credential, title name, tax number, amount or raw request body was added.
+2. Frozen `titles/delete` success has absent data (`AjaxResult.success(null)` omits
+   the key). Explicit null is also accepted. A code-200 envelope with object,
+   array, string, number or boolean data is now malformed/UNKNOWN; it cannot
+   become deletion evidence or start a follow-up read on the write-success path.
+
+Both application and title checkpoints reject attempts to change an already
+checkpointed original entity ID. The reference's owner/session and unknown-state
+assertions were retained; all existing 31 XCTest methods and assertions remain.
+
+Claude's exact host handoff: after using the existing shared diff, handle the new
+`InvoiceLaunchRecovery.title` case by showing/refetching the current title fact.
+Do not treat it as an echoed requestId receipt. The shared diff is unchanged and
+still requires its three exact preimages. Current integration remains 08be3315;
+none of the previous nine-file delivery has appeared there, and no competing
+invoice owner implementation was found in App sources or the L4 issue. No shared
+file, mini-program, backend service, permission or production switch was edited.
 
 ## Frozen contract evidence
 
@@ -124,10 +180,13 @@ for comparison, not silently enabled or used as the frozen contract.
   this frozen API. It stays pending with `originalReadUnavailable`; neither list
   matching nor a new apply is attempted. Apply's server idempotency is not used
   as a substitute for the user's read-only recovery requirement.
-- An unknown `titles/save` also stays pending with `originalReadUnavailable`.
+- An unknown `titles/save` without a durably acknowledged title ID also stays
+  pending with `originalReadUnavailable`.
   There is no idempotent save receipt. No retry through legacy save and no matching
   by title name or masked tax number is allowed. A known successful save must be
   independently found by exact returned projection in the complete titles read.
+  Once that successful response ID is checkpointed, restart recovery reads that
+  exact ID and returns the current title fact; it never infers a prior unknown save.
 - Cancel has **no requestId receipt**. Unknown cancel reads only its original
   application ID. Only observed CANCELLED clears the journal and returns the
   application fact. Frozen `cancelApplication` updates the owned ID from SUBMITTED
@@ -168,7 +227,7 @@ reviewed environment, normal entry and end-to-end evidence are resolved.
 
 ## Validation evidence
 
-Linux Swift 6.0.3 in Swift 5.9 package mode: **31 XCTest cases passed, 0 failures**.
+Linux Swift 6.0.3 in Swift 5.9 package mode: **44 XCTest cases passed, 0 failures**.
 An isolated temporary package compiled the four exact new Core sources plus the
 unmodified current-base `APIConfiguration.swift`, `AuthRequestBuilder.swift`,
 `AuthService.swift`, `Account.swift` and `InvoiceHistoryUnknownProjection.swift`, with the three exact new XCTest files.
@@ -199,7 +258,10 @@ PII exclusion, backend/account/realm isolation, epoch/role/token changes, stale 
 corruption, failed write/readback and failed journal deletion. Follow-up coverage
 adds atomic overview, stale/partial/corrupt-journal browsing, all mutation kinds
 with a later read rejection, non-cancelled final facts, and ISSUED without file
-evidence. Shared diff application check, App syntax parse and PBX reference
+evidence. The latest 13 cases add legacy-v1 compatibility, acknowledged-save
+restart, no inference from an existing edit target, failed checkpoint, foreign
+session, checkpoint redirection and malformed deletion acknowledgements. Shared
+diff application check, App syntax parse and PBX reference
 structure checks also pass; these do not constitute a full App typecheck.
 
 Not run: full-repository Core tests, Xcode/AppUnit/UI/device tests, live backend
