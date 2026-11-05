@@ -57251,13 +57251,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This step applies for the chapter. Once it updates, set up the stop from My chapter applications. The two are submitted separately."
+            "value" : "Once accepted, set up the stop in My chapter applications."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此步骤提交章节申请。更新后，请在“我的章节申请”中配置点位。两次提交分别处理。"
+            "value" : "通过后在「我的章节申请」里配置点位"
           }
         }
       }
@@ -57475,13 +57475,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter the service time as YYYY-MM-DD HH:mm (local time). We'll check whether it's eligible."
+            "value" : "Format YYYY-MM-DD HH:mm, local time"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请按 YYYY-MM-DD HH:mm 输入服务时间（当地时间），我们会校验是否符合要求。"
+            "value" : "格式 YYYY-MM-DD HH:mm（当地时间）"
           }
         }
       }
@@ -59667,13 +59667,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Station changes are reviewed after you submit. Signing up doesn't mean you've won the slot."
+            "value" : "Changes take effect after review"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "点位修改提交后需审核；报名成功不等于中标。"
+            "value" : "修改需审核后生效"
           }
         }
       }
@@ -59827,13 +59827,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A successful placement submission creates a pending application. It does not put the node online."
+            "value" : "Goes live after review"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "投放提交成功后形成待审申请，不代表据点已上线。"
+            "value" : "审核通过后上线"
           }
         }
       }
@@ -60179,13 +60179,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Venue and registration content"
+            "value" : "Hosting details"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "场地与报名内容"
+            "value" : "承接信息"
           }
         }
       }
@@ -191236,13 +191236,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Location is requested only when you choose a place, to match the hosting area and guide arrivals; you can still fill in the rest if you decline."
+            "value" : "Used for the map and arrival directions. You can still fill in the rest if you decline."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选择地点时才会请求定位，用于匹配承接范围与到场导航；拒绝后仍可继续填写其他资料。"
+            "value" : "用于地图与到场导航，拒绝不影响填写"
           }
         }
       }
@@ -191252,13 +191252,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "5:3 landscape photos recommended · at least 1, up to 9"
+            "value" : "5:3 landscape, 1–9 photos"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "建议 5:3 横图 · 至少 1 张，最多 9 张"
+            "value" : "5:3 横图，1–9 张"
           }
         }
       }
@@ -191332,13 +191332,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Signing up is not winning the stop; it counts once the organizer confirms you."
+            "value" : "Takes effect once the organiser confirms, usually in 1–3 days"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "报名成功不等于中标，主理人确认后才算接上这一站"
+            "value" : "主理人确认后生效，预计 1–3 天"
           }
         }
       }
