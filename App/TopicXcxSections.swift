@@ -171,8 +171,7 @@ struct TopicXcxRouteSection: View {
         Section("topicXcx.tab.route") {
             if topic.chapters.allSatisfy({ $0.nodes.isEmpty }) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("topicXcx.route.emptyTitle").font(.headline)
-                    Text("topicXcx.route.emptyDetail").font(.footnote).foregroundStyle(.secondary)
+                    Text("topicXcx.route.emptyTitle").foregroundStyle(.secondary)
                 }.accessibilityIdentifier("topic.route.empty")
             }
             ForEach(Array(topic.chapters.enumerated()), id: \.offset) { _, chapter in

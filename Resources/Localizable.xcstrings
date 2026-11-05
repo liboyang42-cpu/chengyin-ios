@@ -150029,7 +150029,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Availability"
+            "value" : "Status"
           }
         },
         "zh-Hans" : {
@@ -150269,13 +150269,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Duration (seconds)"
+            "value" : "Estimated time"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "时长（秒）"
+            "value" : "预计用时"
           }
         }
       }
@@ -150350,13 +150350,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Estimates use the straight-line distance between adjacent stops at 80 m/min. Actual walking routes and times may differ."
+            "value" : "Walking times are estimates"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "按相邻站点的直线距离、每分钟 80 米估算。实际步行路线和用时可能不同。"
+            "value" : "步行时间为估算"
           }
         }
       }
@@ -150448,13 +150448,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Some chapters are locked. Only supplied chapters are shown."
+            "value" : "Some chapters unlock after you join"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "部分章节尚未解锁，仅展示已下发章节。"
+            "value" : "部分章节参与后解锁"
           }
         }
       }
@@ -150480,13 +150480,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Participating merchants"
+            "value" : "Participating shops"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "承接商家"
+            "value" : "参与商家"
           }
         }
       }
@@ -150512,13 +150512,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No chapters available to view"
+            "value" : "Route coming soon"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂无可查看章节"
+            "value" : "路线配置中"
           }
         }
       }
@@ -150544,13 +150544,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No sessions supplied"
+            "value" : "No sessions yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂无场次信息"
+            "value" : "暂无场次"
           }
         }
       }
@@ -151034,13 +151034,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Visible stops in this chapter"
+            "value" : "Stops"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本章可见站点"
+            "value" : "站点"
           }
         }
       }
@@ -183799,13 +183799,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Seats to be confirmed"
+            "value" : "Seats left —"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "余席待确认"
+            "value" : "余席 —"
           }
         }
       }
