@@ -133372,13 +133372,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A contact for this market has not been provided"
+            "value" : "—"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "尚未提供此市场的联系方式"
+            "value" : "—"
           }
         }
       }
@@ -133473,13 +133473,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Player code not generated yet"
+            "value" : "Your QR code isn't ready yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "玩家个人码待生成"
+            "value" : "个人二维码还未生成"
           }
         }
       }
@@ -133607,13 +133607,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Account cancellation is not connected here. You can read the source notice, but this screen cannot submit or cancel an account-deletion request."
+            "value" : "Account cancellation can't be requested in the app yet. Read the cancellation notice to see how it works."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此处尚未接入账号注销流程。可以阅读源文档，但无法提交或撤销注销申请。"
+            "value" : "暂不能在 App 内申请注销账号。可先阅读注销须知了解流程。"
           }
         }
       }
@@ -133641,13 +133641,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Location-consent withdrawal is not connected in this native build. No permission or consent changes can be made on this screen."
+            "value" : "Location consent can't be changed in the app yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此原生版本尚未接入定位同意撤回流程，无法在此更改权限或同意记录。"
+            "value" : "暂不能在 App 内更改定位授权。"
           }
         }
       }
@@ -133675,13 +133675,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Marketing preferences require current server records for each merchant and channel. They are not connected here; no on/off state or saved consent is assumed."
+            "value" : "Marketing preferences can't be changed in the app yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "营销偏好需要读取各商家、各渠道的服务器记录。此处尚未接入，不推定开关状态或已保存的同意。"
+            "value" : "暂不能在 App 内更改营销偏好。"
           }
         }
       }
@@ -133709,13 +133709,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Not available right now"
+            "value" : "Not in the app yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂不可用"
+            "value" : "App 内暂不支持"
           }
         }
       }
@@ -133794,13 +133794,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The app market could not be determined, so no regional legal document is selected."
+            "value" : "Your region couldn't be determined, so no document is shown."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法确定应用运营市场，暂不选择地区法律文档。"
+            "value" : "无法确定你所在的地区，暂不显示文档。"
           }
         }
       }
@@ -133845,13 +133845,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The app privacy policy is missing from the source. No substitute text is shown."
+            "value" : "This document hasn't been published yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "源应用尚未提供 App 隐私政策正文，此处不展示替代文本。"
+            "value" : "该文档尚未发布。"
           }
         }
       }
@@ -133970,7 +133970,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在读取…"
+            "value" : "加载中…"
           }
         }
       }
@@ -134083,13 +134083,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sound preferences could not be loaded. Existing stored data has not been replaced."
+            "value" : "Sound settings didn't load."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "声音偏好读取失败，原有数据未被覆盖。"
+            "value" : "声音设置没加载出来。"
           }
         }
       }
@@ -134151,13 +134151,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The change could not be saved. Your previous preference is still shown."
+            "value" : "That change wasn't saved."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "更改未能保存，仍显示之前的偏好。"
+            "value" : "更改未能保存。"
           }
         }
       }
