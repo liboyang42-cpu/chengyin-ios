@@ -99,7 +99,6 @@ import SwiftUI
                     Section("playx.player.receipt") {
                         LabeledContent("playx.state") { Text(verbatim: receipt.outcome) }
                         if let answer = receipt.result["answerReveal"].text { Text(verbatim: answer) }
-                        Text("playx.player.submissionNotice").font(.footnote)
                     }
                 }
             }

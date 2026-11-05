@@ -103507,17 +103507,18 @@
       }
     },
     "playx.advanced.specialGate" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The full interaction for this activity isn't available right now."
+            "value" : "This part of the activity can't be played here."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此玩法的完整互动暂不可用"
+            "value" : "这一部分无法在这里进行。"
           }
         }
       }
@@ -104507,17 +104508,18 @@
       }
     },
     "playx.director.commandNotice" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Check the current activity and selected people before sending. Actions stay locked until confirmed."
+            "value" : "Check the activity and people before sending."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "提交前请核对当前场次和所选人员，结果确认前操作将保持锁定"
+            "value" : "发送前请确认活动和人员。"
           }
         }
       }
@@ -104619,17 +104621,18 @@
       }
     },
     "playx.director.noEvidence" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The club cannot inspect private evidence here. It can request resubmission with a reason."
+            "value" : "You can't view private photos here, but you can ask for a resubmission."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "俱乐部在此不查看私人凭证，只能填写理由要求重新提交"
+            "value" : "这里看不到私密照片，但可以要求重新提交。"
           }
         }
       }
@@ -126765,13 +126768,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter coordinates in the format used by Chinese maps (e.g. Amap, Tencent Maps). GPS coordinates aren't converted."
+            "value" : "Use coordinates from Chinese maps (Amap, Tencent Maps)."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请使用国内地图（如高德、腾讯地图）的坐标，GPS 坐标不会自动转换。"
+            "value" : "请使用国内地图（高德、腾讯）的坐标。"
           }
         }
       }
@@ -126867,13 +126870,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Decimal degrees from −90 to 90. Use a dot for decimals."
+            "value" : "From −90 to 90"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "十进制度数，范围为 −90 至 90，小数点请使用英文句点。"
+            "value" : "−90 到 90"
           }
         }
       }
@@ -126901,13 +126904,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Decimal degrees from −180 to 180. Use a dot for decimals."
+            "value" : "From −180 to 180"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "十进制度数，范围为 −180 至 180，小数点请使用英文句点。"
+            "value" : "−180 到 180"
           }
         }
       }
@@ -127202,17 +127205,18 @@
       }
     },
     "roam.experience.activeHint" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Location tracking is still unavailable. Checking this record does not resume the journey."
+            "value" : "This roam isn't finished. Checking doesn't resume it."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "定位追踪暂不可用，核对记录不会恢复漫游"
+            "value" : "这次漫游还没结束，核对不会继续漫游。"
           }
         }
       }
@@ -127611,17 +127615,18 @@
       }
     },
     "roam.experience.incompleteHint" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The journey is marked finished, but its full reward receipt is not available. Check again later."
+            "value" : "This roam has ended, but its rewards aren't confirmed yet. Check again later."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "行程已标记结束，但完整奖励回执尚不可用，请稍后再核对"
+            "value" : "这次漫游已结束，奖励还没确认，请稍后再核对。"
           }
         }
       }
@@ -127999,17 +128004,18 @@
       }
     },
     "roam.experience.recoveryNoTrack" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This record has no route or duration, so it isn't added to your journeys."
+            "value" : "This record has no route or time, so it isn't added to your history."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此记录不含轨迹和时长，不会添加到你的行程"
+            "value" : "这条记录没有路线和时长，不会计入漫游记录。"
           }
         }
       }
@@ -161070,13 +161076,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "iOS Reduce Motion is on. It remains in effect when this switch is off."
+            "value" : "Reduce Motion is on in iOS Settings."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "iOS 已开启“减少动态效果”；关闭此开关后仍会遵循系统设置。"
+            "value" : "iOS 已开启减弱动态效果。"
           }
         }
       }
@@ -161461,13 +161467,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Save this card first, then view the instructions. An identical card already saved here will not be saved again."
+            "value" : "Save the card first."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "先保存这张卡，再查看发布指引；本页已成功保存过的同一张卡不会重复保存。"
+            "value" : "请先保存卡片。"
           }
         }
       }
@@ -184115,17 +184121,18 @@
       }
     },
     "playerJourney.parity.refreshing" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Updating participation records…"
+            "value" : "Updating…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在更新参与记录…"
+            "value" : "正在更新…"
           }
         }
       }
@@ -193540,13 +193547,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This run has ended; only pending rewards can be claimed"
+            "value" : "This run has ended. You can still claim pending rewards."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本局已结束，仅可领取待领奖励"
+            "value" : "本局已结束，仍可领取待领奖励。"
           }
         }
       }

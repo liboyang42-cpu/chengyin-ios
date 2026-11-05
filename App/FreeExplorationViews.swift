@@ -259,7 +259,6 @@ struct FreeExplorationVisitSteps: View {
                     if let story = node.storyText { Section("playFree.story") { Text(verbatim: story) } }
                     FreeExplorationVisitSteps(node: node)
                 }
-                Text("playFree.readOnly").font(.footnote)
                 Button("play.refresh") { Task { await model.load(keepingReceipt: true) } }
             } else if model.isLoading { ProgressView("play.loading") }
             else { Text("playFree.store.unavailable") }

@@ -50,7 +50,6 @@ import UIKit
                     Text("roam.share.photoSaveSourceChanged").foregroundStyle(.secondary)
                         .accessibilityIdentifier("roam.medalShare.sourceChanged")
                 }
-                Text("roam.share.saveHint").font(.caption).foregroundStyle(.secondary)
             }.padding()
         }.navigationTitle("roam.medalShare.title")
             .toolbar { ToolbarItem(placement: .confirmationAction) {

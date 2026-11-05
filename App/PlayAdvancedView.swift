@@ -40,7 +40,6 @@ import SwiftUI
                         TimelineView(.periodic(from: .now, by: 1)) { context in
                             LabeledContent("playx.advanced.remaining") { Text(verbatim: String(state.remainingSeconds(nowMilliseconds: Int64(context.date.timeIntervalSince1970 * 1000)) ?? 0)) }
                         }
-                        Text("playx.advanced.timerNotice").font(.footnote)
                     }
                     if state.readyForBase {
                         Button("playx.advanced.continue") { onReady(state); dismiss() }
