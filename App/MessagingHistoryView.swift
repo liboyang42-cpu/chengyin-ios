@@ -85,6 +85,13 @@ struct MessagingHistoryView: View {
         if let id = history.messages.last?.id, id > 0 { return id }
         return history.messages.isEmpty ? 0 : nil
     }
+    private var canCreatePoll: Bool { conversation?.supportsGroupPolls == true && currentHistoryReady }
+    /// Mirrors the bottom inset branches: the composer shows only when no notice replaces it.
+    private var showsComposer: Bool {
+        if replyPolicy.isSystemNotice, currentHistoryReady { return false }
+        if let block = replyBlock, block != .systemNotice, currentHistoryReady { return false }
+        return replyPolicy.permitsReply && sender != nil
+    }
     private var replyPolicy: IMConversationReplyPolicy {
         .init(conversationID: conversationID, conversation: conversation)
     }
@@ -126,18 +133,19 @@ struct MessagingHistoryView: View {
             if replyPolicy.isSystemNotice, currentHistoryReady {
                 Label("im.reply.systemNotice", systemImage: "info.circle")
                     .font(.footnote).frame(maxWidth: .infinity, alignment: .leading)
-                    .padding().background(.regularMaterial)
+                    .padding(.horizontal, Theme.Space.pageX).padding(.vertical, Theme.Space.s3).background(.bar)
                     .accessibilityIdentifier("im.reply.systemNotice")
             } else if let block = replyBlock, block != .systemNotice, currentHistoryReady {
                 Label(LocalizedStringKey(block == .blockedByMe ? "im.chat.blockedByMe" : "im.chat.peerUnavailable"),
                       systemImage: "hand.raised")
                     .font(.footnote).frame(maxWidth: .infinity, alignment: .leading)
-                    .padding().background(.regularMaterial)
+                    .padding(.horizontal, Theme.Space.pageX).padding(.vertical, Theme.Space.s3).background(.bar)
                     .accessibilityIdentifier("im.chat.replyBlocked")
             } else if replyPolicy.permitsReply, let sender {
                 MessageActionComposer(coordinator: sender, identity: reader.identity,
                     conversationReady: currentHistoryReady,
-                    canReply: { authority.permitsReply(lease) }) { _ in
+                    canReply: { authority.permitsReply(lease) },
+                    createPoll: canCreatePoll ? { showingPollComposer = true } : nil) { _ in
                     Task { await reload() }
                 }
             }
@@ -176,7 +184,8 @@ struct MessagingHistoryView: View {
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
-                if conversation?.supportsGroupPolls == true, currentHistoryReady {
+                // With a composer the poll entry is its leading `+`; otherwise it stays here.
+                if canCreatePoll, !showsComposer {
                     Button("poll.create", systemImage: "chart.bar.xaxis") { showingPollComposer = true }
                         .accessibilityIdentifier("poll.createEntry")
                 }
@@ -208,7 +217,7 @@ struct MessagingHistoryView: View {
     }
     private var transcript: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 12) {
+            LazyVStack(alignment: .leading, spacing: Theme.Space.s2) {
                 if history.hasMore {
                     if isLoadingEarlier {
                         ProgressView("messaging.loadingEarlier").accessibilityIdentifier("messaging.history.loadingEarlier")
@@ -232,7 +241,8 @@ struct MessagingHistoryView: View {
                 }
                 let dividers = IMInboxTime.dividers(for: history.messages, now: Date())
                 ForEach(history.messages) { message in
-                    VStack(spacing: 8) {
+                    VStack(spacing: Theme.Space.s2) {
+                        // Time is grouped: one divider per burst, not a stamp on every bubble.
                         if let divider = dividers[message.id] {
                             IMChatDividerLabel(divider: divider).font(.caption).foregroundStyle(.secondary)
                                 .frame(maxWidth: .infinity).accessibilityIdentifier("im.chat.divider.\(message.id)")
@@ -250,8 +260,13 @@ struct MessagingHistoryView: View {
                     }
                     .id(message.id)
                 }
-            }.padding().scrollTargetLayout()
+            }
+            .padding(.horizontal, Theme.Space.pageX).padding(.vertical, Theme.Space.s3)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .scrollTargetLayout()
         }
+        // Few messages sit just above the composer and grow upward, as in native chat.
+        .defaultScrollAnchor(.bottom)
         .scrollPosition(id: $visibleMessageID, anchor: .top)
         .scrollDismissesKeyboard(.interactively)
     }
@@ -311,11 +326,11 @@ private struct MessagingBubble: View {
     let accountID: Int
     @ScaledMetric(relativeTo: .caption) private var avatarSize: CGFloat = 28
     private var isOwn: Bool { message.senderID == accountID && accountID > 0 }
-    /// Groups show a small avatar and the sender name; one-to-one chats do not repeat them.
+    /// Received messages show a small avatar beside the bubble; only groups add the sender name.
     private var isGroup: Bool { conversation?.kind == .group }
     var body: some View {
-        HStack(alignment: .top, spacing: 8) {
-            if isGroup && !isOwn {
+        HStack(alignment: .bottom, spacing: Theme.Space.s2) {
+            if !isOwn {
                 Image(systemName: "person.fill")
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -323,7 +338,7 @@ private struct MessagingBubble: View {
                     .background(Circle().fill(Color(uiColor: .tertiarySystemFill)))
                     .accessibilityHidden(true)
             }
-            ChatMessageBubble(isOwn: isOwn, timestamp: message.createdAt) {
+            ChatMessageBubble(isOwn: isOwn) {
                 if isGroup && !isOwn {
                     MessagingSenderName(message: message, conversation: conversation, accountID: accountID)
                 }
