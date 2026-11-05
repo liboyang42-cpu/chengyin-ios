@@ -236,3 +236,11 @@ a5376d0a7a310281d617f80f2263b81c3e17778e:Tests/CoreTests/NearbyTeamPresentationT
 35ee60851af49b1d08cfc571a7a2db1dc40b6717:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:11
 35ee60851af49b1d08cfc571a7a2db1dc40b6717:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:64
 35ee60851af49b1d08cfc571a7a2db1dc40b6717:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:77
+
+# Four reviewed noncredential findings from merge history 7691588e.
+# Audit: docs/security/gitleaks-native-owner-audit-2026-11-05.md
+# Exact immutable fingerprints only; other commits, paths, rules and lines stay scanned.
+7691588efe5f66c32af5001ebcb6bd3b3de49d05:App/NativeFriendRemovalView.swift:generic-api-key:155
+7691588efe5f66c32af5001ebcb6bd3b3de49d05:Core/ParticipantFileJournal.swift:generic-api-key:62
+7691588efe5f66c32af5001ebcb6bd3b3de49d05:Tests/AppUnitTests/NativeFriendDirectoryNavigationHostingTests.swift:generic-api-key:62
+7691588efe5f66c32af5001ebcb6bd3b3de49d05:Tests/AppUnitTests/NativeFriendDirectoryNavigationHostingTests.swift:generic-api-key:65

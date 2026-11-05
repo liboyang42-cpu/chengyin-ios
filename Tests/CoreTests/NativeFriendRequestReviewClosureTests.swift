@@ -94,7 +94,7 @@ import XCTest
         flow.reviewAction(.accept, item: item(version: 5)); await flow.confirmReview()
         XCTAssertEqual(service.writes.first?.expectedVersion, 5)
     }
-    func testVersionConflictRefreshesReplacementApplicationWithoutAutomaticRetry() async {
+    func testVersionConflictRefreshesReplacementApplicationWithoutAutomaticRetry() async throws {
         let (flow, service, journal) = await setup()
         let old = item(); flow.reviewAction(.accept, item: old)
         service.incoming = [item(version: 5)]; service.writeFailure = .rejected(409)
@@ -105,7 +105,10 @@ import XCTest
         XCTAssertNil(flow.actionReview); XCTAssertEqual(service.writes.count, 1)
         service.writeFailure = nil; flow.reviewAction(.accept, item: item(version: 5)); await flow.confirmReview()
         XCTAssertEqual(service.writes.map(\.expectedVersion), [3, 5])
-        XCTAssertNotEqual(service.writes[0].requestID, service.writes[1].requestID)
+        // Preserve failure evidence without aborting the complete serial test process.
+        let firstWrite = try XCTUnwrap(service.writes.first)
+        let secondWrite = try XCTUnwrap(service.writes.dropFirst().first)
+        XCTAssertNotEqual(firstWrite.requestID, secondWrite.requestID)
     }
     func testFailedRefreshRetiresUnsentReviewAndCannotDispatchStaleVersion() async {
         let (flow, service, journal) = await setup()
