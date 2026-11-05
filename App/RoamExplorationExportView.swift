@@ -153,7 +153,6 @@ private struct RoamExportFileSaveLink: View {
     var body: some View {
         List {
             if tools.isOfflineExample { Section { RoamExperienceNotice(offline: true) } }
-            Section { Text("roam.export.explain").font(.footnote).foregroundStyle(.secondary) }
             if let issue = model.issue {
                 Section { RoamPrivateIssueView(issue: issue, retry: { Task { if prepared { await model.readNext() } else { await model.prepare(startDate: startDate, endDateExclusive: endDate) } } }) }
             }

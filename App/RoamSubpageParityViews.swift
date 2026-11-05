@@ -63,18 +63,21 @@ struct RoamRunCardParityMeta: View {
     }
 }
 
-/// 那年今日 / 月度回顾 / 导出 row inside the history page. Export has no native screen yet.
+/// 那年今日 / 月度回顾 / 导出 row inside the history page. Export is listed only with its owner-only tools.
 @MainActor struct RoamHistoryToolsRow: View {
     let reader: (any RoamPassportToolsReading)?
+    var privateTools: (any RoamPrivateToolsServing)? = nil
     var body: some View {
         HStack(spacing: 12) {
             NavigationLink { RoamAnniversaryView(reader: reader) } label: { tool("roamSub.w208.history.tool.anniversary", "calendar") }
                 .accessibilityIdentifier("roamSub.w208.history.tool.anniversary")
             NavigationLink { RoamMonthlyRecapView(reader: reader) } label: { tool("roamSub.w208.history.tool.recap", "list.bullet") }
                 .accessibilityIdentifier("roamSub.w208.history.tool.recap")
-            NavigationLink { RoamExportUnavailableView() } label: { tool("roamSub.w208.history.tool.export", "arrow.down.doc") }
-                .accessibilityLabel(Text("roamSub.w208.history.tool.exportLabel"))
-                .accessibilityIdentifier("roamSub.w208.history.tool.export")
+            if let privateTools {
+                NavigationLink { RoamExplorationExportView(tools: privateTools) } label: { tool("roamSub.w208.history.tool.export", "arrow.down.doc") }
+                    .accessibilityLabel(Text("roamSub.w208.history.tool.exportLabel"))
+                    .accessibilityIdentifier("roamSub.w208.history.tool.export")
+            }
         }.buttonStyle(.bordered)
     }
     private func tool(_ key: LocalizedStringKey, _ symbol: String) -> some View {
@@ -252,22 +255,18 @@ struct RoamShareLinkDormantNotice: View {
             Label(LocalizedStringKey(node.favorited ? "roamSub.w208.poi.favorited" : "roamSub.w208.poi.favorite"), systemImage: node.favorited ? "heart.fill" : "heart")
                 .font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("roamSub.w208.poi.favoriteState")
             if node.coordinate == nil { Label("roamSub.w208.poi.noNavigation", systemImage: "location.slash").font(.footnote).foregroundStyle(.secondary) }
-            NavigationLink {
-                RoamCityStampFlowView(kind: "sign", place: node.name.isEmpty ? nil : node.name, cameraDestination: stampDestination)
-            } label: { Label("roamSub.w208.poi.dropStamp", systemImage: "envelope") }
-                .frame(minHeight: 44).accessibilityIdentifier("roamSub.w208.poi.dropStamp")
+            // 投一张 is hidden: this card has no stamp-exchange coordinator to send with, so the
+            // flow could only end on a disabled send button.
             if card.primary == .showVoucher {
                 NavigationLink { RoamCityVoucherCodeView(poiID: node.poiId, name: node.name) } label: {
                     Label(LocalizedStringKey(card.primaryKey), systemImage: "qrcode")
                 }.buttonStyle(.questifyPrimary).frame(minHeight: 44)
                     .accessibilityIdentifier("roamSub.w208.poi.primary")
-            } else {
-                Button(LocalizedStringKey(card.primaryKey)) {}.buttonStyle(.questifyPrimary).frame(minHeight: 44)
-                    .disabled(true).accessibilityIdentifier("roamSub.w208.poi.primary")
-                if card.primary == .interact {
-                    Text("roamSub.w208.poi.interactDormant").font(.caption).foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+            } else if card.primary != .interact {
+                // Completed / pending states are status, not an action.
+                Label(LocalizedStringKey(card.primaryKey), systemImage: card.primary == .completed ? "checkmark.seal" : "lock")
+                    .font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("roamSub.w208.poi.primary")
             }
         }.accessibilityElement(children: .contain).accessibilityIdentifier("roamSub.w208.poi.node")
     }
@@ -371,7 +370,6 @@ struct RoamPOIMissingView: View {
             NavigationLink { if let cameraDestination { cameraDestination() } else { RoamStampCameraView() } } label: {
                 Label("roamSub.w208.stamp.takePhoto", systemImage: "camera")
             }.frame(minHeight: 44).accessibilityIdentifier("roamSub.w208.stamp.takePhoto")
-            Text("roamSub.w208.stamp.dragHint").font(.footnote).foregroundStyle(.secondary)
             Button {
                 Task { await send() }
             } label: { Text(LocalizedStringKey(working ? "roamSub.w208.stamp.sending" : "roamSub.w208.stamp.send")).frame(maxWidth: .infinity, minHeight: 44) }

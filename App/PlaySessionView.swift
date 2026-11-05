@@ -32,7 +32,6 @@ struct PlaySessionView: View {
                                 guard model.visibleSnapshot == snapshot, model.visibleSnapshot?.result.mode == 2 else { return }
                                 selectedNodeID = id
                             }
-                            Text("playFree.readOnly").font(.footnote)
                         }.padding()
                     }.accessibilityIdentifier("playFree.read.overview")
                 } else if snapshot.result.mode == 1 { overview(snapshot) }
@@ -136,7 +135,6 @@ struct PlayReceiptView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Label("play.answer.accepted", systemImage: "checkmark.circle").font(.headline)
-            Text("play.answer.readback").font(.footnote).foregroundStyle(.secondary)
             if let xp = receipt.xp { LabeledContent("play.xp") { Text(verbatim: String(xp)) } }
             if let score = receipt.puzzleScore { LabeledContent("play.puzzleScore") { Text(verbatim: String(score)) } }
             if receipt.completed == true { Text("play.answer.routeCompleted") }

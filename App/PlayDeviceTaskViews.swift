@@ -68,7 +68,6 @@ import SwiftUI
     var body: some View {
         List {
             Section("playx.stopwatch") {
-                Text("playx.stopwatch.local").font(.footnote)
                 LabeledContent("playx.stopwatch.target") { Text(verbatim: PlayTimedDisplayLocalization.seconds(machine.target, locale: locale)) }
                 TimelineView(.periodic(from: .now, by: 0.05)) { _ in
                     Text(verbatim: machine.visibleElapsed(now: ProcessInfo.processInfo.systemUptime).map { PlayTimedDisplayLocalization.number($0, locale: locale) } ?? "—.—")

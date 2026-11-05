@@ -5,6 +5,8 @@ import SwiftUI
     var liveDestination: (() -> AnyView)? = nil
     /// 那年今日 / 月度回顾 reader; nil shows each tool's own "not configured" state.
     var toolsReader: (any RoamPassportToolsReading)? = nil
+    /// Owner-only export; nil hides the 导出 tool.
+    var privateToolsReader: (any RoamPrivateToolsServing)? = nil
     @State private var records: [RoamHistoryRecord] = []
     @State private var error: Error?
     @State private var loaded = false
@@ -17,7 +19,7 @@ import SwiftUI
                 if let error { RoamExperienceIssue(error: error, retry: load) }
                 else if !loaded { ProgressView("roamSub.w208.history.loading") }
                 else if records.isEmpty {
-                    RoamHistoryToolsRow(reader: toolsReader)
+                    if toolsReader != nil { RoamHistoryToolsRow(reader: toolsReader, privateTools: privateToolsReader) }
                     if let keys = localWalk.noticeKeys(reader: reader) {
                         ContentUnavailableView(LocalizedStringKey(keys.title), systemImage: "pause.circle",
                             description: Text(LocalizedStringKey(keys.hint)))
@@ -42,25 +44,23 @@ import SwiftUI
                     }
                 } else {
                     let summary = RoamHistorySummary(records)
-                    RoamHistoryToolsRow(reader: toolsReader)
-                    RoamExperienceCard {
+                    // Mini-program order: total (big km, then trips and shops), tools, then run cards.
+                    RoamExperienceCard { VStack(alignment: .leading, spacing: 12) {
+                        HStack(alignment: .firstTextBaseline, spacing: 6) {
+                            Group {
+                                if let distance = summary.knownKilometers, summary.tripsWithDistance > 0 {
+                                    Text(distance, format: .number.precision(.fractionLength(1)))
+                                } else { Text(verbatim: "—") }
+                            }
+                            .font(.system(size: 52, weight: .heavy).italic()).monospacedDigit()
+                            .lineLimit(1).minimumScaleFactor(0.5)
+                            Text("roam.history.km").font(.headline).foregroundStyle(.secondary)
+                        }
+                        .accessibilityElement(children: .combine)
+                        // 次漫游 · 公里 · 家店 on one line under the total, as in the mini-program.
                         RoamHistoryParityStrip(records: records)
-                        LabeledContent("roam.experience.trips", value: String(summary.trips)).font(.headline)
-                        if let distance = summary.knownKilometers, summary.tripsWithDistance > 0 {
-                            LabeledContent("roam.experience.knownDistance") { Text(distance, format: .number.precision(.fractionLength(1))) + Text(verbatim: " km") }
-                        }
-                        LabeledContent("roam.passport.shopVisits") {
-                            if let shops = summary.knownShops, summary.tripsWithShops > 0 {
-                                Text(shops, format: .number)
-                            } else { Text("roam.passport.unknown") }
-                        }.accessibilityIdentifier("roam.experience.history.shopVisits")
-                        if summary.tripsWithShops < summary.trips {
-                            LabeledContent("roam.passport.shopsCoverage", value: "\(summary.tripsWithShops)/\(summary.trips)")
-                                .font(.caption).foregroundStyle(.secondary)
-                                .accessibilityIdentifier("roam.experience.history.shopCoverage")
-                        }
-                        Text("roam.experience.partialStats").font(.caption).foregroundStyle(.secondary)
-                    }
+                    } }
+                    if toolsReader != nil { RoamHistoryToolsRow(reader: toolsReader, privateTools: privateToolsReader) }
                     ForEach(records) { record in
                         NavigationLink { RoamHistoryDetailView(reader: reader, timestamp: record.ts) } label: {
                             RoamExperienceCard {
@@ -220,7 +220,6 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                 else if let record = currentRecord {
                     RoamExperienceCard {
                         VStack(alignment: .leading, spacing: 18) {
-                            Label("roam.experience.savedRecord", systemImage: "book.closed").font(.caption).foregroundStyle(.secondary)
                             RoamSessionParityHeader(record: record)
                             RoamSessionRouteNameText(name: RoamSessionRouteName(record)).font(.title3).bold()
                                 .accessibilityIdentifier("roamSub.w208.session.routeName")
@@ -229,24 +228,36 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                             RoamRecordedStats(record: record)
                         }
                     }
-                    if !record.pois.isEmpty {
-                        Text("roam.experience.recordedPlaces").font(.headline)
-                        ForEach(Array(record.pois.enumerated()), id: \.offset) { _, place in
-                            Label { RoamTitle(place.name) } icon: { Image(systemName: place.cat == "merchant" ? "storefront" : "mappin") }
-                        }
+                    // 解锁奖励, then 点亮地点, each with its own empty line, as in the mini-program.
+                    let medals = RoamMedalShareSelection.selections(for: record)
+                    Text("roam.experience.rewards").font(.headline).accessibilityAddTraits(.isHeader)
+                    if medals.isEmpty {
+                        Text("roam.experience.rewardsEmpty").foregroundStyle(.secondary)
                     }
-                    ForEach(RoamMedalShareSelection.selections(for: record)) { medal in
+                    ForEach(medals) { medal in
                         Button { showShare = false; selectedMedal = medal } label: {
-                            Label { Text(verbatim: medal.card.name) } icon: { Image(systemName: "medal") }
-                                .frame(minHeight: 44, alignment: .leading)
+                            HStack {
+                                Label { Text(verbatim: medal.card.name) } icon: { Image(systemName: "medal.fill").foregroundStyle(.yellow) }
+                                Spacer(minLength: 0)
+                                Image(systemName: "square.and.arrow.up").foregroundStyle(.secondary)
+                            }
+                            .frame(minHeight: 44, alignment: .leading)
                         }
                         .accessibilityLabel(Text("roam.medalShare.open") + Text(verbatim: ": " + medal.card.name))
                         .accessibilityIdentifier("roam.medalShare.open." + medal.card.kind.rawValue)
                     }
-                    if !record.photos.isEmpty { LabeledContent("roam.experience.savedPhotoReferences", value: String(record.photos.count)) }
-                    Button("roam.share.title", systemImage: "square.and.arrow.up") { showShare = true }
-                        .accessibilityIdentifier("roam.share.open")
-                    Text("roam.experience.historyPrivacy").font(.caption).foregroundStyle(.secondary)
+                    Text("roam.experience.recordedPlaces").font(.headline).accessibilityAddTraits(.isHeader)
+                    if record.pois.isEmpty {
+                        Text("roam.experience.recordedPlacesEmpty").foregroundStyle(.secondary)
+                    }
+                    ForEach(Array(record.pois.enumerated()), id: \.offset) { _, place in
+                        Label { RoamTitle(place.name) } icon: { Image(systemName: place.cat == "merchant" ? "storefront" : "mappin") }
+                    }
+                    Button { showShare = true } label: {
+                        Label("roam.share.title", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.questifyPrimary)
+                    .accessibilityIdentifier("roam.share.open")
                 } else if currentLoaded {
                     ContentUnavailableView("roam.experience.recordMissing", systemImage: "questionmark.folder", description: Text("roam.experience.recordMissingHint"))
                         .accessibilityIdentifier("roam.experience.history.missing")

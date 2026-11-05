@@ -58,7 +58,7 @@ extension EnvironmentValues {
                                 GrowthCenterMetricRow("growth.mission.experience") { GrowthCenterInteger(value: mission.experienceReward) }
                             }.fixedSize(horizontal: false, vertical: true)
                         }
-                    } header: { Text("growth.missions") } footer: { Text("growth.missions.readOnly") }
+                    } header: { Text("growth.missions") }
                 }
             }
         }
@@ -80,7 +80,11 @@ extension EnvironmentValues {
     @ViewBuilder private func score(_ overview: GrowthCenterOverview) -> some View {
         Section("growth.score") {
             if let board = overview.rank.value {
-                LabeledContent("growth.currentPoints") { GrowthCenterInteger(value: board.me.score).font(.title2.bold()) }
+                // Mini-program score card: the points are the one number that matters.
+                LabeledContent("growth.currentPoints") {
+                    GrowthCenterInteger(value: board.me.score).font(.system(size: 40, weight: .heavy, design: .rounded))
+                        .lineLimit(1).minimumScaleFactor(0.5)
+                }
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text("growth.currentPoints"))
                     .accessibilityValue(pointsValue(board.me.score))
@@ -103,13 +107,13 @@ extension EnvironmentValues {
                 else { GrowthCenterIssueView(issue: issue, retry: reload) }
             }
             NavigationLink { GrowthLeaderboardView(reader: reader) } label: {
-                Label("growth.board.title", systemImage: "list.number")
+                Label("growth.board.link", systemImage: "list.number")
             }.frame(minHeight: 44).accessibilityIdentifier("growth.openLeaderboard")
         }
     }
     @ViewBuilder private func footprint(_ overview: GrowthCenterOverview) -> some View {
-        Section("growth.overview") {
-            GrowthCenterMetricRow("growth.level") { GrowthCenterInteger(value: GrowthCenterFormatting.nonnegative(overview.center.value?.level).map { max(1, $0) }) }
+        // 我的足迹 in the mini-program order: 探索值, 徽章, 完成主题, 累计距离; level sits in the header.
+        Section {
             GrowthCenterMetricRow("growth.experience") { GrowthCenterInteger(value: overview.center.value?.experience) }.accessibilityIdentifier("growth.experience")
             GrowthCenterMetricRow("growth.badgeCount") { GrowthCenterInteger(value: overview.center.value?.badges.count) }
             GrowthCenterMetricRow("growth.completedTopics") { GrowthCenterInteger(value: overview.completedTopicCount) }.accessibilityIdentifier("growth.completedTopics")
@@ -127,6 +131,14 @@ extension EnvironmentValues {
             else if let completed = overview.completed.value, completed.isEmpty {
                 Text("growthNormalEntry.completed.empty", tableName: "GrowthNormalEntry").foregroundStyle(.secondary)
                     .accessibilityIdentifier("growth.completed.empty")
+            }
+        } header: {
+            HStack {
+                Text("growth.overview")
+                Spacer(minLength: 8)
+                if let level = GrowthCenterFormatting.nonnegative(overview.center.value?.level) {
+                    Text("growth.level.value \(max(1, level))").monospacedDigit()
+                }
             }
         }
     }
@@ -156,7 +168,6 @@ extension EnvironmentValues {
                     if let moment = GrowthCenterFormatting.badgeMoment(badge.obtainedAt) {
                         DisclosureGroup {
                             LabeledContent("growth.badge.obtained") { Text(verbatim: moment).monospacedDigit() }
-                            Text("growth.badge.timezone").font(.caption).foregroundStyle(.secondary)
                         } label: {
                             Label { GrowthCenterName(name: badge.displayName, fallback: "growth.badge.unnamed") } icon: { Image(systemName: "medal").accessibilityHidden(true) }
                         }.accessibilityIdentifier("growth.badge.\(index)")

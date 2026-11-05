@@ -49,7 +49,7 @@ final class RoamHomeTabsFlowTests: XCTestCase {
         XCTAssertTrue(element("roam.home.passport.tile.goals", app).label.contains("NEW"))
         let event = element("roam.home.passport.play.event", app)
         XCTAssertTrue(revealFixtureElement(event, in: app, requiresHittable: false))
-        XCTAssertTrue(event.label.contains("Not open yet"), event.label)
+        XCTAssertTrue(event.label.contains("Official events"), event.label)
         let goals = app.buttons["roam.home.passport.tile.goals"]
         XCTAssertTrue(revealFixtureElement(goals, in: app, towardTop: true))
         goals.tap()

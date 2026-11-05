@@ -47,13 +47,21 @@ import SwiftUI
             } else if model.gameplayMode == .cityOrientation {
                 orientationContent
             } else if model.snapshot == nil {
-                VStack(spacing: 12) {
-                    if model.phase == .loading { ProgressView("playx.loading").accessibilityIdentifier("playMode.loading") }
-                    if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
-                    if !model.available { Text("playx.disabled").accessibilityIdentifier("playx.disabled") }
-                    Button("playx.refresh") { Task { await model.load() } }
-                        .disabled(!model.available || model.phase == .loading || model.phase == .submitting)
-                }.padding()
+                if model.phase == .loading {
+                    ProgressView("playx.loading").accessibilityIdentifier("playMode.loading")
+                } else {
+                    ContentUnavailableView {
+                        Label(model.available ? "playx.error.title" : "playx.disabled.title", systemImage: model.available ? "exclamationmark.triangle" : "gamecontroller")
+                    } description: {
+                        if !model.available { Text("playx.disabled").accessibilityIdentifier("playx.disabled") }
+                        else if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
+                    } actions: {
+                        if model.available {
+                            Button("playx.refresh") { Task { await model.load() } }
+                                .disabled(model.phase == .submitting)
+                        }
+                    }
+                }
             } else { ContentUnavailableView("playMode.unavailable", systemImage: "questionmark.circle") }
         }
         .privacySensitive().appNavigationTitle(key: model.gameplayMode == .freeExploration ? "playFree.title" : "playx.title")
@@ -103,9 +111,9 @@ import SwiftUI
     }
     private var orientationContent: some View {
         List {
+            // Game header: topic and progress, the run clock, and the run / map controls in one card
+            // (mini-program top bar + bottom run stack).
             Section {
-                Label("playx.title", systemImage: "figure.walk")
-                    .font(.title2.bold()).accessibilityAddTraits(.isHeader)
                 if let snapshot = model.snapshot {
                     PlayTaskSummaryView(snapshot: snapshot, phase: model.phase.rawValue)
                     if let note = snapshot.result.timeNote { Text(verbatim: note).foregroundStyle(.secondary) }
@@ -113,8 +121,7 @@ import SwiftUI
                 if !model.available { Text("playx.disabled").accessibilityIdentifier("playx.disabled") }
                 if model.phase == .loading { ProgressView("playx.loading") }
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
-                Button("playx.refresh", systemImage: "arrow.clockwise") { Task { await model.load() } }
-                    .disabled(model.phase == .submitting || !model.available).accessibilityIdentifier("playx.refresh")
+                if model.snapshot != nil { runControls }
             }
             if let openingModel { PlayOpeningCompletionSection(model: openingModel) }
             if let entryCode { PlayEntryCodeSection(context: entryCode) }
@@ -122,19 +129,11 @@ import SwiftUI
                let id = PlayTaskSummaryPresentation(snapshot: snapshot).currentNodeID,
                let node = snapshot.visibleNodes.first(where: { $0.id == id }) {
                 Section("referenceTask.current") {
-                    Text(verbatim: node.name ?? "#\(node.id)").font(.headline).fixedSize(horizontal: false, vertical: true)
+                    PlayNodeTitle(name: node.name).font(.headline).fixedSize(horizontal: false, vertical: true)
                     Text(LocalizedStringKey("playx.task." + PlayNodeTask.resolve(mode: snapshot.result.mode, node: node).rawValue))
                     PlayTaskStatusBadge(node: node, snapshot: snapshot)
                     Button("referenceTask.open") { selectedNode = id }
                         .buttonStyle(.questifyPrimary).accessibilityIdentifier("referenceTask.open")
-                }
-            }
-            if !model.unresolved, model.interactionContext != nil, let snapshot = model.snapshot,
-               PlayRouteMapPresentation(snapshot: snapshot) != nil {
-                Section {
-                    Button("playRoute.open", systemImage: "map") { showRouteMap = true }
-                        .accessibilityIdentifier("playRoute.open")
-                    Text("playRoute.entryHint").font(.footnote).foregroundStyle(.secondary)
                 }
             }
             if model.unresolved {
@@ -161,17 +160,6 @@ import SwiftUI
                         if snapshot.availability == .completed { narrativeLink(.ending) }
                     }
                 }
-                Section("playx.run.title") {
-                    LabeledContent("playx.run.elapsed") { Text(verbatim: "\(model.clock.elapsedSeconds) s").monospacedDigit() }
-                    if model.clock.phase == .running {
-                        Button("playx.run.pause") { Task { await model.pauseRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) } }
-                            .accessibilityIdentifier("playx.run.pause")
-                    } else if model.clock.phase != .ended {
-                        Button("playx.run.resume") { model.startRun(now: ProcessInfo.processInfo.systemUptime) }.accessibilityIdentifier("playx.run.resume")
-                    }
-                    Button("playx.run.end", role: .destructive) { confirmEnd = true }.accessibilityIdentifier("playx.run.end")
-                    if model.remoteRunSaveFailed { Text("playx.run.saveFailed").foregroundStyle(.orange) }
-                }.disabled(!model.canManageRun)
                 if let snapshot = model.snapshot, model.hasCurrentMediaSnapshot {
                     Section("chapterStory.title") {
                         ForEach(snapshot.result.chapters) { chapter in
@@ -193,7 +181,7 @@ import SwiftUI
                     ForEach(model.snapshot?.visibleNodes ?? []) { node in
                         Button { selectedNode = node.id } label: {
                             VStack(alignment: .leading, spacing: 6) {
-                                Text(verbatim: node.name ?? "#\(node.id)").font(.headline)
+                                PlayNodeTitle(name: node.name).font(.headline)
                                 Text(LocalizedStringKey("playx.task." + PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node).rawValue))
                                     .foregroundStyle(.secondary)
                                 if let snapshot = model.snapshot { PlayTaskStatusBadge(node: node, snapshot: snapshot) }
@@ -240,9 +228,13 @@ import SwiftUI
                 }
                 if let board = model.leaderboard {
                     Section("playx.leaderboard") {
-                        Text("playx.leaderboard.metric").font(.footnote)
                         ForEach(board.entries) { row in
-                            LabeledContent { Text(verbatim: String(row.score)) } label: { Text(verbatim: "\(row.rank.map(String.init) ?? "—") · \(row.name ?? "#\(row.id)")") }
+                            LabeledContent { Text(verbatim: String(row.score)).monospacedDigit() } label: {
+                                HStack(spacing: 10) {
+                                    Text(verbatim: row.rank.map(String.init) ?? "—").font(.headline.monospacedDigit()).frame(minWidth: 28, alignment: .leading)
+                                    if let name = row.name, !name.isEmpty { Text(verbatim: name) } else { Text("playx.player.unnamed") }
+                                }
+                            }
                         }
                         LabeledContent("playx.leaderboard.me") { Text(verbatim: "\(board.me.rank.map(String.init) ?? "—") · \(board.me.score)") }
                     }
@@ -250,7 +242,56 @@ import SwiftUI
                 if case .activity = model.scope { PlayLeadSection(model: model) }
             }
         }
+        .refreshable { if model.available && model.phase != .submitting { await model.load() } }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { Task { await model.load() } } label: { Label("playx.refresh", systemImage: "arrow.clockwise") }
+                    .disabled(model.phase == .submitting || !model.available).accessibilityIdentifier("playx.refresh")
+            }
+        }
         .accessibilityIdentifier("playx.overview")
+    }
+    /// Elapsed clock with start / pause, route map and end, as round game controls.
+    @ViewBuilder private var runControls: some View {
+        let seconds = model.clock.elapsedSeconds
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("playx.run.elapsed").font(.subheadline).foregroundStyle(.secondary)
+                Spacer(minLength: 8)
+                Text(verbatim: String(format: "%02ld:%02ld", seconds / 60, seconds % 60))
+                    .font(.system(.title, design: .rounded).weight(.bold)).monospacedDigit()
+                    .accessibilityIdentifier("playx.run.clock")
+            }
+            HStack(spacing: 10) {
+                if model.clock.phase == .running {
+                    Button { Task { await model.pauseRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) } } label: {
+                        Label("playx.run.pause", systemImage: "pause.fill").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent).disabled(!model.canManageRun)
+                    .accessibilityIdentifier("playx.run.pause")
+                } else if model.clock.phase != .ended {
+                    Button { model.startRun(now: ProcessInfo.processInfo.systemUptime) } label: {
+                        Label(seconds == 0 ? "playx.run.start" : "playx.run.resume", systemImage: "play.fill").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent).disabled(!model.canManageRun)
+                    .accessibilityIdentifier("playx.run.resume")
+                }
+                if !model.unresolved, model.interactionContext != nil, let snapshot = model.snapshot,
+                   PlayRouteMapPresentation(snapshot: snapshot) != nil {
+                    Button { showRouteMap = true } label: { Label("playRoute.open", systemImage: "map") }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("playRoute.open")
+                }
+                if model.clock.phase != .ended {
+                    Button(role: .destructive) { confirmEnd = true } label: { Label("playx.run.end", systemImage: "flag.checkered") }
+                        .buttonStyle(.bordered).disabled(!model.canManageRun)
+                        .accessibilityIdentifier("playx.run.end")
+                }
+            }
+            .controlSize(.large)
+            if model.remoteRunSaveFailed { Text("playx.run.saveFailed").font(.footnote).foregroundStyle(.orange) }
+        }
+        .padding(.vertical, 4)
     }
     @ViewBuilder private func freeStoreDestination(_ id: Int) -> some View {
         if model.gameplayMode == .freeExploration {
@@ -325,7 +366,7 @@ import SwiftUI
                     }.accessibilityIdentifier("journey.record.open.questions.\(nodeID)")
                 }
                 Section {
-                    Text(verbatim: node.name ?? "#\(node.id)").font(.title2.bold())
+                    PlayNodeTitle(name: node.name).font(.title2.bold())
                     if let body = node.storyText ?? node.description { Text(verbatim: body) }
                     if let instructions = node.ruleInstructions { Text(verbatim: instructions) }
                     if let question = node.question { Text(verbatim: question).font(.headline) }
@@ -334,7 +375,6 @@ import SwiftUI
                         if let audio = node.questionAudio, !audio.isEmpty { PlatformAudioHost(rawURL: audio, scope: mediaScope, makeModel: makeAudio) }
                         PlatformExternalMapHost(destination: .init(name: node.name ?? "#\(node.id)", address: node.address, latitude: node.latitude, longitude: node.longitude), scope: mediaScope, makeModel: makeExternalMaps)
                     }
-                    if node.questionImage?.isEmpty == false || model.extras[nodeID]?.storyImage?.isEmpty == false { Label("playx.media.image", systemImage: "photo") }
                     if let snapshot = model.snapshot { PlayTaskStatusBadge(node: node, snapshot: snapshot) }
                 }
                 if model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false, node.npc != nil, let shopNPC {
@@ -458,10 +498,8 @@ struct PlayExperienceIssueView: View {
     var collectionDestination: ((PlayRewardBadgeTarget) -> AnyView)? = nil
     var body: some View {
         Section("playx.reward") {
-            Text("playx.reward.authority").font(.footnote)
             if let xp = reward["xp"].tolerantInteger ?? reward["score"].tolerantInteger { LabeledContent("playx.reward.xp") { Text(verbatim: String(xp)) } }
             if let score = reward["puzzleScore"].tolerantInteger { LabeledContent("playx.reward.puzzle") { Text(verbatim: String(score)) } }
-            if let mode = reward["completionMode"].text { LabeledContent("playx.reward.mode") { Text(verbatim: mode) } }
             if let medal = reward["medalName"].text { Text(verbatim: medal) }
             PlayRewardBadgeRows(targets: PlayRewardBadgeTarget.targets(in: reward), destination: collectionDestination)
                 .id(PlayRewardBadgeTarget.targets(in: reward))
@@ -483,7 +521,10 @@ struct PlayExperienceIssueView: View {
                 if let broadcast = lead.broadcast { Text(verbatim: broadcast) }
                 if let chapter = lead.chapterName { Text(verbatim: chapter) }
                 if let arrived = lead.arrived, !lead.members.isEmpty { LabeledContent("playx.lead.arrived") { Text(verbatim: "\(arrived) / \(lead.members.count)") } }
-                ForEach(lead.members) { member in Label(member.name ?? "#\(member.id)", systemImage: member.arrived ? "checkmark.circle" : "circle") }
+                ForEach(lead.members) { member in
+                    Label { if let name = member.name, !name.isEmpty { Text(verbatim: name) } else { Text("playx.player.unnamed") } }
+                        icon: { Image(systemName: member.arrived ? "checkmark.circle.fill" : "circle").foregroundStyle(member.arrived ? Color.green : Color.secondary) }
+                }
                 if lead.exists && !lead.meArrived { actionButton(context: context, .arrive) }
                 if lead.isLeader {
                     TextField("playx.lead.text", text: $text, axis: .vertical).accessibilityIdentifier("playx.lead.text")
@@ -509,6 +550,15 @@ struct PlayExperienceIssueView: View {
         Button(LocalizedStringKey("playx.lead." + value.rawValue)) { action = value; actionContext = context; review = true }
             .disabled(!model.canWrite || model.leaderOutcomeUnknown || (value == .unlockChapter && model.lead?.allArrived != true) || (value == .broadcast && text.isEmpty))
             .accessibilityIdentifier("playx.lead." + value.rawValue)
+    }
+}
+
+/// A stop's name, or a neutral placeholder; never the raw id.
+struct PlayNodeTitle: View {
+    let name: String?
+    var body: some View {
+        if let name, !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text(verbatim: name) }
+        else { Text("playx.node.untitled") }
     }
 }
 

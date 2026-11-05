@@ -63,7 +63,6 @@ import UIKit
                         renderedOwner = image == nil ? nil : presentationOwner
                     }.accessibilityIdentifier("roam.share.prepare")
                 }
-                Text("roam.share.saveHint").font(.caption).foregroundStyle(.secondary)
             }.padding()
         }.navigationTitle("roam.share.title")
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { dismiss() } } }

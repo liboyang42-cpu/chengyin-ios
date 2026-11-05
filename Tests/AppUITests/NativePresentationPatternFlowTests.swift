@@ -70,9 +70,13 @@ final class NativePresentationPatternFlowTests: XCTestCase {
         app.terminate()
         for scenario in ["stampDisabled", "posterDisabled"] {
             launch(scenario)
-            let id = scenario == "stampDisabled" ? "media.stamp.capture" : "media.poster.scan"
-            XCTAssertTrue(app.buttons[id].waitForExistence(timeout: 10))
-            XCTAssertFalse(app.buttons[id].isEnabled)
+            if scenario == "stampDisabled" {
+                XCTAssertTrue(app.descendants(matching: .any)["media.stamp.caption.section"].waitForExistence(timeout: 10))
+                XCTAssertFalse(app.buttons["media.stamp.capture"].exists)
+            } else {
+                XCTAssertTrue(app.buttons["media.poster.scan"].waitForExistence(timeout: 10))
+                XCTAssertFalse(app.buttons["media.poster.scan"].isEnabled)
+            }
             XCTAssertFalse(app.alerts.firstMatch.exists)
             wait(app.activityIndicators.firstMatch, "exists == false")
             app.terminate()

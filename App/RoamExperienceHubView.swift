@@ -93,8 +93,6 @@ import SwiftUI
             Section("roam.motion.title") {
                 Toggle("roam.motion.reduce", isOn: $reduceMotionLocally)
                     .accessibilityIdentifier("roam.motion.reduce")
-                Text("roam.motion.hint").font(.footnote).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
                 if systemReduceMotion {
                     Text("roam.motion.system").font(.footnote).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -159,7 +157,6 @@ import SwiftUI
                 if reader.identity == nil { Text("roam.signInRequired") }
                 else if !reader.isConfigured { Text("roam.notConfigured") }
             }
-            Section { Text("roam.experience.tileReadOnly").font(.caption).foregroundStyle(.secondary) }
         }.navigationTitle(showsLiveUnavailable ? "roam.experience.live" : "roam.experience.tileMemory")
             .refreshable { revision += 1; loading = false; pager.reset(); await loadTiles() }
             .onDisappear { revision += 1; loading = false; pager.cancelPending() }

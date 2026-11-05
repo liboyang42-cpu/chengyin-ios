@@ -127,9 +127,9 @@ struct RoamBrowserView: View {
                 if homeTab == .passport {
                     RoamHomePassportView(reader: experienceReader, albumMetadataReader: albumMetadataReader,
                         stampDestination: stampDestination, liveDestination: liveDestination,
-                        toolsReader: passportToolsReader ?? toolsReader, discoverDestination: nearbyTeamsDestination)
+                        toolsReader: passportToolsReader ?? toolsReader, discoverDestination: nearbyTeamsDestination,
+                        privateToolsReader: privateToolsReader)
                 } else {
-                    controls
                     ZStack {
                         if !reader.isConfigured {
                             statusWithStartHeader(.notConfigured)
@@ -247,60 +247,51 @@ struct RoamBrowserView: View {
             RoamStatusView(issue: issue)
         }
     }
-    private var controls: some View {
+    /// Browser controls as list rows under the 附近 section: area, layer, radius and the layer's filter.
+    @ViewBuilder private var controls: some View {
         let reader = effectiveReader
-        return VStack(alignment: .leading, spacing: 10) {
-            if reader.isOfflineExample {
-                Label("roam.offlineExample", systemImage: "testtube.2")
-                    .font(.caption).accessibilityIdentifier("roam.fixture.notice")
-            }
-            if let area = reader.searchArea {
-                Label {
-                    if area.label.isEmpty { Text("roam.suppliedArea") } else { Text(verbatim: area.label) }
-                } icon: { Image(systemName: "mappin.and.ellipse") }
-                .font(.subheadline)
-            }
-            Text("roam.locationNotice").font(.caption).foregroundStyle(.secondary)
-            if nearbyPlayersReader != nil && layer == .players {
-                Text("roam.players.readScope").font(.caption).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            HStack {
-                Picker("roam.layer", selection: $layer) {
-                    ForEach(RoamLayer.allCases, id: \.self) { value in
-                        Text(LocalizedStringKey("roam.layer." + String(value.rawValue))).tag(value)
-                    }
-                }
-                .accessibilityIdentifier("roam.layer")
-                Spacer()
-                Picker("roam.radius", selection: Binding(get: { effectiveRadiusM }, set: { radiusM = $0 })) {
-                    ForEach(radiusOptions, id: \.self) { radius in
-                        Text(verbatim: "\(radius / 1000) km").tag(radius)
-                    }
-                }
-                .accessibilityIdentifier("roam.radius")
-            }
-            if layer == .places {
-                Picker("roam.placeFilter", selection: $placeFilter) {
-                    ForEach(RoamPlaceFilter.allCases, id: \.self) { value in
-                        Text(LocalizedStringKey("roam.filter." + String(value.rawValue))).tag(value)
-                    }
-                }.pickerStyle(.segmented)
-            } else if layer == .events {
-                Picker("roam.eventFilter", selection: $eventFilter) {
-                    ForEach(RoamEventFilter.allCases, id: \.self) { value in
-                        Text(LocalizedStringKey("roam.filter." + String(value.rawValue))).tag(value)
-                    }
-                }.pickerStyle(.segmented)
-            }
-            if layer == .players { Text("roam.playerPrivacy").font(.caption).foregroundStyle(.secondary) }
+        if reader.isOfflineExample {
+            Label("roam.offlineExample", systemImage: "testtube.2")
+                .font(.caption).accessibilityIdentifier("roam.fixture.notice")
         }
-        .padding(.horizontal).padding(.vertical, 10)
+        if let area = reader.searchArea {
+            Label {
+                if area.label.isEmpty { Text("roam.suppliedArea") } else { Text(verbatim: area.label) }
+            } icon: { Image(systemName: "mappin.and.ellipse") }
+        }
+        Picker("roam.layer", selection: $layer) {
+            ForEach(RoamLayer.allCases, id: \.self) { value in
+                Text(LocalizedStringKey("roam.layer." + String(value.rawValue))).tag(value)
+            }
+        }
+        .accessibilityIdentifier("roam.layer")
+        Picker("roam.radius", selection: Binding(get: { effectiveRadiusM }, set: { radiusM = $0 })) {
+            ForEach(radiusOptions, id: \.self) { radius in
+                Text(verbatim: "\(radius / 1000) km").tag(radius)
+            }
+        }
+        .accessibilityIdentifier("roam.radius")
+        if layer == .places {
+            Picker("roam.placeFilter", selection: $placeFilter) {
+                ForEach(RoamPlaceFilter.allCases, id: \.self) { value in
+                    Text(LocalizedStringKey("roam.filter." + String(value.rawValue))).tag(value)
+                }
+            }.pickerStyle(.segmented).labelsHidden()
+        } else if layer == .events {
+            Picker("roam.eventFilter", selection: $eventFilter) {
+                ForEach(RoamEventFilter.allCases, id: \.self) { value in
+                    Text(LocalizedStringKey("roam.filter." + String(value.rawValue))).tag(value)
+                }
+            }.pickerStyle(.segmented).labelsHidden()
+        }
     }
     private var results: some View {
         let renderedKey = presentationKey
         let renderedItems = visibleItems
         return List {
+            // Mini-program order: intro tickets and 附近活动 first, then the nearby map browser.
+            if hasStartHeader { Section { startHeader } }
+            Section { controls } header: { Text("roam.browse.header") }
             // Keep this row alive through same-scope loading, errors and empty filters.
             // Only camera state survives; visibleItems removes old pins immediately.
             if showsMap, let scope = cameraScope {
@@ -311,7 +302,6 @@ struct RoamBrowserView: View {
                     .listRowInsets(EdgeInsets())
                     .id(scope)
             }
-            if hasStartHeader { Section { startHeader } }
             if loading || loadedKey != requestKey {
                 ProgressView("roam.loading").accessibilityIdentifier("roam.loading")
             } else if let issue {
@@ -338,7 +328,7 @@ struct RoamBrowserView: View {
                     if snapshot.isRetained {
                         Label("roamRetained.previous", systemImage: "clock.arrow.circlepath")
                             .fixedSize(horizontal: false, vertical: true)
-                        Text("roamRetained.readOnly").font(.footnote).foregroundStyle(.secondary)
+                        Text("roamRetained.readOnly").font(.subheadline).foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("roamRetained.notice")
                         ForEach(retainedRows) { item in
@@ -357,9 +347,6 @@ struct RoamBrowserView: View {
                 } label: { RoamItemRow(item: item, showsCurrentReadStatus: true) }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("roam.row.\(item.id)")
-            }
-            Section {
-                Text("roam.readOnlyNotice").font(.footnote).foregroundStyle(.secondary)
             }
         }
         .refreshable { await load() }

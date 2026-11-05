@@ -15,8 +15,18 @@ import SwiftUI
                 if let description = snapshot.result.topicDescription { Text(verbatim: description) }
                 Text("playFree.choiceHint")
                 if let done = presentation.redeemed, let total = presentation.total {
-                    Label { Text("playFree.redeemed.count \(done) \(total)").monospacedDigit() } icon: { Image(systemName: "checkmark.seal") }
-                        .font(.subheadline.weight(.medium)).accessibilityIdentifier("playFree.redeemed.count")
+                    // Mini-program 已核销环: one ring that fills as stores are redeemed.
+                    HStack(spacing: 14) {
+                        Gauge(value: Double(done), in: 0...Double(max(total, 1))) { EmptyView() } currentValueLabel: {
+                            Text(verbatim: "\(done)/\(total)").monospacedDigit()
+                        }
+                        .gaugeStyle(.accessoryCircularCapacity).tint(.accentColor)
+                        .accessibilityHidden(true)
+                        Text("playFree.redeemed.count \(done) \(total)").monospacedDigit()
+                            .font(.subheadline.weight(.medium))
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("playFree.redeemed.count")
                 }
                 if let expiry = snapshot.result.expiresAt { LabeledContent("play.expiresAt") { Text(verbatim: expiry) } }
                 if let note = snapshot.result.timeNote { Text(verbatim: note).font(.footnote) }
@@ -100,11 +110,17 @@ struct FreeExplorationStoreName: View {
                         }
                     }
                 }
-                Button("playx.refresh", systemImage: "arrow.clockwise") { Task { await model.load() } }
+            }.padding()
+        }
+        .refreshable { if model.available && model.phase != .submitting { await model.load() } }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { Task { await model.load() } } label: { Label("playx.refresh", systemImage: "arrow.clockwise") }
                     .disabled(!model.available || model.phase == .submitting || model.phase == .loading)
                     .accessibilityIdentifier("playFree.refresh")
-            }.padding()
-        }.accessibilityIdentifier("playFree.overview")
+            }
+        }
+        .accessibilityIdentifier("playFree.overview")
             .navigationDestination(item: $selectedStore) { id in storeDestination(id) }
             .onChange(of: model.identity) { _, _ in selectedStore = nil; packOpen = false }
             .onChange(of: model.gameplayMode) { _, mode in if mode != nil && mode != .freeExploration { selectedStore = nil; packOpen = false } }
@@ -151,20 +167,26 @@ struct FreeExplorationStoreName: View {
                         latitude: node.latitude, longitude: node.longitude), scope: mediaScope, makeModel: makeExternalMaps)
                     FreeExplorationVisitSteps(node: node)
                     if let storeDayModel { PlayStoreDayMerchantEntry(nodeID: nodeID, make: storeDayModel, makeExternalMaps: makeExternalMaps, mediaScope: mediaScope) }
-                    if node.done != true {
-                        if node.arrived == true, node.hasGame != false, node.gameDone != true { Text("playFree.game.unavailable") }
-                        if node.selfReported == true { Text("playFree.redemption.unavailable") }
-                        else if let task = FreeExplorationPresentation.evidenceTask(for: node, in: snapshot), let device {
-                            PlayDeviceTaskSection(model: device, task: task, interaction: .init(context: context, current: { model.interactionContext }), onEvidence: { prepare($0, context: $1) })
-                        } else { Text("playFree.evidence.unavailable") }
+                    // In-store games, redemption codes and missing evidence steps have no native flow yet;
+                    // their placeholder notices are not shown.
+                    if node.done != true, node.selfReported != true,
+                       let task = FreeExplorationPresentation.evidenceTask(for: node, in: snapshot), let device {
+                        PlayDeviceTaskSection(model: device, task: task, interaction: .init(context: context, current: { model.interactionContext }), onEvidence: { prepare($0, context: $1) })
                     }
                 }
                 if model.unresolved { Text(LocalizedStringKey(model.hasModeRecoveryBlock ? "playMode.recoveryBlocked" : "playFree.proof.pending")) }
                 if let issue { PlayExperienceIssueView(issue: issue) }
-                Button("playx.refresh") { Task { await model.load() } }.disabled(model.phase == .loading || model.phase == .submitting)
             } else if model.phase == .loading || model.phase == .submitting { ProgressView("playx.loading") }
-            else { Text("playFree.store.unavailable") }
-        }.privacySensitive().navigationTitle("playFree.store.title").accessibilityIdentifier("playFree.store.detail")
+            else { ContentUnavailableView("playFree.store.unavailable", systemImage: "storefront") }
+        }
+        .refreshable { if model.phase != .loading && model.phase != .submitting { await model.load() } }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { Task { await model.load() } } label: { Label("playx.refresh", systemImage: "arrow.clockwise") }
+                    .disabled(model.phase == .loading || model.phase == .submitting)
+            }
+        }
+        .privacySensitive().navigationTitle("playFree.store.title").accessibilityIdentifier("playFree.store.detail")
             .confirmationDialog("playx.review", isPresented: $showingReview, titleVisibility: .visible) {
                 Button("playFree.evidence.submit") { guard let review else { return }; self.review = nil; Task { await model.submit(review) } }
                 Button("playx.cancel", role: .cancel) { review = nil; model.cancelReview() }
@@ -237,7 +259,6 @@ struct FreeExplorationVisitSteps: View {
                     if let story = node.storyText { Section("playFree.story") { Text(verbatim: story) } }
                     FreeExplorationVisitSteps(node: node)
                 }
-                Text("playFree.readOnly").font(.footnote)
                 Button("play.refresh") { Task { await model.load(keepingReceipt: true) } }
             } else if model.isLoading { ProgressView("play.loading") }
             else { Text("playFree.store.unavailable") }

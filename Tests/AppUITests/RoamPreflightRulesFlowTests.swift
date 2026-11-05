@@ -72,7 +72,7 @@ final class RoamPreflightRulesFlowTests: XCTestCase {
     func testSimplifiedChineseUsesExistingLocalizedRules() {
         let app = app(chinese: true); open(app)
         XCTAssertTrue(app.navigationBars["漫游怎么玩"].exists)
-        XCTAssertTrue(app.staticTexts["不绑定固定路线。主动开始后，步行点亮经过的街区。暂停期间、低精度定位和明显跳点不会计入距离。"].exists)
+        XCTAssertTrue(app.staticTexts["没有固定路线。开始后边走边点亮经过的街区，暂停和定位跳动不计入。"].exists)
     }
     func testLargestDynamicTypeCanReachTheLastRuleAndReturn() {
         let app = app(largeText: true); open(app, pageScroll: true)

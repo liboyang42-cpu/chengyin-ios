@@ -742,13 +742,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A held pin only shows board state. It never means the operating team is on site, and other players' locations are not shown."
+            "value": "Pins show the board only. No one’s location is shown."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "经营图钉只表示棋盘状态，不代表经营队伍正在现场；不显示其他玩家位置。"
+            "value": "图钉只表示棋盘状态，不显示任何人的位置。"
           }
         }
       }
@@ -966,13 +966,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only you pay. Teammates are never charged, and nothing is deducted if it fails."
+            "value": "Only you pay. Nothing is deducted if it fails."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅由你本人付款，不会代扣队友；失败不扣分。"
+            "value": "仅由你本人支付，失败不扣分。"
           }
         }
       }
@@ -1158,13 +1158,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fee not published yet; cannot be accepted"
+            "value": "Fee not set yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "费用尚未公布，暂不可接受"
+            "value": "费用未公布"
           }
         }
       }
@@ -1286,13 +1286,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "We could not confirm the result. Check the result first; a retry sends the exact same request and never charges twice."
+            "value": "We couldn’t confirm the result. Check it first; trying again never charges twice."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无法确认结果。请先查询结果；重试只会发送完全相同的请求，不会重复扣分。"
+            "value": "暂时无法确认结果。请先查询；重试不会重复扣分。"
           }
         }
       }
@@ -1334,13 +1334,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not published"
+            "value": "—"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未公布"
+            "value": "—"
           }
         }
       }

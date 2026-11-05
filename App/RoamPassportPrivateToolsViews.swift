@@ -105,10 +105,6 @@ enum RoamShanghaiPicker {
     var body: some View {
         List {
             if tools.isOfflineExample { Section { RoamExperienceNotice(offline: true) } }
-            if !tools.allowsWrites {
-                Section { Label("roam.private.writesDisabled", systemImage: "lock").font(.footnote).foregroundStyle(.secondary) }
-                    .accessibilityIdentifier("roam.capsule.writesDisabled")
-            }
             if let issue = model.issue {
                 Section { RoamPrivateIssueView(issue: issue, retry: issue == .outcomeUnknown ? nil : { Task { await model.load() } }) }
             }
@@ -149,7 +145,8 @@ enum RoamShanghaiPicker {
             if showsList { list }
         }
         .toolbar {
-            if !composing {
+            // Writing is only offered when it can be saved.
+            if !composing && tools.allowsWrites {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { startComposing() } label: { Image(systemName: "plus") }
                         .accessibilityLabel(Text("roam.capsule.write")).accessibilityIdentifier("roam.capsule.write")
@@ -185,11 +182,6 @@ enum RoamShanghaiPicker {
             Text("roam.capsule.count \(text.utf16.count)").font(.caption).foregroundStyle(.secondary).monospacedDigit()
         } header: { Text("roam.capsule.bodyLabel") }
         Section {
-            // The archive attaches an owner-uploaded, server-signed photo; iOS has no reviewed upload path yet.
-            Label("roam.capsule.photoUnavailable", systemImage: "photo").foregroundStyle(.secondary)
-                .accessibilityIdentifier("roam.capsule.photoUnavailable")
-        }
-        Section {
             LabeledContent("roam.capsule.unlockLabel") { Text(verbatim: unlockDate).monospacedDigit() }
                 .accessibilityIdentifier("roam.capsule.unlockDate")
             HStack {
@@ -207,6 +199,7 @@ enum RoamShanghaiPicker {
         }
         Section {
             Button("roam.capsule.seal") { model.prepareCreate(body: text, unlockDate: unlockDate) }
+                .buttonStyle(.questifyPrimary)
                 .disabled(model.isBusy || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || unlockDate.isEmpty || model.pending != nil || !model.canWrite)
                 .accessibilityIdentifier("roam.capsule.seal")
             Button("roam.capsule.later") { composing = false }.disabled(model.isBusy).accessibilityIdentifier("roam.capsule.later")
@@ -288,10 +281,6 @@ extension RoamGoalState {
     var body: some View {
         List {
             if tools.isOfflineExample { Section { RoamExperienceNotice(offline: true) } }
-            if !tools.allowsWrites {
-                Section { Label("roam.private.writesDisabled", systemImage: "lock").font(.footnote).foregroundStyle(.secondary) }
-                    .accessibilityIdentifier("roam.goals.writesDisabled")
-            }
             if let issue = model.issue, !(creating && (issue == .invalidDraft || isRejection(issue))) {
                 Section { RoamPrivateIssueView(issue: issue, retry: issue == .outcomeUnknown ? nil : { Task { await model.load() } }) }
             }
@@ -336,7 +325,7 @@ extension RoamGoalState {
             }
         }
         .toolbar {
-            if !creating {
+            if !creating && tools.allowsWrites {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { startCreating() } label: { Image(systemName: "plus") }
                         .accessibilityLabel(Text("roam.goals.new")).accessibilityIdentifier("roam.goals.new")

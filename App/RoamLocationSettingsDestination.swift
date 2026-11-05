@@ -125,7 +125,6 @@ import UIKit
                             .accessibilityIdentifier(snapshot.servicesEnabled ? "roam.locationSettings.services.enabled" : "roam.locationSettings.services.disabled")
                     }
                 }
-                Text("roam.locationSettings.capabilityHint").font(.footnote).foregroundStyle(.secondary)
             }
             Section {
                 Button("roam.locationSettings.openSettings") { model.openSettings() }
