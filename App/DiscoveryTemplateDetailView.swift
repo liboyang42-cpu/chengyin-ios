@@ -48,33 +48,37 @@ struct DiscoveryTemplateDetailView: View {
                 DiscoveryErrorView(error: error) { Task { await reload() } }
             } else if let read = detail.value {
                 let item = read.template
+                let parity = read.extras != nil ? DiscoveryPlayTemplateDetailPresentation(read, ownScope: false) : nil
                 List {
+                    // Mini-program `xb-head` then `xb-cta`: title and publisher, then 应用 right under them.
                     Section {
                         DiscoveryTitle(text: item.title, fallback: "discovery.untitledPlay").font(.title2.bold())
                         DiscoveryPlayMetadata(item: item)
-                    }
-                    DiscoveryPlayTemplatePresentationView(presentation: .init(item), scope: galleryScope, imageReader: imageReader)
-                    textSection("discovery.introduction", text: item.description)
-                    textSection("discovery.rules", text: item.ruleInstructions)
-                    textSection("discovery.materials", text: item.requiredMaterials)
-                    textSection("discovery.location", text: item.usageLocation)
-                    if let verification = item.verification {
-                        Section("discovery.verification") { Text(verification.label) }
-                    }
-                    if read.extras != nil {
-                        DiscoveryTemplateDetailParitySections(presentation: .init(read, ownScope: false))
-                    }
-                    if authoringFactory != nil {
-                        Section {
+                        if authoringFactory != nil {
                             Button {
                                 guard loadedKey == requestKey, reader.isConfigured,
                                       authoringCompletion?.isCurrent() != false else { return }
                                 adoption = Adoption(source: item, key: requestKey)
-                            } label: { Label("templateAuthor.adopt", systemImage: "doc.on.doc") }
+                            } label: { Label("templateAuthor.adopt", systemImage: "doc.on.doc").frame(maxWidth: .infinity, minHeight: 44) }
+                                .buttonStyle(.questifyPrimary)
+                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                                 .accessibilityIdentifier("templateAuthor.adopt")
                         }
                     }
-                    Section { Text("discovery.readOnlyHint").font(.footnote).foregroundStyle(.secondary) }
+                    DiscoveryPlayTemplatePresentationView(presentation: .init(item), scope: galleryScope, imageReader: imageReader)
+                    textSection("discovery.introduction", text: item.description)
+                    textSection("discovery.rules", text: item.ruleInstructions)
+                    textSection("discovery.location", text: item.usageLocation)
+                    if let parity {
+                        // Carries 怎么验证, 分类与适用场景, 所需物料, 评价 and the 不能直接开团 notice.
+                        if parity.materialChips.isEmpty { textSection("discovery.materials", text: item.requiredMaterials) }
+                        DiscoveryTemplateDetailParitySections(presentation: parity)
+                    } else {
+                        textSection("discovery.materials", text: item.requiredMaterials)
+                        if let verification = item.verification {
+                            Section("discovery.verification") { Text(verification.label) }
+                        }
+                    }
                 }
                 .refreshable { await reload() }
                 .accessibilityIdentifier("discovery.detail.content")
@@ -173,7 +177,7 @@ struct DiscoveryTopicTemplatePreview: View {
                         optionalText(item.subtitle)
                         TopicTotalStops(count: item.locationCount, identifier: "discovery.publicTotalStops")
                         if let count = item.templateCount { LabeledContent("discovery.publicGames", value: String(count)) }
-                        if let seconds = item.totalTime { LabeledContent("discovery.publicSeconds", value: String(seconds)) }
+                        if let seconds = item.totalTime { LabeledContent("discovery.publicSeconds") { TopicXcxDurationText(seconds: seconds) } }
                         optionalText(item.addressName)
                         optionalText(item.version)
                     }
@@ -224,7 +228,6 @@ struct DiscoveryTopicTemplatePreview: View {
                     if item.chapters.isEmpty && item.games.isEmpty {
                         Section { Text("discovery.publicEmpty") }
                     }
-                    Section { Text("discovery.publicProjectionHint").font(.footnote).foregroundStyle(.secondary) }
                 }
                 .refreshable { await detail.load() }
                 .accessibilityIdentifier("discovery.topicPreview.content")

@@ -41959,13 +41959,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "What to prepare"
+            "value" : "Materials needed"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "需要准备"
+            "value" : "所需物料"
           }
         }
       }
@@ -42291,13 +42291,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Duration (seconds)"
+            "value" : "Estimated time"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "时长（秒）"
+            "value" : "预计用时"
           }
         }
       }
@@ -42396,7 +42396,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "规则说明"
+            "value" : "规则"
           }
         }
       }
@@ -142429,13 +142429,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Adopt as a local play draft"
+            "value" : "Use this play"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "套用为本地玩法草稿"
+            "value" : "应用"
           }
         }
       }
