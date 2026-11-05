@@ -45,6 +45,7 @@ import SwiftUI
                             AccountCollectionCouponDetailView(selection: selection, reader: reader).id(selection.id)
                         } label: { AccountCollectionCouponRow(coupon: coupon) }
                         .buttonStyle(QuestifyCardButtonStyle())
+                        .questifyHidesLinkIndicator()
                         .accessibilityIdentifier("accountCollection.coupon.\(coupon.id)")
                         .questifyCardListRow()
                     }
@@ -96,12 +97,8 @@ import SwiftUI
 struct AccountCollectionCouponRow: View {
     let coupon: AccountCollectionCoupon
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .top) {
-                AccountCollectionCouponBadge(status: coupon.status)
-                Spacer(minLength: 0)
-                Image(systemName: "ticket").font(.title2).foregroundStyle(QuestifyPalette.accent).accessibilityHidden(true)
-            }
+        VStack(alignment: .leading, spacing: 12) {
+            AccountCollectionCouponBadge(status: coupon.status)
             AccountCollectionTitle(value: coupon.name, fallback: "accountCollection.coupon.untitled")
                 .font(.title3.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
             if let description = coupon.displayDescription, !description.isEmpty {
@@ -113,11 +110,10 @@ struct AccountCollectionCouponRow: View {
                     .accessibilityIdentifier("accountCollection.coupon.futureStart")
                 QuestifyMetadataLine(label: "accountCollection.coupon.validFrom", value: day, systemImage: "calendar.badge.clock")
             }
-            if coupon.status == .invalid {
-                Label("accountCollection.coupon.invalidHint", systemImage: "xmark.circle").font(.footnote)
-            } else if let day = AccountCollectionCoupon.calendarDay(coupon.endTime) {
+            // The pill already says Invalid; an unknown end date is left out rather than spelled out.
+            if coupon.status != .invalid, let day = AccountCollectionCoupon.calendarDay(coupon.endTime) {
                 QuestifyMetadataLine(label: "accountCollection.coupon.validUntil", value: day, systemImage: "calendar")
-            } else { Text("accountCollection.coupon.validityUnknown").font(.footnote).foregroundStyle(.secondary) }
+            }
         }.questifyCardSurface()
     }
 }
