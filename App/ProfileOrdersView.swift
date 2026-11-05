@@ -137,9 +137,9 @@ private struct ProfileOrderRow: View {
             }
             switch order.sourceMode {
             case .cityOrienteering?:
-                (Text("profile.orders.mode.city").bold() + Text(verbatim: " · ") + Text("profile.orders.mode.cityHint")).font(.caption)
+                Text("profile.orders.mode.city").bold().font(.caption)
             case .freeExplore?:
-                (Text("profile.orders.mode.free").bold() + Text(verbatim: " · ") + Text("profile.orders.mode.freeHint")).font(.caption)
+                Text("profile.orders.mode.free").bold().font(.caption)
             case nil: EmptyView()
             }
             if let title = order.title, !title.isEmpty { Text(verbatim: title).font(.headline) }
@@ -153,12 +153,12 @@ private struct ProfileOrderRow: View {
             }
             if let location = order.addressName?.trimmingCharacters(in: .whitespaces), !location.isEmpty, location.lowercased() != "null" {
                 Label { Text(verbatim: location) } icon: { Image(systemName: "mappin.and.ellipse") }.font(.subheadline)
-            } else {
-                Label { Text("profile.orders.placeUnconfirmed") } icon: { Image(systemName: "mappin.and.ellipse") }.font(.subheadline)
             }
+            // Source 实付款 ¥x; an unknown amount shows "—", never a currency caveat.
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text("profile.orders.paid").font(.subheadline)
-                ProfileOrderAmountLabel(amount: order.actualPaidAmount)
+                Text(verbatim: order.actualPaidAmount.map { "¥" + OwnedOrderMoneyText.string($0) } ?? "—")
+                    .font(.subheadline.weight(.semibold)).monospacedDigit()
             }
         }.padding(.vertical, 6)
     }

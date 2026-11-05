@@ -12,20 +12,23 @@ enum ActivityPresentation {
     }
 }
 
+/// Same card rules as home: cover, title, one date · place line, starting price. Missing values are left out.
 struct ActivityListCard: View {
     let item: ActivitySummary
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.locale) private var locale
+    @Environment(\.timeZone) private var timeZone
 
     var body: some View {
-        VStack(alignment:.leading,spacing:14) {
+        VStack(alignment:.leading,spacing:10) {
             if let url=QuestifyCardArtwork.safeURL(item.imageURL) {
                 QuestifyCardArtwork(url:url,height:dynamicTypeSize.isAccessibilitySize ? 132 : 164)
             }
             ActivityName(name:item.name)
                 .font(.title3.weight(.semibold))
-            ActivitySummaryMetadata(summary:item)
-            Divider()
-            AmountLabel(amount:item.minimumAmount, captionKey: "activity.startingPrice")
+            QuestifyCardSummary(meta: QuestifyCardText.metaLine(date: QuestifyCardText.date(item.startDate, locale: locale, displayTimeZone: timeZone),
+                                                                place: ActivityPresentation.place(item)),
+                                price: QuestifyCardText.amount(item.minimumAmount, locale: locale))
         }
         .foregroundStyle(.primary)
         .fixedSize(horizontal:false,vertical:true)
