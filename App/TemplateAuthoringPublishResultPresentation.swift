@@ -70,12 +70,9 @@ struct TemplateAuthoringPublishResultPreferenceKey: PreferenceKey {
             Image(systemName: "checkmark.circle.fill").font(.largeTitle).foregroundStyle(.green)
             Text("templatePublishResult.title", tableName: "CreatorPublishResult").font(.title2.bold())
             Text(verbatim: result.title).font(.headline)
-            Text("templatePublishResult.detail", tableName: "CreatorPublishResult")
-            LabeledContent { Text(verbatim: String(result.memberTemplateID.rawValue)) } label: {
-                Text("templatePublishResult.identity", tableName: "CreatorPublishResult")
-            }
+            Text("templatePublishResult.detail", tableName: "CreatorPublishResult").multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
             Text("templatePublishResult.destination", tableName: "CreatorPublishResult").font(.footnote).foregroundStyle(.secondary)
-            Button(action: close) { Text("templatePublishResult.openLibrary", tableName: "CreatorPublishResult") }
+            Button(action: close) { Text("templatePublishResult.openLibrary", tableName: "CreatorPublishResult").frame(maxWidth: .infinity) }
                 .buttonStyle(.questifyPrimary).accessibilityIdentifier("templatePublishResult.openLibrary")
         }.padding(24).presentationDetents([.medium]).interactiveDismissDisabled(true)
             .accessibilityIdentifier("templatePublishResult.panel")

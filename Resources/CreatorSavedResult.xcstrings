@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your verified draft is in your template library."
+            "value": "It's in your template library."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已确认草稿保存到你的模板库。"
+            "value": "已保存到你的模板库。"
           }
         }
       }
