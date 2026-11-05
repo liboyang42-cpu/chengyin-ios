@@ -74,23 +74,16 @@ import SwiftUI
                         .frame(minHeight: 44).accessibilityIdentifier("mapDatePreset.today")
                     Button("mapDatePreset.tomorrow") { selectDatePreset(.tomorrow) }
                         .frame(minHeight: 44).accessibilityIdentifier("mapDatePreset.tomorrow")
-                    if applyCityOptions != nil {
-                        Text("mapDatePreset.disclosure").font(.footnote).foregroundStyle(.secondary)
-                    } else {
-                        Text("globalDatePreset.disclosure").font(.footnote).foregroundStyle(.secondary)
-                    }
                     TextField("searchMap.startDate", text: $dateDraft.startDate).accessibilityIdentifier("searchMap.filter.start")
                     Button("mapDatePicker.start") { openDatePicker(.start) }
                         .frame(minHeight: 44).accessibilityIdentifier("mapDatePicker.open.start")
                     TextField("searchMap.endDate", text: $dateDraft.endDate).accessibilityIdentifier("searchMap.filter.end")
                     Button("mapDatePicker.end") { openDatePicker(.end) }
                         .frame(minHeight: 44).accessibilityIdentifier("mapDatePicker.open.end")
-                    Text("searchMap.dateFormat").font(.caption).foregroundStyle(.secondary)
                 }
                 Section("searchMap.price") {
                     TextField("searchMap.minimum", text: $minimum).keyboardType(.decimalPad).accessibilityIdentifier("searchMap.filter.min")
                     TextField("searchMap.maximum", text: $maximum).keyboardType(.decimalPad).accessibilityIdentifier("searchMap.filter.max")
-                    Text("searchMap.clientFilters").font(.footnote).foregroundStyle(.secondary)
                 }
                 if invalid { Label("searchMap.invalidInput", systemImage: "exclamationmark.circle").accessibilityIdentifier("searchMap.filter.invalid") }
                 Button("searchMap.resetFilters") {

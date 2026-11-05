@@ -43866,13 +43866,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Refreshing. Earlier results stay visible until new ones load."
+            "value" : "Updating…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在更新，新结果加载前会保留此前的结果。"
+            "value" : "正在更新…"
           }
         }
       }
@@ -43882,13 +43882,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Some results couldn't be refreshed and may be out of date."
+            "value" : "Some results may be out of date"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "部分结果未能更新，内容可能已过时。"
+            "value" : "部分结果可能不是最新"
           }
         }
       }
@@ -131419,7 +131419,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "分类"
+            "value" : "类别"
           }
         }
       }
@@ -131573,13 +131573,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "City-node search"
+            "value" : "Find activities and topics on the map"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "城市节点搜索"
+            "value" : "在地图上找活动与主题节点"
           }
         }
       }
@@ -131589,13 +131589,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Clear history"
+            "value" : "Clear"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "清空历史"
+            "value" : "清空"
           }
         }
       }
@@ -131717,13 +131717,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Through YYYY-MM-DD"
+            "value" : "End date (YYYY-MM-DD)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "结束日期 YYYY-MM-DD"
+            "value" : "结束日期（YYYY-MM-DD）"
           }
         }
       }
@@ -131861,13 +131861,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recent searches"
+            "value" : "Search history"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "最近搜索"
+            "value" : "搜索历史"
           }
         }
       }
@@ -131877,13 +131877,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recent-search storage is unavailable. This session can still search."
+            "value" : "Search history can't be saved right now"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "最近搜索存储暂不可用，本次会话仍可继续搜索"
+            "value" : "暂时无法保存搜索历史"
           }
         }
       }
@@ -132059,7 +132059,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "最高价格（0–1000）"
+            "value" : "最高区间（0–1000）"
           }
         }
       }
@@ -132091,7 +132091,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "最低价格（0–1000）"
+            "value" : "最低区间（0–1000）"
           }
         }
       }
@@ -132149,13 +132149,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nearby route nodes"
+            "value" : "Nearby on the map"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "附近路线节点"
+            "value" : "附近"
           }
         }
       }
@@ -132389,13 +132389,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Listed starting price"
+            "value" : "Price"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "标示起价"
+            "value" : "价格"
           }
         }
       }
@@ -132453,13 +132453,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reset filters"
+            "value" : "Reset"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重置筛选"
+            "value" : "重置"
           }
         }
       }
@@ -132709,13 +132709,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "From YYYY-MM-DD"
+            "value" : "Start date (YYYY-MM-DD)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "开始日期 YYYY-MM-DD"
+            "value" : "开始日期（YYYY-MM-DD）"
           }
         }
       }
@@ -132789,13 +132789,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Global search"
+            "value" : "Search"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "全局搜索"
+            "value" : "搜索"
           }
         }
       }
