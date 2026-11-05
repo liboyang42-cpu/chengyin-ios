@@ -51,19 +51,3 @@ private struct TemplateOwnShelfCardFactLines: View {
         }
     }
 }
-
-/// Source danger copy inside the existing delete review. The confirm control stays the shelf confirm button.
-struct TemplateOwnShelfDeleteReviewCopy: View {
-    let title: String
-    var body: some View {
-        Text("templateOwnShelf.delete.title \(title)")
-            .accessibilityIdentifier("templateOwnShelf.delete.title")
-        Text("templateOwnShelf.delete.body")
-            .accessibilityIdentifier("templateOwnShelf.delete.body")
-        ForEach(TemplateOwnShelfDeleteCopy.consequenceKeys, id: \.self) { key in
-            Text(LocalizedStringKey(key))
-        }
-        Text("templateOwnShelf.delete.confirm")
-            .accessibilityIdentifier("templateOwnShelf.delete.confirm")
-    }
-}

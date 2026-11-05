@@ -508,29 +508,17 @@ struct MerchantContentCodeView: View {
     @ObservedObject var model: MerchantContentViewModel
     let review: MerchantContentReview
     @Environment(\.dismiss) private var dismiss
-    private var bodyText: String {
-        guard let request = try? review.command.request() else { return "" }
-        let value: MerchantContentValue
-        switch request.body { case .json(let f): value = .object(f); case .form(let f): value = .object(f.mapValues { .string($0) }) }
-        let encoder = JSONEncoder(); encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        return (try? encoder.encode(value)).map { String(decoding: $0, as: UTF8.self) } ?? ""
-    }
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    MerchantContentBoundary()
-                    Text(LocalizedStringKey("merchant.content." + review.command.key)).font(.title2)
-                    Text("merchant.content.immutableReview").font(.footnote)
-                    LabeledContent("merchant.content.field.merchantID", value: String(review.baseline.access.merchantID ?? 0))
-                    Text(verbatim: review.command.scopeKey).font(.caption)
-                    Text(verbatim: bodyText).font(.system(.body, design: .monospaced)).textSelection(.enabled)
+            Form {
+                Section {
+                    Text(LocalizedStringKey("merchant.content." + review.command.key)).font(.headline)
                     if let availability = review.command.registrationAvailability {
                         MerchantRegistrationAvailabilityReview(source: .init(review.baseline.value), replacement: availability)
                     }
                     if case .cancelClaim(let poiID) = review.command,
                        let target = MerchantCityClaimWithdrawal(poiID: poiID, snapshot: review.baseline) {
-                        if let name = target.name, !name.isEmpty { Text(verbatim: name).font(.headline) }
+                        if let name = target.name, !name.isEmpty { Text(verbatim: name) }
                         Text("merchant.cityClaim.withdrawConsequence")
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("merchant.cityClaim.reviewNotice")
@@ -542,19 +530,30 @@ struct MerchantContentCodeView: View {
                     }
                     if case .station(let command) = review.command, command.pausesWithoutFallback {
                         Label("merchant.stationPause.reviewTitle", systemImage: "exclamationmark.triangle")
-                            .font(.headline)
                         Text("merchant.stationPause.noFallbackConsequence")
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("merchant.stationPause.reviewNotice")
                     }
-                    Text("merchant.content.reviewWarning").font(.footnote)
+                }
+                Section {
                     Button("merchant.content.confirm") { Task { await model.confirm(review); dismiss() } }
-                        .buttonStyle(.questifyPrimary).disabled(model.coordinator.busy || !model.coordinator.service.permits(review.command))
+                        .buttonStyle(.questifyPrimary)
+                        .frame(maxWidth: .infinity)
+                        .listRowBackground(Color.clear)
+                        .disabled(model.coordinator.busy || !model.coordinator.service.permits(review.command))
                         .accessibilityIdentifier("merchant.content.confirm")
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("action.cancel") { model.cancel(); dismiss() }.accessibilityIdentifier("merchant.content.review.cancel")
-                }.padding()
-            }.appNavigationTitle("merchant.content.review")
-        }.interactiveDismissDisabled(model.coordinator.busy)
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+        .interactiveDismissDisabled(model.coordinator.busy)
     }
 }
 

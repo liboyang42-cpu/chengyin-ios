@@ -218,20 +218,22 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
         Section {
             switch review.intent {
             case .publish(let draft):
-                Text("couponManagement.chinaTime").font(.footnote)
-                Text(draft.name).font(.headline)
-                Text(draft.description)
+                LabeledContent("couponManagement.name", value: draft.name)
+                if !draft.description.isEmpty { LabeledContent("couponManagement.description", value: draft.description) }
+                LabeledContent("couponManagement.type") { Text(LocalizedStringKey(CouponManagementDraft.typeKey(draft.couponType))) }
                 LabeledContent("couponManagement.quantity", value: draft.quantity)
-                Text(LocalizedStringKey(CouponManagementDraft.typeKey(draft.couponType)))
                 if let start = draft.startTime { LabeledContent("couponManagement.start") { Text(CouponValidityTime.display(start)) } }
                 if let end = draft.endTime { LabeledContent("couponManagement.end") { Text(CouponValidityTime.display(end)) } }
+                Button(LocalizedStringKey(model.core.canSimulate ? "couponManagement.simulate" : "couponManagement.publishConfirm")) { model.run { await model.core.confirm(review) } }
+                    .buttonStyle(.questifyPrimary)
+                    .frame(maxWidth: .infinity)
+                    .listRowBackground(Color.clear)
+                    .disabled(model.working || !model.core.canConfirm(review)).accessibilityIdentifier("couponManagement.confirm")
             case .stop(let row):
-                Text(row.name ?? appLocalized("couponManagement.coupon", locale: locale)).font(.headline)
-                Text("couponManagement.stopPolicy")
+                Text("couponManagement.stopQuestion \(row.name ?? appLocalized("couponManagement.coupon", locale: locale))").font(.headline)
+                Button(LocalizedStringKey(model.core.canSimulate ? "couponManagement.simulate" : "couponManagement.stopConfirm"), role: .destructive) { model.run { await model.core.confirm(review) } }
+                    .disabled(model.working || !model.core.canConfirm(review)).accessibilityIdentifier("couponManagement.confirm")
             }
-            Text("couponManagement.reviewNotice").font(.footnote)
-            Button(LocalizedStringKey(model.core.canSimulate ? "couponManagement.simulate" : "couponManagement.confirmSubmission")) { model.run { await model.core.confirm(review) } }
-                .disabled(model.working || !model.core.canConfirm(review)).accessibilityIdentifier("couponManagement.confirm")
             Button("couponManagement.cancel") { model.cancelReview() }.disabled(model.working)
         } header: {
             Text("couponManagement.review").accessibilityIdentifier("couponManagement.review")

@@ -117,8 +117,7 @@ struct RegistrationSheetView: View {
                 Button("action.cancel", role: .cancel) { flow.cancelConfirmation() }
             } message: {
                 if let review = flow.confirmation {
-                    Text(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.confirmHint" : "registration.waitlist.confirmHint"))
-                    + Text(verbatim: "\n\(flow.activity.summary.name)\n\(flow.selectedTicket?.name ?? "")\n\(review.draft.trimmedName)\n\(review.draft.trimmedPhone)\n")
+                    Text(verbatim: "\(flow.activity.summary.name)\n\(flow.selectedTicket?.name ?? "")\n\(review.draft.trimmedName)\n\(review.draft.trimmedPhone)\n")
                     + Text(verbatim: RegistrationUIMoney.display(review.quote.payAmount, locale: locale) ?? "—")
                 }
             }

@@ -51,13 +51,11 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
         .sheet(item: $review) { item in
             NavigationStack {
                 Form {
-                    Section("playkit.review") {
-                        Text(LocalizedStringKey("playkit.kind." + kind.rawValue))
-                        Text(verbatim: item.action).font(.caption)
-                        Text("playkit.reviewBoundary")
+                    Section {
                         if let question = item.compareQuestion { PlayCompareReview(question: question, marked: (item.payload["marked"]?.array ?? []).compactMap(\.text)) }
                         else { PlayKitPayloadReadback(payload: item.payload) }
-                        LabeledContent("playkit.version") { Text(verbatim: String(item.version)) }
+                    }
+                    Section {
                         Button("playkit.confirm") {
                             let completion = reviewedCompletion
                             let expectedLifetime = lifetime
@@ -65,12 +63,19 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
                             Task {
                                 if await model.submit(item), lifetime == expectedLifetime { issue = nil; dirty = false; completion?() }
                             }
-                        }.disabled(!model.canInteract || model.state?.version != item.version || model.state?.sessionID != item.sessionID)
+                        }
+                            .buttonStyle(.questifyPrimary)
+                            .frame(maxWidth: .infinity)
+                            .listRowBackground(Color.clear)
+                            .disabled(!model.canInteract || model.state?.version != item.version || model.state?.sessionID != item.sessionID)
                             .accessibilityIdentifier("playkit.review.confirm")
                     }
-                }.navigationTitle("playkit.review")
+                }.navigationTitle("playkit.submitQuestion")
+                    .navigationBarTitleDisplayMode(.inline)
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playkit.cancel") { review = nil; reviewedCompletion = nil } } }
             }.privacySensitive()
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
         }
         .confirmationDialog("playkit.discardQuestion", isPresented: $leaveReview, titleVisibility: .visible) {
             Button("playkit.discard", role: .destructive) { clearTransient(); dismiss() }

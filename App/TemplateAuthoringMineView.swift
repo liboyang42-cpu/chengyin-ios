@@ -123,33 +123,40 @@ import SwiftUI
             .sheet(item: $review, onDismiss: { coordinator.cancelShelfReview() }) { value in
                 NavigationStack {
                     Form {
-                        Section("templateAuthor.reviewTitle") {
-                            Text(verbatim: value.title)
-                            LabeledContent("templateAuthor.shelf.identity", value: String(value.templateID.rawValue))
-                                .accessibilityElement(children: .ignore)
-                                .accessibilityLabel(Text("templateAuthor.shelf.identity"))
-                                .accessibilityValue(Text(verbatim: String(value.templateID.rawValue)))
-                                .accessibilityIdentifier("templateAuthor.shelf.identity")
-                            Text(LocalizedStringKey(value.action == .remove ? "templateAuthor.shelf.deleteReview" : value.desiredPublishStatus == 1 ? "templateAuthor.shelf.addReview" : "templateAuthor.shelf.removeReview"))
-                            if value.action == .remove { TemplateOwnShelfDeleteReviewCopy(title: value.title) }
-                            Text("templateAuthor.shelf.readback")
+                        Section {
+                            if value.action == .remove {
+                                Text("templateOwnShelf.delete.title \(value.title)")
+                                    .font(.headline)
+                                    .accessibilityIdentifier("templateOwnShelf.delete.title")
+                                Text("templateOwnShelf.delete.irreversible")
+                            } else if value.desiredPublishStatus == 1 {
+                                Text("templateAuthor.shelf.addQuestion \(value.title)")
+                                    .font(.headline)
+                                    .accessibilityIdentifier("templateAuthor.shelf.question")
+                            } else {
+                                Text("templateAuthor.shelf.removeQuestion \(value.title)")
+                                    .font(.headline)
+                                    .accessibilityIdentifier("templateAuthor.shelf.question")
+                            }
                         }
                         if coordinator.canSimulate { Text("templateAuthor.fixtureNotice") }
                         if coordinator.canSubmit {
-                            Button(LocalizedStringKey(coordinator.canSimulate ? "templateAuthor.confirmSimulation" : "templateAuthor.confirmRequest"), role: value.action == .remove ? .destructive : nil) {
-                                busy = true; locked = true
-                                Task {
-                                    let stamp = viewRequest
-                                    await coordinator.confirmShelf(value)
-                                    guard stamp == viewRequest, !Task.isCancelled else { return }
-                                    review = nil
-                                    await coordinator.shelfReader.refresh(keyword: keyword)
-                                    guard stamp == viewRequest, !Task.isCancelled else { return }
-                                    sync(); busy = false
-                                }
-                            }.disabled(busy).accessibilityIdentifier("templateAuthor.shelf.confirm")
+                            Section {
+                                Button(LocalizedStringKey(coordinator.canSimulate ? "templateAuthor.confirmSimulation" : value.action == .remove ? "templateOwnShelf.delete.confirm" : value.desiredPublishStatus == 1 ? "templateAuthor.shelf.addConfirm" : "templateAuthor.shelf.removeConfirm"), role: value.action == .remove ? .destructive : nil) {
+                                    busy = true; locked = true
+                                    Task {
+                                        let stamp = viewRequest
+                                        await coordinator.confirmShelf(value)
+                                        guard stamp == viewRequest, !Task.isCancelled else { return }
+                                        review = nil
+                                        await coordinator.shelfReader.refresh(keyword: keyword)
+                                        guard stamp == viewRequest, !Task.isCancelled else { return }
+                                        sync(); busy = false
+                                    }
+                                }.disabled(busy).accessibilityIdentifier("templateAuthor.shelf.confirm")
+                            }
                         } else { Text("templateAuthor.unavailable") }
-                    }.navigationTitle("templateAuthor.reviewTitle")
+                    }.navigationBarTitleDisplayMode(.inline)
                         .toolbar {
                             ToolbarItem(placement: .cancellationAction) {
                                 Button("templateAuthor.cancel") { coordinator.cancelShelfReview(); review = nil }
@@ -165,6 +172,8 @@ import SwiftUI
                             #endif
                         }
                 }
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
             }
     }
     private static func replacesReadKey(_ key: String) -> Bool {

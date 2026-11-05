@@ -106,15 +106,22 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             Form {
-                LabeledContent("contextSelfPlay.order", value: String(review.registrationID))
-                TopicPrice(value: review.price, label: "topic.selfPlayPrice")
-                Text("contextSelfPlay.sameOrder")
-                Text("contextSelfPlay.paymentNotice")
-                Link("contextSelfPlay.noticeLink", destination: review.document.officialURL)
-                Toggle("contextSelfPlay.consent", isOn: $consented)
-                Button("contextSelfPlay.continuePayment") { confirm(consented) }.disabled(!consented)
-                Button("action.cancel", role: .cancel, action: cancel)
+                Section {
+                    TopicPrice(value: review.price, label: "topic.selfPlayPrice")
+                    Text("contextSelfPlay.paymentNotice")
+                    Link("contextSelfPlay.noticeLink", destination: review.document.officialURL)
+                    Toggle("contextSelfPlay.consent", isOn: $consented)
+                }
+                Section {
+                    Button("contextSelfPlay.continuePayment") { confirm(consented) }
+                        .buttonStyle(.questifyPrimary)
+                        .frame(maxWidth: .infinity)
+                        .listRowBackground(Color.clear)
+                        .disabled(!consented)
+                    Button("action.cancel", role: .cancel, action: cancel)
+                }
             }.navigationTitle("contextSelfPlay.review")
+                .navigationBarTitleDisplayMode(.inline)
         }
     }
 }

@@ -429,9 +429,8 @@ struct MerchantOperationsConfirmationView: View {
         NavigationStack {
             List {
                 Section {
-                    Text(LocalizedStringKey(confirmation.draft.localOnlyReview ? "merchant.participation.localOnly" : (isExample ? "merchant.operations.confirmExampleBody" : (model.coordinator.reader.canSave ? "merchant.operations.confirmLiveHint" : "merchant.operations.liveDisabled"))))
-                    Text("merchant.operations.reviewNoApproval").font(.footnote).foregroundStyle(.secondary)
                     Text(LocalizedStringKey(confirmation.draft.destination.titleKey)).font(.headline)
+                    if confirmation.draft.localOnlyReview { Text("merchant.participation.localOnly") }
                 }
                 if let change = MerchantStoreIndustryChange(baseline: model.coordinator.baseline, draft: confirmation.draft) {
                     MerchantStoreIndustryReview(change: change)
@@ -446,19 +445,11 @@ struct MerchantOperationsConfirmationView: View {
                     } else {
                         MerchantOperationsMediaPreview(source: avatar.rawValue, title: "merchant.operations.avatar", isExample: isExample)
                     }
-                    Section {
-                        Text(verbatim: avatar.rawValue).textSelection(.enabled)
-                            .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("merchantPreset.review.rawValue")
-                    }
                 }
-                Section("merchant.operations.frozenDraft") {
+                Section {
                     if case .cooperation(let value) = confirmation.draft, value.clearsCapacity {
                         Text("merchant.coopCapacityClear.review").fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("merchant.coopCapacityClear.review")
-                    }
-                    if case .decor(let value) = confirmation.draft, value.featuredType == 1, let id = value.featuredID, id > 0 {
-                        LabeledContent("merchant.featuredPicker.reviewActivity", value: String(id))
-                        Text("merchant.featuredPicker.finalValidation").font(.footnote)
                     }
                     if case .decor(let value) = confirmation.draft, value.featuredType == 0, value.featuredID == nil {
                         Text("merchant.featuredClear.review").fixedSize(horizontal: false, vertical: true)
@@ -476,7 +467,6 @@ struct MerchantOperationsConfirmationView: View {
                             .accessibilityIdentifier("merchant.templateMetadata.review.duration")
                         LabeledContent("merchant.templateMetadata.players", value: template.players.trimmingCharacters(in: .whitespacesAndNewlines))
                             .accessibilityIdentifier("merchant.templateMetadata.review.players")
-                        Text("merchant.templateMetadata.omissionHint").font(.footnote).foregroundStyle(.secondary)
                     }
                 }
                 if case .template(let template) = confirmation.draft {
@@ -491,7 +481,6 @@ struct MerchantOperationsConfirmationView: View {
                             Text(verbatim: template.requiredMaterials.trimmingCharacters(in: .whitespacesAndNewlines))
                                 .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("merchant.preparation.review.materials")
                         }
-                        Text("merchant.preparation.omissionHint").font(.footnote).foregroundStyle(.secondary)
                     }
                 }
                 if case .template(let template) = confirmation.draft, let plan = template.participationPlan {
@@ -509,10 +498,14 @@ struct MerchantOperationsConfirmationView: View {
                 Section {
                     Button(LocalizedStringKey(confirmation.draft.localOnlyReview ? "merchant.participation.localOnlyAction" : (isExample ? "merchant.operations.confirmExample" : (model.coordinator.reader.canSave ? "merchant.operations.confirmLive" : "merchant.operations.liveDisabled")))) {
                         Task { await model.confirm(confirmation) }
-                    }.disabled(confirmation.draft.localOnlyReview || !model.coordinator.reader.canSave || model.coordinator.isBusy).accessibilityIdentifier("merchant.operations.confirm")
+                    }
+                    .buttonStyle(.questifyPrimary)
+                    .frame(maxWidth: .infinity)
+                    .listRowBackground(Color.clear)
+                    .disabled(confirmation.draft.localOnlyReview || !model.coordinator.reader.canSave || model.coordinator.isBusy).accessibilityIdentifier("merchant.operations.confirm")
                 }
             }
-            .appNavigationTitle("merchant.operations.reviewDraft")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { model.cancel() }.accessibilityIdentifier("merchant.operations.confirm.cancel") } }
         }
     }

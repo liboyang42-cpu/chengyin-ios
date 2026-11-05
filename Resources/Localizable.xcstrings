@@ -1,6 +1,261 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "playkit.submitQuestion" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Submit this answer?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提交这个答案？"
+          }
+        }
+      }
+    },
+    "club.refund.question" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel and refund?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清退并退款？"
+          }
+        }
+      }
+    },
+    "publishModes.onlineQuestion %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Put “%@” online?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上架「%@」？"
+          }
+        }
+      }
+    },
+    "publishModes.offlineQuestion %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Take “%@” offline?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下架「%@」？"
+          }
+        }
+      }
+    },
+    "publishModes.removeQuestion %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete “%@”?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除「%@」？"
+          }
+        }
+      }
+    },
+    "orderLifecycle.question.payment" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pay for this order?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支付这笔订单？"
+          }
+        }
+      }
+    },
+    "orderLifecycle.question.refund" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel and request a refund?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消并申请退款？"
+          }
+        }
+      }
+    },
+    "orderLifecycle.question.cancel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel this order?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消这笔订单？"
+          }
+        }
+      }
+    },
+    "couponManagement.stopConfirm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop distribution"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停发"
+          }
+        }
+      }
+    },
+    "couponManagement.stopQuestion %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop distributing “%@”?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停发「%@」？"
+          }
+        }
+      }
+    },
+    "couponManagement.publishConfirm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Publish coupon"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "发布优惠券"
+          }
+        }
+      }
+    },
+    "templateAuthor.shelf.removeConfirm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove from library"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从玩法库下架"
+          }
+        }
+      }
+    },
+    "templateAuthor.shelf.addConfirm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add to library"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入玩法库"
+          }
+        }
+      }
+    },
+    "templateAuthor.shelf.removeQuestion %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove “%@” from the play library?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "把「%@」从玩法库下架？"
+          }
+        }
+      }
+    },
+    "templateAuthor.shelf.addQuestion %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add “%@” to the play library?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "把「%@」加入玩法库？"
+          }
+        }
+      }
+    },
     "team.invite.copied" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9302,13 +9557,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Create this release"
+            "value" : "Publish"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "创建此发布版本"
+            "value" : "发布"
           }
         }
       }
@@ -9336,13 +9591,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm release version"
+            "value" : "Publish this version?"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认发布版本"
+            "value" : "发布这个版本？"
           }
         }
       }
@@ -14604,13 +14859,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Request acknowledged"
+            "value" : "Submitted"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请求已受理"
+            "value" : "已提交"
           }
         }
       }
@@ -15114,13 +15369,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Return to editing"
+            "value" : "Edit"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "返回编辑"
+            "value" : "返回修改"
           }
         }
       }
@@ -15760,13 +16015,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm action"
+            "value" : "Confirm"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认操作"
+            "value" : "确认"
           }
         }
       }
@@ -19483,13 +19738,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review exact changes"
+            "value" : "Continue"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "审核具体修改"
+            "value" : "下一步"
           }
         }
       }
@@ -20146,13 +20401,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The result is unconfirmed. Do not submit again; check the original record"
+            "value" : "We couldn’t confirm the result. Don’t submit again; check the record first."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "结果尚未确认，请勿重复提交，请核查原记录"
+            "value" : "暂时无法确认结果。请勿重复提交，先查看原记录。"
           }
         }
       }
@@ -23253,13 +23508,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm cancellation and refund"
+            "value" : "Cancel and refund"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认清退退款"
+            "value" : "清退并退款"
           }
         }
       }
@@ -23541,13 +23796,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Paid amount shown on record"
+            "value" : "Paid"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "记录所示实付"
+            "value" : "实付"
           }
         }
       }
@@ -23637,13 +23892,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The result is unknown. Recheck only; do not resubmit."
+            "value" : "We couldn’t confirm the result. Check the record again instead of resubmitting."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "结果尚不明确。请仅重新查询，勿重复提交。"
+            "value" : "暂时无法确认结果。请重新查询记录，不要重复提交。"
           }
         }
       }
@@ -23925,13 +24180,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Other tickets in the same order may also be cancelled. The refund amount isn't shown here, and tickets already checked in may need manual review."
+            "value" : "Other tickets in the same order may also be cancelled."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "同一订单中的其他票可能一并取消。此处不显示退款金额；已核销的票可能转人工处理。"
+            "value" : "同一订单中的其他票可能一并取消。"
           }
         }
       }
@@ -27978,13 +28233,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review existing-order payment"
+            "value" : "Continue to payment"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "核对原订单付款"
+            "value" : "继续付款"
           }
         }
       }
@@ -28199,13 +28454,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "One-time payment in CNY for this route, paid with WeChat Pay. Please read the notice before confirming."
+            "value" : "One-time payment in CNY with WeChat Pay."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本路线为人民币一次性付款，使用微信支付。确认前请阅读购买须知。"
+            "value" : "人民币一次性付款，使用微信支付。"
           }
         }
       }
@@ -28284,13 +28539,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review pass order"
+            "value" : "Pass order"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "核对通行证订单"
+            "value" : "通行证订单"
           }
         }
       }
@@ -34139,7 +34394,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review"
+            "value" : "Confirm"
           }
         },
         "zh-Hans" : {
@@ -51782,13 +52037,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm action"
+            "value" : "Confirm"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认操作"
+            "value" : "确认"
           }
         }
       }
@@ -51926,13 +52181,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Submitting isn't available right now. Reviewing here won't change any business records."
+            "value" : "Submitting isn’t available right now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "提交暂不可用，在此查看不会更改业务记录。"
+            "value" : "提交暂不可用。"
           }
         }
       }
@@ -57316,13 +57571,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Run offline test request"
+            "value" : "Confirm"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "执行离线测试请求"
+            "value" : "确认"
           }
         }
       }
@@ -60052,13 +60307,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review frozen request"
+            "value" : "Continue"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "预览冻结请求"
+            "value" : "下一步"
           }
         }
       }
@@ -62645,13 +62900,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm reviewed action"
+            "value" : "Confirm"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认已审核操作"
+            "value" : "确认"
           }
         }
       }
@@ -67719,13 +67974,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Save reviewed changes"
+            "value" : "Save"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保存已核对的更改"
+            "value" : "保存"
           }
         }
       }
@@ -71621,13 +71876,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm and send"
+            "value" : "Send"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认发送"
+            "value" : "发送"
           }
         }
       }
@@ -72133,13 +72388,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review submission"
+            "value" : "Continue"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "预览提交"
+            "value" : "下一步"
           }
         }
       }
@@ -72613,13 +72868,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The outcome is unknown. This operation is locked to prevent duplicates"
+            "value" : "We couldn’t confirm whether this was sent. Sending again is paused to avoid duplicates."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "结果未知，为避免重复提交，此操作已锁定"
+            "value" : "暂时无法确认是否已发送，为避免重复，已暂停再次发送。"
           }
         }
       }
@@ -89736,13 +89991,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm cancellation"
+            "value" : "Cancel order"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认取消订单"
+            "value" : "取消订单"
           }
         }
       }
@@ -89752,13 +90007,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm and continue payment"
+            "value" : "Continue to payment"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认并继续支付"
+            "value" : "继续支付"
           }
         }
       }
@@ -89768,13 +90023,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm cancellation and refund request"
+            "value" : "Cancel and request refund"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认取消并申请退款"
+            "value" : "取消并申请退款"
           }
         }
       }
@@ -98289,13 +98544,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm submission"
+            "value" : "Submit"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认提交"
+            "value" : "提交"
           }
         }
       }
@@ -100295,13 +100550,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review submission"
+            "value" : "Submit"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "核对提交"
+            "value" : "提交"
           }
         }
       }
@@ -120750,13 +121005,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Request received. Refresh to see the latest status."
+            "value" : "Submitted. Check My projects for the latest status."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请求已收到，请刷新查看最新状态。"
+            "value" : "已提交，可在我的项目查看最新状态。"
           }
         }
       }
@@ -122366,13 +122621,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The outcome is uncertain. This operation is locked across restarts to prevent duplicates. Do not resubmit; contact support to establish the result."
+            "value" : "We couldn’t confirm whether this went through. Don’t submit again; contact support if it doesn’t appear in My projects."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "结果尚不确定。为防止重复提交，本次操作已跨重启锁定。请勿重发，请联系客服核实结果。"
+            "value" : "暂时无法确认是否成功。请勿重复提交；如在我的项目中未看到，请联系客服。"
           }
         }
       }
@@ -124073,13 +124328,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review registration"
+            "value" : "Register"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "核对报名"
+            "value" : "立即报名"
           }
         }
       }
@@ -124560,13 +124815,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Create registration"
+            "value" : "Register"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "创建报名订单"
+            "value" : "确认报名"
           }
         }
       }
@@ -124608,13 +124863,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Agreement is not yet verified. Check the notice version and retry verification; an uncertain submission will not be sent again."
+            "value" : "We couldn’t confirm your agreement yet. Try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "同意记录尚未核验。请检查告知版本并重新核验；结果不明时不会重复提交。"
+            "value" : "暂时无法确认你的同意记录，请重试。"
           }
         }
       }
@@ -146128,13 +146383,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This change is unresolved. Further shelf changes are locked; refreshing alone cannot confirm an unknown request."
+            "value" : "We couldn’t confirm whether your last change went through. Changes are paused until it’s resolved."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此次修改结果尚未确定，后续模板修改已锁定。仅刷新列表不能确认未知请求结果。"
+            "value" : "暂时无法确认上一次修改是否成功，确认前暂停修改。"
           }
         }
       }
@@ -184943,13 +185198,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This cannot be undone. The play configuration cannot be recovered."
+            "value" : "This cannot be undone."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此操作不可撤销,玩法配置无法找回"
+            "value" : "此操作不可撤销。"
           }
         }
       }
