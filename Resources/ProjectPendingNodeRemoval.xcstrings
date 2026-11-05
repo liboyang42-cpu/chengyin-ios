@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "These nodes and all their details will move to this draft’s pending list. You can undo for 5 seconds. Nothing is deleted from the server."
+            "value": "These stops move to the pending area. You can undo for 5 seconds."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这些节点及全部内容会移入当前草稿的待编排区，5 秒内可以撤销。不会删除服务器上的内容。"
+            "value": "这些地点会移入待编排区，5 秒内可撤销。"
           }
         }
       }
@@ -102,13 +102,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Local save was not confirmed. All node content remains in the current draft. Reopen the draft to inspect its saved state before trying again."
+            "value": "We couldn't confirm the draft was saved. Reopen it to check before trying again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本地保存结果未确认，节点内容仍保留在当前草稿中。请重新打开草稿，核对保存状态后再操作。"
+            "value": "无法确认草稿已保存，请重新打开检查后再试。"
           }
         }
       }

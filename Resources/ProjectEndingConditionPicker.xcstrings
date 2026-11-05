@@ -54,13 +54,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only this condition’s reference changes after confirmation. Its operator, other conditions and fallback remain unchanged. Unknown saved values stay intact until you choose a replacement."
+            "value": "Only this condition changes. Other conditions and the fallback stay."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "确认后只改此条件的引用，运算符、其它条件和兜底设置保持不变；未知现存值在明确替换前保留。"
+            "value": "只修改此条件，其他条件和兜底保持不变。"
           }
         }
       }

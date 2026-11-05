@@ -113526,13 +113526,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choosing a color saves it to this local chapter draft. This preview applies to chapter content; publishing uses the existing review flow."
+            "value" : "Pick a colour for this chapter."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选色会保存到当前章节的本地草稿。此处预览章节内容配色，发布仍沿用现有审核流程。"
+            "value" : "为本章选择配色。"
           }
         }
       }
@@ -113654,13 +113654,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local saving wasn’t confirmed. The displayed color is unchanged. Choose the color again to retry."
+            "value" : "Couldn't save the colour. Pick it again to retry."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地保存尚未确认，显示的配色未更改。可再次选色重试。"
+            "value" : "配色未能保存，请重新选择重试。"
           }
         }
       }
@@ -113798,13 +113798,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This changes this local draft only. Existing publishing checks still apply when you submit it."
+            "value" : "The chapter is removed from this draft."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此操作只修改当前本地草稿。提交时仍需通过已有的发布检查。"
+            "value" : "将从此草稿中删除该章节。"
           }
         }
       }
@@ -113910,13 +113910,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The local save result is unconfirmed. The chapters shown on this page have been kept, but the stored draft may already have changed. Local changes to this draft are paused. Check the stored content before recovery."
+            "value" : "We couldn't confirm the draft was saved. Editing is paused; reopen the draft to check it."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地保存结果未确认。当前页面仍保留原章节，但已保存的草稿可能已改变。此草稿的本地修改已暂停，请先核对保存内容，再处理恢复。"
+            "value" : "无法确认草稿已保存，编辑已暂停，请重新打开草稿检查。"
           }
         }
       }
@@ -114006,13 +114006,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Only city topics without an owning club can open club-led applications. This topic submits the setting as off; its stored preference is retained locally."
+            "value" : "Only city topics that don't belong to a club can open club-led applications."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅未归属俱乐部的城市定向主题可开放俱乐部承接。此主题提交为关闭，原偏好仍保留在本地草稿。"
+            "value" : "仅未归属俱乐部的城市定向主题可开放俱乐部承接。"
           }
         }
       }
@@ -114054,13 +114054,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The server acknowledged this submission."
+            "value" : "Submitted."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器已确认收到此次提交。"
+            "value" : "已提交。"
           }
         }
       }
@@ -114198,13 +114198,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Audio reference"
+            "value" : "Audio link"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音频引用"
+            "value" : "音频链接"
           }
         }
       }
@@ -114246,13 +114246,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Category IDs, separated by commas"
+            "value" : "Category numbers, separated by commas"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "路线类别编号，以逗号分隔"
+            "value" : "类别编号，以逗号分隔"
           }
         }
       }
@@ -114550,13 +114550,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reward coupon ID (optional)"
+            "value" : "Reward coupon number (optional)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "奖励券 ID（可留空）"
+            "value" : "奖励券编号（选填）"
           }
         }
       }
@@ -114566,13 +114566,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter the numeric ID of an existing reward coupon. Eligibility is checked separately; this doesn't issue a coupon."
+            "value" : "Use the number of a reward coupon you already have."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "只填现有奖励券的数字 ID；发放资格将另行审核，不会立即发券。"
+            "value" : "填写已有奖励券的编号。"
           }
         }
       }
@@ -114614,13 +114614,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reward feedback (up to 120 UTF-16 units)"
+            "value" : "Reward feedback (up to 120 characters)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "奖励反馈（最多120字）"
+            "value" : "奖励反馈（最多 120 字）"
           }
         }
       }
@@ -114662,13 +114662,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reward coupon ID must be a nonnegative integer or blank."
+            "value" : "The coupon number must be a whole number, or leave it blank."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "奖励券 ID 须为非负整数，或留空。"
+            "value" : "奖励券编号须为整数，或留空。"
           }
         }
       }
@@ -114678,13 +114678,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cell labels allow 24 UTF-16 units and reward feedback 120."
+            "value" : "Cell labels can be up to 24 characters, reward feedback up to 120."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "格子名称最多24字，奖励反馈最多120字。"
+            "value" : "格子名称最多 24 字，奖励反馈最多 120 字。"
           }
         }
       }
@@ -114694,13 +114694,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Original rules changed. Reload this theme."
+            "value" : "The rules changed. Reload this topic."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "原始规则已变更，请重新载入主题。"
+            "value" : "规则已变化，请重新载入主题。"
           }
         }
       }
@@ -114710,13 +114710,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cell label (optional, up to 24 UTF-16 units)"
+            "value" : "Cell label (optional, up to 24 characters)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "格子名称（可留空，最多24字）"
+            "value" : "格子名称（选填，最多 24 字）"
           }
         }
       }
@@ -114774,13 +114774,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Edit the nine cells in S order. Each cell lights up based on its conditions; labels don't change the conditions."
+            "value" : "Edit the nine cells in S order. Labels don't change how a cell lights up."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "按 S 形编辑九格；每格按条件点亮。名称仅改变展示，不改变条件。"
+            "value" : "按 S 形编辑九格，名称不影响点亮条件。"
           }
         }
       }
@@ -114870,13 +114870,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm simulation"
+            "value" : "Run example"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认模拟"
+            "value" : "运行示例"
           }
         }
       }
@@ -114886,13 +114886,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter verified coordinates. Map search isn't available right now. Coordinates of 0 aren't accepted."
+            "value" : "Enter the coordinates (not 0)."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请输入已核实的坐标。地图搜索暂不可用；坐标不能为 0。"
+            "value" : "请输入坐标（不能为 0）。"
           }
         }
       }
@@ -114902,13 +114902,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cover reference"
+            "value" : "Cover image link"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "封面引用"
+            "value" : "封面图片链接"
           }
         }
       }
@@ -114918,13 +114918,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Create a local draft"
+            "value" : "Create a draft"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "创建本机草稿"
+            "value" : "创建草稿"
           }
         }
       }
@@ -114934,13 +114934,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use YYYY-MM-DD or YYYY-MM-DD HH:mm, in local time."
+            "value" : "Use YYYY-MM-DD or YYYY-MM-DD HH:mm."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请输入 YYYY-MM-DD 或 YYYY-MM-DD HH:mm（本地时间）。"
+            "value" : "请输入 YYYY-MM-DD 或 YYYY-MM-DD HH:mm。"
           }
         }
       }
@@ -114982,13 +114982,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This removes the saved draft on this device. It does not change the published project."
+            "value" : "This removes the draft saved on this device. Anything already published stays."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此操作删除本机保存的草稿，不会改变已发布项目。"
+            "value" : "将删除本机保存的草稿，已发布内容不受影响。"
           }
         }
       }
@@ -114998,13 +114998,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Discard local draft"
+            "value" : "Discard draft"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "丢弃本机草稿"
+            "value" : "丢弃草稿"
           }
         }
       }
@@ -115014,13 +115014,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Discard this local draft?"
+            "value" : "Discard this draft?"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "丢弃这份本机草稿？"
+            "value" : "丢弃这份草稿？"
           }
         }
       }
@@ -115158,13 +115158,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gallery references"
+            "value" : "Banner image links"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "横图引用"
+            "value" : "横图链接"
           }
         }
       }
@@ -115206,13 +115206,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Image reference"
+            "value" : "Image link"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "图片引用"
+            "value" : "图片链接"
           }
         }
       }
@@ -115302,13 +115302,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local draft only"
+            "value" : "Draft"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅本机草稿"
+            "value" : "草稿"
           }
         }
       }
@@ -115318,13 +115318,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No local draft found."
+            "value" : "No saved draft."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "没有找到本机草稿。"
+            "value" : "没有已保存的草稿。"
           }
         }
       }
@@ -115334,13 +115334,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local draft storage is unavailable. Your changes have not been confirmed saved."
+            "value" : "Couldn't save on this device. Your changes are still here."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本机草稿存储不可用，尚未确认保存当前改动。"
+            "value" : "无法保存到本机，修改仍保留在此。"
           }
         }
       }
@@ -115350,13 +115350,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local draft discarded."
+            "value" : "Draft discarded."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已丢弃本机草稿。"
+            "value" : "已丢弃草稿。"
           }
         }
       }
@@ -115382,13 +115382,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Locked or identity fields changed. Reload and review a fresh copy."
+            "value" : "This topic changed. Reload and check it again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "锁定字段或归属发生变化，请重新加载并检查。"
+            "value" : "主题已变化，请重新载入后检查。"
           }
         }
       }
@@ -115446,13 +115446,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The stored draft belongs to another account or deployment and cannot be opened."
+            "value" : "This draft belongs to another account and can't be opened."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "草稿属于其他账号或服务环境，无法打开。"
+            "value" : "此草稿属于其他账号，无法打开。"
           }
         }
       }
@@ -115526,13 +115526,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Stop image references"
+            "value" : "Stop image links"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "节点图片引用"
+            "value" : "地点图片链接"
           }
         }
       }
@@ -115622,13 +115622,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter 0 for a free ticket. Leaving this blank doesn't make it free. Prices aren't converted between currencies."
+            "value" : "Enter 0 for a free ticket."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "免费票请填写 0。留空不代表免费。价格不做币种换算。"
+            "value" : "免费票请填写 0。"
           }
         }
       }
@@ -115654,13 +115654,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The simulated request was rejected. No success was reported."
+            "value" : "The example was rejected. Nothing was published."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "模拟请求被拒绝，未报告成功。"
+            "value" : "示例未通过，未发布任何内容。"
           }
         }
       }
@@ -115686,13 +115686,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Editing existing server projects is not connected yet. Project previews remain available in My Projects."
+            "value" : "Published topics can't be edited here yet. You can still view them in My projects."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务端已有项目的编辑尚未接入。仍可在“我的项目”查看预览。"
+            "value" : "已发布的主题暂不能在此编辑，仍可在「我的项目」查看。"
           }
         }
       }
@@ -115734,13 +115734,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saved local draft"
+            "value" : "Saved draft"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已保存的本机草稿"
+            "value" : "已保存的草稿"
           }
         }
       }
@@ -115910,13 +115910,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use 1–6 existing image references. Captions allow 80 characters; the album title allows 20."
+            "value" : "Use 1–6 images. Captions up to 80 characters; album name up to 20."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用 1–6 个已有图片引用。每张配文最多 80 字，相册名最多 20 字。"
+            "value" : "使用 1–6 张图片。每张配文最多 80 字，相册名最多 20 字。"
           }
         }
       }
@@ -116742,13 +116742,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Media reference"
+            "value" : "Media link"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "媒体引用"
+            "value" : "媒体链接"
           }
         }
       }
@@ -116870,13 +116870,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Narrative text can be up to 200 characters. Questions and answers share an ID; the delivery part needs a reward line. Node and NPC IDs are verified."
+            "value" : "Text can be up to 200 characters. A question and its answer share a code; the reward part needs reward text."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "叙事正文最多 200 字。问答使用同一编号；领取段必须有奖励正文。节点和 NPC 编号会经过校验。"
+            "value" : "正文最多 200 字。问答使用同一编号；领取段须填写奖励正文。"
           }
         }
       }
@@ -116902,13 +116902,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Speaker NPC ID (optional)"
+            "value" : "Speaking character (optional)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "说话 NPC ID（可选）"
+            "value" : "说话角色（选填）"
           }
         }
       }
@@ -117078,13 +117078,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Question pair ID"
+            "value" : "Question pair code"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "问答配对标识"
+            "value" : "问答配对编号"
           }
         }
       }
@@ -117126,13 +117126,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use the ID of an existing saved node."
+            "value" : "Choose a stop that's already saved."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "填写已保存节点的 ID。"
+            "value" : "选择已保存的地点。"
           }
         }
       }
@@ -117142,13 +117142,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saved node ID"
+            "value" : "Saved stop"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已保存节点 ID"
+            "value" : "已保存的地点"
           }
         }
       }
@@ -117190,13 +117190,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use a registered clue, relation or counter key, or a supported system variable. Values range from −99 to 99."
+            "value" : "Use a clue, relation or counter you've set up. Values from −99 to 99."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用已登记的 clue、relation、counter 状态键或支持的系统变量。数值范围为 −99 至 99。"
+            "value" : "使用已设置的线索、关系或计数，数值范围 −99 至 99。"
           }
         }
       }
@@ -117238,13 +117238,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A story game needs a saved template and no coordinates. Arrival-based templates are still verified."
+            "value" : "A story game uses a saved template and has no location."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "故事玩法必须绑定已有模板且不含坐标。到达类模板仍需校验。"
+            "value" : "故事玩法需选用已保存的模板，且不设地点。"
           }
         }
       }
@@ -117270,13 +117270,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use tag.name with a lowercase named key."
+            "value" : "Use a lowercase tag name, e.g. tag.found_key."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用 tag.name 格式的小写具名键。"
+            "value" : "使用小写标签名，例如 tag.found_key。"
           }
         }
       }
@@ -117286,13 +117286,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use tag.name or thought.name.done."
+            "value" : "Use a tag (tag.name) or a thought (thought.name.done)."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用 tag.name 或 thought.name.done。"
+            "value" : "使用标签（tag.name）或念头（thought.name.done）。"
           }
         }
       }
@@ -117494,13 +117494,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "These dates are saved and displayed only. They do not currently control when tickets can be purchased. Dates use the service’s wall-clock time; no device time-zone conversion is applied."
+            "value" : "These dates are shown to players. They don't limit when tickets can be bought."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这些日期仅保存和展示，目前不控制购票时段。日期按服务端墙上时间提交，不按设备时区换算。"
+            "value" : "这些日期仅向玩家展示，不限制购票时间。"
           }
         }
       }
@@ -117510,13 +117510,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Save locally"
+            "value" : "Save draft"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保存到本机"
+            "value" : "保存草稿"
           }
         }
       }
@@ -117542,13 +117542,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sign in to save an account-scoped draft. Unsaved guest edits stay on this screen only."
+            "value" : "Sign in to save your draft."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "登录后可保存当前账号的本机草稿。游客未保存的编辑仅保留在当前页面。"
+            "value" : "登录后可保存草稿。"
           }
         }
       }
@@ -117558,13 +117558,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Simulation completed. No project was published."
+            "value" : "Example finished. Nothing was published."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "模拟已完成，没有发布任何项目。"
+            "value" : "示例已完成，未发布任何内容。"
           }
         }
       }
@@ -117622,13 +117622,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use Edit to reorder blocks. Removing a stop block also removes that stop. Empty audio placeholders are omitted from the review payload."
+            "value" : "Tap Edit to reorder. Removing a stop block also removes that stop."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "点“编辑”可调整顺序。删除节点块会同时删除该节点。空音频占位不会进入待提交内容。"
+            "value" : "点「编辑」可调整顺序。删除地点块会同时删除该地点。"
           }
         }
       }
@@ -117734,13 +117734,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Preserved template ID"
+            "value" : "Play template"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保留的玩法模板编号"
+            "value" : "玩法模板"
           }
         }
       }
@@ -117830,13 +117830,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ticket mode follows the route type. Existing sale windows and meeting coordinates are preserved."
+            "value" : "Ticket type follows the route type."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "票种模式随路线类型同步。已有售票窗口与集合坐标会保留。"
+            "value" : "票种随路线类型。"
           }
         }
       }
@@ -117926,13 +117926,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The previous outcome is unknown. Editing and repeat submission are locked. Checking a terminal receipt will not repeat the submission."
+            "value" : "We couldn't confirm your last submission. Editing is paused so it isn't sent twice."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "上次操作结果未知，已锁定编辑和重复提交。检查终态凭据不会再次提交。"
+            "value" : "无法确认上次提交是否成功，为避免重复提交已暂停编辑。"
           }
         }
       }
@@ -118022,13 +118022,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choose at least one valid category."
+            "value" : "Choose at least one category."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请填写至少一个有效类别编号。"
+            "value" : "请至少选择一个类别。"
           }
         }
       }
@@ -118054,13 +118054,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Each stop needs usable nonzero coordinates."
+            "value" : "Every stop needs a location."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "每个节点都需要有效的非零坐标。"
+            "value" : "每个地点都需要选定位置。"
           }
         }
       }
@@ -118070,13 +118070,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Provide a cover reference."
+            "value" : "Add a cover image."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请填写封面引用。"
+            "value" : "请添加封面图片。"
           }
         }
       }
@@ -118486,13 +118486,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Done and save locally"
+            "value" : "Done"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "完成并保存本机"
+            "value" : "完成"
           }
         }
       }
@@ -118502,13 +118502,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local saving was not confirmed. Your edited text is still here; retry saving."
+            "value" : "Couldn't save. Your text is still here; try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本机保存尚未确认。编辑内容仍保留在此，可重试保存。"
+            "value" : "未能保存，文字仍保留在此，请重试。"
           }
         }
       }
@@ -118662,13 +118662,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cancel discards this temporary node and keeps the chapter. A named node without usable coordinates can be saved to local pending materials; complete coordinates allow adding it to this chapter."
+            "value" : "Cancel discards this stop and keeps the chapter. A stop without a location waits in the pending area."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "取消会放弃当前临时节点并保留章节。已命名但坐标未齐的节点可保存为本地待编排素材；坐标有效后可加入本章。"
+            "value" : "取消会放弃此地点并保留章节；未选位置的地点会放入待编排区。"
           }
         }
       }
@@ -118726,13 +118726,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "These materials belong to this local draft. They are not included in a publication until you explicitly place them in a chapter. Media references are shown as text."
+            "value" : "Pending stops aren't published until you place them in a chapter."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这些素材属于本地草稿，明确编入章节前不会包含在发布内容中。媒体引用仅显示为文本。"
+            "value" : "待编排的地点放入章节后才会发布。"
           }
         }
       }
@@ -118790,13 +118790,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Remove this local pending material? Cancel keeps it unchanged."
+            "value" : "Remove this pending stop?"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "删除此本地待编排素材？取消会保持原样。"
+            "value" : "删除这个待编排的地点？"
           }
         }
       }
@@ -118806,13 +118806,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pending materials remain only in the local draft and are omitted from this prepared publication."
+            "value" : "Pending stops aren't included in this submission."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "待编排素材仅保留在本地草稿中，不包含在本次准备发布的内容中。"
+            "value" : "待编排的地点不包含在本次提交中。"
           }
         }
       }
@@ -118838,13 +118838,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local saving could not be confirmed. This form remains open. Closing does not undo a write that may already have completed. Reopen and inspect the saved draft before trying again."
+            "value" : "We couldn't confirm the draft was saved. Reopen it to check before trying again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未能确认本地保存完成，表单仍保留当前内容。关闭不会撤销可能已完成的写入，请重新打开并检查已存草稿后再试。"
+            "value" : "无法确认草稿已保存，请重新打开检查后再试。"
           }
         }
       }
@@ -118854,13 +118854,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Story edits change this local draft. This material stays pending until you choose an insertion position."
+            "value" : "This stays in the pending area until you choose where it goes."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "故事编辑会修改当前本地草稿。明确选择插入位置前，此素材仍留在待编排区。"
+            "value" : "选择插入位置前，它会留在待编排区。"
           }
         }
       }
@@ -118918,13 +118918,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Draft configuration below is context. It may contain local-only or normalized fields; the submitted nodes and complete prepared fields above show what this request includes."
+            "value" : "Your other draft settings, for comparison."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "下方草稿配置用于对照，可能含仅本地保留或需规范化的字段；上方提交节点与完整请求字段显示本次请求实际包含的内容。"
+            "value" : "其他草稿设置，供对照。"
           }
         }
       }
@@ -118934,13 +118934,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prepared request contains an empty chapter list."
+            "value" : "This submission has no chapters."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "准备请求中的章节列表为空。"
+            "value" : "本次提交不含章节。"
           }
         }
       }
@@ -119126,13 +119126,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prepared values are shown, but local saving was not confirmed. Closing this review does not undo a write that may already have completed."
+            "value" : "We couldn't confirm the draft was saved."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以下显示准备提交的值，但本地保存未获确认。关闭审核不会撤销可能已经完成的写入。"
+            "value" : "无法确认草稿已保存。"
           }
         }
       }
@@ -119174,13 +119174,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This request omits chapters. Existing chapter content is not replaced by this limited update."
+            "value" : "Chapters aren't part of this update and stay as they are."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此请求不含章节，本次受限更新不会替换既有章节内容。"
+            "value" : "本次更新不含章节，现有章节保持不变。"
           }
         }
       }
@@ -119222,13 +119222,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "These values and their order come from the captured submission request. Image and template references are shown only as text."
+            "value" : "This is exactly what will be submitted."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以下数值及顺序来自本次捕获的提交请求。图片与玩法模板引用仅显示为文本。"
+            "value" : "以下为本次将提交的内容。"
           }
         }
       }
@@ -119286,13 +119286,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The previous submission was acknowledged. Explicitly read and save the latest server version before starting another edit."
+            "value" : "Your last submission went through. Load the latest version before editing again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "上次提交已获确认。开始下一次编辑前，请明确读取并保存服务器最新版本。"
+            "value" : "上次提交已成功，再次编辑前请载入最新版本。"
           }
         }
       }
@@ -119430,13 +119430,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Server topic ID"
+            "value" : "Topic number"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器主题 ID"
+            "value" : "主题编号"
           }
         }
       }
@@ -119446,13 +119446,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The current service has no verified outcome lookup for this uncertain submission. It remains locked. Viewing My content does not confirm or retry the request."
+            "value" : "We can't check the result of that submission yet. Editing stays paused; check My projects."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前服务没有可验证的未知提交结果查询。请求将保持锁定，查看自己的内容不会确认结果或重试请求。"
+            "value" : "暂时无法查询该提交的结果，编辑保持暂停，请在「我的项目」查看。"
           }
         }
       }
@@ -119574,13 +119574,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Inspect synthetic saved draft"
+            "value" : "Open example draft"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "检查模拟保存草稿"
+            "value" : "打开示例草稿"
           }
         }
       }
@@ -119641,13 +119641,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cancel this local selection"
+            "value" : "Cancel"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "取消本次本地选择"
+            "value" : "取消"
           }
         }
       }
@@ -119709,13 +119709,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This empty audio block stays in the local draft. It is omitted from the submitted story until an audio reference is applied."
+            "value" : "This audio block is empty and won't be published until you add audio."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此空音频块会保留在本地草稿中。在应用音频引用之前，提交的故事会省略此块。"
+            "value" : "此音频块为空，添加音频前不会发布。"
           }
         }
       }
@@ -119726,13 +119726,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The local receipt could not be verified. Existing audio references are retained."
+            "value" : "Couldn't add the audio. Your existing audio is kept."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法验证本地回执。现有音频引用已保留。"
+            "value" : "未能添加音频，原有音频保留。"
           }
         }
       }
@@ -119743,13 +119743,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Only the filename extension and measured byte count have been checked. Playback and duration have not been verified. This file has not been uploaded."
+            "value" : "Not uploaded yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目前仅检查了文件扩展名和实际字节数，尚未验证播放或时长。此文件尚未上传。"
+            "value" : "尚未上传。"
           }
         }
       }
@@ -119760,13 +119760,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local saving did not complete. The received reference is retained. Retry applying it locally; no upload will be sent."
+            "value" : "Couldn't add the audio. Try again; it won't upload twice."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地保存未完成，收到的引用已保留。可重试本地应用，此操作不会重新上传。"
+            "value" : "未能添加音频，请重试，不会重复上传。"
           }
         }
       }
@@ -119845,13 +119845,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Save the received audio receipt"
+            "value" : "Finish adding audio"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保存已收到的音频回执"
+            "value" : "完成添加音频"
           }
         }
       }
@@ -119964,13 +119964,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The upload returned a reference, but its receipt could not be saved on this device. Save that receipt before applying it. This recovery copy lasts only for the current app session."
+            "value" : "The audio uploaded but isn't added yet. Finish adding it before leaving."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "上传已返回引用，但回执未能保存到本机。请先保存回执再应用。恢复副本仅在当前应用会话内保留。"
+            "value" : "音频已上传但尚未添加，离开前请完成添加。"
           }
         }
       }
@@ -120365,13 +120365,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Insert here and save locally"
+            "value" : "Insert here"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "插入此处并保存本机"
+            "value" : "插入此处"
           }
         }
       }
@@ -120493,13 +120493,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review local insertion"
+            "value" : "Check before inserting"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "预览本机插入内容"
+            "value" : "插入前确认"
           }
         }
       }
@@ -120525,13 +120525,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Local saving could not be confirmed. Your current story is unchanged. You can retry saving this reviewed insertion."
+            "value" : "Couldn't save. Your story is unchanged; try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法确认本机保存，当前故事未改变。可重试保存此次已预览的插入内容。"
+            "value" : "未能保存，故事未改变，请重试。"
           }
         }
       }
@@ -120557,13 +120557,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choose one of your personal gameplay drafts and review it before saving it at this exact story position on this device. Up to 1,000 drafts can be listed. This local story feature cannot currently be submitted or published; it does not change the remote template."
+            "value" : "Choose one of your play drafts to insert at this point in the story."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选择本人的玩法草稿，预览后保存到当前故事位置和本机草稿，最多读取1,000条。此故事功能目前只能本地创作，暂不可提交或发布，不会修改远端玩法。"
+            "value" : "选择你的一份玩法草稿，插入到故事此处。"
           }
         }
       }
@@ -120669,13 +120669,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The older service can make content visible while review is pending. This flag does not approve a release."
+            "value" : "Content may be visible while it's under review."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "旧服务可能在待审核时展示内容。此标记不能证明发布版本已获批准。"
+            "value" : "审核期间内容可能已可见。"
           }
         }
       }
@@ -120797,13 +120797,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Submission acknowledgment"
+            "value" : "Submission"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "提交回执"
+            "value" : "提交结果"
           }
         }
       }
@@ -120989,13 +120989,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Apply changes the working draft. Use the existing local save and review flow afterward. This does not publish or verify a physical meeting place."
+            "value" : "Changes the meeting point in this draft."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "应用只修改当前草稿，随后沿用现有本地保存与确认流程。这不会发布内容，也不会验证实际集合地点。"
+            "value" : "修改此草稿中的集合地点。"
           }
         }
       }
@@ -203636,6 +203636,363 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "创建时间"
+          }
+        }
+      }
+    },
+    "projectTopicMedia.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Topic images"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主题图片"
+          }
+        }
+      }
+    },
+    "projectTopicMedia.chooseCover" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cover (3:4)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "封面（3:4）"
+          }
+        }
+      }
+    },
+    "projectTopicMedia.addGallery" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add a banner image (16:9, up to 9)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加横图（16:9，最多 9 张）"
+          }
+        }
+      }
+    },
+    "projectTopicMedia.choose" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose image"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择图片"
+          }
+        }
+      }
+    },
+    "projectTopicMedia.reading" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading image…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在读取图片…"
+          }
+        }
+      }
+    },
+    "projectTopicMedia.previewLabel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cropped image"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "裁切后的图片"
+          }
+        }
+      }
+    },
+    "projectTopicMedia.notUploaded" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not uploaded yet"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未上传"
+          }
+        }
+      }
+    },
+    "projectTopicMedia.upload" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upload"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上传"
+          }
+        }
+      }
+    },
+    "projectTopicMedia.reselect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose another"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新选择"
+          }
+        }
+      }
+    },
+    "projectTopicMedia.uploading" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uploading…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在上传…"
+          }
+        }
+      }
+    },
+    "projectTopicMedia.uploaded" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uploaded. Add it to the topic to finish."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已上传，添加到主题后完成。"
+          }
+        }
+      }
+    },
+    "projectTopicMedia.apply" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add to topic"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加到主题"
+          }
+        }
+      }
+    },
+    "projectTopicMedia.applyFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't add it. Try again; it won't upload twice."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未能添加，请重试，不会重复上传。"
+          }
+        }
+      }
+    },
+    "projectTopicMedia.failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This image can't be used. Choose another."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此图片无法使用，请重新选择。"
+          }
+        }
+      }
+    },
+    "projectTopicMedia.unknown" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We couldn't confirm the upload. Close and check before trying again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法确认是否上传成功，请关闭并检查后再试。"
+          }
+        }
+      }
+    },
+    "projectTopicMedia.expired" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This changed while you were away. Close and open it again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "内容已变化，请关闭后重新打开。"
+          }
+        }
+      }
+    },
+    "projectTopicMedia.coverTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Topic cover"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主题封面"
+          }
+        }
+      }
+    },
+    "projectTopicMedia.galleryTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Banner image"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主题横图"
+          }
+        }
+      }
+    },
+    "projectEdit.viewOnly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can view this topic but not edit it."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此主题仅可查看，不能编辑。"
+          }
+        }
+      }
+    },
+    "projectEdit.mode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mode"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模式"
+          }
+        }
+      }
+    },
+    "projectEdit.nodeCountValue %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld stops"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 个地点"
           }
         }
       }

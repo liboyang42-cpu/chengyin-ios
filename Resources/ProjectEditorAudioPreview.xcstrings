@@ -54,13 +54,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Prelisten is unavailable for this saved reference or the current media configuration. The reference is unchanged."
+            "value": "This audio can't be played here."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此现存引用或当前媒体配置暂不支持预听，引用保持不变。"
+            "value": "此音频无法在此播放。"
           }
         }
       }
