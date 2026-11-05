@@ -45,13 +45,11 @@ public enum SocialEditorPurpose: String, Identifiable {
                 Section("social.text") {
                     TextEditor(text: $text).frame(minHeight: 160).accessibilityLabel("social.text")
                         .accessibilityIdentifier("social.editor.text").focused($textFocused).disabled(state.locksForm)
-                    if purpose == .editPost { Text("social.editPreservesMedia").font(.footnote).foregroundStyle(.secondary) }
                 }
             }
             if (purpose == .like && contentGeneration == .communityV1) || purpose == .bookmark || (purpose == .commentLike && contentGeneration == .communityV1) {
                 Section {
                     Toggle("social.actionEnabled", isOn: $enabled).disabled(state.locksForm)
-                    Text("social.explicitActionHint").font(.footnote).foregroundStyle(.secondary)
                 }
             }
             if purpose == .like && contentGeneration == .legacySquare { Section { Text("squareReport.legacyLikeHint").font(.footnote) } }

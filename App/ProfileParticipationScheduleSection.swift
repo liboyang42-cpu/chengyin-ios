@@ -24,7 +24,6 @@ struct ProfileParticipationScheduleContent: View {
                     }
                 }
                 Text(verbatim: range).accessibilityIdentifier("profile.participationSchedule.range")
-                Text("profile.participationSchedule.clockNote").font(.caption).foregroundStyle(.secondary)
             }
         }
     }

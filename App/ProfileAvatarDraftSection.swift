@@ -116,7 +116,6 @@ import UIKit
                 Button("profile.avatar.select") { guard scenePhase == .active else { return }; presentation.open() }
                     .disabled(!presentation.canOpen || model.busy || model.coordinator.isLocked || scenePhase != .active)
                     .accessibilityIdentifier("profile.avatar.select")
-                Text("profile.avatar.hint").font(.footnote).foregroundStyle(.secondary)
             }
         }
         .confirmationDialog("profile.avatar.discardTitle", isPresented: Binding(get: { discardID != nil }, set: { if !$0 { discardID = nil } }), presenting: discardID) { id in

@@ -40,7 +40,6 @@ import UIKit
                             .font(.footnote).fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier(result == .copied ? "profile.orderNumberCopy.copied" : "profile.orderNumberCopy.failed")
                     }
-                    Text("profile.orderNumberCopy.privateHint").font(.caption).foregroundStyle(.secondary)
                 }
             }
         }

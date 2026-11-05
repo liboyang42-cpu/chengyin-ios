@@ -27,7 +27,6 @@ struct ProfileDraftReviewSection: View {
                         .accessibilityElement(children: .contain)
                     }.accessibilityIdentifier("profile.reviewRestore.change.\(change.id)")
                 }
-                Text("profile.reviewRestore.exactTextHint").font(.footnote).foregroundStyle(.secondary)
             } label: { Text("profile.reviewRestore.compare") }
             .accessibilityIdentifier("profile.reviewRestore.compare")
             Button("profile.reviewRestore.open", role: .destructive) { showsRestore = true }

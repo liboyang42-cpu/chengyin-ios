@@ -358,7 +358,6 @@ struct ProfileOrderTicketScheduleRows: View {
                 .accessibilityIdentifier("profile.order.ticketSchedule")
             ProfileOrderTicketTimeRow(label: "profile.orders.start", value: schedule.start)
             ProfileOrderTicketTimeRow(label: "profile.orders.end", value: schedule.end)
-            Text("profileTicketSchedule.phoneTimeZone").font(.caption).foregroundStyle(.secondary)
         } else {
             if schedule.start != .absent || schedule.end != .absent {
                 Text("profileTicketSchedule.ownerTimes").font(.caption).foregroundStyle(.secondary)
