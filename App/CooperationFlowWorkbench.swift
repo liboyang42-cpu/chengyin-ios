@@ -5,6 +5,7 @@ import SwiftUI
     let reader: any CoopFlowReading
     var operationScope: String? = nil
     @Environment(\.merchantOfficialRecruitmentDestination) private var officialRecruitmentDestination
+    @Environment(\.cooperationNearbyDestination) private var nearbyDestination
     var body: some View {
         List {
             // Source pages/merchant/relation is the 合作 tab: partners come first.
@@ -22,8 +23,11 @@ import SwiftUI
                 link("coopflow.finance", resource: .finance)
                 link("coopflow.mybiz", resource: .myBusiness)
                 link("coopflow.clubs", resource: .clubs(name: nil))
-                NavigationLink { CoopFlowNearbyGate(reader: reader) } label: { Text("coopflow.nearby") }
-                    .accessibilityIdentifier("coopflow.route.coopflow.nearby")
+                // Hidden until nearby search is wired; the gate alone would only say it is unavailable.
+                if nearbyDestination != nil {
+                    NavigationLink { CoopFlowNearbyGate(reader: reader) } label: { Text("coopflow.nearby") }
+                        .accessibilityIdentifier("coopflow.route.coopflow.nearby")
+                }
                 CoopWithdrawEntryLinks(isSignedIn: reader.session != nil)
             }
             Section("coopflow.supply") {
@@ -40,7 +44,6 @@ import SwiftUI
                 link("coopflow.registrations", resource: .registrations)
                 link("coopflow.complaints", resource: .complaintTopics)
             }
-            Section { CoopFlowSafetyNotice() }
         }.navigationTitle("coopflow.title").accessibilityIdentifier("coopflow.workbench")
     }
     private func link(_ key: String, resource: CoopFlowRead) -> some View {
@@ -72,11 +75,10 @@ import SwiftUI
     }
 }
 
+/// The old "submitting isn't available here" footnote was a placeholder notice; screens hide
+/// actions they can't perform instead, so this renders nothing.
 struct CoopFlowSafetyNotice: View {
-    var body: some View {
-        Label("coopflow.dormant", systemImage: "lock.shield")
-            .font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("coopflow.dormant")
-    }
+    var body: some View { EmptyView() }
 }
 @MainActor struct CoopFlowReadView: View {
     @Environment(\.merchantAcceptedProjectDestination) private var acceptedProjectDestination
