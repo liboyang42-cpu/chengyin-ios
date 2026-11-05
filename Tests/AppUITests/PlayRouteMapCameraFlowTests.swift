@@ -23,9 +23,15 @@ final class PlayRouteMapCameraFlowTests: XCTestCase {
     }
     private var previewName: XCUIElement { app.staticTexts["playRouteCamera.preview.name"] }
     private func choose(_ id: Int) { tap("playRouteCamera.choose"); tap("playRouteCamera.choice.\(id)") }
+    // Preview and issue are separate List rows now, so they can sit below the visible rows.
     private func expectPreview(_ name: String) {
-        XCTAssertTrue(previewName.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(revealFixtureElement(previewName, in: app, maximumSwipes: 20, requiresHittable: false), app.debugDescription)
         XCTAssertEqual(previewName.label, name)
+    }
+    private func expectIssue(containing text: String) {
+        let issue = app.staticTexts["playRouteCamera.issue"]
+        XCTAssertTrue(revealFixtureElement(issue, in: app, maximumSwipes: 20, requiresHittable: false), app.debugDescription)
+        XCTAssertTrue(issue.label.contains(text))
     }
     func testOverviewCurrentAndOtherStopPreviewFormCompleteInspectionJourney() {
         launch(); tap("playRouteCamera.current"); expectPreview("Synthetic current stop")
@@ -43,12 +49,13 @@ final class PlayRouteMapCameraFlowTests: XCTestCase {
     func testCurrentWithoutCoordinatesKeepsMapUnmovedAndTaskReachable() {
         launch("routeMapFocusMissingCurrent"); tap("playRouteCamera.current")
         expectPreview("Synthetic current stop")
-        let issue = app.staticTexts["playRouteCamera.issue"]
-        XCTAssertTrue(issue.exists); XCTAssertTrue(issue.label.contains("camera has not moved"))
+        expectIssue(containing: "camera has not moved")
         tap("playRouteCamera.openTask")
         XCTAssertTrue(app.staticTexts["Synthetic current story"].waitForExistence(timeout: 5))
         app.navigationBars.buttons.firstMatch.tap()
         choose(700); expectPreview("Synthetic completed stop")
+        // The issue row follows the task row; show that spot before asserting it is gone.
+        XCTAssertTrue(revealFixtureElement(app.buttons["playRouteCamera.openTask"], in: app, maximumSwipes: 20, requiresHittable: false), app.debugDescription)
         XCTAssertFalse(app.staticTexts["playRouteCamera.issue"].exists)
     }
 

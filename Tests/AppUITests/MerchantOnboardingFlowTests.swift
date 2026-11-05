@@ -61,9 +61,9 @@ final class MerchantOnboardingFlowTests: XCTestCase {
         let dialog = app.alerts.firstMatch
         XCTAssertTrue(dialog.waitForExistence(timeout: 5), app.debugDescription, file: file, line: line)
         XCTAssertEqual(dialog.label, "Submit this merchant application?", file: file, line: line)
-        let disclosure = dialog.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "configured Chengyin service")).firstMatch
+        let disclosure = dialog.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "to Questify for review")).firstMatch
         XCTAssertTrue(disclosure.exists, "The native confirmation must identify the submission recipient", file: file, line: line)
-        XCTAssertTrue(disclosure.label.contains("uploaded license reference"), "The confirmation must disclose the license reference being sent", file: file, line: line)
+        XCTAssertTrue(disclosure.label.contains("uploaded business license"), "The confirmation must disclose the license reference being sent", file: file, line: line)
         let matches = dialog.buttons.matching(NSPredicate(format: "label == %@", actionTitle))
         let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             matches.allElementsBoundByIndex.contains { $0.exists && $0.isEnabled && $0.isHittable }
