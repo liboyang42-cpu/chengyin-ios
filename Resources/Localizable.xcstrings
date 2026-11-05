@@ -82528,17 +82528,18 @@
       }
     },
     "nativePlatform.steps.day" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Service day"
+            "value" : "Day"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务日期"
+            "value" : "日期"
           }
         }
       }
@@ -82816,33 +82817,35 @@
       }
     },
     "nativePlatform.steps.send" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Send this audit sample"
+            "value" : "Send steps"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "提交此审核样本"
+            "value" : "提交步数"
           }
         }
       }
     },
     "nativePlatform.steps.sharePurpose" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Send this count and its time interval to the activity service with a device-integrity assertion. No health or Apple Watch data is included."
+            "value" : "Your step count for this day is sent. No health or Apple Watch data is included."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "将此步数与时间区间及设备完整性凭据提交至活动服务。不包含健康或 Apple Watch 数据。"
+            "value" : "会发送当天的步数，不包含健康或 Apple Watch 数据。"
           }
         }
       }
