@@ -1763,16 +1763,16 @@
     },
     "notification.readState.counts": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本频道服务器未读 %@ · 提及 %@"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server unread in this channel: %@ · Mentions: %@"
+            "value": "Unread: %@ · Mentions: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未读 %@ · 提及 %@"
           }
         }
       }
@@ -1795,16 +1795,16 @@
     },
     "notification.readState.unavailable": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本频道原已读状态尚不可确认，未当作零。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This channel’s original read state is unconfirmed, not zero."
+            "value": "Unread: —"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未读：—"
           }
         }
       }
