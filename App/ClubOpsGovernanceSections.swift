@@ -224,7 +224,10 @@ struct ClubOpsRoleSection: View {
                     revoke(row)
                 }.accessibilityIdentifier("clubOpsGov.roles.assignment.\(row.id)")
             }
-        } header: { Text("club.gov.assignments") }
+        } header: { Text("club.gov.assignments") } footer: {
+            // Mini-program roles page: the one consequence line under the delegation list.
+            if !roster.assignments.isEmpty { ClubOpsGovernanceCopy.text("clubOpsGov.roles.footer") }
+        }
         Section {
             if roster.delegableMemberCount == 0 {
                 ClubOpsGovernanceCopy.text("clubOpsGov.roles.empty").foregroundStyle(.secondary)

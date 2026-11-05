@@ -1241,7 +1241,11 @@ struct ClubGovernanceReadView: View {
             ClubOpsRoleSection(roles: snapshot, context: readContext, access: access, assign: AnyView(edit(.assignRole))) { row in
                 AnyView(edit(.revokeRole, seed: row.revokeSeed))
             }
-            Section("club.gov.roleDefinitions") { ForEach(Array((value["roles"].array ?? []).enumerated()), id: \.offset) { _, row in ClubGovernanceFactRows(value: row, fields: ["name", "roleCode", "scopeType"]) } }
+            // Role names only; the raw role code and scope type are internal.
+            Section("club.gov.roleDefinitions") { ForEach(Array((value["roles"].array ?? []).enumerated()), id: \.offset) { _, row in
+                if let name = row["name"].string { Text(verbatim: name) }
+                else if let code = row["roleCode"].string { Text(LocalizedStringKey("club.gov.role." + code)) }
+            } }
         } else if operation == .bans, let bans = try? ClubOpsBanList(snapshot: snapshot) {
             ClubOpsBanSection(list: bans) { row in AnyView(edit(.unban, seed: row.unbanSeed ?? [:])) }
             Section { link(.members) }

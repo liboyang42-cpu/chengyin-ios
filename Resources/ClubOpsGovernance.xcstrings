@@ -742,13 +742,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Revoking a role needs a second confirmation; the member loses that access immediately."
+            "value": "Revoking takes effect immediately"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "撤销角色要二次确认；撤销后该成员立即失去对应入口。"
+            "value": "撤销后立即生效"
           }
         }
       }
