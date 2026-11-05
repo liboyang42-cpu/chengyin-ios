@@ -73,7 +73,7 @@ final class WorkshopModUpgradePresentationTests: XCTestCase {
             candidate: candidate,
             coverage: .covered
         )
-        let presentation = WorkshopModUpgradePresentation(term: term, preview: preview)
+        let presentation = WorkshopModUpgradePresentation(term: term, preview: preview, locale: Locale(identifier: "zh-Hans"))
 
         XCTAssertTrue(presentation.hasCapabilityChanges)
         XCTAssertEqual(presentation.addedCapabilities, ["camera.capture", "geo.arrival"])
@@ -88,7 +88,7 @@ final class WorkshopModUpgradePresentationTests: XCTestCase {
         let installed = try makeVersion(versionId: "v1-0-0", semver: "1.0.0", hashChar: "a", capabilities: ["choice"])
         let candidate = try makeVersion(versionId: "v1-0-1", semver: "1.0.1", hashChar: "b", capabilities: ["choice"])
         let preview = try WorkshopUpgradePreview(installed: installed, candidate: candidate, coverage: .covered)
-        let presentation = WorkshopModUpgradePresentation(term: term, preview: preview)
+        let presentation = WorkshopModUpgradePresentation(term: term, preview: preview, locale: Locale(identifier: "zh-Hans"))
 
         XCTAssertFalse(presentation.hasCapabilityChanges)
         XCTAssertTrue(presentation.preview.pinsExistingRuns)
@@ -103,7 +103,7 @@ final class WorkshopModUpgradePresentationTests: XCTestCase {
         let candidate = try makeVersion(versionId: "v2-0-0", semver: "2.0.0", hashChar: "d", capabilities: ["choice", "geo.arrival"])
 
         let coveredPreview = try WorkshopUpgradePreview(installed: installed, candidate: candidate, coverage: .covered)
-        let coveredPresentation = WorkshopModUpgradePresentation(term: term, preview: coveredPreview)
+        let coveredPresentation = WorkshopModUpgradePresentation(term: term, preview: coveredPreview, locale: Locale(identifier: "zh-Hans"))
 
         XCTAssertFalse(coveredPresentation.canConfirmUpgrade(confirmedByBuyer: false))
         XCTAssertTrue(coveredPresentation.canConfirmUpgrade(confirmedByBuyer: true))
@@ -118,12 +118,12 @@ final class WorkshopModUpgradePresentationTests: XCTestCase {
         XCTAssertEqual(request.requestId, "req-w18-0001")
 
         let unpurchasedPreview = try WorkshopUpgradePreview(installed: installed, candidate: candidate, coverage: .requiresNewPurchase)
-        let unpurchasedPresentation = WorkshopModUpgradePresentation(term: term, preview: unpurchasedPreview)
+        let unpurchasedPresentation = WorkshopModUpgradePresentation(term: term, preview: unpurchasedPreview, locale: Locale(identifier: "zh-Hans"))
         XCTAssertFalse(unpurchasedPresentation.canConfirmUpgrade(confirmedByBuyer: true))
         XCTAssertTrue(unpurchasedPresentation.coverageNotice.contains("另行购买"))
 
         let unknownPreview = try WorkshopUpgradePreview(installed: installed, candidate: candidate, coverage: .unknown)
-        let unknownPresentation = WorkshopModUpgradePresentation(term: term, preview: unknownPreview)
+        let unknownPresentation = WorkshopModUpgradePresentation(term: term, preview: unknownPreview, locale: Locale(identifier: "zh-Hans"))
         XCTAssertFalse(unknownPresentation.canConfirmUpgrade(confirmedByBuyer: true))
     }
 
@@ -132,7 +132,7 @@ final class WorkshopModUpgradePresentationTests: XCTestCase {
             XCTAssertEqual($0 as? WorkshopPurchasedIssue, .malformed)
         }
         let term = try WorkshopPurchasedUseTerm(makePurchasedItem(licenseId: "w18-paid-99", moduleId: "mod-city", versionId: "ver-1"))
-        let disclosure = WorkshopPurchasedUseTermPresentation(term: term)
+        let disclosure = WorkshopPurchasedUseTermPresentation(term: term, locale: Locale(identifier: "zh-Hans"))
 
         XCTAssertTrue(disclosure.term.survivesSubscriptionEnd)
         XCTAssertFalse(disclosure.term.permitsRedistribution)
@@ -169,7 +169,7 @@ final class WorkshopModUpgradePresentationTests: XCTestCase {
         let issue = try XCTUnwrap(caughtIssue)
         XCTAssertEqual(issue, .h5DesignOnly)
 
-        let notice = QmodManifestIssueNotice(issue: issue)
+        let notice = QmodManifestIssueNotice(issue: issue, locale: Locale(identifier: "zh-Hans"))
         XCTAssertTrue(notice.isH5DesignOnlyRejection)
         XCTAssertTrue(notice.titleText.contains("H5"))
         XCTAssertTrue(notice.bodyText.contains("questify.h5"))
@@ -178,16 +178,16 @@ final class WorkshopModUpgradePresentationTests: XCTestCase {
         let installed = try makeVersion(versionId: "v1-0-0", semver: "1.0.0", hashChar: "a", capabilities: ["choice"])
         let candidate = try makeVersion(versionId: "v1-1-0", semver: "1.1.0", hashChar: "b", capabilities: ["choice"])
         let preview = try WorkshopUpgradePreview(installed: installed, candidate: candidate, coverage: .covered)
-        let blockedPresentation = WorkshopModUpgradePresentation(term: term, preview: preview, manifestIssue: issue)
+        let blockedPresentation = WorkshopModUpgradePresentation(term: term, preview: preview, manifestIssue: issue, locale: Locale(identifier: "zh-Hans"))
         XCTAssertFalse(blockedPresentation.canConfirmUpgrade(confirmedByBuyer: true))
     }
 
     func testManifestAuthorityFieldAndProposalProfileNotices() {
-        let authorityNotice = QmodManifestIssueNotice(issue: .authorityField("rewardBudget"))
+        let authorityNotice = QmodManifestIssueNotice(issue: .authorityField("rewardBudget"), locale: Locale(identifier: "zh-Hans"))
         XCTAssertFalse(authorityNotice.isH5DesignOnlyRejection)
         XCTAssertTrue(authorityNotice.bodyText.contains("rewardBudget"))
 
-        let proposalText = QmodManifestIssueNotice.proposalProfileNotice(for: .reviewProposalV1)
+        let proposalText = QmodManifestIssueNotice.proposalProfileNotice(for: .reviewProposalV1, locale: Locale(identifier: "zh-Hans"))
         XCTAssertNotNil(proposalText)
         XCTAssertEqual(proposalText?.contains("proposal-v1"), true)
 
@@ -201,6 +201,74 @@ final class WorkshopModUpgradePresentationTests: XCTestCase {
             maxPathLength: 200,
             maxDepth: 8
         )
-        XCTAssertNil(QmodManifestIssueNotice.proposalProfileNotice(for: confirmedProfile))
+        XCTAssertNil(QmodManifestIssueNotice.proposalProfileNotice(for: confirmedProfile, locale: Locale(identifier: "zh-Hans")))
     }
+    func testEnglishAndChineseKeepExactUpgradeAuthorizationAndRequest() throws {
+        let term = try WorkshopPurchasedUseTerm(makePurchasedItem())
+        let installed = try makeVersion(versionId: "v1-0-0", semver: "1.0.0", hashChar: "a", capabilities: ["choice"])
+        let candidate = try makeVersion(versionId: "v1-1-0", semver: "1.1.0", hashChar: "b", capabilities: ["choice", "qr.scan"])
+        let preview = try WorkshopUpgradePreview(installed: installed, candidate: candidate, coverage: .covered)
+        let en = WorkshopModUpgradePresentation(term: term, preview: preview, locale: Locale(identifier: "en-US"))
+        let zh = WorkshopModUpgradePresentation(term: term, preview: preview, locale: Locale(identifier: "zh-Hans-CN"))
+        XCTAssertTrue(en.coverageNotice.contains("license")); XCTAssertTrue(zh.coverageNotice.contains("授权"))
+        XCTAssertTrue(en.reReviewRequirementNotice.contains("review again"))
+        XCTAssertTrue(en.pinnedExistingRunsNotice.contains("original version (1.0.0)"))
+        XCTAssertTrue(en.confirmationPromptText.contains("must be reviewed again"))
+        XCTAssertEqual(en.preview, zh.preview); XCTAssertEqual(en.addedCapabilities, zh.addedCapabilities)
+        XCTAssertFalse(en.canConfirmUpgrade(confirmedByBuyer: false)); XCTAssertFalse(zh.canConfirmUpgrade(confirmedByBuyer: false))
+        XCTAssertEqual(try en.makeUpgradeDraftRequest(confirmedByBuyer: true, requestId: "same-original"),
+                       try zh.makeUpgradeDraftRequest(confirmedByBuyer: true, requestId: "same-original"))
+        let english = [en.coverageNotice, en.versionTransitionText, en.confirmationPromptText,
+                       en.useTermPresentation.subscriptionSurvivalNotice, en.useTermPresentation.redistributionNotice].joined()
+        XCTAssertNil(english.range(of: "\\p{Han}", options: .regularExpression))
+    }
+    func testLanguageCannotOpenUncoveredUnknownOrMismatchedUpgrade() throws {
+        let term = try WorkshopPurchasedUseTerm(makePurchasedItem())
+        let installed = try makeVersion(versionId: "v1-0-0", semver: "1.0.0", hashChar: "a", capabilities: ["choice"])
+        let candidate = try makeVersion(versionId: "v2-0-0", semver: "2.0.0", hashChar: "b", capabilities: ["choice"])
+        for locale in [Locale(identifier: "en"), Locale(identifier: "zh-Hans")] {
+            for coverage in [WorkshopUpgradePreview.Coverage.requiresNewPurchase, .unknown] {
+                let preview = try WorkshopUpgradePreview(installed: installed, candidate: candidate, coverage: coverage)
+                let value = WorkshopModUpgradePresentation(term: term, preview: preview, locale: locale)
+                XCTAssertFalse(value.canConfirmUpgrade(confirmedByBuyer: true))
+                XCTAssertThrowsError(try value.makeUpgradeDraftRequest(confirmedByBuyer: true))
+            }
+            let mismatched = try WorkshopPurchasedUseTerm(makePurchasedItem(moduleId: "other-module"))
+            let preview = try WorkshopUpgradePreview(installed: installed, candidate: candidate, coverage: .covered)
+            let value = WorkshopModUpgradePresentation(term: mismatched, preview: preview, locale: locale)
+            XCTAssertFalse(value.isTermAlignedWithPreview); XCTAssertFalse(value.canConfirmUpgrade(confirmedByBuyer: true))
+        }
+    }
+    func testEnglishPerpetualTermsKeepSubscriptionAndRedistributionRestrictions() throws {
+        let term = try WorkshopPurchasedUseTerm(makePurchasedItem())
+        let value = WorkshopPurchasedUseTermPresentation(term: term, locale: Locale(identifier: "en"))
+        XCTAssertTrue(value.subscriptionSurvivalNotice.contains("after your membership or subscription ends"))
+        XCTAssertTrue(value.redistributionNotice.contains("Resale, sublicensing and redistribution are prohibited"))
+        XCTAssertTrue(value.versionSummaryText.contains(term.licenseId))
+        XCTAssertEqual(value.term, term)
+        let fallback = WorkshopPurchasedUseTermPresentation(term: term, locale: Locale(identifier: "fr-FR"))
+        XCTAssertEqual(fallback.titleText, value.titleText)
+    }
+    func testAllManifestMessagesHaveBothLanguagesAndPreserveBlockingFacts() {
+        let issues: [QmodManifestIssue] = [.h5DesignOnly, .authorityField("budget%field"), .unsupportedFormat,
+            .fileTooLarge("image%20.png", actual: 120, limit: 100), .tooManyFiles(actual: 3, limit: 2),
+            .expandedTooLarge(actual: 300, limit: 200), .malformed, .invalidPackage, .invalidVersion,
+            .invalidEntrypoint, .invalidLocale, .invalidDependency, .unsafePath("../x"), .duplicatePath("x"),
+            .missingFile("x"), .digestMismatch("x")]
+        for issue in issues {
+            let en = QmodManifestIssueNotice(issue: issue, locale: Locale(identifier: "en"))
+            let zh = QmodManifestIssueNotice(issue: issue, locale: Locale(identifier: "zh-Hans"))
+            XCTAssertEqual(en.issue, zh.issue); XCTAssertEqual(en.isH5DesignOnlyRejection, zh.isH5DesignOnlyRejection)
+            XCTAssertFalse(en.titleText.isEmpty); XCTAssertFalse(en.bodyText.isEmpty)
+            XCTAssertNotEqual(en.titleText, zh.titleText)
+            XCTAssertNil((en.titleText + en.bodyText).range(of: "\\p{Han}", options: .regularExpression))
+        }
+        let file = QmodManifestIssueNotice(issue: .fileTooLarge("image%20.png", actual: 120, limit: 100), locale: Locale(identifier: "en"))
+        XCTAssertTrue(file.bodyText.contains("image%20.png")); XCTAssertTrue(file.bodyText.contains("120 B")); XCTAssertTrue(file.bodyText.contains("100 B"))
+        let h5 = QmodManifestIssueNotice(issue: .h5DesignOnly, locale: Locale(identifier: "en"))
+        XCTAssertTrue(h5.bodyText.contains("will not load")); XCTAssertTrue(h5.isH5DesignOnlyRejection)
+        let proposal = QmodManifestIssueNotice.proposalProfileNotice(for: .reviewProposalV1, locale: Locale(identifier: "en"))
+        XCTAssertTrue(proposal?.contains("not the final limits") == true)
+    }
+
 }
