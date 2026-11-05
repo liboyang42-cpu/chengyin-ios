@@ -582,12 +582,15 @@ struct ClubGovernanceReadView: View {
             }
             if operation == .customers {
                 Section {
+                    // Mini-program club/customers: filter chips, then search (typing already re-reads).
                     Picker("club.gov.filter", selection: customerFilterBinding) {
                         ForEach(["all", "repeat", "new", "remark"], id: \.self) { Text(LocalizedStringKey("club.gov.filter." + $0)).tag($0) }
+                    }.pickerStyle(.segmented).labelsHidden()
+                    HStack {
+                        Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
+                        TextField("club.gov.keyword", text: customerKeywordBinding).submitLabel(.search)
+                            .onSubmit { loadCustomersNow() }
                     }
-                    TextField("club.gov.keyword", text: customerKeywordBinding).submitLabel(.search)
-                        .onSubmit { loadCustomersNow() }
-                    Button("club.gov.search") { loadCustomersNow() }.disabled(loading)
                 }
             }
             if operation == .topicCustomers {
@@ -1364,7 +1367,7 @@ struct ClubGovernanceReadView: View {
                snapshotCustomerFilters == customerFilters {
                 let sourceContext = readContext, sourceGeneration = snapshotGeneration
                 let sourceFilters = customerFilters
-                Button("discovery.clearFilters") {
+                Button("club.gov.customers.showAll") {
                     clearCustomerFilters(source: snapshot, context: sourceContext,
                                          sourceGeneration: sourceGeneration, filters: sourceFilters)
                 }.buttonStyle(.borderless)

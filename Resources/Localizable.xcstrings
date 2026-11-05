@@ -19194,7 +19194,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "New customers"
+            "value" : "New"
           }
         },
         "zh-Hans" : {
@@ -19211,7 +19211,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "With remarks"
+            "value" : "Noted"
           }
         },
         "zh-Hans" : {
@@ -19228,7 +19228,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Repeat customers"
+            "value" : "Repeat"
           }
         },
         "zh-Hans" : {
@@ -203077,6 +203077,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "俱乐部已创建，但暂时读不到资料。"
+          }
+        }
+      }
+    },
+    "club.gov.customers.showAll" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show all customers"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看全部客户"
           }
         }
       }
