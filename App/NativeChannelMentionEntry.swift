@@ -13,51 +13,54 @@ import SwiftUI
     var body: some View {
         Form {
             if source.isCurrent {
-                Section("同一原频道的提及目标") {
-                    Text("频道 \(source.binding.channelID.rawValue)。选择仅更新原文本草稿；最终仍需在原输入框确认发送。不会新建发送器或自动发送。").font(Theme.Font.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                    if let issue=source.issue { Text(issue) }
-                    if source.busy { ProgressView() }
-                    Button("读取原成员名单") { Task { await source.readMembers() } }.disabled(!source.canReadMembers)
-                    Button("读取原角色") { Task { await source.readRoles() } }.disabled(!source.canReadRoles)
-                    if !canApply() { Text("当前有原请求待确认或发送权限不可用。可以回读目标来源供原请求恢复，但不能替换其提及对象或新建发送。") }
-                    Text("名单读取有独立权限。这里不提供任意编号注入；原服务最终按当前可见性与屏蔽关系过滤收件人。")
+                if source.busy || source.issue != nil || !canApply() {
+                    Section {
+                        if source.busy { ProgressView() }
+                        if let issue = source.issue {
+                            Text(LocalizedStringKey(issue == "原角色来源不可用；没有从权限名称猜造角色编号。" ? "d7.channelMention.rolesFailed" : "d7.channelMention.membersFailed"))
+                                .foregroundStyle(.secondary)
+                        }
+                        if !canApply() { Text("d7.channelMention.sendPending").foregroundStyle(.secondary) }
+                    }
                 }
-                Section("成员（最多20个）") {
+                Section {
                     ForEach(source.members) { row in
-                        Toggle("\(row.name) · \(row.id.rawValue)",isOn:selection(row.id,in: $members))
+                        Toggle(isOn: selection(row.id, in: $members)) { Text(verbatim: row.name) }
                             .disabled(members.count >= 20 && !members.contains(row.id))
                     }
-                    if source.canReadMore { Button("读取下一页原名单") { Task { await source.readMembers(next:true) } } }
-                }
-                Section("角色（最多20个）") {
+                    if source.canReadMore { Button("d7.channelMention.loadMore") { Task { await source.readMembers(next: true) } } }
+                    else if source.members.isEmpty { Button("d7.channelMention.loadMembers") { Task { await source.readMembers() } }.disabled(!source.canReadMembers) }
+                } header: { Text("d7.channelMention.members") }
+                Section {
                     ForEach(source.roles) { row in
-                        Toggle("\(row.name) · \(row.id.rawValue)",isOn:selection(row.id,in:$roles))
+                        Toggle(isOn: selection(row.id, in: $roles)) { Text(verbatim: row.name) }
                             .disabled((!row.mentionable && !source.allowsEveryone) || (roles.count >= 20 && !roles.contains(row.id)))
                     }
-                    Text("不可提及角色需原 MENTION_EVERYONE 权限；角色 ID 不代表成员 ID。")
+                    if source.roles.isEmpty { Button("d7.channelMention.loadRoles") { Task { await source.readRoles() } }.disabled(!source.canReadRoles) }
+                } header: { Text("d7.channelMention.roles") }
+                if source.allowsEveryone {
+                    Section {
+                        Toggle("d7.channelMention.everyone", isOn: $everyone)
+                    }
                 }
-                Section("所有人") {
-                    Toggle("提及本频道所有当前可见成员",isOn:$everyone).disabled(!source.allowsEveryone)
-                    Text("仅原 MENTION_EVERYONE 允许。原服务还有每日频率限制，并过滤屏蔽关系；不把发送成功当提醒已送达。")
-                }
-                Section("确认草稿目标") {
-                    Text("成员："+members.map(\.rawValue).sorted().joined(separator:", "))
-                    Text("角色："+roles.map(\.rawValue).sorted().joined(separator:", "))
-                    Text(everyone ? "包括本频道所有当前可见成员" : "不提及所有人")
-                    if let reply=original?.replyToID { Text("保留原引用消息：\(reply.rawValue)") }
-                    Button("采用这些目标，返回原输入框确认发送") {
+                Section {
+                    if rejected { Text("d7.channelMention.rejected").foregroundStyle(.red) }
+                    Button("d7.channelMention.apply") {
                         let orderedMembers=members.sorted { $0.rawValue < $1.rawValue },orderedRoles=roles.sorted { $0.rawValue < $1.rawValue }
                         if canApply() && apply(orderedMembers,orderedRoles,everyone) { dismiss() } else { rejected=true }
                     }
                     .nativeChannelPrimaryAction().disabled(!canApply())
-                    Button("清空待选成员、角色与所有人") { members=[];roles=[];everyone=false }
-                    if rejected { Text("当前来源或原发送授权已变化，未替换草稿，也未发送。") }
+                    if !members.isEmpty || !roles.isEmpty || everyone {
+                        Button("d7.channelMention.clear", role: .destructive) { members=[];roles=[];everyone=false }
+                    }
                 }
-            } else { Text("原频道权限已变化，提及选择不可用。") }
+            } else {
+                ContentUnavailableView("d7.channelMention.unavailable", systemImage: "at")
+            }
         }
         .nativeChannelScreen()
-        .navigationTitle("选择原提及目标")
-        .toolbar { Button("取消") { dismiss() } }
+        .navigationTitle(Text("d7.channelMention.title"))
+        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("d7.channelMention.cancel") { dismiss() } } }
         .onAppear { members=Set(original?.memberIDs ?? []);roles=Set(original?.roleIDs ?? []);everyone=original?.mentionEveryone ?? false }
         .privacySensitive()
     }
