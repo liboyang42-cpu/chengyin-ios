@@ -18004,13 +18004,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Paid amount"
+            "value" : "Paid"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "支付金额"
+            "value" : "实付"
           }
         }
       }
@@ -18327,7 +18327,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Registration ID"
+            "value" : "Registration number"
           }
         },
         "zh-Hans" : {
@@ -18735,7 +18735,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Redemption store"
+            "value" : "Store"
           }
         },
         "zh-Hans" : {
@@ -23524,13 +23524,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You can review the request. Sending refunds isn't available right now."
+            "value" : "Refunds can't be sent right now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可查看请求，退款提交暂不可用。"
+            "value" : "暂时无法发起退款。"
           }
         }
       }
@@ -23764,13 +23764,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This registration and its known parent order stay locked against resubmission. A refunded record alone does not confirm cash or points payout."
+            "value" : "This registration can't be submitted again. A refunded record doesn't mean the money or points have arrived yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "该报名及其已知关联父订单仍被锁定，不能重复提交。记录显示已退款不单独证明现金或积分到账。"
+            "value" : "这笔报名不能重复提交。记录显示已退款，不代表现金或积分已到账。"
           }
         }
       }
@@ -24148,13 +24148,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review cancellation"
+            "value" : "Review"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "核对清退退款"
+            "value" : "核对"
           }
         }
       }
@@ -24164,13 +24164,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review cancellation"
+            "value" : "Cancel and refund"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "核对清退退款"
+            "value" : "清退退款"
           }
         }
       }
@@ -24196,13 +24196,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Message (not a confirmation)"
+            "value" : "Message"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "提示信息（不代表处理结果）"
+            "value" : "提示信息"
           }
         }
       }
@@ -24260,13 +24260,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Owner cancellation and refund"
+            "value" : "Cancel and refund"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "主理人清退退款"
+            "value" : "清退退款"
           }
         }
       }
@@ -203213,6 +203213,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "没有权限查看报名名册"
+          }
+        }
+      }
+    },
+    "club.checkin.orderNo %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Order %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "单号 %@"
           }
         }
       }

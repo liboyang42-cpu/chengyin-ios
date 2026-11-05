@@ -1350,6 +1350,8 @@ struct ClubGovernanceReadView: View {
                         AnyView(ClubGovernanceReadView(operation: .customer, scope: .init(clubID: scope.clubID, memberID: id), identity: identity, access: access, coordinator: coordinator))
                     }
                 } else { Text("club.gov.malformed").accessibilityIdentifier("clubOps.customers.malformed") }
+            } else if operation == .checkin {
+                ClubCheckinDetailRows(value: value)
             } else {
                 ClubGovernanceFactRows(value: value, fields: ClubGovernanceFactRows.summaryFields)
                 if operation == .series {
