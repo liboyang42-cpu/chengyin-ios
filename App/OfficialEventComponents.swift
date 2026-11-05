@@ -139,10 +139,11 @@ struct OfficialIssueView: View {
 struct OfficialReadOnlyNotice: View {
     let offline: Bool
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if offline { Label("official.offlineExample", systemImage: "testtube.2") }
-            Text("official.readOnly")
-        }.font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+        // Unavailable actions are simply absent; only the example-content marker remains.
+        if offline {
+            Label("official.offlineExample", systemImage: "info.circle")
+                .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+        }
     }
 }
 struct OfficialEventCard: View {
@@ -158,14 +159,13 @@ struct OfficialEventCard: View {
                     Label("official.informationIncomplete", systemImage: "exclamationmark.triangle")
                         .fontWeight(.semibold)
                     if let reason = event.recruitmentWarningReason { Text(verbatim: reason) }
-                    else { Text("official.informationReasonUnknown") }
                 }
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityElement(children: .combine)
             }
             if let city = event.city, !city.isEmpty {
                 QuestifyImageEntityMetadata(label: "official.city", value: city, systemImage: "mappin")
-            } else { Text("official.cityUnknown") }
+            }
             // Source card meta: countdown · city · "N 人参与", then "全城已点亮 N%".
             if let countdown = event.countdown(now: Date()) { OfficialCountdownText(value: countdown) }
             if let participants = event.participants { Text("official.card.participants \(participants)") }
@@ -176,7 +176,6 @@ struct OfficialEventCard: View {
                 }
                 else { Text("official.card.collectiveUnknown") }
             }
-            if QuestifyCardArtwork.safeURL(event.coverImage) == nil { Text("official.imageUnavailable").font(.caption) }
         }
     }
 }
