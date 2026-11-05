@@ -5,6 +5,8 @@ import SwiftUI
     var liveDestination: (() -> AnyView)? = nil
     /// 那年今日 / 月度回顾 reader; nil shows each tool's own "not configured" state.
     var toolsReader: (any RoamPassportToolsReading)? = nil
+    /// Owner-only export; nil hides the 导出 tool.
+    var privateToolsReader: (any RoamPrivateToolsServing)? = nil
     @State private var records: [RoamHistoryRecord] = []
     @State private var error: Error?
     @State private var loaded = false
@@ -17,7 +19,7 @@ import SwiftUI
                 if let error { RoamExperienceIssue(error: error, retry: load) }
                 else if !loaded { ProgressView("roamSub.w208.history.loading") }
                 else if records.isEmpty {
-                    RoamHistoryToolsRow(reader: toolsReader)
+                    if toolsReader != nil { RoamHistoryToolsRow(reader: toolsReader, privateTools: privateToolsReader) }
                     if let keys = localWalk.noticeKeys(reader: reader) {
                         ContentUnavailableView(LocalizedStringKey(keys.title), systemImage: "pause.circle",
                             description: Text(LocalizedStringKey(keys.hint)))
@@ -42,25 +44,23 @@ import SwiftUI
                     }
                 } else {
                     let summary = RoamHistorySummary(records)
-                    RoamHistoryToolsRow(reader: toolsReader)
-                    RoamExperienceCard {
+                    // Mini-program order: total (big km, then trips and shops), tools, then run cards.
+                    RoamExperienceCard { VStack(alignment: .leading, spacing: 12) {
+                        HStack(alignment: .firstTextBaseline, spacing: 6) {
+                            Group {
+                                if let distance = summary.knownKilometers, summary.tripsWithDistance > 0 {
+                                    Text(distance, format: .number.precision(.fractionLength(1)))
+                                } else { Text(verbatim: "—") }
+                            }
+                            .font(.system(size: 52, weight: .heavy).italic()).monospacedDigit()
+                            .lineLimit(1).minimumScaleFactor(0.5)
+                            Text("roam.history.km").font(.headline).foregroundStyle(.secondary)
+                        }
+                        .accessibilityElement(children: .combine)
+                        // 次漫游 · 公里 · 家店 on one line under the total, as in the mini-program.
                         RoamHistoryParityStrip(records: records)
-                        LabeledContent("roam.experience.trips", value: String(summary.trips)).font(.headline)
-                        if let distance = summary.knownKilometers, summary.tripsWithDistance > 0 {
-                            LabeledContent("roam.experience.knownDistance") { Text(distance, format: .number.precision(.fractionLength(1))) + Text(verbatim: " km") }
-                        }
-                        LabeledContent("roam.passport.shopVisits") {
-                            if let shops = summary.knownShops, summary.tripsWithShops > 0 {
-                                Text(shops, format: .number)
-                            } else { Text("roam.passport.unknown") }
-                        }.accessibilityIdentifier("roam.experience.history.shopVisits")
-                        if summary.tripsWithShops < summary.trips {
-                            LabeledContent("roam.passport.shopsCoverage", value: "\(summary.tripsWithShops)/\(summary.trips)")
-                                .font(.caption).foregroundStyle(.secondary)
-                                .accessibilityIdentifier("roam.experience.history.shopCoverage")
-                        }
-                        Text("roam.experience.partialStats").font(.caption).foregroundStyle(.secondary)
-                    }
+                    } }
+                    if toolsReader != nil { RoamHistoryToolsRow(reader: toolsReader, privateTools: privateToolsReader) }
                     ForEach(records) { record in
                         NavigationLink { RoamHistoryDetailView(reader: reader, timestamp: record.ts) } label: {
                             RoamExperienceCard {

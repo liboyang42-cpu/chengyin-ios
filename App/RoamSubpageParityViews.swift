@@ -63,18 +63,21 @@ struct RoamRunCardParityMeta: View {
     }
 }
 
-/// 那年今日 / 月度回顾 / 导出 row inside the history page. Export has no native screen yet.
+/// 那年今日 / 月度回顾 / 导出 row inside the history page. Export is listed only with its owner-only tools.
 @MainActor struct RoamHistoryToolsRow: View {
     let reader: (any RoamPassportToolsReading)?
+    var privateTools: (any RoamPrivateToolsServing)? = nil
     var body: some View {
         HStack(spacing: 12) {
             NavigationLink { RoamAnniversaryView(reader: reader) } label: { tool("roamSub.w208.history.tool.anniversary", "calendar") }
                 .accessibilityIdentifier("roamSub.w208.history.tool.anniversary")
             NavigationLink { RoamMonthlyRecapView(reader: reader) } label: { tool("roamSub.w208.history.tool.recap", "list.bullet") }
                 .accessibilityIdentifier("roamSub.w208.history.tool.recap")
-            NavigationLink { RoamExportUnavailableView() } label: { tool("roamSub.w208.history.tool.export", "arrow.down.doc") }
-                .accessibilityLabel(Text("roamSub.w208.history.tool.exportLabel"))
-                .accessibilityIdentifier("roamSub.w208.history.tool.export")
+            if let privateTools {
+                NavigationLink { RoamExplorationExportView(tools: privateTools) } label: { tool("roamSub.w208.history.tool.export", "arrow.down.doc") }
+                    .accessibilityLabel(Text("roamSub.w208.history.tool.exportLabel"))
+                    .accessibilityIdentifier("roamSub.w208.history.tool.export")
+            }
         }.buttonStyle(.bordered)
     }
     private func tool(_ key: LocalizedStringKey, _ symbol: String) -> some View {

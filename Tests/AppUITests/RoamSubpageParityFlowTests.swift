@@ -21,7 +21,7 @@ final class RoamSubpageParityFlowTests: XCTestCase {
         XCTAssertTrue(element("roamSub.w208.history.tool.recap", app).exists)
         XCTAssertTrue(revealFixtureElement(element("roamSub.w208.history.runCard", app), in: app, requiresHittable: false))
         element("roamSub.w208.history.tool.export", app).tap()
-        XCTAssertTrue(element("roamSub.w208.history.exportUnavailable", app).waitForExistence(timeout: 5))
+        XCTAssertTrue(element("roam.export.screen", app).waitForExistence(timeout: 5))
     }
 
     func testSharedFootprintReadyGoneErrorAndUnavailable() {

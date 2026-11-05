@@ -1678,61 +1678,64 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This roam has not ended yet. History lists settled roams only; go back to the map to continue."
+            "value" : "It will be listed here when it ends."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这次漫游还没结束，历史只收录结算过的记录；回到地图可以接着走"
+            "value" : "结束后收录。"
           }
         }
       }
     },
     "roam.historyLocal.finishPending" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Walk completion needs checking"
+            "value" : "Your last roam needs checking"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "漫游结束状态待核对"
+            "value" : "上次漫游需要核对"
           }
         }
       }
     },
     "roam.historyLocal.finishPendingHint" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This device retains an unfinished completion record. The server result is not confirmed here. Open the roaming screen to review its recovery status."
+            "value" : "Open Roam to check it."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本机仍保留待处理的结束记录，此处未确认服务器结果。可打开漫游页面查看恢复状态。"
+            "value" : "打开漫游页面核对。"
           }
         }
       }
     },
     "roam.historyLocal.unreadable" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unfinished-walk data could not be read. Your local data has not been changed; try reading again."
+            "value" : "Couldn't check for an unfinished roam."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未能读取未结束漫游的数据。本地记录未被改动，可重新读取。"
+            "value" : "没能读取未结束的漫游。"
           }
         }
       }
@@ -127463,17 +127466,18 @@
       }
     },
     "roam.experience.historyEmptyHint" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This device keeps up to 50 settled journeys. Other devices and Flutter history are not imported automatically."
+            "value" : "Go out for your first roam."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本机最多保留50次已结算漫游，不会自动导入其他设备或Flutter的记录"
+            "value" : "出发第一次漫游吧。"
           }
         }
       }
@@ -127495,17 +127499,18 @@
       }
     },
     "roam.experience.historyUnreadable" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your roaming records could not be read. They have not been replaced."
+            "value" : "Your roam history couldn't be loaded."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "漫游记录读不出来，原记录未被覆盖"
+            "value" : "漫游记录加载失败。"
           }
         }
       }
@@ -127719,17 +127724,18 @@
       }
     },
     "roam.experience.offline" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Example content. No real journey, reward or photo."
+            "value" : "Example content"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "示例内容，不代表真实行程、奖励或照片。"
+            "value" : "示例内容"
           }
         }
       }
@@ -127783,17 +127789,18 @@
       }
     },
     "roam.experience.readFailed" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This information could not be read. Try again."
+            "value" : "This didn't load. Try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂时无法读取，请重试"
+            "value" : "加载失败，请重试。"
           }
         }
       }
@@ -202960,6 +202967,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "再走近 %lld 米"
+          }
+        }
+      }
+    },
+    "roam.history.km" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "km"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "公里"
+          }
+        }
+      }
+    },
+    "roam.history.trips" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Roams"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "次漫游"
+          }
+        }
+      }
+    },
+    "roam.history.shops" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shops"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "家店"
           }
         }
       }

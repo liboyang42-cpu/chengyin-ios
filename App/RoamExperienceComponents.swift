@@ -1,11 +1,14 @@
 import SwiftUI
 
+/// Example-content marker for offline samples only; live screens show nothing here.
 struct RoamExperienceNotice: View {
     let offline: Bool
     var body: some View {
-        Label(offline ? "roam.experience.offline" : "roam.experience.readOnly", systemImage: offline ? "testtube.2" : "lock.shield")
-            .font(.caption).foregroundStyle(.secondary)
-            .accessibilityIdentifier("roam.experience.notice")
+        if offline {
+            Label("roam.experience.offline", systemImage: "testtube.2")
+                .font(.caption).foregroundStyle(.secondary)
+                .accessibilityIdentifier("roam.experience.notice")
+        }
     }
 }
 struct RoamExperienceIssue: View {
