@@ -17,6 +17,7 @@ import SwiftUI
     var onRetryContinuation: (() -> Void)? = nil
     let onDestination: (HomeFeedDestination) -> Void
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @StateObject private var model = HomeFeedModel()
     @State private var kind: HomeFeedKind = .topics
     @State private var keyword = ""
@@ -34,7 +35,6 @@ import SwiftUI
                 ProgressView("homeFeed.loading")
             } else {
                 List {
-                    if model.loading { ProgressView("homeFeed.loading") }
                     if showsHeroBanners || viewerNickname != nil || selectedCity != nil || onActionBanner != nil {
                         HomeHeroHeaderSectionView(nickname: viewerNickname, selectedCity: selectedCity, avatarSource: viewerAvatar) { banner in
                             if banner.id == "activity_list" { kind = .activities }
@@ -131,7 +131,7 @@ import SwiftUI
                 .tabViewStyle(.page(indexDisplayMode: model.banners.count > 1 ? .always : .never))
                 .frame(height: 196)
                 .questifyCardListRow()
-            } header: { Text("homeFeed.featured") }
+            }
         }
     }
     private func bannerArtwork(_ banner: DiscoveryBanner) -> some View {
@@ -148,20 +148,44 @@ import SwiftUI
         }
         .padding(.bottom, model.banners.count > 1 ? 24 : 0)
     }
+    /// Mini-program `sec-reco` / `sec-nearby` / `sec-upcoming`: a titled horizontal rail each, with its own
+    /// loading, failure and empty state. 即将上线 disappears once it has loaded with nothing in it.
     @ViewBuilder private func feedSection(_ section: HomeFeedSection) -> some View {
         let permit = model.permit(reader)
-        Section {
-            if model.failedSections.contains(section) {
-                retry("homeFeed.loadError", id: section.rawValue) { model.schedule(.section(section), reader: reader, permit: permit) }
-            } else if let items = model.sections[section] {
-                if items.isEmpty { Text("homeFeed.sectionEmpty").foregroundStyle(.secondary) }
-                ForEach(items) { item in row(item, section: section.rawValue) }
-            }
-        } header: {
-            switch section {
-            case .recommended: Text("homeFeed.recommended")
-            case .nearby: Text("homeFeed.activityHighlights")
-            case .upcoming: Text("homeFeed.upcoming")
+        let items = model.sections[section]
+        let failed = model.failedSections.contains(section)
+        let hidesEmptyUpcoming = section == .upcoming && !failed && (items?.isEmpty ?? !model.loading)
+        if !hidesEmptyUpcoming {
+            Section {
+                if failed {
+                    retry("homeFeed.loadError", id: section.rawValue) { model.schedule(.section(section), reader: reader, permit: permit) }
+                } else if let items {
+                    if items.isEmpty {
+                        Text(section == .recommended ? LocalizedStringKey("homeFeed.editorsPicksEmpty") : LocalizedStringKey("homeFeed.activitiesEmpty"))
+                            .foregroundStyle(.secondary)
+                    } else if dynamicTypeSize.isAccessibilitySize {
+                        ForEach(items) { item in row(item, section: section.rawValue) }
+                    } else {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            LazyHStack(spacing: 12) {
+                                ForEach(items) { item in
+                                    row(item, section: section.rawValue).frame(width: 280)
+                                }
+                            }
+                            .scrollTargetLayout()
+                        }
+                        .scrollTargetBehavior(.viewAligned)
+                        .questifyCardListRow()
+                    }
+                } else if model.loading {
+                    ProgressView().frame(maxWidth: .infinity, minHeight: 88)
+                }
+            } header: {
+                switch section {
+                case .recommended: Text("homeFeed.editorsPicks")
+                case .nearby: Text("homeFeed.activityHighlights")
+                case .upcoming: Text("homeFeed.upcoming")
+                }
             }
         }
     }
