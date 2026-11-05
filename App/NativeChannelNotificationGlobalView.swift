@@ -22,7 +22,7 @@ struct NativeChannelNotificationGlobalNavigation {
 @MainActor struct NativeChannelNotificationGlobalView: View {
     @Environment(\.locale) private var locale
     @Environment(\.themeDomain) private var domain
-    private func n(_ key: String) -> String { NativeChannelNotificationPresentation.localized("notification." + key, locale: locale) }
+    private func c(_ key: String) -> String { NativeChannelNotificationCopy.text(key, locale: locale) }
     @Bindable var model: NativeChannelNotificationCoordinator
     let permission: NativeNotificationPermissionState
     let makeConversation: (NativeChannelNotificationScope) -> NativeChannelNotificationCoordinator?
@@ -37,44 +37,38 @@ struct NativeChannelNotificationGlobalNavigation {
             NativeChannelNotificationStatusSection(model: model, perform: { perform($0, expected: ticket) })
             Section { NativeChannelUnreadSummaryContent(model: model) }
             Section {
-                NavigationLink { NativeNotificationPermissionNudgeView(model: permission) } label: {
-                    Label(permission.snapshot.map { NativeChannelNotificationPresentation.authorization($0.authorization, locale: locale) } ?? n("permission.waiting"), systemImage: "bell.badge")
-                }.accessibilityIdentifier("notification.global.permission")
+                NativeChannelNotificationPermissionRow(permission: permission)
+                    .accessibilityIdentifier("notification.global.permission")
             }
             if let directory = model.directory {
                 Section {
-                    LabeledContent(n("global.serverFallback"), value: NativeChannelNotificationPresentation.level(directory.defaults.effectiveLevel, locale: locale))
                     if let scope = model.accountDefaultScope {
-                        Button { open(scope, expected: ticket) } label: { Text(n("global.accountDefault")) }
-                            .accessibilityIdentifier("notification.global.defaults")
+                        Button { open(scope, expected: ticket) } label: {
+                            NativeChannelNotificationGlobalRow(title: c("global.defaultLevel"),
+                                value: NativeChannelNotificationCopy.level(directory.defaults.effectiveLevel, locale: locale))
+                        }
+                        .accessibilityIdentifier("notification.global.defaults")
                     } else {
-                        Text(n("global.missingDefaults"))
+                        LabeledContent(c("global.defaultLevel"), value: NativeChannelNotificationCopy.level(directory.defaults.effectiveLevel, locale: locale))
                     }
-                } header: { Text(n("global.defaultLevel")) }
+                }
                 Section {
                     let overrides = directory.list.filter { !$0.scope.isAccountDefault }
-                    if overrides.isEmpty { Text(n("global.noOverrides")) }
+                    if overrides.isEmpty { Text(c("global.noOverrides")).foregroundStyle(.secondary) }
                     ForEach(overrides) { row in
                         Button { open(row.scope, expected: ticket) } label: {
-                            VStack(alignment: .leading, spacing: Theme.Space.s1) {
-                                Text(NativeChannelNotificationPresentation.format(row.scope.type == 1 ? "notification.global.channelScope" : "notification.global.clubScope", locale: locale, row.scope.value))
-                                Text(NativeChannelNotificationPresentation.format("notification.global.rowSummary", locale: locale, NativeChannelNotificationPresentation.level(row.level, locale: locale), NativeChannelNotificationPresentation.effective(row, locale: locale)))
-                                    .font(Theme.Font.label).foregroundStyle(Theme.Color.textSecondary(in: domain))
-                            }
-                            .fixedSize(horizontal: false, vertical: true)
+                            NativeChannelNotificationGlobalRow(title: c(row.scope.type == 1 ? "global.channelScope" : "global.clubScope"),
+                                value: NativeChannelNotificationCopy.level(row.effective.level, locale: locale))
                         }
                     }
-                } header: { Text(n("global.savedOverrides")) } footer: { Text(n("global.overrideBoundary")) }
+                } header: { Text(c("global.savedOverrides")) }
             }
-            Section { Button(n("global.refresh")) {
-                perform({ await $0.refresh() }, expected: ticket)
-            }.disabled(model.isBusy || screenTask != nil) }
         }
         .nativeChannelScreen()
-        .font(Theme.Font.body)
         .tint(Theme.Color.accent(in: domain))
         .navigationTitle(NativeChannelNotificationPresentation.localized("notification.global.title", locale: locale))
         .accessibilityIdentifier("notification.global.screen")
+        .refreshable { await pullToRefresh(expected: ticket) }
         // Outside directory/ForEach: parent deactivation must still purge rows, but must
         // not remove the presentation that owns the original child settings flow.
         .navigationDestination(isPresented: destinationBinding) {
@@ -100,6 +94,10 @@ struct NativeChannelNotificationGlobalNavigation {
         if let accountDefault = model.accountDefaultScope { scopes.append(accountDefault) }
         navigation.open(scope, currentScopes: scopes,
             canOpen: owns(expected) && screenTask == nil && model.isCurrent && !model.isBusy)
+    }
+    private func pullToRefresh(expected: UInt64) async {
+        guard !model.isBusy else { return }
+        perform({ await $0.refresh() }, expected: expected)
     }
     private func suspend() {
         screenGeneration &+= 1
@@ -129,5 +127,18 @@ struct NativeChannelNotificationGlobalNavigation {
     }
     private func owns(_ ticket: UInt64) -> Bool {
         visible && scenePhase == .active && screenGeneration == ticket
+    }
+}
+
+/// A settings row that pushes a page through the screen's own navigation owner.
+private struct NativeChannelNotificationGlobalRow: View {
+    let title: String
+    let value: String
+    var body: some View {
+        HStack {
+            LabeledContent(title, value: value).foregroundStyle(.primary)
+            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+                .accessibilityHidden(true)
+        }
     }
 }
