@@ -214,10 +214,8 @@ import Combine
     }
     var body: some View {
         Form {
-            Section {
-                QuestifyStatusBadge(title: "templateAuthor.localBadge", systemImage: "square.and.pencil")
-                Text(LocalizedStringKey(model.coordinator.canSubmit ? "templateAuthor.httpReview" : "templateAuthor.unavailable")).foregroundStyle(.secondary)
-                if model.coordinator.session == nil { Text("templateAuthor.signIn").accessibilityIdentifier("templateAuthor.signIn") }
+            if model.coordinator.session == nil {
+                Section { Text("templateAuthor.signIn").accessibilityIdentifier("templateAuthor.signIn") }
             }
             restoreSection
             if model.coordinator.session != nil {
@@ -275,11 +273,8 @@ import Combine
         }
     }
     private var intro: some View {
-        Section("templateAuthor.introTitle") {
-            Text("templateAuthor.introBody")
-            Label("templateAuthor.introFinish", systemImage: "checkmark.circle")
-            Label("templateAuthor.introStory", systemImage: "book")
-            Label("templateAuthor.introReward", systemImage: "gift")
+        // Mini-program publish/template-intro: covers, value proposition, 开始创建. No explanatory rows.
+        Section {
             TemplateAuthoringIntroExperience(model: model, reader: metadataReader, onContinue: { step = .name })
         }
     }

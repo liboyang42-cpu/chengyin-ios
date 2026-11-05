@@ -146417,17 +146417,18 @@
       }
     },
     "templateAuthor.signIn" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sign in to access your account-scoped drafts."
+            "value" : "Sign in to create and keep your drafts."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "登录后访问当前账号的本地草稿。"
+            "value" : "登录后创建并保存草稿"
           }
         }
       }

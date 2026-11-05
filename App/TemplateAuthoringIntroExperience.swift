@@ -103,40 +103,56 @@ import Combine
     var body: some View {
         let key = LoadKey(scope:controller.scope(),readerRevision:readerRevision,active:scenePhase == .active)
         let permit = controller.permit(), advance = controller.continueAction(onContinue)
-        VStack(alignment:.leading,spacing:16) {
-            Text("creatorIntro.examples", tableName:"CreatorIntroExamples").font(.headline)
+        // Mini-program publish/template-intro: real featured covers, the two-line value
+        // proposition, then one primary action (开始创建). No captions, no second exit.
+        VStack(alignment:.leading,spacing:20) {
             if let examples = controller.visibleExamples, !examples.rows.isEmpty {
-                ForEach(Array(examples.rows.enumerated()),id:\.offset) { index, item in
-                    VStack(alignment:.leading,spacing:6) {
-                        DiscoveryArtwork(source:item.imgUrl,height:120)
-                        Text(verbatim:examples.categoryName(at:index))
-                            .font(.caption2.weight(.medium))
-                            .foregroundStyle(.secondary)
-                            .accessibilityIdentifier("creatorIntro.example.category.\(index)")
-                        if item.title.isEmpty { Text("creatorIntro.unnamed",tableName:"CreatorIntroExamples") }
-                        else { Text(verbatim:item.title).font(.subheadline.bold()) }
-                    }.accessibilityElement(children:.combine).accessibilityIdentifier("creatorIntro.example.\(index)")
+                HStack(alignment:.top,spacing:10) {
+                    ForEach(Array(examples.rows.enumerated()),id:\.offset) { index, item in
+                        VStack(alignment:.leading,spacing:6) {
+                            DiscoveryArtwork(source:item.imgUrl,height:150)
+                                .frame(maxWidth:.infinity)
+                                .clipShape(RoundedRectangle(cornerRadius:14,style:.continuous))
+                            Text(verbatim:examples.categoryName(at:index))
+                                .font(.caption2.weight(.medium))
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .accessibilityIdentifier("creatorIntro.example.category.\(index)")
+                            Group {
+                                if item.title.isEmpty { Text("creatorIntro.unnamed",tableName:"CreatorIntroExamples") }
+                                else { Text(verbatim:item.title) }
+                            }.font(.footnote.weight(.semibold)).lineLimit(2)
+                        }
+                        .frame(maxWidth:.infinity,alignment:.leading)
+                        .accessibilityElement(children:.combine).accessibilityIdentifier("creatorIntro.example.\(index)")
+                    }
                 }
             } else {
                 switch controller.visiblePhase {
-                case .idle,.loading: ProgressView { Text("creatorIntro.loading",tableName:"CreatorIntroExamples") }
+                case .idle,.loading:
+                    ProgressView().frame(maxWidth:.infinity,minHeight:150)
                 case .failed:
-                    Text("creatorIntro.failed",tableName:"CreatorIntroExamples")
-                    Button(action:{ controller.load(permit) }) { Text("creatorIntro.retry",tableName:"CreatorIntroExamples") }
-                        .accessibilityIdentifier("creatorIntro.retry")
-                case .empty,.ready: Text("creatorIntro.empty",tableName:"CreatorIntroExamples")
-                case .unavailable: Text("creatorIntro.unavailable",tableName:"CreatorIntroExamples")
+                    VStack(alignment:.leading,spacing:8) {
+                        Text("creatorIntro.failed",tableName:"CreatorIntroExamples").font(.footnote).foregroundStyle(.red)
+                        Button(action:{ controller.load(permit) }) { Text("creatorIntro.retry",tableName:"CreatorIntroExamples") }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("creatorIntro.retry")
+                    }
+                case .empty,.ready: Text("creatorIntro.empty",tableName:"CreatorIntroExamples").font(.footnote).foregroundStyle(.secondary)
+                case .unavailable: EmptyView()
                 }
             }
-            Text("creatorIntro.scope",tableName:"CreatorIntroExamples").font(.caption).foregroundStyle(.secondary)
-            // Mini pages/publish/template-intro value proposition, shown above the shared exits.
-            VStack(alignment:.leading,spacing:2) { Text("publishParity.intro.lead"); Text("publishParity.intro.tail").font(.title3.bold()) }
-                .accessibilityElement(children:.combine).accessibilityIdentifier("publishParity.intro.value")
-            Button(action:advance) { Text("templateAuthor.begin") }
+            VStack(alignment:.leading,spacing:4) {
+                Text("publishParity.intro.lead").font(.title3)
+                Text("publishParity.intro.tail").font(.title2.bold())
+            }
+            .fixedSize(horizontal:false,vertical:true)
+            .accessibilityElement(children:.combine).accessibilityIdentifier("publishParity.intro.value")
+            Button(action:advance) { Text("templateAuthor.begin").frame(maxWidth:.infinity) }
+                .buttonStyle(.questifyPrimary).controlSize(.large)
                 .disabled(!controller.canContinue || scenePhase != .active).accessibilityIdentifier("templateAuthor.begin")
-            Button(action:advance) { Text("creatorIntro.skip",tableName:"CreatorIntroExamples") }
-                .disabled(!controller.canContinue || scenePhase != .active).accessibilityIdentifier("creatorIntro.skip")
         }
+        .padding(.vertical,8)
         .task(id:key) {
             guard scenePhase == .active else { controller.retire(); return }
             controller.activate(); let task = controller.load(controller.permit()); await task?.value
