@@ -1564,7 +1564,7 @@ struct ClubGovernanceEventView: View {
                 Picker("club.story.sections", selection: $tab) {
                     Text("club.story.route").tag(ClubStoryTab.route).accessibilityIdentifier("club.story.tab.route")
                     Text("club.story.play").tag(ClubStoryTab.play).accessibilityIdentifier("club.story.tab.play")
-                }.pickerStyle(.segmented).accessibilityIdentifier("club.story.tabs")
+                }.pickerStyle(.segmented).labelsHidden().listRowBackground(Color.clear).accessibilityIdentifier("club.story.tabs")
                 if presentation.chapters.isEmpty {
                     ClubStoryEmptyState(title: "club.story.noChapters", detail: "club.story.noRoute")
                 } else if tab == .route {
@@ -1581,7 +1581,7 @@ struct ClubGovernanceEventView: View {
                         } header: { ClubStoryChapterHeader(chapter: chapter) }
                     }
                 } else {
-                    chapterPicker(presentation.chapters)
+                    chapterPicker(presentation.chapters).listRowBackground(Color.clear)
                     if let chapter = presentation.chapters.first(where: { $0.id == selectedChapter }) ?? presentation.chapters.first {
                         playContent(chapter)
                     }

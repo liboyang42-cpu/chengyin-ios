@@ -24811,13 +24811,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The story is no longer available for this session. Refresh or return to the club."
+            "value" : "This story can't be shown right now. Refresh to try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前会话暂时无法查看剧情，请刷新或返回俱乐部。"
+            "value" : "暂时无法查看剧情，请刷新重试。"
           }
         }
       }
