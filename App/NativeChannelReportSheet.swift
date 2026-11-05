@@ -9,45 +9,85 @@ import SwiftUI
             Group {
                 if owner.isCurrent {
                     Form {
-                        if let message = owner.messageID { Text("消息 \(message)").fixedSize(horizontal: false, vertical: true) }
                         switch owner.state {
                         case .reviewing:
-                            Picker("举报原因", selection: Binding(get: { owner.selectedReason }, set: { owner.select(reason: $0, note: owner.note) })) {
-                                Text("请选择原因").tag(Optional<NativeChannelReportReason>.none)
-                                ForEach(NativeChannelReportReason.allCases) { reason in
-                                    Text(reason.title).tag(Optional(reason))
+                            Section {
+                                Picker(selection: Binding(get: { owner.selectedReason }, set: { owner.select(reason: $0, note: owner.note) })) {
+                                    Text("d7.channelReport.choose").tag(Optional<NativeChannelReportReason>.none)
+                                    ForEach(NativeChannelReportReason.allCases) { reason in
+                                        Text(NativeChannelReportPresentation.reasonKey(reason)).tag(Optional(reason))
+                                    }
+                                } label: { Text("d7.channelReport.reason") }
+                                TextField("d7.channelReport.note", text: Binding(get: { owner.note }, set: { owner.select(reason: owner.selectedReason, note: $0) }), axis: .vertical).lineLimit(3...8)
+                                if owner.note.utf16.count > 500 {
+                                    Text("d7.channelReport.noteTooLong").font(.footnote).foregroundStyle(.red)
                                 }
                             }
-                            TextField("补充说明（选填，最多 500 字）", text: Binding(get: { owner.note }, set: { owner.select(reason: owner.selectedReason, note: $0) }), axis: .vertical).lineLimit(3...8)
-                            Text("提交只表示已进入原审核队列，不代表内容已被判定违规或下架。")
-                            Button("确认提交举报") { Task { await owner.submit() } }.nativeChannelFlowAction()
-                                .disabled(!owner.canSubmit || owner.selectedReason == nil || owner.note.utf16.count > 500)
-                        case .submitting, .reading: ProgressView()
+                            Section {
+                                Button { Task { await owner.submit() } } label: { Text("d7.channelReport.submit").frame(maxWidth: .infinity) }
+                                    .nativeChannelFlowAction()
+                                    .disabled(!owner.canSubmit || owner.selectedReason == nil || owner.note.utf16.count > 500)
+                            }
+                        case .submitting, .reading: ProgressView().frame(maxWidth: .infinity)
                         case .unknown:
-                            NativeChannelFlowNotice(title:Text("结果尚未确认。保留原举报请求，不会自动重复提交。"),symbol:"clock.arrow.circlepath")
-                            if let reason = owner.selectedReason { Text(reason.title) }
-                            Button("读取原举报结果") { Task { await owner.recover() } }.disabled(!owner.canRecover)
-                            Button("核对原结果后重试同一请求") { Task { await owner.submit() } }.disabled(!owner.canSubmit)
-                            Text("先读取原回执；只有原服务明确允许原请求重试时才发送相同内容。未知或处理中不会重发。")
-                        case .acknowledged(let reportID, let status):
-                            Text("已确认原举报记录：\(reportID)").fixedSize(horizontal: false, vertical: true)
-                            Text("当前状态：\(status)").fixedSize(horizontal: false, vertical: true)
-                            Text("这不是对消息违规或下架的判定。")
-                        case .unavailable: NativeChannelFlowNotice(title:Text("原请求记录或当前权限不可用，未发送新请求。"),symbol:"lock.shield")
-                        case .idle: Text("请先选择要举报的原消息。")
+                            Section {
+                                NativeChannelFlowNotice(title: Text("d7.channelReport.unknown"), symbol: "clock.arrow.circlepath")
+                                if let reason = owner.selectedReason {
+                                    LabeledContent { Text(NativeChannelReportPresentation.reasonKey(reason)) } label: { Text("d7.channelReport.reason") }
+                                }
+                                Button("d7.channelReport.check") { Task { await owner.recover() } }.disabled(!owner.canRecover)
+                                Button("d7.channelReport.retry") { Task { await owner.submit() } }.disabled(!owner.canSubmit)
+                            }
+                        case .acknowledged(_, let status):
+                            Section {
+                                Label("d7.channelReport.submitted", systemImage: "checkmark.circle")
+                                LabeledContent { NativeChannelReportPresentation.status(status) } label: { Text("d7.channelReport.status") }
+                            }
+                        case .unavailable:
+                            NativeChannelFlowNotice(title: Text("d7.channelReport.unavailable"), symbol: "lock.shield")
+                        case .idle:
+                            Text("d7.channelReport.idle")
                         }
                     }
                     .formStyle(.grouped)
-                    .font(Theme.Font.body)
-                    .foregroundStyle(Theme.Color.textPrimary(in: domain))
-                } else { Text("会话权限已变化，已隐藏原操作。") }
+                } else {
+                    ContentUnavailableView { Label("d7.channelReport.unavailable", systemImage: "lock.shield") }
+                }
             }
-            .font(Theme.Font.body)
-            .foregroundStyle(Theme.Color.textPrimary(in: domain))
             .nativeChannelFlowPage()
-            .navigationTitle("举报消息")
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("关闭") { dismiss() } } }
+            .navigationTitle(Text("d7.channelReport.title"))
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { dismiss() } } }
         }
-        .tint(Theme.Color.accent(in: domain))
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+    }
+}
+
+/// Display only. Server reason and status values are never derived from this copy.
+@MainActor enum NativeChannelReportPresentation {
+    static func reasonKey(_ reason: NativeChannelReportReason) -> LocalizedStringKey {
+        switch reason {
+        case .dangerous: return "d7.channelReport.reason.dangerous"
+        case .minorSafety: return "d7.channelReport.reason.minorSafety"
+        case .selfHarm: return "d7.channelReport.reason.selfHarm"
+        case .sexualContent: return "d7.channelReport.reason.sexualContent"
+        case .harassment: return "d7.channelReport.reason.harassment"
+        case .hate: return "d7.channelReport.reason.hate"
+        case .fraud: return "d7.channelReport.reason.fraud"
+        case .impersonation: return "d7.channelReport.reason.impersonation"
+        case .falseInformation: return "d7.channelReport.reason.falseInformation"
+        case .spam: return "d7.channelReport.reason.spam"
+        case .privacy: return "d7.channelReport.reason.privacy"
+        case .intellectualProperty: return "d7.channelReport.reason.intellectualProperty"
+        case .other: return "d7.channelReport.reason.other"
+        }
+    }
+    /// Known server statuses read from the report table; anything else shows "—".
+    @ViewBuilder static func status(_ status: String) -> some View {
+        if ["ACCEPTED", "DUPLICATE", "PENDING", "REJECTED"].contains(status) {
+            Text(LocalizedStringKey("status." + status), tableName: "NativeChannelReport")
+        } else {
+            Text(verbatim: "—")
+        }
     }
 }
