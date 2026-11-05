@@ -24,6 +24,7 @@ public struct OrientSessionFailure: Error, Equatable {
 public enum OrientSessionWriteReceipt: Equatable {
     case session(OrientSessionView), task(OrientSessionTaskReceipt)
     case settlement(OrientSessionSettlement), alternative(OrientSessionAlternativeReceipt)
+    case sync(OrientSessionScoreSyncReceipt), review(OrientSessionScoreReviewReceipt)
 }
 
 /// Sixteen player routes verified at hengyin 58f4cc4; c6 current and alternative
@@ -85,6 +86,13 @@ public enum OrientSessionWriteReceipt: Equatable {
         guard value.sessionID == sessionID, value.scope == scope else { throw APIError.malformedResponse }
         return value
     }
+    public func leaderboard(sessionID: Int, token: String) async throws -> OrientSessionLeaderboard {
+        guard contract == .currentC6 else { throw OrientSessionFlowError.unsupportedContract }
+        try positive(sessionID)
+        let value: OrientSessionLeaderboard = try await execute(request("api/orient/scoring/session/\(sessionID)/leaderboard", token: token))
+        guard value.sessionID == sessionID else { throw APIError.malformedResponse }
+        return value
+    }
     /// Frozen sync is intrinsically idempotent and accepts no idempotency key or
     /// receipt kind. A timeout requires a score read, never fabricated SYNCED data.
     public func syncScore(sessionID: Int, token: String) async throws -> OrientSessionJSON {
@@ -111,6 +119,7 @@ public enum OrientSessionWriteReceipt: Equatable {
     public func write(_ pending: OrientSessionPending, token: String) async throws -> OrientSessionWriteReceipt {
         try pending.validate()
         let op = pending.operation
+        guard !op.needsC6Scoring || contract == .currentC6 else { throw OrientSessionFlowError.unsupportedContract }
         var fields: [String: String] = ["idempotencyKey": pending.key]
         if let id = op.sessionID { fields["sessionId"] = String(id) }
         let path: String
@@ -122,6 +131,11 @@ public enum OrientSessionWriteReceipt: Equatable {
         case .task(_, let task, let alternative):
             path = "api/play/orient/session/task/\(task)/result"; fields["alternativeTaskType"] = alternative?.rawValue
         case .settle(let id): path = "api/orient/scoring/session/\(id)/settle"; fields.removeValue(forKey: "sessionId")
+        case .sync(let id): path = "api/orient/scoring/session/\(id)/sync"; fields.removeValue(forKey: "sessionId")
+        case .appeal(_, let entry, let node, let reason):
+            path = "api/orient/scoring/appeal"; fields["entryId"] = entry.map(String.init)
+            fields["nodeId"] = node.map(String.init); fields["reason"] = reason
+        case .dispute(_, let reason): path = "api/orient/scoring/dispute"; fields["reason"] = reason
         case .alternative(_, let task, let instance, let evidence):
             path = "api/orient/task/alternative/submit"; json = true
             fields.removeValue(forKey: "sessionId"); fields.merge(pending.scope.fields) { _, new in new }
@@ -137,6 +151,7 @@ public enum OrientSessionWriteReceipt: Equatable {
     /// c6 can read their original scoped receipt; task-state never proves an attempt.
     public func receipt(_ pending: OrientSessionPending, resolvedPrepareSessionID: Int? = nil, token: String) async throws -> OrientSessionWriteReceipt {
         try pending.validate()
+        guard !pending.operation.needsC6Scoring || contract == .currentC6 else { throw OrientSessionFlowError.unsupportedContract }
         if case .alternative(let id, let task, let instance, _) = pending.operation {
             guard contract == .currentC6 else { throw OrientSessionFlowError.receiptUnresolved }
             _ = try await view(sessionID: id, scope: pending.scope, token: token)
@@ -149,7 +164,7 @@ public enum OrientSessionWriteReceipt: Equatable {
         _ = try await view(sessionID: id, scope: pending.scope, token: token)
         var fields = ["sessionId": String(id), "idempotencyKey": pending.key]
         let path: String
-        if case .settle = pending.operation { path = "api/orient/scoring/receipt"; fields["kind"] = "SETTLE" }
+        if let kind = pending.operation.scoreKind { path = "api/orient/scoring/receipt"; fields["kind"] = kind }
         else { path = "api/play/orient/session/receipt" }
         let receipt = try await receiptValue(request(path, fields: fields, token: token), pending: pending)
         if case .session(let value) = receipt, value.sessionID != id { throw APIError.malformedResponse }
@@ -173,6 +188,15 @@ public enum OrientSessionWriteReceipt: Equatable {
             let value: OrientSessionSettlement = try await execute(request)
             guard value.sessionID == id else { throw APIError.malformedResponse }
             return .settlement(value)
+        case .sync(let id):
+            let value: OrientSessionScoreSyncReceipt = try await execute(request)
+            guard value.sessionID == id, value.memberID == pending.owner.accountID, value.idempotencyKey == pending.key else { throw APIError.malformedResponse }
+            return .sync(value)
+        case .appeal, .dispute:
+            let value: OrientSessionScoreReviewReceipt = try await execute(request)
+            guard value.record.matches(pending), value.kind == nil || value.kind?.rawValue == pending.operation.scoreKind,
+                  request.httpMethod != "GET" || value.kind?.rawValue == pending.operation.scoreKind else { throw APIError.malformedResponse }
+            return .review(value)
         case .alternative(_, let task, _, let evidence):
             let value: OrientSessionAlternativeReceipt = try await execute(request, acceptedRejection: "ORIENT_ALT_VERIFY_FAILED")
             guard value.taskID == task, value.alternativeTaskType == evidence.type else { throw APIError.malformedResponse }
@@ -240,6 +264,7 @@ public enum OrientSessionWriteReceipt: Equatable {
                 errorCode: header.errorCode, message: header.msg, data: header.data)
         }
         do { return try JSONDecoder().decode(Envelope<Value>.self, from: bytes).data }
+        catch let error as OrientSessionFlowError { throw error }
         catch { throw APIError.malformedResponse }
     }
 }
