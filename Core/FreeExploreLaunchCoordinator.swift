@@ -56,6 +56,7 @@ import Foundation
         try begin(); defer { finish() }
         guard try pending.load() == nil else { stateValue = .outcomeUnknown; throw FreeExploreLaunchFailure.pendingConflict }
         try command.validate()
+        guard service.permitsReservationDispatch else { throw FreeExploreLaunchFailure.disabled }
         let owned = try await service.order(registrationID: command.registrationId); try check()
         try owned.validate(owner: service.session.accountID, registration: command.registrationId)
         let catalog = try await service.catalog(topicID: topicID); try check()
@@ -66,7 +67,9 @@ import Foundation
             throw FreeExploreLaunchFailure.disabled
         }
         // No future-time, opening-hours, payment, quota, penalty or money decisions locally.
-        try check(); try pending.save(command); stateValue = .outcomeUnknown
+        try check()
+        guard service.permitsReservationDispatch else { throw FreeExploreLaunchFailure.disabled }
+        try pending.save(command); stateValue = .outcomeUnknown
         orderValue = nil; quoteValue = nil
         do { _ = try await service.reserve(command); try check() }
         catch { try check(); throw FreeExploreLaunchFailure.outcomeUnknown }
@@ -94,6 +97,7 @@ import Foundation
         guard let command = try pending.load() else { throw FreeExploreLaunchFailure.invalid }
         if try await recover(command) != nil { return }
         try check()
+        guard service.permitsReservationDispatch else { throw FreeExploreLaunchFailure.disabled }
         let owned = try await service.order(registrationID: command.registrationId); try check()
         try owned.validate(owner: service.session.accountID, registration: command.registrationId)
         guard let bundle = owned.bundle else { throw FreeExploreLaunchFailure.disabled }
@@ -101,6 +105,7 @@ import Foundation
         guard catalog.topicId == bundle.order.topicId, catalog.productType == 2, catalog.reservationEnabled else {
             throw FreeExploreLaunchFailure.disabled
         }
+        guard service.permitsReservationDispatch else { throw FreeExploreLaunchFailure.disabled }
         do { _ = try await service.reserve(command); try check() }
         catch { try check(); throw FreeExploreLaunchFailure.outcomeUnknown }
         _ = try await recover(command)

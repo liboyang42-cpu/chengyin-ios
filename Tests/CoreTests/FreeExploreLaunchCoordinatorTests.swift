@@ -3,6 +3,85 @@ import Foundation
 @testable import QuestifyCore
 
 @MainActor final class FreeExploreLaunchCoordinatorTests: XCTestCase {
+    func testLocallyDisabledReservationDoesNotCreateAnUnknownOperation() async throws {
+        let session = try FX.session(), command = try FX.command(), transport = FXTransport()
+        transport.handler = { request in
+            try FX.response(request.url!.path.hasSuffix("catalog") ? FX.catalog : FX.order(command))
+        }
+        let pending = FreeExploreLaunchPendingStore(storage: FXStorage(), session: session)
+        let service = FreeExploreLaunchService(session: session, transport: transport, currentSession: { session })
+        let coordinator = try FreeExploreLaunchCoordinator(service: service, pending: pending)
+        do { try await coordinator.reserve(command, topicID: FX.id(88)); XCTFail("local grant is closed") }
+        catch { XCTAssertEqual(error as? FreeExploreLaunchFailure, .disabled) }
+        XCTAssertNil(try pending.load())
+        XCTAssertEqual(coordinator.state, .idle)
+        XCTAssertTrue(transport.requests.isEmpty)
+    }
+    func testLocalGrantRevokedDuringCatalogReadDoesNotSaveOrPost() async throws {
+        let session = try FX.session(), command = try FX.command(), transport = FXTransport()
+        var allowed = true
+        transport.handler = { request in
+            if request.url!.path.hasSuffix("catalog") {
+                allowed = false; return try FX.response(FX.catalog)
+            }
+            return try FX.response(FX.order(command))
+        }
+        let pending = FreeExploreLaunchPendingStore(storage: FXStorage(), session: session)
+        let service = FreeExploreLaunchService(session: session, transport: transport,
+            currentSession: { session }, reservationAllowed: { allowed })
+        let coordinator = try FreeExploreLaunchCoordinator(service: service, pending: pending)
+        do { try await coordinator.reserve(command, topicID: FX.id(88)); XCTFail("grant revoked") }
+        catch { XCTAssertEqual(error as? FreeExploreLaunchFailure, .disabled) }
+        XCTAssertNil(try pending.load())
+        XCTAssertEqual(coordinator.state, .idle)
+        XCTAssertTrue(transport.requests.allSatisfy { $0.httpMethod == "GET" })
+    }
+    func testClosedGrantStillRecoversOriginalReceiptAndOrder() async throws {
+        let session = try FX.session(), command = try FX.command(), transport = FXTransport()
+        let pending = FreeExploreLaunchPendingStore(storage: FXStorage(), session: session)
+        try pending.save(command)
+        transport.handler = { request in
+            if request.url!.path.hasSuffix("receipt") { return try FX.response(FX.receipt(command)) }
+            return try FX.response(FX.order(command, reservations: [FX.receipt(command)], unitStatus: "RESERVED"))
+        }
+        let service = FreeExploreLaunchService(session: session, transport: transport, currentSession: { session })
+        let coordinator = try FreeExploreLaunchCoordinator(service: service, pending: pending)
+        try await coordinator.retryOriginalReservation()
+        XCTAssertEqual(coordinator.state, .confirmed); XCTAssertNil(try pending.load())
+        XCTAssertEqual(transport.requests.compactMap { $0.url?.path },
+            ["/api/free-explore/bundle/reservation/receipt", "/api/free-explore/bundle/order"])
+        XCTAssertTrue(transport.requests.allSatisfy { $0.httpMethod == "GET" })
+    }
+    func testClosedGrantAndNullReceiptRetainOriginalPendingWithoutPost() async throws {
+        let session = try FX.session(), command = try FX.command(), transport = FXTransport()
+        let pending = FreeExploreLaunchPendingStore(storage: FXStorage(), session: session)
+        try pending.save(command)
+        transport.handler = { _ in try FX.response(NSNull()) }
+        let service = FreeExploreLaunchService(session: session, transport: transport, currentSession: { session })
+        let coordinator = try FreeExploreLaunchCoordinator(service: service, pending: pending)
+        do { try await coordinator.retryOriginalReservation(); XCTFail("local grant is closed") }
+        catch { XCTAssertEqual(error as? FreeExploreLaunchFailure, .disabled) }
+        XCTAssertEqual(try pending.load(), command); XCTAssertEqual(coordinator.state, .outcomeUnknown)
+        XCTAssertEqual(transport.requests.count, 1)
+        XCTAssertEqual(transport.requests.first?.httpMethod, "GET")
+        XCTAssertEqual(transport.requests.first?.url?.query, "idempotencyKey=" + command.idempotencyKey)
+    }
+    func testGrantRevokedAfterPersistenceKeepsRecoveryRecordAndBlocksPost() async throws {
+        let session = try FX.session(), command = try FX.command(), transport = FXTransport(), storage = FXStorage()
+        var allowed = true
+        storage.onWrite = { allowed = false }
+        transport.handler = { request in
+            try FX.response(request.url!.path.hasSuffix("catalog") ? FX.catalog : FX.order(command))
+        }
+        let pending = FreeExploreLaunchPendingStore(storage: storage, session: session)
+        let service = FreeExploreLaunchService(session: session, transport: transport,
+            currentSession: { session }, reservationAllowed: { allowed })
+        let coordinator = try FreeExploreLaunchCoordinator(service: service, pending: pending)
+        do { try await coordinator.reserve(command, topicID: FX.id(88)); XCTFail("grant revoked before dispatch") }
+        catch { XCTAssertEqual(error as? FreeExploreLaunchFailure, .outcomeUnknown) }
+        XCTAssertEqual(try pending.load(), command); XCTAssertEqual(coordinator.state, .outcomeUnknown)
+        XCTAssertTrue(transport.requests.allSatisfy { $0.httpMethod == "GET" })
+    }
     func testUnknownPostRelaunchRecoversOriginalReceiptThenOrderWithoutSecondPost() async throws {
         let session = try FX.session(), command = try FX.command(), storage = FXStorage(), transport = FXTransport()
         let pending = FreeExploreLaunchPendingStore(storage: storage, session: session)

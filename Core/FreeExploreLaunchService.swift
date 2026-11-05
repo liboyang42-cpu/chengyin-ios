@@ -27,11 +27,17 @@ public struct FreeExploreLaunchSession: Equatable {
 @MainActor public protocol FreeExploreLaunchServing: AnyObject {
     var session: FreeExploreLaunchSession { get }
     var isCurrent: Bool { get }
+    var permitsReservationDispatch: Bool { get }
     func catalog(topicID: FreeExploreLaunchID) async throws -> FreeExploreLaunchCatalog
     func order(registrationID: FreeExploreLaunchID) async throws -> FreeExploreLaunchOrder
     func reserve(_ command: FreeExploreLaunchReservationCommand) async throws -> FreeExploreLaunchReservation
     func receipt(_ command: FreeExploreLaunchReservationCommand) async throws -> FreeExploreLaunchReservation?
     func refundQuote(registrationID: FreeExploreLaunchID) async throws -> FreeExploreLaunchRefundQuote
+}
+
+public extension FreeExploreLaunchServing {
+    /// Existing readers remain read-only unless their own dispatch gate explicitly permits it.
+    var permitsReservationDispatch: Bool { false }
 }
 
 /// Frozen backend 58f4cc4. No checkout, payment, refund execution, redemption or passport.
@@ -42,6 +48,7 @@ public struct FreeExploreLaunchSession: Equatable {
     private let reservationAllowed: () -> Bool
     private let onUnauthorized: (FreeExploreLaunchSession) -> Void
     public var isCurrent: Bool { currentSession() == session }
+    public var permitsReservationDispatch: Bool { isCurrent && reservationAllowed() }
     public init(session: FreeExploreLaunchSession, transport: any HTTPTransport,
                 currentSession: @escaping () -> FreeExploreLaunchSession?,
                 reservationAllowed: @escaping () -> Bool = { false },
@@ -75,12 +82,12 @@ public struct FreeExploreLaunchSession: Equatable {
         return value
     }
     public func reserve(_ command: FreeExploreLaunchReservationCommand) async throws -> FreeExploreLaunchReservation {
-        try check(); guard reservationAllowed() else { throw FreeExploreLaunchFailure.disabled }
+        try check(); guard permitsReservationDispatch else { throw FreeExploreLaunchFailure.disabled }
         let body = try command.wireData()
         var request = try make("reservation", fields: [:]); request.httpMethod = "POST"; request.httpBody = body
         request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
         request.setValue(String(body.count), forHTTPHeaderField: "Content-Length")
-        try check(); guard reservationAllowed() else { throw FreeExploreLaunchFailure.disabled }
+        try check(); guard permitsReservationDispatch else { throw FreeExploreLaunchFailure.disabled }
         let value: FreeExploreLaunchReservation = try await execute(request)
         guard value.matches(command, owner: session.accountID) else { throw FreeExploreLaunchFailure.malformed }
         return value

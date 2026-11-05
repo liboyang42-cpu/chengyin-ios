@@ -18,10 +18,11 @@ final class FXTransport: HTTPTransport {
     var failWrite = false
     var ignoreWrite = false
     var ignoreRemove = false
+    var onWrite: (() -> Void)?
     func read(_ key: String) throws -> Data? { values[key] }
     func write(_ data: Data, key: String) throws {
         if failWrite { throw URLError(.cannotWriteToFile) }
-        if !ignoreWrite { values[key] = data }
+        if !ignoreWrite { values[key] = data; onWrite?() }
     }
     func remove(_ key: String) throws { if !ignoreRemove { values.removeValue(forKey: key) } }
 }
