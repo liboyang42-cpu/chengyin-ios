@@ -153,9 +153,28 @@ struct QuestifyApp: App {
             }
             .environment(\.locale, RegionalLaunchConfiguration.language(storedLanguage).locale)
             .tint(QuestifyPalette.accent)
+            #if DEBUG
+            .modifier(FixtureThemeDomainModifier(isFixture: sessionContainer.session == nil))
+            #endif
         }
     }
 }
+
+#if DEBUG
+/// Fixture roots skip the session roots, so they apply the same merchant-light, player-dark rule here.
+/// A test that sets its own appearance through launch arguments keeps it.
+private struct FixtureThemeDomainModifier: ViewModifier {
+    let isFixture: Bool
+    private var domain: ThemeDomain? {
+        let arguments = ProcessInfo.processInfo.arguments
+        guard isFixture, !arguments.contains("--uitesting-dark"), !arguments.contains("--uitesting-light") else { return nil }
+        return arguments.joined(separator: " ").lowercased().contains("merchant") ? .merchant : .player
+    }
+    func body(content: Content) -> some View {
+        if let domain { content.themeDomain(domain) } else { content }
+    }
+}
+#endif
 
 /// Preserve the app-scoped production session without constructing it in fixture mode.
 @MainActor

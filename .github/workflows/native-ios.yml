@@ -38,7 +38,7 @@ jobs:
         id: plan
         env:
           EVENT_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
-          MODE: ${{ inputs.mode || (github.ref_name == 'integration/wave2-20261019' && 'related' || 'full') }}
+          MODE: ${{ inputs.mode || ((github.ref_name == 'integration/wave2-20261019' || github.ref_name == 'integration/launch-20261204') && 'related' || 'full') }}
         run: |
           base="$EVENT_BASE"
           if [ -z "$base" ] || [ "$base" = 0000000000000000000000000000000000000000 ] || [ "${GITHUB_REF_NAME:-}" = "integration/wave2-20261019" ]; then base="$(git rev-parse HEAD^)"; fi
