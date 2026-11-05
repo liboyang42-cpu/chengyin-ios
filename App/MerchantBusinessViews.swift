@@ -430,7 +430,7 @@ import SwiftUI
     }
     private var state: MerchantBusinessCoordinator { model.coordinator }
     private var isRedemptionLedger: Bool { if case .redemptions = query { return true }; return false }
-    var body: some View {
+    private var pageContent: some View {
         let capturedCustomerRoute = customerQueryRoute
         let presentedReview = state.confirmation
         let presentedEditorID = editor?.id
@@ -597,6 +597,9 @@ import SwiftUI
                 Button("merchant.noteDraft.discard", role: .destructive) { noteDrafts.discard(ifGeneration: generation) }
                 Button("action.cancel", role: .cancel) { }
             } message: { _ in Text("merchant.noteDraft.discardBody") }
+    }
+    var body: some View {
+        pageContent
         .appNavigationTitle(key: query.titleKey)
         .modifier(MerchantCustomerContactStablePresentation(owner: model, flow: $customerContactFlow))
         .task(id: reader.scope) { await reload() }
