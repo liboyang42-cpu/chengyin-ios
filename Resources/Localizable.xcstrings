@@ -29559,13 +29559,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This account doesn't have a club yet. You can't create a club on this screen."
+            "value" : "You don't have a club yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前账号暂无俱乐部，此页面暂不支持创建俱乐部。"
+            "value" : "你还没有俱乐部。"
           }
         }
       }
@@ -29933,13 +29933,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "There are more registrations that can't be shown here yet."
+            "value" : "Showing the latest registrations."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "还有更多报名，此处暂无法显示。"
+            "value" : "仅显示最近的报名。"
           }
         }
       }
@@ -180260,13 +180260,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Invitation incomplete: the inviter, topic or terms are missing, so it cannot be handled yet"
+            "value" : "Invitation details are incomplete, so it can't be handled yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "邀请信息不完整：缺少邀请方、主题或合作条款，暂不能处理"
+            "value" : "邀请信息不完整，暂不能处理"
           }
         }
       }
