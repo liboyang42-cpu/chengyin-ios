@@ -18,7 +18,7 @@ jobs:
       - name: Capture screens
         run: |
           SIM=$(xcrun simctl list devices available -j | python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];print(next(x['udid'] for r in sorted(d,reverse=True) for x in d[r] if x['name'].startswith('iPhone 17')))")
-          xcodebuild -project Questify.xcodeproj -scheme Questify -configuration Debug -sdk iphonesimulator -destination "platform=iOS Simulator,id=$SIM" -only-testing:QuestifyUITests/DesignReviewCaptureTests -parallel-testing-enabled NO -resultBundlePath "$RUNNER_TEMP/review.xcresult" CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES test > "$RUNNER_TEMP/test.log" 2>&1 || { tail -40 "$RUNNER_TEMP/test.log"; echo TEST_FAILED; }
+          xcodebuild -project Questify.xcodeproj -scheme Questify -configuration Debug -sdk iphonesimulator -destination "platform=iOS Simulator,id=$SIM" -only-testing:QuestifyUITests/DesignReviewCaptureTests -parallel-testing-enabled NO -resultBundlePath "$RUNNER_TEMP/review.xcresult" CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES test > "$RUNNER_TEMP/test.log" 2>&1 || { grep -E 'error:|reasonable time' "$RUNNER_TEMP/test.log" | sed 's|/Users/runner/work/chengyin-ios/chengyin-ios/||' | sort -u | head -60; tail -25 "$RUNNER_TEMP/test.log"; echo TEST_FAILED; }
           mkdir -p "$RUNNER_TEMP/shots"
           xcrun xcresulttool export attachments --path "$RUNNER_TEMP/review.xcresult" --output-path "$RUNNER_TEMP/shots"
           ls "$RUNNER_TEMP/shots" | wc -l
