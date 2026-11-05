@@ -1,0 +1,168 @@
+# L5 followup handoff: base 08be33155c71d87d4008839fcf83f6cc22aef000, 2026-11-05.
+# Original b5db490454a4b4393ccb1b724068aed24d215e18 remains preserved on its original branch.
+# At this integration base NONE of the original four OrientSession Core files or tests were present.
+# Original PBX hunk no longer applied; this replacement is rebuilt against the exact current base.
+# Claude owns actual PBX, normal entry and composition. This lane edited only its Core/tests and this DIFF artifact.
+# Apply through Claude only; regenerate the shared CI manifest there. This lane runs no CI and posts no public comments.
+# The default service contract remains frozen58; no backend deployment or new route grant is assumed.
+# Explicit currentC6 refers to PUBLIC source c6eac3b8cebf7311e8f00f208d294c3c8212aaec, NOT proof it is deployed.
+# Verified c6 controllers: ApiOrientSessionController, ApiOrientTaskReceiptController, ApiOrientScoringController, OrientPlayerWire.
+# c6 service current() returns data.sessions; empty is []; null activity omits filter; zero is self-play.
+# IDs and byDimension/totalCenti may be exact decimal strings. They must never pass through Double.
+# New: current() read; discoverSessions(); selectSession() with an authoritative re-read; no auto-newest/first selection.
+# New: pending prepare can discover candidates and query each ORIGINAL KEY receipt; exactly one match is required.
+# Zero matches, ambiguous matches, transport errors or missing deployment preserve the pending operation and key.
+# A host may pass a deliberately chosen candidate to recoverPending(prepareSessionID:) to resolve ambiguity.
+# New: c6 alternative recovery reads /api/orient/task/alternative/receipt with original scope/task/instance/key, never guesses from task-state.
+# Reused: prepare/start/safety/task result/abandon/resume/finish observation/score/settlement and durable scoped recovery.
+# No /finish or POST /resume is invented. Page leave preserves server timing and pending records.
+# Complete journey still requires Claude normal play UI entry and exact approved endpoint paths in the existing fenced factory.
+# Host first verifies backend deployment/flags, explicitly supplies contract: .currentC6, then calls discoverSessions().
+# Display all sessions and require selectSession(sessionID:) for ordinary play; terminal rows cannot restart.
+# Prepare requires an authoritative EMPTY discovery list. If a pending record exists, recover it before another write.
+# After route advance establishes FINISHED, observeFinish reads score/team ranks; settlement is separately confirmed.
+# Dynamic /task/{realTaskId}/result and /scoring/session/{realSessionId}[/settle] still require exact approvals.
+# c6 unkeyed syncScore is deliberately blocked: c6 changed SYNC to keyed writes/receipts. Keyed SYNC, personal score
+# leaderboard, score appeal/dispute/manual-recovery UI are additional c6 score-workflow work, not claimed by this patch.
+# No backend, auth, RBAC, permissions, production, transaction rules or actual endpoint grants were changed.
+# Owner-reference mismatch: chengyin-ios #575 is 404; hengyin #575 is C09 channel replies, not Orient. Neither was rewritten.
+# Verification: Swift 6.0.3 Linux isolated actual-source target, 51 XCTest cases, original assertions unchanged.
+# Pure source target copies these four production files plus unchanged APIConfiguration/AuthRequestBuilder/AuthService/Account
+# from 08be331. Synthetic transport/storage tests are not live backend, full Core, Xcode, app, device or deployment validation.
+--- a/App/AppSession.swift
++++ b/App/AppSession.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import CryptoKit
+ import Combine
+ import SwiftUI
+ 
+@@ -2305,6 +2306,56 @@
+         return RuntimeDependencyFactory(api: api, configuration: runtimeDependencies.configuration,
+             transport: runtimeHTTPTransport,
+             current: { [weak self] in self?.currentRuntimeDependencyContext })
++    }
++    // Orient lifecycle grants remain explicit endpoint approvals in the existing factory.
++    // Dynamic score/task paths must also be approved for real server-issued IDs.
++    private var retainedOrientSessions: [String: OrientSessionCoordinator] = [:]
++    func orientSession(topicID: Int, activityID: Int, productType: Int, contract: OrientSessionContract = .frozen58) -> OrientSessionCoordinator? {
++        guard !committingAuthenticatedSession,
++              let scope = try? OrientSessionScope(topicID: topicID, activityID: activityID, productType: productType),
++              let api = regionalConfiguration?.apiConfiguration, let storageScope,
++              let captured = currentRuntimeDependencyContext,
++              let factory = runtimeDependencyFactory, let approved = factory.accepted,
++              approved.play.contains(.reads),
++              let owner = try? OrientSessionRecoveryOwner(namespace: storageScope.service,
++                  accountID: captured.session.accountID, role: captured.role),
++              let identity = try? OrientSessionIdentity(owner: owner, epoch: captured.session.epoch,
++                  token: captured.session.token) else { return nil }
++        var required: Set<String> = ["api/play/orient/session", "api/play/orient/session/prepare",
++            "api/play/orient/session/start", "api/play/orient/session/abandon", "api/play/orient/session/receipt",
++            "api/orient/safety/check", "api/orient/team/lobby", "api/orient/team/ranking"]
++        if contract == .currentC6 { required.insert("api/play/orient/session/current") }
++        let contractKey = contract == .currentC6 ? "c6" : "58"
++        guard required.isSubset(of: approved.endpoints.paths) else { return nil }
++        let viewer = compositionViewerRevision
++        let key = playRuntimeKey(.topic(topicID), suffix: "orient:\(contractKey):\(activityID):\(viewer):\(approved.endpoints.paths.sorted().joined(separator: "|"))")
++        if let retained = retainedOrientSessions[key] { return retained }
++        let current: () -> OrientSessionIdentity? = { [weak self] in
++            guard let self, self.compositionViewerRevision == viewer,
++                  self.currentRuntimeDependencyContext == captured,
++                  self.runtimeDependencyFactory?.accepted?.endpoints.paths == approved.endpoints.paths else { return nil }
++            return identity
++        }
++        do {
++            let support = try FileManager.default.url(for: .applicationSupportDirectory,
++                in: .userDomainMask, appropriateFor: nil, create: true)
++            let namespaceDigest = SHA256.hash(data: Data(owner.namespace.utf8))
++                .map { String(format: "%02x", $0) }.joined()
++            let slot = support.appendingPathComponent("OrientSessions", isDirectory: true)
++                .appendingPathComponent(namespaceDigest, isDirectory: true)
++                .appendingPathComponent(String(owner.accountID), isDirectory: true)
++                .appendingPathComponent(owner.role, isDirectory: true)
++                .appendingPathComponent("\(topicID)-\(activityID).json")
++            let recovery = try OrientSessionFileRecovery(fileURL: slot)
++            let coordinator = try OrientSessionCoordinator(scope: scope,
++                service: OrientSessionService(configuration: api, transport: factory.transport, contract: contract),
++                recovery: recovery, currentIdentity: current, onUnauthorized: { [weak self] lease in
++                    guard current() == lease else { return }
++                    self?.expireIfMatching(error: APIError.unauthorized, stamp: lease.epoch, credential: lease.token)
++                })
++            retainedOrientSessions[key] = coordinator
++            return coordinator
++        } catch { return nil }
+     }
+     private var currentPlayRuntimeSession: PlayExperienceSession? {
+         guard let account, let token, let namespace = storageScope?.service else { return nil }
+
+--- a/Questify.xcodeproj/project.pbxproj
++++ b/Questify.xcodeproj/project.pbxproj
+@@ -5,6 +5,46 @@
+ 	};
+ 	"objectVersion" = 56;
+ 	"objects" = {
++		"238803F900848A1EC5EBB85A" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/OrientSessionContracts.swift";
++			"sourceTree" = "<group>";
++		};
++		"59CAD4757E117185138E683B" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "238803F900848A1EC5EBB85A";
++		};
++		"5DE1772C75609AD06850C59F" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/OrientSessionCoordinator.swift";
++			"sourceTree" = "<group>";
++		};
++		"F1F0A0663004139FFBE679B7" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "5DE1772C75609AD06850C59F";
++		};
++		"0CEE604AA4ED9E24CD961C4F" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/OrientSessionRecovery.swift";
++			"sourceTree" = "<group>";
++		};
++		"A80DD3A7E7B19B22FA74C665" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "0CEE604AA4ED9E24CD961C4F";
++		};
++		"A5133F51975559ECE4787F9B" = {
++			"isa" = "PBXFileReference";
++			"lastKnownFileType" = "sourcecode.swift";
++			"path" = "Core/OrientSessionService.swift";
++			"sourceTree" = "<group>";
++		};
++		"78280BB23A5017F3B0E4C311" = {
++			"isa" = "PBXBuildFile";
++			"fileRef" = "A5133F51975559ECE4787F9B";
++		};
+ 		"630D1CFA5FEBD33A996B0FD1" = {
+ 			"isa" = "PBXFileReference";
+ 			"lastKnownFileType" = "sourcecode.swift";
+@@ -27298,6 +27338,10 @@
+ 		"19F479106CE8C3BA8C106518" = {
+ 			"isa" = "PBXGroup";
+ 			"children" = (
++				"238803F900848A1EC5EBB85A",
++				"5DE1772C75609AD06850C59F",
++				"0CEE604AA4ED9E24CD961C4F",
++				"A5133F51975559ECE4787F9B",
+ 				"630D1CFA5FEBD33A996B0FD1",
+ 				"BD8A1744099E3CC953FE9FFD",
+ 				"1C05F0EA73C477B9583A1D92",
+@@ -30891,6 +30935,10 @@
+ 			"isa" = "PBXSourcesBuildPhase";
+ 			"buildActionMask" = 2147483647;
+ 			"files" = (
++				"59CAD4757E117185138E683B",
++				"F1F0A0663004139FFBE679B7",
++				"A80DD3A7E7B19B22FA74C665",
++				"78280BB23A5017F3B0E4C311",
+ 				"F24AD3F36FD050591D646093",
+ 				"AE2CD2CAF671FB06CBA37E0D",
+ 				"30B1D308D233AC486091C54C",
