@@ -327,16 +327,16 @@
     "capability.MANAGE_ROLE": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "管理角色"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Manage roles"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理身份组"
           }
         }
       }
@@ -412,16 +412,16 @@
     "capability.READ_HISTORY": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "读取历史"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read history"
+            "value": "Read message history"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看历史消息"
           }
         }
       }
@@ -497,16 +497,16 @@
     "capability.VIEW_AUDIT": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "查看审计"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "View audit log"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看审计日志"
           }
         }
       }
@@ -1143,16 +1143,16 @@
     "note": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "说明（最多120字）"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Note (up to 120 characters)"
+            "value": "Note"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备注"
           }
         }
       }
@@ -1211,16 +1211,16 @@
     "operation.deleteOverwrite": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "删除权限覆盖，恢复继承"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Remove override and inherit"
+            "value": "Reset permissions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复默认权限"
           }
         }
       }
@@ -1245,16 +1245,16 @@
     "operation.putOverwrite": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "修改权限覆盖"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Edit permission override"
+            "value": "Change permissions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修改权限"
           }
         }
       }
@@ -1347,16 +1347,16 @@
     "permissionSubmissionUnavailable": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "权限修改暂不可提交。你可以核对设置，现有权限保持原状。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Permission changes cannot be submitted yet. You can review the settings; current permissions are preserved."
+            "value": "Permission changes can't be saved right now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法保存权限修改。"
           }
         }
       }
@@ -1364,16 +1364,16 @@
     "permissionTarget": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "覆盖对象"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Override target"
+            "value": "Applies to"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "适用对象"
           }
         }
       }
@@ -1398,16 +1398,16 @@
     "permissions": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "权限覆盖"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Permission overrides"
+            "value": "Permissions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "权限"
           }
         }
       }
@@ -1500,16 +1500,16 @@
     "reason": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "操作理由（必填，最多120字）"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reason (required, up to 120 characters)"
+            "value": "Reason"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "理由"
           }
         }
       }
@@ -1585,16 +1585,16 @@
     "removeOverwrite": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "删除覆盖，恢复继承"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Remove override and inherit"
+            "value": "Reset to inherited"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复为继承"
           }
         }
       }
@@ -2240,6 +2240,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "慢速模式（秒）"
+          }
+        }
+      }
+    },
+    "d7.channelManage.permissionsLoadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load permissions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法加载权限"
           }
         }
       }

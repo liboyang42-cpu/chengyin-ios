@@ -17,16 +17,16 @@ private func ncmPermissionText(_ key: String) -> Text { Text(LocalizedStringKey(
     var body: some View {
         Group {
             if model.isCurrent {
-                Form {
-                    if model.busy { Section { ProgressView() } }
-                    NativeChannelManagementIssueView(issue: localIssue ?? model.issue)
-                    if model.permissions?.channelID == channelID {
+                if model.permissions?.channelID == channelID {
+                    Form {
+                        if model.busy { Section { ProgressView().frame(maxWidth: .infinity) } }
+                        NativeChannelManagementIssueView(issue: localIssue ?? model.issue)
                         Section {
                             Picker(selection: $target) {
                                 ncmPermissionText("everyone").tag("1:0")
                                 ForEach(model.roles) { role in Text(role.name).fixedSize(horizontal: false, vertical: true).tag("2:\(role.id)") }
                             } label: { ncmPermissionText("permissionTarget") }
-                            TextField(localized("note"), text: $note, axis: .vertical).lineLimit(2...5)
+                            TextField(text: $note, prompt: ncmPermissionText("note"), axis: .vertical) { ncmPermissionText("note") }.lineLimit(2...5)
                         }
                         Section {
                             ForEach(NativeChannelManagementCapability.allCases.filter(\.available)) { capability in
@@ -38,34 +38,45 @@ private func ncmPermissionText(_ key: String) -> Text { Text(LocalizedStringKey(
                                     ncmPermissionText("deny").tag(2)
                                 } label: { ncmPermissionText("capability.\(capability.rawValue)").fixedSize(horizontal: false, vertical: true) }
                             }
-                        } header: { ncmPermissionText("permissions") } footer: { ncmPermissionText("inheritExplanation") }
-                        Section { TextField(localized("reason"), text: $reason, axis: .vertical).lineLimit(2...5) }
+                        } header: { ncmPermissionText("permissions") }
+                        Section { TextField(text: $reason, prompt: ncmPermissionText("reason"), axis: .vertical) { ncmPermissionText("reason") }.lineLimit(2...5) }
                         Section {
                             Button { prepare(remove: false) } label: { ncmPermissionText("review") }.nativeChannelFlowAction()
-                            if original != nil { Button(role: .destructive) { prepare(remove: true) } label: { ncmPermissionText("removeOverwrite") } }
-                            if !model.permissionWritesAvailable {
-                                ncmPermissionText("permissionSubmissionUnavailable").font(.caption).foregroundStyle(.secondary)
-                            }
                         }.disabled(model.busy || model.pending != nil)
+                        if original != nil {
+                            Section {
+                                Button(role: .destructive) { prepare(remove: true) } label: { ncmPermissionText("removeOverwrite") }
+                            }.disabled(model.busy || model.pending != nil)
+                        }
                         if let effective = model.effectivePermissions {
                             Section {
                                 ForEach(effective.names, id: \.self) { ncmPermissionText("capability.\($0)") }
                             } header: { ncmPermissionText("myEffectivePermissions") }
                         }
-                    } else if !model.busy {
+                    }
+                    .refreshable { await model.loadPermissions(channelID); selectOriginal() }
+                } else if model.busy {
+                    ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    ContentUnavailableView {
+                        Label { ncmPermissionText("d7.channelManage.permissionsLoadFailed") } icon: { Image(systemName: "lock.shield") }
+                    } actions: {
                         Button { Task { await model.loadPermissions(channelID); selectOriginal() } } label: { ncmPermissionText("refresh") }
                     }
                 }
             } else { NativeChannelManagementUnavailableView() }
         }
         .nativeChannelFlowPage()
-        .navigationTitle(localized("permissions"))
+        .navigationTitle(ncmPermissionText("permissions"))
         .task(id: channelID) { await model.loadPermissions(channelID); selectOriginal() }
         .onChange(of: target) { _, _ in selectOriginal() }
-        .sheet(isPresented: $reviews) { NavigationStack { NativeChannelManagementReviewView(model: model) } }
+        .sheet(isPresented: $reviews) {
+            NavigationStack { NativeChannelManagementReviewView(model: model) }
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
     }
     private var original: NativeChannelManagementOverwrite? { model.permissions?.overrides.first { $0.id == target } }
-    private func localized(_ key: String) -> String { String(localized: String.LocalizationValue(key), table: "NativeChannelManagement") }
     private func state(for capability: NativeChannelManagementCapability) -> Binding<Int> {
         Binding(get: { allow & capability.bit != 0 ? 1 : (deny & capability.bit != 0 ? 2 : 0) }, set: { value in
             allow &= ~capability.bit; deny &= ~capability.bit
