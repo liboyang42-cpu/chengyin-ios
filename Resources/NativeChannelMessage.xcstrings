@@ -227,96 +227,96 @@
     },
     "message.quote": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "引用"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Reply"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回复"
           }
         }
       }
     },
     "message.edit": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "编辑消息"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Edit message"
+            "value": "Edit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑"
           }
         }
       }
     },
     "message.recall": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "撤回消息"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recall message"
+            "value": "Recall"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤回"
           }
         }
       }
     },
     "message.recallConfirm": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "确认撤回这条消息？撤回结果以最终确认为准。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recall this message? We'll confirm whether the recall succeeded."
+            "value": "Recall this message?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认撤回这条消息？"
           }
         }
       }
     },
     "message.reason": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "撤回理由（管理他人消息须填写）"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recall reason (required when moderating another author)"
+            "value": "Reason (required for others' messages)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤回理由（撤回他人消息时必填）"
           }
         }
       }
     },
     "message.save": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保存编辑"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Save edit"
+            "value": "Save"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存"
           }
         }
       }
@@ -643,16 +643,16 @@
     },
     "revisions.title": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "编辑版本"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Edit revisions"
+            "value": "Edit history"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑记录"
           }
         }
       }
