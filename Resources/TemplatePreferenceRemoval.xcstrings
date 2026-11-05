@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only the selected question or option is removed from this local draft. Tie-break questions and results stay unchanged."
+            "value": "Only this question or option is removed. Tie-break questions and results stay."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅从本地草稿删除所选问题或选项。平局判定题及结果保持原样。"
+            "value": "仅删除所选问题或选项，平局题和结果保持不变。"
           }
         }
       }
@@ -70,13 +70,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scores, references and result reachability may change. Run Check JSON again after removal."
+            "value": "Scores and results may change. Check the questionnaire again afterwards."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "删除可能影响评分、引用和结果可达性。完成后请重新检查 JSON。"
+            "value": "评分和结果可能变化，删除后请重新检查问卷。"
           }
         }
       }
@@ -118,13 +118,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Remove from local draft"
+            "value": "Remove"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "从本地草稿删除"
+            "value": "删除"
           }
         }
       }
@@ -198,13 +198,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Removal is unavailable for this JSON or the review is no longer current. The source has not been changed."
+            "value": "This can't be removed here. Nothing changed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此 JSON 暂不支持删除，或当前预览已失效。原文未被修改。"
+            "value": "此项无法在此删除，内容未改变。"
           }
         }
       }

@@ -132,7 +132,6 @@ struct ProjectNodeBusinessHoursHostIdentity: Hashable {
                             .accessibilityIdentifier("projectNodeHours.begin")
                     }
                 }
-                Section { Text("projectNodeHours.scope", tableName: "ProjectNodeBusinessHours").font(.caption).fixedSize(horizontal: false, vertical: true) }
             }
             .navigationBarTitleDisplayMode(.inline).navigationTitle(Text("projectNodeHours.title", tableName: "ProjectNodeBusinessHours"))
             .toolbar {

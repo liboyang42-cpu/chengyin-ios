@@ -108,7 +108,6 @@ struct ProjectStoryVariableHostIdentity: Hashable {
                     }
                 }
                 Section {
-                    Text("projectStoryVariable.scope", tableName: "ProjectStoryVariableInsertion").font(.caption)
                     Text("projectStoryVariable.limit", tableName: "ProjectStoryVariableInsertion").font(.caption)
                 }
             }

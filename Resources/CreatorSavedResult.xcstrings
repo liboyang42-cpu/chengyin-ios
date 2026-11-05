@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Saved template ID"
+            "value": "Template number"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已保存的模板 ID"
+            "value": "模板编号"
           }
         }
       }

@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Member-template ID"
+            "value": "Template number"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "作品模板 ID"
+            "value": "模板编号"
           }
         }
       }
