@@ -127321,17 +127321,18 @@
       }
     },
     "roam.experience.distance" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recorded distance"
+            "value" : "Total distance"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已记录里程"
+            "value" : "总距离"
           }
         }
       }
@@ -127353,17 +127354,18 @@
       }
     },
     "roam.experience.duration" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recorded duration"
+            "value" : "Duration"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已记录时长"
+            "value" : "时长"
           }
         }
       }
@@ -127854,33 +127856,35 @@
       }
     },
     "roam.experience.recordMissingHint" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This is different from a read error. Only the latest 50 local journeys are kept."
+            "value" : "Go back to your roam history."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这与读取失败不同，本地仅保留最近50次行程"
+            "value" : "返回漫游记录看看。"
           }
         }
       }
     },
     "roam.experience.recordedPlaces" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recorded places"
+            "value" : "Places lit up"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已记录地点"
+            "value" : "点亮地点"
           }
         }
       }
@@ -128127,17 +128131,18 @@
       }
     },
     "roam.experience.shops" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recorded shops"
+            "value" : "Shops visited"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已记录店铺"
+            "value" : "探店"
           }
         }
       }
@@ -156466,13 +156471,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Replay saved route"
+            "value" : "Replay route"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "回放已保存路线"
+            "value" : "回放路线"
           }
         }
       }
@@ -156500,13 +156505,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Show complete route"
+            "value" : "Skip"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "跳到完整路线"
+            "value" : "跳过"
           }
         }
       }
@@ -156517,13 +156522,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saved route replay progress"
+            "value" : "Route replay"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已保存路线回放进度"
+            "value" : "路线回放"
           }
         }
       }
@@ -156534,13 +156539,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Replaying this saved route"
+            "value" : "Following your footsteps"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在回放本次已保存路线"
+            "value" : "正在沿足迹前进"
           }
         }
       }
@@ -156551,7 +156556,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Route replay complete"
+            "value" : "Replay complete"
           }
         },
         "zh-Hans" : {
@@ -156568,13 +156573,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Complete saved route. Replay when you choose."
+            "value" : "Full route · replay any time"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已显示完整保存路线，可随时选择回放。"
+            "value" : "完整足迹 · 可随时回放"
           }
         }
       }
@@ -161215,13 +161220,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Share this earned medal"
+            "value" : "Share medal"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "分享这枚已得勋章"
+            "value" : "分享勋章"
           }
         }
       }
@@ -203018,6 +203023,74 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "家店"
+          }
+        }
+      }
+    },
+    "roam.experience.explorePct" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Explored"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "探索度"
+          }
+        }
+      }
+    },
+    "roam.experience.rewards" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rewards unlocked"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解锁奖励"
+          }
+        }
+      }
+    },
+    "roam.experience.rewardsEmpty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No new rewards this time"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这次没有解锁新奖励"
+          }
+        }
+      }
+    },
+    "roam.experience.recordedPlacesEmpty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No new places this time"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这次没有点亮新地点"
           }
         }
       }

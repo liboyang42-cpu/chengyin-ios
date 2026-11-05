@@ -220,7 +220,6 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                 else if let record = currentRecord {
                     RoamExperienceCard {
                         VStack(alignment: .leading, spacing: 18) {
-                            Label("roam.experience.savedRecord", systemImage: "book.closed").font(.caption).foregroundStyle(.secondary)
                             RoamSessionParityHeader(record: record)
                             RoamSessionRouteNameText(name: RoamSessionRouteName(record)).font(.title3).bold()
                                 .accessibilityIdentifier("roamSub.w208.session.routeName")
@@ -229,24 +228,36 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                             RoamRecordedStats(record: record)
                         }
                     }
-                    if !record.pois.isEmpty {
-                        Text("roam.experience.recordedPlaces").font(.headline)
-                        ForEach(Array(record.pois.enumerated()), id: \.offset) { _, place in
-                            Label { RoamTitle(place.name) } icon: { Image(systemName: place.cat == "merchant" ? "storefront" : "mappin") }
-                        }
+                    // 解锁奖励, then 点亮地点, each with its own empty line, as in the mini-program.
+                    let medals = RoamMedalShareSelection.selections(for: record)
+                    Text("roam.experience.rewards").font(.headline).accessibilityAddTraits(.isHeader)
+                    if medals.isEmpty {
+                        Text("roam.experience.rewardsEmpty").foregroundStyle(.secondary)
                     }
-                    ForEach(RoamMedalShareSelection.selections(for: record)) { medal in
+                    ForEach(medals) { medal in
                         Button { showShare = false; selectedMedal = medal } label: {
-                            Label { Text(verbatim: medal.card.name) } icon: { Image(systemName: "medal") }
-                                .frame(minHeight: 44, alignment: .leading)
+                            HStack {
+                                Label { Text(verbatim: medal.card.name) } icon: { Image(systemName: "medal.fill").foregroundStyle(.yellow) }
+                                Spacer(minLength: 0)
+                                Image(systemName: "square.and.arrow.up").foregroundStyle(.secondary)
+                            }
+                            .frame(minHeight: 44, alignment: .leading)
                         }
                         .accessibilityLabel(Text("roam.medalShare.open") + Text(verbatim: ": " + medal.card.name))
                         .accessibilityIdentifier("roam.medalShare.open." + medal.card.kind.rawValue)
                     }
-                    if !record.photos.isEmpty { LabeledContent("roam.experience.savedPhotoReferences", value: String(record.photos.count)) }
-                    Button("roam.share.title", systemImage: "square.and.arrow.up") { showShare = true }
-                        .accessibilityIdentifier("roam.share.open")
-                    Text("roam.experience.historyPrivacy").font(.caption).foregroundStyle(.secondary)
+                    Text("roam.experience.recordedPlaces").font(.headline).accessibilityAddTraits(.isHeader)
+                    if record.pois.isEmpty {
+                        Text("roam.experience.recordedPlacesEmpty").foregroundStyle(.secondary)
+                    }
+                    ForEach(Array(record.pois.enumerated()), id: \.offset) { _, place in
+                        Label { RoamTitle(place.name) } icon: { Image(systemName: place.cat == "merchant" ? "storefront" : "mappin") }
+                    }
+                    Button { showShare = true } label: {
+                        Label("roam.share.title", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.questifyPrimary)
+                    .accessibilityIdentifier("roam.share.open")
                 } else if currentLoaded {
                     ContentUnavailableView("roam.experience.recordMissing", systemImage: "questionmark.folder", description: Text("roam.experience.recordMissingHint"))
                         .accessibilityIdentifier("roam.experience.history.missing")
