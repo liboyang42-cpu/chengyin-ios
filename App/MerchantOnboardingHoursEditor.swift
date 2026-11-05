@@ -64,7 +64,6 @@ import SwiftUI
                     if editor.hours.overnight { Text("merchant.onboarding.hoursNextDay").font(.footnote) }
                     if let blocker = editor.hours.blocker { Text(LocalizedStringKey(blocker)).foregroundStyle(.secondary) }
                 }
-                Text("merchant.onboarding.hoursLocalDraft").font(.footnote).foregroundStyle(.secondary)
             }.disabled(!editor.isCurrent)
                 .appNavigationTitle("merchant.onboarding.hours")
                 .toolbar {

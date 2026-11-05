@@ -139,6 +139,7 @@ import SwiftUI
     @State private var search = ""
     @State private var editing: [CoopFlowInvitationContext] = []
     @State private var showEditor = false
+    @Environment(\.cooperationNearbyDestination) private var nearbyDestination
     @Environment(\.scenePhase) private var scenePhase
     init(reader: any CoopFlowReading, operationScope: String?) {
         self.reader = reader; self.operationScope = operationScope
@@ -151,27 +152,30 @@ import SwiftUI
     var body: some View {
         let permit = model.permit
         Form {
-            Picker("context.coop.kind", selection: Binding(get: { model.kind }, set: { value in
-                guard let next = model.changeKind(value, permit: permit) else { return }
-                editing = []; showEditor = false; search = ""
-                Task { await model.loadInitial(next) }
-            })) {
-                Text("context.coop.merchant").tag(CoopFlowTargetKind.merchant)
-                Text("coopflow.invite.club").tag(CoopFlowTargetKind.club)
-            }.disabled(model.busy)
             Section("context.coop.topic") {
                 if model.topicsFailed { Button("action.retry") { Task { await model.retryTopics(permit) } }.disabled(model.topicsBusy) }
                 Picker("context.coop.topic", selection: Binding(get: { model.isCurrent ? model.topicID : nil }, set: { model.chooseTopic($0, permit: permit) })) {
                     Text("context.coop.chooseTopic").tag(Optional<Int>.none)
                     ForEach(model.isCurrent ? model.topics : []) { row in
-                        Text(verbatim: [row.name, row.startDate, row.address, "#\(row.id)"].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")).tag(Optional(row.id))
+                        Text(verbatim: [row.name, row.startDate, row.address].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")).tag(Optional(row.id))
                     }
                 }.disabled(model.topicsBusy)
                 if model.topic != nil, model.topic?.inviteWindowOpen != true { Text("context.coop.closed") }
                 if model.hasMore, !model.topics.isEmpty { Button("context.picker.more") { Task { await model.more(permit) } }.disabled(model.topicsBusy || model.topicsFailed) }
             }
+            // Source order: ① 关联主题, ③ 邀请对象 (club / merchant switch inside it); terms follow in the editor.
             Section("context.coop.targets") {
-                if model.kind == .merchant {
+                Picker("context.coop.kind", selection: Binding(get: { model.kind }, set: { value in
+                    guard let next = model.changeKind(value, permit: permit) else { return }
+                    editing = []; showEditor = false; search = ""
+                    Task { await model.loadInitial(next) }
+                })) {
+                    Text("coopflow.invite.club").tag(CoopFlowTargetKind.club)
+                    Text("context.coop.merchant").tag(CoopFlowTargetKind.merchant)
+                }
+                .pickerStyle(.segmented)
+                .disabled(model.busy)
+                if model.kind == .merchant, nearbyDestination != nil {
                     // Source: "附近商家 · 含未入驻商家可电话联系" opens pages/coop/nearby for the chosen topic.
                     NavigationLink { CoopFlowNearbyGate(reader: reader) } label: { Text("cooperation.invite.nearby") }
                         .accessibilityIdentifier("cooperation.invite.nearby")
@@ -199,7 +203,9 @@ import SwiftUI
                 Button("context.coop.continue") {
                     guard let contexts = model.contexts(permit: permit) else { return }
                     editing = contexts; showEditor = true
-                }.disabled(model.contexts(permit: permit) == nil)
+                }
+                .buttonStyle(.questifyPrimary).frame(maxWidth: .infinity).listRowBackground(Color.clear)
+                .disabled(model.contexts(permit: permit) == nil)
             }
             CoopFlowSafetyNotice()
         }.navigationTitle("context.coop.new").scrollDismissesKeyboard(.interactively)

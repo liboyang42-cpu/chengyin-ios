@@ -186,13 +186,13 @@ extension MerchantPredictionReading {
             // Keep the link owner mounted while its pushed inbox is visible, even
             // when foreground access revalidation temporarily hides the entry label.
             NavigationLink { MerchantPredictionInboxView(reader: inboxReader) } label: {
-                Label(zh ? "竞猜待答" : "Pending predictions", systemImage: "questionmark.bubble")
+                Label("merchant.predict.title", systemImage: "questionmark.bubble")
             }
             .disabled(!model.canEnter).opacity(model.canEnter ? 1 : 0)
             .frame(height: model.canEnter ? nil : 0).accessibilityHidden(!model.canEnter)
             .accessibilityIdentifier("merchant.prediction.entry")
             if model.phase == .failed {
-                Button(zh ? "重新核实竞猜权限" : "Retry prediction access") { Task { await model.load(inbox: false) } }
+                Button("action.retry") { Task { await model.load(inbox: false) } }
             } else if model.phase == .loading { ProgressView() }
         }
         .task { await model.load(inbox: false) }
@@ -211,40 +211,52 @@ extension MerchantPredictionReading {
     private var zh: Bool { locale.language.languageCode?.identifier == "zh" }
     var body: some View {
         List {
-            if !reader.isConfigured { Text(zh ? "读取未启用或身份已变化" : "Read access is unavailable or changed") }
-            else if model.phase == .loading || model.phase == .idle { ProgressView() }
+            if !reader.isConfigured {
+                ContentUnavailableView("merchant.predict.unavailable", systemImage: "questionmark.bubble")
+            }
+            else if model.phase == .loading || model.phase == .idle { ProgressView().frame(maxWidth: .infinity) }
             else if model.phase == .denied {
                 // Source predict/index.wxml no-permission state.
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.denied.title"))
-                    Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.denied.body")).font(.footnote).foregroundStyle(.secondary)
-                }.accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.predict.denied")
+                ContentUnavailableView {
+                    Label { Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.denied.title")) } icon: { Image(systemName: "lock") }
+                } description: {
+                    Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.denied.body"))
+                }
+                .accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.predict.denied")
             }
             else if model.phase == .failed {
-                Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.error")).accessibilityIdentifier("merchantOps.predict.error")
-                Button(MerchantOpsCopy.text("merchantOps.predict.retry")) { Task { await model.load() } }
+                ContentUnavailableView {
+                    Label { Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.error")) } icon: { Image(systemName: "exclamationmark.triangle") }
+                } actions: {
+                    Button(MerchantOpsCopy.text("merchantOps.predict.retry")) { Task { await model.load() } }
+                }
+                .accessibilityIdentifier("merchantOps.predict.error")
             } else if model.phase == .ready {
                 if model.rows.isEmpty {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.empty.title"))
-                        Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.empty.body")).font(.footnote).foregroundStyle(.secondary)
-                    }.accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.predict.empty")
+                    // Source empty state has a title only.
+                    ContentUnavailableView {
+                        Label { Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.empty.title")) } icon: { Image(systemName: "checkmark.circle") }
+                    }
+                    .accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.predict.empty")
                 } else {
-                    Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.summary %lld", model.rows.count)).accessibilityIdentifier("merchantOps.predict.summary")
-                }
-                ForEach(model.rows) { round in
-                    Button { model.open(round) } label: {
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text(verbatim: round.nodeName.isEmpty ? (zh ? "未命名点位" : "Unnamed location") : round.nodeName).font(.headline)
-                            Text(verbatim: round.question.isEmpty ? (zh ? "题面未提供" : "Question not supplied") : round.question)
-                            MerchantPredictionRoundFacts(round: round)
+                    Section {
+                        ForEach(model.rows) { round in
+                            Button { model.open(round) } label: {
+                                VStack(alignment: .leading, spacing: 5) {
+                                    Text(verbatim: round.nodeName.isEmpty ? appLocalized("merchant.predict.unnamedNode", locale: locale) : round.nodeName).font(.headline)
+                                    Text(verbatim: round.question.isEmpty ? "—" : round.question)
+                                    MerchantPredictionRoundFacts(round: round)
+                                }
+                                .foregroundStyle(.primary)
+                            }.accessibilityIdentifier("merchant.prediction.round.\(round.id)")
                         }
-                    }.accessibilityIdentifier("merchant.prediction.round.\(round.id)")
+                    } header: {
+                        Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.summary %lld", model.rows.count)).accessibilityIdentifier("merchantOps.predict.summary")
+                    }
                 }
             }
-            Section { Text(zh ? "当前仅查看待答题面；公布答案和奖励结算尚未启用。" : "Read-only questions. Publishing answers and settling rewards are not enabled.").font(.footnote) }
         }
-        .navigationTitle(zh ? "竞猜待答" : "Pending predictions")
+        .appNavigationTitle("merchant.predict.title")
         .task { await model.load() }
         .refreshable { await model.load() }
         .onDisappear { if !model.hasPresentation { model.retire() } }
@@ -255,27 +267,31 @@ extension MerchantPredictionReading {
             NavigationStack {
                 if model.isCurrent(selected) {
                     List {
-                        Text(verbatim: selected.round.nodeName).font(.headline)
-                        Text(verbatim: selected.round.playDay)
-                        Text(verbatim: selected.round.question)
-                        ForEach(selected.round.options) { option in
-                            if reader.supportsReview {
-                                NavigationLink {
-                                    MerchantPredictionReadOnlyReviewView(round: selected.round, optionKey: option.key,
-                                        reader: reader, isCurrent: { model.isCurrent(selected) })
-                                } label: {
-                                    LabeledContent { Text(verbatim: option.label) } label: { Text(verbatim: option.key) }
-                                }.accessibilityIdentifier("merchant.prediction.review.option.\(option.key)")
-                            } else {
+                        Section {
+                            Text(verbatim: selected.round.question.isEmpty ? "—" : selected.round.question).font(.headline)
+                            Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.round %@", selected.round.playDay))
+                                .foregroundStyle(.secondary)
+                        }
+                        // Answer options. Publishing the answer is not wired in the app, so options are listed without an action.
+                        Section {
+                            ForEach(selected.round.options) { option in
                                 LabeledContent { Text(verbatim: option.label) } label: { Text(verbatim: option.key) }
+                                    .accessibilityIdentifier("merchant.prediction.review.option.\(option.key)")
                             }
                         }
-                        Text(zh ? "参与记录：\(selected.round.betCount)；服务器剩余自然日：\(selected.round.daysLeft)" : "Entries: \(selected.round.betCount); server calendar days remaining: \(selected.round.daysLeft)")
-                        Text(zh ? "这是收件箱快照。刷新后轮次消失不代表已由你结算成功。" : "Inbox snapshot. A round disappearing after refresh does not prove you settled it.").font(.footnote)
+                        Section {
+                            MerchantPredictionRoundFacts(round: selected.round)
+                        }
                     }
-                } else { Text(zh ? "这份题面已失效，请返回刷新" : "This question snapshot is no longer current. Return and refresh.") }
+                    .navigationTitle(Text(verbatim: selected.round.nodeName.isEmpty ? appLocalized("merchant.predict.unnamedNode", locale: locale) : selected.round.nodeName))
+                    .navigationBarTitleDisplayMode(.inline)
+                } else {
+                    ContentUnavailableView("merchant.predict.stale", systemImage: "arrow.clockwise")
+                }
             }
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button(zh ? "完成" : "Done") { model.close(id: selected.id) } } }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { model.close(id: selected.id) } } }
             .onAppear { model.didPresent(id: selected.id) }
             .onDisappear { model.close(id: selected.id); model.didDismiss(id: selected.id) }
         }
@@ -310,54 +326,6 @@ extension MerchantPredictionReading {
             guard !Task.isCancelled, valid() else { if generation == ticket { retire() }; return }
             failure = (error as? MerchantMarketingFailure) ?? .malformed; phase = .failed
         }
-    }
-}
-
-@MainActor private struct MerchantPredictionReadOnlyReviewView: View {
-    let round: MerchantPredictionInboxRound
-    let optionKey: String
-    let reader: any MerchantPredictionReading
-    let isCurrent: @MainActor () -> Bool
-    @StateObject private var model = MerchantPredictionReviewPreparationModel()
-    @State private var visible = false
-    @Environment(\.locale) private var locale
-    @Environment(\.scenePhase) private var scenePhase
-    private var zh: Bool { locale.language.languageCode?.identifier == "zh" }
-    var body: some View {
-        List {
-            if !isCurrent() || !reader.isConfigured || model.phase == .retired {
-                Text(zh ? "这份题面已失效，请返回刷新" : "This question is no longer current. Return and refresh.")
-            } else if model.phase == .loading || model.phase == .idle {
-                ProgressView(zh ? "正在重新核实题面和权限" : "Rechecking the question and permission")
-            } else if let review = model.review {
-                Text(verbatim: review.round.question ?? "").font(.headline)
-                Text(verbatim: review.round.playDay)
-                LabeledContent { Text(verbatim: review.option.key + " · " + review.option.label) } label: {
-                    Text(zh ? "拟公布的答案" : "Answer to publish")
-                }.accessibilityIdentifier("merchant.prediction.review.choice")
-                Text(zh ? "正式确认会一次性公布答案，并可能发放配置的经验值和优惠券。" : "A future confirmed settlement publishes the answer once and may grant configured XP and coupons.")
-                Text(zh ? "当前只提供确认预览，结算未启用，不会公布答案或发奖。" : "Review preview only. Settlement is disabled; no answer or reward is sent.")
-                    .accessibilityIdentifier("merchant.prediction.review.readOnly")
-                Text(zh ? "后端尚未冻结本轮题目与奖励配置；重新核实题面不能消除配置变化的风险。" : "The backend does not freeze this round's question and reward configuration. Rechecking cannot eliminate configuration-change races.").font(.footnote)
-            } else if let failure = model.failure {
-                Text(LocalizedStringKey(failure.key))
-                if failure != .stale && failure != .denied && failure != .signIn {
-                    Button(zh ? "重新核实" : "Recheck") { Task { await prepare() } }
-                }
-            }
-        }
-        .navigationTitle(zh ? "答案确认预览" : "Answer review")
-        .privacySensitive()
-        .onAppear { visible = true }
-        .task(id: visible && scenePhase == .active) {
-            if visible && scenePhase == .active { await prepare() } else { model.retire() }
-        }
-        .onDisappear { visible = false; model.retire() }
-    }
-    private func prepare() async {
-        guard visible, scenePhase == .active else { return }
-        await model.prepare(round: round, optionKey: optionKey, reader: reader,
-            isCurrent: { visible && scenePhase == .active && isCurrent() })
     }
 }
 

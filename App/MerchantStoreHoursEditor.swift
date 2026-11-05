@@ -16,7 +16,6 @@ struct MerchantStoreHoursEditor: View {
         Section("merchant.operations.businessTime") {
             Text(verbatim: profile?.displayedBusinessTime ?? "—")
                 .accessibilityIdentifier("merchant.operations.hours.current")
-            Text("merchant.operations.hoursPreserved").font(.footnote).foregroundStyle(.secondary)
             if let current = hours {
                 ForEach(0..<7, id: \.self) { day in
                     Toggle(LocalizedStringKey("merchant.onboarding.day." + String(day)), isOn: Binding(

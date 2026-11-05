@@ -35,7 +35,6 @@ import SwiftUI
                     if model.core.canRecoverCommands {
                         Button("couponManagement.checkPendingResults") { model.run { await model.core.recoverPendingCommands() } }
                             .disabled(model.working).accessibilityIdentifier("couponManagement.recover")
-                        Text("couponManagement.recoveryNotice").font(.footnote).foregroundStyle(.secondary)
                     }
                     Text("couponManagement.chinaTime").font(.footnote).foregroundStyle(.secondary)
                     if model.working || model.core.loading { ProgressView("couponManagement.loading") }
@@ -62,9 +61,12 @@ import SwiftUI
                 }
                 .refreshable { await model.core.load(); model.revision += 1 }
                 .toolbar {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button { creating = true } label: { Label("couponManagement.create", systemImage: "plus") }
-                            .disabled(model.working || !model.core.canReviewPublish).accessibilityIdentifier("couponManagement.create")
+                    // Hidden, not disabled, when publishing is not available for this account.
+                    if model.core.canReviewPublish {
+                        ToolbarItem(placement: .primaryAction) {
+                            Button { creating = true } label: { Label("couponManagement.create", systemImage: "plus") }
+                                .disabled(model.working).accessibilityIdentifier("couponManagement.create")
+                        }
                     }
                 }
             }
@@ -86,11 +88,7 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
     let surface: CouponManagementNoticeSurface
     var body: some View {
         Section {
-            if !model.core.canSubmit { Text("couponManagement.dormant").font(.footnote) }
             if model.core.canSimulate { Text("couponManagement.synthetic").font(.footnote).foregroundStyle(.secondary) }
-            if model.core.canSubmit && (!model.core.canReviewPublish || !model.core.canReviewStop) {
-                Text("couponManagement.unavailable").font(.footnote)
-            }
             if model.core.recoveryFinished { Text("couponManagement.recoveryFinished") }
             if let issue = model.core.issue { Text(LocalizedStringKey(issue.messageKey)).accessibilityIdentifier("couponManagement.notice.\(surface.rawValue).issue") }
             if let issue = model.core.issue, case .server(let message) = issue { Text(message) }
@@ -124,7 +122,6 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
                     Section("couponManagement.batchCode.title") {
                         Text(verbatim: code).font(.body.monospaced()).privacySensitive()
                             .accessibilityIdentifier("couponManagement.batchCode.value")
-                        Text("couponManagement.batchCode.referenceOnly").font(.footnote).foregroundStyle(.secondary)
                     }.accessibilityIdentifier("couponManagement.batchCode.section")
                 }
                 Section("couponManagement.counts") {
@@ -149,7 +146,12 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
         }
         .merchantM02Page()
         .navigationTitle("couponManagement.detail")
-        .toolbar { Button("couponManagement.refresh") { model.run { await model.core.load() } }.disabled(model.working) }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { model.run { await model.core.load() } } label: { Label("couponManagement.refresh", systemImage: "arrow.clockwise") }
+                    .disabled(model.working)
+            }
+        }
         .task { await model.core.load(); model.revision += 1 }
         .onDisappear { model.cancelReview() }
     }

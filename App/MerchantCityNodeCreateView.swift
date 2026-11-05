@@ -152,10 +152,6 @@ import SwiftUI
                 message: MerchantCityNodeCopy.string(readback == .missing ? "merchantCityNode.create.readbackMissing" : "merchantCityNode.create.readbackFailed"),
                 actionKey: "merchantCityNode.create.readbackRetry", identifier: "cityNodeCreate.readback.retry") { submit() }
         }
-        if !MerchantCityNodeWriteGate.enabled(permitsWrites: service.permitsWrites, isOfflineExample: isOfflineFixture, path: "api/merchant/city-node/save") {
-            MerchantCityNodeCopy.text("merchantCityNode.write.disabled").font(.footnote).foregroundStyle(.secondary)
-                .accessibilityIdentifier("cityNodeCreate.writesDisabled")
-        }
     }
 
     private var timeline: some View {
@@ -193,15 +189,12 @@ import SwiftUI
                 let meta = [summary.interaction.map { MerchantCityNodeCopy.string(interactionKey($0)) },
                             summary.validationMethod.map { MerchantCityNodeCopy.string(validationKey($0)) }].compactMap { $0 }
                 if !meta.isEmpty { Text(verbatim: meta.joined(separator: " · ")).font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("cityNodeCreate.template.summary") }
-            } else {
-                MerchantCityNodeCopy.text("merchantCityNode.create.templateHint").font(.footnote).foregroundStyle(.secondary)
             }
             Button { openTemplate() } label: {
                 MerchantCityNodeCopy.text(templateID > 0 ? "merchantCityNode.create.reconfigure" : "merchantCityNode.create.configure")
             }.buttonStyle(.bordered)
                 .disabled(!handoff.active || handoffFactory == nil || !templateBinding.canOpen() || handoff.busy || handoff.opening != nil)
                 .accessibilityIdentifier("cityNodeCreate.template.configure")
-            if handoffFactory == nil { MerchantCityNodeCopy.text("merchantCityNode.create.templateUnavailable").font(.caption).foregroundStyle(.secondary) }
             if handoff.busy && handoff.opening == nil { ProgressView() }
             if handoff.recoveryNeeded, handoff.opening == nil, c.snapshot == nil {
                 Button { let permit = handoff.generation; Task { await handoff.recoverParent(binding: templateBinding, permit: permit) } } label: {
@@ -249,7 +242,6 @@ import SwiftUI
                 Button(action: choose) { MerchantCityNodeCopy.text("merchantCityNode.create.markOnMap") }
                     .buttonStyle(.bordered).disabled(!canChoose).accessibilityIdentifier("cityNodeCreate.address.mark")
             }
-            if placeSearch == nil { MerchantCityNodeCopy.text("merchantCityNode.create.mapUnavailable").font(.caption).foregroundStyle(.secondary) }
         }.padding().frame(maxWidth: .infinity, alignment: .leading).background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
             .accessibilityElement(children: .contain).accessibilityIdentifier("cityNodeCreate.address")
     }

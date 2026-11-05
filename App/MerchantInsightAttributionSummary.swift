@@ -11,7 +11,6 @@ struct MerchantInsightAttributionSummary: View {
                     .accessibilityIdentifier("merchant.insightAttribution.stale")
             } else {
                 LabeledContent("merchantMarketing.window", value: summary.window ?? "—")
-                if summary.window == nil { Text("merchant.insightAttribution.windowUnknown").font(.footnote).foregroundStyle(.secondary) }
                 if let counts = summary.counts {
                     LabeledContent("merchant.insightAttribution.visitors", value: String(counts.visitors))
                     LabeledContent("merchant.insightAttribution.checkins", value: String(counts.checkins))
@@ -25,7 +24,6 @@ struct MerchantInsightAttributionSummary: View {
                 if let split = summary.split {
                     LabeledContent("merchant.insightAttribution.newVisitors", value: String(split.newVisitors))
                     LabeledContent("merchant.insightAttribution.returningVisitors", value: String(split.returningVisitors))
-                    Text("merchant.insightAttribution.splitScope").font(.footnote).foregroundStyle(.secondary)
                 } else { Text("merchant.insightAttribution.splitUnavailable").foregroundStyle(.secondary) }
             }
         }

@@ -32,16 +32,11 @@ import SwiftUI
     var body: some View {
         Group {
             if canRead {
-                Section("merchant.customerDetail.identity") {
+                // Source customer/detail order: name and 累计实付 first, then 客户概览, 参与记录, 标签与备注, 跟进与触达.
+                Section {
                     Text(verbatim: detail.customer.title).font(.title3.bold())
                         .fixedSize(horizontal: false, vertical: true)
                     MerchantCustomerIdentityLine(lastInteraction: detail.lastInteractionAt)
-                    LabeledContent("merchant.customerDetail.lastInteraction") { timestamp(detail.lastInteractionAt) }
-                    ForEach(["arrivedCount", "pendingCount", "refundedCount"], id: \.self) { key in
-                        if let value = detail.customer.fields[key] { MerchantBusinessField(key: key, value: value) }
-                    }
-                }
-                Section {
                     LabeledContent("merchant.business.field.paidAmount") {
                         switch paidCardState {
                         case .amount(let text):
@@ -53,11 +48,14 @@ import SwiftUI
                             Text("merchant.business.sensitiveUnavailable").foregroundStyle(.secondary)
                         }
                     }.accessibilityIdentifier("merchant.customerDetail.paidAmount")
-                    Text("merchant.customerDetail.paidAmountExcludesRefunds", tableName: "MerchantReviewAndCustomerDetail")
-                        .font(.footnote).foregroundStyle(.secondary)
                 }.accessibilityIdentifier("merchant.customerDetail.paidCard")
+                Section("merchant.customerDetail.identity") {
+                    ForEach(["arrivedCount", "pendingCount", "refundedCount"], id: \.self) { key in
+                        if let value = detail.customer.fields[key] { MerchantBusinessField(key: key, value: value) }
+                    }
+                    LabeledContent("merchant.customerDetail.lastInteraction") { timestamp(detail.lastInteractionAt) }
+                }
                 Section("merchant.customerDetail.participation") {
-                    Text("merchant.customerDetail.recentScope").font(.footnote).foregroundStyle(.secondary)
                     if detail.participation.isEmpty {
                         Text("merchant.customerDetail.participationEmpty").foregroundStyle(.secondary)
                             .accessibilityIdentifier("merchant.customerDetail.participationEmpty")
@@ -69,9 +67,6 @@ import SwiftUI
                             if let latest = group.latest {
                                 Text(LocalizedStringKey(latest.kind.titleKey))
                                 LabeledContent("merchant.customerDetail.recordTime") { timestamp(latest.occurredAt) }
-                                if latest.kind == .refunded {
-                                    Text("merchant.customerDetail.refundTimeBoundary").font(.footnote).foregroundStyle(.secondary)
-                                }
                             } else {
                                 Text("merchant.customerDetail.orderUncertain").foregroundStyle(.secondary)
                             }
@@ -137,9 +132,6 @@ import SwiftUI
             Text(LocalizedStringKey(event.kind.titleKey))
             if let description = event.description { Text(verbatim: description) }
             LabeledContent("merchant.customerDetail.recordTime") { timestamp(event.occurredAt) }
-            if event.kind == .refunded {
-                Text("merchant.customerDetail.refundTimeBoundary").font(.footnote).foregroundStyle(.secondary)
-            }
             if let corrects = event.record.fields["correctsNoteId"]?.integer, corrects > 0 {
                 LabeledContent("merchant.business.field.correctsNoteId", value: "#\(corrects)")
             }

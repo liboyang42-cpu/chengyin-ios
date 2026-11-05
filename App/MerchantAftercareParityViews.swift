@@ -60,37 +60,6 @@ struct MerchantAftercareDayHeader: View {
     }
 }
 
-/// Source detail/view-model.js: hero subtitle, readable policy and the platform/funds steps that
-/// follow recorded facts. Steps have no time and promise no arrival date.
-struct MerchantAftercareDetailParitySections: View {
-    let progress: MerchantAftercareProgress
-    var body: some View {
-        Section {
-            let source = MerchantOpsCopy.text(MerchantAftercareParity.sourceKey(progress.sourceType))
-            Text(verbatim: progress.activityTitle.map { source + " · " + $0 } ?? source).font(.subheadline)
-                .accessibilityIdentifier("merchantOps.aftercare.heroSubtitle")
-        }
-        Section(MerchantOpsCopy.text("merchantOps.aftercare.platformSteps")) {
-            ForEach(Array(MerchantAftercareParity.platformSteps(progress.processing).enumerated()), id: \.offset) { index, step in
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(verbatim: MerchantOpsCopy.text(step.titleKey)).font(.subheadline.bold())
-                    if let hint = step.hintKey { Text(verbatim: MerchantOpsCopy.text(hint)).font(.footnote).foregroundStyle(.secondary) }
-                    Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.stepState." + step.state.rawValue)).font(.caption).foregroundStyle(.secondary)
-                }.accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.aftercare.step.\(index)")
-            }
-        }
-        if progress.policyCode != nil || progress.policyVersion != nil || progress.refundDeadline != nil {
-            Section {
-                Text(verbatim: MerchantOpsCopy.text(MerchantAftercareParity.policyKey(progress.policyCode)))
-                    .accessibilityIdentifier("merchantOps.aftercare.policyText")
-                if let version = progress.policyVersion {
-                    Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.policyVersion %lld", version)).font(.footnote).foregroundStyle(.secondary)
-                }
-            }
-        }
-    }
-}
-
 /// Source detail/index.js read-only line when the respond pills are hidden.
 struct MerchantAftercareReadOnlyNote: View {
     let reason: MerchantAftercareParity.ReadOnlyReason

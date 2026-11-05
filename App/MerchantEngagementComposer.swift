@@ -26,7 +26,6 @@ struct MerchantEngagementEditorContext: Identifiable {
     var body: some View {
         NavigationStack {
             Form {
-                Text("merchant.engagement.localDraft").font(.footnote)
                 switch context.kind {
                 case .segment:
                     TextField("merchant.engagement.segmentName", text: $name).accessibilityIdentifier("merchant.engagement.editor.name")

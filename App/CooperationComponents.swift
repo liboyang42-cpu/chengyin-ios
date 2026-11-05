@@ -82,13 +82,10 @@ struct CooperationIssueView: View {
         return "exclamationmark.triangle"
     }
 }
+/// Formerly a standing "handling isn't available here yet" footnote. Screens show the actions they
+/// support and hide the rest, so this renders nothing.
 struct CooperationReadOnlyNotice: View {
-    var body: some View {
-        Label("cooperation.readOnly", systemImage: "info.circle")
-            .font(.footnote).foregroundStyle(.secondary)
-            .fixedSize(horizontal: false, vertical: true)
-            .accessibilityIdentifier("cooperation.readOnly")
-    }
+    var body: some View { EmptyView() }
 }
 struct CooperationName: View {
     let name: String?

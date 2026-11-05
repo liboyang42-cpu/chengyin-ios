@@ -5945,13 +5945,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The contact action was handed to the device."
+            "value" : "Opened on your phone."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "联系操作已交给设备处理。"
+            "value" : "已在手机上打开。"
           }
         }
       }
@@ -5996,13 +5996,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Contacting from this device isn't available for this request."
+            "value" : "This customer can't be contacted from this phone."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此请求暂不支持在本机联系。"
+            "value" : "这位客户暂不能在本机联系。"
           }
         }
       }
@@ -6013,13 +6013,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review contact request"
+            "value" : "Contact"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "审核联系请求"
+            "value" : "联系客户"
           }
         }
       }
@@ -6183,13 +6183,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Brand image selected locally"
+            "value" : "Brand image selected"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已在本机选中品牌图"
+            "value" : "已选择品牌图"
           }
         }
       }
@@ -6200,13 +6200,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Existing image data cannot be edited here. No replacement image value will be submitted."
+            "value" : "Existing images can't be changed here."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "原图片资料暂不能在此编辑，本表单不会提交替换或清空值。"
+            "value" : "已有图片暂不能在这里修改。"
           }
         }
       }
@@ -6217,13 +6217,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Brand images (optional)"
+            "value" : "Brand images (optional, up to 6)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "品牌形象图（选填）"
+            "value" : "品牌形象图（选填，最多 6 张）"
           }
         }
       }
@@ -6234,13 +6234,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Upload selected brand image"
+            "value" : "Upload brand image"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "上传已选品牌图"
+            "value" : "上传品牌图"
           }
         }
       }
@@ -6285,13 +6285,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The selected image will be uploaded to the existing merchant image service and attached to this application draft."
+            "value" : "This image will be added to your application."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已选图片将上传至现有商家图片服务，并加入本次申请草稿。"
+            "value" : "这张图片将加入你的入驻申请。"
           }
         }
       }
@@ -29565,13 +29565,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This account doesn't have a club yet. You can't create a club on this screen."
+            "value" : "You don't have a club yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前账号暂无俱乐部，此页面暂不支持创建俱乐部。"
+            "value" : "你还没有俱乐部。"
           }
         }
       }
@@ -29939,13 +29939,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "There are more registrations that can't be shown here yet."
+            "value" : "Showing the latest registrations."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "还有更多报名，此处暂无法显示。"
+            "value" : "仅显示最近的报名。"
           }
         }
       }
@@ -50472,13 +50472,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Refund amount not provided"
+            "value" : "Amount to be confirmed"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "退款金额待确认"
+            "value" : "金额待确认"
           }
         }
       }
@@ -50504,13 +50504,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Refund deadline (Beijing time)"
+            "value" : "Refund deadline"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "退款截止（北京时间）"
+            "value" : "可退截止"
           }
         }
       }
@@ -50760,13 +50760,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Order refund policy"
+            "value" : "Refund policy at order"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "订单退款政策"
+            "value" : "下单时的退款政策"
           }
         }
       }
@@ -51902,7 +51902,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Public-account settlement"
+            "value" : "Business-account settlement"
           }
         },
         "zh-Hans" : {
@@ -51934,13 +51934,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Public transfer batches"
+            "value" : "Business-account settlement"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "对公结算批次"
+            "value" : "对公结算"
           }
         }
       }
@@ -51966,13 +51966,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aftercare status"
+            "value" : "Status"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "售后分组"
+            "value" : "状态"
           }
         }
       }
@@ -52222,13 +52222,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No records in this view."
+            "value" : "No records yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前视图暂无记录。"
+            "value" : "还没有记录"
           }
         }
       }
@@ -52238,13 +52238,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Income and adjustments"
+            "value" : "Income details"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "收入与调整"
+            "value" : "收入明细"
           }
         }
       }
@@ -52590,13 +52590,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Customer nickname"
+            "value" : "Nickname"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "客户昵称"
+            "value" : "昵称"
           }
         }
       }
@@ -53348,7 +53348,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "原因"
+            "value" : "申请原因"
           }
         }
       }
@@ -53870,13 +53870,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Settlement status"
+            "value" : "Status"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "结算状态"
+            "value" : "状态"
           }
         }
       }
@@ -54382,13 +54382,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Received"
+            "value" : "Saved"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已收到"
+            "value" : "已保存"
           }
         }
       }
@@ -54414,13 +54414,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Response received"
+            "value" : "Done"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已收到回执"
+            "value" : "已完成"
           }
         }
       }
@@ -54590,13 +54590,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prepare response"
+            "value" : "Respond"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "准备售后意见"
+            "value" : "处理售后"
           }
         }
       }
@@ -55086,13 +55086,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Code route preview"
+            "value" : "Scan to redeem"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "核销码路由预览"
+            "value" : "扫码核销"
           }
         }
       }
@@ -56478,13 +56478,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A previous request has an unknown result. Sending again is locked, including after reopening. A list refresh cannot prove its outcome."
+            "value" : "We couldn't confirm your last action. To avoid doing it twice, it can't be sent again here."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "之前请求的结果尚不确定。再次提交已锁定，重新打开也不会解除。刷新列表不能证明该请求的结果。"
+            "value" : "上一次操作的结果暂未确认。为避免重复，这里暂不能再次提交。"
           }
         }
       }
@@ -60969,13 +60969,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "原日期格式暂不识别；重新选择或明确清空后才能应用。取消会保留原文。"
+            "value" : "这个日期无法识别，请重新选择或清空。"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This original date format is unrecognized. Select a replacement or explicitly clear it before applying. Cancel preserves the original text."
+            "value" : "This date couldn't be read. Pick a new one or clear it."
           }
         }
       }
@@ -61490,13 +61490,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Apply your edited filters before using this action."
+            "value" : "Apply your filters first."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请先应用刚修改的筛选条件，再使用此操作。"
+            "value" : "请先应用筛选。"
           }
         }
       }
@@ -61541,13 +61541,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The statistics report customers, but this response contains no rows. Reload to try again."
+            "value" : "Reload to try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "统计中有客户，但本次返回的名单为空。请重新加载。"
+            "value" : "请重新加载。"
           }
         }
       }
@@ -61677,13 +61677,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Missing counts are not zero. Reload to check the current list."
+            "value" : "Reload to check again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "缺失的统计不代表零位客户，请重新加载。"
+            "value" : "请重新加载。"
           }
         }
       }
@@ -63037,13 +63037,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This action requests a new, logged number for this customer and purpose. Ownership, consent and limits are checked. Masked or previously shared numbers are never reused."
+            "value" : "Gets a one-time number to contact this customer. Their consent and daily limits apply."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此操作会为该客户和用途获取一个新号码，并留有记录。将核对归属、同意与限额；不会使用脱敏号码或复用之前提供过的号码。"
+            "value" : "获取一次性号码联系这位客户，需符合客户授权和每日限额。"
           }
         }
       }
@@ -63501,13 +63501,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Uploading evidence does not append an aftercare response or execute a refund. Use a separate case-response review."
+            "value" : "Evidence uploaded. Add it to your aftercare response to submit it."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "上传凭证不会追加售后意见，也不会执行退款；需要另行预览售后回应。"
+            "value" : "凭证已上传，请在售后处理中附上后提交。"
           }
         }
       }
@@ -63581,13 +63581,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The export includes the first 20 results matching all current filters (keywords, segments, tags, channels and dates). Individually selected members aren't exported."
+            "value" : "Exports the first 20 customers that match your filters."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "导出包含符合当前全部筛选条件（关键词、分群、标签、渠道和日期）的前 20 条记录，不按单独勾选的会员导出。"
+            "value" : "导出符合当前筛选的前 20 位客户。"
           }
         }
       }
@@ -63597,13 +63597,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Request a spreadsheet with personal details masked, using exactly these filters. Downloading and saving to your device are separate steps."
+            "value" : "Exports a spreadsheet of these customers with personal details masked."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "按当前筛选条件申请脱敏表格。下载和保存到本机需分别操作。"
+            "value" : "按当前筛选导出脱敏客户表格。"
           }
         }
       }
@@ -63709,13 +63709,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Accepting may give you the role chosen by the inviter and change what you can access in the business."
+            "value" : "Accepting gives you the role the owner chose for you in this store."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "接受后可能获得邀请人指定的岗位，并改变你的经营权限。"
+            "value" : "接受后会获得店主分配的固定岗位。"
           }
         }
       }
@@ -64738,13 +64738,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This draft has no featured content."
+            "value" : "No featured item"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前草稿不展示主推内容。"
+            "value" : "暂无主推"
           }
         }
       }
@@ -64925,13 +64925,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The original featured item is not in the loaded activities. It stays unchanged until you apply another choice."
+            "value" : "Your current featured item stays until you pick another."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "原主推未出现在已加载活动中，仍会保留，直到你明确应用新选择。"
+            "value" : "当前主推会保留，直到你选择新的。"
           }
         }
       }
@@ -65112,13 +65112,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The response reports zero visitors, check-ins and redemptions in its reporting window."
+            "value" : "No visits, check-ins or redemptions in this period."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器明确返回本期到店、打卡和核销均为0。"
+            "value" : "这段时间没有到店、打卡和核销。"
           }
         }
       }
@@ -65231,13 +65231,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The new and returning visitor counts are incomplete."
+            "value" : "New and returning counts aren't available yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "新客与回头客人数暂未完整返回。"
+            "value" : "新客与回头客暂未返回。"
           }
         }
       }
@@ -65265,13 +65265,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The three attribution counts are incomplete; unavailable values are not shown as zero."
+            "value" : "Visit data isn't complete yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "归因三项数据未完整返回，暂不显示为0。"
+            "value" : "基础数据暂未完整返回。"
           }
         }
       }
@@ -65401,13 +65401,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "View merchant profile"
+            "value" : "View store"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "查看商家主页"
+            "value" : "看店铺"
           }
         }
       }
@@ -65418,13 +65418,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Locate topic in recruitment list"
+            "value" : "View topic"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在招募列表定位主题"
+            "value" : "看看"
           }
         }
       }
@@ -65554,13 +65554,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The cooperation profile’s configuration status is unavailable."
+            "value" : "Profile status couldn't be loaded"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "承接资料的配置状态暂未确认。"
+            "value" : "承接资料状态暂未取回"
           }
         }
       }
@@ -65588,13 +65588,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No recent visits were returned in this response."
+            "value" : "No recent visitors yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本次没有返回最近到店记录。"
+            "value" : "最近还没有玩家到店"
           }
         }
       }
@@ -65690,13 +65690,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The recent visitor summary is unavailable."
+            "value" : "Recent visitors couldn't be loaded"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "最近到店摘要暂未取回。"
+            "value" : "最近到店玩家暂未取回"
           }
         }
       }
@@ -65883,7 +65883,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "门店地址"
+            "value" : "店铺地址"
           }
         }
       }
@@ -66132,13 +66132,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Description (optional)"
+            "value" : "Store introduction"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "商家简介（选填）"
+            "value" : "店铺介绍"
           }
         }
       }
@@ -66285,13 +66285,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The closing time is on the following day."
+            "value" : "Closes the next day."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "结束时间为次日，表示跨夜营业。"
+            "value" : "次日结束营业。"
           }
         }
       }
@@ -66302,13 +66302,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The existing hours could not be read and are preserved. Choose days and times before applying a replacement. Cancel keeps the original text."
+            "value" : "Your existing hours couldn't be read. Choose days and times to replace them."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "现有营业时间无法识别，原文已保留。请主动选择营业日和时间，再应用替换；取消不会改变原文。"
+            "value" : "现有营业时间无法识别，请重新选择营业日和时间。"
           }
         }
       }
@@ -66353,13 +66353,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Identity verification requires an 18-digit mainland China resident ID. Other ID types aren't supported, so new identity verification can't be completed in this app. We won't ask for an SSN or EIN."
+            "value" : "An 18-digit mainland China resident ID is required."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "实名认证需使用 18 位中国大陆居民身份证号。暂不支持其他证件，因此无法在本应用完成新的实名认证。此处不会要求提供 SSN 或 EIN。"
+            "value" : "需使用 18 位中国大陆居民身份证号。"
           }
         }
       }
@@ -66387,7 +66387,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Identity registration is required before license upload or application submission."
+            "value" : "Register your real name before uploading a license or submitting."
           }
         },
         "zh-Hans" : {
@@ -66421,13 +66421,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Registration status is unconfirmed. No upload or application can be sent yet."
+            "value" : "Couldn't confirm your identity registration."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "尚未确认实名登记状态，暂不能上传或提交申请。"
+            "value" : "暂时无法确认实名登记状态。"
           }
         }
       }
@@ -66506,13 +66506,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Brand name"
+            "value" : "Store name"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "品牌名称"
+            "value" : "店铺名称"
           }
         }
       }
@@ -66540,13 +66540,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No application found right now. This alone doesn't tell us whether your earlier submission went through."
+            "value" : "No application found yet. Check again in a moment."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前未查到申请，暂无法确定之前的提交是否成功。"
+            "value" : "暂未查到申请，请稍后重新查询。"
           }
         }
       }
@@ -66557,13 +66557,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The application was not sent. Review the current application and identity status."
+            "value" : "Application not sent. Check your details and identity registration."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "申请尚未发送，请核对当前申请与实名登记状态。"
+            "value" : "申请尚未发送，请核对资料与实名登记。"
           }
         }
       }
@@ -66642,13 +66642,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Submission outcome is unknown. Check the server status before taking further action. A missing or unchanged application does not prove the submission failed, so resubmission is blocked in this session."
+            "value" : "We couldn't confirm whether your application was sent. Check its status before trying again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "提交结果尚不明确。请先查询服务器状态。未查到申请或状态未变化并不能证明提交失败，因此当前会话禁止重复提交。"
+            "value" : "暂时无法确认申请是否已送达，请先查询申请状态。"
           }
         }
       }
@@ -66665,7 +66665,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "联系手机号"
+            "value" : "联系电话"
           }
         }
       }
@@ -66693,13 +66693,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Category (optional)"
+            "value" : "Category"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "品类偏好（选填）"
+            "value" : "经营类目"
           }
         }
       }
@@ -66761,13 +66761,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The service rejected the submission"
+            "value" : "Application not submitted"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务拒绝了本次提交"
+            "value" : "申请暂未提交"
           }
         }
       }
@@ -66863,13 +66863,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review submission"
+            "value" : "Submit application"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认提交"
+            "value" : "提交申请"
           }
         }
       }
@@ -66897,13 +66897,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Server-reported application status"
+            "value" : "Application status"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器返回的申请状态"
+            "value" : "申请状态"
           }
         }
       }
@@ -66931,13 +66931,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your application status could not be confirmed. Check again before submitting an application."
+            "value" : "Couldn't confirm your application status."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂时无法确认申请状态，请重新查询后再申请。"
+            "value" : "暂时无法确认申请状态。"
           }
         }
       }
@@ -67254,13 +67254,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Submitted. Check the status below. Approval and merchant access are decided separately. Your application won't be resent automatically."
+            "value" : "Your application has been submitted. Review usually takes 1–3 working days."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已提交，请查看下方状态。审核结果与商家权限分别确认。本申请不会自动重复提交。"
+            "value" : "你的申请已提交，预计 1–3 个工作日完成审核。"
           }
         }
       }
@@ -67373,13 +67373,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review license upload"
+            "value" : "Upload license"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认上传营业执照"
+            "value" : "上传营业执照"
           }
         }
       }
@@ -67903,13 +67903,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "City locations"
+            "value" : "City nodes"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "城市据点"
+            "value" : "城市节点"
           }
         }
       }
@@ -68463,13 +68463,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Store gallery"
+            "value" : "Store gallery (up to 9)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "门店相册"
+            "value" : "门店相册（最多 9 张）"
           }
         }
       }
@@ -68767,13 +68767,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Live saving is unavailable. These forms only prepare local drafts."
+            "value" : "Can't save right now"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "真实保存尚未开放，这些表单仅用于准备本地草稿。"
+            "value" : "暂时无法保存"
           }
         }
       }
@@ -69391,13 +69391,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Provider unavailable"
+            "value" : "Not available"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "供应商尚不可用"
+            "value" : "暂不可用"
           }
         }
       }
@@ -69599,13 +69599,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review local draft"
+            "value" : "Review and save"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "检查本地草稿"
+            "value" : "检查并保存"
           }
         }
       }
@@ -69935,13 +69935,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Template answers are visible to the owner only."
+            "value" : "Only you can see the answers."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "模板答案仅所有者可见。"
+            "value" : "答案仅你自己可见。"
           }
         }
       }
@@ -70031,13 +70031,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The example outcome is unknown. Saving is locked; reading again does not prove that the earlier operation failed."
+            "value" : "We couldn't confirm the last save. Saving is paused until you reload."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "示例结果未确认，保存已锁定；再次读取不能证明之前的操作失败。"
+            "value" : "上一次保存的结果暂未确认，重新读取前暂停保存。"
           }
         }
       }
@@ -76189,13 +76189,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Suggestions are unavailable; measured facts remain available"
+            "value" : "Interpretation isn't available right now"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂时无法生成建议，经营事实仍可查看"
+            "value" : "经营解读暂时无法生成"
           }
         }
       }
@@ -76546,13 +76546,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Measured business facts"
+            "value" : "Business data"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "经营数据事实"
+            "value" : "经营数据"
           }
         }
       }
@@ -76767,13 +76767,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Small sample: interpret these results cautiously"
+            "value" : "Data is still limited; read this as a rough guide"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "样本较少，请谨慎解读"
+            "value" : "数据还少，以下解读仅供参考"
           }
         }
       }
@@ -77260,13 +77260,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Suggestions are generated advice, separate from measured facts."
+            "value" : "Generated by AI from your business data."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "建议为 AI 生成内容，与经营数据事实分开呈现"
+            "value" : "以下内容由 AI 根据经营数据生成。"
           }
         }
       }
@@ -78485,13 +78485,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saving an empty personality explicitly clears it. Player chat may be unavailable without a personality."
+            "value" : "Without a personality, players may not be able to chat with your character."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保存空白性格设定会明确清空人设，玩家对话可能因此不可用。"
+            "value" : "没有性格设定时，玩家可能无法与店铺角色对话。"
           }
         }
       }
@@ -84346,13 +84346,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use your device location to search the configured Chengyin service for merchants within 5 km. Coordinates are used for this search only."
+            "value" : "Your location is used once to find merchants within 5 km."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用本机定位向已配置的城瘾服务查询 5 公里内商家，坐标仅用于本次查询。"
+            "value" : "仅本次使用你的位置，查找 5 公里内的商家。"
           }
         }
       }
@@ -84380,13 +84380,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This lead has no registered member profile."
+            "value" : "Not yet on Questify"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "该商家线索尚无已入驻的会员主页。"
+            "value" : "尚未入驻城瘾"
           }
         }
       }
@@ -156157,13 +156157,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The recipient can enter this code in the operator invitation screen, then review and accept the invitation."
+            "value" : "The invitee enters this code on the team invitation screen to join."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "受邀人可在员工邀请页面输入此码，然后查看并接受邀请。"
+            "value" : "受邀人在团队邀请页输入此码即可加入。"
           }
         }
       }
@@ -156191,13 +156191,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The invitation was created, but this response cannot safely display its code. Reload the team to manage or revoke it."
+            "value" : "Invitation created. Reload the team to share it."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "邀请已创建，但此响应无法安全显示邀请码。请重新加载团队以管理或撤销邀请。"
+            "value" : "邀请已创建，请重新加载团队后分享。"
           }
         }
       }
@@ -172494,13 +172494,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No redemption records on this page."
+            "value" : "No records yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前页没有核销记录。"
+            "value" : "还没有记录"
           }
         }
       }
@@ -180277,7 +180277,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Legacy merchant-node invitations are view-only"
+            "value" : "Older merchant-node invitations can only be viewed"
           }
         },
         "zh-Hans" : {
@@ -180469,13 +180469,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Invitation incomplete: the inviter, topic or terms are missing, so it cannot be handled yet"
+            "value" : "Invitation details are incomplete, so it can't be handled yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "邀请信息不完整：缺少邀请方、主题或合作条款，暂不能处理"
+            "value" : "邀请信息不完整，暂不能处理"
           }
         }
       }
@@ -200452,13 +200452,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The workbench only shows the business entries available to your current role. The owner changes roles or ends access, and it takes effect on the next request."
+            "value" : "To change your role or leave the team, contact the store owner."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "工作台只显示当前岗位可用的经营入口。岗位调整或离职由店主操作，并在下一次请求时立即生效。"
+            "value" : "需要调整岗位或离职时，请联系店主处理。"
           }
         }
       }
@@ -208729,6 +208729,669 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "能力自评"
+          }
+        }
+      }
+    },
+    "merchant.predict.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Predictions to answer"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "竞猜待答"
+          }
+        }
+      }
+    },
+    "merchant.marketing.enterCoop" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter cooperation center"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "进入合作中心"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.requestedAt" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requested"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "申请时间"
+          }
+        }
+      }
+    },
+    "merchant.workbench.customers" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Customers"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "客户"
+          }
+        }
+      }
+    },
+    "merchant.reviewRecovery.failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't check. Try again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂时无法查看，请重试。"
+          }
+        }
+      }
+    },
+    "rootMode.merchant" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merchant workbench"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "商家工作台"
+          }
+        }
+      }
+    },
+    "merchant.reviewRecovery.noReply" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No reply shown yet"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "还没有显示回复"
+          }
+        }
+      }
+    },
+    "merchant.predict.stale" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This round has changed. Close and refresh."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这一轮已变化，请关闭后刷新"
+          }
+        }
+      }
+    },
+    "tabBar.merchant.marketing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Marketing"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "营销"
+          }
+        }
+      }
+    },
+    "merchant.decor.section.brand" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brand"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "品牌介绍"
+          }
+        }
+      }
+    },
+    "rootMode.consumer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Player view"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "玩家视角"
+          }
+        }
+      }
+    },
+    "merchant.business.customers.applyFirst" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply your filter first."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先应用当前筛选。"
+          }
+        }
+      }
+    },
+    "merchant.decor.section.gallery" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gallery"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "门店相册"
+          }
+        }
+      }
+    },
+    "merchant.workbench.coopInvites" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cooperation invitations"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "协作邀请"
+          }
+        }
+      }
+    },
+    "merchant.customer.noteVisibility" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notes are visible only to your store"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "备注仅本店可见"
+          }
+        }
+      }
+    },
+    "merchant.predict.unavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Predictions can't be loaded right now"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂时无法读取竞猜"
+          }
+        }
+      }
+    },
+    "merchant.reviewRecovery.current" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Current state"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前状态"
+          }
+        }
+      }
+    },
+    "merchant.workbench.scan" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "扫码"
+          }
+        }
+      }
+    },
+    "merchant.reviewRecovery.unknown" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We couldn't confirm whether your reply was saved. Here's what the review shows now."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂未确认你的回复是否已保存，下面是这条点评现在的状态。"
+          }
+        }
+      }
+    },
+    "merchant.workbench.finance" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finance"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "财务"
+          }
+        }
+      }
+    },
+    "tabBar.merchant.workbench" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Workbench"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "工作台"
+          }
+        }
+      }
+    },
+    "merchant.decor.section.coop" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cooperation"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "合作经营"
+          }
+        }
+      }
+    },
+    "merchant.decor.section.character" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI store character"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 店铺角色"
+          }
+        }
+      }
+    },
+    "tabBar.merchant.cooperation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partners"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "合作"
+          }
+        }
+      }
+    },
+    "merchant.reviewRecovery.notFound" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This review wasn't found in the pages checked."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在已查看的页面中没有找到这条点评。"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.customer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Customer"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "客户"
+          }
+        }
+      }
+    },
+    "merchant.business.customers.manageFilter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Segments and export for this filter"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按当前筛选管理分群与导出"
+          }
+        }
+      }
+    },
+    "merchant.reviewRecovery.listFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't load replies to confirm. Pull to refresh."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂时无法读取待确认的回复，请下拉刷新。"
+          }
+        }
+      }
+    },
+    "merchant.workbench.more" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更多"
+          }
+        }
+      }
+    },
+    "merchant.reviewRecovery.open %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check reply on review #%lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看点评 #%lld 的回复结果"
+          }
+        }
+      }
+    },
+    "tabBar.merchant.templates" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Templates"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模板"
+          }
+        }
+      }
+    },
+    "merchant.reviewRecovery.section" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Replies to confirm"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回复结果待确认"
+          }
+        }
+      }
+    },
+    "cooperation.detail.deposit.owedFooter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for the deposit"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "等待缴纳保证金"
+          }
+        }
+      }
+    },
+    "merchant.reviewRecovery.refresh" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check again"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新查看"
+          }
+        }
+      }
+    },
+    "merchant.reviewRecovery.more" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check more pages"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续查找"
+          }
+        }
+      }
+    },
+    "merchant.aftercareProgress.refundNumber" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refund number"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "退款单号"
+          }
+        }
+      }
+    },
+    "merchant.predict.unnamedNode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unnamed spot"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未命名点位"
+          }
+        }
+      }
+    },
+    "merchant.reviewRecovery.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reply result"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回复结果"
+          }
+        }
+      }
+    },
+    "merchant.decor.section.store" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Store info"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "门店信息"
           }
         }
       }

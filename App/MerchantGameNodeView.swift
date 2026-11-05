@@ -368,7 +368,6 @@ enum MerchantGameNodeCopy {
                 info("merchantGameNode.recap.completed", "\(recap.normalCompletedCount) / \(recap.fallbackCompletedCount)", fallback: "merchantGameNode.recap.pending")
                 info("merchantGameNode.recap.pauses", String(recap.pauseEventCount), fallback: "merchantGameNode.recap.pending")
                 info("merchantGameNode.recap.authorized", String(recap.authorizedContentCount), fallback: "merchantGameNode.recap.pending")
-                MerchantGameNodeCopy.text("merchantGameNode.recap.policy").font(.footnote).foregroundStyle(.secondary)
             } else {
                 MerchantGameNodeCopy.text("merchantGameNode.recap.pending").font(.footnote).foregroundStyle(.secondary)
             }
