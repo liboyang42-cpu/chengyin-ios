@@ -177466,13 +177466,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Redemption codes are not available here yet"
+            "value" : "Can't show a code right now"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂时无法在此出示核销码"
+            "value" : "暂时无法出示核销码"
           }
         }
       }
@@ -177500,13 +177500,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This redemption code cannot be opened"
+            "value" : "This code can't be opened"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这个核销码打不开"
+            "value" : "这个核销码无法打开"
           }
         }
       }
@@ -177517,13 +177517,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The link is missing the spot. Go back to the spot page and open it again."
+            "value" : "Go back and open it again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "链接缺少据点参数,请回据点页重新进入"
+            "value" : "请返回重新进入。"
           }
         }
       }
