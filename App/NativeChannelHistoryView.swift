@@ -22,6 +22,7 @@ private func nativeChannelLocalized(_ key: String, locale: Locale) -> String {
     @State private var task: Task<Void, Never>?
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
+    @ScaledMetric(relativeTo: .caption) private var avatarSize: CGFloat = 28
     var body: some View {
         let _ = revision
         Group {
@@ -44,21 +45,44 @@ private func nativeChannelLocalized(_ key: String, locale: Locale) -> String {
                             .disabled(model.isLoading).accessibilityIdentifier("channel.history.older")
                     }
                     if model.loaded && renderedMessages.isEmpty { Text("channel.noMessages", tableName: "NativeChannel") }
+                    // Same row rules as direct chat: grouped time, avatar and name on received rows only.
+                    let dividers = IMInboxTime.dividers(for: renderedMessages, now: Date())
                     ForEach(renderedMessages) { message in
-                        Button {
-                            selectedMessageID = message.id; presentsMessage = true
-                        } label: {
-                            ChatMessageBubble(isOwn: message.senderID == model.client.identity?.accountID, timestamp: message.createdAt) {
-                                MessagingSenderName(message: message, conversation: model.conversation,
-                                                    accountID: model.client.identity?.accountID ?? 0)
-                            } content: {
-                                if let messageContent { messageContent(message) }
-                                else { MessagingMessageContent(message: message) }
+                        let isOwn = message.senderID == model.client.identity?.accountID
+                        VStack(spacing: Theme.Space.s2) {
+                            if let divider = dividers[message.id] {
+                                IMChatDividerLabel(divider: divider).font(.caption).foregroundStyle(.secondary)
+                                    .frame(maxWidth: .infinity)
                             }
+                            Button {
+                                selectedMessageID = message.id; presentsMessage = true
+                            } label: {
+                                HStack(alignment: .bottom, spacing: Theme.Space.s2) {
+                                    if !isOwn {
+                                        Image(systemName: "person.fill")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                            .frame(width: avatarSize, height: avatarSize)
+                                            .background(Circle().fill(Color(uiColor: .tertiarySystemFill)))
+                                            .accessibilityHidden(true)
+                                    }
+                                    ChatMessageBubble(isOwn: isOwn) {
+                                        if !isOwn {
+                                            MessagingSenderName(message: message, conversation: model.conversation,
+                                                                accountID: model.client.identity?.accountID ?? 0)
+                                        }
+                                    } content: {
+                                        if let messageContent { messageContent(message) }
+                                        else { MessagingMessageContent(message: message) }
+                                    }
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("channel.message.\(message.id)")
                         }
-                        .buttonStyle(.plain)
                         .listRowSeparator(.hidden)
-                        .accessibilityIdentifier("channel.message.\(message.id)")
+                        .listRowInsets(EdgeInsets(top: Theme.Space.s1, leading: Theme.Space.pageX,
+                                                  bottom: Theme.Space.s1, trailing: Theme.Space.pageX))
                     }
                     if model.loaded {
                         if model.client.canLoadNewer {

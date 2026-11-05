@@ -39,45 +39,45 @@ import SwiftUI
                 case .image:
                     MessagingMessageContent(message: snapshot.message)
                     if let attachmentPreview {
-                        NavigationLink("原附件审核状态与受权预览") { NativeChannelAttachmentPreviewEntry(flow:attachmentPreview,current:isCurrent) }
-                    } else { Text("原附件预览尚不可用") }
+                        NavigationLink { NativeChannelAttachmentPreviewEntry(flow:attachmentPreview,current:isCurrent) } label: { Text("attachment.open", tableName: "NativeChannelMessage") }
+                    } else { Text("attachment.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
                 case .text, .poll:
                     MessagingMessageContent(message: snapshot.message)
                 case .card:
                     if let day = NativeChannelCheckinReminder.day(in: snapshot) {
-                        Label("频道日签 · \(day)", systemImage: "calendar.badge.checkmark")
+                        Label { Text("checkin.day \(day)", tableName: "NativeChannelMessage") } icon: { Image(systemName: "calendar.badge.checkmark") }
                         if let checkinCoordinator {
-                            NavigationLink("读取服务器今日签到与原请求") {
+                            NavigationLink {
                                 NativeChannelCheckinLaunchView(makeFlow: { checkinCoordinator(snapshot.message.conversationID) },
                                     current: isCurrent, reminderDate: day)
-                            }
-                        } else { Text("原日签入口当前不可用") }
+                            } label: { Text("checkin.open", tableName: "NativeChannelMessage") }
+                        } else { Text("checkin.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
                     } else { MessagingMessageContent(message: snapshot.message) }
                 case .joined, .left, .renamed, .pinned, .pollResult:
                     Text(snapshot.content ?? String(localized: LocalizedStringResource("message.system", table: "NativeChannelMessage", locale: locale)))
                         .font(Theme.Font.label).foregroundStyle(.secondary).frame(maxWidth: .infinity)
                 case .location:
                     if let place=IMStaticLocation.read(snapshot.message) { IMStaticLocationCardView(place:place) }
-                    else { Text("地点来源不可确认").foregroundStyle(.secondary) }
+                    else { Text("location.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
                 case .voice:
                     if let voiceOwner, IMVoiceReference.read(snapshot.message) != nil {
-                        NavigationLink("读取并播放原语音") { IMVoicePlaybackView(message: snapshot.message, owner: voiceOwner, current: isCurrent) }
-                    } else { Text("原语音当前不可用") }
+                        NavigationLink { IMVoicePlaybackView(message: snapshot.message, owner: voiceOwner, current: isCurrent) } label: { Text("voice.play", tableName: "NativeChannelMessage") }
+                    } else { Text("voice.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
                 case .file:
                     if let fileOwner, IMFileReference.read(snapshot.message) != nil {
-                        NavigationLink("读取并预览原文件") { IMFilePreviewView(message: snapshot.message, owner: fileOwner, current: isCurrent) }
-                    } else { Text("原文件当前不可用") }
+                        NavigationLink { IMFilePreviewView(message: snapshot.message, owner: fileOwner, current: isCurrent) } label: { Text("file.open", tableName: "NativeChannelMessage") }
+                    } else { Text("file.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
                 case .video:
                     if let videoOwner, IMVideoReference.read(snapshot.message) != nil {
-                        NavigationLink("读取原视频与封面") { IMVideoPlaybackView(message: snapshot.message, owner: videoOwner, current: isCurrent) }
-                    } else { Text("原视频当前不可用") }
+                        NavigationLink { IMVideoPlaybackView(message: snapshot.message, owner: videoOwner, current: isCurrent) } label: { Text("video.play", tableName: "NativeChannelMessage") }
+                    } else { Text("video.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
                 case .chain:
-                    Label("接龙", systemImage: "list.number")
+                    Label { Text("type.14", tableName: "NativeChannelMessage") } icon: { Image(systemName: "list.number") }
                     if let content = snapshot.content { Text(verbatim: content).lineLimit(typeSize.isAccessibilitySize ? nil : 3) }
                     if let reference = NativeChannelChainReference(message: snapshot.message), let chainCoordinator {
-                        NavigationLink("展开原接龙与我的接龙操作") {
+                        NavigationLink {
                             NativeChannelChainLaunchView(makeFlow: { chainCoordinator(snapshot.message.conversationID, reference) }, current: isCurrent)
-                        }.accessibilityIdentifier("ncm47.originalChain")
+                        } label: { Text("chain.open", tableName: "NativeChannelMessage") }.accessibilityIdentifier("ncm47.originalChain")
                     } else if let openExistingType {
                         Button { if isCurrent() { openExistingType(snapshot) } } label: { Text("type.open", tableName: "NativeChannelMessage") }
                     } else { Text("type.sourceRequired", tableName: "NativeChannelMessage").font(Theme.Font.label).foregroundStyle(.secondary) }
@@ -92,9 +92,9 @@ import SwiftUI
                 if let reference = snapshot.message.pollReference,
                    let owner = pollCoordinator?(snapshot.message.conversationID, reference),
                    owner.isCurrent, owner.reference == reference, owner.canRead {
-                    NavigationLink("查看原投票结果（只读）") {
+                    NavigationLink {
                         GroupPollOriginalResultView(owner: owner, reference: reference, current: isCurrent)
-                    }.accessibilityIdentifier("ncm47.originalPollResult")
+                    } label: { Text("poll.results", tableName: "NativeChannelMessage") }.accessibilityIdentifier("ncm47.originalPollResult")
                 }
                 if snapshot.editedAt != nil { Label { Text("message.edited", tableName: "NativeChannelMessage") } icon: { Image(systemName: "pencil").accessibilityHidden(true) }.font(Theme.Font.caption).foregroundStyle(.secondary) }
             }
