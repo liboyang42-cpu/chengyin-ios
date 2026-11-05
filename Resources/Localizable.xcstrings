@@ -124243,13 +124243,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review registration"
+            "value" : "Register"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "核对报名"
+            "value" : "立即报名"
           }
         }
       }
@@ -124730,13 +124730,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Create registration"
+            "value" : "Register"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "创建报名订单"
+            "value" : "确认报名"
           }
         }
       }
@@ -124778,13 +124778,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Agreement is not yet verified. Check the notice version and retry verification; an uncertain submission will not be sent again."
+            "value" : "We couldn’t confirm your agreement yet. Try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "同意记录尚未核验。请检查告知版本并重新核验；结果不明时不会重复提交。"
+            "value" : "暂时无法确认你的同意记录，请重试。"
           }
         }
       }
