@@ -55,16 +55,16 @@
     "applied": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原请求已完成。请重新加载以查看当前频道。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original request completed. Reload to see the current channel."
+            "value": "Done"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已完成"
           }
         }
       }
@@ -72,16 +72,16 @@
     "appliedRedacted": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原请求已完成。当前无权查看原结果详情。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original request completed. You cannot currently view its result details."
+            "value": "Done"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已完成"
           }
         }
       }
@@ -650,16 +650,16 @@
     "confirm": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "确认提交"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Confirm"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认"
           }
         }
       }
@@ -752,16 +752,16 @@
     "duplicateName": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "同一分类下已有同名频道，请重新核对。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This category already contains a channel with that name."
+            "value": "A channel in this category already has that name."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该分类下已有同名频道。"
           }
         }
       }
@@ -769,16 +769,16 @@
     "empty": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂无可见频道"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No visible channels"
+            "value": "No channels yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有频道"
           }
         }
       }
@@ -786,16 +786,16 @@
     "entryUnavailable": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "频道入口尚未开放，或当前会话已失效。请返回来源页面后重新进入。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Channel access is unavailable or this session has expired. Return to the source screen and open it again."
+            "value": "Go back and open it again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请返回后重新进入。"
           }
         }
       }
@@ -837,16 +837,16 @@
     "field.archived": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "归档操作"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Archive action"
+            "value": "Archive"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "归档"
           }
         }
       }
@@ -905,16 +905,16 @@
     "field.note": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "说明"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Note"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备注"
           }
         }
       }
@@ -939,16 +939,16 @@
     "field.slowmode_sec": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "慢速秒数"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Slow mode seconds"
+            "value": "Slow mode (seconds)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "慢速模式（秒）"
           }
         }
       }
@@ -1024,16 +1024,16 @@
     "invalidDraft": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请检查名称、简介、慢速范围和操作理由。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Check the name, description, slow mode and reason."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请检查名称、简介、慢速模式和理由。"
           }
         }
       }
@@ -1075,16 +1075,16 @@
     "messages": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "查看消息"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "View messages"
+            "value": "Messages"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "消息"
           }
         }
       }
@@ -1126,16 +1126,16 @@
     "notFoundUnknown": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂未查到原请求。结果仍未确认；重试将保留相同请求编号及原操作内容。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original request was not found. Its outcome is still unknown. A retry keeps the same request ID and original changes."
+            "value": "This change hasn't been confirmed. You can try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这次修改尚未确认，可以重试。"
           }
         }
       }
@@ -1160,16 +1160,16 @@
     "operation.archive": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "归档频道（只读）"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Archive channel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "归档频道"
           }
         }
       }
@@ -1194,16 +1194,16 @@
     "operation.delete": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "删除频道（进入保留期）"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Delete channel (retention)"
+            "value": "Delete channel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除频道"
           }
         }
       }
@@ -1228,16 +1228,16 @@
     "operation.edit": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "修改频道设置"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Edit channel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修改频道"
           }
         }
       }
@@ -1262,16 +1262,16 @@
     "operation.restore": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "恢复频道（先恢复为归档）"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Restore as archived"
+            "value": "Restore channel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复频道"
           }
         }
       }
@@ -1279,16 +1279,16 @@
     "operation.unarchive": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "取消手动归档"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Unarchive channel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消归档"
           }
         }
       }
@@ -1296,16 +1296,16 @@
     "originalPending": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "原操作结果待确认，请先查询原请求。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original result is unconfirmed. Check the original request first."
+            "value": "Your last change hasn't been confirmed yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次修改尚未确认。"
           }
         }
       }
@@ -1313,16 +1313,16 @@
     "outcomeUnknown": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "操作结果待确认，请保留原请求并查询。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The result is unconfirmed. Keep and check the original request."
+            "value": "We couldn't confirm the result. Check again shortly."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂未确认结果，请稍后查看。"
           }
         }
       }
@@ -1432,16 +1432,16 @@
     "protectedChannel": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "该频道受保护，当前不能执行此操作。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This channel is protected from this action."
+            "value": "This channel can't be changed this way."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该频道不能执行此操作。"
           }
         }
       }
@@ -1466,16 +1466,16 @@
     "purgeAt": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保留截止时间"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retention deadline"
+            "value": "Deleted after"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "彻底删除时间"
           }
         }
       }
@@ -1483,16 +1483,16 @@
     "queryOriginal": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "查询原请求"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check original request"
+            "value": "Check status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看状态"
           }
         }
       }
@@ -1517,16 +1517,16 @@
     "recoveryChannels": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保留期内的频道"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Channels in retention"
+            "value": "Recently deleted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近删除"
           }
         }
       }
@@ -1551,16 +1551,16 @@
     "refreshRequired": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "会话或访问范围已变化，请返回后重新进入。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your session or access scope changed. Return and open this screen again."
+            "value": "Go back and open this page again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请返回后重新打开此页面。"
           }
         }
       }
@@ -1568,16 +1568,16 @@
     "rejected": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "操作未成功，请重新加载并核对。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This couldn't be completed. Reload and check."
+            "value": "This couldn't be done. Pull to refresh and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "操作未成功，请下拉刷新后重试。"
           }
         }
       }
@@ -1636,16 +1636,16 @@
     "retryOriginal": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "使用同一请求重试"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retry the same request"
+            "value": "Try again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
           }
         }
       }
@@ -1653,16 +1653,16 @@
     "review": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "核对操作"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Review changes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查修改"
           }
         }
       }
@@ -1687,16 +1687,16 @@
     "slowmode": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "慢速模式（秒）"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Slow mode (seconds)"
+            "value": "Slow mode"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "慢速模式"
           }
         }
       }
@@ -1721,16 +1721,16 @@
     "storageUnavailable": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无法核对本地原请求记录。请保留原请求编号并查询结果。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The local original-request record could not be verified. Keep its ID and check the server result."
+            "value": "This change couldn't be checked on this device. Check its status."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法在本机核对这次修改，请查看状态。"
           }
         }
       }
@@ -1789,16 +1789,16 @@
     "unavailable": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "封面选图和上传暂不可用，仍可继续编辑草稿。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choosing or uploading a cover photo isn't available right now. You can keep editing the draft."
+            "value": "Not available right now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法使用"
           }
         }
       }
@@ -1806,16 +1806,16 @@
     "ungrouped": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "不属于分类"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "No category"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无分类"
           }
         }
       }
@@ -1840,16 +1840,16 @@
     "versionConflict": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "频道或权限已更新。请重新加载，核对后再操作。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The channel or its permissions changed. Reload and review before continuing."
+            "value": "This channel changed. Pull to refresh, then try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "频道已更新，请下拉刷新后重试。"
           }
         }
       }
@@ -1917,6 +1917,329 @@
           "stringUnit": {
             "state": "translated",
             "value": "管理进度"
+          }
+        }
+      }
+    },
+    "d7.channelManage.archivedShort": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archived"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已归档"
+          }
+        }
+      }
+    },
+    "d7.channelManage.auditLog": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audit log"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审计日志"
+          }
+        }
+      }
+    },
+    "d7.channelManage.channelLoadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load this channel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法加载此频道"
+          }
+        }
+      }
+    },
+    "d7.channelManage.hideMute": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide and mute"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐藏与静音"
+          }
+        }
+      }
+    },
+    "d7.channelManage.history": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Channel history"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "频道变更记录"
+          }
+        }
+      }
+    },
+    "d7.channelManage.invite": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invite friends"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请好友"
+          }
+        }
+      }
+    },
+    "d7.channelManage.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load channels"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法加载频道"
+          }
+        }
+      }
+    },
+    "d7.channelManage.members": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Members"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成员"
+          }
+        }
+      }
+    },
+    "d7.channelManage.moderation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moderation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "违规处理"
+          }
+        }
+      }
+    },
+    "d7.channelManage.more": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更多"
+          }
+        }
+      }
+    },
+    "d7.channelManage.off": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
+      }
+    },
+    "d7.channelManage.onboarding": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Onboarding"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新成员引导"
+          }
+        }
+      }
+    },
+    "d7.channelManage.progressPrivacy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Progress privacy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进度隐私"
+          }
+        }
+      }
+    },
+    "d7.channelManage.reasonLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reason"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "理由"
+          }
+        }
+      }
+    },
+    "d7.channelManage.roles": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roles"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "身份组"
+          }
+        }
+      }
+    },
+    "d7.channelManage.showHidden": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show hidden channels"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示已隐藏的频道"
+          }
+        }
+      }
+    },
+    "d7.channelManage.webhooks": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Webhooks"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Webhook"
+          }
+        }
+      }
+    },
+    "d7.channelManage.welcome": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welcome"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "欢迎页"
+          }
+        }
+      }
+    },
+    "d7.channelManage.slowmodeSeconds": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slow mode (seconds)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "慢速模式（秒）"
           }
         }
       }

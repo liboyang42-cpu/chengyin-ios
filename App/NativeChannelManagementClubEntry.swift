@@ -51,7 +51,7 @@ import SwiftUI
                 AnyView(NativeFriendChannelSourceEntry(channels: channels, channelID: channelID, makeFlow: { captured in
                     session.makeNativeFriendChannelSourceFlow(channels: channels, captured: captured)
                 }, recoveryHome: { AnyView(NativeFriendSessionDestination(session: session)) }))
-            }))
+            }), spaceName: club.name)
             .id("channel-management:\(club.id):\(session.contentDetailRevision)")
         }
     }
