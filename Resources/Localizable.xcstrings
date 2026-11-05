@@ -181298,6 +181298,7 @@
       }
     },
     "im.entry.inbox" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -181308,7 +181309,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "站内消息"
+            "value" : "消息"
           }
         }
       }
@@ -203187,6 +203188,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "操作未成功"
+          }
+        }
+      }
+    },
+    "d7.messagingHome.reportResults" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Report results"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "举报结果"
+          }
+        }
+      }
+    },
+    "d7.messagingHome.more" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更多"
           }
         }
       }
