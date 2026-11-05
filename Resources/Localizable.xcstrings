@@ -9948,13 +9948,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Check the editor for the current review result. The details below are from when you submitted."
+            "value" : "Check the editor for the current review result."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前审核结果请在编辑页查看，以下为提交时的信息。"
+            "value" : "当前审核结果请在编辑器中查看。"
           }
         }
       }
@@ -120653,13 +120653,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "These details are from when you submitted. They don't mean your project has passed review or is published."
+            "value" : "What was recorded when you submitted."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以下为提交时的信息，不代表项目已通过审核或已发布。"
+            "value" : "提交时记录的信息。"
           }
         }
       }
@@ -120749,13 +120749,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Published version status isn't available right now. Your original submission is kept."
+            "value" : "The current review result can't be checked here."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "发布版本状态暂不可用，原始提交记录仍保留。"
+            "value" : "暂无法在此查看当前审核结果。"
           }
         }
       }
@@ -120765,13 +120765,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Review state at submission"
+            "value" : "Status when submitted"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "提交时审核状态"
+            "value" : "提交时状态"
           }
         }
       }
@@ -147313,13 +147313,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Extension and byte-count inspection only. The bytes were not decoded or retained as playable audio."
+            "value" : "Audio file chosen. It isn't uploaded yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅检查扩展名与字节数。未解码或保留为可播放音频。"
+            "value" : "已选择音频文件，尚未上传。"
           }
         }
       }
