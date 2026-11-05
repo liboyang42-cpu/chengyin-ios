@@ -28,7 +28,7 @@ import FoundationNetworking
             guard record == value else { throw APIError.invalidRequest }; record = nil; clears += 1
         }
     }
-    final class Fixture {
+    @MainActor final class Fixture {
         let base = URL(string: "https://bridge.example.test/native/")!
         let row = PublicMerchantRowID(31)!
         let read = Wire(), write = Wire(), journal = Journal()

@@ -383,7 +383,7 @@ import FoundationNetworking
         var request = try AuthRequestBuilder.makeFormRequest(url:base.appendingPathComponent("api/im/send"),fields:["conversation_id":"9","client_message_id":value.clientMessageID,"msg_type":"1","content":value.content],token:"synthetic-token")
         request.httpShouldHandleCookies = false
         XCTAssertEqual(NativeChannelTextRoute(request:request,baseURL:base),.send(value))
-        XCTAssertNil(MessagingHistoryReadRoute(request:request,baseURL:base)); XCTAssertNil(NativeChannelRuntimeRoute(request:request,baseURL:base))
+        XCTAssertNil(MessagingHistoryReadRoute(request:request,baseURL:base))
         for header in ["Cookie","Cookie2","Proxy-Authorization"] {
             var other = request; other.setValue("unapproved",forHTTPHeaderField:header)
             XCTAssertNil(NativeChannelTextRoute(request:other,baseURL:base))

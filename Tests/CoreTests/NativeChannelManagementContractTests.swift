@@ -40,9 +40,9 @@ import FoundationNetworking
         let body = try XCTUnwrap(JSONSerialization.jsonObject(with: intent.body()) as? [String: Any])
         XCTAssertEqual(Set(body.keys), ["topic", "expected_version", "reason", "request_id"])
         XCTAssertTrue(body["topic"] is NSNull); XCTAssertEqual(body["expected_version"] as? String, "5")
-        XCTAssertEqual(try intent.body(), intent.body())
+        XCTAssertEqual(try intent.body(), try intent.body())
         let restored = try JSONDecoder().decode(NativeChannelManagementIntent.self, from: JSONEncoder().encode(intent))
-        XCTAssertEqual(try restored.body(), intent.body())
+        XCTAssertEqual(try restored.body(), try intent.body())
     }
     func testDraftAndArchivedProtectedCommandsAreRejectedBeforeDispatch() throws {
         var draft = NativeChannelManagementDraft(); draft.name = "bad/name"
@@ -108,7 +108,7 @@ import FoundationNetworking
         storage.values[key] = originalBytes
         let reopened = NativeChannelManagementJournal(owner: try harness.owner(), scope: harness.scope, storage: storage)
         XCTAssertEqual(try reopened.restore(), original)
-        XCTAssertEqual(try reopened.restore()?.body(), original.body())
+        XCTAssertEqual(try reopened.restore()?.body(), try original.body())
         try reopened.saveBeforeDispatch(original)
         XCTAssertEqual(storage.values[key], originalBytes)
         try reopened.settle(original); XCTAssertNil(storage.values[key])
@@ -125,7 +125,7 @@ import FoundationNetworking
         let originalBytes = try JSONSerialization.data(withJSONObject: raw, options: [.prettyPrinted, .sortedKeys])
         storage.values[key] = originalBytes
         XCTAssertEqual(try journal.restore(), original)
-        XCTAssertEqual(try journal.restore()?.body(), original.body())
+        XCTAssertEqual(try journal.restore()?.body(), try original.body())
         try journal.saveBeforeDispatch(original); XCTAssertEqual(storage.values[key], originalBytes)
         try journal.settle(original); XCTAssertNil(storage.values[key])
     }

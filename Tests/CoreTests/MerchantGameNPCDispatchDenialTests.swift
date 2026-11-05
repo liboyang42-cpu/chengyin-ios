@@ -50,7 +50,7 @@ import FoundationNetworking
             return (try JSONSerialization.data(withJSONObject: ["code": 200, "data": data]), 200)
         }
     }
-    final class Harness {
+    @MainActor final class Harness {
         let url = URL(string: "https://synthetic.example.test/prod-api/")!
         let row = PublicMerchantRowID(31)!
         let wire = Wire(), journal = Journal()

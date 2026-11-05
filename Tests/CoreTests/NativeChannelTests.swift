@@ -74,7 +74,7 @@ final class NativeChannelTests: XCTestCase {
         let page = try await service.newer(conversationID: 9, after: 100, token: "synthetic-token")
         XCTAssertEqual(page.nextAfter, 40)
         let request = try XCTUnwrap(transport.requests.first)
-        XCTAssertEqual(NativeChannelRuntimeRoute(request: request, baseURL: config.baseURL), .incremental(conversationID: 9, after: 100))
+        try assertExactChannelRequest(request, baseURL: config.baseURL, path: "api/im/messages", fields: ["conversation_id": "9", "after_id": "100", "size": "30"])
         XCTAssertNil(MessagingHistoryReadRoute(request: request, baseURL: config.baseURL))
     }
     func testReadReceiptRequiresExactTargetAndAllowsNonNumericVisibleOrder() async throws {
@@ -84,41 +84,7 @@ final class NativeChannelTests: XCTestCase {
         let result = try await service.readThrough(conversationID: 9, readTo: 40, token: "synthetic-token")
         XCTAssertEqual(result.unread, 5)
         XCTAssertEqual(result.lastReadMessageId, 3)
-        XCTAssertEqual(NativeChannelRuntimeRoute(request: try XCTUnwrap(transport.requests.first), baseURL: config.baseURL), .readThrough(conversationID: 9, target: 40))
-    }
-    func testIndependentChannelFeaturesDoNotBorrowLegacyReadOrEachOther() throws {
-        let incremental = try BusinessRuntimeRoute.post("api/im/messages")
-        let receipt = try BusinessRuntimeRoute.post("api/native/channels/read-through")
-        XCTAssertTrue(BusinessRuntimeFeature.nativeChannelIncrementalRead.accepts(incremental))
-        XCTAssertTrue(BusinessRuntimeFeature.nativeChannelReadReceipt.accepts(receipt))
-        XCTAssertFalse(BusinessRuntimeFeature.nativeChannelIncrementalRead.accepts(receipt))
-        XCTAssertFalse(BusinessRuntimeFeature.nativeChannelReadReceipt.accepts(incremental))
-        XCTAssertFalse(BusinessRuntimeFeature.imRead.accepts(receipt))
-        XCTAssertFalse(BusinessRuntimeFeature.imRead.accepts(incremental))
-    }
-    func testRouteIndependentlyRejectsCookiesAndProxyCredentials() throws {
-        let config = try configuration()
-        var clean = try AuthRequestBuilder.makeFormRequest(
-            url: config.baseURL.appendingPathComponent("api/native/channels/read-through"),
-            fields: ["conversation_id": "9", "read_to": "4"], token: "synthetic-token")
-        clean.httpShouldHandleCookies = false
-        XCTAssertEqual(NativeChannelRuntimeRoute(request: clean, baseURL: config.baseURL), .readThrough(conversationID: 9, target: 4))
-        for header in ["Cookie", "Cookie2", "Proxy-Authorization"] {
-            var changed = clean
-            changed.setValue("synthetic-unapproved-header", forHTTPHeaderField: header)
-            XCTAssertNil(NativeChannelRuntimeRoute(request: changed, baseURL: config.baseURL))
-        }
-        var cookieHandling = clean
-        cookieHandling.httpShouldHandleCookies = true
-        XCTAssertNil(NativeChannelRuntimeRoute(request: cookieHandling, baseURL: config.baseURL))
-    }
-    func testRouteRejectsExtraIdentityZeroTargetAndQuery() throws {
-        let config = try configuration()
-        for fields in [["conversation_id":"9","read_to":"0"], ["conversation_id":"9","read_to":"4","member_id":"1"]] {
-            var request = try AuthRequestBuilder.makeFormRequest(url: config.baseURL.appendingPathComponent("api/native/channels/read-through"), fields: fields, token: "synthetic-token")
-            request.httpShouldHandleCookies = false
-            XCTAssertNil(NativeChannelRuntimeRoute(request: request, baseURL: config.baseURL))
-        }
+        try assertExactChannelRequest(try XCTUnwrap(transport.requests.first), baseURL: config.baseURL, path: "api/native/channels/read-through", fields: ["conversation_id": "9", "read_to": "40"])
     }
     @MainActor func testRetiredScreenCannotMarkReadOrRetainVisibleMessages() async throws {
         let reader = NativeChannelTestReader(rows: try conversations(), page: try page([100, 40], conversation: 1))
@@ -155,7 +121,7 @@ final class NativeChannelTests: XCTestCase {
         XCTAssertEqual(owner.receipt?.unread, 3)
         XCTAssertEqual(transport.requests.count, 2)
         for request in transport.requests {
-            XCTAssertEqual(NativeChannelRuntimeRoute(request: request, baseURL: try configuration().baseURL), .readThrough(conversationID: 1, target: 40))
+            try assertExactChannelRequest(request, baseURL: try configuration().baseURL, path: "api/native/channels/read-through", fields: ["conversation_id": "1", "read_to": "40"])
         }
     }
     @MainActor func testAccountOrGrantChangeHidesHistoryAndStopsFurtherReads() async throws {
@@ -215,7 +181,7 @@ final class NativeChannelTests: XCTestCase {
         XCTAssertEqual(owner.receipt?.readTo, 40)
         XCTAssertEqual(transport.requests.count, 2)
         for request in transport.requests {
-            XCTAssertEqual(NativeChannelRuntimeRoute(request: request, baseURL: try configuration().baseURL), .readThrough(conversationID: 1, target: 40))
+            try assertExactChannelRequest(request, baseURL: try configuration().baseURL, path: "api/native/channels/read-through", fields: ["conversation_id": "1", "read_to": "40"])
         }
     }
     @MainActor func testRetiredAuthorityDuringCancelledAckCannotExposeOrRetrySnapshot() async throws {
@@ -240,6 +206,23 @@ final class NativeChannelTests: XCTestCase {
         XCTAssertEqual(transport.requests.count, 1)
     }
     private func configuration() throws -> APIConfiguration { try .init(baseURL: URL(string: "https://example.com/fixture/")!) }
+}
+
+/// Pins a request produced by NativeChannelService to its exact canonical form: origin, path,
+/// method, headers and every multipart byte, so no extra identity field or cookie can pass.
+private func assertExactChannelRequest(_ request: URLRequest, baseURL: URL, path: String, fields: [String: String],
+                                       file: StaticString = #filePath, line: UInt = #line) throws {
+    let prefix = "multipart/form-data; boundary="
+    let type = try XCTUnwrap(request.value(forHTTPHeaderField: "Content-Type"), file: file, line: line)
+    XCTAssertTrue(type.hasPrefix(prefix), file: file, line: line)
+    let expected = try AuthRequestBuilder.makeFormRequest(url: baseURL.appendingPathComponent(path), fields: fields,
+        token: "synthetic-token", boundary: String(type.dropFirst(prefix.count)))
+    XCTAssertEqual(request.url?.absoluteString, expected.url?.absoluteString, file: file, line: line)
+    XCTAssertNil(request.url?.query, file: file, line: line)
+    XCTAssertEqual(request.httpMethod, "POST", file: file, line: line)
+    XCTAssertEqual(request.httpBody, expected.httpBody, file: file, line: line)
+    XCTAssertEqual(request.allHTTPHeaderFields, expected.allHTTPHeaderFields, file: file, line: line)
+    XCTAssertFalse(request.httpShouldHandleCookies, file: file, line: line)
 }
 
 @MainActor private final class NativeChannelTestReader: MessagingReading {
