@@ -1,7 +1,10 @@
 import Foundation
 import SwiftUI
+import UIKit
+import UniformTypeIdentifiers
 
-/// Reads only the coordinator's ephemeral value. There is no clipboard, sharing, URL opening or storage.
+/// Reads only the coordinator's ephemeral value. Copy writes a local-only pasteboard item
+/// that expires; there is no sharing, URL opening or storage.
 @MainActor struct NativeWebhookOneTimeCredentialView: View {
     @ObservedObject var model: NativeWebhookViewModel
     @State private var shownRequestID: NativeWebhookRequestID?
@@ -9,36 +12,42 @@ import SwiftUI
         Form {
             if let credential = model.coordinator?.credential, model.available {
                 Section {
-                    NativeChannelFlowNotice(title:Text("仅显示一次"),message:Text(verbatim:nativeWebhookLocalized("凭据仅在当前页面显示一次。关闭页面、切换后台或授权变化后会清除；普通查询和原请求恢复不能取回。")),symbol:"key.horizontal")
+                    NativeChannelFlowNotice(title:Text(verbatim:nativeWebhookLocalized("d7.webhook.secret.once")),message:Text(verbatim:nativeWebhookLocalized("d7.webhook.secret.once.message")),symbol:"key.horizontal")
                         .accessibilityIdentifier("webhook.credential.warning")
-                    NativeChannelFlowReference(label:Text(verbatim:nativeWebhookLocalized("原请求编号")),value:credential.requestID.rawValue)
                 }
-                Section(nativeWebhookLocalized("签名密钥")) {
+                Section(nativeWebhookLocalized("d7.webhook.secret")) {
                     Text(verbatim: credential.secret).font(.body.monospaced()).fixedSize(horizontal:false,vertical:true).textSelection(.disabled)
-                        .accessibilityLabel(nativeWebhookLocalized("一次性签名密钥")).accessibilityValue(nativeWebhookLocalized("敏感内容"))
+                        .accessibilityLabel(nativeWebhookLocalized("d7.webhook.secret")).accessibilityValue(nativeWebhookLocalized("d7.webhook.secret.hiddenValue"))
                         .accessibilityIdentifier("webhook.credential.secret")
+                    Button { copy(credential.secret) } label: { Label(nativeWebhookLocalized("d7.webhook.copy"), systemImage: "doc.on.doc") }
+                        .accessibilityIdentifier("webhook.credential.copySecret")
                 }
                 if let url = credential.endpointURL {
-                    Section(nativeWebhookLocalized("完整入站 URL")) {
+                    Section(nativeWebhookLocalized("d7.webhook.field.url")) {
                         Text(verbatim: url).font(.body.monospaced()).fixedSize(horizontal:false,vertical:true).textSelection(.disabled)
-                            .accessibilityLabel(nativeWebhookLocalized("一次性入站 URL")).accessibilityValue(nativeWebhookLocalized("敏感内容"))
+                            .accessibilityLabel(nativeWebhookLocalized("d7.webhook.field.url")).accessibilityValue(nativeWebhookLocalized("d7.webhook.secret.hiddenValue"))
                             .accessibilityIdentifier("webhook.credential.endpointURL")
+                        Button { copy(url) } label: { Label(nativeWebhookLocalized("d7.webhook.copy"), systemImage: "doc.on.doc") }
+                            .accessibilityIdentifier("webhook.credential.copyURL")
                     }
                 }
                 if let time = credential.oldTokenInvalidAfter {
-                    Section { LabeledContent(nativeWebhookLocalized("旧凭据失效时间"), value: time.rawValue) }
+                    Section { NativeWebhookTimeRow(label: nativeWebhookLocalized("d7.webhook.secret.oldExpires"), time: time) }
                 }
                 Section {
-                    Button(nativeWebhookLocalized("已查看，清除凭据")) { model.dismissSheet() }.nativeChannelFlowAction()
+                    Button(nativeWebhookLocalized("d7.webhook.done")) { model.dismissSheet() }.nativeChannelFlowAction()
                         .accessibilityIdentifier("webhook.credential.clear")
                 }
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets())
             } else {
-                Section { Text(nativeWebhookLocalized("首次凭据已清除或未取得。若需要新凭据，请另行确认轮换。")) }
-                Button(nativeWebhookLocalized("关闭")) { model.dismissSheet() }
+                ContentUnavailableView(nativeWebhookLocalized("d7.webhook.secret.gone"), systemImage: "key.horizontal",
+                    description: Text(verbatim: nativeWebhookLocalized("d7.webhook.secret.gone.message")))
+                Button(nativeWebhookLocalized("d7.webhook.close")) { model.dismissSheet() }
             }
         }
         .nativeChannelFlowPage()
-        .navigationTitle(nativeWebhookLocalized("一次性凭据"))
+        .navigationTitle(nativeWebhookLocalized("d7.webhook.secret.title"))
         .privacySensitive()
         .onAppear { shownRequestID = model.coordinator?.credential?.requestID }
         .onDisappear {
@@ -47,5 +56,9 @@ import SwiftUI
             }
         }
         .accessibilityIdentifier("webhook.credential")
+    }
+    private func copy(_ value: String) {
+        UIPasteboard.general.setItems([[UTType.plainText.identifier: value]],
+            options: [.localOnly: true, .expirationDate: Date().addingTimeInterval(120)])
     }
 }
