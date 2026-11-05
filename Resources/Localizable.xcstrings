@@ -103659,17 +103659,18 @@
       }
     },
     "playx.circle.closed" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "At least three current offers are required to open this instance."
+            "value" : "Not enough shops to start this exploration yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "至少需要三家有效供给才能开放本实例"
+            "value" : "可选商家还不够，暂时无法开始。"
           }
         }
       }
@@ -103755,33 +103756,35 @@
       }
     },
     "playx.circle.notice" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This private card records your choices. It does not prove arrival, booking, redemption or purchase."
+            "value" : "This card only records your own choices."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "私人记录卡仅记录自主选择，不代表商家确认到店、预约、核销或成交"
+            "value" : "本卡仅记录玩家自己的选择。"
           }
         }
       }
     },
     "playx.circle.offers" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Available offers"
+            "value" : "Shops to explore"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可选商家供给"
+            "value" : "这次可探索的商家"
           }
         }
       }
@@ -103803,49 +103806,52 @@
       }
     },
     "playx.circle.openUnknown" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Opening may have succeeded. Recover the existing session before starting another."
+            "value" : "You may already have joined. Check before starting again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "创建或加入可能已成功，请先恢复已有会话，勿重复创建"
+            "value" : "可能已经加入成功，请先核对再重新开始。"
           }
         }
       }
     },
     "playx.circle.records" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "My private records"
+            "value" : "My exploration record"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "我的私人记录"
+            "value" : "我的探索记录"
           }
         }
       }
     },
     "playx.circle.shanghaiGate" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "City keyword pairing needs the recorded-store picker before submitting."
+            "value" : "Pick from the shops you've recorded to save a city keyword."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "城市关键词提交前需要从已记录商家选择配对"
+            "value" : "从已记录的商家中选择后保存城市关键词。"
           }
         }
       }
@@ -103963,17 +103969,18 @@
       }
     },
     "playx.circle.title" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Circle exploration"
+            "value" : "Free exploration"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "圈层探索"
+            "value" : "自由探索"
           }
         }
       }
@@ -203218,6 +203225,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "未命名地点"
+          }
+        }
+      }
+    },
+    "playx.circle.offerUntitled" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shop"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "商家"
+          }
+        }
+      }
+    },
+    "playx.circle.save" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存"
           }
         }
       }

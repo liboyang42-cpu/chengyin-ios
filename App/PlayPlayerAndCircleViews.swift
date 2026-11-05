@@ -168,7 +168,6 @@ import SwiftUI
     var body: some View {
         List {
             Section {
-                Text("playx.circle.notice").font(.footnote)
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
                 LabeledContent("playx.state") { PlayRuntimePhaseText(phase: model.phase) }
                 if model.phase == "unknown" { Button("playx.reconcile") { Task { await model.recover() } }.accessibilityIdentifier("playx.circle.reconcile") }
@@ -177,8 +176,10 @@ import SwiftUI
             if model.card == nil {
                 Section("playx.circle.open") {
                     TextField("playx.circle.invite", text: $invite).textInputAutocapitalization(.characters).autocorrectionDisabled()
-                    if model.offers.count < 3 { Text("playx.circle.closed") }
-                    Button("playx.circle.open") { openReview = true }.disabled(model.phase != "ready" || model.offers.count < 3)
+                    if model.offers.count < 3 { Text("playx.circle.closed").foregroundStyle(.secondary) }
+                    else {
+                        Button("playx.circle.open") { openReview = true }.buttonStyle(.questifyPrimary).disabled(model.phase != "ready")
+                    }
                 }
             }
             if let card = model.card {
@@ -190,7 +191,8 @@ import SwiftUI
                                 pending = .record(offerID: id, note: note); review = true
                             } label: {
                                 VStack(alignment: .leading) {
-                                    Text(verbatim: offer["candidateName"].text ?? offer["supplyName"].text ?? id).font(.headline)
+                                    if let name = offer["candidateName"].text ?? offer["supplyName"].text { Text(verbatim: name).font(.headline) }
+                                    else { Text("playx.circle.offerUntitled").font(.headline) }
                                     if let detail = offer["actionValue"].text, !detail.isEmpty { Text(verbatim: detail).font(.caption).foregroundStyle(.secondary) }
                                 }
                             }.disabled(model.phase != "ready").accessibilityIdentifier("playx.circle.offer.\(id)")
@@ -211,10 +213,13 @@ import SwiftUI
                                 Text("playx.choose").tag("")
                                 Text("playx.circle.date.q1").tag("Q1"); Text("playx.circle.date.q2").tag("Q2"); Text("playx.circle.date.q3").tag("Q3")
                             }
-                        } else if card.themeCode == "SHANGHAI" { Text("playx.circle.shanghaiGate") }
+                        } else if card.themeCode == "SHANGHAI" { Text("playx.circle.shanghaiGate").foregroundStyle(.secondary) }
                         else { TextField("playx.circle.answer", text: binding(stage), axis: .vertical) }
-                        Button("playx.review") { pending = .answer(stage: stage, value: answers[stage] ?? ""); review = true }
-                            .disabled(model.phase != "ready" || (answers[stage] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        // The city-keyword stage has no picker yet, so its save button would never enable.
+                        if card.themeCode != "SHANGHAI" {
+                            Button("playx.circle.save") { pending = .answer(stage: stage, value: answers[stage] ?? ""); review = true }
+                                .disabled(model.phase != "ready" || (answers[stage] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        }
                     }
                 }
                 Section("playx.circle.records") {
