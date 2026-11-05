@@ -1,0 +1,38 @@
+name: Design review capture
+on:
+  push:
+    branches: ['claude/design-review-*']
+permissions:
+  contents: read
+concurrency:
+  group: design-review-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  capture:
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Capture screens
+        run: |
+          defaults write com.apple.dt.Xcode IDEBuildingContinueBuildingAfterErrors -bool YES
+          SIM=$(xcrun simctl list devices available -j | python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];print(next(x['udid'] for r in sorted(d,reverse=True) for x in d[r] if x['name'].startswith('iPhone 17')))")
+          test_status=0
+          xcodebuild -project Questify.xcodeproj -scheme Questify -configuration Debug -sdk iphonesimulator -destination "platform=iOS Simulator,id=$SIM" -only-testing:QuestifyUITests/DesignReviewCaptureTests/testCaptureVerifiedRootTabs -only-testing:QuestifyUITests/DesignReviewCaptureTests/testCaptureVerifiedOrders -only-testing:QuestifyUITests/DesignReviewCaptureTests/testCaptureVerifiedTopic -only-testing:QuestifyUITests/DesignReviewCaptureTests/testCaptureVerifiedMessage -parallel-testing-enabled NO -resultBundlePath "$RUNNER_TEMP/review.xcresult" CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES 'OTHER_SWIFT_FLAGS=$(inherited) -continue-building-after-errors' test > "$RUNNER_TEMP/test.log" 2>&1 || { test_status=$?; grep -E 'error:|reasonable time' "$RUNNER_TEMP/test.log" | sed 's|/Users/runner/work/chengyin-ios/chengyin-ios/||' | sort -u | head -60; tail -25 "$RUNNER_TEMP/test.log"; echo TEST_FAILED; }
+          mkdir -p "$RUNNER_TEMP/shots"
+          export_status=0
+          xcrun xcresulttool export attachments --path "$RUNNER_TEMP/review.xcresult" --output-path "$RUNNER_TEMP/shots" || export_status=$?
+          ls "$RUNNER_TEMP/shots" | wc -l
+          if [ "$test_status" -ne 0 ]; then exit "$test_status"; fi
+          exit "$export_status"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: design-review-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/shots/
+            ${{ runner.temp }}/test.log
+          retention-days: 3
+          if-no-files-found: error
