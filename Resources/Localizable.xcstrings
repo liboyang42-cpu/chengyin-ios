@@ -14325,13 +14325,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Check-in unknown · View details"
+            "value" : "View check-in"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "核销状态未知 · 查看详情"
+            "value" : "查看核销"
           }
         }
       }
@@ -14357,7 +14357,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Date not available"
+            "value" : "Date to be set"
           }
         },
         "zh-Hans" : {
@@ -14485,13 +14485,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Paid registrations"
+            "value" : "Paid"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已支付报名数"
+            "value" : "已支付"
           }
         }
       }
@@ -14549,13 +14549,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Potentially refundable"
+            "value" : "Refundable"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可退款人数"
+            "value" : "可退款"
           }
         }
       }
@@ -14725,13 +14725,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unknown"
+            "value" : "—"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未知"
+            "value" : "—"
           }
         }
       }
@@ -203196,6 +203196,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "通过审核后可看成员名单"
+          }
+        }
+      }
+    },
+    "club.enroll.denied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can't view this roster"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有权限查看报名名册"
           }
         }
       }
