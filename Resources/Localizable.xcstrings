@@ -94932,33 +94932,35 @@
       }
     },
     "playFree.evidence.notice" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This submits arrival or photo evidence only. The store confirms redemption separately."
+            "value" : "The store confirms redemption separately."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此操作仅提交到店或照片凭证，核销由门店另行确认。"
+            "value" : "核销由门店另行确认。"
           }
         }
       }
     },
     "playFree.evidence.submit" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Submit store evidence"
+            "value" : "Submit"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "提交到店凭证"
+            "value" : "提交"
           }
         }
       }
@@ -95012,17 +95014,18 @@
       }
     },
     "playFree.proof.pending" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The result needs a fresh status check. Refresh before submitting again."
+            "value" : "Your visit is still being confirmed. Refresh before trying again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "现场记录结果待确认，请先刷新状态再提交。"
+            "value" : "到店记录还在确认中，请刷新后再试。"
           }
         }
       }
@@ -95092,17 +95095,18 @@
       }
     },
     "playFree.registrationRequired" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A valid pass is required to view these stores."
+            "value" : "You need a pass to see these stores."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "需要有效通行资格才能查看这些门店。"
+            "value" : "需要通行证才能查看这些门店。"
           }
         }
       }
@@ -95188,17 +95192,18 @@
       }
     },
     "playFree.store.unavailable" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Store unavailable"
+            "value" : "This store isn't available"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "门店暂不可用"
+            "value" : "这家门店暂不可用"
           }
         }
       }
