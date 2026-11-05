@@ -27,6 +27,10 @@ public struct NativeChannelHistory: Equatable {
     public mutating func prepend(_ page: MessagingPage, cursor: Int) throws {
         guard page.messages.count <= 50 else { throw APIError.malformedResponse }
         try older.prepend(page, requestedCursor: cursor)
+        // An overlapping older page may carry an edit/recall for a row first
+        // loaded incrementally. Refresh that copy without changing visible order.
+        let incoming = Dictionary(uniqueKeysWithValues: Self.unique(page.messages).map { ($0.id, $0) })
+        newerMessages = newerMessages.map { incoming[$0.id] ?? $0 }
     }
     public mutating func append(_ page: MessagingPage, requestedAfter: Int, nextAfter: Int) throws {
         guard requestedAfter == self.nextAfter, nextAfter >= 0,
@@ -37,11 +41,19 @@ public struct NativeChannelHistory: Equatable {
             throw APIError.malformedResponse
         }
         let incomingIDs = Set(page.messages.map(\.id))
-        var seen = Set<Int>()
         newerMessages = newerMessages.filter { !incomingIDs.contains($0.id) }
-            + page.messages.filter { seen.insert($0.id).inserted }
+            + Self.unique(page.messages)
         consumedAfter.insert(requestedAfter)
         self.nextAfter = nextAfter
         hasMoreNewer = page.hasMore
+    }
+
+    private static func unique(_ messages: [MessagingMessage]) -> [MessagingMessage] {
+        var result: [MessagingMessage] = [], positions: [Int: Int] = [:]
+        for message in messages {
+            if let position = positions[message.id] { result[position] = message }
+            else { positions[message.id] = result.count; result.append(message) }
+        }
+        return result
     }
 }
