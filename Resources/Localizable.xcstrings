@@ -155107,13 +155107,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Points"
+            "value" : "Points history"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "积分"
+            "value" : "积分明细"
           }
         }
       }
@@ -155139,7 +155139,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Points ledger"
+            "value" : "Points history"
           }
         },
         "zh-Hans" : {
