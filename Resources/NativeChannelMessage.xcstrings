@@ -451,64 +451,64 @@
     },
     "search.title": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "搜索频道消息"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Search channel messages"
+            "value": "Search messages"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索消息"
           }
         }
       }
     },
     "search.author": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "发送者会员 ID（可选）"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Author member ID (optional)"
+            "value": "Sender ID (optional)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送者编号（选填）"
           }
         }
       }
     },
     "search.from": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "开始日期 YYYY-MM-DD 或带时区时间"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "From: YYYY-MM-DD or a timestamp with offset"
+            "value": "From (YYYY-MM-DD)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始日期（YYYY-MM-DD）"
           }
         }
       }
     },
     "search.to": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "结束日期 YYYY-MM-DD 或带时区时间"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "To: YYYY-MM-DD or a timestamp with offset"
+            "value": "To (YYYY-MM-DD)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束日期（YYYY-MM-DD）"
           }
         }
       }
@@ -579,16 +579,16 @@
     },
     "search.keyword": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "搜索关键词"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Search keyword"
+            "value": "Search"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索"
           }
         }
       }
@@ -627,16 +627,16 @@
     },
     "load.failed": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "读取失败，请重试"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Could not load. Try again."
+            "value": "Couldn't load. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载失败，请重试。"
           }
         }
       }
@@ -835,16 +835,16 @@
     },
     "search.retention": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "可搜索起点"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Searchable from"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可搜索起始日期"
           }
         }
       }
@@ -867,32 +867,32 @@
     },
     "search.retentionClipped": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "部分日期超出当前可搜索范围"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Some requested dates are outside the searchable range"
+            "value": "Some dates are outside the searchable range"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分日期超出可搜索范围"
           }
         }
       }
     },
     "search.shortAndClipped": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "短关键词和日期范围均受到限制"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Both the short keyword and date range limit these results"
+            "value": "Short keyword and date range limit these results"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关键词较短且日期超出范围，结果可能不完整"
           }
         }
       }
