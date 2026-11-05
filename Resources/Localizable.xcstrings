@@ -45717,13 +45717,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Conversation actions"
+            "value" : "Conversation info"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "会话操作"
+            "value" : "会话信息"
           }
         }
       }
@@ -46190,13 +46190,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "System notifications are one-way. You can read them and manage notifications here."
+            "value" : "System notifications can't be replied to"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "系统通知不支持回复，有新动态会出现在这里"
+            "value" : "系统通知不支持回复"
           }
         }
       }
@@ -80582,13 +80582,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Search loaded conversations"
+            "value" : "Search"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "搜索已加载的会话"
+            "value" : "搜索"
           }
         }
       }
@@ -80599,13 +80599,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Change the filter or search the names and previews already loaded."
+            "value" : "Try another name or keyword"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请调整筛选，或搜索已加载的名称和消息摘要。"
+            "value" : "换个名字或关键词试试"
           }
         }
       }
