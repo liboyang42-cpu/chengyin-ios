@@ -43956,13 +43956,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Badges earned"
+            "value" : "Badges"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已获徽章"
+            "value" : "徽章"
           }
         }
       }
@@ -43990,13 +43990,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No badges yet"
+            "value" : "No badges lit up yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂无徽章"
+            "value" : "还没有点亮任何徽章"
           }
         }
       }
@@ -44007,13 +44007,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No rankings yet"
+            "value" : "No one on this board yet"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "暂无排行榜数据"
+            "value" : "这张榜还没有人上榜"
           }
         }
       }
@@ -44024,13 +44024,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rankings appear when the service has ranking data."
+            "value" : "Finish a city exploration to start scoring."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "有可排名数据后将在这里展示。"
+            "value" : "完成一次城市探索即可累计积分。"
           }
         }
       }
@@ -44058,13 +44058,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ranking measure"
+            "value" : "Board"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "排行指标"
+            "value" : "榜单"
           }
         }
       }
@@ -44075,13 +44075,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ranking period"
+            "value" : "Period"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "排行周期"
+            "value" : "周期"
           }
         }
       }
@@ -44143,13 +44143,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Exploration value (EXP)"
+            "value" : "Exploration XP"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "探索值（EXP）"
+            "value" : "探索值"
           }
         }
       }
@@ -44302,7 +44302,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "累计距离（公里）"
+            "value" : "累计距离（km）"
           }
         }
       }
@@ -44449,13 +44449,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Exploration overview"
+            "value" : "My footprint"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "足迹概览"
+            "value" : "我的足迹"
           }
         }
       }
@@ -44551,13 +44551,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Points and ranking"
+            "value" : "Total points"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "积分与排名"
+            "value" : "总积分"
           }
         }
       }
@@ -44704,13 +44704,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Explore from home"
+            "value" : "Go explore"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "去首页探索"
+            "value" : "去探索"
           }
         }
       }
@@ -203259,6 +203259,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "保存"
+          }
+        }
+      }
+    },
+    "growth.level.value %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Level %lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lv.%lld"
+          }
+        }
+      }
+    },
+    "growth.board.link" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View leaderboard"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看榜单"
           }
         }
       }
