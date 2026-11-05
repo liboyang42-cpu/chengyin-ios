@@ -25385,13 +25385,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The operation did not complete. Check the current state before trying again."
+            "value" : "That didn't finish. Check the status before trying again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "操作未完成，请先检查当前状态再重试。"
+            "value" : "操作未完成，请先查看状态再重试。"
           }
         }
       }
@@ -25417,13 +25417,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Approved regional legal content is unavailable. This action cannot be enabled."
+            "value" : "The notice isn't available right now, so this can't continue."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已批准的地区法律文档尚不可用，暂不能启用此操作。"
+            "value" : "须知暂时无法显示，暂不能继续。"
           }
         }
       }
@@ -25465,13 +25465,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your preferences update once we confirm this merchant and channel."
+            "value" : "Changes apply once each merchant and channel is confirmed."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认对应商家及渠道后，偏好设置才会更新。"
+            "value" : "每个商家和渠道确认后，更改才会生效。"
           }
         }
       }
@@ -25609,13 +25609,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Revoke or finish local cleanup"
+            "value" : "Withdraw consent"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "撤回授权或继续本地清理"
+            "value" : "撤回授权"
           }
         }
       }
@@ -25641,13 +25641,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Withdraw your consent, then stop location tracking and clear the map privacy agreement on this device. If a step fails, you can continue it later."
+            "value" : "Withdrawing stops location tracking and clears location data on this iPhone. If a step doesn't finish, you can continue it later."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "先撤回授权，再停止定位并清除本机的地图隐私同意。某一步失败时可稍后继续。"
+            "value" : "撤回后会停止定位，并清除这台 iPhone 上的定位数据。若某一步未完成，可稍后继续。"
           }
         }
       }
@@ -25769,13 +25769,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This action isn't available right now."
+            "value" : "This can't be done right now."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此操作暂不可用"
+            "value" : "暂时无法操作。"
           }
         }
       }
@@ -202567,6 +202567,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "商家概览"
+          }
+        }
+      }
+    },
+    "compliance.status.pending" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Application submitted"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "注销申请已提交"
+          }
+        }
+      }
+    },
+    "compliance.status.eligible" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can close this account"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可以申请注销"
+          }
+        }
+      }
+    },
+    "compliance.status.blocked" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't close the account yet"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂时无法注销"
           }
         }
       }
