@@ -10203,13 +10203,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Apple did not provide a usable sign-in credential. Please try again."
+            "value" : "Apple sign-in didn't finish. Please try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Apple 未返回有效的登录凭证，请重试。"
+            "value" : "Apple 登录未完成，请重试。"
           }
         }
       }
@@ -10441,13 +10441,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The service rejected this request. Check your details or try again later."
+            "value" : "This request wasn't accepted. Check your details or try again later."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务未接受此次请求，请核对信息或稍后重试。"
+            "value" : "请求未被接受，请核对信息或稍后重试。"
           }
         }
       }
@@ -92200,13 +92200,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saved content drafts"
+            "value" : "Saved drafts"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已保存的内容草稿"
+            "value" : "已保存的草稿"
           }
         }
       }
@@ -123359,13 +123359,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sign-in isn't available in the US right now. Mainland China phone verification can't be used here."
+            "value" : "Sign-in isn't available in your region yet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "美国地区登录暂不可用，此处不支持中国大陆手机号验证。"
+            "value" : "你所在的地区暂不支持登录。"
           }
         }
       }
