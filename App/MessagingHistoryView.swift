@@ -85,6 +85,13 @@ struct MessagingHistoryView: View {
         if let id = history.messages.last?.id, id > 0 { return id }
         return history.messages.isEmpty ? 0 : nil
     }
+    private var canCreatePoll: Bool { conversation?.supportsGroupPolls == true && currentHistoryReady }
+    /// Mirrors the bottom inset branches: the composer shows only when no notice replaces it.
+    private var showsComposer: Bool {
+        if replyPolicy.isSystemNotice, currentHistoryReady { return false }
+        if let block = replyBlock, block != .systemNotice, currentHistoryReady { return false }
+        return replyPolicy.permitsReply && sender != nil
+    }
     private var replyPolicy: IMConversationReplyPolicy {
         .init(conversationID: conversationID, conversation: conversation)
     }
@@ -112,7 +119,7 @@ struct MessagingHistoryView: View {
                     // Source closed hangout: 「返回消息列表」 instead of a dead end.
                     if issue.titleKey == "messaging.closed" {
                         Button("im.chat.returnToList") { dismissHistory() }
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(.questifyPrimary)
                             .accessibilityIdentifier("im.chat.returnToList")
                     }
                 }
@@ -126,18 +133,19 @@ struct MessagingHistoryView: View {
             if replyPolicy.isSystemNotice, currentHistoryReady {
                 Label("im.reply.systemNotice", systemImage: "info.circle")
                     .font(.footnote).frame(maxWidth: .infinity, alignment: .leading)
-                    .padding().background(.regularMaterial)
+                    .padding(.horizontal, Theme.Space.pageX).padding(.vertical, Theme.Space.s3).background(.bar)
                     .accessibilityIdentifier("im.reply.systemNotice")
             } else if let block = replyBlock, block != .systemNotice, currentHistoryReady {
                 Label(LocalizedStringKey(block == .blockedByMe ? "im.chat.blockedByMe" : "im.chat.peerUnavailable"),
                       systemImage: "hand.raised")
                     .font(.footnote).frame(maxWidth: .infinity, alignment: .leading)
-                    .padding().background(.regularMaterial)
+                    .padding(.horizontal, Theme.Space.pageX).padding(.vertical, Theme.Space.s3).background(.bar)
                     .accessibilityIdentifier("im.chat.replyBlocked")
             } else if replyPolicy.permitsReply, let sender {
                 MessageActionComposer(coordinator: sender, identity: reader.identity,
                     conversationReady: currentHistoryReady,
-                    canReply: { authority.permitsReply(lease) }) { _ in
+                    canReply: { authority.permitsReply(lease) },
+                    createPoll: canCreatePoll ? { showingPollComposer = true } : nil) { _ in
                     Task { await reload() }
                 }
             }
@@ -152,7 +160,7 @@ struct MessagingHistoryView: View {
         .appNavigationTitle("messaging.history.title")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
+            ToolbarItem(placement: .topBarTrailing) {
                 if currentHistoryReady,
                    let owner = expanded?.coordinator(conversationID) {
                     NavigationLink {
@@ -164,32 +172,27 @@ struct MessagingHistoryView: View {
                             admission: admission,
                             directory: directory,
                             showsAdmissionEntry: directory != nil || conversation?.kind == .group,
+                            isMuted: conversation?.muted,
                             onConversationMutationAccepted: onConversationMutationAccepted) { _ in Task { await reload() } }
-                    } label: { Label("im.full.title", systemImage: "ellipsis.circle") }
+                    } label: { Label("im.full.title", systemImage: "info.circle") }
                     .accessibilityIdentifier("im.full.controlsEntry")
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
+                // With a composer the poll entry is its leading `+`; otherwise it joins the … menu.
+                let createPoll: (() -> Void)? = canCreatePoll && !showsComposer ? { showingPollComposer = true } : nil
                 if currentHistoryReady, let owner = expanded?.safetyCoordinator?(conversationID), owner.isCurrent {
                     IMChatMoreMenu(owner: owner, conversation: conversation, blockedByMe: pageBlockedByMe,
-                                   messages: history.messages) { safety = .init(owner: owner) }
-                }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                if conversation?.supportsGroupPolls == true, currentHistoryReady {
-                    Button("poll.create", systemImage: "chart.bar.xaxis") { showingPollComposer = true }
+                                   messages: history.messages, createPoll: createPoll) { safety = .init(owner: owner) }
+                } else if let createPoll {
+                    Button("poll.create", systemImage: "chart.bar.xaxis", action: createPoll)
                         .accessibilityIdentifier("poll.createEntry")
                 }
             }
             ToolbarItem(placement: .principal) {
-                if currentHistoryReady {
+                if conversation != nil {
                     MessagingConversationName(conversation: conversation).font(.headline).lineLimit(1)
-                } else { Text("messaging.history.title") }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("messaging.refresh", systemImage: "arrow.clockwise") { Task { await reload() } }
-                    .disabled(isLoading || isLoadingEarlier || !reader.isConfigured || reader.identity == nil || issue?.isTerminal == true)
-                    .accessibilityIdentifier("messaging.history.refresh")
+                } else { Text("messaging.history.title").font(.headline) }
             }
         }
         .sheet(item: $safety) { presentation in
@@ -213,8 +216,7 @@ struct MessagingHistoryView: View {
     }
     private var transcript: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 16) {
-                if sender == nil && !replyPolicy.isSystemNotice { Text("messaging.readOnly").font(.footnote).foregroundStyle(.secondary) }
+            LazyVStack(alignment: .leading, spacing: Theme.Space.s2) {
                 if history.hasMore {
                     if isLoadingEarlier {
                         ProgressView("messaging.loadingEarlier").accessibilityIdentifier("messaging.history.loadingEarlier")
@@ -238,7 +240,8 @@ struct MessagingHistoryView: View {
                 }
                 let dividers = IMInboxTime.dividers(for: history.messages, now: Date())
                 ForEach(history.messages) { message in
-                    VStack(spacing: 8) {
+                    VStack(spacing: Theme.Space.s2) {
+                        // Time is grouped: one divider per burst, not a stamp on every bubble.
                         if let divider = dividers[message.id] {
                             IMChatDividerLabel(divider: divider).font(.caption).foregroundStyle(.secondary)
                                 .frame(maxWidth: .infinity).accessibilityIdentifier("im.chat.divider.\(message.id)")
@@ -256,8 +259,13 @@ struct MessagingHistoryView: View {
                     }
                     .id(message.id)
                 }
-            }.padding().scrollTargetLayout()
+            }
+            .padding(.horizontal, Theme.Space.pageX).padding(.vertical, Theme.Space.s3)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .scrollTargetLayout()
         }
+        // Few messages sit just above the composer and grow upward, as in native chat.
+        .defaultScrollAnchor(.bottom)
         .scrollPosition(id: $visibleMessageID, anchor: .top)
         .scrollDismissesKeyboard(.interactively)
     }
@@ -315,12 +323,27 @@ private struct MessagingBubble: View {
     let message: MessagingMessage
     let conversation: MessagingConversation?
     let accountID: Int
+    @ScaledMetric(relativeTo: .caption) private var avatarSize: CGFloat = 28
     private var isOwn: Bool { message.senderID == accountID && accountID > 0 }
+    /// Received messages show a small avatar beside the bubble; only groups add the sender name.
+    private var isGroup: Bool { conversation?.kind == .group }
     var body: some View {
-        ChatMessageBubble(isOwn: isOwn, timestamp: message.createdAt) {
-            MessagingSenderName(message: message, conversation: conversation, accountID: accountID)
-        } content: {
-            MessagingMessageContent(message: message)
+        HStack(alignment: .bottom, spacing: Theme.Space.s2) {
+            if !isOwn {
+                Image(systemName: "person.fill")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(width: avatarSize, height: avatarSize)
+                    .background(Circle().fill(Color(uiColor: .tertiarySystemFill)))
+                    .accessibilityHidden(true)
+            }
+            ChatMessageBubble(isOwn: isOwn) {
+                if isGroup && !isOwn {
+                    MessagingSenderName(message: message, conversation: conversation, accountID: accountID)
+                }
+            } content: {
+                MessagingMessageContent(message: message)
+            }
         }
         .accessibilityElement(children: .combine)
         .accessibilityHint(Text("messaging.openDetail"))
@@ -334,12 +357,18 @@ private struct MessagingBubble: View {
     let conversation: MessagingConversation?
     let blockedByMe: Bool?
     let messages: [MessagingMessage]
+    var createPoll: (() -> Void)? = nil
     let present: () -> Void
     private var conversationID: Int { owner.scope.conversationID }
     var body: some View {
         let items = IMSafetyMenu(conversation: conversation, blockedByMe: blockedByMe).items.filter(granted)
-        if !items.isEmpty {
+        if !items.isEmpty || createPoll != nil {
             Menu {
+                if let createPoll {
+                    Button("poll.create", systemImage: "chart.bar.xaxis", action: createPoll)
+                        .accessibilityIdentifier("poll.createEntry")
+                    if !items.isEmpty { Divider() }
+                }
                 ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                     Button(role: item == .hide || item == .block ? .destructive : nil) { select(item) } label: {
                         Label(title(item), systemImage: symbol(item))

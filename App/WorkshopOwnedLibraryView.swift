@@ -52,9 +52,9 @@ private struct WorkshopOwnedUnavailableView: View {
             WorkshopOwnedScopeSection()
             switch browser.phase {
             case .idle, .loading:
-                ProgressView { workshopText("loading") }.accessibilityIdentifier("workshopOwned.loading")
+                ProgressView { workshopText("loading") }.padding(.vertical, Theme.Space.s3).accessibilityIdentifier("workshopOwned.loading")
             case .notEnabled: WorkshopOwnedUnavailableView()
-            case .empty: workshopText("empty").accessibilityIdentifier("workshopOwned.empty")
+            case .empty: WorkshopLibraryNotice(text: workshopText("empty"), systemImage: "square.stack.3d.up").accessibilityIdentifier("workshopOwned.empty")
             case .failed, .invalidated:
                 WorkshopOwnedFailureView(issue: browser.issue)
                 if browser.phase != .invalidated {
@@ -128,25 +128,25 @@ private struct WorkshopOwnedUnavailableView: View {
           if navigation.isCurrentDetailVisit(routeID: routeID, visitID: visitID) {
             WorkshopOwnedScopeSection()
             if browser.detailLoading {
-                ProgressView { workshopText("loading") }.accessibilityIdentifier("workshopOwned.detailLoading")
+                ProgressView { workshopText("loading") }.padding(.vertical, Theme.Space.s3).accessibilityIdentifier("workshopOwned.detailLoading")
             } else if let response = browser.detail {
                 if response.metadata.availability == .notEnabled { WorkshopOwnedUnavailableView() }
                 else if let item = response.item, item.claimId == claimId {
                     Section {
                         WorkshopOwnedValueRow(key: "claimId", value: item.claimId)
-                        workshopText("status." + item.status.rawValue).accessibilityIdentifier("workshopOwned.status")
+                        WorkshopLibraryState(label: workshopText("status." + item.status.rawValue), raw: item.status.rawValue).accessibilityIdentifier("workshopOwned.status")
                         WorkshopOwnedValueRow(key: "acquiredAt", value: item.acquiredAt)
                         WorkshopOwnedValueRow(key: "validUntil", value: item.validUntil)
                         WorkshopOwnedValueRow(key: "checkedAt", value: response.metadata.checkedAt)
                     } header: { workshopText("metadata") }
                     Section {
-                        workshopText("publication." + item.publicationStatus.rawValue).fixedSize(horizontal: false, vertical: true)
+                        WorkshopLibraryNotice(text: workshopText("publication." + item.publicationStatus.rawValue), systemImage: "square.and.arrow.up")
                     } header: { workshopText("publication") }
                     if browser.packageBrowser != nil {
                         Button { navigation.openPackage(presentation: presentation) } label: { workshopText("package.open") }
                             .accessibilityIdentifier("workshopOwned.package.open")
                     }
-                    Section { workshopText("contentUnavailable").fixedSize(horizontal: false, vertical: true) }
+                    Section { WorkshopLibraryNotice(text: workshopText("contentUnavailable"), systemImage: "lock") }
                 }
             } else if let issue = browser.detailIssue {
                 WorkshopOwnedFailureView(issue: issue)
@@ -158,6 +158,7 @@ private struct WorkshopOwnedUnavailableView: View {
         }
         }
         .modifier(WorkshopOwnedNavigationTitle(key: "detail"))
+        .privacySensitive()
         // Only a real navigation visit changes identity; manual permit retirement does not.
         .onAppear {
             guard navigation.isCurrentDetailVisit(routeID: routeID, visitID: visitID) else { return }
@@ -185,21 +186,25 @@ private struct WorkshopOwnedUnavailableView: View {
         }
     }
 }
+/// Placeholder notices are hidden by the UI rules; the slot stays so both list states keep their layout.
 private struct WorkshopOwnedScopeSection: View {
-    var body: some View {
-        Section {
-            workshopText("scope").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            workshopText("purchasesUnavailable").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-        }
-    }
+    var body: some View { EmptyView() }
 }
 private struct WorkshopOwnedValueRow: View {
     let key: String
     let value: String
     @Environment(\.locale) private var locale
     var body: some View {
-        RevolutInsetRow(title: workshopLabel(key, locale: locale), value: value)
-            .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
+            Text(verbatim: workshopLabel(key, locale: locale))
+                .font(RevolutContentStyle.quiet).foregroundStyle(RevolutContentStyle.secondary)
+            Text(verbatim: value)
+                .font(RevolutContentStyle.row).foregroundStyle(RevolutContentStyle.primary)
+                .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, RevolutContentStyle.spacing)
+        .accessibilityElement(children: .combine)
     }
 }
 private struct WorkshopOwnedFailureView: View {

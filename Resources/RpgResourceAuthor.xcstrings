@@ -1,0 +1,998 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "strings": {
+    "rpgResource.copy.000": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original v2 resources"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原v2四资源配置"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.001": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit health, morale, luck and inspiration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑原HP／士气／幸运／灵感声明"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.002": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An existing schema2 journeyRules definition is required. This editor does not convert schema1 or create characters or resource templates."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "须已有原schema2 journeyRules；不转换schema1、不新建角色或资源模板。"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.003": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set the original resource availability, initial values and limits for publication. Current run balances stay unchanged. A blank means the source did not declare a value. Editing a resource requires all three values explicitly; no defaults are supplied."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只声明发布后的原资源开关、初始值和上限；不改变当前局余额。空白表示原源未显式声明，改动该资源时必须明确三项，不自动填入默认值。"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.004": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Availability"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显式启用状态"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.005": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not declared"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未显式声明"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.006": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enabled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.007": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disabled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.008": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Initial value"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明确初始值 init"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.009": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximum"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明确上限 max"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.010": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximum: 1–20. Initial value: 0 through the maximum."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原上限范围1–20；初始值0至上限。"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.011": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximum: 0–5. Initial value: 0 through the maximum."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原上限范围0–5；初始值0至上限。"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.012": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximum: 0–1000. Initial value: 0 through the maximum."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原上限范围0–1000；初始值0至上限。"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.013": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore this resource’s original values"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复此资源的原声明"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.014": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stage-rest morale floor"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原阶段休整士气保底"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.015": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional morale floor"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可选 stageRestMoraleFloor"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.016": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave blank to omit a morale floor; no default recovery amount is used. Only published versions with morale explicitly enabled apply this floor during the original chapter stage rest. This adds no rest button and does not change existing runs’ frozen rules."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "留空即不声明士气保底，不会采用默认恢复量。仅明确启用士气的发布版本在原章节阶段休整时执行；不新增休息按钮，不改变旧局冻结规则。"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.017": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore the original morale floor"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复原阶段士气保底声明"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.018": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review resource configuration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预览原四资源配置"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.019": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The fields or original draft are unavailable. No confirmable preview was created."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "字段或原草稿不可用，未生成可确认预览。"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.020": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm and save the local draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认写回并保存原项目草稿"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.021": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local saving was not confirmed. Your resource working copy is retained. You can confirm local saving again. Nothing has been saved to the server or published."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原本地保存未确认；保留资源编辑副本，可再次确认本地保存，尚未保存服务器或发布。"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.022": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The local draft was saved through the original save flow. Nothing has been saved to the server or published."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已沿原保存器保存本地草稿，尚未保存服务器或发布。"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.023": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue through the original project save, same-request recovery, publication and new-run initialization. Existing runs receive no resource refill or balance migration. Spending, skill points, talents and TEAM writes stay unchanged. Only the original STAGE_REST writer uses the explicitly frozen morale floor."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿原项目保存／同请求恢复／发布及真实新局初始化。旧局不补资源、不迁移余额；原消费、技能点、专长及TEAM写端均不改；阶段士气保底只由原STAGE_REST写端使用明确冻结值。"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.024": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close without saving"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭资源编辑副本"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.025": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The project, draft or permissions changed. This working copy is disabled. Reload the project."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "项目、草稿或权限已变化；旧资源副本已停用，请重新读取。"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.026": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The stage-rest morale floor must be an integer from 0 through the explicit morale maximum. No recovery amount is supplied."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原阶段士气保底须为0至明确士气上限的整数；不会代填恢复量。"
+          }
+        }
+      }
+    },
+    "rpgResource.copy.027": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The stage-rest morale floor requires an explicit morale maximum. No default maximum is assumed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阶段士气保底需要明确士气上限；不会推定默认上限。"
+          }
+        }
+      }
+    },
+    "rpgResource.name.hp": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Health"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生命值"
+          }
+        }
+      }
+    },
+    "rpgResource.name.morale": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morale"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "士气"
+          }
+        }
+      }
+    },
+    "rpgResource.name.luck": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luck"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "幸运"
+          }
+        }
+      }
+    },
+    "rpgResource.name.inspiration": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspiration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "灵感"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.28": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Health contains fields outside the original resource contract. They will not be deleted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hp含原资源合同之外字段；不会删除它们。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.29": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Health availability must be an explicit Boolean."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hp启用配置须为明确布尔值。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.30": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Health initial value must be a nonnegative integer."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hp初始值须为非负整数。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.31": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Health initial value cannot exceed its maximum."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hp初始值不能超过该资源上限。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.32": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Health editing requires explicit availability, maximum and initial value. No defaults are supplied."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hp本次编辑须明确启用状态、上限和初始值；不代填默认值。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.33": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Health maximum must be an integer from 1 to 20."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hp上限须为1–20整数。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.34": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original recovery.stationEndIfHurt exceeds the new health maximum. The original value is preserved and preview is blocked; recovery amounts are not changed automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原recovery.stationEndIfHurt超出hp新上限；保留原值并拒绝预览，不自动改恢复量。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.35": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original recovery.stageRestHpFloor exceeds the new health maximum. The original value is preserved and preview is blocked; recovery amounts are not changed automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原recovery.stageRestHpFloor超出hp新上限；保留原值并拒绝预览，不自动改恢复量。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.36": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original recovery.exhaustRestHp exceeds the new health maximum. The original value is preserved and preview is blocked; recovery amounts are not changed automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原recovery.exhaustRestHp超出hp新上限；保留原值并拒绝预览，不自动改恢复量。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.37": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morale contains fields outside the original resource contract. They will not be deleted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "morale含原资源合同之外字段；不会删除它们。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.38": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morale availability must be an explicit Boolean."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "morale启用配置须为明确布尔值。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.39": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morale initial value must be a nonnegative integer."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "morale初始值须为非负整数。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.40": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morale initial value cannot exceed its maximum."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "morale初始值不能超过该资源上限。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.41": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morale editing requires explicit availability, maximum and initial value. No defaults are supplied."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "morale本次编辑须明确启用状态、上限和初始值；不代填默认值。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.42": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morale maximum must be an integer from 0 to 1000."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "morale上限须为0–1000整数。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.43": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original recovery.stageRestMoraleFloor exceeds the new morale maximum. The original value is preserved and preview is blocked; recovery amounts are not changed automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原recovery.stageRestMoraleFloor超出morale新上限；保留原值并拒绝预览，不自动改恢复量。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.44": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luck contains fields outside the original resource contract. They will not be deleted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "luck含原资源合同之外字段；不会删除它们。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.45": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luck availability must be an explicit Boolean."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "luck启用配置须为明确布尔值。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.46": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luck initial value must be a nonnegative integer."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "luck初始值须为非负整数。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.47": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luck initial value cannot exceed its maximum."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "luck初始值不能超过该资源上限。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.48": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luck editing requires explicit availability, maximum and initial value. No defaults are supplied."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "luck本次编辑须明确启用状态、上限和初始值；不代填默认值。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.49": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luck maximum must be an integer from 0 to 5."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "luck上限须为0–5整数。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.50": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original recovery.stageRestLuckFloor exceeds the new luck maximum. The original value is preserved and preview is blocked; recovery amounts are not changed automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原recovery.stageRestLuckFloor超出luck新上限；保留原值并拒绝预览，不自动改恢复量。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.51": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspiration contains fields outside the original resource contract. They will not be deleted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "inspiration含原资源合同之外字段；不会删除它们。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.52": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspiration availability must be an explicit Boolean."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "inspiration启用配置须为明确布尔值。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.53": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspiration initial value must be a nonnegative integer."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "inspiration初始值须为非负整数。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.54": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspiration initial value cannot exceed its maximum."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "inspiration初始值不能超过该资源上限。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.55": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspiration editing requires explicit availability, maximum and initial value. No defaults are supplied."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "inspiration本次编辑须明确启用状态、上限和初始值；不代填默认值。"
+          }
+        }
+      }
+    },
+    "rpgResource.issue.56": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspiration maximum must be an integer from 0 to 1000."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "inspiration上限须为0–1000整数。"
+          }
+        }
+      }
+    },
+    "rpgResource.localOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saves only the local draft. Does not save to the server or publish."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅保存本地草稿，不保存服务器或发布。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

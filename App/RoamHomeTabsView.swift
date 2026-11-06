@@ -48,9 +48,10 @@ struct RoamHomeTabPicker: View {
     }
 }
 
-/// 上次漫游需要核对 / 已找回本次漫游记录 from this device's journal only; the link opens the existing check.
+/// Local journal notice. Check and Continue only open their already-supplied destinations.
 @MainActor struct RoamHomeRecoveryBannerView: View {
     let banner: RoamHomeRecoveryBanner
+    var onContinue: (() -> Void)? = nil
     let destination: () -> AnyView
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -60,6 +61,10 @@ struct RoamHomeTabPicker: View {
                 NavigationLink { destination() } label: { Text("roam.w208.recovery.check") }
                     .frame(minHeight: 44)
                     .accessibilityIdentifier("roam.home.recovery.check")
+            } else if let onContinue {
+                Button("roam.live.resume", action: onContinue)
+                    .frame(minHeight: 44)
+                    .accessibilityIdentifier("roam.home.recovery.continue")
             }
         }
         .accessibilityElement(children: .contain)
@@ -74,20 +79,47 @@ struct RoamHomeTabPicker: View {
     var teams: ((RoamSearchArea) async -> [NearbyTeam]?)? = nil
     var onSignIn: (() -> Void)? = nil
     var onOpenMap: (() -> AnyView)? = nil
+    var onChooseArea: (() -> Void)? = nil
+    var onBeginRead: (() -> Void)? = nil
+    var onOpenSelection: ((RoamNearbyEventsEntrySelection) -> Void)? = nil
     let onOpen: (RoamEntryActivityCard) -> Void
-    @State private var state: RoamEntryPeekState = .loading
-    @State private var generation = 0
+    @State private var model = RoamNearbyEventsEntryState()
+    @State private var retryTask: Task<Void, Never>?
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("roam.w208.entry.title").font(.headline).accessibilityAddTraits(.isHeader)
-            content
+            HStack {
+                Text("roam.w208.entry.title").font(.headline).accessibilityAddTraits(.isHeader)
+                Spacer()
+                Button("action.retry", systemImage: "arrow.clockwise", action: refresh)
+
+                .disabled(RoamNearbyEventsEntryScope(reader: reader) == nil)
+                .accessibilityIdentifier("roam.home.peek.refresh")
+            }
+            if reader.isSignedIn, reader.isConfigured, reader.searchArea == nil {
+                RoamStatusView(issue: .areaRequired)
+                    .accessibilityIdentifier("roam.home.peek.areaRequired")
+                if let onChooseArea { Button("roam.area.title", action: onChooseArea) }
+            } else { content }
+            if model.visibleTeamState(reader: reader) == .loading {
+                ProgressView { Text("roam.nearbyEvents.teamsLoading", tableName: "RoamNearbyEvents") }
+                    .accessibilityIdentifier("roam.home.peek.teamsLoading")
+            } else if model.visibleTeamState(reader: reader) == .failed {
+                VStack(alignment: .leading, spacing: 6) {
+                    Label { Text("roam.nearbyEvents.teamsFailed", tableName: "RoamNearbyEvents") } icon: { Image(systemName: "exclamationmark.triangle") }
+                        .font(.caption).foregroundStyle(.secondary)
+                    Button("action.retry", action: refresh).frame(minHeight: 44)
+
+                        .accessibilityIdentifier("roam.home.peek.teamsRetry")
+                }.accessibilityIdentifier("roam.home.peek.teamsFailed")
+            }
         }
         .task(id: reader.readKey) { await load() }
+        .onDisappear { retryTask?.cancel(); retryTask = nil; model.cancel() }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("roam.home.peek")
     }
     @ViewBuilder private var content: some View {
-        switch state {
+        switch model.visibleState(reader: reader) {
         case .unavailable:
             Label("roam.w208.entry.unavailable", systemImage: "lock.shield").font(.subheadline).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -104,7 +136,7 @@ struct RoamHomeTabPicker: View {
         case .failed:
             VStack(alignment: .leading, spacing: 6) {
                 Label("roam.w208.entry.failed", systemImage: "exclamationmark.triangle")
-                Button("action.retry") { Task { await load() } }.frame(minHeight: 44).accessibilityIdentifier("roam.home.peek.retry")
+                Button("action.retry", action: refresh).frame(minHeight: 44).accessibilityIdentifier("roam.home.peek.retry")
             }.accessibilityElement(children: .contain).accessibilityIdentifier("roam.home.peek.failed")
         case .empty:
             VStack(alignment: .leading, spacing: 4) {
@@ -115,10 +147,15 @@ struct RoamHomeTabPicker: View {
                 } else { Text("roam.w208.entry.emptyHint").font(.caption).foregroundStyle(.secondary) }
             }.accessibilityElement(children: .contain).accessibilityIdentifier("roam.home.peek.empty")
         case .loaded(let cards):
+            let rendered = model.loadedScope
+            let readID = model.readID
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     ForEach(cards) { card in
-                        Button { onOpen(card) } label: { RoamEntryCardView(card: card) }
+                        Button {
+                            guard let selection = model.selection(card: card, rendered: rendered, readID: readID, reader: reader) else { return }
+                            if let onOpenSelection { onOpenSelection(selection) } else { onOpen(card) }
+                        } label: { RoamEntryCardView(card: card) }
                             .buttonStyle(.plain)
                             .accessibilityLabel(Text("roam.w208.entry.open \(card.activity.title)"))
                             .accessibilityIdentifier("roam.home.peek.card.\(card.id)")
@@ -127,28 +164,14 @@ struct RoamHomeTabPicker: View {
             }
         }
     }
+    private func refresh() {
+        retryTask?.cancel(); model.cancel(); onBeginRead?()
+        retryTask = Task { await load() }
+    }
     private func load() async {
-        generation += 1; let ticket = generation
-        guard reader.isSignedIn else { state = .login; return }
-        guard reader.isConfigured else { state = .unavailable; return }
-        guard let area = reader.searchArea else { state = .unavailable; return }
-        state = .loading
-        do {
-            let rows = try await reader.entryNearby()
-            guard ticket == generation, !Task.isCancelled else { return }
-            var linked: [NearbyTeam] = []
-            if let teams {
-                // Same centre and radius as the source's team layer; a failed layer fails the peek.
-                guard let read = await teams(area) else { if ticket == generation { state = .failed }; return }
-                guard ticket == generation, !Task.isCancelled else { return }
-                linked = read
-            }
-            state = RoamEntryPeekState(activities: rows, teams: linked)
-        } catch is CancellationError {
-        } catch {
-            guard ticket == generation else { return }
-            state = RoamEntryPeekState(error: error)
-        }
+        guard !Task.isCancelled else { return }
+        onBeginRead?()
+        await model.load(reader: reader, teams: teams)
     }
 }
 
@@ -214,26 +237,37 @@ struct RoamEntryCover: View {
     let card: RoamEntryActivityCard
     var eventDestination: ((RoamEventDestination) -> AnyView)? = nil
     var teamDestination: ((NearbyTeamID) -> AnyView)? = nil
+    var readOnly = false
+    var isCurrent: () -> Bool = { true }
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    RoamEntryCover(source: card.activity.coverURL).frame(height: 160).listRowInsets(EdgeInsets())
-                    Text(LocalizedStringKey(card.tagKey)).font(.caption.bold()).foregroundStyle(.tint)
-                    RoamEntryMetaLine(card: card).font(.subheadline).foregroundStyle(.secondary)
-                    if let key = card.primaryKey { detailLink(LocalizedStringKey(key), identifier: "roam.home.sheet.primary") }
-                    if card.participantCount > 0 {
-                        Text("roam.w208.entry.participants \(card.participantCount)").accessibilityIdentifier("roam.home.sheet.participants")
+            Group {
+                if !isCurrent() {
+                    ContentUnavailableView("roamEvent.changed", systemImage: "arrow.clockwise")
+                        .accessibilityIdentifier("roam.home.sheet.stale")
+                } else {
+                    List {
+                        Section {
+                            RoamEntryCover(source: card.activity.coverURL).frame(height: 160).listRowInsets(EdgeInsets())
+                            Text(LocalizedStringKey(card.tagKey)).font(.caption.bold()).foregroundStyle(.tint)
+                            RoamEntryMetaLine(card: card).font(.subheadline).foregroundStyle(.secondary)
+                            if readOnly { detailLink("roam.w208.entry.viewDetail", identifier: "roam.home.sheet.primary") }
+                            else if let key = card.primaryKey { detailLink(LocalizedStringKey(key), identifier: "roam.home.sheet.primary") }
+                            if card.participantCount > 0 {
+                                Text("roam.w208.entry.participants \(card.participantCount)").accessibilityIdentifier("roam.home.sheet.participants")
+                            }
+                        }
+                        if !readOnly && !card.teams.isEmpty {
+                            Section {
+                                ForEach(card.teams) { team in teamRow(team) }
+                            } header: { Text("roam.w208.entry.teams \(card.teams.count)") }
+                        }
+                        if !readOnly && card.registered && !card.ended, card.destination != nil, eventDestination != nil {
+                            Section { detailLink("roam.w208.entry.createTeam", identifier: "roam.home.sheet.createTeam") }
+                        }
+                        if readOnly { Section { Text("roam.readOnlyNotice").font(.footnote).foregroundStyle(.secondary) } }
                     }
-                }
-                if !card.teams.isEmpty {
-                    Section {
-                        ForEach(card.teams) { team in teamRow(team) }
-                    } header: { Text("roam.w208.entry.teams \(card.teams.count)") }
-                }
-                if card.registered && !card.ended {
-                    Section { detailLink("roam.w208.entry.createTeam", identifier: "roam.home.sheet.createTeam") }
                 }
             }
             .navigationTitle(Text(verbatim: card.activity.title))
@@ -244,11 +278,16 @@ struct RoamEntryCover: View {
                 }
             }
         }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
         .accessibilityIdentifier("roam.home.sheet")
     }
     @ViewBuilder private func detailLink(_ title: LocalizedStringKey, identifier: String) -> some View {
         if let destination = card.destination, let eventDestination {
-            NavigationLink { eventDestination(destination) } label: { Text(title).bold() }.accessibilityIdentifier(identifier)
+            NavigationLink {
+                if isCurrent() { eventDestination(destination) }
+                else { ContentUnavailableView("roamEvent.changed", systemImage: "arrow.clockwise") }
+            } label: { Text(title).bold() }.disabled(!isCurrent()).accessibilityIdentifier(identifier)
         } else {
             Text(title).foregroundStyle(.secondary).accessibilityIdentifier(identifier)
         }
@@ -295,7 +334,12 @@ struct RoamToolUnavailableView: View {
     var discoverDestination: (() -> AnyView)? = nil
     /// Host's existing topic detail for an anniversary card's current route; nil = honestly unavailable.
     var anniversaryRouteDestination: ((String) -> AnyView)? = nil
+    /// 探索目标 / 时光胶囊 / 导出 owner-only tools; nil keeps the tiles on their fallback page.
+    var privateToolsReader: (any RoamPrivateToolsServing)? = nil
+    @State private var homeScope: RoamPassportReaderScope?
     @State private var home: Result<RoamPassportHome, Error>?
+    private var readerScope: RoamPassportReaderScope? { reader.map { RoamPassportReaderScope($0) } }
+    private var currentHome: Result<RoamPassportHome, Error>? { homeScope == readerScope ? home : nil }
     var body: some View {
         List {
             Section {
@@ -304,28 +348,30 @@ struct RoamToolUnavailableView: View {
                 }
             }
             Section {
-                ForEach(RoamPassportHome.Tile.allCases) { tile in tileLink(tile) }
+                ForEach(RoamPassportHome.Tile.allCases.filter(tileAvailable)) { tile in tileLink(tile) }
             }
             Section {
                 ForEach(RoamPassportHome.Play.allCases) { play in playCard(play) }
             }
-            RoamPassportToolsSection(reader: toolsReader, routeDestination: anniversaryRouteDestination)
-            Section {
-                NavigationLink { RoamToolUnavailableView(titleKey: "roam.w208.tool.export") } label: {
-                    Label("roam.w208.tool.export", systemImage: "square.and.arrow.up")
-                }.accessibilityIdentifier("roam.home.tool.export.open")
-            }
+            RoamPassportToolsSection(reader: toolsReader, routeDestination: anniversaryRouteDestination, privateTools: privateToolsReader)
         }
         .onAppear(perform: load)
         .refreshable { load() }
+        .onChange(of: readerScope) { _, _ in
+            home = nil; homeScope = nil
+            load()
+        }
         .accessibilityIdentifier("roam.home.passport")
     }
     private func load() {
-        guard let reader else { home = nil; return }
-        do { home = .success(try RoamPassportHome(records: try reader.history())) } catch { home = .failure(error) }
+        guard let reader else { home = nil; homeScope = nil; return }
+        let captured = RoamPassportReaderScope(reader)
+        let result = Result { try RoamPassportHome(records: try reader.history()) }
+        guard captured == readerScope else { return }
+        homeScope = captured; home = result
     }
     @ViewBuilder private func stats(reader: any RoamExperienceReading) -> some View {
-        switch home {
+        switch currentHome {
         case .none: ProgressView("roam.loading")
         case .failure(let error)?: RoamExperienceIssue(error: error, retry: load)
         case .success(let value)?:
@@ -359,41 +405,139 @@ struct RoamToolUnavailableView: View {
                 }
             }
         }
-        .disabled(reader == nil && tile != .goals && tile != .capsule)
         .accessibilityIdentifier("roam.home.passport.tile.\(tile.rawValue)")
+    }
+    /// A tile is listed only when it opens something; goals and capsule always open.
+    private func tileAvailable(_ tile: RoamPassportHome.Tile) -> Bool {
+        switch tile {
+        case .history, .badge: return reader != nil
+        case .stamp: return reader != nil || albumMetadataReader != nil
+        case .goals, .capsule: return true
+        }
     }
     private func caption(_ tile: RoamPassportHome.Tile) -> Text {
         if let key = tile.subtitleKey { return Text(LocalizedStringKey(key)) }
-        guard case .success(let value)? = home, let count = value.count(tile) else { return Text(verbatim: "—") }
+        guard case .success(let value)? = currentHome, let count = value.count(tile) else { return Text(verbatim: "—") }
         return tile == .history ? Text("roam.w208.passport.tile.history.count \(count)") : Text("roam.w208.passport.tile.stamp.count \(count)")
     }
     @ViewBuilder private func tileDestination(_ tile: RoamPassportHome.Tile) -> some View {
         switch tile {
         case .history:
-            if let reader { RoamHistoryView(reader: reader, liveDestination: liveDestination, toolsReader: toolsReader) }
+            if let reader { RoamHistoryView(reader: reader, liveDestination: liveDestination, toolsReader: toolsReader, privateToolsReader: privateToolsReader, anniversaryRouteDestination: anniversaryRouteDestination) }
         case .stamp:
             if let albumMetadataReader { RoamAlbumMetadataDestination(reader: albumMetadataReader).id(albumMetadataReader.scope) }
             else if let reader { RoamStampAlbumView(reader: reader, stampDestination: stampDestination) }
         case .badge:
             if let reader { RoamBadgeWallDestination(roamReader: reader) }
-        case .goals, .capsule:
-            RoamToolUnavailableView(titleKey: tile.titleKey)
+        case .goals:
+            if let privateToolsReader { RoamExplorationGoalsView(tools: privateToolsReader) }
+            else { RoamToolUnavailableView(titleKey: tile.titleKey) }
+        case .capsule:
+            if let privateToolsReader { RoamCapsuleView(tools: privateToolsReader) }
+            else { RoamToolUnavailableView(titleKey: tile.titleKey) }
         }
     }
+    /// 官方活动 opens the official roam tasks;
+    /// 发现附近店铺 opens the nearby map. A card without a destination is not listed.
     @ViewBuilder private func playCard(_ play: RoamPassportHome.Play) -> some View {
         let label = HStack(spacing: 12) {
-            Image(systemName: play == .event ? "calendar" : "storefront").foregroundStyle(play.isClosed ? Color.secondary : Color.accentColor).frame(width: 28).accessibilityHidden(true)
+            Image(systemName: play == .event ? "calendar" : "storefront").foregroundStyle(.tint).frame(width: 28).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text(LocalizedStringKey(play.titleKey)).font(.headline)
                 Text(LocalizedStringKey(play.subtitleKey)).font(.caption).foregroundStyle(.secondary)
             }
             Spacer(minLength: 0)
-            if play.isClosed { Text("roam.w208.passport.closed").font(.caption.bold()).foregroundStyle(.secondary) }
         }
-        if !play.isClosed, let discoverDestination {
-            NavigationLink { discoverDestination() } label: { label }.accessibilityIdentifier("roam.home.passport.play.\(play.rawValue)")
-        } else {
-            label.accessibilityElement(children: .combine).accessibilityIdentifier("roam.home.passport.play.\(play.rawValue)")
+        switch play {
+        case .event:
+            if let reader {
+                NavigationLink { RoamOfficialTasksDestination(roamReader: reader) } label: { label }
+                    .accessibilityIdentifier("roam.home.passport.play.\(play.rawValue)")
+            }
+        case .discover:
+            if let discoverDestination {
+                NavigationLink { discoverDestination() } label: { label }
+                    .accessibilityIdentifier("roam.home.passport.play.\(play.rawValue)")
+            }
         }
+    }
+}
+
+/// Volatile presentation identity only; it carries no token, result, permission or event ID.
+struct RoamPassportReaderScope: Hashable {
+    let readerID: ObjectIdentifier
+    let identity: RoamExperienceIdentity?
+    @MainActor init(_ reader: any RoamExperienceReading) {
+        readerID = ObjectIdentifier(reader); identity = reader.identity
+    }
+}
+
+/// Local read identity only. Remote read configuration is not permission to read one's local journal.
+struct RoamHomeRecoveryOwner: Hashable {
+    let readerID: ObjectIdentifier
+    let scopeKey: String?
+    let epoch: UInt64?
+    @MainActor init(reader: any RoamExperienceReading) {
+        readerID = ObjectIdentifier(reader)
+        let identity = reader.identity
+        scopeKey = identity?.scope.storageKey; epoch = identity?.epoch
+    }
+}
+
+/// Restores the source's show-time local read and navigation-only Continue action.
+/// The existing live destination remains the only owner of recovery, consent and location.
+@MainActor struct RoamHomeRecoveryEntry {
+    struct Target: Hashable {
+        let id = UUID()
+        let owner: RoamHomeRecoveryOwner
+    }
+    private var owner: RoamHomeRecoveryOwner?
+    private var value: RoamHomeRecoveryBanner?
+    private var visible = false
+    private var foreground = false
+    private(set) var revision = UUID()
+    var target: Target?
+
+    mutating func appear(reader: (any RoamExperienceReading)?, foreground: Bool, hasDestination: Bool) {
+        visible = true; self.foreground = foreground
+        reload(reader: reader, hasDestination: hasDestination)
+    }
+    mutating func disappear() {
+        visible = false; revision = UUID(); owner = nil; value = nil
+        // A push hides this origin; the immutable target stays until Back or an owner change.
+    }
+    mutating func setForeground(_ foreground: Bool, reader: (any RoamExperienceReading)?, hasDestination: Bool) {
+        self.foreground = foreground; reload(reader: reader, hasDestination: hasDestination)
+    }
+    mutating func reload(reader: (any RoamExperienceReading)?, hasDestination: Bool) {
+        revision = UUID(); owner = nil; value = nil
+        if let target, !matches(target, reader: reader, hasDestination: hasDestination) { self.target = nil }
+        guard visible, foreground, let reader else { return }
+        let captured = RoamHomeRecoveryOwner(reader: reader)
+        guard captured.scopeKey != nil else { return }
+        do {
+            let status = try reader.localWalkStatus()
+            guard captured == RoamHomeRecoveryOwner(reader: reader) else { return }
+            owner = captured; value = RoamHomeRecoveryBanner(status: status)
+        } catch {
+            // Unreadable metadata is not a missing/finished record. Preserve its bytes, show no stale notice.
+        }
+    }
+    func banner(reader: (any RoamExperienceReading)?) -> RoamHomeRecoveryBanner? {
+        guard visible, foreground, let reader, owner == RoamHomeRecoveryOwner(reader: reader) else { return nil }
+        return value
+    }
+    mutating func continueToExistingDestination(reader: any RoamExperienceReading,
+                                                hasDestination: Bool, rendered: UUID) {
+        guard rendered == revision, target == nil, hasDestination,
+              banner(reader: reader) == .recovered, let captured = owner else { return }
+        // The banner is only metadata. Re-read at the tap; a new pending finish must use Check instead.
+        reload(reader: reader, hasDestination: hasDestination)
+        guard banner(reader: reader) == .recovered, owner == captured else { return }
+        target = Target(owner: captured)
+    }
+    func matches(_ target: Target, reader: (any RoamExperienceReading)?, hasDestination: Bool) -> Bool {
+        guard self.target == target, hasDestination, let reader, target.owner.scopeKey != nil else { return false }
+        return target.owner == RoamHomeRecoveryOwner(reader: reader)
     }
 }

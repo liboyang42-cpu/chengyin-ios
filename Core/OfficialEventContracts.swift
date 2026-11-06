@@ -29,6 +29,16 @@ public enum OfficialEventTime: Decodable, Equatable {
         else if let text = try? c.decode(String.self), !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { self = .text(text) }
         else { throw APIError.malformedResponse }
     }
+    /// Reuse the detail page's existing numeric display boundary. Raw server values
+    /// remain intact; an out-of-range value never becomes a fabricated date or limit.
+    public var displayMilliseconds: Double? {
+        guard case .milliseconds(let value) = self, value.isFinite,
+              value > 0, value < 1e15 else { return nil }
+        return value
+    }
+    public var displayDate: Date? {
+        displayMilliseconds.map { Date(timeIntervalSince1970: $0 / 1000) }
+    }
 }
 public struct OfficialMission: Decodable, Equatable {
     public let code: String
@@ -245,9 +255,14 @@ public extension OfficialEventBucket {
 
 /// Rounded source countdown units: days from 24 h, hours from 1 h, otherwise at least one minute.
 public enum OfficialCountdownSpan: Equatable {
-    case days(Int), hours(Int), minutes(Int)
+    case days(Int), hours(Int), minutes(Int), unknown
     public init(milliseconds: Double) {
-        let hours = Int(milliseconds / 3_600_000)
+        // Finite JSON numbers can still exceed Int. Never trap or clamp them into
+        // a believable duration; direct callers also receive an explicit unknown.
+        guard milliseconds.isFinite, milliseconds >= 0,
+              let hours = Int(exactly: (milliseconds / 3_600_000).rounded(.towardZero)) else {
+            self = .unknown; return
+        }
         if hours >= 24 { self = .days(hours / 24) }
         else if hours >= 1 { self = .hours(hours) }
         else { self = .minutes(max(1, Int(milliseconds / 60_000))) }
@@ -261,11 +276,18 @@ public extension OfficialEvent {
     /// dates are not reinterpreted, so they fall back to the status label alone.
     func countdown(now: Date) -> OfficialEventCountdown? {
         let current = now.timeIntervalSince1970 * 1000
-        if status == 1, case .milliseconds(let start)? = activityStart, start > 0 {
-            return start - current > 0 ? .startsIn(.init(milliseconds: start - current)) : .startingSoon
+        guard current.isFinite else { return nil }
+        if status == 1, let start = activityStart?.displayMilliseconds {
+            let remaining = start - current
+            guard remaining > 0 else { return .startingSoon }
+            let span = OfficialCountdownSpan(milliseconds: remaining)
+            return span == .unknown ? nil : .startsIn(span)
         }
-        if status == 2 || status == 3, case .milliseconds(let end)? = activityEnd, end > 0 {
-            return end - current > 0 ? .endsIn(.init(milliseconds: end - current)) : .endingSoon
+        if status == 2 || status == 3, let end = activityEnd?.displayMilliseconds {
+            let remaining = end - current
+            guard remaining > 0 else { return .endingSoon }
+            let span = OfficialCountdownSpan(milliseconds: remaining)
+            return span == .unknown ? nil : .endsIn(span)
         }
         return nil
     }

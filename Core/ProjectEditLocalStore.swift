@@ -181,6 +181,11 @@ public struct ProjectEditPending: Codable, Equatable {
     public let identity: ProjectEditDraftIdentity
     public let payload: [String: ProjectEditJSON]
     public var dispatchStarted: Bool? = nil
+    /// Only stamped by the paired technical producer before its exact request is dispatched.
+    /// Missing on historical local-only UUIDs: those records cannot be retried or reconciled.
+    public var serverRequest: ProjectEditRequestContract.Submit? = nil
+    public var serverRequestCommitted: Bool? = nil
+    public var postProcessing: ProjectEditPostProcessingReceipt? = nil
     public var baseline: ProjectEditSnapshot? = nil
     public var completedTopicID: Int? = nil
     /// Optional for backwards-compatible decoding of existing local intents.
@@ -188,6 +193,11 @@ public struct ProjectEditPending: Codable, Equatable {
     /// Submission-time evidence only. Optional preserves older local completion records.
     public var bundleAcknowledgment: ProjectEditBundleAcknowledgment? = nil
     public var hasConsistentAcknowledgment: Bool {
+        if serverRequestCommitted == true {
+            guard serverAcknowledged == true, completedTopicID != nil, dispatchStarted == true, let serverRequest,
+                  let path = try? ProjectEditStoryContract.path(payload: payload, baseline: baseline),
+                  serverRequest.matches(operationID: operationID, originalPath: path, payload: payload) else { return false }
+        }
         guard let bundleAcknowledgment else { return true }
         guard serverAcknowledged == true, completedTopicID == bundleAcknowledgment.topicID,
               identity.topicID == nil || identity.topicID == bundleAcknowledgment.topicID,

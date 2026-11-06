@@ -1,0 +1,166 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "version": "1.0",
+  "strings": {
+    "growthValidation.fields": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成长配置包含原合同之外字段；请核对原配置，不会自动删除。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Growth contains fields outside the original contract. Check the original configuration; no fields are deleted automatically."
+          }
+        }
+      }
+    },
+    "growthValidation.enabled": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请明确成长启用状态。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set growth availability explicitly."
+          }
+        }
+      }
+    },
+    "growthValidation.role": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开启成长需要原角色模块已启用；本页不会授予角色权限。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enabling growth requires the original role module to be enabled. This page does not grant role access."
+          }
+        }
+      }
+    },
+    "growthValidation.maxLevel": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等级上限须为1至20的整数。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximum level must be an integer from 1 to 20."
+          }
+        }
+      }
+    },
+    "growthValidation.skillPoints": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每级技能点须为0至1000000的整数。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skill points per level must be an integer from 0 to 1,000,000."
+          }
+        }
+      }
+    },
+    "growthValidation.thresholdCount": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "累计XP阈值条数须等于等级上限减一；请添加或移除阈值，不会自动生成。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The number of cumulative XP thresholds must equal maximum level minus one. Add or remove thresholds; none are generated automatically."
+          }
+        }
+      }
+    },
+    "growthValidation.thresholdOrder": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "累计XP阈值须为严格递增的正整数，且不超过1000000000。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cumulative XP thresholds must be strictly increasing positive integers, no greater than 1,000,000,000."
+          }
+        }
+      }
+    },
+    "growthValidation.feats": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "专长须为原允许集合中的不重复项目，最多6项；请核对原配置。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Feats must be distinct entries from the original allowed set, at most 6. Check the original configuration."
+          }
+        }
+      }
+    },
+    "growthValidation.originalContract": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原成长配置未通过完整序列化或大小检查；未生成可确认预览。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original growth configuration failed complete serialization or size checks. No confirmable preview was created."
+          }
+        }
+      }
+    },
+    "growthValidation.count": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前阈值 %lld 项；本等级上限需要 %lld 项。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current thresholds: %lld. Required for this maximum level: %lld."
+          }
+        }
+      }
+    }
+  }
+}

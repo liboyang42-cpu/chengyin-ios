@@ -11,11 +11,15 @@ import FoundationNetworking
     public let context: RuntimeDependencyContext
     public let endpoints: OperationEndpointApproval
     public let expiresAt: Date
+    /// Original issuance lifetime, independent of wall-clock rollback or delayed task admission.
+    public let clientDeadline: ContinuousClock.Instant
     public let revision = UUID()
     public private(set) var isRevoked = false
     @ObservationIgnored private var expiryTask: Task<Void, Never>?
     public init(context: RuntimeDependencyContext, expiresAt: Date) throws {
-        let duration = expiresAt.timeIntervalSinceNow
+        let clock = ContinuousClock()
+        let issuedInstant = clock.now, issuedAt = Date()
+        let duration = expiresAt.timeIntervalSince(issuedAt)
         guard context.market == .china, ["player", "club", "merchant"].contains(context.role),
               context.session.accountID > 0, AuthRequestBuilder.isValidToken(context.session.token),
               duration.isFinite, duration > 0, duration <= 86_400 else { throw APIError.invalidConfiguration }
@@ -23,10 +27,11 @@ import FoundationNetworking
             namespace: context.session.namespace, accountID: context.session.accountID,
             paths: [MemberRoleInfoReadRoute.path])
         self.context = context; self.expiresAt = expiresAt
+        let deadline = issuedInstant.advanced(by: .nanoseconds(Int64(duration * 1_000_000_000)))
+        clientDeadline = deadline
         expiryTask = Task { @MainActor [weak self] in
-            let remaining = max(0, min(expiresAt.timeIntervalSinceNow, 86_400))
             do {
-                if remaining > 0 { try await Task.sleep(nanoseconds: UInt64(remaining * 1_000_000_000)) }
+                try await clock.sleep(until: deadline)
                 try Task.checkCancellation()
             } catch { return }
             self?.revoke()
@@ -35,6 +40,6 @@ import FoundationNetworking
     deinit { expiryTask?.cancel() }
     public func revoke() { isRevoked = true; expiryTask?.cancel(); expiryTask = nil }
     public func matches(_ current: RuntimeDependencyContext, now: Date = Date()) -> Bool {
-        !isRevoked && now < expiresAt && ContentDraftContextFence.matches(context, current)
+        !isRevoked && now < expiresAt && ContinuousClock().now < clientDeadline && ContentDraftContextFence.matches(context, current)
     }
 }

@@ -54,13 +54,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server hard-deletes these log rows for this account and they cannot be recovered. Request receipts and audit records remain. The request is sent once and is not retried automatically."
+            "value": "These chat logs will be permanently deleted from your account and can't be recovered. Records of this request are kept. The request is sent once and won't retry automatically."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务器将硬删除此账号的这些日志行，无法恢复。请求回执与审计记录仍保留。请求只发送一次，不会自动重试。"
+            "value": "将永久删除你账号下的这些聊天记录，无法恢复。本次操作的记录会保留。请求只发送一次，不会自动重试。"
           }
         }
       }
@@ -246,13 +246,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This deletes the NPC chat log rows the server keeps for the signed-in account. It is not full erasure: request receipts and service audit records are not covered, and a reply still in progress may write a new log afterwards."
+            "value": "This deletes the NPC chat logs saved for your account. It doesn't delete everything: records of requests are kept, and a reply still in progress may add a new log afterwards."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此操作删除服务器为当前登录账号保存的 NPC 聊天日志行，并非彻底删除：请求回执与服务审计记录不在范围内，仍在处理中的回复之后可能再写入新日志。"
+            "value": "此操作删除你账号下保存的 NPC 聊天记录，并非全部删除：操作记录会保留，仍在生成中的回复之后可能产生新记录。"
           }
         }
       }

@@ -1,0 +1,38 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "auth.restore.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry saved sign-in"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试恢复已保存的登录"
+          }
+        }
+      }
+    },
+    "auth.restore.explanation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the sign-in saved on this device again. This does not send a verification code."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新检查此设备保存的登录状态，不会发送验证码。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

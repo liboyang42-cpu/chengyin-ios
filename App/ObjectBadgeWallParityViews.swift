@@ -3,6 +3,7 @@ import SwiftUI
 /// Mini-program badge-wall header parity: lit/total caption, play-side focus readback and
 /// the empty-wall explore action. Reads nothing; it only summarizes the loaded wall.
 struct ObjectBadgeWallParityHeader: View {
+    @Environment(\.themeDomain) private var domain
     let wall: ProfileBadgeWall
     let focusBadgeCode: String?
     @Environment(\.growthExploreHomeAction) private var onExploreHome
@@ -12,10 +13,15 @@ struct ObjectBadgeWallParityHeader: View {
         Section {
             if !wall.isPartial {
                 Text("badgeWall.summary \(summary.unlocked) \(summary.total) \(summary.locked)")
+                    .font(Theme.Font.sectionTitle).monospacedDigit()
+                    .foregroundStyle(Theme.Color.textPrimary(in: domain))
+                    .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("objects.badge.summary")
             }
             if let focus = ObjectBadgeWallFocus.resolve(code: focusBadgeCode, wall: wall) {
                 Label { focusText(focus) } icon: { Image(systemName: "scope").accessibilityHidden(true) }
+                    .font(Theme.Font.body).foregroundStyle(Theme.Color.textSecondary(in: domain))
+                    .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("objects.badge.focus")
             }
             if wall.isEmpty, let onExploreHome {
@@ -23,7 +29,7 @@ struct ObjectBadgeWallParityHeader: View {
                     guard !exploreConsumed else { return }
                     exploreConsumed = true
                     onExploreHome()
-                }.buttonStyle(.bordered).frame(minHeight: 44).disabled(exploreConsumed)
+                }.buttonStyle(.bordered).font(Theme.Font.button).frame(minHeight: 44).disabled(exploreConsumed)
                     .accessibilityIdentifier("objects.badge.explore")
             }
         }

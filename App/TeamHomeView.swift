@@ -54,6 +54,7 @@ import SwiftUI
     /// Source join links that still carry the retired `?teamId=` form (邀请链接已升级).
     var legacyTeamID = false
     @Environment(\.teamReformHooks) private var reformHooks
+    @Environment(\.teamChannelManagementHooks) private var channelManagementHooks
     @State private var reformSheet: TeamReformSheet?
     init(lookup: TeamLookup, coordinator: TeamCoordinator, makeCoordinator: @escaping () -> TeamCoordinator, requiresMembership: Bool = false, readOnly: Bool = false, onLogin: (() -> Void)? = nil, legacyTeamID: Bool = false) {
         self.lookup = lookup; self.makeCoordinator = makeCoordinator; self.requiresMembership = requiresMembership; self.readOnly = readOnly
@@ -81,9 +82,17 @@ import SwiftUI
                         .accessibilityIdentifier("teamMembershipRetired")
                 }
                 if let detail = model.coordinator.detail {
-                    TeamCard(team: detail.team, confirmedJoinMode: model.coordinator.confirmedJoinMode).accessibilityIdentifier("team.detail.card")
+                    // Mini-program `team-head` is the one header: title, status, mode, members and start time.
                     TeamPageHeader(detail: detail, kind: pageKind, confirmedJoinMode: model.coordinator.confirmedJoinMode)
-                    Text("team.ticketSeparation").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                        .accessibilityElement(children: .contain)
+                        .accessibilityIdentifier("team.detail.card")
+                    if let channelManagementHooks,
+                       let source = NativeTeamChannelManagementSource(coordinator: model.coordinator, lookup: lookup, readOnly: readOnly) {
+                        NativeChannelManagementTeamEntry(destinations: channelManagementHooks.destinations, detail: source.detail, makeFlow: { selected in
+                            guard source.isCurrent(for: selected) else { return nil }
+                            return channelManagementHooks.makeFlow(selected)
+                        }).disabled(model.running || model.coordinator.busy)
+                    }
                     if let invitationCode {
                         if let teamID = model.coordinator.postJoinDetailID {
                             NavigationLink {
@@ -118,10 +127,9 @@ import SwiftUI
                     if !readOnly, detail.team.status == .recruiting, let code = detail.team.inviteCode, TeamLookup.validInvite(code) {
                         Button(invitationCode == nil ? "team.page.inviteTeammates" : "team.invitePreview") { invitationPreview = true }.frame(minHeight: 44).disabled(model.actionLocked).accessibilityIdentifier("team.invitePreview")
                     }
-                    Text("team.members.title").font(.title2.bold()).accessibilityAddTraits(.isHeader)
+                    Text("team.members.title").font(Theme.Font.sectionTitle).accessibilityAddTraits(.isHeader)
                     if detail.members.isEmpty {
                         Text("team.page.membersEmpty").foregroundStyle(.secondary)
-                        Text("team.page.membersEmpty.detail").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     }
                     ForEach(detail.members) { member in
                         let action = TeamAction.remove(teamID: detail.team.id, memberID: member.id)
@@ -179,10 +187,22 @@ import SwiftUI
     }
     @ViewBuilder private func actionButton(_ action: TeamAction, detail: TeamDetail, labelKey: String? = nil) -> some View {
         if !readOnly, action.isAllowed(detail: detail) {
-            Button { model.prepare(action) } label: { Text(LocalizedStringKey(labelKey ?? action.key)).frame(maxWidth: .infinity, minHeight: 44) }
-                .buttonStyle(.bordered).disabled(model.actionLocked)
-                .accessibilityIdentifier(action.key)
+            if case .join = action {
+                // Mini-program 加入队伍 is the page's one primary action.
+                Button { model.prepare(action) } label: { Text(LocalizedStringKey(labelKey ?? action.key)).frame(maxWidth: .infinity, minHeight: 44) }
+                    .buttonStyle(.questifyPrimary).disabled(model.actionLocked)
+                    .accessibilityIdentifier(action.key)
+            } else {
+                // 解散队伍 is the source's danger action; native destructive role keeps it red.
+                Button(role: destructiveRole(action)) { model.prepare(action) } label: { Text(LocalizedStringKey(labelKey ?? action.key)).frame(maxWidth: .infinity, minHeight: 44) }
+                    .buttonStyle(.bordered).disabled(model.actionLocked)
+                    .accessibilityIdentifier(action.key)
+            }
         }
+    }
+    private func destructiveRole(_ action: TeamAction) -> ButtonRole? {
+        if case .disband = action { return .destructive }
+        return nil
     }
     private var stateReload: (() -> Void)? {
         guard lookup.isValid else { return nil }

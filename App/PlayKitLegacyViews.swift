@@ -10,7 +10,6 @@ extension PlayKitScreen {
             if let track = raw["trackName"].text { Text(verbatim: track).font(.title2.bold()) }
             if let seconds = raw["durationSeconds"].integer, seconds > 0 { LabeledContent("playkitLegacy.music.duration") { Text(verbatim: "\(seconds) s") } }
             PlatformAudioHost(rawURL: raw["audioUrl"].text, scope: mediaScope, makeModel: makeAudio)
-            Text("playkitLegacy.music.boundary").font(.footnote)
         case .silentOrder:
             PlayKitSilentOrderBody(segment: raw, active: model.isCurrent, onDirty: { dirty = true })
             if let qr = raw["qrUrl"].text, !qr.isEmpty { artwork(qr) }
@@ -59,7 +58,7 @@ extension PlayKitScreen {
                 if revealed {
                     if let text = segment["unlockText"].text, !text.isEmpty { Text(verbatim: text).font(.title3) }
                     else { Text("playkitLegacy.slow.emptyReadback") }
-                } else { Button("playkitLegacy.slow.reveal") { revealed = true }.buttonStyle(.borderedProminent) }
+                } else { Button("playkitLegacy.slow.reveal") { revealed = true }.buttonStyle(.questifyPrimary) }
             } else if segment["started"].bool == true {
                 if let days = segment["daysLeft"].integer, days > 0 {
                     LabeledContent("playkitLegacy.slow.daysLeft") { Text(verbatim: String(days)) }
@@ -68,15 +67,14 @@ extension PlayKitScreen {
                     Text("playkitLegacy.slow.ready")
                     Button { requestReview("CLAIM_SLOW_TASK", [:], {}) } label: {
                         if let label = segment["unlockLabel"].text, !label.isEmpty { Text(verbatim: label) } else { Text("playkitLegacy.slow.claim") }
-                    }.buttonStyle(.borderedProminent).disabled(!enabled)
+                    }.buttonStyle(.questifyPrimary).disabled(!enabled)
                 } else { Text("playkit.configurationInvalid") }
             } else {
                 if let hint = segment["startHint"].text, !hint.isEmpty { Text(verbatim: hint) }
                 Button { requestReview("START_SLOW_TASK", [:], {}) } label: {
                     if let label = segment["startLabel"].text, !label.isEmpty { Text(verbatim: label) } else { Text("playkitLegacy.slow.start") }
-                }.buttonStyle(.borderedProminent).disabled(!enabled)
+                }.buttonStyle(.questifyPrimary).disabled(!enabled)
             }
-            Text("playkitLegacy.slow.authority").font(.footnote)
         }
     }
 }
@@ -92,7 +90,6 @@ extension PlayKitScreen {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             if let rule = segment["rule"].text, !rule.isEmpty { Text(verbatim: rule).font(.title3) }
-            Text("playkitLegacy.silent.boundary").font(.footnote)
             TimelineView(.periodic(from: .now, by: 1)) { _ in
                 let seconds = elapsed + (startedAt.map { Int(max(0, ProcessInfo.processInfo.systemUptime - $0)) } ?? 0)
                 LabeledContent("playkitLegacy.silent.elapsed") { Text(verbatim: String(format: "%02d:%02d", seconds / 60, seconds % 60)).monospacedDigit() }

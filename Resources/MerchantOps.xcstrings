@@ -211,13 +211,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refund rules follow the order snapshot"
+            "value": "Refund rules follow the terms at the time of order"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "退款规则以订单快照为准"
+            "value": "退款规则以下单时的规则为准"
           }
         }
       }

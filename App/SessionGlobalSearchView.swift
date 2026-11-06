@@ -26,7 +26,7 @@ import SwiftUI
         switch value {
         case .activity(let id): ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true)
         case .topic(let id): SessionTopicDetailView(id: id, session: session)
-        case .club(let id): ClubDetailView(id: id, reader: session, onSignIn: onSignIn, actionCoordinator: session.clubActionCoordinator, management: session.clubManagementContext, community: session.clubCommunityContext)
+        case .club(let id): ClubDetailView(id: id, reader: session, onSignIn: onSignIn, actionCoordinator: session.clubActionCoordinator, management: session.clubManagementContext, community: session.clubCommunityContext, publicRoster: session.clubPublicRosterReader)
         case .merchant(let id): SearchMapMerchantDetailView(id: id, reader: session.searchMapReader)
         case .cityNode(let id): SearchMapCityDetailView(id: id, reader: session.searchMapReader, destination: cityNodeRelatedDestination)
         }

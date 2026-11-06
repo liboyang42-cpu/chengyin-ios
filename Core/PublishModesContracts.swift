@@ -88,7 +88,12 @@ public enum PublishingContracts {
         case (.template, .remove): path = "api/template/delete"
         case (.template, .toggle): path = "api/template/updateLibraryStatus"
         }
-        var f: [String: ProjectEditJSON] = ["id": .string(String(project.resource.value))]
+        // Original personal-template API is not the Mod commerce/release API.
+        let identityField = project.resource.kind == .template ? "template_id" : "id"
+        var f: [String: ProjectEditJSON] = [identityField: .string(String(project.resource.value))]
+        if project.resource.kind == .template && action == .toggle {
+            f["publish_status"] = .string(project.online ? "0" : "1")
+        }
         if project.resource.kind == .topic && action == .toggle { f["expectedUserStatus"] = .string(project.online ? "1" : "0") }
         return .init(path: path, encoding: .form, fields: f)
     }

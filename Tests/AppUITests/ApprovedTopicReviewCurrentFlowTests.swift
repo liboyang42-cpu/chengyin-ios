@@ -52,7 +52,7 @@ import XCTest
         XCTAssertTrue(app.staticTexts["topicReview.current.notice"].exists); XCTAssertFalse(app.buttons["approvedRelease.publish"].exists)
         tap("topicReview.close",in:app,fixed:true); tap("topicReview.fixture.simulateApproval",in:app,fixed:true); tap("topicReview.open",in:app)
         XCTAssertFalse(app.staticTexts["topicReview.current.state"].exists); tap("topicReview.current.read",in:app)
-        value("topicReview.current.state","Review task approved",in:app); value("topicReview.current.version","1",in:app)
+        value("topicReview.current.state","Review passed",in:app); value("topicReview.current.version","1",in:app)
         value("topicReview.submittedState","Pending review",in:app); value("topicReview.requestID",request,in:app)
         XCTAssertFalse(app.buttons["approvedRelease.publish"].exists); tap("topicReview.close",in:app,fixed:true)
         assertProjectSubmissionEvidenceValue("projectSubmission.auditTaskID", "3301", in: app, phase: .history, maximumSwipes: 70, revealFirst: true); assertProjectSubmissionEvidenceValue("projectSubmission.submittedState", "Pending", in: app, phase: .history, maximumSwipes: 70, revealFirst: true)

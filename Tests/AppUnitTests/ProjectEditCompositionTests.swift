@@ -31,6 +31,16 @@ import XCTest
                 let body = try JSONDecoder().decode([String: ProjectEditJSON].self, from: XCTUnwrap(request.httpBody))
                 return (try JSONEncoder().encode(["code": ProjectEditJSON.number(200), "data": ApprovedTopicReviewSynthetic.receiptFields(command: body)]), 200)
             }
+            if path.hasSuffix("/topic/edit-requests/submit") {
+                if failWrite { throw URLError(.timedOut) }
+                let sent = try JSONDecoder().decode(ProjectEditRequestContract.Submit.self, from: XCTUnwrap(request.httpBody))
+                let result: ProjectEditJSON
+                if sent.originalPath.contains("/v2/") {
+                    result = try JSONDecoder().decode(ProjectEditJSON.self, from: Data(#"{"topicId":7901,"auditTaskId":3301,"reviewState":"PENDING","published":true,"bundledTemplateIds":[41]}"#.utf8))
+                } else { result = .number(7901) }
+                let receipt: [String: ProjectEditJSON] = ["protocolVersion": .string(sent.protocolVersion), "requestId": .string(sent.requestId), "originalPath": .string(sent.originalPath), "payloadSHA256": .string(sent.payloadSHA256), "state": .string("COMMITTED"), "postProcessing": .string("NOT_RECONCILED"), "originalResult": result]
+                return (try JSONEncoder().encode(["code": ProjectEditJSON.number(200), "data": .object(receipt)]), 200)
+            }
             if path.hasSuffix("/topic/v2/create") || path.hasSuffix("/topic/v2/update") {
                 if failWrite { throw URLError(.timedOut) }
                 return (Data(#"{"code":200,"data":{"topicId":7901,"auditTaskId":3301,"reviewState":"PENDING","published":true,"bundledTemplateIds":[41]}}"#.utf8), 200)
@@ -45,7 +55,7 @@ import XCTest
         guard grant.enabled else { return nil }
         var routes: [BusinessRuntimeFeature: Set<BusinessRuntimeRoute>] = [:]
         if grant.read { routes[.projectRead] = try? Set([.post("api/publish/home"), .post("api/topic/edit-detail")]) }
-        if grant.write { routes[.projectWrite] = try? Set([.post("api/topic/create"), .post("api/topic/update"), .post(ProjectEditStoryContract.createPath), .post(ProjectEditStoryContract.updatePath)]) }
+        if grant.write { routes[.projectWrite] = try? Set([.post("api/topic/create"), .post("api/topic/update"), .post(ProjectEditStoryContract.createPath), .post(ProjectEditStoryContract.updatePath), .post(ProjectEditRequestContract.submitPath)]) }
         if grant.legacyOnly { routes = [.publishingRead: try! [.post("api/publish/home")], .publishingWrite: try! [.post("api/topic/create")]] }
         if grant.review {
             routes[.approvedTopicReviewPrepare] = try? [.post(ApprovedTopicReviewPath.prepare)]
@@ -84,7 +94,7 @@ import XCTest
         editor.prepare(draft()); let original = try XCTUnwrap(editor.confirmation); await editor.confirm(original)
         XCTAssertEqual(editor.state,.acknowledged); let pending = try XCTUnwrap(editor.pending), owner = try XCTUnwrap(editor.session)
         XCTAssertEqual(pending.bundleAcknowledgment?.auditTaskID,3301); XCTAssertEqual(pending.bundleAcknowledgment?.reviewState,"PENDING")
-        XCTAssertEqual(wire.requests.filter { $0.url!.path.hasSuffix("/topic/v2/create") }.count,1)
+        XCTAssertEqual(wire.requests.filter { $0.url!.path.hasSuffix("/topic/edit-requests/submit") }.count,1)
         let origin = try XCTUnwrap(ApprovedTopicReleaseReadTarget(pending: pending,session: owner)), source = try XCTUnwrap(editor.releaseReviewSource), journal = try XCTUnwrap(editor.releaseReviewJournal)
         let flow = ApprovedTopicReviewFlow(origin:origin,session:owner,source:source,journal:journal,stillCurrent:{true})
         await flow.load(); guard case .ready(let capture) = flow.state else { return XCTFail("Real composition capture unavailable") }
@@ -93,7 +103,7 @@ import XCTest
         XCTAssertEqual(receipt.auditTaskID,4402); XCTAssertTrue(ProjectEditLocalStore.exactPending(try XCTUnwrap(editor.pending),pending))
         XCTAssertEqual(wire.requests.filter { $0.url!.path.hasSuffix("/review/submit") }.count,1)
         XCTAssertFalse(wire.requests.contains { $0.url!.path.hasSuffix("/publish") || $0.url!.path.hasSuffix("/start") })
-        await editor.confirm(original); XCTAssertEqual(wire.requests.filter { $0.url!.path.hasSuffix("/topic/v2/create") }.count,1)
+        await editor.confirm(original); XCTAssertEqual(wire.requests.filter { $0.url!.path.hasSuffix("/topic/edit-requests/submit") }.count,1)
     }
     func testReadOnlyAndDefaultFactoriesNeverSendCreatorWrite() async throws {
         for enabled in [false,true] {
@@ -159,7 +169,7 @@ import XCTest
         let task = Task { await editor.confirm(confirmation) }; await fulfillment(of:[started],timeout:3)
         wire.role = "merchant"; await session.refreshOwnAccount(); wire.role = "player"; await session.refreshOwnAccount(); wire.finish401(); await task.value
         XCTAssertEqual(session.account?.id,7); XCTAssertEqual(session.account?.effectiveRole,"player"); XCTAssertEqual(vault.value,"synthetic-project-7")
-        XCTAssertFalse(wire.requests.contains { $0.url!.path.hasSuffix("/topic/v2/create") })
+        XCTAssertFalse(wire.requests.contains { $0.url!.path.hasSuffix("/topic/edit-requests/submit") })
     }
     func testUnknownCreatorSubmissionRemainsLockedAcrossReentryAndExactRetryIsNotInvented() async throws {
         let wire = Wire(), grant = Grant(), session = try root(wire,grant).makeSession(); await login(session)
@@ -182,7 +192,7 @@ import XCTest
         XCTAssertNotEqual(session.projectEditorContextID,oldMount); XCTAssertEqual(editor.session?.ownerKey,owner.ownerKey)
         wire.finishHome(); await task.value; wire.holdHome = false
         XCTAssertNil(editor.pending); XCTAssertNil(editor.confirmation)
-        XCTAssertFalse(wire.requests.contains { $0.url!.path.hasSuffix("/topic/v2/create") })
+        XCTAssertFalse(wire.requests.contains { $0.url!.path.hasSuffix("/topic/edit-requests/submit") })
         let fresh = session.projectEditor(product:.city); XCTAssertFalse(fresh === editor); await fresh.load(); fresh.prepare(draft()); await fresh.confirm(try XCTUnwrap(fresh.confirmation))
         XCTAssertEqual(fresh.state,.acknowledged)
     }
@@ -219,7 +229,7 @@ import XCTest
         let wire = Wire(), grant = Grant(), session = try root(wire,grant).makeSession(); await login(session)
         let editor = session.projectEditor(product:.city), original = try XCTUnwrap(editor.session), storage = ProjectEditMemoryStorage(), store = ProjectEditLocalStore(storage:storage)
         let transport = try fence(wire,grant), api = try APIConfiguration(baseURL:base)
-        let approval = try OperationEndpointApproval(baseURL:base,namespace:original.storageNamespace,accountID:7,paths:[ProjectEditStoryContract.createPath])
+        let approval = try OperationEndpointApproval(baseURL:base,namespace:original.storageNamespace,accountID:7,paths:[ProjectEditStoryContract.createPath, ProjectEditRequestContract.submitPath])
         let service = ProjectEditHTTPService(configuration:api,transport:transport,owner:.personal,approval:approval,store:store,currentCredentials:{editor.session.flatMap { try? .init(session:$0,token:"synthetic-project-7") }})
         let operation = try ProjectEditPending(operationID:UUID(),ownerKey:original.ownerKey,identity:.init(),payload:ProjectEditContract.payload(draft(),topicID:nil,scope:.full))
         try store.savePending(operation,session:original)
@@ -229,7 +239,7 @@ import XCTest
         wire.finishHome(); let result = await task.value; XCTAssertEqual(result,.notSent)
         let durable = try XCTUnwrap(store.pending(session:original,identity:operation.identity))
         XCTAssertTrue(ProjectEditLocalStore.exactPending(durable,operation)); XCTAssertNotEqual(durable.dispatchStarted,true)
-        XCTAssertFalse(wire.requests.contains { $0.url!.path.hasSuffix("/topic/v2/create") })
+        XCTAssertFalse(wire.requests.contains { $0.url!.path.hasSuffix("/topic/edit-requests/submit") })
     }
 
 }

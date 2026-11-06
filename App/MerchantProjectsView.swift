@@ -37,7 +37,6 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                 let permit = presentation.permit(snapshot: snapshot)
                 List {
                     Section {
-                        Text("merchant.projects.scope").font(.footnote).foregroundStyle(.secondary)
                         if page.hasUnloadedRows { Text("merchant.projects.partial").font(.footnote).foregroundStyle(.secondary) }
                         if model.isLoading { ProgressView("merchant.refreshing") }
                         if let error = model.errorKey {
@@ -50,7 +49,10 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                         presentation.invalidate(); tab = selected
                     }
                     if page.rows.isEmpty {
-                        Text("merchant.projects.empty").accessibilityIdentifier("merchant.projects.empty")
+                        ContentUnavailableView {
+                            Label { Text("merchant.projects.empty").accessibilityIdentifier("merchant.projects.empty") } icon: { Image(systemName: "calendar") }
+                        }
+                        .listRowBackground(Color.clear)
                     } else if browser.rows.isEmpty {
                         Text("merchant.projectBrowser.emptyTab").accessibilityIdentifier("merchant.projectBrowser.emptyTab")
                         ForEach(browser.alternatives, id: \.rawValue) { alternative in

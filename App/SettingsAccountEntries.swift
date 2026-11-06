@@ -25,18 +25,30 @@ import SwiftUI
     @ObservedObject var session: AppSession
     var onSignedOut: () -> Void
     @State private var confirms = false
+    @State private var confirmation: AuthChannelSessionSnapshot?
     var body: some View {
-        if session.account != nil {
+        if let accountID = session.account?.id {
             Section {
-                Button("auth.signOut", role: .destructive) { confirms = true }
+                Button("auth.signOut") {
+                    confirmation = session.signOutConfirmation(accountID: accountID)
+                    confirms = confirmation != nil
+                }
                     .accessibilityIdentifier("settings.signOut")
             }
-            .confirmationDialog("auth.signOutConfirm", isPresented: $confirms, titleVisibility: .visible) {
-                Button("auth.signOut", role: .destructive) {
-                    Task { await session.logout(); onSignedOut() }
+            .confirmationDialog("auth.signOutConfirm", isPresented: $confirms, titleVisibility: .visible, presenting: confirmation) { expected in
+                Button("auth.signOut") {
+                    confirmation = nil; confirms = false
+                    Task {
+                        if await session.logout(matching: expected) { onSignedOut() }
+                    }
                 }
-                Button("action.cancel", role: .cancel) {}
+                Button("action.cancel", role: .cancel) { confirmation = nil }
             }
+            .onChange(of: confirms) { _, visible in if !visible { confirmation = nil } }
+            .onChange(of: session.authChannelSnapshot) { _, _ in
+                confirmation = nil; confirms = false
+            }
+            .onDisappear { confirmation = nil; confirms = false }
         }
     }
 }

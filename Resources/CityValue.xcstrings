@@ -1,0 +1,1254 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "cityValue.benefit.close": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to report"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回报表"
+          }
+        }
+      }
+    },
+    "cityValue.benefit.couponID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Granted coupon type ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当时发放券种 ID"
+          }
+        }
+      }
+    },
+    "cityValue.benefit.factID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Report fact"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报表事实"
+          }
+        }
+      }
+    },
+    "cityValue.benefit.historyOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This confirms the coupon type granted at that time, not an individual coupon instance or current usability."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅回读当时发放的券种，不代表玩家券实例或当前仍可使用。"
+          }
+        }
+      }
+    },
+    "cityValue.benefit.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View original benefit record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看原始受益记录"
+          }
+        }
+      }
+    },
+    "cityValue.benefit.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read this record again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取这条记录"
+          }
+        }
+      }
+    },
+    "cityValue.benefit.serviceID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published service point"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已发布服务点"
+          }
+        }
+      }
+    },
+    "cityValue.benefit.sourceID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original grant record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原始发券记录"
+          }
+        }
+      }
+    },
+    "cityValue.benefit.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original benefit record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原始受益记录"
+          }
+        }
+      }
+    },
+    "cityValue.benefit.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original grant evidence is unavailable. This does not mean zero benefit or a new grant."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原始发券依据缺失或不完整，无法核实；不按零受益或新发券处理。"
+          }
+        }
+      }
+    },
+    "cityValue.benefit.verified": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original committed record confirms this coupon grant."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已核对原始已提交记录，确认当时成功发券。"
+          }
+        }
+      }
+    },
+    "cityValue.bind": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bind this service visit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "绑定这次服务访问"
+          }
+        }
+      }
+    },
+    "cityValue.bindReview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bind this visit to the current CITY publication? This records only necessary service facts; it does not complete a challenge or grant a reward."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认将本次访问绑定到当前城市发布？只记录必要的服务事实，不自动完成任务或领取奖励。"
+          }
+        }
+      }
+    },
+    "cityValue.budget": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Budget cost"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预算成本"
+          }
+        }
+      }
+    },
+    "cityValue.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    },
+    "cityValue.close": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
+      }
+    },
+    "cityValue.closed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This visit is closed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这次访问已结束"
+          }
+        }
+      }
+    },
+    "cityValue.cohort": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Newcomer / veteran"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新手 / 老手"
+          }
+        }
+      }
+    },
+    "cityValue.confirmBind": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm binding"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认绑定"
+          }
+        }
+      }
+    },
+    "cityValue.cooperativeGoal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cooperative goal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合作目标"
+          }
+        }
+      }
+    },
+    "cityValue.disabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CITY value access is not enabled for this region. Missing collection is not zero."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未启用此区域的城市价值读取，未采集不代表零。"
+          }
+        }
+      }
+    },
+    "cityValue.entry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visit entry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进入访问"
+          }
+        }
+      }
+    },
+    "cityValue.entryNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entry is recorded only after you explicitly bind a published location. Browsing, walking and login are not meaningful actions."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择已发布据点并确认绑定后才记录进入。浏览、走路和登录不会被算作有意义动作。"
+          }
+        }
+      }
+    },
+    "cityValue.exit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End visit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束访问"
+          }
+        }
+      }
+    },
+    "cityValue.fact.ENTRY": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explicit entry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显式进入"
+          }
+        }
+      }
+    },
+    "cityValue.fact.EXIT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voluntary exit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主动退出"
+          }
+        }
+      }
+    },
+    "cityValue.fact.MEANINGFUL_ACTION": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source-verified meaningful action"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源验证的有意义动作"
+          }
+        }
+      }
+    },
+    "cityValue.fact.SERVICE_RATING": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First-party service rating"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本人服务评分"
+          }
+        }
+      }
+    },
+    "cityValue.fact.SERVICE_SUCCESS": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source-confirmed service benefit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源确认的服务获益"
+          }
+        }
+      }
+    },
+    "cityValue.fact.SKIP": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voluntary skip"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主动跳过"
+          }
+        }
+      }
+    },
+    "cityValue.factsNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fact pages stay on one immutable snapshot. Retries neither skip nor duplicate rows; late facts require a new query. No player names, locations or answers are shown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "事实分页固定在同一快照。重试不漏项不重复；迟到事实需重新查询。无玩家姓名、位置或答案。"
+          }
+        }
+      }
+    },
+    "cityValue.firstChoiceTime": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time to first effective choice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到首个有效选择的时间"
+          }
+        }
+      }
+    },
+    "cityValue.from": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始时间"
+          }
+        }
+      }
+    },
+    "cityValue.incomplete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This aggregate exceeded its limit. Partial totals are not displayed. Narrow the window; fact pages below are evidence only."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数据超过本次聚合上限，不展示不完整总数。请缩短时间范围；下方事实分页仅供追溯。"
+          }
+        }
+      }
+    },
+    "cityValue.issue.BENEFIT_FAILED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to read this original record. Your report filters and pages are unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原始记录暂不可读，报表筛选和已加载分页保持不变。"
+          }
+        }
+      }
+    },
+    "cityValue.issue.BIND_UNKNOWN": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Binding outcome is unknown. Read back or retry the same binding; no success is assumed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "绑定结果未知。请先重新读取，或重试相同绑定，不会凭空创建成功。"
+          }
+        }
+      }
+    },
+    "cityValue.issue.FEEDBACK_UNKNOWN": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Feedback outcome is unknown. Retry only the same feedback."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "反馈结果未知，只能重试刚才相同反馈。"
+          }
+        }
+      }
+    },
+    "cityValue.issue.NOT_CONFIGURED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approval is absent or expired. Reads are stopped."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "批准已失效或未配置，停止读取。"
+          }
+        }
+      }
+    },
+    "cityValue.issue.NO_PERMISSION": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant permission is missing or has changed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前商家权限不足或已变更。"
+          }
+        }
+      }
+    },
+    "cityValue.issue.PAGE_FAILED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This page failed. The cursor was not advanced; retry the same page."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本页读取失败，游标未推进，可原位重试。"
+          }
+        }
+      }
+    },
+    "cityValue.issue.READ_FAILED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read failed; this is not zero. Retry the same request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取失败，不能按零值展示。可重试同一请求。"
+          }
+        }
+      }
+    },
+    "cityValue.meaningful": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First meaningful action"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首个有意义动作"
+          }
+        }
+      }
+    },
+    "cityValue.merchantRedeem": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open existing location redemption"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开已有据点核销"
+          }
+        }
+      }
+    },
+    "cityValue.merchantTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CITY value report"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城市价值报表"
+          }
+        }
+      }
+    },
+    "cityValue.missingSources": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public/cooperative goals, visit net points and budget costs lack complete sources. Newcomer/veteran definitions are not established. These remain unknown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公共/合作目标、访问净积分和预算成本尚无完整真源，新手/老手口径未建立，保持未知。"
+          }
+        }
+      }
+    },
+    "cityValue.more": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read more facts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续读取事实"
+          }
+        }
+      }
+    },
+    "cityValue.netPoints": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visit net points"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "访问净积分"
+          }
+        }
+      }
+    },
+    "cityValue.noSamples": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No usable samples"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无可用样本"
+          }
+        }
+      }
+    },
+    "cityValue.noServices": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No supported services are available on this map page. Other pages and areas are not included."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前地图页没有可绑定的真实据点服务，不代表其他分页或范围。"
+          }
+        }
+      }
+    },
+    "cityValue.notObserved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No fact observed yet; not a failure or zero"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未收到事实，不表示失败或零"
+          }
+        }
+      }
+    },
+    "cityValue.notPublished": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No CITY board is published for this region"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此区域尚无已发布城市棋盘"
+          }
+        }
+      }
+    },
+    "cityValue.observed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmed by a source fact"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已收到真实来源事实"
+          }
+        }
+      }
+    },
+    "cityValue.publicGoal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public goal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公共目标"
+          }
+        }
+      }
+    },
+    "cityValue.query": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read a new fact snapshot"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取新事实快照"
+          }
+        }
+      }
+    },
+    "cityValue.rating": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Service benefit rating"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务受益评分"
+          }
+        }
+      }
+    },
+    "cityValue.readBack": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read saved report"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回读已保存报表"
+          }
+        }
+      }
+    },
+    "cityValue.reason": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voluntary reason"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主动反馈原因"
+          }
+        }
+      }
+    },
+    "cityValue.reason.no_time": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有时间"
+          }
+        }
+      }
+    },
+    "cityValue.reason.not_interested": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not interested"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不感兴趣"
+          }
+        }
+      }
+    },
+    "cityValue.reason.prefer_not_to_say": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prefer not to say"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不愿说明"
+          }
+        }
+      }
+    },
+    "cityValue.reason.service_unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Service unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务不可用"
+          }
+        }
+      }
+    },
+    "cityValue.recoverSource": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recover from the original location record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从原据点记录恢复结果"
+          }
+        }
+      }
+    },
+    "cityValue.refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取"
+          }
+        }
+      }
+    },
+    "cityValue.refreshVisit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read source-backed visit status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回读真实访问状态"
+          }
+        }
+      }
+    },
+    "cityValue.retryExact": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry the exact feedback"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试相同反馈"
+          }
+        }
+      }
+    },
+    "cityValue.retryQuery": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry the same report request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试同一报表请求"
+          }
+        }
+      }
+    },
+    "cityValue.sendRating": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit rating (first submission is final)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交评分（首次提交后不可改）"
+          }
+        }
+      }
+    },
+    "cityValue.skip": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voluntary skip"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主动跳过"
+          }
+        }
+      }
+    },
+    "cityValue.sourceAction": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open existing location interaction"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进入既有据点互动"
+          }
+        }
+      }
+    },
+    "cityValue.sourceDisabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source actions lack independent approval. Location, camera and completion requests remain disabled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "真实据点操作尚未取得独立批准。不会开启定位、相机或发送完成请求。"
+          }
+        }
+      }
+    },
+    "cityValue.sourceNoSuccessClaim": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completing an interaction does not prove a service benefit. Present the actual dynamic code if redemption is pending; reports use committed source facts only."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成互动不等于服务获益。待核销时请向商家出示真实动态码，报表只认已提交的服务事实。"
+          }
+        }
+      }
+    },
+    "cityValue.sourceReadFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source state could not be confirmed. The outcome stays unknown; no automatic retry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能确认据点状态，保留未知，不自动重做。"
+          }
+        }
+      }
+    },
+    "cityValue.success": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmed service success"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "真实成功服务"
+          }
+        }
+      }
+    },
+    "cityValue.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CITY service visits"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城市服务访问"
+          }
+        }
+      }
+    },
+    "cityValue.to": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束时间"
+          }
+        }
+      }
+    },
+    "cityValue.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown / not collected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未知 / 未采集"
+          }
+        }
+      }
+    },
+    "cityValue.windowHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use an actual time window of at most 31 days. The end time is exclusive."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时间范围采用真实时间，最长31天；结束时间不包含在范围内。"
+          }
+        }
+      }
+    },
+    "cityValue.currentPageOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Services on this map page only. Other pages or areas are not included."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅列当前地图页服务，不代表其他分页、范围或整座城市。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -7,13 +7,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "These facts were returned when you submitted. They are not a current approval or immutable release."
+            "value": "These details are from when you submitted. They don't mean your project has passed review or is published."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这些是提交时服务器返回的事实，并非当前审核批准或不可变发布版本。"
+            "value": "以下为提交时的信息，不代表项目已通过审核或已发布。"
           }
         }
       }
@@ -39,13 +39,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review task ID"
+            "value": "Reference number"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "审核任务 ID"
+            "value": "编号"
           }
         }
       }
@@ -151,13 +151,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Current approved-release verification is not configured here. Your original submission record is retained."
+            "value": "Published version status isn't available right now. Your original submission is kept."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此处尚未配置当前已批准版本核验。原始提交记录仍保留。"
+            "value": "发布版本状态暂不可用，原始提交记录仍保留。"
           }
         }
       }

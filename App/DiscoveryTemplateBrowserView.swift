@@ -10,6 +10,8 @@ struct DiscoveryTemplateBrowserView: View {
     let imageReader: (any RetainedPublicImageReading)?
     /// Mini-program merchant scope; staff without project management only browse.
     let templateTabScope: TemplateTabScope
+    /// Mini-program template tab: the "+" opens the publish menu. Hidden for staff who only browse.
+    let publishDestination: (() -> AnyView)?
     @State private var tab = Shelf.topics
     @State private var categoryID: Int?
     @State private var pack: DiscoveryPackType?
@@ -32,7 +34,8 @@ struct DiscoveryTemplateBrowserView: View {
     private var query: Query { Query(tab: tab, pack: pack, keyword: appliedKeyword) }
     private var hasGameFilter: Bool { pack != nil || !appliedKeyword.isEmpty }
 
-    init(reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil, authoringCompletion: TemplateAuthoringCompletionContext? = nil, templateTabScope: TemplateTabScope = .consumer) {
+    init(reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil, authoringCompletion: TemplateAuthoringCompletionContext? = nil, templateTabScope: TemplateTabScope = .consumer, publishDestination: (() -> AnyView)? = nil) {
+        self.publishDestination = publishDestination
         self.reader = reader; self.authoringFactory = authoringFactory; self.authoringRevision = authoringRevision
         self.imageReader = imageReader; self.authoringCompletion = authoringCompletion; self.templateTabScope = templateTabScope
     }
@@ -60,7 +63,16 @@ struct DiscoveryTemplateBrowserView: View {
                 }.refreshable { await reloadCurrent() }
             }
         }
-        .appNavigationTitle("discovery.browseTemplates")
+        .appNavigationTitle("discovery.templateTab.title")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                if let publishDestination, templateTabScope != .merchant(canManageProjects: false) {
+                    NavigationLink { publishDestination() } label: {
+                        Label("discovery.templateTab.publish", systemImage: "plus")
+                    }.accessibilityIdentifier("discovery.templateTab.publish")
+                }
+            }
+        }
         .task {
             guard reader.isConfigured, home.value == nil else { return }
             await loadHome()
@@ -123,7 +135,6 @@ struct DiscoveryTemplateBrowserView: View {
                 Button("discovery.searchAction") { applyTopicSearch() }
                     .accessibilityIdentifier("discovery.topicNameSearch.submit")
             }
-            Text("discovery.topicNameSearchScope").font(.caption).foregroundStyle(.secondary)
             if appliedTopicSearch.isActive {
                 Text(verbatim: appliedTopicSearch.keyword)
                     .accessibilityIdentifier("discovery.topicNameSearch.applied")

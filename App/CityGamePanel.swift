@@ -11,13 +11,8 @@ struct CityGameSlot: View {
     var body: some View {
         // The task needs a concrete host even before model/resolved has content.
         VStack(alignment: .leading, spacing: 0) {
+            // Without a coordinator the section is not shown at all, rather than saying it is unavailable.
             if let model { CityGamePanel(model: model, read: snapshot) }
-            else if resolved {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("cityGame.title", tableName: "CityGame").font(.headline)
-                    Text("cityGame.notEnabled", tableName: "CityGame").font(.footnote).fixedSize(horizontal: false, vertical: true)
-                }.accessibilityElement(children: .combine).accessibilityIdentifier("cityGame.notEnabled")
-            }
         }
         .task {
             guard !resolved else { return }
@@ -61,7 +56,6 @@ struct CityGamePanel: View {
                 else { lifecycleText(snapshot.lifecycle) }
             }.fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("cityGame.boardNotice")
         }
-        LabeledContent { Text(verbatim: snapshot.rules.ruleVersion) } label: { Text("cityGame.rules.version", tableName: "CityGame") }
         LabeledContent {
             if let remaining = snapshot.rules.actionsRemaining, let total = snapshot.rules.actionsPerRound { Text(verbatim: "\(remaining) / \(total)") }
             else { Text("cityGame.value.unavailable", tableName: "CityGame") }
@@ -74,7 +68,6 @@ struct CityGamePanel: View {
             if let points = snapshot.memberPoints { Text(verbatim: String(points)) }
             else { Text("cityGame.value.unavailable", tableName: "CityGame") }
         } label: { Text("cityGame.points.balance", tableName: "CityGame") }.accessibilityIdentifier("cityGame.points")
-        Text("cityGame.points.existing", tableName: "CityGame").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         if snapshot.memberPoints == 0, snapshot.neutralTasksAvailable {
             Text("cityGame.points.zero", tableName: "CityGame").font(.footnote).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("cityGame.zeroPoints")
         }
@@ -137,7 +130,6 @@ struct CityGamePanel: View {
                 LabeledContent { Text(verbatim: String(quote.actionCost)) } label: { Text("cityGame.review.actionCost", tableName: "CityGame") }
                 LabeledContent { Text("cityGame.review.payerYou", tableName: "CityGame") } label: { Text("cityGame.review.payer", tableName: "CityGame") }
                 LabeledContent { Text(verbatim: String(quote.beneficiaryMemberIds.count)) } label: { Text("cityGame.review.beneficiaries", tableName: "CityGame") }
-                LabeledContent { Text(verbatim: quote.ruleVersion) } label: { Text("cityGame.rules.version", tableName: "CityGame") }
                 LabeledContent { Text(Date(timeIntervalSince1970: Double(quote.expiresAtMillis) / 1000), format: .dateTime.hour().minute().second()) } label: { Text("cityGame.review.expires", tableName: "CityGame") }
                 Text("cityGame.review.noTeammate", tableName: "CityGame").font(.footnote).fixedSize(horizontal: false, vertical: true)
             } else {
@@ -150,7 +142,7 @@ struct CityGamePanel: View {
             Button { Task { await model.confirm() } } label: {
                 Text("cityGame.review.confirm", tableName: "CityGame")
                     .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
-            }.buttonStyle(.borderedProminent)
+            }.buttonStyle(.questifyPrimary)
                 .disabled(!model.reviewAffordable).accessibilityIdentifier("cityGame.confirm")
             Button(role: .cancel) { model.cancelReview() } label: {
                 Text("cityGame.review.cancel", tableName: "CityGame")

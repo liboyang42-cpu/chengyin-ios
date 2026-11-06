@@ -22,10 +22,18 @@ func mcc(_ key: String, _ locale: Locale) -> String {
     private let now: () -> Date
     private let focusTopicID: String?
     private var routesInFlight = false, eventsInFlight = false, started = false
+    private var eventsGeneration = UUID()
+    private var officialObservation: OfficialReadInvalidationSubscription?
 
     init(content: MerchantContentService, official: any OfficialEventReading, focusTopicID: Int?, now: @escaping () -> Date) {
         self.content = content; self.official = official; self.now = now
         self.focusTopicID = focusTopicID.flatMap { $0 > 0 ? String($0) : nil }
+        officialObservation = official.invalidationSignal?.observe { [weak self] in
+            guard let self else { return }
+            // Retire only the official list. The independent merchant routes stay intact.
+            self.eventsGeneration = UUID(); self.eventsInFlight = false
+            self.events = []; self.eventsLoading = false; self.eventsIssue = .failed(nil)
+        }
     }
     func start() { guard !started else { return }; started = true; loadAll() }
     func loadAll() { loadRoutes(); loadEvents() }
@@ -51,7 +59,12 @@ func mcc(_ key: String, _ locale: Locale) -> String {
                 self.routes = plaza.routes; self.routeScope = plaza.scope; self.locateFocus()
             case .failure(let error):
                 if error as? MerchantCoopCenterFailure == .malformed { self.routeScope = nil }
-                self.routesIssue = Self.issue(error)
+                let issue = Self.issue(error)
+                if issue == .denied || issue == .signIn {
+                    // This current read refused access. Do not retain cards/counts from a prior grant.
+                    self.routes = []; self.routeScope = nil; self.focusedRouteID = nil
+                }
+                self.routesIssue = issue
             }
         }
     }
@@ -59,17 +72,27 @@ func mcc(_ key: String, _ locale: Locale) -> String {
     func loadEvents() {
         guard !eventsInFlight else { return }
         eventsInFlight = true; eventsLoading = true; eventsIssue = nil
+        eventsGeneration = UUID(); let generation = eventsGeneration
         let reader = official, scope = official.scope
         Task { [weak self] in
+            guard !Task.isCancelled, self?.eventsGeneration == generation else { return }
+            guard reader.scope == scope else {
+                self?.eventsInFlight = false; self?.eventsLoading = false
+                self?.events = []; self?.eventsIssue = .signIn; return
+            }
             let result: Result<[OfficialEvent], Error>
             do { result = .success(MerchantOfficialRecruitment.visible(try await reader.events(city: nil))) }
             catch { result = .failure(error) }
             guard let self else { return }
+            guard self.eventsGeneration == generation else { return }
             self.eventsInFlight = false; self.eventsLoading = false
             guard reader.scope == scope else { self.events = []; self.eventsIssue = .signIn; return }
             switch result {
             case .success(let rows): self.events = rows
-            case .failure(let error): self.eventsIssue = Self.issue(error)
+            case .failure(let error):
+                let issue = Self.issue(error)
+                if issue == .denied || issue == .signIn { self.events = [] }
+                self.eventsIssue = issue
             }
         }
     }
@@ -129,6 +152,7 @@ func mcc(_ key: String, _ locale: Locale) -> String {
                         }
                     }.padding(16)
                 }
+                .refreshable { model.loadAll() }
                 .onChange(of: model.focusedRouteID) { _, id in
                     guard let id, tab == .plaza else { return }
                     withAnimation { proxy.scrollTo("route." + id, anchor: .top) }
@@ -207,7 +231,7 @@ func mcc(_ key: String, _ locale: Locale) -> String {
             Image(systemName: "tray").font(.largeTitle).foregroundStyle(.secondary)
             Text(title).font(.headline)
             Button(mcc("merchantCoopCenter.refresh", locale)) { model.loadAll() }
-                .buttonStyle(.borderedProminent).accessibilityIdentifier("merchantCoopCenter.refresh")
+                .buttonStyle(.questifyPrimary).accessibilityIdentifier("merchantCoopCenter.refresh")
         }
         .frame(maxWidth: .infinity).padding(.vertical, 48)
         .accessibilityElement(children: .contain).accessibilityIdentifier(id)
@@ -293,7 +317,7 @@ struct MerchantCoopCenterRouteCard: View {
                     NavigationLink {
                         MerchantContentDocumentView(service: content, query: .chapters(topicID: topicID))
                     } label: { Text(mcc("merchantCoopCenter.detail", locale)) }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.questifyPrimary)
                     .accessibilityLabel(String(format: mcc("merchantCoopCenter.detail.label", locale), route.title))
                     .accessibilityIdentifier("merchantCoopCenter.route.detail." + route.id)
                 }

@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 /// Reviewed in source/composition, never reconstructed from a login response or remote flags.
 /// Adding a host is insufficient: native identity, capability evidence and read grants are separate.
@@ -8,24 +9,53 @@ struct ReviewedAppDeployment {
     let reads: Set<ReadGrant>
     let privateHome: PrivateHomeTransportGrant?
     let contentDetails: SignedInContentDetailReadApproval?
+    /// Explicit local endpoint approval. Absence is unavailable, never inferred from login.
+    let nativeChannelAppeals: NativeChannelAppealPolicyStore?
+    /// Independent original-request source. Nil never authorizes reads, consent or deletion.
+    let accountDeregistrationOriginalSource: AccountDeregistrationOriginalConfigurationSource?
     enum ReadGrant: Hashable {
         case homeAndSearch
         case manualMap
         case publicMapLayers
         /// Only the public route-template shelf and its projected detail, not standalone games.
         case publicTopicTemplateCatalogAndDetail
+        /// Original public official list/detail only; a selected source is independently required.
+        case officialPublicEventCatalogAndDetail
         /// Authenticated progress projection only; runtime approval is independently required.
         case playNodesAndRouteState
     }
 
     init(market: RegionalMarket, baseURL: String, approvedBaseURLs: [RegionalMarket: Set<String>],
          verifiedCapabilities: Set<RegionalCapability>, bundleIdentifier: String, realm: String,
-         reads: Set<ReadGrant> = [], contentDetails: SignedInContentDetailReadApproval? = nil, privateHome: PrivateHomeTransportGrant? = nil) throws {
+         reads: Set<ReadGrant> = [], contentDetails: SignedInContentDetailReadApproval? = nil, privateHome: PrivateHomeTransportGrant? = nil,
+         nativeChannelAppeals: NativeChannelAppealPolicyStore? = nil,
+         accountDeregistrationOriginalSource: AccountDeregistrationOriginalConfigurationSource? = nil) throws {
         regional = try RegionalConfiguration(market: market, baseURL: baseURL,
             approvedBaseURLs: approvedBaseURLs, verifiedCapabilities: verifiedCapabilities)
         storageScope = try RegionalSessionStorageScope(configuration: regional, bundleIdentifier: bundleIdentifier, realm: realm)
         guard privateHome == nil || privateHome?.storageScope == storageScope else { throw APIError.invalidConfiguration }
         self.reads = reads; self.privateHome = privateHome; self.contentDetails = contentDetails
+        self.nativeChannelAppeals = nativeChannelAppeals
+        self.accountDeregistrationOriginalSource = accountDeregistrationOriginalSource
+    }
+}
+
+/// Explicit host-owned read grant. No login response or feature flag constructs this value.
+struct InvoiceLaunchReadApproval {
+    let context: RuntimeDependencyContext
+    let revision = UUID()
+    let originalReceipts: Bool
+    /// Separately reviewed #725 command result reads only. No deployment is inferred.
+    let commandReceiptRead: Bool
+    init(context: RuntimeDependencyContext, originalReceipts: Bool = false, commandReceiptRead: Bool = false) throws {
+        guard context.market == .china, context.role.utf8.elementsEqual(context.session.role.utf8) else {
+            throw InvoiceLaunchIssue.invalid
+        }
+        self.context = context; self.originalReceipts = originalReceipts; self.commandReceiptRead = commandReceiptRead
+    }
+    func matches(_ current: RuntimeDependencyContext) -> Bool {
+        ContentDraftContextFence.matches(context, current)
+            && context.session.role.utf8.elementsEqual(current.session.role.utf8)
     }
 }
 
@@ -39,10 +69,14 @@ extension KeychainTokenStore: AppTokenStorage {}
 /// Local factories are injected together, preventing test sessions from touching the real vault
 /// or logout tombstones. Unknown operation records are never cleared on session changes.
 @MainActor struct AppScopedStorageFactory {
+    /// Opt-in original metadata storage only. No default directory or factory is installed.
+    var clubWelcomeNoteOriginalJournalDirectory: URL? = nil
+    var clubWelcomeNoteOriginalJournalFactory: (@MainActor () -> ClubWelcomeNoteOriginalJournal?)? = nil
     let defaults: UserDefaults
     let tokenStore: (RegionalSessionStorageScope?) -> any AppTokenStorage
     let privateHomeKeychain: (any PrivateHomeKeychainPrimitive)?
     let playRecovery: PlayRecoveryConstruction
+    let invoiceJournal: (RegionalSessionStorageScope) -> any InvoiceLaunchStorage
 #if DEBUG
     /// Explicit fixture-only override. Ordinary and Release composition keep system storage.
     var syntheticWorkshopCreatorPendingRecoveryStorage: (any TemplateAuthoringStorage)? = nil
@@ -50,9 +84,10 @@ extension KeychainTokenStore: AppTokenStorage {}
     init(defaults: UserDefaults = .standard,
          tokenStore: @escaping (RegionalSessionStorageScope?) -> any AppTokenStorage = { KeychainTokenStore(scope: $0) },
          privateHomeKeychain: (any PrivateHomeKeychainPrimitive)? = nil,
-         playRecovery: PlayRecoveryConstruction = .system) {
+         playRecovery: PlayRecoveryConstruction = .system,
+         invoiceJournal: @escaping (RegionalSessionStorageScope) -> any InvoiceLaunchStorage = { TemplateAuthoringSecureStorage(scope: $0) }) {
         self.defaults = defaults; self.tokenStore = tokenStore; self.privateHomeKeychain = privateHomeKeychain
-        self.playRecovery = playRecovery
+        self.playRecovery = playRecovery; self.invoiceJournal = invoiceJournal
     }
     /// Existing adapters already use deployment/account-scoped owner keys. Preserve the
     /// persisted key format so an unknown operation can never disappear during migration.
@@ -62,6 +97,40 @@ extension KeychainTokenStore: AppTokenStorage {}
 }
 
 @MainActor struct AppCompositionRoot {
+    /// Default empty. No deployment, login or another read grant issues this source.
+    let officialPublicEventReadSelection = OfficialPublicEventReadSelection()
+    // Proposed read-only wiring. No grant is issued by shipped composition.
+    var freeExploreBundleReadApproval: @MainActor (RuntimeDependencyContext) -> FreeExploreBundleReadApproval? = { _ in nil }
+    var freeExploreBundleReadStorage: @MainActor (RegionalSessionStorageScope) -> any TemplateAuthoringStorage = { TemplateAuthoringSecureStorage(scope: $0) }
+    func makeFreeExploreBundleReadHost(registrationID: Int64, context: RuntimeDependencyContext,
+        scope: RegionalSessionStorageScope, currentContext: @escaping () -> RuntimeDependencyContext?,
+        originCurrent: @escaping () -> Bool, unauthorized: @escaping () -> Void) -> FreeExploreBundleReadHost? {
+        guard let reviewed, reviewed.storageScope == scope, reviewed.regional.market == context.market,
+              reviewed.regional.apiConfiguration?.baseURL == context.baseURL,
+              context.session.namespace == scope.service else { return nil }
+        return FreeExploreBundleReadHost(registrationID: registrationID, accountID: Int64(context.session.accountID),
+            context: context, approval: freeExploreBundleReadApproval(context), currentContext: currentContext,
+            currentApproval: { self.freeExploreBundleReadApproval(context) }, originCurrent: originCurrent,
+            storage: freeExploreBundleReadStorage(scope), transport: makeTransport(), unauthorized: unauthorized)
+    }
+    /// Local facts/original-receipt presentation only. No game runtime or read grant is created.
+    var merchantGamePlayerDestination: (@MainActor (MerchantGamePlayerCoordinator, AnyView?) -> AnyView)? = {
+        AnyView(MerchantGamePlayerView(coordinator: $0, chat: $1))
+    }
+    var merchantGamePlayerReadGrant: @MainActor (RuntimeDependencyContext) -> MerchantGamePlayerReadGrant? = { _ in nil }
+    /// Independently issued original-result GET grant. Never inferred from legacy write approval.
+    var merchantOfferWithdrawalOriginalReadApproval: @MainActor (RuntimeDependencyContext) -> MerchantOfferWithdrawalOriginalReadApproval? = { _ in nil }
+    func makeMerchantOfferWithdrawalOriginalReadTransport(approval: MerchantOfferWithdrawalOriginalReadApproval,
+        current: @escaping () -> Bool) -> (any HTTPTransport)? {
+        let context = approval.context
+        guard current(), approval.matches(context), let reviewed,
+              reviewed.regional.market == context.market,
+              reviewed.regional.apiConfiguration?.baseURL == context.baseURL,
+              reviewed.storageScope.service == context.session.namespace,
+              merchantOfferWithdrawalOriginalReadApproval(context)?.revision == approval.revision,
+              let api = try? APIConfiguration(baseURL: context.baseURL) else { return nil }
+        return MerchantOfferWithdrawalOriginalReadTransport(api: api, approval: approval, underlying: makeTransport(), current: current)
+    }
     enum DeploymentState { case unconfigured, incompatibleBuild, reviewed(ReviewedAppDeployment) }
     enum ReadSurface { case home, contentDetail }
     enum ReadAvailability: Equatable {
@@ -80,9 +149,124 @@ extension KeychainTokenStore: AppTokenStorage {}
             }
         }
     }
+    let invoiceLaunchReadApproval: @MainActor (RuntimeDependencyContext) -> InvoiceLaunchReadApproval?
+    let clubBadgeManagementApproval: @MainActor (RuntimeDependencyContext) -> ClubBadgeManagementApproval?
+    let merchantReviewOriginalReadApproval: @MainActor (RuntimeDependencyContext) -> MerchantReviewOriginalReadApproval?
     let deployment: DeploymentState
     let storage: AppScopedStorageFactory
     private let makeTransport: () -> any HTTPTransport
+    /// Distinct endpoint permissions, neither inferred from login nor ordinary club writes.
+    var clubWelcomeNoteWriteApproval: @MainActor (RuntimeDependencyContext) -> OperationEndpointApproval? = { _ in nil }
+    var clubWelcomeNoteReceiptApproval: @MainActor (RuntimeDependencyContext) -> OperationEndpointApproval? = { _ in nil }
+    func makeClubWelcomeNoteRuntime(transport: CompositionHTTPTransport,
+                                   current: @escaping @MainActor () -> RuntimeDependencyContext?) -> ClubWelcomeNoteRuntime? {
+        let original: ClubWelcomeNoteOriginalJournal
+        if let factory = storage.clubWelcomeNoteOriginalJournalFactory {
+            // An explicitly supplied unavailable factory must not silently fall back.
+            guard let value = factory() else { return nil }; original = value
+        } else if let directory = storage.clubWelcomeNoteOriginalJournalDirectory {
+            original = ClubWelcomeNoteOriginalJournal(directory: directory)
+        } else { return nil }
+        let write: () -> OperationEndpointApproval? = {
+            guard let context = current() else { return nil }; return clubWelcomeNoteWriteApproval(context)
+        }
+        let receipt: () -> OperationEndpointApproval? = {
+            guard let context = current() else { return nil }; return clubWelcomeNoteReceiptApproval(context)
+        }
+        // Original journal is mandatory here: this host can never select legacy writes.
+        return ClubWelcomeNoteRuntime(
+            transport: transport.clubWelcomeNoteDispatchTransport(path: ClubWelcomeNoteService.path, approval: write),
+            journal: storage.operationJournal(), approval: write, originalJournal: original,
+            receiptTransport: transport.clubWelcomeNoteDispatchTransport(path: ClubWelcomeNoteService.receiptPath, approval: receipt),
+            receiptApproval: receipt)
+    }
+    var clubRoleAssignmentJournalDirectory: URL? = nil
+    var clubRoleRevocationJournalDirectory: URL? = nil
+    /// Default nil; neither login nor a private-home CRUD grant creates return-home authority.
+    var nativeHomeReturnApproval: @MainActor (RuntimeDependencyContext) -> NativeHomeReturnApproval? = { _ in nil }
+    func makeNativeHomeReturnTransport(approval: NativeHomeReturnApproval,
+        current: @escaping () -> RuntimeDependencyContext?,
+        selected: @escaping (RuntimeDependencyContext) -> NativeHomeReturnApproval?) -> (any HTTPTransport)? {
+        let context = approval.context
+        guard let reviewed, let api = reviewed.regional.apiConfiguration, let home = reviewed.privateHome,
+              reviewed.regional.market == context.market, api.baseURL == context.baseURL,
+              reviewed.storageScope.service == context.session.namespace,
+              home.matches(storageScope: reviewed.storageScope, accountID: context.session.accountID, role: context.role),
+              approval.matches(context), current() == context, selected(context)?.revision == approval.revision else { return nil }
+        return NativeHomeReturnTransport(approval: approval, underlying: makeTransport(), current: current, selected: selected)
+    }
+    func makeClubBadgeService(context: RuntimeDependencyContext, clubID: Int, approval: ClubBadgeManagementApproval,
+        current: @escaping () -> RuntimeDependencyContext?, unauthorized: @escaping () -> Void) -> ClubBadgeManagementService? {
+        guard case .reviewed(let reviewed) = deployment, context.market == .china,
+              reviewed.regional.market == context.market,
+              reviewed.regional.apiConfiguration?.baseURL == context.baseURL,
+              reviewed.storageScope.service == context.session.namespace,
+              current() == context, approval.permits(context, clubID: clubID, writing: false),
+              clubBadgeManagementApproval(context)?.revision == approval.revision else { return nil }
+        let latest = { self.clubBadgeManagementApproval(context) }
+        let transport = ClubBadgeScopedTransport(context: context, clubID: clubID, approval: approval,
+            underlying: makeTransport(), current: current, currentApproval: latest)
+        return ClubBadgeManagementService(context: context, clubID: clubID, transport: transport,
+            current: current, approval: { _ in latest() }, unauthorized: unauthorized)
+    }
+    func makeMerchantReviewOriginalReceiptReader(context: RuntimeDependencyContext,
+        approval: MerchantReviewOriginalReadApproval, reader: any MerchantBusinessReading,
+        journal: any MerchantBusinessIntentStore, current: @escaping () -> RuntimeDependencyContext?,
+        currentSession: @escaping () -> MerchantBusinessSession?,
+        unauthorized: @escaping (MerchantBusinessSession) -> Void) -> MerchantReviewOriginalReceiptReader? {
+        guard case .reviewed(let reviewed) = deployment,
+              context.market == .china, reviewed.regional.market == context.market,
+              let api = reviewed.regional.apiConfiguration, api.baseURL == context.baseURL,
+              reviewed.storageScope.service == context.session.namespace,
+              approval.matches(context) else { return nil }
+        let approved: () -> Bool = {
+            guard let live = current(), approval.matches(live),
+                  let latest = self.merchantReviewOriginalReadApproval(live) else { return false }
+            return latest.revision == approval.revision && latest.matches(live)
+        }
+        return MerchantReviewOriginalReceiptReader(configuration: api,
+            transport: makeTransport(), reader: reader, journal: journal, currentSession: currentSession,
+            enabled: approved, completionEnabled: { approved() && approval.permitsJournalCompletion },
+            onUnauthorized: unauthorized)
+    }
+    func makeInvoiceLaunchService(context: RuntimeDependencyContext, approval: InvoiceLaunchReadApproval,
+                                  current: @escaping () -> RuntimeDependencyContext?,
+                                  unauthorized: @escaping () -> Void) -> InvoiceLaunchService? {
+        guard case .reviewed(let reviewed) = deployment,
+              context.market == .china, reviewed.regional.market == context.market,
+              reviewed.regional.apiConfiguration?.baseURL == context.baseURL,
+              reviewed.storageScope.service == context.session.namespace,
+              context.role.utf8.elementsEqual(context.session.role.utf8), approval.matches(context),
+              let session = try? InvoiceLaunchSession(baseURL: context.baseURL, namespace: context.session.namespace,
+                  accountID: Int64(context.session.accountID), role: context.role, epoch: context.session.epoch,
+                  token: context.session.token) else { return nil }
+        let approved: () -> Bool = {
+            guard let live = current(), approval.matches(live),
+                  let latest = self.invoiceLaunchReadApproval(live) else { return false }
+            return latest.revision == approval.revision && latest.matches(live)
+        }
+        return InvoiceLaunchService(session: session, transport: makeTransport(), enabled: approved,
+            mutationsEnabled: { false }, // Read-only first. No write permission is implied.
+            originalReceiptsEnabled: { approved() && approval.originalReceipts },
+            commandReceiptsEnabled: { approved() && approval.commandReceiptRead }, // Writes remain disabled above.
+            current: {
+                guard let live = current(), live.market == .china else { return nil }
+                return try? InvoiceLaunchSession(baseURL: live.baseURL, namespace: live.session.namespace,
+                    accountID: Int64(live.session.accountID), role: live.role, epoch: live.session.epoch,
+                    token: live.session.token)
+            }, unauthorized: unauthorized)
+    }
+    /// A dedicated final gate, like the other reviewed transport factories in this root.
+    /// Does not widen BusinessRuntimeFactory.additionalRoutes or ordinary composition sends.
+    func makeNativeChannelAppealFlow(notice: NativeChannelGovernanceNotice, context: RuntimeDependencyContext,
+                                    storage: any ProjectEditDataStorage, locatorStorage: any ProjectEditDataStorage,
+                                    current: @escaping () -> Bool, unauthorized: @escaping () -> Void) -> NativeChannelAppealFlow? {
+        guard case .reviewed(let reviewed) = deployment, let api = reviewed.regional.apiConfiguration,
+              reviewed.regional.market == context.market, api.baseURL == context.baseURL,
+              reviewed.storageScope.service == context.session.namespace, let policyStore = reviewed.nativeChannelAppeals else { return nil }
+        return NativeChannelAppealRuntime.makeFlow(notice: notice, context: context, policyStore: policyStore,
+            underlying: makeTransport(), storage: storage, locatorStorage: locatorStorage, current: current, unauthorized: unauthorized)
+    }
     func favoriteRemovalTransport(accesses: [ProfileFavoriteRemovalAccess], context: RuntimeDependencyContext,
                                   collectionScope: UUID, current: @escaping () -> RuntimeDependencyContext?,
                                   currentScope: @escaping () -> UUID?,
@@ -109,6 +293,8 @@ extension KeychainTokenStore: AppTokenStorage {}
     let makeOwnedTopicCoverTransport: @MainActor (Int) -> any HTTPTransport
     let ownedOrderReadApproval: @MainActor (RuntimeDependencyContext) -> OwnedOrderReadApproval?
     let manualMapReadApproval: @MainActor (RuntimeDependencyContext) -> ManualMapReadApproval?
+    var templateAuthoringOriginalReadApproval: @MainActor (RuntimeDependencyContext) -> OperationEndpointApproval? = { _ in nil }
+    var templateAuthoringOriginalSubmitApproval: @MainActor (RuntimeDependencyContext) -> OperationEndpointApproval? = { _ in nil }
     let templateShelfReadApproval: @MainActor (RuntimeDependencyContext) -> TemplateShelfReadApproval?
     let messagingHistoryReadApproval: @MainActor (RuntimeDependencyContext) -> MessagingHistoryReadApproval?
     let roamSessionFactReadAccess: @MainActor (RuntimeDependencyContext) -> RoamSessionFactReadAccess?
@@ -116,6 +302,8 @@ extension KeychainTokenStore: AppTokenStorage {}
     let roamNearbyPlayersReadAccess: @MainActor (RuntimeDependencyContext) -> RoamNearbyPlayersReadAccess?
     /// Roam home 附近活动 peek and passport/private read tools. No reviewed default exists; nil keeps them unavailable, and writes remain strictly independent.
     let roamEntryNearbyReadAccess: @MainActor (RuntimeDependencyContext) -> RoamEntryNearbyReadAccess?
+    let roamReceivedStampReadAccess: @MainActor (RuntimeDependencyContext) -> RoamReceivedStampReadAccess?
+    let roamPassportHistoryReadAccess: @MainActor (RuntimeDependencyContext) -> RoamPassportHistoryReadAccess?
     let roamPassportToolsReadAccess: @MainActor (RuntimeDependencyContext) -> RoamPassportToolsReadAccess?
     let roamPrivateToolsReadAccess: @MainActor (RuntimeDependencyContext) -> RoamPrivateToolsAccess?
     let profileOwnedCouponReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileOwnedCouponReadAccess?
@@ -124,15 +312,50 @@ extension KeychainTokenStore: AppTokenStorage {}
     let profilePublicInfoReadAccess: @MainActor (RuntimeDependencyContext) -> ProfilePublicInfoReadAccess?
     let profileGuideReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileGuideReadAccess?
     let profileFavoritesReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileFavoritesReadAccess?
+    var nativeChannelManagementApproval: @MainActor (RuntimeDependencyContext, UInt64, NativeChannelManagementScope) -> NativeChannelManagementApproval? = { _, _, _ in nil }
+    var nativeWebhookRuntimeFactory: (any NativeWebhookRuntimeFactory)? = nil
+    var nativeFriendChannelInviteApproval: @MainActor (RuntimeDependencyContext, NativeFriendChannelInviteMode) -> NativeFriendChannelInviteApproval? = { _, _ in nil }
+    var nativeFriendChannelSourceApproval: @MainActor (RuntimeDependencyContext, Int64) -> NativeFriendChannelSourceApproval? = { _, _ in nil }
+    var nativeFriendTeamInviteApproval: @MainActor (RuntimeDependencyContext, NativeFriendTeamInviteMode) -> NativeFriendTeamInviteApproval? = { _, _ in nil }
+    var nativeFriendMetadataApproval: @MainActor (RuntimeDependencyContext) -> NativeFriendMetadataApproval? = { _ in nil }
+    var nativeFriendRemovalApproval: @MainActor (RuntimeDependencyContext) -> NativeFriendRemovalApproval? = { _ in nil }
+    var nativeBlacklistApproval: @MainActor (RuntimeDependencyContext) -> NativeBlacklistApproval? = { _ in nil }
+    var nativeFriendDirectoryApproval: @MainActor (RuntimeDependencyContext) -> NativeFriendDirectoryApproval? = { _ in nil }
+    var nativeFriendProgressApproval: @MainActor (RuntimeDependencyContext) -> NativeFriendProgressApproval? = { _ in nil }
+    var nativeFriendApproval: @MainActor (RuntimeDependencyContext) -> NativeFriendApproval? = { _ in nil }
+    /// Independent current operation and endpoint issuance. Channel metadata is not approval.
+    var nativeChannelProgressSelection: @MainActor (RuntimeDependencyContext, NativeChannelManagementIntegrationContext) -> NativeChannelProgressRuntimeSelection? = { _, _ in nil }
+    var nativeChannelProgressReceiptApproval: @MainActor (RuntimeDependencyContext, NativeChannelManagementIntegrationContext, NativeChannelProgressPrivacyCommand) -> OperationEndpointApproval? = { _, _, _ in nil }
+    /// Actual existing team index only; a missing index must not synthesize filter IDs.
+    var nativeChannelProgressTeamOptions: @MainActor (RuntimeDependencyContext, NativeChannelManagementID, NativeChannelProgressBoard) -> [NativeChannelProgressTeamOption]? = { _, _, _ in nil }
+    var nativeProgressPrivacyApproval: @MainActor (RuntimeDependencyContext, NativeProgressPrivacyTarget) -> NativeProgressPrivacyApproval? = { _, _ in nil }
+    var nativeChannelWelcomeApproval: @MainActor (RuntimeDependencyContext) -> NativeChannelWelcomeApproval? = { _ in nil }
+    var nativeChannelOnboardingApproval: @MainActor (RuntimeDependencyContext) -> NativeChannelOnboardingApproval? = { _ in nil }
+    // Independent source-owned issuances. Nil is disabled, never a synthesized grant.
+    var nativeChannelNotificationAuthorization: @MainActor (RuntimeDependencyContext, UInt64) -> (any NativeChannelNotificationAuthorizing)? = { _, _ in nil }
+    var nativeChannelMessageAuthorization: @MainActor (RuntimeDependencyContext, UInt64, NativeChannelMessageBinding) -> NativeChannelMessageHostAuthority? = { _, _, _ in nil }
+    var nativeChannelTextReceiptApproval: @MainActor (RuntimeDependencyContext) -> NativeChannelTextApproval? = { _ in nil }
+    var nativeChannelTextSendApproval: @MainActor (RuntimeDependencyContext) -> NativeChannelTextApproval? = { _ in nil }
     var profileFavoriteRemovalAccesses: @MainActor (RuntimeDependencyContext, UUID) -> [ProfileFavoriteRemovalAccess] = { _, _ in [] }
     /// 我的 当前权益 (`api/role/info`). No reviewed lease exists yet, so the read stays dormant.
     var memberRoleInfoReadApproval: @MainActor (RuntimeDependencyContext) -> MemberRoleInfoReadApproval? = { _ in nil }
     /// 设置 → 隐私与定位 → 我的待审媒体 (GET list only). Dormant until a reviewed lease exists.
     var ownMediaReadApproval: @MainActor (RuntimeDependencyContext) -> OwnMediaReadApproval? = { _ in nil }
+    let ownMediaImagePreviewSelection = OwnMediaImagePreviewSourceSelection()
+    let ownMediaApprovedLinkSelection = OwnMediaApprovedLinkSourceSelection()
+    let ownMediaAudioPreviewSelection = OwnMediaAudioPreviewSourceSelection()
+    let ownMediaModelPreviewSelection = OwnMediaModelPreviewSourceSelection()
     /// 公共地图图层读取 (`POST /api/map/public-layers`). Dormant until a reviewed lease exists.
     var mapPublicLayerReadApproval: @MainActor (RuntimeDependencyContext) -> MapPublicLayerReadApproval? = { _ in nil }
     /// 俱乐部动态读取 (`api/club/post/list`, `feed`, `comment/list`, `history`). Dormant until a reviewed lease exists.
     var clubCommunityReadApproval: @MainActor (RuntimeDependencyContext) -> ClubCommunityReadApproval? = { _ in nil }
+    var clubPublicRosterApproval: @MainActor (RuntimeDependencyContext) -> ClubPublicRosterApproval? = { _ in nil }
+    var clubPublicTopicsApproval: @MainActor (ClubPublicTopicsContext, Int) -> ClubPublicTopicsApproval? = { _, _ in nil }
+    var clubPostOriginalApproval: @MainActor (RuntimeDependencyContext) -> ClubPostOriginalApproval? = { _ in nil }
+    var clubCommentOriginalApproval: @MainActor (RuntimeDependencyContext) -> ClubCommentOriginalApproval? = { _ in nil }
+    var clubOrdinaryAdmissionApproval: @MainActor (RuntimeDependencyContext) -> ClubOrdinaryAdmissionApproval? = { _ in nil }
+    var clubRoleAssignmentApproval: @MainActor (RuntimeDependencyContext) -> ClubRoleAssignmentApproval? = { _ in nil }
+    var clubRoleRevocationApproval: @MainActor (RuntimeDependencyContext) -> ClubRoleRevocationApproval? = { _ in nil }
     /// 俱乐部帖子图片上传 (`api/common/uploadOSS`, `bizType=club_post_image`). Dormant until a reviewed lease exists.
     var clubPostImageUploadApproval: @MainActor (RuntimeDependencyContext, Int) -> ClubPostImageUploadApproval? = { _, _ in nil }
     var makeClubPostImageUploadTransport: @MainActor () -> any HTTPTransport = { ResponseLimitedHTTPTransport(enabled: true, maximumResponseBytes: 64 * 1024) }
@@ -140,7 +363,29 @@ extension KeychainTokenStore: AppTokenStorage {}
     let profileFavoriteDetailAccess: @MainActor (RuntimeDependencyContext) -> ProfileFavoriteDetailAccess?
     let profileInviteHistoryReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileInviteHistoryReadAccess?
     let profileWeeklyPointsReadApproval: @MainActor (RuntimeDependencyContext) -> ProfileWeeklyPointsReadApproval?
+    /// Independent own-growth lease; nil stays HOLD, including the anonymous leaderboard.
+    let growthNormalReadApproval: @MainActor (RuntimeDependencyContext) -> GrowthNormalReadApproval?
     let walletHistoryReadApproval: @MainActor (RuntimeDependencyContext) -> WalletHistoryReadApproval?
+    /// Original participation-only provider bundle. No production issuance or endpoint activation by default.
+    let cityOrientationOriginalApprovals = CityOrientationTaskApprovalRegistry()
+    var cityCurrentSnapshotSelection: @MainActor (RuntimeDependencyContext, UInt64) -> CityCurrentSnapshotRuntimeSelection? = { _, _ in nil }
+    var cityOrderedMapSelection: @MainActor (RuntimeDependencyContext, UInt64) -> CityOrderedMapRuntimeSelection? = { _, _ in nil }
+    var cityParticipationRuntimeGrants: @MainActor (RuntimeDependencyContext, UInt64) -> CityParticipationRuntimeGrants? = { _, _ in nil }
+    var cityActionBudgetRuntimeGrants: @MainActor (RuntimeDependencyContext, UInt64) -> CityActionBudgetRuntimeGrants? = { _, _ in nil }
+    var cityNeutralTaskApproval: @MainActor (RuntimeDependencyContext) -> CityNeutralTaskApproval? = { _ in nil }
+    var cityTaskHistoryApproval: @MainActor (RuntimeDependencyContext) -> CityTaskHistoryApproval? = { _ in nil }
+    /// Separate receipt-read issuance. No verified production issuer is configured.
+    var cityNodeReceiptApproval: @MainActor (RuntimeDependencyContext) -> CityNodeRedemptionReceiptApproval? = { _ in nil }
+    var cityMerchantValueApproval: @MainActor (RuntimeDependencyContext) -> CityMerchantValueApproval? = { _ in nil }
+    var cityValueBoundedMapApproval: @MainActor (RuntimeDependencyContext) -> CityValueBoundedMapApproval? = { _ in nil }
+    var cityPlayerValueNodeApproval: @MainActor (RuntimeDependencyContext, Int) -> CityPlayerValueNodeApproval? = { _, _ in nil }
+    var cityPlayerValueApproval: @MainActor (RuntimeDependencyContext, CityValueBoundedMapApproval, CityValueBoundedCapture) -> CityPlayerValueApproval? = { _, _, _ in nil }
+    var cityPlayerRulesApproval: @MainActor (RuntimeDependencyContext) -> CityPlayerRulesApproval? = { _ in nil }
+    var cityAcquisitionApproval: @MainActor (RuntimeDependencyContext) -> CityAcquisitionApproval? = { _ in nil }
+    var cityOnsiteTaskApproval: @MainActor (RuntimeDependencyContext) -> CityOnsiteTaskApproval? = { _ in nil }
+    var cityArrivalEvidenceApproval: @MainActor (RuntimeDependencyContext, CityArrivalAudience) -> CityArrivalEvidenceApproval? = { _, _ in nil }
+    /// CONFIG_ONLY own-store intent remains independently disabled.
+    var cityMerchantOperationsApproval: @MainActor (RuntimeDependencyContext) -> CityMerchantOperationsApproval? = { _ in nil }
     let cityPlayerReadApproval: @MainActor (RuntimeDependencyContext) -> CityPlayerReadApproval?
     let teamReadApproval: @MainActor (RuntimeDependencyContext) -> TeamReadApproval?
     let workshopCreatorDeclarationTargets: @MainActor (RuntimeDependencyContext, Int64) -> [WorkshopCreatorDeclarationTarget]
@@ -159,9 +404,30 @@ extension KeychainTokenStore: AppTokenStorage {}
     let couponLocks: @MainActor () -> any CouponManagementLocking
     let couponReadApproval: @MainActor (RuntimeDependencyContext) -> CouponManagementReadApproval?
     let couponWriteApproval: @MainActor (RuntimeDependencyContext) -> CouponManagementWriteApproval?
+    /// Original per-account marketing source, empty by default and independently revocable.
+    let merchantMarketingConsentSelection = MerchantMarketingConsentSourceSelection()
+    /// Original evidence reads only, no source or acceptance permission installed by default.
+    /// Independent score evidence reads; no production grant is installed.
+    let memberScoreReadSelection = MemberScoreAppealSourceSelection()
+    /// Latest recorded self-avatar review only; no authority is installed by default.
+    let profileCurrentReviewSelection = ProfileCurrentReviewSourceSelection()
+    /// Separate read-only nickname source. No production lease is installed.
+    let profileNicknameSelection = ProfileNicknameSourceSelection()
+    let profileSavedMediaSelection = ProfileSavedMediaSourceSelection()
+    let memberIdentityAvatarSelection = MemberIdentityAvatarSourceSelection()
+    /// r463 owner-only ticket projections. No issuer or default lease.
+    let supportTicketReadSelection = SupportTicketReadSourceSelection()
+    /// Existing private text GET only; no default source or issuer.
+    let npcChatDataReadSelection = NPCChatDataReadSourceSelection()
+    /// Reporter history and public progress only; no source or issuer is installed.
+    let memberReportProgressSelection = MemberReportProgressSourceSelection()
+    let usageConsentReadSelection = UsageConsentReadSourceSelection()
     let sessionDependencies: @MainActor (RuntimeDependencyContext) -> NativeRuntimeDependencies
     init(deployment: DeploymentState = .unconfigured, storage: AppScopedStorageFactory? = nil,
          makeTransport: @escaping () -> any HTTPTransport = { URLSessionTransport() },
+         invoiceLaunchReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> InvoiceLaunchReadApproval? = { _ in nil },
+         clubBadgeManagementApproval: @escaping @MainActor (RuntimeDependencyContext) -> ClubBadgeManagementApproval? = { _ in nil },
+         merchantReviewOriginalReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> MerchantReviewOriginalReadApproval? = { _ in nil },
          projectStoryAudioUploadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ProjectStoryAudioUploadApproval? = { _ in nil },
          makeProjectStoryAudioUploadTransport: @escaping @MainActor () -> any HTTPTransport = { ResponseLimitedHTTPTransport(enabled: true, maximumResponseBytes: 64 * 1024) },
          projectTopicImageUploadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ProjectTopicImageUploadApproval? = { _ in nil },
@@ -183,6 +449,8 @@ extension KeychainTokenStore: AppTokenStorage {}
          roamNearbyEventsReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamNearbyEventsReadAccess? = { _ in nil },
          roamNearbyPlayersReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamNearbyPlayersReadAccess? = { _ in nil },
          roamEntryNearbyReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamEntryNearbyReadAccess? = { _ in nil },
+         roamReceivedStampReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamReceivedStampReadAccess? = { _ in nil },
+         roamPassportHistoryReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamPassportHistoryReadAccess? = { _ in nil },
          roamPassportToolsReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamPassportToolsReadAccess? = { _ in nil },
          roamPrivateToolsReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamPrivateToolsAccess? = { _ in nil },
          profileOwnedCouponReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileOwnedCouponReadAccess? = { _ in nil },
@@ -195,6 +463,7 @@ extension KeychainTokenStore: AppTokenStorage {}
          profileFavoriteDetailAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileFavoriteDetailAccess? = { _ in nil },
          profileInviteHistoryReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileInviteHistoryReadAccess? = { _ in nil },
          profileWeeklyPointsReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ProfileWeeklyPointsReadApproval? = { _ in nil },
+         growthNormalReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> GrowthNormalReadApproval? = { _ in nil },
          cityPlayerReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> CityPlayerReadApproval? = { _ in nil },
          teamReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> TeamReadApproval? = { _ in nil },
          workshopCreatorDeclarationTargets: @escaping @MainActor (RuntimeDependencyContext, Int64) -> [WorkshopCreatorDeclarationTarget] = { _, _ in [] },
@@ -219,6 +488,9 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.projectStoryImageUploadApproval = projectStoryImageUploadApproval; self.makeProjectStoryImageUploadTransport = makeProjectStoryImageUploadTransport
         self.projectNodeImageUploadApproval = projectNodeImageUploadApproval; self.makeProjectNodeImageUploadTransport = makeProjectNodeImageUploadTransport
         self.ownedTopicCoverApproval = ownedTopicCoverApproval; self.makeOwnedTopicCoverTransport = makeOwnedTopicCoverTransport
+        self.invoiceLaunchReadApproval = invoiceLaunchReadApproval
+        self.clubBadgeManagementApproval = clubBadgeManagementApproval
+        self.merchantReviewOriginalReadApproval = merchantReviewOriginalReadApproval
         self.sessionDependencies = sessionDependencies ?? { _ in .dormant }
         self.couponLocks = couponLocks
         self.couponReadApproval = couponReadApproval; self.couponWriteApproval = couponWriteApproval
@@ -229,6 +501,8 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.roamNearbyEventsReadAccess = roamNearbyEventsReadAccess
         self.roamNearbyPlayersReadAccess = roamNearbyPlayersReadAccess
         self.roamEntryNearbyReadAccess = roamEntryNearbyReadAccess
+        self.roamReceivedStampReadAccess = roamReceivedStampReadAccess
+        self.roamPassportHistoryReadAccess = roamPassportHistoryReadAccess
         self.roamPassportToolsReadAccess = roamPassportToolsReadAccess
         self.roamPrivateToolsReadAccess = roamPrivateToolsReadAccess
         self.profileOwnedCouponReadAccess = profileOwnedCouponReadAccess
@@ -241,6 +515,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.profileFavoriteDetailAccess = profileFavoriteDetailAccess
         self.profileInviteHistoryReadAccess = profileInviteHistoryReadAccess
         self.profileWeeklyPointsReadApproval = profileWeeklyPointsReadApproval
+        self.growthNormalReadApproval = growthNormalReadApproval
         self.cityPlayerReadApproval = cityPlayerReadApproval
         self.teamReadApproval = teamReadApproval
         self.workshopCreatorDeclarationTargets = workshopCreatorDeclarationTargets
@@ -283,12 +558,23 @@ extension KeychainTokenStore: AppTokenStorage {}
     }
     func transport() -> CompositionHTTPTransport {
         let transport = CompositionHTTPTransport(deployment: reviewed, underlying: makeTransport(), couponReadApproval: couponReadApproval, couponWriteApproval: couponWriteApproval, templateShelfReadApproval: templateShelfReadApproval, messagingHistoryReadApproval: messagingHistoryReadApproval, walletHistoryReadApproval: walletHistoryReadApproval, roamSessionFactReadAccess: roamSessionFactReadAccess, roamNearbyEventsReadAccess: roamNearbyEventsReadAccess, roamNearbyPlayersReadAccess: roamNearbyPlayersReadAccess, profileOwnedCouponReadAccess: profileOwnedCouponReadAccess, roamAlbumMetadataReadAccess: roamAlbumMetadataReadAccess, roamTileMemoryReadAccess: roamTileMemoryReadAccess, profilePublicInfoReadAccess: profilePublicInfoReadAccess, profileGuideReadAccess: profileGuideReadAccess, profileFavoritesReadAccess: profileFavoritesReadAccess, profileFavoriteTopicReadAccess: profileFavoriteTopicReadAccess, profileFavoriteDetailAccess: profileFavoriteDetailAccess, profileInviteHistoryReadAccess: profileInviteHistoryReadAccess, profileWeeklyPointsReadApproval: profileWeeklyPointsReadApproval, cityPlayerReadApproval: cityPlayerReadApproval, teamReadApproval: teamReadApproval, workshopCreatorPendingAuthorApproval: workshopCreatorPendingAuthorApproval, workshopCreatorPendingListApproval: workshopCreatorPendingListApproval, workshopCreatorPendingDetailApproval: workshopCreatorPendingDetailApproval, workshopCreatorConsentReadApproval: workshopCreatorConsentReadApproval, workshopCreatorConsentWriteApproval: workshopCreatorConsentWriteApproval, workshopPaidProfessionalReadApproval: workshopPaidProfessionalReadApproval, workshopPaidProfessionalWriteApproval: workshopPaidProfessionalWriteApproval, workshopPaidInstalledTextApproval: workshopPaidInstalledTextApproval, workshopPaidInstallApproval: workshopPaidInstallApproval, workshopPurchasedReadApproval: workshopPurchasedReadApproval, workshopOwnedReadApproval: workshopOwnedReadApproval, ownerDraftReadApproval: ownerDraftReadApproval, manualMapReadApproval: manualMapReadApproval, ownedOrderReadApproval: ownedOrderReadApproval)
+        transport.officialPublicEventReadSelection = officialPublicEventReadSelection
+        transport.merchantGamePlayerReadGrant = merchantGamePlayerReadGrant
         transport.memberRoleInfoReadApproval = memberRoleInfoReadApproval
         transport.ownMediaReadApproval = ownMediaReadApproval
         transport.mapPublicLayerReadApproval = mapPublicLayerReadApproval
         transport.clubCommunityReadApproval = clubCommunityReadApproval
+        transport.clubPublicRosterApproval = { self.clubPublicRosterApproval($0) }
+        transport.clubPublicTopicsApproval = { self.clubPublicTopicsApproval($0, $1) }
+        transport.clubPostOriginalApproval = clubPostOriginalApproval
+        transport.clubCommentOriginalApproval = clubCommentOriginalApproval
+        transport.clubOrdinaryAdmissionApproval = clubOrdinaryAdmissionApproval
+        transport.clubRoleAssignmentApproval = { self.clubRoleAssignmentApproval($0) }
+        transport.clubRoleRevocationApproval = { self.clubRoleRevocationApproval($0) }
         transport.clubPostImageUploadApproval = clubPostImageUploadApproval
         transport.roamEntryNearbyReadAccess = roamEntryNearbyReadAccess
+        transport.roamReceivedStampReadAccess = roamReceivedStampReadAccess
+        transport.roamPassportHistoryReadAccess = roamPassportHistoryReadAccess
         transport.roamPassportToolsReadAccess = roamPassportToolsReadAccess
         transport.roamPrivateToolsReadAccess = roamPrivateToolsReadAccess
         return transport
@@ -301,6 +587,8 @@ extension KeychainTokenStore: AppTokenStorage {}
 /// All other paths stay closed.
 /// No device/provider work or authorization is inferred from a feature grant.
 @MainActor final class CompositionHTTPTransport: ActivityCoverHTTPTransport, PublisherIdentityRegistrationHTTPTransport, ActivityEditingHTTPTransport, CouponManagementConfirmedHTTPTransport, WorkshopPaidInstallMutationTransport, WorkshopPaidProfessionalMutationTransport, WorkshopCreatorConsentMutationTransport, WorkshopCreatorPendingMutationTransport {
+    fileprivate var officialPublicEventReadSelection = OfficialPublicEventReadSelection()
+    var merchantGamePlayerReadGrant: @MainActor (RuntimeDependencyContext) -> MerchantGamePlayerReadGrant? = { _ in nil }
     var publisherIdentityRegistrationApproval: @MainActor (RuntimeDependencyContext) -> PublisherIdentityRegistrationGrants = { _ in .init() }
     var activityCoverApproval: @MainActor (RuntimeDependencyContext) -> ActivityCoverApproval? = { _ in nil }
     var activityEditingApproval: @MainActor (RuntimeDependencyContext) -> ActivityEditingGrants = { _ in .init() }
@@ -572,9 +860,18 @@ extension KeychainTokenStore: AppTokenStorage {}
     var ownMediaReadApproval: @MainActor (RuntimeDependencyContext) -> OwnMediaReadApproval? = { _ in nil }
     var mapPublicLayerReadApproval: @MainActor (RuntimeDependencyContext) -> MapPublicLayerReadApproval? = { _ in nil }
     var clubCommunityReadApproval: @MainActor (RuntimeDependencyContext) -> ClubCommunityReadApproval? = { _ in nil }
+    var clubPublicRosterApproval: @MainActor (RuntimeDependencyContext) -> ClubPublicRosterApproval? = { _ in nil }
+    var clubPublicTopicsApproval: @MainActor (ClubPublicTopicsContext, Int) -> ClubPublicTopicsApproval? = { _, _ in nil }
+    var clubPostOriginalApproval: @MainActor (RuntimeDependencyContext) -> ClubPostOriginalApproval? = { _ in nil }
+    var clubCommentOriginalApproval: @MainActor (RuntimeDependencyContext) -> ClubCommentOriginalApproval? = { _ in nil }
+    var clubOrdinaryAdmissionApproval: @MainActor (RuntimeDependencyContext) -> ClubOrdinaryAdmissionApproval? = { _ in nil }
+    var clubRoleAssignmentApproval: @MainActor (RuntimeDependencyContext) -> ClubRoleAssignmentApproval? = { _ in nil }
+    var clubRoleRevocationApproval: @MainActor (RuntimeDependencyContext) -> ClubRoleRevocationApproval? = { _ in nil }
     var clubPostImageUploadApproval: @MainActor (RuntimeDependencyContext, Int) -> ClubPostImageUploadApproval? = { _, _ in nil }
     private var clubPostImageUploadClubID: Int?
     var roamEntryNearbyReadAccess: @MainActor (RuntimeDependencyContext) -> RoamEntryNearbyReadAccess? = { _ in nil }
+    var roamReceivedStampReadAccess: @MainActor (RuntimeDependencyContext) -> RoamReceivedStampReadAccess? = { _ in nil }
+    var roamPassportHistoryReadAccess: @MainActor (RuntimeDependencyContext) -> RoamPassportHistoryReadAccess? = { _ in nil }
     var roamPassportToolsReadAccess: @MainActor (RuntimeDependencyContext) -> RoamPassportToolsReadAccess? = { _ in nil }
     var roamPrivateToolsReadAccess: @MainActor (RuntimeDependencyContext) -> RoamPrivateToolsAccess? = { _ in nil }
     /// Internal scheduling seam, never a grant; the one-use final fence runs after it.
@@ -590,6 +887,12 @@ extension KeychainTokenStore: AppTokenStorage {}
     var ownedTopicCoverConfigurationRevision: @MainActor () -> UInt64? = { nil }
     var ownedTopicCoverApproval: @MainActor (RuntimeDependencyContext) -> OwnedTopicCoverApproval? = { _ in nil }
     var playReadConfiguration: @MainActor (RuntimeDependencyContext) -> RuntimeDependencyConfiguration? = { _ in nil }
+    /// Only the normal GrowthCenterService receives this child. Generic/root routing is unchanged.
+    func growthNormalReadTransport(approval: @escaping @MainActor (RuntimeDependencyContext) -> GrowthNormalReadApproval?) -> GrowthNormalReadTransport {
+        GrowthNormalReadTransport(deployment: deployment, underlying: underlying,
+            current: { [weak self] in self?.current() }, approval: approval)
+    }
+
     private let deployment: ReviewedAppDeployment?
     private let underlying: any HTTPTransport
     private let manualMapReadApproval: @MainActor (RuntimeDependencyContext) -> ManualMapReadApproval?
@@ -728,6 +1031,25 @@ extension KeychainTokenStore: AppTokenStorage {}
         }
         return transport
     }
+    /// Public-home remains anonymous/read-only. Chat gets a separate signed-in,
+    /// exact-route adapter bound to the same deployment/account/viewer revision.
+    func scopedForMerchantGameNPC(approval: MerchantPublicProductionApproval, context: MerchantPublicHostContext,
+                              grants: @escaping () -> MerchantNPCGrants) -> (any HTTPTransport)? {
+        let matches: (ReviewedAppDeployment, SessionIdentity) -> Bool = { deployment, viewer in
+            guard viewer.isSignedInContentViewer, let api = deployment.regional.apiConfiguration,
+                  let actual = try? MerchantPublicHostContext(market: deployment.regional.market,
+                    baseURL: api.baseURL, namespace: deployment.storageScope.service, accountID: viewer.accountID,
+                    epoch: viewer.epoch, role: viewer.role, token: viewer.token) else { return false }
+            return actual == context && approval.matches(actual)
+        }
+        guard let viewer = current(), let deployment, matches(deployment, viewer) else { return nil }
+        return MerchantGameNPCProductionTransport(approval: approval, context: context, transport: underlying,
+            current: { [weak self] in
+                guard let self, let current = self.current(), current == viewer,
+                      let deployment = self.deployment, matches(deployment, current) else { return nil }
+                return context
+            }, grants: grants)
+    }
     func scopedForMerchantOverview(approval: MerchantOverviewReadApproval, context: RuntimeDependencyContext,
                                    approved: @escaping () -> Bool) -> CompositionHTTPTransport {
         let transport = copy(underlying: underlying, manualMapSelection: manualMapSelection)
@@ -804,6 +1126,401 @@ extension KeychainTokenStore: AppTokenStorage {}
         transport.clubPostImageUploadClubID = clubID
         return transport
     }
+    private func channelMessageContextMatches(_ context: RuntimeDependencyContext, viewer: SessionIdentity) -> Bool {
+        guard let deployment, let api = deployment.regional.apiConfiguration, viewer.isSignedInContentViewer else { return false }
+        return context.market == deployment.regional.market && context.baseURL == api.baseURL &&
+            context.session.namespace == deployment.storageScope.service && context.role == viewer.role &&
+            context.session.accountID == viewer.accountID && context.session.epoch == viewer.epoch && context.session.token == viewer.token
+    }
+    /// Independent descriptor final-forward. A route in the live configuration must
+    /// already exist; this does not register routes or admit GET to generic send().
+    func makeNativeChannelAttachmentDescriptorTransport(messageID: Int, context: RuntimeDependencyContext,
+        issued: BusinessRuntimeConfiguration, currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        currentConfiguration: @escaping () -> BusinessRuntimeConfiguration?,
+        stillCurrent: @escaping () -> Bool) -> NativeChannelAttachmentDescriptorTransport? {
+        guard let captured = current(), channelMessageContextMatches(context, viewer: captured),
+              ContentDraftContextFence.matches(currentRuntime(), context), stillCurrent() else { return nil }
+        return NativeChannelAttachmentDescriptorTransport(messageID: messageID, context: context,
+            issued: issued, underlying: underlying, runtime: currentRuntime,
+            configuration: currentConfiguration, presentation: { [weak self] in
+                self?.current() == captured && stillCurrent()
+            })
+    }
+    /// Reuse the private original wire, preserving the generic history gate and independent Text grants.
+    func makeNativeChannelMessageOriginalAdapters(context: RuntimeDependencyContext, binding: NativeChannelMessageBinding,
+        currentRuntime: @escaping () -> RuntimeDependencyContext?, stillCurrent: @escaping () -> Bool,
+        read: @escaping () -> NativeChannelTextApproval?, write: @escaping () -> NativeChannelTextApproval?,
+        received401: @escaping () -> Void) throws -> NativeChannelMessageOriginalAdapters {
+        guard let api = deployment?.regional.apiConfiguration, let captured = current(),
+              channelMessageContextMatches(context, viewer: captured), ContentDraftContextFence.matches(currentRuntime(), context),
+              stillCurrent() else { throw APIError.notConfigured }
+        let wire = NativeChannelMessageOriginalWireBridge(binding: binding, configuration: api, underlying: underlying,
+            current: { [weak self] in self?.current() == captured && stillCurrent() }, received401: received401)
+        let scoped = replacingUnderlying(wire)
+        return NativeChannelMessageOriginalAdapters(wire: wire, historyTransport: scoped,
+            textTransport: scoped.makeNativeChannelTextTransport(context: context, currentRuntime: currentRuntime,
+                read: read, write: write, stillCurrent: stillCurrent))
+    }
+    /// Only the existing message operation protocol is admitted here, never generic IM send.
+    func makeNativeChannelMessageDispatcher(authority: NativeChannelMessageHostAuthority,
+        journal: NativeChannelMessageMutationJournal, currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        stillCurrent: @escaping () -> Bool, onUnauthorized: @escaping (MessagingReadIdentity) -> Void) throws -> NativeChannelMessageFinalForward {
+        guard let captured = current(), channelMessageContextMatches(authority.context, viewer: captured),
+              captured.viewerRevision == authority.viewerRevision,
+              ContentDraftContextFence.matches(currentRuntime(), authority.context), stillCurrent() else { throw APIError.notConfigured }
+        return try NativeChannelMessageFinalForward(authority: authority, journal: journal, underlying: underlying,
+            current: { [weak self] in self?.current() == captured && stillCurrent() }, onUnauthorized: onUnauthorized)
+    }
+    /// Dedicated canonical text transport over the existing private adapter. This does not
+    /// admit send/send-receipt through generic IM or widen any history/read capability.
+    func makeNativeChannelTextTransport(context: RuntimeDependencyContext,
+        currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        read: @escaping () -> NativeChannelTextApproval? = { nil },
+        write: @escaping () -> NativeChannelTextApproval? = { nil },
+        stillCurrent: @escaping () -> Bool = { false }) -> NativeChannelTextTransport? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let viewer = current(), viewer.isSignedInContentViewer,
+              viewer.accountID == context.session.accountID, viewer.epoch == context.session.epoch,
+              viewer.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              viewer.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), stillCurrent() else { return nil }
+        return NativeChannelTextTransport(context: context, transport: underlying,
+            current: currentRuntime, read: read, write: write, stillCurrent: { [weak self] in
+                self?.current() == viewer && stillCurrent()
+            })
+    }
+
+    /// Consume exact existing host capabilities on the original underlying transport.
+    /// Generic send(_:) and all approval selectors remain unchanged.
+    func makeNativeChannelManagementDispatcher(context: RuntimeDependencyContext,
+        scope: NativeChannelManagementScope, viewerRevision: UInt64,
+        currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        currentViewer: @escaping () -> UInt64,
+        selectedApproval: @escaping () -> NativeChannelManagementApproval?) -> NativeChannelManagementFinalForward? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), currentViewer() == viewerRevision else { return nil }
+        return try? NativeChannelManagementFinalForward(context: context, scope: scope, viewerRevision: viewerRevision,
+            underlying: underlying, current: { [weak self] in
+                guard self?.current() == captured else { return nil }; return currentRuntime()
+            }, viewer: currentViewer, selected: selectedApproval)
+    }
+
+    func sendNativeFriendChannelInvite(_ request: URLRequest, context: RuntimeDependencyContext,
+                          approval: NativeFriendChannelInviteApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), NativeFriendChannelInviteTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.notSent
+        }
+        guard !Task.isCancelled else { throw NativeFriendFailure.notSent }
+        let result = try await underlying.send(request)
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              NativeFriendChannelInviteTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.unknown
+        }
+        return result
+    }
+
+    func sendNativeFriendChannelSource(_ request: URLRequest, context: RuntimeDependencyContext,
+                          approval: NativeFriendChannelSourceApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), NativeFriendChannelSourceTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.notSent
+        }
+        guard !Task.isCancelled else { throw NativeFriendFailure.notSent }
+        let result = try await underlying.send(request)
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              NativeFriendChannelSourceTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.unknown
+        }
+        return result
+    }
+
+    func sendNativeFriendTeamInvite(_ request: URLRequest, context: RuntimeDependencyContext,
+                          approval: NativeFriendTeamInviteApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), NativeFriendTeamInviteTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.notSent
+        }
+        guard !Task.isCancelled else { throw NativeFriendFailure.notSent }
+        let result = try await underlying.send(request)
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              NativeFriendTeamInviteTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.unknown
+        }
+        return result
+    }
+
+    func sendNativeFriendMetadata(_ request: URLRequest, context: RuntimeDependencyContext,
+                          approval: NativeFriendMetadataApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), NativeFriendMetadataTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.notSent
+        }
+        guard !Task.isCancelled else { throw NativeFriendFailure.notSent }
+        let result = try await underlying.send(request)
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              NativeFriendMetadataTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.unknown
+        }
+        return result
+    }
+
+    func sendNativeFriendRemoval(_ request: URLRequest, context: RuntimeDependencyContext,
+                          approval: NativeFriendRemovalApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), NativeFriendRemovalTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.notSent
+        }
+        guard !Task.isCancelled else { throw NativeFriendFailure.notSent }
+        let result = try await underlying.send(request)
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              NativeFriendRemovalTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.unknown
+        }
+        return result
+    }
+
+    func sendNativeBlacklist(_ request: URLRequest, context: RuntimeDependencyContext,
+                          approval: NativeBlacklistApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), NativeBlacklistTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeBlacklistFailure.notSent
+        }
+        guard !Task.isCancelled else { throw NativeBlacklistFailure.notSent }
+        let result = try await underlying.send(request)
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              NativeBlacklistTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeBlacklistFailure.unknown
+        }
+        return result
+    }
+
+    func sendNativeFriendDirectory(_ request: URLRequest, context: RuntimeDependencyContext,
+                          approval: NativeFriendDirectoryApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), NativeFriendDirectoryTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.notSent
+        }
+        guard !Task.isCancelled else { throw NativeFriendFailure.notSent }
+        let result = try await underlying.send(request)
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              NativeFriendDirectoryTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.unknown
+        }
+        return result
+    }
+
+    func sendNativeFriendProgress(_ request: URLRequest, context: RuntimeDependencyContext,
+                          approval: NativeFriendProgressApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), NativeFriendProgressTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.notSent
+        }
+        guard !Task.isCancelled else { throw NativeFriendFailure.notSent }
+        let result = try await underlying.send(request)
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              NativeFriendProgressTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.unknown
+        }
+        return result
+    }
+
+    func sendNativeFriend(_ request: URLRequest, context: RuntimeDependencyContext,
+                          approval: NativeFriendApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), NativeFriendTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.notSent
+        }
+        guard !Task.isCancelled else { throw NativeFriendFailure.notSent }
+        let result = try await underlying.send(request)
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              NativeFriendTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.unknown
+        }
+        return result
+    }
+
+    func sendNativeProgressPrivacy(_ request: URLRequest, context: RuntimeDependencyContext,
+                          approval: NativeProgressPrivacyApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), NativeProgressPrivacyTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.notSent
+        }
+        guard !Task.isCancelled else { throw NativeFriendFailure.notSent }
+        let result = try await underlying.send(request)
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              NativeProgressPrivacyTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeFriendFailure.unknown
+        }
+        return result
+    }
+
+    func sendNativeChannelOnboarding(_ request: URLRequest, context: RuntimeDependencyContext,
+                          approval: NativeChannelOnboardingApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), NativeChannelOnboardingPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeSpaceAdmissionFailure.notSent
+        }
+        guard !Task.isCancelled else { throw NativeSpaceAdmissionFailure.notSent }
+        let result = try await underlying.send(request)
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              NativeChannelOnboardingPolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeSpaceAdmissionFailure.unknown
+        }
+        return result
+    }
+
+    func sendNativeChannelWelcome(_ request: URLRequest, context: RuntimeDependencyContext,
+                          approval: NativeChannelWelcomeApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), NativeChannelWelcomePolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeSpaceAdmissionFailure.notSent
+        }
+        guard !Task.isCancelled else { throw NativeSpaceAdmissionFailure.notSent }
+        let result = try await underlying.send(request)
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              NativeChannelWelcomePolicy.accepts(request, context: context, approval: approval) else {
+            throw NativeSpaceAdmissionFailure.unknown
+        }
+        return result
+    }
+
+    /// Dedicated Progress final forward, preserving the original client operation fence.
+    func makeNativeChannelProgressFinalForward(context: RuntimeDependencyContext,
+        selection: NativeChannelProgressRuntimeSelection, journal: NativeChannelProgressPrivacyJournal,
+        currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        selected: @escaping () -> NativeChannelProgressRuntimeSelection?, stillCurrent: @escaping () -> Bool,
+        receiptApproval: @escaping (NativeChannelProgressPrivacyCommand) -> OperationEndpointApproval?) -> NativeChannelProgressFinalForward? {
+        guard let captured = current(), channelMessageContextMatches(context, viewer: captured),
+              ContentDraftContextFence.matches(currentRuntime(), context), stillCurrent() else { return nil }
+        guard let forward = underlying as? any NativeChannelProgressDispatching else { return nil }
+        return try? NativeChannelProgressFinalForward(context: context, selection: selection, journal: journal,
+            underlying: forward, current: currentRuntime, selected: selected,
+            presentation: { [weak self] in self?.current() == captured && stillCurrent() }, receiptApproval: receiptApproval)
+    }
+
+    /// Bounded Webhook transport, separate from the generic composition route catalog.
+    func makeNativeWebhookFinalForwardTransport(context: RuntimeDependencyContext, scope: NativeWebhookScope,
+        issued: OperationEndpointApproval, currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        currentApproval: @escaping () -> OperationEndpointApproval?, stillCurrent: @escaping () -> Bool)
+        -> NativeWebhookFinalForwardTransport? {
+        guard let captured = current(), channelMessageContextMatches(context, viewer: captured),
+              ContentDraftContextFence.matches(currentRuntime(), context), stillCurrent() else { return nil }
+        return NativeWebhookFinalForwardTransport(captured: context, scope: scope, issued: issued,
+            underlying: underlying, current: currentRuntime, approval: currentApproval,
+            presentation: { [weak self] in self?.current() == captured && stillCurrent() })
+    }
+    func makeNativeChannelHostRuntimeTransport(context: RuntimeDependencyContext,
+        issued: BusinessRuntimeConfiguration, features: Set<BusinessRuntimeFeature>,
+        currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        currentConfiguration: @escaping () -> BusinessRuntimeConfiguration?,
+        stillCurrent: @escaping () -> Bool) -> NativeChannelHostRuntimeTransport? {
+        guard let captured = current(), channelMessageContextMatches(context, viewer: captured),
+              ContentDraftContextFence.matches(currentRuntime(), context), stillCurrent() else { return nil }
+        return NativeChannelHostRuntimeTransport(context: context, issued: issued, features: features,
+            underlying: underlying, runtime: currentRuntime, configuration: currentConfiguration,
+            presentation: { [weak self] in self?.current() == captured && stillCurrent() })
+    }
+    func makeNativeChannelNotificationDispatcher(context: RuntimeDependencyContext, viewerRevision: UInt64,
+        source: any NativeChannelNotificationAuthorizing, journal: NativeChannelNotificationJournal,
+        currentRuntime: @escaping () -> RuntimeDependencyContext?, currentViewer: @escaping () -> UInt64,
+        selectedSource: @escaping () -> (any NativeChannelNotificationAuthorizing)?) -> NativeChannelNotificationFinalForward? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), currentViewer() == viewerRevision else { return nil }
+        return try? NativeChannelNotificationFinalForward(context: context, viewerRevision: viewerRevision,
+            source: source, journal: journal, underlying: underlying, current: { [weak self] in
+                guard self?.current() == captured else { return nil }; return currentRuntime()
+            }, viewer: currentViewer, selected: selectedSource)
+    }
     /// Replacing only the network/recorder adapter must preserve every approval selector.
     func replacingUnderlying(_ underlying: any HTTPTransport) -> CompositionHTTPTransport {
         copy(underlying: underlying, manualMapSelection: manualMapSelection)
@@ -816,13 +1533,24 @@ extension KeychainTokenStore: AppTokenStorage {}
         // Retain the identity source across temporary clone chains. Its AppSession
         // callback is weak, so this does not retain or extend the signed-in session.
         transport.current = { self.current() }
+        transport.officialPublicEventReadSelection = officialPublicEventReadSelection
+        transport.merchantGamePlayerReadGrant = merchantGamePlayerReadGrant
         transport.memberRoleInfoReadApproval = memberRoleInfoReadApproval
         transport.ownMediaReadApproval = ownMediaReadApproval
         transport.mapPublicLayerReadApproval = mapPublicLayerReadApproval
         transport.clubCommunityReadApproval = { self.clubCommunityReadApproval($0) }
+        transport.clubPublicRosterApproval = { self.clubPublicRosterApproval($0) }
+        transport.clubPublicTopicsApproval = { self.clubPublicTopicsApproval($0, $1) }
+        transport.clubPostOriginalApproval = { self.clubPostOriginalApproval($0) }
+        transport.clubCommentOriginalApproval = { self.clubCommentOriginalApproval($0) }
+        transport.clubOrdinaryAdmissionApproval = { self.clubOrdinaryAdmissionApproval($0) }
+        transport.clubRoleAssignmentApproval = { self.clubRoleAssignmentApproval($0) }
+        transport.clubRoleRevocationApproval = { self.clubRoleRevocationApproval($0) }
         transport.clubPostImageUploadApproval = { self.clubPostImageUploadApproval($0, $1) }
         transport.clubPostImageUploadClubID = clubPostImageUploadClubID
         transport.roamEntryNearbyReadAccess = roamEntryNearbyReadAccess
+        transport.roamReceivedStampReadAccess = roamReceivedStampReadAccess
+        transport.roamPassportHistoryReadAccess = roamPassportHistoryReadAccess
         transport.roamPassportToolsReadAccess = roamPassportToolsReadAccess
         transport.roamPrivateToolsReadAccess = roamPrivateToolsReadAccess
         transport.profileFavoriteTopicSelection = profileFavoriteTopicSelection
@@ -1083,9 +1811,479 @@ extension KeychainTokenStore: AppTokenStorage {}
         return true
     }
 
+    func makeMemberReportProgressTransport(context: RuntimeDependencyContext, approval: MemberReportProgressApproval,
+        currentRuntime: @escaping () -> RuntimeDependencyContext?, stillSelected: @escaping () -> Bool) -> MemberReportProgressScopedTransport? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              deployment.regional.market == context.market,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              MemberReportProgressScope.matches(currentRuntime(), context), approval.matches(context), stillSelected() else { return nil }
+        return MemberReportProgressScopedTransport(approval: approval, underlying: underlying,
+            current: { [weak self] in guard self?.current() == captured else { return nil }; return currentRuntime() },
+            stillSelected: stillSelected)
+    }
+    func makeNPCChatDataReadTransport(context: RuntimeDependencyContext, approval: NPCChatDataReadApproval,
+        currentRuntime: @escaping () -> RuntimeDependencyContext?, stillSelected: @escaping () -> Bool) -> NPCChatDataReadScopedTransport? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              deployment.regional.market == context.market,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              NPCChatDataReadScope.matches(currentRuntime(), context), approval.matches(context), stillSelected() else { return nil }
+        return NPCChatDataReadScopedTransport(approval: approval, underlying: underlying,
+            current: { [weak self] in guard self?.current() == captured else { return nil }; return currentRuntime() },
+            stillSelected: stillSelected)
+    }
+    func makeSupportTicketReadTransport(context: RuntimeDependencyContext, approval: SupportTicketReadApproval,
+        currentRuntime: @escaping () -> RuntimeDependencyContext?, stillSelected: @escaping () -> Bool) -> SupportTicketReadScopedTransport? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              deployment.regional.market == context.market,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              SupportTicketReadScope.matches(currentRuntime(), context), approval.matches(context), stillSelected() else { return nil }
+        return SupportTicketReadScopedTransport(approval: approval, underlying: underlying,
+            current: { [weak self] in guard self?.current() == captured else { return nil }; return currentRuntime() },
+            stillSelected: stillSelected)
+    }
+    func makeMemberScoreReadTransport(context: RuntimeDependencyContext, approval: MemberScoreListApproval,
+        currentRuntime: @escaping () -> RuntimeDependencyContext?, stillSelected: @escaping () -> Bool) -> MemberScoreAppealScopedTransport? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              deployment.regional.market == context.market,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              MemberScoreReadScope.matches(currentRuntime(), context), approval.matches(context), stillSelected() else { return nil }
+        return MemberScoreAppealScopedTransport(approval: approval, underlying: underlying,
+            current: { [weak self] in guard self?.current() == captured else { return nil }; return currentRuntime() },
+            stillSelected: stillSelected)
+    }
+    /// Dedicated original usage-evidence GETs. Generic compliance paths remain unchanged/default-deny.
+    func makeUsageConsentReadTransport(context: RuntimeDependencyContext, approval: UsageConsentReadApproval,
+        currentRuntime: @escaping () -> RuntimeDependencyContext?, stillApproved: @escaping () -> Bool) -> UsageConsentReadScopedTransport? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              UsageConsentReadScope.matches(currentRuntime(), context), stillApproved(),
+              approval.endpoint.paths.contains(where: { approval.allows(context, path: $0) }) else { return nil }
+        return UsageConsentReadScopedTransport(context: context, approval: approval, underlying: underlying,
+            current: { [weak self] in guard self?.current() == captured else { return nil }; return currentRuntime() },
+            stillApproved: stillApproved)
+    }
+    /// Original marketing routes only; no generic compliance or campaign permission is borrowed.
+    func makeMerchantMarketingConsentOriginalTransport(context: RuntimeDependencyContext,
+        approval: MerchantMarketingConsentOriginalApproval, currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        stillApproved: @escaping () -> Bool) -> MerchantMarketingConsentScopedTransport? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              context.role.utf8.elementsEqual(context.session.role.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), approval.matches(context), stillApproved() else { return nil }
+        return MerchantMarketingConsentScopedTransport(context: context, approval: approval, underlying: underlying,
+            current: { [weak self] in guard self?.current() == captured else { return nil }; return currentRuntime() },
+            stillApproved: stillApproved)
+    }
+    /// Original C08 route only. Reuses the current complete viewer fence, not the old host helper.
+    func makeAccountDeregistrationOriginalTransport(context: RuntimeDependencyContext,
+        approval: AccountDeregistrationOriginalApproval, currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        stillApproved: @escaping () -> Bool) -> AccountDeregistrationScopedTransport? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              context.role.utf8.elementsEqual(context.session.role.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), approval.matches(context), stillApproved() else { return nil }
+        return AccountDeregistrationScopedTransport(context: context, approval: approval, underlying: underlying,
+            current: { [weak self] in guard self?.current() == captured else { return nil }; return currentRuntime() },
+            stillApproved: stillApproved)
+    }
+    /// Dedicated original personal template producer and read-only recovery; no new grant is created.
+    func makeTemplateAuthoringRequestService(context: RuntimeDependencyContext,
+        session: TemplateAuthoringSession,
+        readApproval: OperationEndpointApproval?, submitApproval: OperationEndpointApproval?,
+        currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        currentReadApproval: @escaping () -> OperationEndpointApproval?,
+        currentSubmitApproval: @escaping () -> OperationEndpointApproval?) -> TemplateAuthoringRequestHTTPService? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              session.accountID == context.session.accountID, session.epoch == context.session.epoch,
+              session.namespace.utf8.elementsEqual(context.session.namespace.utf8),
+              session.authorizationRevision.utf8.elementsEqual(context.role.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context),
+              readApproval != nil || submitApproval != nil else { return nil }
+        return TemplateAuthoringRequestHTTPService(configuration: api, transport: underlying,
+            readApproval: readApproval, submitApproval: submitApproval,
+            currentReadApproval: currentReadApproval, currentSubmitApproval: currentSubmitApproval,
+            credentials: { [weak self] in
+                guard self?.current() == captured,
+                      ContentDraftContextFence.matches(currentRuntime(), context) else { return nil }
+                return (session, context.session.token)
+            })
+    }
+    /// Dedicated owned-participant caller; generic send and unrelated grants remain default-deny.
+    func makeProfileParticipantTransport(context: RuntimeDependencyContext, access: ProfileParticipantAccess,
+        currentRuntime: @escaping () -> RuntimeDependencyContext?, stillCurrent: @escaping () -> Bool) -> ProfileParticipantTransport? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), access.matches(context), stillCurrent() else { return nil }
+        return ProfileParticipantTransport(context: context, access: access, underlying: underlying,
+            current: currentRuntime, stillCurrent: { [weak self] in self?.current() == captured && stillCurrent() })
+    }
+    /// Dedicated original current snapshot caller; generic send remains unchanged/default-deny.
+    func makeCityCurrentSnapshotTransport(context: RuntimeDependencyContext, revision: UInt64,
+        selection: CityCurrentSnapshotRuntimeSelection, currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        currentRevision: @escaping () -> UInt64, currentSelection: @escaping () -> CityCurrentSnapshotRuntimeSelection?,
+        unauthorized: @escaping () -> Void) -> CityCurrentSnapshotScopedTransport? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), currentRevision() == revision,
+              selection.matches(context, revision: revision), currentSelection() === selection else { return nil }
+        return CityCurrentSnapshotScopedTransport(configuration: api, selection: selection, underlying: underlying,
+            currentContext: { [weak self] in guard self?.current() == captured else { return nil }; return currentRuntime() },
+            currentRevision: currentRevision, currentSelection: currentSelection, unauthorized: unauthorized)
+    }
+    func makeCityOrderedMapTransport(context: RuntimeDependencyContext, revision: UInt64,
+        selection: CityOrderedMapRuntimeSelection, currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        currentRevision: @escaping () -> UInt64, currentSelection: @escaping () -> CityOrderedMapRuntimeSelection?,
+        unauthorized: @escaping () -> Void) -> CityOrderedMapScopedTransport? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), currentRevision() == revision,
+              selection.matches(context, revision: revision), currentSelection() === selection else { return nil }
+        return CityOrderedMapScopedTransport(configuration: api, selection: selection, underlying: underlying,
+            currentContext: { [weak self] in guard self?.current() == captured else { return nil }; return currentRuntime() },
+            currentRevision: currentRevision, currentSelection: currentSelection, unauthorized: unauthorized)
+    }
+    /// Dedicated original participation caller; generic send remains unchanged/default-deny.
+    func makeCityParticipationTransport(context: RuntimeDependencyContext, revision: UInt64,
+        grants: CityParticipationRuntimeGrants, currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        currentRevision: @escaping () -> UInt64, currentGrants: @escaping () -> CityParticipationRuntimeGrants?,
+        unauthorized: @escaping () -> Void) -> CityParticipationScopedTransport? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), currentRevision() == revision,
+              grants.matches(context, revision: revision), currentGrants() === grants else { return nil }
+        return CityParticipationScopedTransport(configuration: api, grants: grants, underlying: underlying,
+            currentContext: { [weak self] in guard self?.current() == captured else { return nil }; return currentRuntime() },
+            currentRevision: currentRevision, currentGrants: currentGrants, unauthorized: unauthorized)
+    }
+    /// Dedicated original action-budget caller; generic send remains unchanged/default-deny.
+    func makeCityActionBudgetTransport(context: RuntimeDependencyContext, revision: UInt64,
+        grants: CityActionBudgetRuntimeGrants, currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        currentRevision: @escaping () -> UInt64, currentGrants: @escaping () -> CityActionBudgetRuntimeGrants?,
+        unauthorized: @escaping () -> Void) -> CityActionBudgetScopedTransport? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), currentRevision() == revision,
+              grants.matches(context, revision: revision), currentGrants() === grants else { return nil }
+        return CityActionBudgetScopedTransport(configuration: api, grants: grants, underlying: underlying,
+            currentContext: { [weak self] in guard self?.current() == captured else { return nil }; return currentRuntime() },
+            currentRevision: currentRevision, currentGrants: currentGrants, unauthorized: unauthorized)
+    }
+    /// Dedicated original neutral-task caller; generic send remains unchanged/default-deny.
+    func makeCityNeutralTaskTransport(context: RuntimeDependencyContext, revision: UInt64,
+        approval: CityNeutralTaskApproval, currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        currentRevision: @escaping () -> UInt64, currentApproval: @escaping () -> CityNeutralTaskApproval?) -> CityNeutralTaskTransport? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), currentRevision() == revision,
+              approval.matches(context), currentApproval() === approval else { return nil }
+        return CityNeutralTaskTransport(approval: approval, underlying: underlying,
+            current: { [weak self] in guard self?.current() == captured, currentRevision() == revision else { return nil }; return currentRuntime() },
+            selected: { _ in currentApproval() })
+    }
+    func makeCityTaskHistoryTransport(context: RuntimeDependencyContext, revision: UInt64,
+        approval: CityTaskHistoryApproval, currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        currentRevision: @escaping () -> UInt64, currentApproval: @escaping () -> CityTaskHistoryApproval?) -> CityTaskHistoryTransport? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), currentRevision() == revision,
+              approval.matches(context), currentApproval() === approval else { return nil }
+        return CityTaskHistoryTransport(approval: approval, underlying: underlying,
+            current: { [weak self] in guard self?.current() == captured, currentRevision() == revision else { return nil }; return currentRuntime() },
+            selected: { _ in currentApproval() })
+    }
+    func makeCityMerchantValueTransport(context: RuntimeDependencyContext, approval: CityMerchantValueApproval,
+        scope: CityMerchantValueScope, approved: @escaping () -> Bool) -> CityMerchantValueScopedTransport? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              approval.matches(context), approved() else { return nil }
+        return CityMerchantValueScopedTransport(underlying: underlying, approval: approval, scope: scope,
+            current: { [weak self] in self?.current() == captured && approved() })
+    }
+    func makeCityNodeReceiptReader(context: RuntimeDependencyContext, revision: UInt64,
+        approval: CityNodeRedemptionReceiptApproval, currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        currentRevision: @escaping () -> UInt64, currentApproval: @escaping () -> CityNodeRedemptionReceiptApproval?) -> CityNodeRedemptionReceiptReader? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), currentRevision() == revision else { return nil }
+        guard approval.matches(context), currentApproval() === approval else { return nil }
+        return CityNodeRedemptionReceiptReader(approval: approval, transport: underlying,
+            context: { [weak self] in
+                guard self?.current() == captured, currentRevision() == revision else { return nil }
+                return currentRuntime()
+            }, selected: currentApproval)
+    }
+    func makeCityValueBoundedReader(context: RuntimeDependencyContext, revision: UInt64, approval: CityValueBoundedMapApproval,
+        currentRuntime: @escaping () -> RuntimeDependencyContext?, currentRevision: @escaping () -> UInt64,
+        currentApproval: @escaping () -> CityValueBoundedMapApproval?, unauthorized: @escaping () -> Void) -> CityValueBoundedMapReader? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), currentRevision() == revision else { return nil }
+        guard approval.matches(context), currentApproval() === approval else { return nil }
+        let transport = CityValueBoundedMapScopedTransport(approval: approval, underlying: underlying,
+            context: { [weak self] in guard self?.current() == captured, currentRevision() == revision else { return nil }; return currentRuntime() },
+            currentApproval: currentApproval, unauthorized: unauthorized)
+        return CityValueBoundedMapReader(regionID: approval.readApproval.regionID, transport: transport)
+    }
+    func makeCityPlayerValueNodeTransport(context: RuntimeDependencyContext, revision: UInt64,
+        approval: CityPlayerValueNodeApproval, verification: VerificationCodeApproval?,
+        currentRuntime: @escaping () -> RuntimeDependencyContext?, currentRevision: @escaping () -> UInt64,
+        approved: @escaping () -> Bool) -> CityPlayerValueNodeTransport? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), currentRevision() == revision else { return nil }
+        guard approval.matches(context), approved() else { return nil }
+        return CityPlayerValueNodeTransport(underlying: underlying, approval: approval, verification: verification,
+            current: { [weak self] in self?.current() == captured && currentRevision() == revision &&
+                ContentDraftContextFence.matches(currentRuntime(), context) && approved() })
+    }
+    func makeCityPlayerValueService(context: RuntimeDependencyContext, revision: UInt64, approval: CityPlayerValueApproval,
+        capture: CityValueBoundedCapture, currentRuntime: @escaping () -> RuntimeDependencyContext?, currentRevision: @escaping () -> UInt64,
+        currentApproval: @escaping () -> CityPlayerValueApproval?, currentMapApproval: @escaping () -> CityValueBoundedMapApproval?,
+        currentCapture: @escaping () -> CityValueBoundedCapture?, unauthorized: @escaping () -> Void) -> CityPlayerValueService? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), currentRevision() == revision else { return nil }
+        guard approval.matches(context), currentApproval() === approval, currentMapApproval() === approval.mapApproval,
+              approval.capture == capture else { return nil }
+        return try? CityPlayerValueService(approval: approval, capture: capture, transport: underlying,
+            currentApproval: currentApproval, currentMapApproval: currentMapApproval, currentCapture: currentCapture,
+            currentContext: { [weak self] in guard self?.current() == captured, currentRevision() == revision else { return nil }; return currentRuntime() },
+            unauthorized: unauthorized)
+    }
+    func makeCityPlayerRulesTransport(context: RuntimeDependencyContext, revision: UInt64,
+        approval: CityPlayerRulesApproval, currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        currentRevision: @escaping () -> UInt64, currentApproval: @escaping () -> CityPlayerRulesApproval?) -> CityPlayerRulesTransport? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), currentRevision() == revision,
+              approval.matches(context), currentApproval() === approval else { return nil }
+        return CityPlayerRulesTransport(approval: approval, underlying: underlying,
+            current: { [weak self] in guard self?.current() == captured, currentRevision() == revision else { return nil }; return currentRuntime() },
+            selected: { _ in currentApproval() })
+    }
+    func makeCityAcquisitionTransport(context: RuntimeDependencyContext, revision: UInt64,
+        approval: CityAcquisitionApproval, currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        currentRevision: @escaping () -> UInt64, currentApproval: @escaping () -> CityAcquisitionApproval?) -> CityAcquisitionTransport? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), currentRevision() == revision,
+              approval.matches(context), currentApproval() === approval else { return nil }
+        return CityAcquisitionTransport(approval: approval, underlying: underlying,
+            current: { [weak self] in guard self?.current() == captured, currentRevision() == revision else { return nil }; return currentRuntime() },
+            selected: { _ in currentApproval() })
+    }
+    func makeCityOnsiteTaskTransport(context: RuntimeDependencyContext, revision: UInt64,
+        approval: CityOnsiteTaskApproval, currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        currentRevision: @escaping () -> UInt64, currentApproval: @escaping () -> CityOnsiteTaskApproval?) -> CityOnsiteTaskTransport? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), currentRevision() == revision,
+              approval.matches(context), currentApproval() === approval else { return nil }
+        return CityOnsiteTaskTransport(approval: approval, underlying: underlying,
+            current: { [weak self] in guard self?.current() == captured, currentRevision() == revision else { return nil }; return currentRuntime() },
+            selected: { _ in currentApproval() })
+    }
+    /// Dedicated original arrival-evidence caller; generic send remains unchanged/default-deny.
+    func makeCityMerchantIntentTransport(context: RuntimeDependencyContext, revision: UInt64,
+        approval: CityMerchantOperationsApproval, currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        currentRevision: @escaping () -> UInt64, currentApproval: @escaping () -> CityMerchantOperationsApproval?) -> CityMerchantOperationsTransport? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), currentRuntime()?.session == context.session,
+              currentRevision() == revision, approval.matches(context), currentApproval() === approval else { return nil }
+        return CityMerchantOperationsTransport(approval: approval, underlying: underlying,
+            current: { [weak self] in guard self?.current() == captured, currentRevision() == revision else { return nil }; return currentRuntime() },
+            selected: { _ in currentApproval() })
+    }
+    func makeCityArrivalEvidenceTransport(context: RuntimeDependencyContext, revision: UInt64,
+        approval: CityArrivalEvidenceApproval, currentRuntime: @escaping () -> RuntimeDependencyContext?,
+        currentRevision: @escaping () -> UInt64, currentApproval: @escaping () -> CityArrivalEvidenceApproval?) -> CityArrivalEvidenceTransport? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
+              deployment.regional.market == context.market,
+              deployment.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8),
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID, captured.epoch == context.session.epoch,
+              captured.role.map({ Data($0.utf8) }) == Data(context.role.utf8),
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              ContentDraftContextFence.matches(currentRuntime(), context), currentRevision() == revision,
+              approval.matches(context), currentApproval() === approval else { return nil }
+        return CityArrivalEvidenceTransport(approval: approval, underlying: underlying,
+            current: { [weak self] in guard self?.current() == captured, currentRevision() == revision else { return nil }; return currentRuntime() },
+            selected: { _, audience in guard audience == approval.audience else { return nil }; return currentApproval() })
+    }
+    func sendCityOrientationOriginalReceipt(_ request: URLRequest, context: RuntimeDependencyContext,
+                                 receipt: CityOrientationTaskApproval?,
+                                 stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), let route = CityOrientationTaskRoute(request: request, baseURL: context.baseURL),
+              route.capability == .receiptRead, route.approved(request: request, context: context, receipt: receipt, answer: nil) else {
+            throw PlayExperienceError.disabled
+        }
+        try Task.checkCancellation()
+        let result = try await underlying.send(request)
+        // Only this already-preflighted exact route may deliver auth evidence to its
+        // captured approved-port owner. That owner retires itself before lifetime checks.
+        if CityOrientationTaskService.isAuthenticationFailure(result) { return result }
+        guard current() == captured, stillApproved(), !Task.isCancelled,
+              route.capability == .receiptRead, route.approved(request: request, context: context, receipt: receipt, answer: nil) else {
+            throw PlayExperienceError.staleSession
+        }
+        return result
+    }
+
+
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         guard let deployment, let api = deployment.regional.apiConfiguration,
               let url = request.url, url.fragment == nil else { throw APIError.notConfigured }
+        let merchantGamePlayer = MerchantGamePlayerReadRoute(request: request, baseURL: api.baseURL)
         let merchantOverview = MerchantOverviewScope.accepts(request, baseURL: api.baseURL)
         guard !merchantOverviewOnly || merchantOverview else { throw APIError.notConfigured }
         let merchantPrediction = MerchantPredictionScope.accepts(request, baseURL: api.baseURL)
@@ -1107,12 +2305,14 @@ extension KeychainTokenStore: AppTokenStorage {}
         let characterRead = CharacterCardReadRoute(request: request, baseURL: api.baseURL)
         let ownedCover = OwnedTopicCoverCompositionRoute(request: request, baseURL: api.baseURL)
         let sessionFactRoute = RoamSessionFactReadRoute(request: request, baseURL: api.baseURL)
+        let passportHistory = RoamPassportHistoryReadRoute(request: request, baseURL: api.baseURL)
         let nearbyEventsArea = manualMapSelection?.snapshot
         let nearbyEvents = nearbyEventsArea.flatMap { RoamNearbyEventsReadRoute(request: request, baseURL: api.baseURL, area: $0.area) }
         let nearbyPlayersArea = manualMapSelection?.snapshot
         let nearbyPlayers = nearbyPlayersArea.flatMap { RoamNearbyPlayersReadRoute(request: request, baseURL: api.baseURL, area: $0.area) }
         let ownedCoupon = ProfileOwnedCouponReadRoute(request: request, baseURL: api.baseURL)
         let albumMetadata = RoamAlbumMetadataReadRoute(request: request, baseURL: api.baseURL)
+        let receivedStamp = RoamReceivedStampReadRoute(request: request, baseURL: api.baseURL)
         let tileMemory = RoamTileMemoryReadRoute(request: request, baseURL: api.baseURL)
         let favoriteTopic = profileFavoriteTopicSelection == nil ? nil : ProfileFavoriteTopicReadRoute(request: request, baseURL: api.baseURL)
         guard profileFavoriteTopicSelection == nil || favoriteTopic != nil else { throw APIError.notConfigured }
@@ -1125,7 +2325,8 @@ extension KeychainTokenStore: AppTokenStorage {}
         let favoriteList = ProfileFavoritesReadRoute(request: request, baseURL: api.baseURL)
         let favoriteDetail = ProfileFavoriteDetailRoute(request: request, baseURL: api.baseURL)
         let ticketWalletList = TicketWalletListReadRoute(request: request, baseURL: api.baseURL)
-        let ownMedia = OwnMediaReadRoute.accepts(request, baseURL: api.baseURL)
+        let ownMediaStatus = OwnMediaStatusRoute.assetID(request, baseURL: api.baseURL) != nil
+        let ownMedia = OwnMediaReadRoute.accepts(request, baseURL: api.baseURL) || ownMediaStatus
         let entryNearbyArea = manualMapSelection?.snapshot
         let entryNearby: URLRequest? = entryNearbyArea.flatMap { areaSnapshot in
             guard request.httpMethod == "GET",
@@ -1143,11 +2344,31 @@ extension KeychainTokenStore: AppTokenStorage {}
             return request.httpMethod == expectedMethod
         })
         let rewardPledgeOperation = RewardPledgeRoutes.operation(request, baseURL: api.baseURL)
-        guard ownMedia || nearbyEvents != nil || entryNearby != nil || passportToolPath != nil || privateToolReadPath != nil || rewardPledgeOperation != nil || url.query == nil || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
+        guard ownMedia || nearbyEvents != nil || entryNearby != nil || passportHistory != nil || passportToolPath != nil || privateToolReadPath != nil || rewardPledgeOperation != nil || url.query == nil || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
         guard let captured = current() else { throw CancellationError() }
         let authPaths = [AuthEndpoint.smsSend, .phone, .userInfo, .logout].map { api.url(for: $0) }
         let auth = authPaths.contains(url)
         let publicHome = PublicMerchantHomeCompositionScope.accepts(request, baseURL: api.baseURL)
+        let publicTopicsRoute = ClubPublicTopicsRoute(request: request, baseURL: api.baseURL)
+        let publicTopicsContext = ClubPublicTopicsContext(
+            identity: .init(accountID: captured.accountID, epoch: captured.epoch),
+            viewerRevision: captured.viewerRevision, role: captured.role,
+            baseURL: api.baseURL, namespace: deployment.storageScope.service)
+        let publicTopicsGrant = publicTopicsRoute.flatMap { clubPublicTopicsApproval(publicTopicsContext, $0.clubID) }
+        let clubRoleContext: RuntimeDependencyContext? = {
+            guard captured.isSignedInContentViewer, let account = captured.accountID, let role = captured.role,
+                  let token = captured.token, let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { return nil }
+            return .init(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+        }()
+        let roleAssignmentRoute = ClubRoleAssignmentRoute(request: request, baseURL: api.baseURL)
+        let roleRevocationRoute = ClubRoleRevocationRoute(request: request, baseURL: api.baseURL)
+        let roleAssignmentGrant = clubRoleContext.flatMap { context in roleAssignmentRoute.flatMap { route in
+            clubRoleAssignmentApproval(context).flatMap { $0.permits(context, scope: route.scope, writing: route.writing) ? $0 : nil }
+        } }
+        let roleRevocationGrant = clubRoleContext.flatMap { context in roleRevocationRoute.flatMap { route in
+            clubRoleRevocationApproval(context).flatMap { $0.permits(context, scope: route.scope, writing: route.writing) ? $0 : nil }
+        } }
         var readApprovalStillValid: (() -> Bool)?
         let reads = ["api/common/banner", "api/category/list", "api/topic/list", "api/activity/list", "api/club/list", "api/merchant/list"]
         if auth {
@@ -1158,6 +2379,20 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer, rewardPledgePermit(rewardPledgeOperation) else { throw APIError.notConfigured }
             let permit = rewardPledgePermit
             readApprovalStillValid = { permit(rewardPledgeOperation) }
+        } else if let route = merchantGamePlayer {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let approval = merchantGamePlayerReadGrant(context), approval.matches(context),
+                  approval.allows(configuration: api, namespace: session.namespace, accountID: account, path: route.path) else {
+                throw APIError.notConfigured
+            }
+            readApprovalStillValid = { [merchantGamePlayerReadGrant] in
+                guard let fresh = merchantGamePlayerReadGrant(context), fresh == approval, fresh.matches(context) else { return false }
+                return fresh.allows(configuration: api, namespace: session.namespace, accountID: account, path: route.path)
+            }
         } else if merchantOverviewOnly {
             guard merchantOverview, let scope = merchantOverviewScope,
                   scope.matches(deployment: deployment, viewer: captured) else { throw APIError.notConfigured }
@@ -1261,6 +2496,20 @@ extension KeychainTokenStore: AppTokenStorage {}
                     issued.permits(route.operation, configuration: api, session: editor)
             }
             guard permitted() else { throw APIError.notConfigured }; readApprovalStillValid = permitted
+        } else if let route = ProjectAuthorInputReadRoute(request: request, baseURL: api.baseURL) {
+            guard deployment.regional.market == .china, captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token),
+                  let revision = projectEditConfigurationRevision() else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            let exact = try route.businessRoute
+            func permitted() -> Bool {
+                guard projectEditConfigurationRevision() == revision,
+                      let configuration = projectEditConfiguration(context), configuration.matches(context) else { return false }
+                return configuration.routes[.projectAuthorInputRead]?.contains(exact) == true
+            }
+            guard permitted() else { throw APIError.notConfigured }
+            readApprovalStillValid = permitted
         } else if let route = ProjectEditCompositionRoute(request: request, baseURL: api.baseURL) {
             guard captured.isSignedInContentViewer, let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
@@ -1489,6 +2738,32 @@ extension KeychainTokenStore: AppTokenStorage {}
                       let fresh = roamEntryNearbyReadAccess(context) else { return false }
                 return fresh === selected && fresh.matches(context)
             }
+        } else if receivedStamp != nil {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let selected = roamReceivedStampReadAccess(context), selected.matches(context),
+                  selected.endpoints.allows(configuration: api, namespace: session.namespace,
+                    accountID: account, path: RoamReceivedStampReadRoute.path) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [roamReceivedStampReadAccess] in
+                guard let fresh = roamReceivedStampReadAccess(context) else { return false }
+                return fresh === selected && fresh.matches(context)
+            }
+        } else if let passportHistory {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let selected = roamPassportHistoryReadAccess(context), selected.matches(context),
+                  selected.endpoints.allows(configuration: api, namespace: session.namespace,
+                    accountID: account, path: passportHistory.path) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [roamPassportHistoryReadAccess] in
+                guard let fresh = roamPassportHistoryReadAccess(context) else { return false }
+                return fresh === selected && fresh.matches(context)
+            }
         } else if let passportToolPath {
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
@@ -1544,10 +2819,11 @@ extension KeychainTokenStore: AppTokenStorage {}
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
                     namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
-            guard let approval = ownMediaReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
+            guard let approval = ownMediaReadApproval(context), approval.matches(context),
+                  !ownMediaStatus || approval.allowsStatus else { throw APIError.notConfigured }
             readApprovalStillValid = { [ownMediaReadApproval] in
                 guard let selected = ownMediaReadApproval(context) else { return false }
-                return selected === approval && selected.matches(context)
+                return selected === approval && selected.matches(context) && (!ownMediaStatus || selected.allowsStatus)
             }
         } else if MemberRoleInfoReadRoute.accepts(request, baseURL: api.baseURL) {
             guard captured.isSignedInContentViewer,
@@ -1616,6 +2892,92 @@ extension KeychainTokenStore: AppTokenStorage {}
             readApprovalStillValid = { [teamReadApproval] in
                 guard let currentApproval = teamReadApproval(context) else { return false }
                 return currentApproval.revision == approval.revision && currentApproval.matches(context)
+            }
+        } else if url == api.baseURL.appendingPathComponent("api/club/join")
+                    || url == api.baseURL.appendingPathComponent("api/club/quit")
+                    || url == api.baseURL.appendingPathComponent("api/club/admission/receipt") {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let approval = clubOrdinaryAdmissionApproval(context), approval.matches(context),
+                  ClubOrdinaryAdmissionRoute.accepts(request, baseURL: api.baseURL),
+                  url == api.baseURL.appendingPathComponent("api/club/admission/receipt") || approval.allowsWrites else { throw APIError.notConfigured }
+            readApprovalStillValid = { [clubOrdinaryAdmissionApproval] in
+                guard let fresh = clubOrdinaryAdmissionApproval(context) else { return false }
+                return fresh.revision == approval.revision && fresh.matches(context)
+                    && (url == api.baseURL.appendingPathComponent("api/club/admission/receipt") || fresh.allowsWrites)
+            }
+        } else if let original = ClubPostOriginalRoute(request: request, baseURL: api.baseURL) {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let approval = clubPostOriginalApproval(context), approval.matches(context),
+                  approval.allows(original) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [clubPostOriginalApproval] in
+                guard let currentApproval = clubPostOriginalApproval(context) else { return false }
+                return currentApproval.revision == approval.revision && currentApproval.matches(context)
+                    && currentApproval.allows(original)
+            }
+        } else if let original = ClubCommentOriginalRoute(request: request, baseURL: api.baseURL) {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let approval = clubCommentOriginalApproval(context), approval.matches(context),
+                  approval.allows(original) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [clubCommentOriginalApproval] in
+                guard let currentApproval = clubCommentOriginalApproval(context) else { return false }
+                return currentApproval.revision == approval.revision && currentApproval.matches(context)
+                    && currentApproval.allows(original)
+            }
+        } else if let context = clubRoleContext, let route = roleAssignmentRoute, let issued = roleAssignmentGrant {
+            guard issued.endpoints.paths.contains(route.path),
+                  route.command.map({ issued.productionApproval?.permits($0, context: context) == true }) ?? !route.writing else {
+                throw APIError.notConfigured
+            }
+            readApprovalStillValid = { [weak self] in
+                guard let fresh = self?.clubRoleAssignmentApproval(context) else { return false }
+                return (route.writing ? fresh == issued : fresh.sameReadAuthority(as: issued))
+                    && fresh.permits(context, scope: route.scope, writing: route.writing)
+                    && fresh.endpoints.paths.contains(route.path)
+                    && (route.command.map({ fresh.productionApproval?.permits($0, context: context) == true }) ?? !route.writing)
+            }
+        } else if let context = clubRoleContext, let route = roleRevocationRoute, let issued = roleRevocationGrant {
+            guard issued.endpoints.paths.contains(route.path),
+                  route.command.map({ issued.productionApproval?.permits($0, context: context) == true }) ?? !route.writing else {
+                throw APIError.notConfigured
+            }
+            readApprovalStillValid = { [weak self] in
+                guard let fresh = self?.clubRoleRevocationApproval(context) else { return false }
+                return (route.writing ? fresh == issued : fresh.sameReadAuthority(as: issued))
+                    && fresh.permits(context, scope: route.scope, writing: route.writing)
+                    && fresh.endpoints.paths.contains(route.path)
+                    && (route.command.map({ fresh.productionApproval?.permits($0, context: context) == true }) ?? !route.writing)
+            }
+        } else if let route = publicTopicsRoute, route.isTopics || publicTopicsGrant != nil {
+            // A shared detail without this dedicated grant retains its original route.
+            // Topics never fall through to membership/governance or retry as a guest.
+            guard captured.isPublicTemplateViewer, let issued = publicTopicsGrant,
+                  issued.context == publicTopicsContext, issued.clubID == route.clubID else { throw APIError.notConfigured }
+            readApprovalStillValid = { [weak self] in
+                self?.clubPublicTopicsApproval(publicTopicsContext, route.clubID) == issued
+            }
+        } else if ClubPublicRosterRoute.accepts(request, baseURL: api.baseURL) {
+            guard captured.isSignedInContentViewer,
+                  let account = captured.accountID, account > 0, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            guard let issued = clubPublicRosterApproval(context),
+                  issued.identity == ClubReadIdentity(accountID: account, epoch: captured.epoch),
+                  issued.baseURL == api.baseURL else { throw APIError.notConfigured }
+            readApprovalStillValid = { [weak self] in
+                self?.clubPublicRosterApproval(context) == issued
             }
         } else if ClubCommunityReadRoute(request: request, baseURL: api.baseURL) != nil {
             guard captured.isSignedInContentViewer,
@@ -1706,7 +3068,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard let grant = deployment.privateHome,
                   grant.matches(storageScope: deployment.storageScope, accountID: captured.accountID, role: captured.role),
                   let token = captured.token, AuthRequestBuilder.isValidToken(token),
-                  ["GET", "PUT", "DELETE"].contains(request.httpMethod ?? "") else { throw APIError.notConfigured }
+                  PrivateHomeRequestBoundary.accepts(request, baseURL: api.baseURL) else { throw APIError.notConfigured }
         } else if manualRead != nil || publicLayers {
             guard deployment.reads.contains(.manualMap), let selectedArea,
                   let account = captured.accountID, account > 0,
@@ -1828,6 +3190,16 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else if let route = SignedInContentDetailReadRoute(url: url, baseURL: api.baseURL) {
             guard deployment.contentDetails == .activityAndTopic,
                   captured.isSignedInContentViewer, route.accepts(request) else { throw APIError.notConfigured }
+        } else if OfficialPublicEventReadRoute.accepts(request, baseURL: api.baseURL) {
+            let selection = officialPublicEventReadSelection
+            guard deployment.regional.market == .china, deployment.reads.contains(.officialPublicEventCatalogAndDetail),
+                  captured.isPublicTemplateViewer, let source = selection.source,
+                  let revision = selection.activeRevision(baseURL: api.baseURL, namespace: deployment.storageScope.service) else { throw APIError.notConfigured }
+            readApprovalStillValid = { [weak self] in
+                guard let self, self.officialPublicEventReadSelection === selection,
+                      selection.source === source else { return false }
+                return selection.activeRevision(baseURL: api.baseURL, namespace: deployment.storageScope.service) == revision
+            }
         } else if let route = PublicTopicTemplateReadRoute(url: url, baseURL: api.baseURL) {
             guard deployment.reads.contains(.publicTopicTemplateCatalogAndDetail),
                   route.accepts(request), captured.isPublicTemplateViewer else { throw APIError.notConfigured }
@@ -1868,11 +3240,13 @@ extension KeychainTokenStore: AppTokenStorage {}
             }
             try ownedCoupon?.validateResponse(result, accountID: captured.accountID ?? 0)
             try albumMetadata?.validateResponse(result)
+            try receivedStamp?.validateResponse(result)
             try tileMemory?.validateResponse(result)
             try favoriteList?.validateResponse(result)
             try favoriteDetail?.validateResponse(result)
             try guideRead?.validateResponse(result)
             try sessionFactRoute?.validateResponse(result)
+            try passportHistory?.validateResponse(result)
             try favoriteTopic?.validateResponse(result)
             try nearbyEvents?.validateResponse(result)
             try nearbyPlayers?.validateResponse(result)
@@ -1973,5 +3347,84 @@ private enum PublicTopicTemplateReadRoute {
             // Reject duplicate/extra fields, malformed framing, alternate encodings and payloads.
             return canonical.httpBody == body
         }
+    }
+}
+
+// Same device-only, unlocked secure adapter; invoice keys retain their existing owner namespace.
+extension TemplateAuthoringSecureStorage: InvoiceLaunchStorage {}
+
+
+/// Exact welcome-note original writer/receipt dispatch only. This does not add either
+/// endpoint to generic CompositionHTTPTransport.send or borrow a general read grant.
+extension CompositionHTTPTransport {
+    func clubWelcomeNoteDispatchTransport(path: String, approval: @escaping () -> OperationEndpointApproval?) -> any ClubWelcomeNoteDispatching {
+        ClubWelcomeNoteCompositionDispatchTransport(configured: { [weak self] in
+            guard let self, let deployment = self.deployment else { return false }
+            return deployment.regional.market == .china && deployment.regional.apiConfiguration != nil
+        }, send: { [weak self] request, authorization in
+            guard let self else { throw ClubWelcomeNoteFailure.notSent }
+            return try await self.sendClubWelcomeNoteOriginal(request, authorization: authorization, path: path, approval: approval)
+        })
+    }
+    private func sendClubWelcomeNoteOriginal(_ request: URLRequest, authorization: ClubWelcomeNoteDispatchAuthorization,
+                                            path: String, approval: @escaping () -> OperationEndpointApproval?) async throws -> (Data, Int) {
+        guard [ClubWelcomeNoteService.path, ClubWelcomeNoteService.receiptPath].contains(path),
+              let deployment, deployment.regional.market == .china, let api = deployment.regional.apiConfiguration,
+              let captured = current(), captured.isSignedInContentViewer, let actor = captured.accountID, let token = captured.token,
+              let grant = approval(), grant.paths == [path],
+              grant.allows(configuration: api, namespace: deployment.storageScope.service, accountID: actor, path: path),
+              request.httpMethod == "POST", request.httpBodyStream == nil, !request.httpShouldHandleCookies,
+              request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
+              request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+              request.url?.absoluteString.utf8.elementsEqual(api.baseURL.appendingPathComponent(path).absoluteString.utf8) == true,
+              let data = request.httpBody, data.count <= 65_536, let text = String(data: data, encoding: .utf8),
+              (try? ContentDraftJSON.parse(text)) != nil,
+              let body = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw ClubWelcomeNoteFailure.notSent }
+        let writing = path == ClubWelcomeNoteService.path
+        let allowedHeaders: Set<String> = writing
+            ? ["authorization", "content-type", "accept", "x-club-welcome-request-id", "x-club-welcome-source-sha256"]
+            : ["authorization", "content-type", "accept"]
+        guard (request.allHTTPHeaderFields ?? [:]).keys.allSatisfy({ allowedHeaders.contains($0.lowercased()) }) else { throw ClubWelcomeNoteFailure.notSent }
+        let club = body[writing ? "id" : "clubId"] as? NSNumber
+        guard let club, CFGetTypeID(club) != CFBooleanGetTypeID(), club.stringValue.range(of: "^[1-9][0-9]{0,17}$", options: .regularExpression) != nil else { throw ClubWelcomeNoteFailure.notSent }
+        let requestID: String?, source: String?
+        if writing {
+            guard Set(body.keys) == ["id", "welcomeNote"], let note = body["welcomeNote"] as? String,
+                  note.unicodeScalars.count <= 200,
+                  note.utf8.elementsEqual(note.trimmingCharacters(in: .whitespacesAndNewlines).utf8) else { throw ClubWelcomeNoteFailure.notSent }
+            requestID = request.value(forHTTPHeaderField: "X-Club-Welcome-Request-Id")
+            source = request.value(forHTTPHeaderField: "X-Club-Welcome-Source-SHA256")
+        } else {
+            guard Set(body.keys) == ["clubId", "requestId", "sourceSHA256"] else { throw ClubWelcomeNoteFailure.notSent }
+            requestID = body["requestId"] as? String; source = body["sourceSHA256"] as? String
+        }
+        guard let requestID, UUID(uuidString: requestID)?.uuidString.lowercased() == requestID,
+              let source, source.range(of: "^[a-f0-9]{64}$", options: .regularExpression) != nil else { throw ClubWelcomeNoteFailure.notSent }
+        if writing, let note = body["welcomeNote"] as? String {
+            guard source == ClubWelcomeNoteOriginalWire.source(clubID: club.stringValue, note: note) else { throw ClubWelcomeNoteFailure.notSent }
+        }
+        func currentGrant() -> Bool { current() == captured && approval() == grant && authorization.isCurrent && !Task.isCancelled }
+        guard currentGrant() else { throw ClubWelcomeNoteFailure.notSent }
+        // Mark at the last synchronous handoff to the reviewed underlying client. Any
+        // failure after this boundary is conservatively UNKNOWN, never proof of no send.
+        try authorization.forward(request) {}
+        do {
+            let reply = try await underlying.send(request)
+            guard currentGrant() else { throw ClubWelcomeNoteFailure.revoked }; return reply
+        } catch {
+            guard currentGrant() else { throw ClubWelcomeNoteFailure.revoked }; throw error
+        }
+    }
+}
+@MainActor private final class ClubWelcomeNoteCompositionDispatchTransport: ClubWelcomeNoteDispatching {
+    private let configured: () -> Bool
+    private let dispatch: (URLRequest, ClubWelcomeNoteDispatchAuthorization) async throws -> (Data, Int)
+    init(configured: @escaping () -> Bool,
+         send: @escaping (URLRequest, ClubWelcomeNoteDispatchAuthorization) async throws -> (Data, Int)) {
+        self.configured = configured; self.dispatch = send
+    }
+    var isConfigured: Bool { configured() }
+    func send(_ request: URLRequest, authorization: ClubWelcomeNoteDispatchAuthorization) async throws -> (Data, Int) {
+        try await dispatch(request, authorization)
     }
 }

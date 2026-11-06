@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
@@ -190,7 +191,7 @@ public struct RoamPrivateToolsService {
 
 /// Independently reviewed owner-only approval. Production composition supplies none today, so every
 /// call fails closed as not configured; the composition transport also refuses these paths.
-@MainActor public final class RoamPrivateToolsAccess {
+@MainActor @Observable public final class RoamPrivateToolsAccess {
     public let context: RuntimeDependencyContext
     public let endpoints: OperationEndpointApproval
     public let revision = UUID()
@@ -227,6 +228,9 @@ public struct RoamPrivateToolsService {
     private var restoredCapsuleRequestID: String?
     private var restoredGoalRequestID: String?
     private var journalScope: RoamHistoryScope?
+    private var observedReadContext: RuntimeDependencyContext?
+    private var observedReadAccess: UUID?
+    private var readStamp = UUID()
     public private(set) var pendingJournalBlocked = false
     public init(service: RoamPrivateToolsService?, current: @escaping () -> RuntimeDependencyContext?,
                 access: @escaping (RuntimeDependencyContext) -> RoamPrivateToolsAccess?,
@@ -326,6 +330,18 @@ public struct RoamPrivateToolsService {
               service.deployment.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8) else { return nil }
         return (context, access, service)
     }
+    /// Presentation-only identity for the currently selected read approval. Replacing or revoking
+    /// it retires old cached pages; pending drafts, durable locks and issued writers are untouched.
+    public var readScope: UUID {
+        let context = synchronize(), access = approved()?.1
+        let same: Bool
+        if let context, let old = observedReadContext { same = ContentDraftContextFence.matches(old, context) }
+        else { same = context == nil && observedReadContext == nil }
+        if !same || access?.revision != observedReadAccess {
+            observedReadContext = context; observedReadAccess = access?.revision; readStamp = UUID()
+        }
+        return readStamp
+    }
     public var isConfigured: Bool { approved() != nil }
     public var allowsWrites: Bool { approved()?.1.allowsWrites == true }
     public var isOfflineExample: Bool { false }
@@ -371,7 +387,9 @@ public struct RoamPrivateToolsService {
         return value
     }
     public func createCapsule(_ draft: RoamCapsuleDraft) async throws -> RoamCapsule {
-        guard approved() != nil else { throw APIError.notConfigured }
+        guard let approval = approved() else { throw APIError.notConfigured }
+        // A read-only grant must not create, clear or upgrade a durable pending-write lock.
+        guard approval.1.allowsWrites else { throw RoamPrivateWriteError.writesDisabled }
         try persistBeforeDispatch(kind: .capsuleCreate, requestID: draft.requestID)
         let at = now
         do {
@@ -417,7 +435,9 @@ public struct RoamPrivateToolsService {
         return value
     }
     public func createGoal(_ draft: RoamGoalDraft) async throws -> RoamExplorationGoal {
-        guard approved() != nil else { throw APIError.notConfigured }
+        guard let approval = approved() else { throw APIError.notConfigured }
+        // A read-only grant must not create, clear or upgrade a durable pending-write lock.
+        guard approval.1.allowsWrites else { throw RoamPrivateWriteError.writesDisabled }
         try persistBeforeDispatch(kind: .goalCreate, requestID: draft.requestID)
         let at = now, cancelled = confirmedCancelledGoals
         do {
@@ -462,6 +482,10 @@ public struct RoamPrivateToolsService {
     private let selectReadAccess: (RuntimeDependencyContext) -> RoamPassportToolsReadAccess?
     private let onUnauthorized: (RuntimeDependencyContext) -> Void
     private let onUnauthorizedSession: (RoamExperienceSession) -> Void
+    private var observedPresentationContext: RuntimeDependencyContext?
+    private var observedPresentationSession: RoamExperienceSession?
+    private var observedPresentationApproval: ApprovalToken?
+    private var presentationStamp = UUID()
     public init(service: RoamPassportToolsService?, current: @escaping () -> RuntimeDependencyContext?,
                 access: @escaping (RuntimeDependencyContext) -> RoamPrivateToolsAccess?,
                 readAccess: @escaping (RuntimeDependencyContext) -> RoamPassportToolsReadAccess? = { _ in nil },
@@ -498,6 +522,30 @@ public struct RoamPrivateToolsService {
             return (context, .readAccess(readAccess), service)
         }
         return nil
+    }
+    /// An opaque presentation boundary, using exactly the approval selected by `approved()`.
+    /// Does not grant access or change request/receipt handling. The two approval kinds are
+    /// intentionally distinct; replacing an unused fallback does not retire the active scope.
+    public var readScope: UUID {
+        let context = current(), session = currentSession?(), approval = approved()?.1
+        let sameContext: Bool
+        switch (observedPresentationContext, context) {
+        case (nil, nil): sameContext = true
+        case (.some(let old), .some(let fresh)): sameContext = ContentDraftContextFence.matches(old, fresh)
+        default: sameContext = false
+        }
+        let sameApproval: Bool
+        switch (observedPresentationApproval, approval) {
+        case (nil, nil): sameApproval = true
+        case (.some(let old), .some(let fresh)): sameApproval = old.isSame(as: fresh)
+        default: sameApproval = false
+        }
+        if !sameContext || observedPresentationSession != session || !sameApproval {
+            presentationStamp = UUID()
+            observedPresentationContext = context; observedPresentationSession = session
+            observedPresentationApproval = approval
+        }
+        return presentationStamp
     }
     public var isConfigured: Bool { approved() != nil }
     public var isOfflineExample: Bool { false }

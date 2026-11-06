@@ -14,7 +14,7 @@ public struct AuthChannelSessionSnapshot: Equatable {
 public enum AuthChannelWork: Equatable { case sendingSMS, phoneLogin, appleAuthorization, appleExchange }
 public enum AuthChannelIssue: Equatable {
     case invalidPhone, invalidCode, rateLimited, notConfigured, sessionUnavailable
-    case invalidResponse, rejected, unauthorized, network, smsOutcomeUnknown, storage
+    case invalidResponse, rejected, unauthorized, network, smsOutcomeUnknown, storage, upgradeRequired
     case appleNotConfigured, appleMissingCredential, appleIncomplete, appleFailed
     public var localizationKey: String {
         switch self {
@@ -26,6 +26,7 @@ public enum AuthChannelIssue: Equatable {
         case .invalidResponse: return "auth.invalidResponse"
         case .rejected: return "auth.channels.rejected"
         case .unauthorized: return "auth.loginRejected"
+        case .upgradeRequired: return "auth.channels.upgradeRequired"
         case .network: return "auth.networkError"
         case .smsOutcomeUnknown: return "auth.channels.smsOutcomeUnknown"
         case .storage: return "auth.storageError"
@@ -40,6 +41,8 @@ public enum AuthChannelIssue: Equatable {
 public struct AuthChannelState: Equatable {
     public fileprivate(set) var work: AuthChannelWork?
     public fileprivate(set) var issue: AuthChannelIssue?
+    /// Presentation only: never changes session authority or SMS outcome/cooldown.
+    public fileprivate(set) var requiresAppUpdate = false
     public fileprivate(set) var smsSent = false
     public fileprivate(set) var signedIn = false
     /// Non-secret cooldown timestamp. No automatic resend is triggered when it expires.
@@ -51,6 +54,20 @@ public struct AuthChannelState: Equatable {
 public struct AuthChannelAppleAttempt: Equatable {
     fileprivate let id: UUID
     fileprivate let snapshot: AuthChannelSessionSnapshot
+}
+
+/// Captured synchronously at the phone button, before its asynchronous task is queued.
+/// This is only an operation fence, not a credential, capability or server authorization.
+public struct AuthChannelQueuedIntent: Equatable {
+    fileprivate let generation: UUID
+    fileprivate let snapshot: AuthChannelSessionSnapshot
+    fileprivate let work: AuthChannelWork
+}
+
+/// A form lifetime, independent of the session epoch and the per-operation generation.
+/// Replaced forms cannot cancel or start work on behalf of the current presentation.
+public struct AuthChannelPresentation: Equatable {
+    fileprivate let id: UUID
 }
 
 /// The owner keeps one coordinator across sheet openings so dismissal cannot bypass its
@@ -66,6 +83,7 @@ public final class AuthChannelCoordinator {
     private let commitLogin: (LoginResult, AuthChannelSessionSnapshot) throws -> Bool
     private let now: () -> Date
     private var generation = UUID()
+    private var presentation: AuthChannelPresentation?
     private var appleAttempt: AuthChannelAppleAttempt?
 
     public init(service: (any AuthChannelServing)?, appleConfigurationVerified: Bool = false,
@@ -75,9 +93,47 @@ public final class AuthChannelCoordinator {
         self.service = service; self.appleConfigurationVerified = appleConfigurationVerified
         self.currentSession = currentSession; self.commitLogin = commitLogin; self.now = now
     }
+    /// Claim only when a new form model is constructed, not on each view body update.
+    /// A replacement retires old work, but never resets the coordinator-wide SMS cooldown.
+    public func beginPresentation() -> AuthChannelPresentation {
+        let value = AuthChannelPresentation(id: UUID())
+        presentation = value
+        cancel()
+        return value
+    }
+    public func ownsPresentation(_ value: AuthChannelPresentation) -> Bool {
+        presentation == value
+    }
+    /// Repeated cleanup from an old sheet must not cancel a newer form's queued/in-flight work.
+    /// Keep the current lease so clear-and-reenter on the same model stays supported.
+    public func cancel(presentation value: AuthChannelPresentation) {
+        guard ownsPresentation(value) else { return }
+        cancel()
+    }
     public var canStart: Bool {
         let snapshot = currentSession()
         return isConfigured && !state.isWorking && !state.signedIn && snapshot.accountID == nil && !snapshot.isBusy
+    }
+    /// Capture the original session/cancellation generation before yielding to a Task.
+    /// A close, logout, replacement login or another consumed intent retires this intent.
+    public func captureIntent(for work: AuthChannelWork) -> AuthChannelQueuedIntent? {
+        guard work == .sendingSMS || work == .phoneLogin, canStart, !Task.isCancelled else { return nil }
+        return AuthChannelQueuedIntent(generation: generation, snapshot: currentSession(), work: work)
+    }
+    private func consume(_ intent: AuthChannelQueuedIntent, for work: AuthChannelWork) -> Bool {
+        guard intent.work == work, !Task.isCancelled, canStart,
+              isCurrent(intent.generation, intent.snapshot) else { return false }
+        // One-shot even when validation subsequently rejects the supplied input.
+        generation = UUID()
+        return true
+    }
+    public func sendSMSCode(phone: String, intent: AuthChannelQueuedIntent) async {
+        guard consume(intent, for: .sendingSMS) else { return }
+        await sendSMSCode(phone: phone)
+    }
+    public func loginWithPhone(phone: String, code: String, intent: AuthChannelQueuedIntent) async {
+        guard consume(intent, for: .phoneLogin) else { return }
+        await loginWithPhone(phone: phone, code: code)
     }
     public var smsCooldownRemaining: Int {
         guard let date = state.nextSMSAllowedAt else { return 0 }
@@ -93,7 +149,7 @@ public final class AuthChannelCoordinator {
         guard snapshot.accountID == nil, !snapshot.isBusy, !state.signedIn else {
             reject(.sessionUnavailable); return nil
         }
-        generation = UUID(); state.work = work; state.issue = nil; publish()
+        generation = UUID(); state.work = work; state.issue = nil; state.requiresAppUpdate = false; publish()
         return (generation, snapshot)
     }
     private func isCurrent(_ id: UUID, _ snapshot: AuthChannelSessionSnapshot) -> Bool {
@@ -121,6 +177,9 @@ public final class AuthChannelCoordinator {
             case .unauthorized: return .unauthorized
             case .malformedResponse: return sms ? .smsOutcomeUnknown : .invalidResponse
             case .businessCode: return .rejected
+            case .httpStatus(426):
+                state.requiresAppUpdate = true
+                return sms ? .smsOutcomeUnknown : .upgradeRequired
             case .httpStatus: return sms ? .smsOutcomeUnknown : .network
             case .invalidRequest: return .invalidResponse
             }
@@ -176,6 +235,11 @@ public final class AuthChannelCoordinator {
         appleAttempt = attempt
         return attempt
     }
+    /// UI scheduling must not replace a newer phone task with an old/duplicate callback.
+    public func canCompleteAppleAuthorization(_ attempt: AuthChannelAppleAttempt) -> Bool {
+        appleAttempt == attempt && state.work == .appleAuthorization && service != nil
+            && isCurrent(attempt.id, attempt.snapshot)
+    }
     public func completeAppleAuthorization(_ attempt: AuthChannelAppleAttempt, identityToken: String) async {
         guard appleAttempt == attempt, state.work == .appleAuthorization, let service else { return }
         defer { finish(attempt.id) }
@@ -217,11 +281,11 @@ public final class AuthChannelCoordinator {
     /// Pending transport may have reached the server; invalidation only prevents commit.
     public func cancel() {
         generation = UUID(); appleAttempt = nil
-        state.work = nil; state.issue = nil; state.smsSent = false; state.signedIn = false
+        state.work = nil; state.issue = nil; state.requiresAppUpdate = false; state.smsSent = false; state.signedIn = false
         publish()
     }
     public func resetPhoneFeedback() {
         guard !state.isWorking else { return }
-        state.smsSent = false; state.issue = nil; publish()
+        state.smsSent = false; state.issue = nil; state.requiresAppUpdate = false; publish()
     }
 }

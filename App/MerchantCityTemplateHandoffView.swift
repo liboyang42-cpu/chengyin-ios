@@ -23,7 +23,7 @@ extension EnvironmentValues {
         VStack(alignment: .leading, spacing: 8) {
             Text("merchant.cityTemplate.savedOnly").font(.caption).fixedSize(horizontal: false, vertical: true)
             Button("merchant.cityTemplate.useSaved") { Task { await action.returnSaved(coordinator) } }
-                .buttonStyle(.borderedProminent).disabled(!action.canReturn(coordinator))
+                .buttonStyle(.questifyPrimary).disabled(!action.canReturn(coordinator))
                 .accessibilityIdentifier("merchant.cityTemplate.useSaved")
         }.padding().frame(maxWidth: .infinity, alignment: .leading).background(.bar)
             .task { action.register(coordinator) }

@@ -27,7 +27,7 @@ struct MerchantOperationsEditor: View {
     private var isExample: Bool { coordinator.reader.isOfflineExample }
     var body: some View {
         Form {
-            Section { MerchantOperationsBoundary(isExample: isExample) }
+            if isExample { Section { MerchantOperationsBoundary(isExample: isExample) } }
             if let draft = coordinator.draft {
                 fields(draft)
                 if let blocker = draft.blocker { Section { Text(LocalizedStringKey(blocker)).foregroundStyle(.secondary).accessibilityIdentifier("merchant.operations.blocker") } }
@@ -37,11 +37,15 @@ struct MerchantOperationsEditor: View {
             if coordinator.isLocked { Section { Text("merchant.operations.unknownOutcome") } }
             Section {
                 Button("merchant.operations.reviewDraft") { model.prepare() }
+                    .buttonStyle(.questifyPrimary).frame(maxWidth: .infinity)
+                    .listRowBackground(Color.clear)
                     .disabled(!coordinator.canReview).accessibilityIdentifier("merchant.operations.review")
-                if !isExample { Text("merchant.operations.localDraftOnly").font(.footnote).foregroundStyle(.secondary) }
                 if coordinator.isBusy { ProgressView("merchant.loading") }
             }
         }
+        // Scrolling from an edited field to review or the saved notice must
+        // release the keyboard instead of leaving it over the form's last rows.
+        .scrollDismissesKeyboard(.immediately)
         .disabled(coordinator.isBusy)
         .accessibilityIdentifier("merchant.operations.editor")
         .sheet(item: $assist) { presentation in MerchantTemplateAssistSheet(document: model, flow: presentation.flow) }
@@ -68,7 +72,6 @@ struct MerchantOperationsEditor: View {
                 })) {
                     ForEach(MerchantBusinessStatus.allCases, id: \.rawValue) { value in Text(LocalizedStringKey(value.titleKey)).tag(value) }
                 }.pickerStyle(.segmented).accessibilityIdentifier("merchant.operations.status.picker")
-                Text("merchant.operations.statusHint").font(.footnote).foregroundStyle(.secondary)
             }
         case .profile(let value):
             MerchantOperationsMediaPreview(source: value.logo, title: "merchant.operations.logo", isExample: isExample)
@@ -77,10 +80,8 @@ struct MerchantOperationsEditor: View {
                 profileField("merchant.operations.description", \.description, "description", multiline: true)
                 profileField("merchant.operations.derivatives", \.derivatives, "derivatives")
                 MerchantStoreFieldEntry(document: model, presentation: storeFieldPresentation, field: .derivativeBenefits)
-                Text("merchant.operations.benefitsHint").font(.footnote).foregroundStyle(.secondary)
                 profileField("merchant.operations.website", \.website, "website")
                 profileField("merchant.operations.preference", \.preference, "preference")
-                Text("merchant.operations.profileWhitelist").font(.footnote).foregroundStyle(.secondary)
             }
             MerchantBrandImagesEntry(document: model)
             MerchantStoreHoursEditor(model: model)
@@ -90,7 +91,6 @@ struct MerchantOperationsEditor: View {
             Section("merchant.operations.decor") {
                 decorField("merchant.operations.slogan", \.slogan, "slogan")
                 decorField("merchant.operations.cityRole", \.cityRole, "cityRole")
-                Text("merchant.featuredClear.draftHint").font(.footnote).foregroundStyle(.secondary)
                 MerchantStoreIndustryPicker(document: model)
                 if let type = value.featuredType, let id = value.featuredID { LabeledContent("merchant.operations.featured", value: "\(type) / \(id)") }
                 MerchantFeaturedClearControl(model: model, source: value)
@@ -106,7 +106,6 @@ struct MerchantOperationsEditor: View {
             mediaSection("merchant.operations.cover", field: .coverImage)
         case .gallery(let value):
             Section("merchant.operations.gallery") {
-                Text("merchant.operations.galleryHint").font(.footnote)
                 MerchantGalleryGrid(gallery: value.gallery, isExample: isExample) { index in
                     guard case .gallery(var value) = coordinator.draft,
                           MerchantGalleryGridLayout.canRemove(index: index, in: value.gallery) else { return }
@@ -123,12 +122,10 @@ struct MerchantOperationsEditor: View {
         case .story:
             Section("merchant.operations.story") {
                 MerchantStoreFieldEntry(document: model, presentation: storeFieldPresentation, field: .description)
-                Text("merchant.operations.storyHint").font(.footnote).foregroundStyle(.secondary)
             }
         case .cooperation(let value):
             Section("merchant.operations.cooperation") {
                 coopField("merchant.operations.capacity", \.capacity, "capacity", number: true)
-                if value.clearsCapacity { Text("merchant.coopCapacityClear.draftHint").font(.footnote).foregroundStyle(.secondary) }
                 coopField("merchant.operations.availableTime", \.availableTime, "availableTime")
                 Picker("merchant.operations.chargeType", selection: Binding<Int?>(get: {
                     guard case .cooperation(let value) = coordinator.draft else { return nil }; return value.chargeType
@@ -141,7 +138,6 @@ struct MerchantOperationsEditor: View {
                     if let raw = value.chargeType, ![0, 1].contains(raw) { Text("merchant.operations.review.unknown").tag(Int?.some(raw)) }
                 }
                 coopField("merchant.operations.demand", \.demand, "demand")
-                Text("merchant.operations.coopPreserved").font(.footnote).foregroundStyle(.secondary)
             }
         case .character(let value):
             if !value.avatar.hasPrefix("px1:") {
@@ -159,11 +155,9 @@ struct MerchantOperationsEditor: View {
                 characterField("merchant.operations.greeting", \.greeting, "greeting")
                 characterField("merchant.operations.persona", \.persona, "persona")
                 characterField("merchant.operations.knowledge", \.knowledge, "knowledge")
-                Text("merchantPreset.fieldLimits").font(.footnote).foregroundStyle(.secondary)
                 if value.persona.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     Text("merchantPreset.emptyPersona").font(.footnote).foregroundStyle(.secondary)
                 }
-                Text("merchant.operations.characterReviewHint").font(.footnote).foregroundStyle(.secondary)
                 if authorFlow != nil {
                     Button("merchantNPC.author.submit") { Task { await submitAuthoredFields() } }
                         .font(.body)
@@ -201,8 +195,6 @@ struct MerchantOperationsEditor: View {
             Section("merchant.templateMetadata.title") {
                 templateField("merchant.templateMetadata.duration", \.gameDurationMinutes, "gameDurationMinutes")
                 templateField("merchant.templateMetadata.players", \.players, "players")
-                Text("merchant.templateMetadata.scopeHint").font(.footnote).foregroundStyle(.secondary)
-                Text("merchant.templateMetadata.omissionHint").font(.footnote).foregroundStyle(.secondary)
             }
             Section("merchant.preparation.title") {
                 Picker("merchant.preparation.venueLabel", selection: Binding(get: { currentTemplate?.usageLocation ?? "" }, set: { text in
@@ -221,8 +213,6 @@ struct MerchantOperationsEditor: View {
                     Text("merchant.preparation.unknownVenue").font(.footnote).foregroundStyle(.secondary)
                 }
                 templateField("merchant.preparation.materials", \.requiredMaterials, "requiredMaterials")
-                Text("merchant.preparation.hint").font(.footnote).foregroundStyle(.secondary)
-                Text("merchant.preparation.omissionHint").font(.footnote).foregroundStyle(.secondary)
             }
             MerchantTemplateCategoryPicker(document: model) { categoryPicker = .init(document: model) }
             MerchantTemplateStoryTimelineFields(model: model)
@@ -249,15 +239,17 @@ struct MerchantOperationsEditor: View {
             Section {
                 templateField("merchant.operations.feedback", \.feedbackText, "feedback")
                 Text("merchant.operations.templateOwnerOnly").font(.footnote).foregroundStyle(.secondary)
-                Text("merchant.operations.templateOmissions").font(.footnote).foregroundStyle(.secondary)
             }
             mediaSection("merchant.operations.cover", field: .imgUrl)
         }
     }
     private var currentDecor: MerchantStoreDecor? { if case .decor(let value) = coordinator.draft { return value }; return nil }
     private var currentTemplate: MerchantNodeTemplate? { if case .template(let value) = coordinator.draft { return value }; return nil }
-    private func mediaSection(_ title: LocalizedStringKey, field: MerchantImageField) -> some View {
-        Section(title) { imageControls(field) }
+    /// Hidden when this host offers no image picker, instead of a section that only says upload is unavailable.
+    @ViewBuilder private func mediaSection(_ title: LocalizedStringKey, field: MerchantImageField) -> some View {
+        if field == .gallery || imageContext?(field) != nil {
+            Section(title) { imageControls(field) }
+        }
     }
     @ViewBuilder private func imageControls(_ field: MerchantImageField) -> some View {
         if field == .gallery {
@@ -274,7 +266,7 @@ struct MerchantOperationsEditor: View {
                 return coordinator.draft == updated
             }.id(context.scope.accessRevision)
             .disabled(coordinator.confirmation != nil || coordinator.isLocked)
-        } else { Label("merchant.operations.uploadDisabled", systemImage: "photo").font(.footnote).foregroundStyle(.secondary) }
+        }
     }
     private var gallerySelectionAvailable: Bool {
         guard !model.galleryBatch.active, !model.galleryBatch.blocked,
@@ -429,9 +421,8 @@ struct MerchantOperationsConfirmationView: View {
         NavigationStack {
             List {
                 Section {
-                    Text(LocalizedStringKey(confirmation.draft.localOnlyReview ? "merchant.participation.localOnly" : (isExample ? "merchant.operations.confirmExampleBody" : (model.coordinator.reader.canSave ? "merchant.operations.confirmLiveHint" : "merchant.operations.liveDisabled"))))
-                    Text("merchant.operations.reviewNoApproval").font(.footnote).foregroundStyle(.secondary)
                     Text(LocalizedStringKey(confirmation.draft.destination.titleKey)).font(.headline)
+                    if confirmation.draft.localOnlyReview { Text("merchant.participation.localOnly") }
                 }
                 if let change = MerchantStoreIndustryChange(baseline: model.coordinator.baseline, draft: confirmation.draft) {
                     MerchantStoreIndustryReview(change: change)
@@ -446,19 +437,11 @@ struct MerchantOperationsConfirmationView: View {
                     } else {
                         MerchantOperationsMediaPreview(source: avatar.rawValue, title: "merchant.operations.avatar", isExample: isExample)
                     }
-                    Section {
-                        Text(verbatim: avatar.rawValue).textSelection(.enabled)
-                            .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("merchantPreset.review.rawValue")
-                    }
                 }
-                Section("merchant.operations.frozenDraft") {
+                Section {
                     if case .cooperation(let value) = confirmation.draft, value.clearsCapacity {
                         Text("merchant.coopCapacityClear.review").fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("merchant.coopCapacityClear.review")
-                    }
-                    if case .decor(let value) = confirmation.draft, value.featuredType == 1, let id = value.featuredID, id > 0 {
-                        LabeledContent("merchant.featuredPicker.reviewActivity", value: String(id))
-                        Text("merchant.featuredPicker.finalValidation").font(.footnote)
                     }
                     if case .decor(let value) = confirmation.draft, value.featuredType == 0, value.featuredID == nil {
                         Text("merchant.featuredClear.review").fixedSize(horizontal: false, vertical: true)
@@ -476,7 +459,6 @@ struct MerchantOperationsConfirmationView: View {
                             .accessibilityIdentifier("merchant.templateMetadata.review.duration")
                         LabeledContent("merchant.templateMetadata.players", value: template.players.trimmingCharacters(in: .whitespacesAndNewlines))
                             .accessibilityIdentifier("merchant.templateMetadata.review.players")
-                        Text("merchant.templateMetadata.omissionHint").font(.footnote).foregroundStyle(.secondary)
                     }
                 }
                 if case .template(let template) = confirmation.draft {
@@ -491,7 +473,6 @@ struct MerchantOperationsConfirmationView: View {
                             Text(verbatim: template.requiredMaterials.trimmingCharacters(in: .whitespacesAndNewlines))
                                 .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("merchant.preparation.review.materials")
                         }
-                        Text("merchant.preparation.omissionHint").font(.footnote).foregroundStyle(.secondary)
                     }
                 }
                 if case .template(let template) = confirmation.draft, let plan = template.participationPlan {
@@ -509,10 +490,14 @@ struct MerchantOperationsConfirmationView: View {
                 Section {
                     Button(LocalizedStringKey(confirmation.draft.localOnlyReview ? "merchant.participation.localOnlyAction" : (isExample ? "merchant.operations.confirmExample" : (model.coordinator.reader.canSave ? "merchant.operations.confirmLive" : "merchant.operations.liveDisabled")))) {
                         Task { await model.confirm(confirmation) }
-                    }.disabled(confirmation.draft.localOnlyReview || !model.coordinator.reader.canSave || model.coordinator.isBusy).accessibilityIdentifier("merchant.operations.confirm")
+                    }
+                    .buttonStyle(.questifyPrimary)
+                    .frame(maxWidth: .infinity)
+                    .listRowBackground(Color.clear)
+                    .disabled(confirmation.draft.localOnlyReview || !model.coordinator.reader.canSave || model.coordinator.isBusy).accessibilityIdentifier("merchant.operations.confirm")
                 }
             }
-            .appNavigationTitle("merchant.operations.reviewDraft")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { model.cancel() }.accessibilityIdentifier("merchant.operations.confirm.cancel") } }
         }
     }

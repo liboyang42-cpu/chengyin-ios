@@ -39,13 +39,17 @@ typealias WorkshopPaidInstalledTextControllerFactory = @MainActor (WorkshopPaidI
     @State private var ownedTask: Task<Void, Never>?
     @State private var showsInstalled = false
     @Environment(\.locale) private var locale
+    @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         let displayed = appearance
         NavigationStack {
             Form {
                 Section { paidText("scope").fixedSize(horizontal: false, vertical: true) }
-                if controller.phase == .invalidated {
-                    paidText("sessionChanged")
+                if scenePhase != .active {
+                    // Hide before any asynchronous cancellation or permission observer runs.
+                    paidText("loading")
+                } else if controller.phase == .invalidated {
+                    paidText(controller.issue == .disabled ? "notConfigured" : "sessionChanged")
                 } else if controller.phase == .loading {
                     ProgressView { paidText("loading") }
                 } else if let content = controller.content {
@@ -53,7 +57,6 @@ typealias WorkshopPaidInstalledTextControllerFactory = @MainActor (WorkshopPaidI
                         paidFact("version", content.version)
                         paidFact("purchasedVersion", content.purchasedVersionID)
                         paidFact("installedCopy", String(content.ownedDraftID))
-                        paidFact("sourceHash", content.contentHash)
                         paidText("unchangedCopy").fixedSize(horizontal: false, vertical: true)
                         paidText("modeUnresolved").fixedSize(horizontal: false, vertical: true)
                     } header: { paidText("provenance") }
@@ -67,16 +70,18 @@ typealias WorkshopPaidInstalledTextControllerFactory = @MainActor (WorkshopPaidI
                         ForEach(WorkshopPaidInstalledTextFields.names, id: \.self) { name in
                             if let value = fields[name] {
                                 DisclosureGroup {
-                                    Text(verbatim: value).fixedSize(horizontal: false, vertical: true)
+                                    if value.isEmpty {
+                                        Text("workshopPaid.emptyField")
+                                            .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                                    } else {
+                                        Text(verbatim: value).fixedSize(horizontal: false, vertical: true)
+                                    }
                                 } label: { paidText("field." + name) }
                             }
                         }
                     } header: { paidText("protectedFields") }
                     Section {
                         paidFact("termsVersion", content.termsVersion)
-                        paidFact("termsHash", content.termsHash)
-                        paidFact("termsDocumentHash", content.termsDocumentHash)
-                        paidFact("termsBytes", String(content.termsDocument.count))
                         paidText("opaqueTerms").fixedSize(horizontal: false, vertical: true)
                         paidText("perpetualVersion").fixedSize(horizontal: false, vertical: true)
                         paidText("noRedistribution").fixedSize(horizontal: false, vertical: true)
@@ -99,8 +104,25 @@ typealias WorkshopPaidInstalledTextControllerFactory = @MainActor (WorkshopPaidI
                     .accessibilityIdentifier("workshopPaidInstalledText.close")
             } }
         }
-        .onAppear { schedule(controller.appear(displayed)) }
+        .onAppear {
+            let action = controller.appear(displayed)
+            if scenePhase == .active { schedule(action) }
+            else { controller.suspend(displayed); ownedTask?.cancel() }
+        }
         .onDisappear { controller.close(displayed); ownedTask?.cancel() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { schedule(controller.resume(displayed)) }
+            else { controller.suspend(displayed); ownedTask?.cancel() }
+        }
+        .task(id: scenePhase) {
+            guard scenePhase == .active else { return }
+            // Only inspect the captured read grant locally. Never poll an installation/license,
+            // replay a writer, or clear an UNKNOWN original request to keep the text visible.
+            while !Task.isCancelled {
+                do { try await Task.sleep(for: .seconds(1)) } catch { return }
+                guard !Task.isCancelled, controller.refreshVisiblePermission(displayed) else { return }
+            }
+        }
     }
     private func schedule(_ action: WorkshopPaidInstalledTextController.Action?) {
         guard let action else { return }; ownedTask?.cancel(); ownedTask = Task { await action() }

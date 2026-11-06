@@ -36,13 +36,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Audience, consent, frequency limits and daily limits are recalculated by the server. A preview is not a delivery receipt."
+          "value": "Audience, consent, frequency and daily limits are checked again when sending. A preview doesn't mean the message was delivered."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "受众、同意、频控与每日限额均由服务端重新计算。预览不等于送达回执。"
+          "value": "受众、同意、频次与每日限额将在发送时重新核对。预览不代表已送达。"
         }
       }
     }
@@ -484,13 +484,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The number is kept out of chat, logs and persistent storage. A separate enabled device action is required to use it."
+          "value": "For privacy, the number isn't shown in chat or saved."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "号码不会出现在聊天、日志或持久存储中，使用号码还需单独启用的设备操作。"
+          "value": "为保护隐私，号码不会在聊天中显示，也不会被保存。"
         }
       }
     }
@@ -500,13 +500,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This action requests a fresh, audited number for this customer and purpose. The server checks ownership, consent and limits. Masked numbers and previous disclosures are never reused."
+          "value": "This action requests a new, logged number for this customer and purpose. Ownership, consent and limits are checked. Masked or previously shared numbers are never reused."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "此操作按客户和用途请求一次新的、留有审计记录的号码。服务端检查归属、同意与限额；不会使用脱敏号或复用之前披露的号码。"
+          "value": "此操作会为该客户和用途获取一个新号码，并留有记录。将核对归属、同意与限额；不会使用脱敏号码或复用之前提供过的号码。"
         }
       }
     }
@@ -884,13 +884,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Device file saving requires a separate host grant."
+          "value": "Saving to your device isn't available right now."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "保存到设备文件需要单独启用。"
+          "value": "保存到本机文件暂不可用。"
         }
       }
     }
@@ -900,13 +900,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This reviewed action asks the service to deliver the exact task or retry its eligible recipients. The response may be partial or still processing."
+          "value": "This sends the selected message, or resends it to eligible recipients who didn't get it. Delivery may be partial or still in progress."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "此预览操作请求服务端投放指定任务，或重试其中符合条件的收件人。回执可能表示部分完成或仍在处理中。"
+          "value": "将发送所选消息，或向符合条件的未送达收件人重新发送。可能部分送达或仍在处理中。"
         }
       }
     }
@@ -948,13 +948,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Choose a valid JPEG, PNG or GIF image within the native 20 MiB memory limit."
+          "value": "Choose a JPEG, PNG or GIF image up to 20 MB."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "请选择有效的JPEG、PNG或GIF图片，且不超过原生20 MiB内存限制。"
+          "value": "请选择不超过20 MB的JPEG、PNG或GIF图片。"
         }
       }
     }
@@ -1044,13 +1044,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Export uses page 1, source page size 20, and every keyword, segment, tag, source and date filter. It does not export a client-selected ID roster."
+          "value": "The export includes the first 20 results matching all current filters (keywords, segments, tags, channels and dates). Individually selected members aren't exported."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "导出使用第1页、源页大小20及全部关键词、分群、标签、来源和日期筛选，不提交客户端选择的会员ID名单。"
+          "value": "导出包含符合当前全部筛选条件（关键词、分群、标签、渠道和日期）的前 20 条记录，不按单独勾选的会员导出。"
         }
       }
     }
@@ -1060,13 +1060,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Request the source service's masked workbook for exactly these filters. Download and device saving are separate explicit steps."
+          "value": "Request a spreadsheet with personal details masked, using exactly these filters. Downloading and saving to your device are separate steps."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "仅按这些筛选条件请求源服务提供的脱敏表格。下载和保存到设备分别需要明确操作。"
+          "value": "按当前筛选条件申请脱敏表格。下载和保存到本机需分别操作。"
         }
       }
     }
@@ -1172,13 +1172,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Acceptance can assign the role chosen by the inviter and change business access. The service remains authoritative; no local role is inferred from the token."
+          "value": "Accepting may give you the role chosen by the inviter and change what you can access in the business."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "接受后可能分配邀请人选择的岗位并改变经营访问权限。以服务端为准，不会从凭证推断本地岗位。"
+          "value": "接受后可能获得邀请人指定的岗位，并改变你的经营权限。"
         }
       }
     }
@@ -1204,13 +1204,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The source invitation contract has no pre-acceptance store or role lookup. The token is hidden; this screen does not guess the destination store or assigned role."
+          "value": "This invitation doesn't show which store or role it's for."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "源邀请协议没有接受前的门店或岗位查询接口。凭证已隐藏，本页不会猜测目标门店或分配岗位。"
+          "value": "此邀请暂无法显示对应的门店和岗位。"
         }
       }
     }
@@ -1268,13 +1268,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The service returned an active operator membership."
+          "value": "You're now an active team member."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端返回了生效的经营成员记录。"
+          "value": "你已成为在职成员。"
         }
       }
     }
@@ -1316,13 +1316,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Native photo and camera permissions are not enabled in this host."
+          "value": "Photos and camera aren't available right now."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "当前入口尚未启用原生相册与摄像头能力。"
+          "value": "相册和相机暂不可用。"
         }
       }
     }
@@ -1428,13 +1428,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Source response"
+          "value": "Result"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "源回执"
+          "value": "处理结果"
         }
       }
     }
@@ -1572,13 +1572,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Source row count"
+          "value": "Number of rows"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端行数"
+          "value": "记录条数"
         }
       }
     }
@@ -1764,13 +1764,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Server-calculated audience"
+          "value": "Calculated audience"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端计算的受众"
+          "value": "预计受众"
         }
       }
     }
@@ -1956,13 +1956,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Offline synthetic example. No customer is contacted and no account is changed."
+          "value": "Example content. No customer is contacted and no account is changed."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "离线虚构示例。不会联系真实客户，也不会变更账号。"
+          "value": "示例内容，不会联系真实客户，也不会更改账号。"
         }
       }
     }
@@ -2004,13 +2004,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Task ID"
+          "value": "Reference number"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "任务ID"
+          "value": "编号"
         }
       }
     }
@@ -2132,13 +2132,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This action is not enabled for this reviewed account and store."
+          "value": "This action isn't available for this account and store right now."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "当前已审核账户与门店尚未启用此操作。"
+          "value": "此账号与门店暂不可用此操作"
         }
       }
     }

@@ -12,6 +12,7 @@ import SwiftUI
     @Published private(set) var loading = false
     @Published private(set) var issue: String?
     private var generation = 0
+    private var detailRead = UUID()
     init(reader: any MerchantEngagementReading, journal: any MerchantBusinessIntentStore, exports: any MerchantExportRecoveryStoring) {
         self.reader = reader; coordinator = .init(reader: reader, journal: journal, exportRecovery: exports)
     }
@@ -49,21 +50,33 @@ import SwiftUI
         }
     }
     func loadTask(_ id: Int) async {
-        let scope = reader.scope
-        do { guard case .campaign(let task) = try await reader.read(.campaign(id)), reader.scope == scope else { return }; detail = task }
-        catch { if reader.scope == scope { issue = (error as? MerchantBusinessFailure)?.key ?? "merchant.business.loadFailed" } }
+        guard !Task.isCancelled else { return }
+        let ticket = UUID(), stamp = generation, scope = reader.scope
+        let authorization = reader.authorizationGeneration
+        detailRead = ticket; detail = nil
+        func current() -> Bool {
+            detailRead == ticket && generation == stamp && reader.scope == scope
+                && reader.authorizationGeneration == authorization && !Task.isCancelled
+        }
+        do {
+            guard case .campaign(let task) = try await reader.read(.campaign(id)), current() else { return }
+            detail = task
+        } catch {
+            guard current() else { return }
+            issue = (error as? MerchantBusinessFailure)?.key ?? "merchant.business.loadFailed"
+        }
     }
     func prepare(_ command: MerchantEngagementCommand) async { revision += 1; await coordinator.prepare(command); revision += 1 }
     func confirm(_ review: MerchantEngagementReview) async {
         revision += 1; await coordinator.confirm(review); revision += 1
         if let receipt = coordinator.receipt {
             switch receipt {
-            case .campaignCreated(let task), .campaignDispatched(let task), .campaignRetried(let task): detail = task
+            case .campaignCreated(let task), .campaignDispatched(let task), .campaignRetried(let task): detailRead = UUID(); detail = task
             default: break
             }
         }
     }
-    func cancel() { coordinator.cancelReview(); revision += 1 }
+    func cancel() { detailRead = UUID(); coordinator.cancelReview(); revision += 1 }
     func clearReceipt() { coordinator.clearSensitiveReceipt(); revision += 1 }
     func invalidate() { generation += 1; access = nil; segments = []; coupons = []; campaigns = []; detail = nil; coordinator.invalidate(); revision += 1 }
     func pollExportsWhileVisible() async {

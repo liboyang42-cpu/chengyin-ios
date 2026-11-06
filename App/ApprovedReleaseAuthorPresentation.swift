@@ -79,5 +79,6 @@ import SwiftUI
                 }
             }
         }
+        ApprovedReleaseOriginalRecoverySection(model: model)
     }
 }

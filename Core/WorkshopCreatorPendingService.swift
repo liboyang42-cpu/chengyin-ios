@@ -122,7 +122,12 @@ private enum WorkshopCreatorPendingAccess {
             return metadata
         } catch {
             try check(life, route: .author)
-            // Keep all original input and requestId; no hidden retries or invented status endpoint.
+            // A current 401 retires the presentation but cannot establish nonexecution.
+            // The controller retains all original input and requestId for explicit recovery.
+            if (error as? WorkshopCreatorConsentIssue) == .unauthorized {
+                throw WorkshopCreatorConsentIssue.unauthorized
+            }
+            // No hidden retries or invented author-status endpoint.
             throw WorkshopCreatorConsentIssue.unknown
         }
     }

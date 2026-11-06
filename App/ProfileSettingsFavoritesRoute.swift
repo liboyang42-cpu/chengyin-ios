@@ -49,12 +49,15 @@ struct ProfileSettingsFavoritesRoute: Identifiable, Hashable {
     private(set) var route: ProfileSettingsFavoritesRoute?
     let posts = ProfileFavoriteNavigationOwner()
     let topics = ProfileFavoriteTopicNavigationOwner()
+    // Test diagnostics only. Nil by default; events contain no account or route identifiers.
+    @ObservationIgnored var diagnosticEvent: ((String) -> Void)?
     private var key: ProfileSettingsFavoritesAccess.Key?
     private var mounted = false
     private var retired = false
     private var foreground = false
 
     func appear(current: ProfileSettingsFavoritesAccess?, foreground: Bool) {
+        diagnosticEvent?("owner.appear")
         guard !retired else { return }
         mounted = true
         synchronize(current)
@@ -62,18 +65,21 @@ struct ProfileSettingsFavoritesRoute: Identifiable, Hashable {
     }
     func synchronize(_ current: ProfileSettingsFavoritesAccess?) {
         guard !retired else { return }
-        if key != current?.key { retireRoute(); key = current?.key }
+        if key != current?.key { diagnosticEvent?("owner.synchronize.keyChanged"); retireRoute(); key = current?.key }
     }
     func setForeground(_ value: Bool) {
+        diagnosticEvent?(value ? "owner.foreground.true" : "owner.foreground.false")
         foreground = value && mounted && !retired
         posts.setForeground(foreground); topics.setForeground(foreground)
     }
     func retire() {
+        diagnosticEvent?("owner.retire")
         retired = true; mounted = false; foreground = false
         retireRoute(); key = nil
     }
     @discardableResult func open(_ access: ProfileSettingsFavoritesAccess?) -> Bool {
         guard mounted, !retired, foreground, route == nil, let access, key == access.key else { return false }
+        diagnosticEvent?("route.open.accepted")
         route = .init(access: access)
         posts.appear(scope: access.key.scope, foreground: foreground)
         topics.appear(scope: access.key.scope, foreground: foreground)
@@ -83,12 +89,13 @@ struct ProfileSettingsFavoritesRoute: Identifiable, Hashable {
         mounted && !retired && route?.id == offered.id && key == offered.access.key && current?.key == offered.access.key
     }
     @discardableResult func close(_ id: UUID) -> Bool {
+        diagnosticEvent?(route?.id == id ? "route.close.current" : "route.close.stale")
         guard route?.id == id else { return false }
         retireRoute(); return true
     }
     func binding(for offered: ProfileSettingsFavoritesRoute) -> Binding<ProfileSettingsFavoritesRoute?> {
         Binding(get: { self.route?.id == offered.id ? self.route : nil }, set: { next in
-            if next == nil { _ = self.close(offered.id) }
+            if next == nil { self.diagnosticEvent?("route.binding.nil"); _ = self.close(offered.id) }
         })
     }
     @discardableResult func openPost(_ post: SquareContentRoute, from offered: ProfileSettingsFavoritesRoute,
@@ -106,6 +113,7 @@ struct ProfileSettingsFavoritesRoute: Identifiable, Hashable {
         return true
     }
     private func retireRoute() {
+        diagnosticEvent?("route.retire")
         posts.disappear(); topics.disappear(); route = nil
     }
 }

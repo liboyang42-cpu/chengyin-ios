@@ -42,18 +42,54 @@ public enum RoamPrivateToolIssue: Equatable {
     private let tools: any RoamPrivateToolsServing
     private let owner: RoamExperienceIdentity?
     private var generation = 0
+    @ObservationIgnored private var presentationGeneration = 0
+    @ObservationIgnored private var presentationActive = true
+    @ObservationIgnored private var settlementInFlight = false
     public init(tools: any RoamPrivateToolsServing) { self.tools = tools; owner = tools.identity }
     public var pending: RoamCapsuleDraft? { tools.identity == owner ? tools.pendingCapsule : nil }
     /// Unconfirmed request ID, including a journal-restored one whose draft no longer
     /// exists after a restart. It locks new creates but can never rebuild a draft.
     public var pendingRequestID: String? { tools.identity == owner ? tools.unresolvedCapsuleRequestID : nil }
-    public var isBusy: Bool { phase == .loading || phase == .sending }
+    public var isBusy: Bool { settlementInFlight || phase == .loading || phase == .sending }
     public var canWrite: Bool { tools.allowsWrites && tools.identity == owner && owner != nil }
     private func live() -> Bool { owner != nil && tools.identity == owner }
     private func reset() { generation += 1; items = []; hasMore = false; nextBeforeID = nil; opened = nil; review = nil; deleteReview = nil; phase = .idle }
 
+    /// Hide this page, not the session's original pending request or an issued settlement.
+    /// Plain reads retire immediately. A create/delete/receipt already inside the reader still
+    /// performs its original confirmation-only journal cleanup and pending-result handling.
+    public func suspend() {
+        presentationActive = false; presentationGeneration += 1
+        if !settlementInFlight { generation += 1; phase = .idle }
+        items = []; hasMore = false; nextBeforeID = nil; opened = nil; deleted = false
+        review = nil; deleteReview = nil
+        issue = nil
+    }
+    /// Reopening grants no authority and sends nothing. The host may reload metadata afterward.
+    public func resume() {
+        guard live(), tools.isConfigured else {
+            suspend()
+            issue = owner == nil ? .signInRequired : (live() ? .notConfigured : .changedContext)
+            return
+        }
+        presentationActive = true
+    }
+    private func presents(_ ticket: Int) -> Bool {
+        presentationActive && ticket == presentationGeneration
+    }
+
+    /// A current 401/403 invalidates private presentation only, never the original request lock.
+    /// Other failures keep the original retry/cache policy. Recovery is an explicit fresh read.
+    @discardableResult private func clearDeniedRead(_ error: Error) -> Bool {
+        guard CollectionReadAccess(error) != nil else { return false }
+        items = []; hasMore = false; nextBeforeID = nil; opened = nil; deleted = false
+        review = nil; deleteReview = nil
+        return true
+    }
+
     /// First page; `beforeID` reads the next page, which replaces the visible rows (mini-program `next`).
     public func load(more: Bool = false) async {
+        guard presentationActive else { return }
         guard live() else { reset(); issue = owner == nil ? .signInRequired : .changedContext; return }
         guard !isBusy else { return }
         generation += 1; let ticket = generation
@@ -66,12 +102,14 @@ public enum RoamPrivateToolIssue: Equatable {
             items = page.items; hasMore = page.hasMore; nextBeforeID = page.nextBeforeID; phase = .ready
         } catch {
             guard ticket == generation, live(), !(error is CancellationError) else { return }
+            clearDeniedRead(error)
             if !more { items = []; hasMore = false }
             issue = .from(error); phase = .failed
         }
     }
     /// Locked capsules never fetch content; only an OPEN row is read in detail.
     public func open(_ capsule: RoamCapsule) async {
+        guard presentationActive else { return }
         guard capsule.state == .open, live(), !isBusy else { return }
         generation += 1; let ticket = generation
         phase = .loading; issue = nil
@@ -82,6 +120,7 @@ public enum RoamPrivateToolIssue: Equatable {
             if value.state != .open { await load() }
         } catch {
             guard ticket == generation, live(), !(error is CancellationError) else { return }
+            clearDeniedRead(error)
             issue = .from(error); phase = .failed
         }
     }
@@ -89,6 +128,7 @@ public enum RoamPrivateToolIssue: Equatable {
     public func closeOpened() async { opened = nil; deleted = false; await load() }
 
     public func prepareCreate(body: String, unlockDate: String) {
+        guard presentationActive else { return }
         guard !isBusy else { return }
         guard canWrite else { issue = tools.allowsWrites ? .changedContext : .writesDisabled; return }
         guard pending == nil, pendingRequestID == nil else { issue = .pendingFirst; return }
@@ -98,24 +138,35 @@ public enum RoamPrivateToolIssue: Equatable {
     public func cancelReview() { review = nil }
     /// Explicit confirmation: the reviewed draft becomes the pending request before dispatch.
     public func confirmCreate() async -> Bool {
+        guard presentationActive else { return false }
         guard let review, canWrite, !isBusy, pending == nil, pendingRequestID == nil else { return false }
         tools.pendingCapsule = review; self.review = nil
         return await dispatch(review)
     }
     /// 用原内容重试: the same request ID and payload, never a new draft.
     public func retryPending() async -> Bool {
+        guard presentationActive else { return false }
         guard let pending, canWrite, !isBusy else { return false }
         return await dispatch(pending)
     }
     private func dispatch(_ draft: RoamCapsuleDraft) async -> Bool {
         generation += 1; let ticket = generation
+        settlementInFlight = true
+        let presentation = presentationGeneration
+        defer {
+            // A normal post-success metadata load may already have yielded to a newer operation.
+            if ticket == generation {
+                settlementInFlight = false
+                if !presents(presentation) { phase = .idle }
+            }
+        }
         phase = .sending; issue = nil
         do {
             _ = try await tools.createCapsule(draft)
             guard ticket == generation, live() else { return false }
             if tools.pendingCapsule == draft { tools.pendingCapsule = nil }
-            phase = .ready
-            await load()
+            phase = .ready; settlementInFlight = false
+            if presents(presentation) { await load() }
             return true
         } catch {
             guard ticket == generation, live() else { return false }
@@ -145,34 +196,55 @@ public enum RoamPrivateToolIssue: Equatable {
     private var uncertain: Set<String> = []
     /// 核对上次封存: the receipt of the original request ID is the only proof of its outcome.
     public func verifyPending() async {
+        guard presentationActive else { return }
         // After a restart only the request ID survives; the receipt of that original ID
         // is still the only proof, and no draft is ever rebuilt from the ID alone.
         guard let requestID = pending?.requestID ?? pendingRequestID, live(), !isBusy else { return }
         let pending = self.pending
         generation += 1; let ticket = generation
+        settlementInFlight = true
+        let presentation = presentationGeneration
+        defer {
+            // A normal post-success metadata load may already have yielded to a newer operation.
+            if ticket == generation {
+                settlementInFlight = false
+                if !presents(presentation) { phase = .idle }
+            }
+        }
         phase = .loading; issue = nil
         do {
             _ = try await tools.capsuleReceipt(requestID: requestID)
             guard ticket == generation, live() else { return }
             if let pending, tools.pendingCapsule == pending { tools.pendingCapsule = nil }
-            phase = .ready
-            await load()
+            phase = .ready; settlementInFlight = false
+            if presents(presentation) { await load() }
         } catch {
             guard ticket == generation, live(), !(error is CancellationError) else { return }
-            issue = .outcomeUnknown; phase = .ready
+            let denied = clearDeniedRead(error)
+            issue = .outcomeUnknown; phase = denied ? .failed : .ready
         }
     }
-    public func prepareDelete() { guard canWrite, let opened, !isBusy else { return }; deleteReview = opened.id }
+    public func prepareDelete() { guard presentationActive, canWrite, let opened, !isBusy else { return }; deleteReview = opened.id }
     public func cancelDelete() { deleteReview = nil }
     public func confirmDelete() async {
+        guard presentationActive else { return }
         guard let id = deleteReview, canWrite, !isBusy else { return }
         deleteReview = nil
         generation += 1; let ticket = generation
+        settlementInFlight = true
+        let presentation = presentationGeneration
+        defer {
+            // A normal post-success metadata load may already have yielded to a newer operation.
+            if ticket == generation {
+                settlementInFlight = false
+                if !presents(presentation) { phase = .idle }
+            }
+        }
         phase = .sending; issue = nil
         do {
             _ = try await tools.deleteCapsule(id: id)
             guard ticket == generation, live() else { return }
-            opened = nil; deleted = true; items.removeAll { $0.id == id }; phase = .ready
+            opened = nil; deleted = presents(presentation); items.removeAll { $0.id == id }; phase = .ready
         } catch {
             guard ticket == generation, live() else { return }
             // Unknown deletes keep the opened capsule; rereading the list shows whether it is gone.
@@ -197,19 +269,55 @@ public enum RoamPrivateToolIssue: Equatable {
     private let tools: any RoamPrivateToolsServing
     private let owner: RoamExperienceIdentity?
     private var generation = 0
+    @ObservationIgnored private var presentationGeneration = 0
+    @ObservationIgnored private var presentationActive = true
+    @ObservationIgnored private var settlementInFlight = false
     public init(tools: any RoamPrivateToolsServing) { self.tools = tools; owner = tools.identity }
     public var pending: RoamGoalDraft? { tools.identity == owner ? tools.pendingGoal : nil }
     /// Unconfirmed request ID, including a journal-restored one whose draft no longer
     /// exists after a restart. It locks new creates but can never rebuild a draft.
     public var pendingRequestID: String? { tools.identity == owner ? tools.unresolvedGoalRequestID : nil }
-    public var isBusy: Bool { phase == .loading || phase == .sending }
+    public var isBusy: Bool { settlementInFlight || phase == .loading || phase == .sending }
     public var canWrite: Bool { tools.allowsWrites && tools.identity == owner && owner != nil }
     public var periods: [RoamGoalPeriod] { RoamGoalPeriod.periods(now: tools.now) }
     public var today: String { RoamShanghaiCalendar.dateText(dayNumber: RoamShanghaiCalendar.dayNumber(now: tools.now)) }
     private func live() -> Bool { owner != nil && tools.identity == owner }
 
+    /// Hide this page, not the session's original pending request or an issued settlement.
+    /// Plain reads retire immediately. A create/delete/receipt already inside the reader still
+    /// performs its original confirmation-only journal cleanup and pending-result handling.
+    public func suspend() {
+        presentationActive = false; presentationGeneration += 1
+        if !settlementInFlight { generation += 1; phase = .idle }
+        rows = []; hasMore = false; nextBeforeID = nil; detail = nil
+        review = nil; cancelReview = nil
+        issue = nil
+    }
+    /// Reopening grants no authority and sends nothing. The host may reload metadata afterward.
+    public func resume() {
+        guard live(), tools.isConfigured else {
+            suspend()
+            issue = owner == nil ? .signInRequired : (live() ? .notConfigured : .changedContext)
+            return
+        }
+        presentationActive = true
+    }
+    private func presents(_ ticket: Int) -> Bool {
+        presentationActive && ticket == presentationGeneration
+    }
+
+    /// A current 401/403 invalidates private presentation only, never the original request lock.
+    /// Other failures keep the original retry/cache policy. Recovery is an explicit fresh read.
+    @discardableResult private func clearDeniedRead(_ error: Error) -> Bool {
+        guard CollectionReadAccess(error) != nil else { return false }
+        rows = []; hasMore = false; nextBeforeID = nil; detail = nil
+        review = nil; cancelReview = nil
+        return true
+    }
+
     /// Page 1 replaces; later pages append (mini-program `nextPage`).
     public func load(more: Bool = false) async {
+        guard presentationActive else { return }
         guard live() else { rows = []; detail = nil; issue = owner == nil ? .signInRequired : .changedContext; phase = .idle; return }
         guard !isBusy else { return }
         generation += 1; let ticket = generation
@@ -221,11 +329,13 @@ public enum RoamPrivateToolIssue: Equatable {
             hasMore = page.hasMore; nextBeforeID = page.nextBeforeID; phase = .ready
         } catch {
             guard ticket == generation, live(), !(error is CancellationError) else { return }
+            clearDeniedRead(error)
             if !more { rows = []; hasMore = false }
             issue = .from(error); phase = .failed
         }
     }
     public func open(_ id: String) async {
+        guard presentationActive else { return }
         guard live(), !isBusy else { return }
         generation += 1; let ticket = generation
         phase = .loading; issue = nil
@@ -235,13 +345,15 @@ public enum RoamPrivateToolIssue: Equatable {
             detail = value; phase = .ready
         } catch {
             guard ticket == generation, live(), !(error is CancellationError) else { return }
-            issue = .from(error); phase = .ready
+            let denied = clearDeniedRead(error)
+            issue = .from(error); phase = denied ? .failed : .ready
         }
     }
     public func closeDetail() { detail = nil }
     public func dismissIssue() { issue = nil }
 
     public func prepareCreate(metric: RoamGoalMetric, target: Int, startDate: String, endDateExclusive: String) {
+        guard presentationActive else { return }
         guard !isBusy else { return }
         guard canWrite else { issue = tools.allowsWrites ? .changedContext : .writesDisabled; return }
         guard pending == nil, pendingRequestID == nil else { issue = .pendingFirst; return }
@@ -250,24 +362,36 @@ public enum RoamPrivateToolIssue: Equatable {
     }
     public func cancelCreateReview() { review = nil }
     public func confirmCreate() async -> Bool {
+        guard presentationActive else { return false }
         guard let review, canWrite, !isBusy, pending == nil, pendingRequestID == nil else { return false }
         tools.pendingGoal = review; self.review = nil
         return await dispatch(review)
     }
     /// 以原操作重试
     public func retryPending() async -> Bool {
+        guard presentationActive else { return false }
         guard let pending, canWrite, !isBusy else { return false }
         return await dispatch(pending)
     }
     private func dispatch(_ draft: RoamGoalDraft) async -> Bool {
         generation += 1; let ticket = generation
+        settlementInFlight = true
+        let presentation = presentationGeneration
+        defer {
+            // A normal post-success metadata load may already have yielded to a newer operation.
+            if ticket == generation {
+                settlementInFlight = false
+                if !presents(presentation) { phase = .idle }
+            }
+        }
         phase = .sending; issue = nil
         do {
             let value = try await tools.createGoal(draft)
             guard ticket == generation, live() else { return false }
             if tools.pendingGoal == draft { tools.pendingGoal = nil }
-            detail = value; phase = .ready
-            await load()
+            if presents(presentation) { detail = value }
+            phase = .ready; settlementInFlight = false
+            if presents(presentation) { await load() }
             return true
         } catch {
             guard ticket == generation, live() else { return false }
@@ -295,34 +419,57 @@ public enum RoamPrivateToolIssue: Equatable {
     }
     /// Receipt readback for the unconfirmed request.
     public func verifyPending() async {
+        guard presentationActive else { return }
         guard let requestID = pending?.requestID ?? pendingRequestID, live(), !isBusy else { return }
         let pending = self.pending
         generation += 1; let ticket = generation
+        settlementInFlight = true
+        let presentation = presentationGeneration
+        defer {
+            // A normal post-success metadata load may already have yielded to a newer operation.
+            if ticket == generation {
+                settlementInFlight = false
+                if !presents(presentation) { phase = .idle }
+            }
+        }
         phase = .loading; issue = nil
         do {
             let value = try await tools.goalReceipt(requestID: requestID)
             guard ticket == generation, live() else { return }
             if let pending, tools.pendingGoal == pending { tools.pendingGoal = nil }
-            detail = value; phase = .ready
-            await load()
+            if presents(presentation) { detail = value }
+            phase = .ready; settlementInFlight = false
+            if presents(presentation) { await load() }
         } catch {
             guard ticket == generation, live(), !(error is CancellationError) else { return }
-            issue = .outcomeUnknown; phase = .ready
+            let denied = clearDeniedRead(error)
+            issue = .outcomeUnknown; phase = denied ? .failed : .ready
         }
     }
-    public func prepareCancel() { guard canWrite, let detail, detail.state.isCancellable, !isBusy else { return }; cancelReview = detail.id }
+    public func prepareCancel() { guard presentationActive, canWrite, let detail, detail.state.isCancellable, !isBusy else { return }; cancelReview = detail.id }
     public func keepGoal() { cancelReview = nil }
     /// 取消目标: one way on the server; a confirmed cancellation is never revived by a late response.
     public func confirmCancel() async {
+        guard presentationActive else { return }
         guard let id = cancelReview, canWrite, !isBusy else { return }
         cancelReview = nil
         generation += 1; let ticket = generation
+        settlementInFlight = true
+        let presentation = presentationGeneration
+        defer {
+            // A normal post-success metadata load may already have yielded to a newer operation.
+            if ticket == generation {
+                settlementInFlight = false
+                if !presents(presentation) { phase = .idle }
+            }
+        }
         phase = .sending; issue = nil
         do {
             let value = try await tools.cancelGoal(id: id)
             guard ticket == generation, live() else { return }
-            detail = value; phase = .ready
-            await load()
+            if presents(presentation) { detail = value }
+            phase = .ready; settlementInFlight = false
+            if presents(presentation) { await load() }
         } catch {
             guard ticket == generation, live() else { return }
             issue = .from(error); phase = .ready
@@ -346,7 +493,8 @@ public enum RoamPrivateToolIssue: Equatable {
     private let tools: any RoamPrivateToolsServing
     private let owner: RoamExperienceIdentity?
     private let pageSize: Int
-    private var generation = 0
+    @ObservationIgnored private var generation = 0
+    @ObservationIgnored private var presentationActive = true
     public init(tools: any RoamPrivateToolsServing, pageSize: Int = RoamExportContract.defaultPageSize) {
         self.tools = tools; owner = tools.identity; self.pageSize = pageSize
     }
@@ -363,7 +511,7 @@ public enum RoamPrivateToolIssue: Equatable {
     /// Re-check identity and expiry after a return to the page. A revoked lease stays
     /// revoked: foreground return does not make that file deliverable again.
     public func renewDelivery() {
-        guard live(), phase == .complete, let file, !file.isExpired(now: tools.now) else { return }
+        guard presentationActive, live(), tools.isConfigured, phase == .complete, let file, !file.isExpired(now: tools.now) else { return }
         guard deliveryLease?.isRevoked != true else { return }
         if deliveryLease == nil {
             deliveryLease = RoamExportDeliveryLease(file: file, identity: owner)
@@ -372,12 +520,14 @@ public enum RoamPrivateToolIssue: Equatable {
     /// The file at the actual hand-off moment: foreground, current identity, unexpired,
     /// unrevoked. Anything else delivers nothing.
     public func fileForDelivery(foreground: Bool) -> RoamExportFile? {
-        guard live(), phase == .complete, let file, file.rows > 0, let deliveryLease else { return nil }
+        guard presentationActive, live(), tools.isConfigured, phase == .complete, let file, file.rows > 0, let deliveryLease else { return nil }
         return deliveryLease.validatedFile(file, now: tools.now, currentIdentity: tools.identity, foreground: foreground)
     }
 
     public func prepare(startDate: String, endDateExclusive: String) async {
+        guard presentationActive, !Task.isCancelled else { return }
         guard live() else { clear(); issue = owner == nil ? .signInRequired : .changedContext; phase = .choosing; return }
+        guard tools.isConfigured else { clear(); issue = .notConfigured; phase = .choosing; return }
         guard !isBusy else { return }
         clear(); let ticket = generation
         let request = RoamExportRequest(startDate: startDate, endDateExclusive: endDateExclusive, pageSize: pageSize)
@@ -385,22 +535,27 @@ public enum RoamPrivateToolIssue: Equatable {
         phase = .preparing; issue = nil
         do {
             let value = try await tools.prepareExport(request)
-            guard ticket == generation, live() else { return }
+            guard ticket == generation, presentationActive, !Task.isCancelled, live(), tools.isConfigured else { return }
             checkpoint = value; phase = .prepared
         } catch {
-            guard ticket == generation, live(), !(error is CancellationError) else { return }
+            guard ticket == generation, presentationActive, !Task.isCancelled, live(), !(error is CancellationError) else { return }
             issue = .from(error); phase = .choosing
         }
     }
     /// One chunk per explicit tap. A failed chunk keeps the checkpoint so the same page can be reread.
     public func readNext() async {
+        guard presentationActive, !Task.isCancelled else { return }
         guard live() else { clear(); issue = .changedContext; phase = .choosing; return }
         guard let original = checkpoint, !original.complete, !original.changed, phase == .prepared || phase == .failed else { return }
+        guard tools.isConfigured else { clear(); issue = .notConfigured; phase = .choosing; return }
+        guard Int64((tools.now.timeIntervalSince1970 * 1000).rounded(.down)) < original.snapshot.expiresAtMs else {
+            clear(); issue = .expired; phase = .choosing; return
+        }
         generation += 1; let ticket = generation
         phase = .reading; issue = nil
         do {
             let chunk = try await tools.exportPage(original)
-            guard ticket == generation, live(), checkpoint == original else { return }
+            guard ticket == generation, presentationActive, !Task.isCancelled, live(), tools.isConfigured, checkpoint == original else { return }
             if chunk.restartRequired || chunk.data == nil {
                 parts = []; file = nil; checkpoint = nil; sourceChanged = true; phase = .choosing
                 return
@@ -414,9 +569,31 @@ public enum RoamPrivateToolIssue: Equatable {
                 phase = .complete
             } else { phase = .prepared }
         } catch {
-            guard ticket == generation, live(), !(error is CancellationError) else { return }
+            guard ticket == generation, presentationActive, !Task.isCancelled, live(), !(error is CancellationError) else { return }
             issue = .from(error); phase = .failed
         }
+    }
+    /// Retire this presentation's reads synchronously, including during native teardown.
+    /// No observed field is written here. Accepted chunks/cursor remain in memory; a late
+    /// completion cannot append bytes or mint a new lease. Revocation stays one-way.
+    public func suspend() {
+        presentationActive = false; generation += 1
+        revokeDelivery()
+    }
+    /// No request or transfer. Resume only the original current/configured/unexpired scope.
+    /// Interrupted reads retry their original unadvanced checkpoint on an explicit tap.
+    public func resume() {
+        let wasSuspended = !presentationActive
+        guard live(), tools.isConfigured else {
+            clear(); issue = owner == nil ? .signInRequired : (live() ? .notConfigured : .changedContext); phase = .choosing
+            presentationActive = false; return
+        }
+        presentationActive = true
+        if let snapshot = checkpoint?.snapshot,
+           Int64((tools.now.timeIntervalSince1970 * 1000).rounded(.down)) >= snapshot.expiresAtMs {
+            clear(); issue = .expired; phase = .choosing
+        } else if wasSuspended && phase == .preparing { phase = .choosing }
+        else if wasSuspended && phase == .reading { phase = checkpoint == nil ? .choosing : .prepared }
     }
     /// 重新选择范围: discard every part and the finished file.
     public func restart() { guard !isBusy else { return }; clear(); issue = nil; phase = .choosing }

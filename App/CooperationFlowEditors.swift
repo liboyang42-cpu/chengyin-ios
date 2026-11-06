@@ -85,7 +85,6 @@ struct CoopFlowTemplateEditor: View {
                     TextField("coopflow.field.validEnd", text: $validEnd)
                 }
             }
-            Section { Text("coopflow.template.rules"); Text("coopflow.currency") }
             if validityIssue {
                 Text("merchant.perkSubmission.invalidDate").foregroundStyle(.red)
                     .accessibilityIdentifier("merchant.perkSubmission.invalidDate")

@@ -123,8 +123,6 @@ import SwiftUI
                 Section {
                     Button(String(localized: LocalizedStringResource("templateMedia.reselect", defaultValue: "Discard selection and reselect", locale: locale))) { _ = controller.reselect(value.review) }
                         .accessibilityIdentifier("templateMedia.reselect")
-                    Button(String(localized: LocalizedStringResource("templateMedia.applyUnavailable", defaultValue: "Apply unavailable: no uploaded reference", locale: locale))) {}
-                        .disabled(true).accessibilityIdentifier("templateMedia.apply")
                     Button(String(localized: LocalizedStringResource("templateMedia.finish", defaultValue: "Finish review without changing the reference", locale: locale))) { controller.finish(value.review) }
                         .accessibilityIdentifier("templateMedia.finish")
                 }

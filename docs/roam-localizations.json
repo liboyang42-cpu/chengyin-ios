@@ -41,8 +41,8 @@
   },
   {
     "key": "roam.offlineExample",
-    "en": "Offline examples · fixed synthetic coordinates",
-    "zh-Hans": "离线示例 · 固定虚拟坐标"
+    "en": "Example content · sample locations",
+    "zh-Hans": "示例内容 · 示例位置"
   },
   {
     "key": "roam.suppliedArea",
@@ -131,8 +131,8 @@
   },
   {
     "key": "roam.readOnlyNotice",
-    "en": "Browsing only. Visits, favorites, joining and purchases are not available in this native screen yet.",
-    "zh-Hans": "此原生页面目前仅供浏览，暂不支持打卡、收藏、加入或购买。"
+    "en": "Browsing only. Check-ins, favorites, joining and purchases aren't available here right now.",
+    "zh-Hans": "目前仅供浏览，暂不支持打卡、收藏、加入或购买。"
   },
   {
     "key": "roam.unnamed",
@@ -146,13 +146,13 @@
   },
   {
     "key": "roam.notConfigured",
-    "en": "Map service not configured",
-    "zh-Hans": "尚未配置地图服务"
+    "en": "Map isn't available right now",
+    "zh-Hans": "地图暂不可用"
   },
   {
     "key": "roam.notConfiguredHint",
-    "en": "An approved service address is needed before loading live results.",
-    "zh-Hans": "配置获准的服务地址后，才能读取实时结果。"
+    "en": "Live results aren't available right now.",
+    "zh-Hans": "实时结果暂不可用。"
   },
   {
     "key": "roam.signInRequired",
@@ -331,8 +331,8 @@
   },
   {
     "key": "roam.playerSnapshot",
-    "en": "This is the last loaded snapshot. Refresh the map to update it.",
-    "zh-Hans": "这是上次读取的快照，可刷新地图更新。"
+    "en": "This is from the last time the map loaded. Refresh the map to update it.",
+    "zh-Hans": "这是上次加载的内容，可刷新地图更新。"
   },
   {
     "key": "roam.area.title",
@@ -391,8 +391,8 @@
   },
   {
     "key": "roam.area.coordinateSystem",
-    "en": "The service uses GCJ-02 coordinates. Check the coordinate format of your source; this form does not convert GPS coordinates.",
-    "zh-Hans": "服务使用 GCJ-02 坐标，请确认来源的坐标格式；此表单不会转换 GPS 坐标。"
+    "en": "Enter coordinates in the format used by Chinese maps (e.g. Amap, Tencent Maps). GPS coordinates aren't converted.",
+    "zh-Hans": "请使用国内地图（如高德、腾讯地图）的坐标，GPS 坐标不会自动转换。"
   },
   {
     "key": "roam.area.memoryOnly",

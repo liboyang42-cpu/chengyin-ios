@@ -10,6 +10,9 @@ import SwiftUI
     var onOpenTickets: (() -> Void)? = nil
     /// Bump from the owning screen's pull-to-refresh to reload identity and growth together.
     var refreshToken: Int = 0
+    var avatarAccess: MemberIdentityAvatarAccess? = nil
+    @State private var readOwner = MemberIdentityCardReadOwner()
+    @Environment(\.scenePhase) private var scenePhase
     enum Phase: Equatable { case loading, ready(MemberIdentitySnapshot), failed(signedOut: Bool) }
     @State private var phase: Phase = .loading
     @State private var level: Int?
@@ -46,20 +49,20 @@ import SwiftUI
                 Divider()
                 stat(snapshot?.fansCount, id: "fans") { Text("member.card.fans", tableName: "MemberProfile") }
             }.frame(maxWidth: .infinity)
-            LabeledContent {
-                Text(verbatim: snapshot?.balancePreviewText ?? "—")
-                    .font(.subheadline.weight(.semibold).monospacedDigit())
-                    .accessibilityIdentifier("member.card.balanceValue")
-            } label: {
-                Text(verbatim: "我的资产").font(.subheadline)
-            }
-            .accessibilityElement(children: .combine)
-            .accessibilityIdentifier("member.card.balance")
             if let onOpenTickets {
                 Button(action: onOpenTickets) {
                     Label { Text("member.card.tickets", tableName: "MemberProfile") } icon: { Image(systemName: "ticket") }
                 }.accessibilityIdentifier("member.card.tickets")
             }
+            LabeledContent {
+                Text(verbatim: snapshot?.balancePreviewText ?? "—")
+                    .font(.subheadline.weight(.semibold).monospacedDigit())
+                    .accessibilityIdentifier("member.card.balanceValue")
+            } label: {
+                Text("member.card.balance", tableName: "MemberProfile").font(.subheadline)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("member.card.balance")
             switch phase {
             case .loading:
                 HStack { ProgressView(); Text("member.card.loading", tableName: "MemberProfile").foregroundStyle(.secondary) }
@@ -79,9 +82,12 @@ import SwiftUI
             case .ready: EmptyView()
             }
         }
-        .task(id: TaskKey(scope: reader.scope, refresh: refreshToken)) { await load() }
+        .onAppear { readOwner.appear(active: scenePhase == .active) }
+        .task(id: TaskKey(scope: reader.scope, refresh: refreshToken, active: scenePhase == .active)) { await load() }
+        .onDisappear { readOwner.disappear() }
+        .onChange(of: scenePhase) { _, value in readOwner.scene(active: value == .active) }
     }
-    private struct TaskKey: Equatable { let scope: UUID; let refresh: Int }
+    private struct TaskKey: Equatable { let scope: UUID; let refresh: Int; let active: Bool }
 
     private var snapshot: MemberIdentitySnapshot? { if case .ready(let value) = phase { return value }; return nil }
 
@@ -108,17 +114,15 @@ import SwiftUI
         }
     }
     private var avatar: some View {
-        Group {
-            if let url = Self.remoteAvatarURL(snapshot?.avatar) {
-                AsyncImage(url: url) { image in
-                    switch image {
-                    case .success(let loaded): loaded.resizable().scaledToFill().clipShape(Circle())
-                    default: lettermark
-                    }
-                }
-            } else { lettermark }
-        }.frame(width: 56, height: 56).accessibilityHidden(true)
+        ZStack {
+            lettermark
+            if let observation = readOwner.observation {
+                MemberIdentityAvatarView(observation: observation, owner: readOwner, access: avatarAccess)
+                    .id(AvatarKey(read: observation.readRevision, source: avatarAccess?.sourceRevision()))
+            }
+        }.frame(width: 56, height: 56).clipShape(Circle()).accessibilityHidden(true)
     }
+    private struct AvatarKey: Hashable { let read: UUID; let source: UUID? }
     private func stat(_ value: Int?, id: String, label: () -> Text) -> some View {
         VStack(spacing: 2) {
             Text(verbatim: value.map(String.init) ?? "—").font(.headline.monospacedDigit())
@@ -128,23 +132,30 @@ import SwiftUI
     }
 
     private func load() async {
+        guard !Task.isCancelled, scenePhase == .active else { return }
+        readOwner.scene(active: true)
         let scope = reader.scope
+        guard let run = readOwner.begin(scope: scope) else { return }
         guard reader.isSignedIn else { phase = .failed(signedOut: true); return }
         guard reader.isConfigured else { phase = .failed(signedOut: false); return }
         if snapshot == nil { phase = .loading }
         do {
             let value = try await reader.identity()
-            guard scope == reader.scope else { return }
+            guard !Task.isCancelled, scope == reader.scope, readOwner.accepts(run, scope: reader.scope) else { return }
+            readOwner.publish(value, run: run, scope: reader.scope)
             phase = .ready(value)
             // Streak is shown only once the identity counters are ready, as the source does.
             if value.countersReady, let growth, growth.isConfigured, growth.isAuthenticated,
-               let overview = try? await growth.overview(), scope == reader.scope {
+               let overview = try? await growth.overview(), !Task.isCancelled, scope == reader.scope,
+               readOwner.accepts(run, scope: reader.scope) {
                 level = overview.center.value?.level ?? overview.progress.value?.level
                 streakDays = overview.progress.value?.streakDays
             }
         } catch is CancellationError {
+            readOwner.invalidate(run)
         } catch {
-            guard scope == reader.scope else { return }
+            guard !Task.isCancelled, scope == reader.scope, readOwner.accepts(run, scope: reader.scope) else { return }
+            readOwner.invalidate(run)
             phase = .failed(signedOut: error as? APIError == .unauthorized)
         }
     }
@@ -153,13 +164,16 @@ import SwiftUI
 /// 关于 → 当前权益, built from `/api/role/info` like the source `buildBenefits`.
 @MainActor struct MemberBenefitsSection: View {
     let reader: any MemberHomeReading
-    var earningsDestination: (() -> AnyView)? = nil
-    enum Phase: Equatable { case loading, ready([MemberBenefit]), unavailable, failed }
-    @State private var phase: Phase = .loading
-
+    var earningsDestination: (() -> AnyView)?
+    @State private var owner: MemberBenefitsReadOwner
+    @Environment(\.scenePhase) private var scenePhase
+    init(reader: any MemberHomeReading, earningsDestination: (() -> AnyView)? = nil) {
+        self.reader = reader; self.earningsDestination = earningsDestination
+        _owner = State(initialValue: .init(reader: reader))
+    }
     var body: some View {
         Section {
-            switch phase {
+            switch owner.phase {
             case .loading:
                 ProgressView().accessibilityIdentifier("member.benefits.loading")
             case .unavailable:
@@ -168,37 +182,36 @@ import SwiftUI
             case .failed:
                 VStack(alignment: .leading) {
                     Text("member.benefits.failed", tableName: "MemberProfile").foregroundStyle(.secondary)
-                    Button { Task { await load() } } label: { Text("member.card.retry", tableName: "MemberProfile") }
+                    Button { owner.refresh() } label: { Text("member.card.retry", tableName: "MemberProfile") }
                         .accessibilityIdentifier("member.benefits.retry")
                 }.accessibilityIdentifier("member.benefits.failed")
-            case .ready(let rows):
-                ForEach(rows) { row in
+            case .ready(let snapshot):
+                ForEach(snapshot.rows) { row in
                     if row.opensEarnings, let earningsDestination {
-                        NavigationLink { earningsDestination() } label: { MemberBenefitRow(benefit: row) }
-                            .accessibilityIdentifier("member.benefit.\(row.id)")
+                        NavigationLink(isActive: owner.earningsBinding(snapshot)) {
+                            if let offered = owner.navigation(for: snapshot) {
+                                MemberBenefitsEarningsDestination(owner: owner, offered: offered, destination: earningsDestination)
+                            } else { Text("member.benefits.unavailable", tableName: "MemberProfile") }
+                        } label: { MemberBenefitRow(benefit: row) }
+                        .accessibilityIdentifier("member.benefit.\(row.id)")
                     } else {
                         MemberBenefitRow(benefit: row).accessibilityIdentifier("member.benefit.\(row.id)")
                     }
                 }
             }
         } header: { Text("member.benefits.title", tableName: "MemberProfile") }
-        .task(id: reader.scope) { await load() }
-    }
-
-    private func load() async {
-        let scope = reader.scope
-        guard reader.isSignedIn, reader.roleInfoAvailable else { phase = .unavailable; return }
-        phase = .loading
-        do {
-            let info = try await reader.roleInfo()
-            guard scope == reader.scope else { return }
-            phase = .ready(info.benefits)
-        } catch is CancellationError {
-        } catch {
-            guard scope == reader.scope else { return }
-            phase = error as? APIError == .notConfigured ? .unavailable : .failed
+        .onAppear { owner.appear(active: scenePhase == .active) }
+        .onDisappear { owner.disappear() }
+        .onChange(of: scenePhase) { _, phase in owner.scene(active: phase == .active) }
+        .task(id: ReadKey(scope: reader.scope, active: scenePhase == .active)) {
+            guard !Task.isCancelled, scenePhase == .active else { return }
+            owner.scene(active: true)
+            let work = owner.refresh()
+            await withTaskCancellationHandler(operation: { await work?.value }, onCancel: { work?.cancel() })
         }
+
     }
+    private struct ReadKey: Equatable { let scope: UUID; let active: Bool }
 }
 
 struct MemberBenefitRow: View {

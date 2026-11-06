@@ -158,13 +158,13 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "结果未确认，请先核对"
+          "value": "结果未确认，请先查看状态"
         }
       },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Outcome unconfirmed — read back first"
+          "value": "Result not confirmed — check status first"
         }
       }
     }
@@ -362,13 +362,13 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "供给复核与已发布的供给快照可能失效。"
+          "value": "供给复核与已发布的供给信息可能失效。"
         }
       },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Supply review and published supply snapshots may be invalidated."
+          "value": "Supply review and published supply details may no longer be valid."
         }
       }
     }
@@ -498,13 +498,13 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "仅回读核对（不重发）"
+          "value": "查看状态（不重新提交）"
         }
       },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Read back only (do not resend)"
+          "value": "Check status (don't resend)"
         }
       }
     }
@@ -515,13 +515,13 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "为避免重复提交，本页不会自动重发；请先回读核对，原因以服务器记录为准。"
+          "value": "为避免重复提交，本页不会自动重新提交。请先查看状态，原因以记录为准。"
         }
       },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "To avoid a duplicate submission this page never resends automatically. Read back first; the server-recorded reason is authoritative."
+          "value": "To avoid submitting twice, this page never resends automatically. Check the status first; the recorded reason is final."
         }
       }
     }
@@ -532,13 +532,13 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "退出提交尚未启用，仅可预览资格与影响。"
+          "value": "退出暂不可用，可查看资格与影响。"
         }
       },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Exit submission is not enabled yet; eligibility and impact preview only."
+          "value": "Leaving isn't available right now. You can still check eligibility and impact."
         }
       }
     }
@@ -600,13 +600,13 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "报名暂停仅为提示信息，退出以回读到的已退出状态与服务器原因为准。"
+          "value": "报名暂停仅为提示，状态显示为“已退出”并附有原因时，才表示已退出。"
         }
       },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The pause flag is only a hint; the exit is confirmed by the read-back withdrawn state and server reason."
+          "value": "Paused registration is only a hint. Your exit is confirmed once the status shows Withdrawn, along with the reason."
         }
       }
     }

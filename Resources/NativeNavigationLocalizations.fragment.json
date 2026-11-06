@@ -313,13 +313,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Manual entry is not a camera scan. The server checks the code when you submit it."
+            "value": "Entering a code manually isn't a camera scan. The code is checked when you submit it."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "手动输入不代表相机扫描。提交后由服务端核验任务码。"
+            "value": "手动输入不等于相机扫描。提交后将核验任务码。"
           }
         }
       }
@@ -483,13 +483,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server decides whether the evidence is accepted. Capture alone does not complete a task."
+            "value": "Whether your evidence is accepted is decided after you submit. Capturing it alone doesn't complete the task."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "凭证是否有效由服务端判定。获取凭证本身不代表任务完成。"
+            "value": "凭证提交后才会判定是否有效。仅拍摄或获取凭证不代表任务完成。"
           }
         }
       }
@@ -534,13 +534,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Camera capture is not enabled in this build."
+            "value": "Camera capture isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此版本尚未启用相机采集。"
+            "value": "相机拍摄暂不可用。"
           }
         }
       }
@@ -874,13 +874,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Coupon code issuance is not enabled in this build. No request was sent."
+            "value": "Coupon codes aren't available right now. No request was sent."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此版本尚未启用券码签发，未发送申请。"
+            "value": "券码暂不可用，未发送申请。"
           }
         }
       }

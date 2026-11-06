@@ -11,12 +11,20 @@ import SwiftUI
     let governance: ClubGovernanceContext
     var reader: (any ClubReading)? = nil
     @StateObject private var model = ClubEventCalendarReadModel()
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var visible = false
+    private struct ReadTrigger: Equatable {
+        let context: ClubGovernanceReadContext
+        let visible: Bool
+        let active: Bool
+    }
     private var readContext: ClubGovernanceReadContext {
         .init(operation: .topics, scope: .init(clubID: club.id), identity: identity,
               viewerRevision: governance.viewerRevision, authorizationGeneration: governance.access.authorizationGeneration,
               accessIdentity: ObjectIdentifier(governance.access))
     }
     private var summary: ClubDetailEventsSummary {
+        guard visible, scenePhase == .active else { return .init(state: .loading) }
         let accepted = model.accepted(readContext, access: governance.access)
         return .init(overview: accepted ? model.activityOverview : nil,
                      acceptedContext: accepted ? model.context : nil,
@@ -47,11 +55,18 @@ import SwiftUI
             } label: { Label("club.calendar.title", systemImage: "calendar") }
                 .accessibilityIdentifier("club.calendar.open")
         }
-        // Keyed by club + identity + authorization so a switch discards the previous club's result first.
-        .task(id: readContext) {
-            model.invalidate(); model.resume()
+        // Visibility and scene activation join the original account/club/authorization key.
+        .task(id: ReadTrigger(context: readContext, visible: visible, active: scenePhase == .active)) {
+            guard !Task.isCancelled else { return }
+            model.suspend(); model.invalidate()
+            guard visible, scenePhase == .active, !Task.isCancelled else { return }
+            model.resume()
             await model.load(readContext, access: governance.access)
         }
-        .onDisappear { model.suspend() }
+        .onAppear { visible = true }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { model.suspend(); model.invalidate() }
+        }
+        .onDisappear { visible = false; model.suspend(); model.invalidate() }
     }
 }

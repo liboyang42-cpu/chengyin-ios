@@ -1,0 +1,214 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "strings": {
+    "welcome.note": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主理人说"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A note from the organizer"
+          }
+        }
+      }
+    },
+    "welcome.actions": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在这个俱乐部可以做什么"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What you can do in this club"
+          }
+        }
+      }
+    },
+    "welcome.posts.allowed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在「帖子」发动态、与成员交流；实际发帖权限以当时服务端校验为准。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share posts and talk with members in Posts. Posting access is checked by the server at the time."
+          }
+        }
+      }
+    },
+    "welcome.posts.read": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在「帖子」看看主理人和成员的动态，可以点亮、评论。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read posts from the organizer and members in Posts, and like or comment."
+          }
+        }
+      }
+    },
+    "welcome.posts.unknown": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在「帖子」查看俱乐部动态；是否可以发帖，以当前页面的权限状态为准。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read club updates in Posts. Whether you can post depends on the current page’s access state."
+          }
+        }
+      }
+    },
+    "welcome.events.merchant": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可以浏览俱乐部活动；商家身份不能报名。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can browse club activities. Merchant accounts cannot register."
+          }
+        }
+      }
+    },
+    "welcome.events.normal": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在「活动」查看最近的局和报名条件。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See upcoming activities and registration conditions in Activities."
+          }
+        }
+      }
+    },
+    "welcome.events.priority": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在「活动」查看最近的局和报名条件。本次资料显示启用了成员优先报名；具体活动条件以实时页面为准。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See upcoming activities and registration conditions in Activities. This profile shows priority registration for members; check the live activity page for its conditions."
+          }
+        }
+      }
+    },
+    "welcome.overview": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在「概览」认识成员、查看本周贡献榜。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meet members and see this week’s contributions in Overview."
+          }
+        }
+      }
+    },
+    "welcome.gotIt": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "知道了"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Got it"
+          }
+        }
+      }
+    },
+    "welcome.events": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去看活动"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View activities"
+          }
+        }
+      }
+    },
+    "welcome.close": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        }
+      }
+    },
+    "welcome.title": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "欢迎加入俱乐部"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welcome to the club"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

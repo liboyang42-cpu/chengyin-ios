@@ -42,7 +42,7 @@ import SwiftUI
         List {
             Section {
                 VStack(alignment: .leading, spacing: 12) {
-                    Image(systemName: "figure.walk.circle.fill").font(.system(size: 48)).foregroundStyle(.tint).accessibilityHidden(true)
+                    Image(systemName: "figure.walk.circle.fill").font(.largeTitle).imageScale(.large).foregroundStyle(.tint).accessibilityHidden(true)
                     Text("roam.experience.subtitle").font(.title3).bold()
                     RoamExperienceNotice(offline: reader.isOfflineExample)
                 }.padding(.vertical, 8)
@@ -55,7 +55,7 @@ import SwiftUI
                 NavigationLink { RoamOfficialTasksDestination(roamReader: reader) } label: { Label("roam.tasks.title", systemImage: "checklist") }
                     .disabled(reader.identity == nil)
                     .accessibilityIdentifier("roam.tasks.open")
-                NavigationLink { RoamHistoryView(reader: reader, liveDestination: liveDestination) } label: { Label("roam.experience.history", systemImage: "clock.arrow.circlepath") }
+                NavigationLink { RoamHistoryView(reader: reader, liveDestination: liveDestination, toolsReader: toolsReader, privateToolsReader: privateToolsReader, anniversaryRouteDestination: anniversaryRouteDestination) } label: { Label("roam.experience.history", systemImage: "clock.arrow.circlepath") }
                     .accessibilityIdentifier("roam.experience.history.open")
                 NavigationLink { RoamRecoveryView(reader: effectiveSessionReader).id(sessionFactReader?.scope) } label: { Label("roam.experience.recovery", systemImage: "arrow.clockwise.circle") }
                     .accessibilityIdentifier("roam.experience.recovery.open")
@@ -93,8 +93,6 @@ import SwiftUI
             Section("roam.motion.title") {
                 Toggle("roam.motion.reduce", isOn: $reduceMotionLocally)
                     .accessibilityIdentifier("roam.motion.reduce")
-                Text("roam.motion.hint").font(.footnote).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
                 if systemReduceMotion {
                     Text("roam.motion.system").font(.footnote).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -122,20 +120,96 @@ import SwiftUI
     let reader: any RoamExperienceReading
     var showsLiveUnavailable = false
     var body: some View {
-        RoamTileMemoryContent(reader: reader, showsLiveUnavailable: showsLiveUnavailable).id(reader.identity)
+        RoamTileMemoryContent(reader: reader, showsLiveUnavailable: showsLiveUnavailable)
+            .id(RoamTileMemoryPageOwner(reader: reader))
     }
 }
+/// This owner describes only the existing read capability, never location/reveal authority.
+struct RoamTileMemoryPageOwner: Equatable, Hashable {
+    let readerID: ObjectIdentifier
+    let identity: RoamExperienceIdentity?
+    let scope: UUID?
+    let configured: Bool
+    @MainActor init(reader: any RoamExperienceReading) {
+        readerID = ObjectIdentifier(reader); identity = reader.identity
+        scope = (reader as? RoamTileMemoryReader)?.scope; configured = reader.isConfigured
+    }
+}
+
+/// A rendered read intent is consumed once. The original pager still owns its cursor and errors.
+@MainActor final class RoamTileMemoryPresentation: ObservableObject {
+    let reader: any RoamExperienceReading
+    let pager: RoamTileMemoryPager
+    private let owner: RoamTileMemoryPageOwner
+    @Published private var revision = 0
+    @Published private(set) var loading = false
+    private var mounted = false
+    private var foreground = false
+    private var operation = UUID()
+    private var work: Task<Void, Never>?
+    var isVisible: Bool { mounted && foreground && owner == RoamTileMemoryPageOwner(reader: reader) }
+    init(reader: any RoamExperienceReading) {
+        self.reader = reader; owner = .init(reader: reader); pager = .init(reader: reader)
+    }
+    func appear(foreground: Bool) {
+        mounted = true; self.foreground = foreground; retire()
+    }
+    func disappear() { mounted = false; retire() }
+    func setForeground(_ value: Bool) {
+        guard foreground != value else { return }
+        foreground = value; retire()
+        // Returning only offers a new explicit read. It never dispatches a request.
+    }
+    private func retire() {
+        operation = UUID(); work?.cancel(); work = nil
+        pager.reset(); loading = false; revision &+= 1
+    }
+    private func accepts(_ offered: UUID) -> Bool {
+        isVisible && operation == offered && !Task.isCancelled && reader.identity != nil && reader.isConfigured
+    }
+    func readAction() -> () -> Void {
+        let offered = operation
+        return { [weak self] in
+            guard let self, self.accepts(offered), !self.loading, self.pager.hasMore else { return }
+            self.operation = UUID(); let issued = self.operation
+            self.loading = true
+            self.work = Task { [weak self] in
+                guard let self else { return }
+                await self.read(issued: issued)
+            }
+        }
+    }
+    func refreshAction() -> () async -> Void {
+        let offered = operation
+        return { [weak self] in
+            guard let self, self.accepts(offered) else { return }
+            self.retire(); let issued = self.operation
+            self.loading = true
+            await self.read(issued: issued)
+        }
+    }
+    private func read(issued: UUID) async {
+        guard operation == issued else { return }
+        guard accepts(issued) else { retire(); return }
+        await pager.loadNext()
+        guard operation == issued else { return }
+        guard accepts(issued) else { retire(); return }
+        loading = false; work = nil; operation = UUID(); revision &+= 1
+    }
+}
+
 @MainActor private struct RoamTileMemoryContent: View {
     let reader: any RoamExperienceReading
     let showsLiveUnavailable: Bool
-    @State private var pager: RoamTileMemoryPager
-    @State private var revision = 0
-    @State private var loading = false
+    @Environment(\.scenePhase) private var scenePhase
+    @StateObject private var presentation: RoamTileMemoryPresentation
     init(reader: any RoamExperienceReading, showsLiveUnavailable: Bool) {
         self.reader = reader; self.showsLiveUnavailable = showsLiveUnavailable
-        _pager = State(initialValue: RoamTileMemoryPager(reader: reader))
+        _presentation = StateObject(wrappedValue: RoamTileMemoryPresentation(reader: reader))
     }
+    private var pager: RoamTileMemoryPager { presentation.pager }
     var body: some View {
+        let read = presentation.readAction(), refresh = presentation.refreshAction()
         List {
             Section {
                 RoamExperienceNotice(offline: reader.isOfflineExample)
@@ -145,31 +219,33 @@ import SwiftUI
                 }
             }
             Section("roam.experience.tileMemory") {
+                if presentation.isVisible {
                 if pager.loaded {
                     LabeledContent("roam.experience.loadedTiles", value: String(pager.tiles.count))
+                        .accessibilityIdentifier("roam.experience.tiles.loaded")
                     Text(pager.hasMore ? "roam.experience.tilePartial" : "roam.experience.tileComplete").font(.caption).foregroundStyle(.secondary)
                 }
-                if let error = pager.error { RoamExperienceIssue(error: error) { Task { await loadTiles() } } }
-                if loading { ProgressView("roam.loading") }
-                if !loading && pager.hasMore {
-                    Button(pager.loaded ? "roam.experience.loadMore" : "roam.experience.readTiles") { Task { await loadTiles() } }
+                if let error = pager.error {
+                    if CollectionReadAccess(error) == .denied {
+                        Label("roam.w208.entry.denied", systemImage: "lock")
+                            .accessibilityIdentifier("roam.experience.tiles.denied")
+                    } else { RoamExperienceIssue(error: error, retry: read) }
+                }
+                if presentation.loading { ProgressView("roam.loading") }
+                if !presentation.loading && pager.hasMore {
+                    Button(pager.loaded ? "roam.experience.loadMore" : "roam.experience.readTiles", action: read)
                         .disabled(reader.identity == nil || !reader.isConfigured)
                         .accessibilityIdentifier("roam.experience.tiles.load")
                 }
                 if reader.identity == nil { Text("roam.signInRequired") }
                 else if !reader.isConfigured { Text("roam.notConfigured") }
+                } else { ProgressView("roam.loading") }
             }
-            Section { Text("roam.experience.tileReadOnly").font(.caption).foregroundStyle(.secondary) }
         }.navigationTitle(showsLiveUnavailable ? "roam.experience.live" : "roam.experience.tileMemory")
-            .refreshable { revision += 1; loading = false; pager.reset(); await loadTiles() }
-            .onDisappear { revision += 1; loading = false; pager.cancelPending() }
+            .refreshable { await refresh() }
+            .onAppear { presentation.appear(foreground: scenePhase == .active) }
+            .onChange(of: scenePhase) { _, phase in presentation.setForeground(phase == .active) }
+            .onDisappear { presentation.disappear() }
             .accessibilityIdentifier(showsLiveUnavailable ? "roam.experience.live" : "roam.experience.tileMemory")
-    }
-    private func loadTiles() async {
-        guard !loading else { return }
-        revision += 1; let ticket = revision
-        loading = true
-        await pager.loadNext()
-        if revision == ticket { loading = false; revision += 1 }
     }
 }

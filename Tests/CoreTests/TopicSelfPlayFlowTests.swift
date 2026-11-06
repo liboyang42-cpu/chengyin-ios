@@ -38,6 +38,34 @@ import FoundationNetworking
         let result = try XCTUnwrap(flow.result); await result.reconcile()
         XCTAssertEqual(result.phase, .accepted); flow.closeResult(result.phase); XCTAssertEqual(flow.phase, .complete)
     }
+    func testZeroPricePendingNeverRequestsPaymentAndKeepsOriginalReceipt() async throws {
+        let client = try Client(), journal = Journal(), provider = Provider()
+        client.orderValue = try Self.order(payment: 0, registration: 1, amount: 0)
+        client.suppliedParameters = ["synthetic": "must-not-be-used"]
+        let flow = TopicSelfPlayFlow(topic: try Self.topic(), client: client, provider: provider, journal: journal)
+        await flow.open(); fill(flow); XCTAssertTrue(flow.prepare())
+        await flow.confirm(try XCTUnwrap(flow.review))
+        XCTAssertEqual(client.calls, ["fresh", "consent", "create", "read"])
+        XCTAssertTrue(provider.registrationIDs.isEmpty); XCTAssertEqual(flow.phase, .verifying)
+        let retained = try XCTUnwrap(journal.value)
+        XCTAssertEqual(retained.registrationID, 701); XCTAssertNotEqual(retained.paymentAttempted, true)
+        let result = try XCTUnwrap(flow.result); await result.reconcile()
+        XCTAssertNotEqual(result.phase, .accepted); XCTAssertNotEqual(result.phase, .paid)
+        flow.closeResult(result.phase); XCTAssertEqual(flow.phase, .unknown)
+        XCTAssertEqual(journal.value, retained); XCTAssertFalse(flow.canCreate)
+        flow.leave(); await flow.open(); client.calls.removeAll()
+        await flow.prepareExistingPayment()
+        XCTAssertEqual(client.calls, ["read"]); XCTAssertNil(flow.paymentReview)
+        XCTAssertEqual(flow.phase, .verifying); XCTAssertEqual(journal.value, retained)
+        XCTAssertTrue(provider.registrationIDs.isEmpty)
+    }
+    func testZeroPriceStillRequiresExplicitConsent() async throws {
+        let client = try Client(), journal = Journal()
+        let flow = TopicSelfPlayFlow(topic: try Self.topic(), client: client, journal: journal)
+        await flow.open(); fill(flow); flow.consented = false
+        XCTAssertFalse(flow.prepare()); XCTAssertNil(flow.review)
+        XCTAssertTrue(client.calls.isEmpty); XCTAssertNil(journal.value)
+    }
     func testUnknownCreateCannotReplayAfterReopen() async throws {
         let client = try Client(); client.failCreate = true
         let journal = Journal(), flow = TopicSelfPlayFlow(topic: try Self.topic(), client: client, journal: journal)

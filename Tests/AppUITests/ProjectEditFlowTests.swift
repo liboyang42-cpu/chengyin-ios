@@ -147,7 +147,7 @@ final class ProjectEditFlowTests: XCTestCase {
         let app = launch(["--project-edit-disabled"])
         XCTAssertTrue(app.buttons["projectEdit.review"].waitForExistence(timeout: 5)); app.buttons["projectEdit.review"].tap()
         XCTAssertFalse(app.buttons["projectEdit.confirmSimulation"].exists)
-        XCTAssertTrue(app.staticTexts["Publishing is not connected. You can edit and save a local draft; nothing will be sent."].exists)
+        XCTAssertTrue(app.staticTexts["Publishing isn't available right now. You can still edit and save a draft on this device; nothing will be sent."].exists)
     }
     func testBlankDraftShowsValidationRatherThanFalseSuccess() {
         let app = launch(["--project-edit-blank"])

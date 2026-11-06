@@ -4,7 +4,7 @@ import Observation
 import FoundationNetworking
 #endif
 
-/// I11 / BK-EXISTING: POST api/roam/stamp/received is the current account's paginated read of
+/// POST api/roam/stamp/received is the current account's paginated read of
 /// stamps already obtained through an exchange. It returns the album's anonymous RoamStampListVO
 /// page shape. This grant is independent of the album grant and never authorizes the exchange write.
 @MainActor @Observable public final class RoamReceivedStampReadAccess {
@@ -64,6 +64,9 @@ public struct RoamReceivedStampService {
         guard let header = try? JSONDecoder().decode(Status.self, from: data) else { throw APIError.malformedResponse }
         if header.code == 401 { throw APIError.unauthorized }
         guard header.code == 200 else { throw APIError.businessCode(header.code) }
+        // Reuse the original strict list/total/page-echo validator in direct service calls too.
+        guard let route = RoamReceivedStampReadRoute(request: request, baseURL: deployment) else { throw APIError.invalidRequest }
+        try route.validateResponse((data, status))
         guard let value = try? JSONDecoder().decode(Envelope.self, from: data).data,
               value.pageNum == page, value.pageSize == pageSize,
               Set(value.list.map(\.id)).count == value.list.count else { throw APIError.malformedResponse }
@@ -78,6 +81,10 @@ public struct RoamReceivedStampService {
     private let viewerRevision: () -> UInt64
     private let selectAccess: (RuntimeDependencyContext) -> RoamReceivedStampReadAccess?
     private let onUnauthorized: (RuntimeDependencyContext) -> Void
+    private var observedContext: RuntimeDependencyContext?
+    private var observedViewer: UInt64?
+    private var observedAccess: UUID?
+    private var stamp = UUID()
     public init(service: RoamReceivedStampService?, current: @escaping () -> RuntimeDependencyContext?,
                 viewerRevision: @escaping () -> UInt64,
                 access: @escaping (RuntimeDependencyContext) -> RoamReceivedStampReadAccess?,
@@ -90,24 +97,37 @@ public struct RoamReceivedStampService {
             deployment: context.baseURL, accountID: context.session.accountID, namespace: context.session.namespace) else { return nil }
         return .init(scope: scope, epoch: context.session.epoch)
     }
-    public var isConfigured: Bool { current().flatMap { select($0) } != nil }
+    public var isConfigured: Bool { synchronize() != nil }
+    public var scope: UUID { _ = synchronize(); return stamp }
     public var isOfflineExample: Bool { false }
     private func select(_ context: RuntimeDependencyContext) -> RoamReceivedStampReadAccess? {
         guard let service, service.deployment.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
               let access = selectAccess(context), access.matches(context) else { return nil }
         return access
     }
+    private func synchronize() -> RoamReceivedStampReadAccess? {
+        let context = current(), viewer = viewerRevision()
+        let selected = context.flatMap { select($0) }
+        let same: Bool
+        if let context, let old = observedContext { same = ContentDraftContextFence.matches(old, context) }
+        else { same = context == nil && observedContext == nil }
+        if !same || viewer != observedViewer || selected?.revision != observedAccess {
+            observedContext = context; observedViewer = viewer; observedAccess = selected?.revision; stamp = UUID()
+        }
+        return selected
+    }
     public func album(page: Int, pageSize: Int) async throws -> RoamAlbumPage {
         guard RoamReceivedStampReadRoute.valid(page: page, pageSize: pageSize) else { throw APIError.invalidRequest }
         try Task.checkCancellation()
         guard let context = current() else { throw APIError.unauthorized }
-        guard let selected = select(context), let service else { throw APIError.notConfigured }
-        let capturedViewer = viewerRevision()
+        guard let selected = synchronize(), let service else { throw APIError.notConfigured }
+        let capturedViewer = viewerRevision(), capturedScope = stamp
         func valid() -> Bool {
             guard !Task.isCancelled, let fresh = current(), ContentDraftContextFence.matches(context, fresh),
                   viewerRevision() == capturedViewer else { return false }
-            return select(fresh) === selected
+            return synchronize() === selected && stamp == capturedScope
         }
+        guard valid() else { throw CancellationError() }
         do {
             let result = try await service.page(page: page, pageSize: pageSize, token: context.session.token)
             guard valid() else { throw CancellationError() }

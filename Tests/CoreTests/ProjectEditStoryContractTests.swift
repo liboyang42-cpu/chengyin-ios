@@ -182,7 +182,7 @@ private final class StoryContractTransport: HTTPTransport {
         requests.append(request)
         if request.url?.path == "/api/publish/home" || request.url?.path == "/api/topic/edit-detail" { afterRead?() }
         guard !replies.isEmpty else { throw URLError(.networkConnectionLost) }
-        return (Data(replies.removeFirst().utf8), 200)
+        return (try projectOriginalTestReceipt(request, legacy: Data(replies.removeFirst().utf8)), 200)
     }
 }
 @MainActor final class ProjectEditStoryDispatchTests: XCTestCase {
@@ -206,11 +206,11 @@ private final class StoryContractTransport: HTTPTransport {
     func testUnknownV2CannotReplayEvenWhenGrantOrRouteVersionChanges() async throws {
         let s = try session(), c = try ProjectEditCredentials(session: s, token: "token"), t = StoryContractTransport([capability]), store = ProjectEditLocalStore(storage: ProjectEditMemoryStorage()), op = try operation(s)
         try store.savePending(op, session: s)
-        let first = try service(s, t, store, paths: ["api/topic/v2/create"], credentials: { c })
+        let first = try service(s, t, store, paths: ["api/topic/v2/create", ProjectEditRequestContract.submitPath], credentials: { c })
         let result = await first.submit(op, session: s); XCTAssertEqual(result, .unknown)
         let recreated = try service(s, t, store, paths: ["api/topic/create"], credentials: { c })
         let second = await recreated.submit(op, session: s); XCTAssertEqual(second, .unknown)
-        XCTAssertEqual(t.requests.map { $0.url!.path }, ["/api/publish/home", "/api/topic/v2/create"])
+        XCTAssertEqual(t.requests.map { $0.url!.path }, ["/api/publish/home", "/api/topic/edit-requests/submit"])
         XCTAssertEqual(try store.pending(session: s, identity: op.identity)?.dispatchStarted, true)
     }
     func testInvalidSchemaPreventsMarkerAndMutationAfterFreshAuthorityRead() async throws {
@@ -220,7 +220,7 @@ private final class StoryContractTransport: HTTPTransport {
         chapter["schemaVersion"] = .number(99); chapters[0] = .object(chapter); payload["chapters"] = .array(chapters)
         let op = try ProjectEditPending(operationID: UUID(), ownerKey: s.ownerKey, identity: .init(), payload: payload)
         try store.savePending(op, session: s)
-        let adapter = try service(s, t, store, paths: ["api/topic/v2/create"], credentials: { c })
+        let adapter = try service(s, t, store, paths: ["api/topic/v2/create", ProjectEditRequestContract.submitPath], credentials: { c })
         let result = await adapter.submit(op, session: s)
         XCTAssertEqual(result, .notSent); XCTAssertEqual(t.requests.count, 1)
         XCTAssertNotEqual(try store.pending(session: s, identity: op.identity)?.dispatchStarted, true)
@@ -231,7 +231,7 @@ private final class StoryContractTransport: HTTPTransport {
         let baseline = try ProjectEditContract.decodeEditDetail(Data(json.utf8), expectedTopicID: 71, owner: .personal)
         let op = try ProjectEditPending(operationID: UUID(), ownerKey: s.ownerKey, identity: .init(topicID: 71), payload: ProjectEditContract.payload(baseline.draft, topicID: 71, scope: .whitelist), baseline: baseline)
         try store.savePending(op, session: s)
-        let adapter = try service(s, t, store, paths: ["api/topic/v2/update"], credentials: { c })
+        let adapter = try service(s, t, store, paths: ["api/topic/v2/update", ProjectEditRequestContract.submitPath], credentials: { c })
         let result = await adapter.submit(op, session: s)
         XCTAssertEqual(result, .notSent); XCTAssertEqual(t.requests.map { $0.url!.path }, ["/api/topic/edit-detail"])
         XCTAssertNotEqual(try store.pending(session: s, identity: op.identity)?.dispatchStarted, true)
@@ -240,7 +240,7 @@ private final class StoryContractTransport: HTTPTransport {
         let s = try session(), t = StoryContractTransport([capability]), store = ProjectEditLocalStore(storage: ProjectEditMemoryStorage()), op = try operation(s)
         var c: ProjectEditCredentials? = try .init(session: s, token: "token"); try store.savePending(op, session: s)
         t.afterRead = { c = nil }
-        let adapter = try service(s, t, store, paths: ["api/topic/v2/create"], credentials: { c })
+        let adapter = try service(s, t, store, paths: ["api/topic/v2/create", ProjectEditRequestContract.submitPath], credentials: { c })
         let result = await adapter.submit(op, session: s)
         XCTAssertEqual(result, .notSent); XCTAssertEqual(t.requests.count, 1)
         XCTAssertNotEqual(try store.pending(session: s, identity: op.identity)?.dispatchStarted, true)

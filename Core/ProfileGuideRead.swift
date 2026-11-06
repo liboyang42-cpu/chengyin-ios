@@ -49,7 +49,8 @@ public enum ProfileGuideReadRoute: Equatable {
                     enum CodingKeys: String, CodingKey { case data }
                     init(from decoder: Decoder) throws {
                         let c = try decoder.container(keyedBy: CodingKeys.self)
-                        data = try c.decode(SocialValue.self, forKey: .data)
+                        // c6 AjaxResult success(null) omits data for an absent detail row.
+                        data = c.contains(.data) ? try c.decode(SocialValue.self, forKey: .data) : .null
                     }
                 }
                 let data = try JSONDecoder().decode(Envelope.self, from: response.0).data

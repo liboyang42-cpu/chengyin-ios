@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose one photo, review its crop, explicitly upload it, then append its reference to this album. Existing captions and photo order stay unchanged."
+            "value": "Choose a photo, crop it, upload it, then add it to this album."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "选择一张照片并确认裁剪，明确上传后，再将照片引用追加到这个相册。已有说明和照片顺序保持不变。"
+            "value": "选择照片并裁剪，上传后添加到这个相册。"
           }
         }
       }
@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photo append is unavailable for this album or account. It needs a current editable album with fewer than six well-formed photo entries, or an exact saved receipt awaiting completion. Existing values are retained."
+            "value": "You can't add photos to this album right now. Albums hold up to six photos."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前相册或账号暂不能追加照片。需要当前可编辑、照片条目完整且不足六张的相册，或等待完成的精确已存回执。已有内容会保留。"
+            "value": "暂时无法向此相册添加照片，相册最多六张。"
           }
         }
       }
@@ -54,13 +54,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Upload one selected photo using this account’s existing image upload permission. Then explicitly append its returned reference to the captured album. Local draft saving and receipt saving are separate steps; this does not publish the story."
+            "value": "Upload the photo, then add it to the album."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "使用此账号现有的图片上传权限上传一张所选照片，然后明确将返回的引用追加到刚才的相册。本地草稿保存和回执保存是分别进行的步骤；这不会发布故事。"
+            "value": "上传照片后添加到相册。"
           }
         }
       }

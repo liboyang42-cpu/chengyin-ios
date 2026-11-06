@@ -21,7 +21,7 @@ final class RoamSubpageParityFlowTests: XCTestCase {
         XCTAssertTrue(element("roamSub.w208.history.tool.recap", app).exists)
         XCTAssertTrue(revealFixtureElement(element("roamSub.w208.history.runCard", app), in: app, requiresHittable: false))
         element("roamSub.w208.history.tool.export", app).tap()
-        XCTAssertTrue(element("roamSub.w208.history.exportUnavailable", app).waitForExistence(timeout: 5))
+        XCTAssertTrue(element("roam.export.screen", app).waitForExistence(timeout: 5))
     }
 
     func testSharedFootprintReadyGoneErrorAndUnavailable() {
@@ -52,9 +52,8 @@ final class RoamSubpageParityFlowTests: XCTestCase {
         XCTAssertTrue(element("roamSub.w208.voucher.disabled", app).waitForExistence(timeout: 5), "No approved factory: no code request")
         app.terminate()
         app = launch("poiLive")
-        XCTAssertTrue(app.buttons["roamSub.w208.poi.primary"].waitForExistence(timeout: 5))
-        XCTAssertEqual(app.buttons["roamSub.w208.poi.primary"].label, "开始互动")
-        XCTAssertFalse(app.buttons["roamSub.w208.poi.primary"].isEnabled)
+        XCTAssertTrue(element("roamSub.w208.poi.node", app).waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["roamSub.w208.poi.primary"].exists, "An interaction that cannot start is hidden, not disabled")
     }
 
     func testPOIUnavailableAndMissingHaveNoRetry() {
@@ -70,7 +69,7 @@ final class RoamSubpageParityFlowTests: XCTestCase {
 
     func testVoucherMissingParameterOffersOnlyBack() {
         let app = launch("voucherMissing")
-        XCTAssertTrue(app.staticTexts["这个核销码打不开"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["这个核销码无法打开"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["roamSub.w208.voucher.back"].exists)
         XCTAssertFalse(app.buttons["verificationCode.show"].exists)
     }

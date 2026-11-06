@@ -6,6 +6,7 @@ import UIKit
 @MainActor struct SettingsSupportSections: View {
     let market: RegionalMarket?
     let complianceCoordinator: AccountComplianceCoordinator?
+    let showsNPCChatDataEntry: Bool
     let soundStore: any SettingsSoundStoring
     let legalReader: any SettingsLegalReading
     let appInformation: SettingsAppInformation
@@ -13,7 +14,9 @@ import UIKit
     init(market: RegionalMarket?, complianceCoordinator: AccountComplianceCoordinator? = nil, soundStore: (any SettingsSoundStoring)? = nil,
          legalReader: (any SettingsLegalReading)? = nil,
          appInformation: SettingsAppInformation = .current(),
-         copyText: @escaping (String) throws -> Void = { UIPasteboard.general.string = $0 }) {
+         copyText: @escaping (String) throws -> Void = { UIPasteboard.general.string = $0 },
+         showsNPCChatDataEntry: Bool = true) {
+        self.showsNPCChatDataEntry = showsNPCChatDataEntry
         self.complianceCoordinator = complianceCoordinator
         self.market = market; self.soundStore = soundStore ?? SettingsLocalSoundStore()
         self.legalReader = legalReader ?? SettingsBundledLegalReader()
@@ -25,10 +28,6 @@ import UIKit
                 SettingsSoundPreferencesView(store: soundStore)
             } label: { Label("settingsNative.sound.title", systemImage: "speaker.wave.2") }
             .accessibilityIdentifier("settingsNative.openSound")
-            NavigationLink {
-                SettingsAboutView(market: market, appInformation: appInformation, legalReader: legalReader, copyText: copyText)
-            } label: { Label("settingsNative.about.title", systemImage: "info.circle") }
-            .accessibilityIdentifier("settingsNative.openAbout")
         }
         Section("settingsNative.legal.title") {
             ForEach(SettingsLegalType.allCases) { type in
@@ -39,7 +38,7 @@ import UIKit
             }
         }
         if let complianceCoordinator {
-            AccountComplianceSettingsSection(makeCoordinator: { complianceCoordinator }, market: market, legalReader: legalReader)
+            AccountComplianceSettingsSection(makeCoordinator: { complianceCoordinator }, market: market, legalReader: legalReader, showsNPCChatDataEntry: showsNPCChatDataEntry)
         } else {
         Section("settingsNative.privacy.title") {
             ForEach(SettingsUnavailableFeature.allCases) { feature in
@@ -50,7 +49,13 @@ import UIKit
             }
         }
         }
-        SettingsAttributionsSection(copyText: copyText)
+        // Mini-program pages/shezhi ends its list with 关于, after the agreement and deregister rows.
+        Section {
+            NavigationLink {
+                SettingsAboutView(market: market, appInformation: appInformation, legalReader: legalReader, copyText: copyText)
+            } label: { Label("settingsNative.about.title", systemImage: "info.circle") }
+            .accessibilityIdentifier("settingsNative.openAbout")
+        }
     }
 }
 
@@ -79,7 +84,6 @@ import UIKit
                         soundToggle(key, preferences: preferences)
                     }
                 }
-                Section { Text("settingsNative.sound.localOnly").font(.footnote).foregroundStyle(.secondary) }
             } else if model.state.isBusy {
                 ProgressView("settingsNative.loading").accessibilityIdentifier("settingsNative.sound.loading")
             }
@@ -146,7 +150,6 @@ import UIKit
     let copyText: (String) throws -> Void
     var body: some View {
         Section("settingsNative.attribution.title") {
-            Text("settingsNative.attribution.context").font(.footnote).foregroundStyle(.secondary)
             ForEach(SettingsSourceAttribution.all) { attribution in
                 VStack(alignment: .leading, spacing: 8) {
                     // Keep the row anchor on this leaf. A container identifier can

@@ -81,7 +81,7 @@ deposits|Unresolved deposits|未结保证金
 settlements|Unresolved settlements|未结结算
 noJoinedClubs|Join a club to see its updates|加入俱乐部后可查看动态
 empty|No records in this view|此视图暂无记录
-deliveryPending|A campaign receipt does not mean every message was delivered|任务回执不代表每条通知均已送达
+deliveryPending|Sent does not mean every message was delivered|已发送不代表每条通知均已送达
 yes|Yes|是
 no|No|否
 unknownValue|Not provided or not visible|未提供或无查看权限

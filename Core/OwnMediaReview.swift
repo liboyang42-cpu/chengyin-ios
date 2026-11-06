@@ -108,20 +108,35 @@ public enum OwnMediaReadRoute {
 }
 
 /// A bounded, independently supplied read lease. Signing in never creates one.
+/// Revoke the prior instance before removing or replacing its selector result.
 @available(macOS 14.0, *)
 @MainActor @Observable public final class OwnMediaReadApproval {
     public let context: RuntimeDependencyContext
     public let expiresAt: Date
+    /// Separate explicit approval; existing leases remain list-only.
+    public let allowsStatus: Bool
     public let revision = UUID()
     public private(set) var isRevoked = false
-    public init(context: RuntimeDependencyContext, expiresAt: Date) throws {
+    @ObservationIgnored private var expiryTask: Task<Void, Never>?
+    public init(context: RuntimeDependencyContext, expiresAt: Date, allowsStatus: Bool = false) throws {
         let duration = expiresAt.timeIntervalSinceNow
         guard context.market == .china, context.session.accountID > 0,
               AuthRequestBuilder.isValidToken(context.session.token),
               duration.isFinite, duration > 0, duration <= 86_400 else { throw APIError.invalidConfiguration }
-        self.context = context; self.expiresAt = expiresAt
+        self.context = context; self.expiresAt = expiresAt; self.allowsStatus = allowsStatus
+        // Publish expiry even when the private list is idle. The bounded sleep
+        // never extends a lease when the wall clock moves backwards.
+        expiryTask = Task { @MainActor [weak self] in
+            let remaining = max(0, min(duration, expiresAt.timeIntervalSinceNow))
+            do {
+                if remaining > 0 { try await Task.sleep(nanoseconds: UInt64(remaining * 1_000_000_000)) }
+                try Task.checkCancellation()
+            } catch { return }
+            self?.revoke()
+        }
     }
-    public func revoke() { isRevoked = true }
+    deinit { expiryTask?.cancel() }
+    public func revoke() { isRevoked = true; expiryTask?.cancel(); expiryTask = nil }
     public func matches(_ current: RuntimeDependencyContext, now: Date = Date()) -> Bool {
         !isRevoked && now < expiresAt && ContentDraftContextFence.matches(context, current)
     }
@@ -132,6 +147,9 @@ public struct OwnMediaService {
     private let transport: any HTTPTransport
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {
         self.configuration = configuration; self.transport = transport
+    }
+    public func status(id: Int64, token: String) async throws -> OwnMediaStatus {
+        try await OwnMediaStatusService(configuration: configuration, transport: transport).status(id: id, token: token)
     }
     public func page(before cursor: Int64?, token: String) async throws -> OwnMediaPage {
         let request = try OwnMediaReadRoute.request(baseURL: configuration.baseURL, before: cursor, token: token)
@@ -150,13 +168,16 @@ public struct OwnMediaSession: Equatable {
     public let accountID: Int
     public let epoch: UInt64
     public let approval: UUID?
+    public let statusApproved: Bool
     let token: String
-    public init(accountID: Int, epoch: UInt64, token: String, approval: UUID?) throws {
+    public init(accountID: Int, epoch: UInt64, token: String, approval: UUID?, statusApproved: Bool = false) throws {
         guard accountID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         self.accountID = accountID; self.epoch = epoch; self.token = token; self.approval = approval
+        self.statusApproved = approval != nil && statusApproved
     }
     public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.accountID == rhs.accountID && lhs.epoch == rhs.epoch && lhs.approval == rhs.approval &&
+            lhs.statusApproved == rhs.statusApproved &&
             lhs.token.utf8.elementsEqual(rhs.token.utf8)
     }
 }
@@ -168,7 +189,7 @@ public struct OwnMediaSession: Equatable {
     func page(before cursor: Int64?) async throws -> OwnMediaPage
 }
 
-@MainActor public final class OwnMediaSessionReader: OwnMediaReading {
+@MainActor public final class OwnMediaSessionReader: OwnMediaStatusReading {
     private let service: OwnMediaService?
     private let currentSession: () -> OwnMediaSession?
     private let onUnauthorized: (OwnMediaSession) -> Void
@@ -181,10 +202,25 @@ public struct OwnMediaSession: Equatable {
     }
     public var isSignedIn: Bool { currentSession() != nil }
     public var isAvailable: Bool { service != nil && currentSession()?.approval != nil }
+    public var isStatusAvailable: Bool { isAvailable && currentSession()?.statusApproved == true }
     public init(service: OwnMediaService?, currentSession: @escaping () -> OwnMediaSession?,
                 onUnauthorized: @escaping (OwnMediaSession) -> Void = { _ in }) {
         self.service = service; self.currentSession = currentSession; self.onUnauthorized = onUnauthorized
         snapshot = currentSession()
+    }
+    public func status(id: Int64) async throws -> OwnMediaStatus {
+        try Task.checkCancellation()
+        guard let captured = currentSession() else { throw APIError.unauthorized }
+        guard captured.approval != nil, captured.statusApproved, let service else { throw APIError.notConfigured }
+        do {
+            let value = try await service.status(id: id, token: captured.token)
+            guard !Task.isCancelled, currentSession() == captured else { throw CancellationError() }
+            return value
+        } catch {
+            guard !Task.isCancelled, currentSession() == captured else { throw CancellationError() }
+            if error as? APIError == .unauthorized { onUnauthorized(captured) }
+            throw error
+        }
     }
     public func page(before cursor: Int64?) async throws -> OwnMediaPage {
         try Task.checkCancellation()

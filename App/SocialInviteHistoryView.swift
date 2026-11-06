@@ -16,14 +16,15 @@ import SwiftUI
             if reader.identity.accountID == nil { ProfileInviteHistoryIssueView(error: APIError.unauthorized) }
             else if !reader.isConfigured { SocialIssueView(error: APIError.notConfigured) }
             else if !model.matches(reader) { ProgressView("social.loading") }
+            else if model.accessDenied, let error = model.error {
+                ProfileInviteHistoryIssueView(error: error)
+            }
             else {
                 if let error = model.error { ProfileInviteHistoryIssueView(error: error) { model.start(reader, permit: permit, reset: model.pagination.members.isEmpty) } }
                 Section {
                     ProfileInviteHistorySummaryLine(total: model.pagination.total)
                     SocialOptionalCount(title: "social.invites.total", count: model.pagination.total)
-                    LabeledContent("social.invites.loaded", value: String(model.pagination.members.count))
                     if model.scan?.isComplete != true { Text("social.invites.partial").font(.footnote).accessibilityIdentifier("social.invites.partial") }
-                    Text("profile.inviteTimeline.zoneHint").font(.caption).foregroundStyle(.secondary)
                 }
                 ProfileInviteRewardReviewSection(review: .init(scan: model.scan), isLoading: model.loading) {
                     model.start(reader, permit: permit, reset: true)
@@ -88,6 +89,11 @@ import SwiftUI
     @Published private(set) var scan: SocialRewardScan?
     @Published private(set) var loading = false
     @Published private(set) var error: Error?
+    var accessDenied: Bool {
+        guard let error else { return false }
+        let kind = ProfileInviteHistoryIssueKind(error)
+        return kind == .signIn || kind == .denied
+    }
     @Published private var presentation: LoadPermit?
     @Published private var loadedBinding: ReaderBinding?
     private var boundReader: ReaderBinding?
@@ -190,7 +196,8 @@ import SwiftUI
         } catch is CancellationError { }
         catch {
             guard !Task.isCancelled, owns(reader, permit: permit, request: request) else { return }
-            if error as? APIError == .unauthorized { pagination = SocialInvitePagination(); scan = nil }
+            let kind = ProfileInviteHistoryIssueKind(error)
+            if kind == .signIn || kind == .denied { pagination = SocialInvitePagination(); scan = nil }
             self.error = error
         }
     }

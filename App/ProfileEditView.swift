@@ -113,6 +113,23 @@ final class ProfileEditModel: ObservableObject {
             || (draft.removesCasePictures && ProfileCasePortfolio(casePics: snapshot.casePics).imageCount > 0)
             || draft.casePictureSubset?.hasChanges == true
     }
+    /// Saved-image access only. Existing draft/save/clear logic remains unchanged.
+    var savedAvatarReadSnapshot: ProfileEditSnapshot? {
+        guard canBeginTextEdit else { return nil }
+        return coordinator.currentAvatarReadSnapshot
+    }
+    func currentMediaReadSnapshot(for value: ProfileTextFieldEdit) -> ProfileEditSnapshot? {
+        guard textEdit?.id == value.id, value.field == .casePictures || value.field == .contactQR,
+              avatarActive, !exitCommitted, !busy, !coordinator.isBusy, !coordinator.isLocked,
+              confirmation == nil, coordinator.confirmation == nil, reloadConfirmation == nil,
+              exitConfirmation == nil, !avatarPresentationActive, preferencePicker == nil,
+              coordinator.identity == value.identity, coordinator.viewerRevision == value.viewerRevision,
+              generation == value.generation, revision == value.modelRevision,
+              avatarDraftRevision == value.draftRevision, Self.sameDraft(draft, value.draft),
+              let snapshot = coordinator.currentAvatarReadSnapshot,
+              ProfileSavedMediaExact.snapshot(snapshot) == ProfileSavedMediaExact.snapshot(value.snapshot) else { return nil }
+        return snapshot
+    }
     /// This is local scratch editing, never an independent server save.
     var canBeginTextEdit: Bool {
         avatarActive && !exitCommitted && !busy && !coordinator.isBusy && !coordinator.isLocked
@@ -500,18 +517,26 @@ struct ProfileEditView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
     @StateObject private var model: ProfileEditModel
+    @StateObject private var currentReviewNotice: ProfileCurrentReviewNoticeOwner
+    let nicknameReader: (any ProfileNicknameAvailabilityReading)?
+    let currentReviewReader: ProfileCurrentReviewReader?
     let sessionRevision: UInt64
     let categoryReader: (any DiscoveryReading)?
     let avatarDependencies: ProfileAvatarDependencies?
     let caseImageReader: (any RetainedPublicImageReading)?
+    let savedMedia: ProfileSavedMediaReaders?
     private let onSaved: (() -> Void)?
     @State private var showReloadConfirmation = false
     @State private var showExitConfirmation = false
     private var selectedPreferences: [Int] {
         model.draft.routePreferenceIDs ?? (model.coordinator.snapshot?.tagIds ?? "").split(separator: ",").compactMap { Int($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
     }
-    init(coordinator: ProfileEditCoordinator, sessionRevision: UInt64, categoryReader: (any DiscoveryReading)? = nil, avatarDependencies: ProfileAvatarDependencies? = nil, caseImageReader: (any RetainedPublicImageReading)? = nil, onSaved: (() -> Void)? = nil) {
+    init(coordinator: ProfileEditCoordinator, sessionRevision: UInt64, categoryReader: (any DiscoveryReading)? = nil, avatarDependencies: ProfileAvatarDependencies? = nil, caseImageReader: (any RetainedPublicImageReading)? = nil, currentReviewReader: ProfileCurrentReviewReader? = nil, nicknameReader: (any ProfileNicknameAvailabilityReading)? = nil, savedMedia: ProfileSavedMediaReaders? = nil, onSaved: (() -> Void)? = nil) {
         _model = StateObject(wrappedValue: ProfileEditModel(coordinator: coordinator))
+        _currentReviewNotice = StateObject(wrappedValue: ProfileCurrentReviewNoticeOwner())
+        self.currentReviewReader = currentReviewReader
+        self.nicknameReader = nicknameReader
+        self.savedMedia = savedMedia
         self.onSaved = onSaved
         self.sessionRevision = sessionRevision; self.categoryReader = categoryReader; self.avatarDependencies = avatarDependencies; self.caseImageReader = caseImageReader
     }
@@ -523,6 +548,15 @@ struct ProfileEditView: View {
                 Text("profile.edit.unavailable")
             } else {
                 if model.coordinator.snapshot != nil {
+                    // Mini-program pages/gerenziliao order: avatar, nickname + introduction, phone, works, contact QR, route preferences.
+                    ProfileCurrentAvatarView(model: model, reader: savedMedia?.avatar)
+                    ProfileAvatarDraftSection(model: model, dependencies: avatarDependencies)
+                    ProfileCurrentReviewNotice(model: model, reader: currentReviewReader, owner: currentReviewNotice)
+                    Section {
+                        textFieldRow(.name, value: model.draft.name)
+                        textFieldRow(.introduction, value: model.draft.introduction)
+                    } header: { Text("profile.edit.details") }
+                        .disabled(!model.canBeginTextEdit)
                     if let phone = model.coordinator.phoneDisplay {
                         Section {
                             LabeledContent("profile.phone.title") {
@@ -532,14 +566,8 @@ struct ProfileEditView: View {
                                 case .unavailable: Text("profile.phone.unavailable")
                                 }
                             }.privacySensitive().accessibilityIdentifier("profile.phone.value")
-                            Text("profile.phone.readOnly").font(.footnote).foregroundStyle(.secondary)
                         }
                     }
-                    Section {
-                        textFieldRow(.name, value: model.draft.name)
-                        textFieldRow(.introduction, value: model.draft.introduction)
-                    } header: { Text("profile.edit.details") }
-                        .disabled(!model.canBeginTextEdit)
                     Section("profile.case.title") {
                         textFieldRow(.caseIntroduction, value: model.draft.caseIntroduction ?? model.coordinator.snapshot?.caseIntroduction ?? "")
                             .disabled(!model.canBeginTextEdit)
@@ -554,7 +582,6 @@ struct ProfileEditView: View {
                     ProfileContactQRSection(wechat: model.coordinator.snapshot?.wechat ?? "", removes: model.draft.removesContactQR) {
                         model.beginTextEdit(.contactQR)
                     }.disabled(!model.canBeginTextEdit)
-                    ProfileAvatarDraftSection(model: model, dependencies: avatarDependencies)
                     Section("context.preferences.title") {
                         LabeledContent("context.preferences.selected", value: String(selectedPreferences.count))
                         Button("profile.preferenceRemoval.open") { model.beginTextEdit(.preferences) }
@@ -563,10 +590,6 @@ struct ProfileEditView: View {
                         Button("context.preferences.edit") { model.beginPreferencePicker(reader: categoryReader) }
                             .disabled(!model.canBeginTextEdit).accessibilityIdentifier("profile.edit.preferences")
                     }
-                    Button { Task { await model.prepare() } } label: { Text("profile.edit.review") }
-                        .disabled(model.busy || model.coordinator.isLocked || !model.draft.isValid
-                                  || model.textEdit != nil || !(model.coordinator.snapshot.map { model.draft.hasChanges(comparedTo: $0) } ?? false))
-                        .accessibilityIdentifier("profile.edit.review")
                 }
                 if let key = model.coordinator.messageKey {
                     Text(LocalizedStringKey(key)).accessibilityIdentifier("profile.edit.status")
@@ -581,6 +604,14 @@ struct ProfileEditView: View {
     }
     private var editorNavigation: some View {
         editorForm
+        .questifyBottomAction {
+            if model.coordinator.identity != nil, model.coordinator.isConfigured, model.coordinator.snapshot != nil {
+                            Button { Task { await model.prepare() } } label: { Text("profile.edit.review") }
+                                .disabled(model.busy || model.coordinator.isLocked || !model.draft.isValid
+                                          || model.textEdit != nil || !(model.coordinator.snapshot.map { model.draft.hasChanges(comparedTo: $0) } ?? false))
+                                .accessibilityIdentifier("profile.edit.review")
+            }
+        }
         .background(ProfileAvatarOwnerAnchor(model: model).frame(width: 0, height: 0))
         .appNavigationTitle("profile.edit.title")
         .navigationBarBackButtonHidden(true)
@@ -623,10 +654,11 @@ struct ProfileEditView: View {
         .onChange(of: scenePhase) { _, phase in
             if phase != .active { model.retireReload(); model.suspendForBackground() } else { model.activateAvatar() }
         }
+        .modifier(ProfileCurrentReviewNoticeLifecycle(model: model, reader: currentReviewReader, owner: currentReviewNotice))
         .task(id: sessionRevision) { model.retirePreferencePicker(); await model.resetAndLoad() }
         .background {
             if let edit = model.textEdit {
-                ProfileTextEditPresentationOwner(model: model, edit: edit, caseImageReader: caseImageReader)
+                ProfileTextEditPresentationOwner(model: model, edit: edit, caseImageReader: caseImageReader, nicknameReader: nicknameReader, savedMedia: savedMedia)
                     .id(edit.id)
             }
         }
@@ -709,17 +741,21 @@ struct ProfileEditView: View {
     @ObservedObject var model: ProfileEditModel
     let edit: ProfileTextFieldEdit
     let caseImageReader: (any RetainedPublicImageReading)?
+    let nicknameReader: (any ProfileNicknameAvailabilityReading)?
+    let savedMedia: ProfileSavedMediaReaders?
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
             .sheet(item: model.textEditPresentation(for: edit), onDismiss: { model.cancelTextEdit(edit) }) { value in
             NavigationStack {
                 if value.field == .contactQR {
                     ProfileContactQREditor(edit: value, reader: caseImageReader,
+                        savedPreview: { AnyView(ProfileCurrentMediaPreview(model: model, edit: value, kind: .contactQR, reader: savedMedia?.contactQR)) },
                         cancel: { model.cancelTextEdit(value) },
                         confirm: { _ = model.confirmContactQR(value, remove: $0) })
                         .id(value.id)
                 } else if value.field == .casePictures {
                     ProfileCasePictureRemovalEditor(edit: value, reader: caseImageReader,
+                        savedPreview: { AnyView(ProfileCurrentMediaPreview(model: model, edit: value, kind: .caseImage, reader: savedMedia?.work)) },
                         cancel: { model.cancelTextEdit(value) },
                         confirm: { _ = model.confirmCasePictureRemoval(value, remove: $0) },
                         confirmSubset: { _ = model.confirmCasePictureSubset(value, retainedIndices: $0) })
@@ -730,7 +766,7 @@ struct ProfileEditView: View {
                         confirm: { _ = model.confirmPreferenceRemoval(value, selectedIDs: $0) })
                         .id(value.id)
                 } else {
-                    ProfileTextFieldEditor(edit: value, caseImageReader: caseImageReader,
+                    ProfileTextFieldEditor(edit: value, caseImageReader: caseImageReader, nicknameReader: value.field == .name ? nicknameReader : nil,
                         cancel: { model.cancelTextEdit(value) },
                         confirm: { _ = model.confirmTextEdit(value, text: $0) })
                         .id(value.id)

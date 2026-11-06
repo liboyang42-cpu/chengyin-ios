@@ -1,4 +1,38 @@
 import SwiftUI
+import Observation
+
+/// Opt-in, payload-free UI-test evidence. No UUIDs, account data, or server values are emitted.
+@MainActor @Observable final class ProfileFavoriteRemovalLifecycleDiagnostics {
+    let enabled: Bool
+    private(set) var events: [String] = []
+    init() {
+        #if DEBUG
+        enabled = ProcessInfo.processInfo.arguments.contains("--uitesting-profile-favorite-removal-lifecycle")
+        #else
+        enabled = false
+        #endif
+    }
+    func record(_ event: String, scene: ScenePhase, presentation: ProfileFavoriteRemovalPresentation?,
+                controller: ProfileFavoriteRemovalController) {
+        guard enabled else { return }
+        let identity = presentation.map { controller.presentationID == $0.id ? "same" : "different" } ?? "none"
+        let finished = presentation?.isFinished == true
+        events.append("\(event):scene=\(scene);identity=\(identity);finished=\(finished);phase=\(controller.phase)")
+        // Keep evidence even if SwiftUI retires the row and its state during presentation.
+        if let latest = events.last { print("PROFILE_FAVORITE_LIFECYCLE \(latest)") }
+        if events.count > 16 { events.removeFirst(events.count - 16) }
+    }
+    var value: String { events.joined(separator: " | ") }
+}
+
+private struct ProfileFavoriteRemovalLifecycleEvidence: ViewModifier {
+    let diagnostics: ProfileFavoriteRemovalLifecycleDiagnostics?
+    func body(content: Content) -> some View {
+        if let diagnostics, diagnostics.enabled {
+            content.accessibilityValue(Text(verbatim: diagnostics.value))
+        } else { content }
+    }
+}
 
 /// One completion token is shared by the entry and sheet. Done, Close, swipe,
 /// background and parent disappearance cannot deliver twice or retire a successor.
@@ -27,24 +61,49 @@ import SwiftUI
     let isCurrent: () -> Bool
     let onRemoved: () async -> Void
     @State private var presentation: ProfileFavoriteRemovalPresentation?
+    @State private var lifecycle = ProfileFavoriteRemovalLifecycleDiagnostics()
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         Group {
             if isCurrent(), controller.isAvailable(post: post, collectionScope: scope) {
                 Button("profile.favoriteRemoval.open", role: .destructive) {
-                    guard scenePhase == .active, isCurrent(), let id = controller.begin(post: post, collectionScope: scope) else { return }
+                    lifecycle.record("entry.tap", scene: scenePhase, presentation: presentation, controller: controller)
+                    guard scenePhase == .active else {
+                        lifecycle.record("entry.rejectedScene", scene: scenePhase, presentation: presentation, controller: controller)
+                        return
+                    }
+                    guard isCurrent() else {
+                        lifecycle.record("entry.rejectedCurrent", scene: scenePhase, presentation: presentation, controller: controller)
+                        return
+                    }
+                    guard let id = controller.begin(post: post, collectionScope: scope) else {
+                        lifecycle.record("entry.rejectedBegin", scene: scenePhase, presentation: presentation, controller: controller)
+                        return
+                    }
                     presentation = .init(id: id, postID: post.id, scope: scope)
+                    lifecycle.record("entry.opened", scene: scenePhase, presentation: presentation, controller: controller)
                 }.disabled(controller.isBusy)
                     .accessibilityIdentifier("profile.favoriteRemoval.open.\(post.id)")
+                    .modifier(ProfileFavoriteRemovalLifecycleEvidence(diagnostics: lifecycle))
             }
         }
         .sheet(item: $presentation) { value in
             ProfileFavoriteRemovalSheet(presentation: value, contents: post.contents, controller: controller,
-                isCurrent: isCurrent, onRemoved: onRemoved)
+                isCurrent: isCurrent, onRemoved: onRemoved, diagnostics: lifecycle)
         }
-        .onChange(of: scope) { _, _ in close() }
-        .onChange(of: scenePhase) { _, value in if value != .active { close() } }
-        .onDisappear { close() }
+        .onAppear { lifecycle.record("entryHost.appeared", scene: scenePhase, presentation: presentation, controller: controller) }
+        .onChange(of: scope) { _, _ in
+            lifecycle.record("entryHost.scopeChanged", scene: scenePhase, presentation: presentation, controller: controller)
+            close()
+        }
+        .onChange(of: scenePhase) { _, value in
+            lifecycle.record("entryHost.sceneChanged", scene: value, presentation: presentation, controller: controller)
+            if value != .active { close() }
+        }
+        .onDisappear {
+            lifecycle.record("entryHost.disappeared", scene: scenePhase, presentation: presentation, controller: controller)
+            close()
+        }
     }
     private func close() {
         presentation?.finish(controller: controller, isCurrent: isCurrent, onRemoved: onRemoved)
@@ -60,6 +119,7 @@ import SwiftUI
     let isCurrent: () -> Bool
     let onRemoved: () async -> Void
     @State private var presentation: ProfileFavoriteRemovalPresentation?
+    @State private var lifecycle = ProfileFavoriteRemovalLifecycleDiagnostics()
     @State private var readRevision = 0
     @Environment(\.scenePhase) private var scenePhase
     private var availability: ProfileFavoriteRemovalController.RecoveryAvailability {
@@ -101,11 +161,21 @@ import SwiftUI
         }
         .sheet(item: $presentation) { value in
             ProfileFavoriteRemovalSheet(presentation: value, controller: controller,
-                isCurrent: isCurrent, onRemoved: onRemoved)
+                isCurrent: isCurrent, onRemoved: onRemoved, diagnostics: lifecycle)
         }
-        .onChange(of: scope) { _, _ in close() }
-        .onChange(of: scenePhase) { _, value in if value != .active { close() } }
-        .onDisappear { close() }
+        .onAppear { lifecycle.record("recoveryHost.appeared", scene: scenePhase, presentation: presentation, controller: controller) }
+        .onChange(of: scope) { _, _ in
+            lifecycle.record("recoveryHost.scopeChanged", scene: scenePhase, presentation: presentation, controller: controller)
+            close()
+        }
+        .onChange(of: scenePhase) { _, value in
+            lifecycle.record("recoveryHost.sceneChanged", scene: value, presentation: presentation, controller: controller)
+            if value != .active { close() }
+        }
+        .onDisappear {
+            lifecycle.record("recoveryHost.disappeared", scene: scenePhase, presentation: presentation, controller: controller)
+            close()
+        }
     }
     private func close() {
         presentation?.finish(controller: controller, isCurrent: isCurrent, onRemoved: onRemoved)
@@ -119,6 +189,7 @@ import SwiftUI
     let controller: ProfileFavoriteRemovalController
     let isCurrent: () -> Bool
     let onRemoved: () async -> Void
+    var diagnostics: ProfileFavoriteRemovalLifecycleDiagnostics? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     private var current: Bool {
@@ -166,14 +237,28 @@ import SwiftUI
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button("action.close") { close() }.accessibilityIdentifier("profile.favoriteRemoval.close")
             } }
+            .modifier(ProfileFavoriteRemovalLifecycleEvidence(diagnostics: diagnostics))
             .task(id: presentation.id) {
-                guard scenePhase == .active, current else { return }
+                diagnostics?.record("sheet.prepareEntered", scene: scenePhase, presentation: presentation, controller: controller)
+                guard scenePhase == .active else {
+                    diagnostics?.record("sheet.prepareRejectedScene", scene: scenePhase, presentation: presentation, controller: controller)
+                    return
+                }
+                guard current else {
+                    diagnostics?.record("sheet.prepareRejectedCurrent", scene: scenePhase, presentation: presentation, controller: controller)
+                    return
+                }
                 await controller.prepare(presentation.id)
+                diagnostics?.record("sheet.prepareReturned", scene: scenePhase, presentation: presentation, controller: controller)
             }
-            .onDisappear { finish() }
+            .onDisappear {
+                diagnostics?.record("sheet.disappeared", scene: scenePhase, presentation: presentation, controller: controller)
+                finish()
+            }
         }
     }
     private func finish() {
+        diagnostics?.record("sheet.finish", scene: scenePhase, presentation: presentation, controller: controller)
         presentation.finish(controller: controller, isCurrent: isCurrent, onRemoved: onRemoved)
     }
     private func close() { finish(); dismiss() }

@@ -150,13 +150,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Update rejected. Your draft is retained."
+            "value": "This couldn't be completed. Reload and check."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "更新被拒绝，草稿已保留。"
+            "value": "操作未成功，请重新加载并核对。"
           }
         }
       }
@@ -198,13 +198,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Readback is independent evidence, not a receipt. Matching content does not unlock or resend this request."
+            "value": "This shows what's currently saved; it doesn't confirm your update. Matching content won't unlock or resend this request."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "读回仅提供独立信息，并非更新回执。内容相同也不会解锁或重发请求。"
+            "value": "这里显示的是当前已保存的内容，不代表你的修改已生效。内容相同也不会解锁或重发请求。"
           }
         }
       }
@@ -214,13 +214,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unavailable or invalid input. Your current draft is retained."
+            "value": "Choosing or uploading a cover photo isn't available right now. You can keep editing the draft."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂不可用或输入无效，当前草稿已保留。"
+            "value": "封面选图和上传暂不可用，仍可继续编辑草稿。"
           }
         }
       }
@@ -230,13 +230,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current activity differs from your source. Keep your draft or explicitly use the latest readback."
+            "value": "This activity was changed elsewhere. Keep your draft or switch to the latest version."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前活动与原稿已不同。可保留草稿，或显式使用最新读回。"
+            "value": "该活动已在别处修改。可保留你的草稿，或改用最新版本。"
           }
         }
       }
@@ -246,13 +246,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Latest readback is shown separately. Your draft has not been replaced."
+            "value": "The latest saved version is shown separately. Your draft hasn't been replaced."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "最新读回单独显示，草稿未被替换。"
+            "value": "最新保存的版本单独显示，草稿未被替换。"
           }
         }
       }
@@ -358,13 +358,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Discard local edits and use this readback"
+            "value": "Discard my edits and use this version"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "放弃本地修改并使用此读回"
+            "value": "放弃我的修改并使用此版本"
           }
         }
       }
@@ -374,13 +374,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Latest independent readback"
+            "value": "Latest saved version"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "最新独立读回"
+            "value": "最新保存的版本"
           }
         }
       }

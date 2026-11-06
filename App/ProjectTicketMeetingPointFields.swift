@@ -156,19 +156,31 @@ struct ProjectTicketMeetingPointHostIdentity: Hashable {
 
 /// Both the editor and immutable confirmation use the same source-aware projection.
 struct ProjectTicketMeetingPointSummary: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let ticket: ProjectEditTicket
     var body: some View {
         let value = ProjectTicketMeetingPoint(ticket: ticket)
         Group {
-            LabeledContent("projectEdit.meetingPoint", value: value.name)
-            LabeledContent("projectTicketMeetingPoint.address", value: value.address)
+            summaryRow("projectEdit.meetingPoint", value: value.name)
+            summaryRow("projectTicketMeetingPoint.address", value: value.address, expanded: true)
             if !value.longitude.isEmpty || !value.latitude.isEmpty {
-                LabeledContent("projectEdit.longitude", value: value.longitude)
-                LabeledContent("projectEdit.latitude", value: value.latitude)
+                summaryRow("projectEdit.longitude", value: value.longitude)
+                summaryRow("projectEdit.latitude", value: value.latitude)
                 Text("projectTicketMeetingPoint.datum").font(.footnote).foregroundStyle(.secondary)
             }
             if !ProjectTicketMeetingPoint.supportsEditing(ticket) { Text("projectTicketMeetingPoint.unsupported").font(.footnote) }
             else if !value.hasValidCoordinates { Text("projectTicketMeetingPoint.invalidCoordinates").font(.footnote) }
         }.accessibilityIdentifier("projectTicketMeetingPoint.summary")
+    }
+    @ViewBuilder private func summaryRow(_ title: LocalizedStringKey, value: String, expanded: Bool = false) -> some View {
+        if expanded || dynamicTypeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(title).font(.subheadline).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: value).fixedSize(horizontal: false, vertical: true)
+            }.accessibilityElement(children: .combine)
+        } else {
+            LabeledContent(title, value: value)
+        }
     }
 }

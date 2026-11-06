@@ -41,8 +41,8 @@
   },
   {
     "key": "club.action.unavailable",
-    "en": "Membership actions are not configured.",
-    "zh-Hans": "成员操作尚未配置。"
+    "en": "Membership actions aren't available right now.",
+    "zh-Hans": "成员操作暂不可用"
   },
   {
     "key": "club.action.owner",

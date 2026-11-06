@@ -1,16 +1,26 @@
 import Foundation
+import Observation
 
 /// Reuses the existing detail service, scoped to one explicit current saved-post selection.
-@MainActor public final class ProfileFavoriteDetailReader: SquareReading {
+@MainActor @Observable public final class ProfileFavoriteDetailReader: SquareReading {
     public let selection: ProfileFavoritePostSelection
     private let service: SquareService?
     private let current: () -> RuntimeDependencyContext?
     private let viewerRevision: () -> UInt64
     private let selectAccess: (RuntimeDependencyContext) -> ProfileFavoriteDetailAccess?
     private let onUnauthorized: (RuntimeDependencyContext) -> Void
-    private var pendingDetail: (id: UUID, task: Task<SquarePost, Error>)?
+    // These existing read-state fields must invalidate the mounted detail entry even
+    // when its guard returns before reading the observable selection/access.
+    private var pendingDetail: (id: UUID, access: UUID, task: Task<SquarePost, Error>)?
+    private var latestDetailRead: UUID?
     private var confirmedAccess: UUID?
-    public let scope = UUID()
+    private let unavailableScope = UUID()
+    /// The original detail view already keys its loaded projection and read task by
+    /// this scope. A current access replacement must invalidate both post and comments,
+    /// even when the account, selection and configured Boolean remain unchanged.
+    /// Reading the selector/revocation here also participates in Swift Observation;
+    /// a supplied replacement selector must publish changes (or revoke its old access).
+    public var scope: UUID { activeAccess()?.revision ?? unavailableScope }
     public init(selection: ProfileFavoritePostSelection, service: SquareService?,
                 current: @escaping () -> RuntimeDependencyContext?, viewerRevision: @escaping () -> UInt64,
                 access: @escaping (RuntimeDependencyContext) -> ProfileFavoriteDetailAccess?,
@@ -21,7 +31,15 @@ import Foundation
     public var isConfigured: Bool { activeAccess() != nil && service != nil }
     public var isSignedIn: Bool { current() != nil }
     public var isOfflineExample: Bool { false }
-    public func retire() { selection.retire(); pendingDetail?.task.cancel(); pendingDetail = nil; confirmedAccess = nil }
+    /// True only while the CURRENT detail access is the exact revision that confirmed this
+    /// selection's detail read. Revocation, revision replacement, account/viewer change,
+    /// a later failed or in-flight re-read, or a retired selection all make it false.
+    public var confirmsCurrentDetail: Bool {
+        guard pendingDetail == nil, let access = activeAccess(), let confirmedAccess,
+              confirmedAccess == access.revision else { return false }
+        return selection.permitsComments(access: access)
+    }
+    public func retire() { selection.retire(); pendingDetail?.task.cancel(); pendingDetail = nil; latestDetailRead = nil; confirmedAccess = nil }
     private func activeAccess() -> ProfileFavoriteDetailAccess? {
         guard selection.isCurrent, let context = current(),
               ContentDraftContextFence.matches(selection.context, context), viewerRevision() == selection.viewerRevision,
@@ -55,28 +73,38 @@ import Foundation
         try Task.checkCancellation()
         guard let capturedAccess = activeAccess() else { throw APIError.notConfigured }
         let started: (id: UUID, task: Task<SquarePost, Error>)
-        if let pendingDetail { started = pendingDetail }
-        else {
+        if let pendingDetail, pendingDetail.access == capturedAccess.revision {
+            started = (pendingDetail.id, pendingDetail.task)
+        } else {
+            // Coalesce only reads made under the same approval. B must not join A's
+            // suspended task or wait for an uncooperative retired transport to finish.
+            pendingDetail?.task.cancel()
             confirmedAccess = nil; selection.beginDetailRead()
             let id = UUID()
+            latestDetailRead = id
             let task = Task { @MainActor [self] in
-                guard let access = activeAccess() else { throw APIError.notConfigured }
+                guard activeAccess() === capturedAccess, latestDetailRead == id else { throw CancellationError() }
                 let post = try await read { try await $0.detail(route: selection.route, token: $1) }
-                guard activeAccess() === access, post.id == selection.route.id, post.generation == selection.route.generation else { throw CancellationError() }
-                selection.confirmDetailRead(access: access)
-                confirmedAccess = access.revision
+                guard activeAccess() === capturedAccess, latestDetailRead == id,
+                      post.id == selection.route.id, post.generation == selection.route.generation else { throw CancellationError() }
+                selection.confirmDetailRead(access: capturedAccess)
+                confirmedAccess = capturedAccess.revision
                 return post
             }
-            started = (id, task); pendingDetail = started
+            started = (id, task); pendingDetail = (id, capturedAccess.revision, task)
         }
         do {
             let post = try await started.task.value
             try Task.checkCancellation()
-            guard activeAccess() === capturedAccess else { throw CancellationError() }
+            guard activeAccess() === capturedAccess, latestDetailRead == started.id else { throw CancellationError() }
             if pendingDetail?.id == started.id { pendingDetail = nil }
             return post
         } catch {
-            if pendingDetail?.id == started.id { pendingDetail = nil }
+            // Keep the latest attempt identity after completion as well: a retired A
+            // may fail after B completed and cleared pendingDetail. It must not erase B.
+            if latestDetailRead == started.id {
+                pendingDetail = nil; confirmedAccess = nil; selection.beginDetailRead()
+            }
             throw error
         }
     }

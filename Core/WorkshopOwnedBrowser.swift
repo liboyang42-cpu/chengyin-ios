@@ -60,7 +60,9 @@ import Observation
         } catch {
             guard action.isLive, current(), listGeneration == ticket else { return }
             guard !Task.isCancelled else { closeList(); return }
-            issue = (error as? WorkshopOwnedIssue) ?? .unavailable
+            let failure = (error as? WorkshopOwnedIssue) ?? .unavailable
+            if failure == .unauthorized { invalidate(); issue = failure; return }
+            issue = failure
             phase = issue == .disabled || issue == .notFound ? .notEnabled : .failed
         }
     }
@@ -90,7 +92,11 @@ import Observation
         } catch {
             guard action.isLive, current(), detailGeneration == ticket else { return }
             guard !Task.isCancelled else { closeDetail(); return }
-            detailIssue = (error as? WorkshopOwnedIssue) ?? .unavailable; detailLoading = false
+            let failure = (error as? WorkshopOwnedIssue) ?? .unavailable
+            if failure == .unauthorized {
+                invalidate(); issue = failure; detailIssue = failure; return
+            }
+            detailIssue = failure; detailLoading = false
         }
     }
     public func closeDetail() {

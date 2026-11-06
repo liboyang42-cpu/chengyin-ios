@@ -31,6 +31,8 @@ public struct WorkshopPaidInstalledTextApproval {
     }
 }
 @MainActor public protocol WorkshopPaidInstalledTextReading {
+    /// Local permission check only. An installed receipt is not continuing protected-body authority.
+    func validateReadPermission() throws
     func detail(_ reference: WorkshopPaidInstalledTextReference, lifetime: WorkshopPaidInstalledTextLifetime) async throws -> WorkshopPaidInstalledText
 }
 @MainActor public final class WorkshopPaidInstalledTextService: WorkshopPaidInstalledTextReading {
@@ -46,12 +48,18 @@ public struct WorkshopPaidInstalledTextApproval {
         self.api = api; self.transport = transport; self.lease = lease; self.approval = approval
         self.currentApproval = currentApproval; self.now = now; self.onUnauthorized = onUnauthorized
     }
-    private func check(_ lifetime: WorkshopPaidInstalledTextLifetime) throws {
-        try lifetime.check(); guard lease.isCurrent else { throw WorkshopPaidInstalledTextIssue.staleSession }
+    /// Reuses both complete captured/current grants, including expiry and canonical context.
+    /// This never refreshes a license, performs HTTP, or changes the original installation journal.
+    public func validateReadPermission() throws {
+        guard lease.isCurrent else { throw WorkshopPaidInstalledTextIssue.staleSession }
+        let instant = now()
         guard let approval, let current = currentApproval(), current.revision == approval.revision,
-              current.matches(lease.context, now: now()), approval.matches(lease.context, now: now()),
+              current.matches(lease.context, now: instant), approval.matches(lease.context, now: instant),
               WorkshopPaidInstallWire.same(api.baseURL.absoluteString, lease.context.baseURL.absoluteString) else { throw WorkshopPaidInstalledTextIssue.disabled }
-        guard lease.isCurrent else { throw WorkshopPaidInstalledTextIssue.staleSession }; try lifetime.check()
+        guard lease.isCurrent else { throw WorkshopPaidInstalledTextIssue.staleSession }
+    }
+    private func check(_ lifetime: WorkshopPaidInstalledTextLifetime) throws {
+        try lifetime.check(); try validateReadPermission(); try lifetime.check()
     }
     public func detail(_ reference: WorkshopPaidInstalledTextReference, lifetime: WorkshopPaidInstalledTextLifetime) async throws -> WorkshopPaidInstalledText {
         try check(lifetime)

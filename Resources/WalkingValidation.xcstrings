@@ -1,0 +1,230 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "version": "1.0",
+  "strings": {
+    "walkingValidation.ttl": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "授权时长须为1至300秒的整数，不接受前导零或空白。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authority duration must be an integer from 1 to 300 seconds, without leading zeros or whitespace."
+          }
+        }
+      }
+    },
+    "walkingValidation.nodeIdentity": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "节点须来自当前已保存目录且不重复，最多2000项；请核对原目录。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nodes must be unique entries from the current saved directory, at most 2,000. Check the original directory."
+          }
+        }
+      }
+    },
+    "walkingValidation.region": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地区须为两个大写英文字母；不会根据坐标推断。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Region must be two uppercase English letters. It is not inferred from coordinates."
+          }
+        }
+      }
+    },
+    "walkingValidation.label": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写入口名称，最多300个UTF-16单位，不含空字符。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter an entrance name, at most 300 UTF-16 units, with no null character."
+          }
+        }
+      }
+    },
+    "walkingValidation.source": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请明确填写入口来源，最多1000个UTF-16单位，不含空字符。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the entrance source explicitly, at most 1,000 UTF-16 units, with no null character."
+          }
+        }
+      }
+    },
+    "walkingValidation.floor": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "楼层最多100个UTF-16单位，不能含空字符。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Floor allows at most 100 UTF-16 units and no null character."
+          }
+        }
+      }
+    },
+    "walkingValidation.approach": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "抵达说明最多2000个UTF-16单位，不能含空字符。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approach notes allow at most 2,000 UTF-16 units and no null character."
+          }
+        }
+      }
+    },
+    "walkingValidation.alternative": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无障碍替代说明最多2000个UTF-16单位，不能含空字符。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accessible alternatives allow at most 2,000 UTF-16 units and no null character."
+          }
+        }
+      }
+    },
+    "walkingValidation.businessTime": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "营业时间最多1000个UTF-16单位，不能含空字符。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Business hours allow at most 1,000 UTF-16 units and no null character."
+          }
+        }
+      }
+    },
+    "walkingValidation.longitude": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写有效经度（−180至180），不自动获取或换算。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a valid longitude from −180 to 180. It is not fetched or converted automatically."
+          }
+        }
+      }
+    },
+    "walkingValidation.latitude": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写有效纬度（−90至90），不自动获取或换算。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a valid latitude from −90 to 90. It is not fetched or converted automatically."
+          }
+        }
+      }
+    },
+    "walkingValidation.datum": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请明确选择原坐标系WGS84、GCJ02或BD09。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explicitly select the original coordinate system: WGS84, GCJ02 or BD09."
+          }
+        }
+      }
+    },
+    "walkingValidation.closed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请明确入口是否暂时关闭，不代填默认值。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explicitly state whether the entrance is temporarily closed. No default is supplied."
+          }
+        }
+      }
+    },
+    "walkingValidation.originalContract": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原草稿、配置版本或整体大小未通过原保存检查，请核对；未写入修改。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original draft, configuration version or total size failed the original save check. Review it; no changes were written."
+          }
+        }
+      }
+    }
+  }
+}

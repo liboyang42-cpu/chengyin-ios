@@ -29,7 +29,7 @@ public struct RoamOfficialTaskTarget: Hashable {
     public let snapshotID: UUID
 }
 
-/// P005 delegated official task scene: two existing GET contracts form one owned snapshot.
+/// Official task scene: two existing GET contracts form one owned snapshot.
 /// No participation, publishing, arrival, GPS, cache-write or generic Activity route capability.
 @MainActor public final class RoamOfficialTasksModel {
     private let roam: any RoamExperienceReading
@@ -41,7 +41,18 @@ public struct RoamOfficialTaskTarget: Hashable {
     private var visible = false
     public private(set) var isLoading = false
     public var onChange: (() -> Void)?
-    public init(roam: any RoamExperienceReading, official: any OfficialEventReading) { self.roam = roam; self.official = official }
+    private var officialObservation: OfficialReadInvalidationSubscription?
+    public init(roam: any RoamExperienceReading, official: any OfficialEventReading) {
+        self.roam = roam; self.official = official
+        officialObservation = official.invalidationSignal?.observe { [weak self] in
+            guard let self else { return }
+            // Keep view visibility; remove the retired two-list snapshot and stop
+            // its pending generation before notifying the existing presentation.
+            self.generation &+= 1; self.isLoading = false; self.stored = nil
+            self.loadedOwner = self.owner; self.storedError = OfficialReadInvalidationFailure.sourceChanged
+            self.onChange?()
+        }
+    }
     public var owner: RoamOfficialTasksOwner { .init(roam: roam, official: official) }
     public var snapshot: RoamOfficialTasksSnapshot? { loadedOwner == owner ? stored : nil }
     public var error: Error? { loadedOwner == owner ? storedError : nil }

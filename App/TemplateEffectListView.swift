@@ -97,7 +97,6 @@ import Combine
     var body: some View {
         Form {
             Section {
-                Text("templateEffects.scope").font(.caption)
                 if editor.needsReopen { Text("templateEffects.reopen").accessibilityIdentifier("creator.effects.reopen") }
             }
             ForEach(editor.rows) { row in
@@ -117,7 +116,6 @@ import Combine
                             TextField("creator.field.var", text: editor.input(row.id, .variable))
                                 .textInputAutocapitalization(.never).autocorrectionDisabled()
                                 .accessibilityIdentifier("creator.effects.variable.\(row.id)")
-                            Text("templateEffects.variableHint").font(.caption).foregroundStyle(.secondary)
                         }
                         TextField(LocalizedStringKey(row.operation == "ADD_TAG" ? "creator.field.tagValue" : "creator.field.value"), text: editor.input(row.id, .value))
                             .textInputAutocapitalization(.never).autocorrectionDisabled()
@@ -143,7 +141,7 @@ import Combine
             if !editor.issues.isEmpty {
                 Section("templateAuthor.validationTitle") {
                     ForEach(editor.issues) { issue in
-                        VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)); Text(verbatim: issue.path).font(.caption) }
+                        VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(.red) }
                     }
                 }
             }

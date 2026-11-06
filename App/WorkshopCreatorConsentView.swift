@@ -33,16 +33,17 @@ import SwiftUI
     let appearance: WorkshopCreatorConsentAppearance
     var pendingDetail: WorkshopCreatorPendingDetail? = nil
     @State private var task: Task<Void, Never>?
+    @State private var isVisible = false
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     private func creatorString(_ key: String) -> String { workshopCreatorLocalized(key, locale: locale) }
     var body: some View {
         List {
             Section {
                 Text(creatorString("workshopCreator.boundary")).foregroundStyle(.secondary)
-                LabeledContent(creatorString("workshopCreator.source"), value: String(controller.sourceTemplateId))
             }
             if controller.phase == .loading || controller.phase == .submitting { ProgressView(creatorString("workshopCreator.loading")) }
-            if let issue = controller.issue { Text(creatorString(issueKey(issue))).accessibilityIdentifier("workshopCreator.issue") }
+            if let issue = controller.issue { Text(creatorString(issueKey(issue))).foregroundStyle(.red).accessibilityIdentifier("workshopCreator.issue") }
             if let pending = controller.pending {
                 Section(creatorString("workshopCreator.request")) { Text(verbatim: pending.requestId).font(.caption).textSelection(.enabled) }
             }
@@ -57,7 +58,6 @@ import SwiftUI
                             }
                         }
                     }
-                    Text(verbatim: preview.packageContentHash).font(.caption).textSelection(.enabled)
                 }
                 if !preview.omittedPlanningMetadata.isEmpty {
                     Section(creatorString("workshopCreator.omitted")) {
@@ -73,9 +73,10 @@ import SwiftUI
                             HStack {
                                 VStack(alignment: .leading) { Text(verbatim: target.moduleId); Text(verbatim: target.versionId).font(.caption) }
                                 Spacer()
-                                if controller.selected?.id == target.id { Image(systemName: "checkmark.circle.fill") }
+                                if controller.selected?.id == target.id { Image(systemName: "checkmark.circle.fill").accessibilityHidden(true) }
                             }
-                        }.disabled(controller.phase != .reviewing).accessibilityIdentifier("workshopCreator.target.\(target.id.uuidString)")
+                        }.accessibilityAddTraits(controller.selected?.id == target.id ? .isSelected : [])
+                        .disabled(controller.phase != .reviewing).accessibilityIdentifier("workshopCreator.target.\(target.id.uuidString)")
                     }
                 }
                 if let target = controller.selected {
@@ -83,7 +84,6 @@ import SwiftUI
                         LabeledContent(creatorString("workshopCreator.offerVersion"), value: target.offerVersion)
                         LabeledContent(creatorString("workshopCreator.termsVersion"), value: target.termsVersion)
                         Text(verbatim: target.termsDocument).textSelection(.enabled)
-                        Text(verbatim: target.termsDocumentHash).font(.caption).textSelection(.enabled)
                     }
                     if let detail = pendingDetail {
                         Section(creatorString("workshopPending.choices")) {
@@ -132,12 +132,23 @@ import SwiftUI
             }
         }.navigationTitle(creatorString("workshopCreator.title")).navigationBarTitleDisplayMode(.inline)
             .privacySensitive().accessibilityIdentifier("workshopCreator.review")
-            .onAppear { run(controller.appear(appearance)) }
-            .onDisappear { controller.close(appearance); task?.cancel(); task = nil }
+            .disabled(scenePhase != .active)
+            .onAppear {
+                isVisible = true
+                let action = controller.appear(appearance)
+                if scenePhase == .active { run(action) }
+                else { controller.suspend(appearance) }
+            }
+            .onChange(of: scenePhase) { _, phase in
+                guard isVisible else { return }
+                if phase == .active { run(controller.resume(appearance)) }
+                else { controller.suspend(appearance); task?.cancel(); task = nil }
+            }
+            .onDisappear { isVisible = false; controller.close(appearance); task?.cancel(); task = nil }
     }
     private func limit(_ value: WorkshopCreatorPendingOffer.Limit) -> String { value.unlimited ? "-1" : String(value.maximum) }
     private func run(_ action: WorkshopCreatorConsentController.Action?) {
-        guard let action else { return }; task?.cancel(); task = Task { await action() }
+        guard isVisible, scenePhase == .active, let action else { return }; task?.cancel(); task = Task { await action() }
     }
     private func issueKey(_ issue: WorkshopCreatorConsentIssue) -> String {
         switch issue {

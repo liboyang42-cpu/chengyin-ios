@@ -141,13 +141,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Refresh failed. These are the previously loaded templates, not a new server result."
+          "value": "Refresh failed. Showing the templates loaded earlier."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "刷新失败。下方仍是上次加载的玩法，并非新的服务端结果。"
+          "value": "刷新失败。下方为上次加载的玩法。"
         }
       }
     }
@@ -175,13 +175,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The server returned no templates. Create a template to start authoring."
+          "value": "No templates yet. Create one to get started."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务端暂无玩法，可新建模板开始编辑。"
+          "value": "暂无玩法，可新建模板开始编辑。"
         }
       }
     }

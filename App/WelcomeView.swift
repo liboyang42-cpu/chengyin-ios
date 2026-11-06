@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct WelcomeView: View {
+    @EnvironmentObject private var session: AppSession
     var onBrowse: (() -> Void)? = nil
     private enum Destination: Identifiable {
         case settings, login(RegistrationIntent)
@@ -24,12 +25,14 @@ struct WelcomeView: View {
                     Text("welcome.title")
                         .font(.largeTitle.bold())
                         .accessibilityAddTraits(.isHeader)
-                    Text("welcome.subtitle").foregroundStyle(.secondary)
+                    if let key = WelcomeSessionPresentation.upgradeNoticeKey(errorKey: session.errorKey, accountID: session.account?.id) {
+                        Label(LocalizedStringKey(key), systemImage: "arrow.up.circle")
+                            .accessibilityIdentifier("welcome.upgradeRequired")
+                    }
                     roleButton(.player, title: "role.player", detail: "role.player.detail", symbol: "figure.walk")
                     roleButton(.merchant, title: "role.merchant", detail: "role.merchant.detail", symbol: "storefront")
                     NavigationLink { OwnerDraftGuestView() } label: { Label("ownerDraft.title", systemImage: "doc.on.doc") }
                         .accessibilityIdentifier("ownerDraft.guestEntry")
-                    Text("welcome.intentNotice").font(.footnote).foregroundStyle(.secondary)
                     if let onBrowse {
                         Button("welcome.browse", action:onBrowse)
                             .accessibilityIdentifier("welcome.browse")
@@ -61,16 +64,19 @@ struct WelcomeView: View {
         Button { destination = .login(role) } label: {
             HStack(alignment: .top, spacing: 16) {
                 Image(systemName: symbol).font(.title2).accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(title).font(.headline)
-                    Text(detail).font(.subheadline)
-                }
+                // Title only: ui-spec allows no subtitle captions under rows.
+                Text(title).font(.headline)
+                    .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 0)
+                Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary).accessibilityHidden(true)
             }
+            .foregroundStyle(.primary)
             .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
-            .padding(8)
+            .questifyCardSurface()
         }
-        .buttonStyle(.borderedProminent)
+        // Two equal choices, so neither takes the screen's single primary style.
+        .buttonStyle(QuestifyCardButtonStyle())
         .accessibilityIdentifier("welcome.\(role.rawValue)")
     }
 }

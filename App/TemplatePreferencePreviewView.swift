@@ -5,7 +5,6 @@ struct TemplatePreferencePreviewView: View {
     let raw: String
     var body: some View {
         if let preview = try? TemplatePreferencePreview(raw: raw) {
-            Text("templateAuthor.preference.partial").font(.caption).foregroundStyle(.secondary)
             ForEach(preview.dimensions.indices, id: \.self) { index in Text(verbatim: preview.dimensions[index]) }
             ForEach(preview.results) { result in
                 VStack(alignment: .leading) {

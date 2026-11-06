@@ -22,13 +22,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Nearby search and its location provider are not enabled in this build."
+          "value": "Nearby search isn't available right now."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "当前版本尚未启用附近商家查询和定位服务。"
+          "value": "附近商家查询暂不可用"
         }
       }
     }

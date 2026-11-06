@@ -85,10 +85,8 @@ import UIKit
     @ObservedObject var model: ProfileEditModel
     let dependencies: ProfileAvatarDependencies?
     var body: some View {
+        // No avatar editor without its picker dependencies: hide the row rather than show a placeholder.
         if let dependencies { ProfileAvatarEnabledSection(model: model, dependencies: dependencies) }
-        else {
-            Section("profile.avatar.title") { Text("profile.avatar.unavailable").font(.footnote).foregroundStyle(.secondary) }
-        }
     }
 }
 @MainActor private struct ProfileAvatarEnabledSection: View {
@@ -118,7 +116,6 @@ import UIKit
                 Button("profile.avatar.select") { guard scenePhase == .active else { return }; presentation.open() }
                     .disabled(!presentation.canOpen || model.busy || model.coordinator.isLocked || scenePhase != .active)
                     .accessibilityIdentifier("profile.avatar.select")
-                Text("profile.avatar.hint").font(.footnote).foregroundStyle(.secondary)
             }
         }
         .confirmationDialog("profile.avatar.discardTitle", isPresented: Binding(get: { discardID != nil }, set: { if !$0 { discardID = nil } }), presenting: discardID) { id in

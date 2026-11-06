@@ -602,13 +602,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This service has not been configured"
+            "value": "This feature isn't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此服务尚未配置"
+            "value": "此功能暂不可用"
           }
         }
       }
@@ -653,13 +653,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server response is incomplete. Refresh to check again"
+            "value": "Some information is missing. Refresh to check again"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端回执不完整，请刷新重查"
+            "value": "部分信息缺失，请刷新重试"
           }
         }
       }
@@ -704,13 +704,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The result is unconfirmed. Do not submit again; check the original record"
+            "value": "We couldn’t confirm the result. Don’t submit again; check the record first."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "结果尚未确认，请勿重复提交，请核查原记录"
+            "value": "暂时无法确认结果。请勿重复提交，先查看原记录。"
           }
         }
       }
@@ -755,13 +755,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server rejected this request"
+            "value": "This request couldn't be completed"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端拒绝了此请求"
+            "value": "请求未能完成"
           }
         }
       }
@@ -976,13 +976,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Host submission requires an approved identity-registration flow. Identity documents are not collected here"
+            "value": "Host submission isn't available right now. ID documents aren't collected here."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "主理人提交需要已批准的实名登记流程，此处不采集证件号码"
+            "value": "主理人提交暂不可用，此处不采集证件号码。"
           }
         }
       }
@@ -993,13 +993,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Financial actions require separate exact-action approval. These records do not prove funds have settled"
+            "value": "Financial actions need separate authorization. These records don't mean funds have been settled."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "资金操作需要单独的具体操作授权。这些记录不代表资金已结清"
+            "value": "资金操作需单独授权。这些记录不代表资金已结清。"
           }
         }
       }
@@ -1010,13 +1010,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reported hours and evidence require platform review. No confirmation or reconciliation endpoint is available in the source"
+            "value": "Reported hours and evidence are reviewed by Questify. Confirmation and reconciliation aren't available here yet."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "自报工时与证据需要平台审核，源代码未提供确认或对账接口"
+            "value": "自报工时与证明材料需经城瘾平台审核，此处暂不支持确认或对账。"
           }
         }
       }
@@ -1044,13 +1044,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Administrative changes require exact-action approval and current server permissions"
+            "value": "Management changes need authorization and the right permissions."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "管理操作需要具体操作授权及当前服务端权限"
+            "value": "管理操作需要授权及相应权限。"
           }
         }
       }
@@ -1299,13 +1299,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A campaign receipt does not mean every message was delivered"
+            "value": "Sent does not mean every message was delivered"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "任务回执不代表每条通知均已送达"
+            "value": "已发送不代表每条通知均已送达"
           }
         }
       }
@@ -1367,13 +1367,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Local draft and immutable review"
+            "value": "Draft and final review"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本地草稿与固定审核内容"
+            "value": "草稿与最终确认"
           }
         }
       }
@@ -1401,13 +1401,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review exact changes"
+            "value": "Continue"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "审核具体修改"
+            "value": "下一步"
           }
         }
       }
@@ -1418,13 +1418,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm synthetic operation"
+            "value": "Confirm (example)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "确认模拟操作"
+            "value": "确认（示例）"
           }
         }
       }
@@ -1435,13 +1435,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm action"
+            "value": "Confirm"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "确认操作"
+            "value": "确认"
           }
         }
       }
@@ -1452,13 +1452,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Return to editing"
+            "value": "Edit"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "返回编辑"
+            "value": "返回修改"
           }
         }
       }
@@ -1469,13 +1469,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Request acknowledged"
+            "value": "Submitted"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请求已受理"
+            "value": "已提交"
           }
         }
       }
@@ -1486,13 +1486,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The receipt below is the server acknowledgment. Delivery, refunds and settlement are separate results"
+            "value": "Your request has been received. Delivery, refunds and settlement are handled separately"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "以下是服务端受理回执，送达、退款及结算是独立结果"
+            "value": "请求已受理，送达、退款及结算将分别处理"
           }
         }
       }

@@ -72,6 +72,11 @@ public enum RoamRecoveryPhase: Equatable {
             hasMore = result.hasMore; nextPage += 1; loaded = true; total = result.total
         } catch {
             guard !Task.isCancelled, generation == ticket, reader.identity == snapshot else { return }
+            if CollectionReadAccess(error) != nil {
+                // A current login/permission refusal cannot keep private rows or
+                // continue its old page. Explicit refresh starts over at page one.
+                reset(); hasMore = false
+            }
             self.error = error
         }
     }
@@ -152,6 +157,11 @@ public struct RoamCityStampDraft: Equatable {
             guard generation == ticket else { return }
             guard reader.identity == snapshot else { reset(); return }
             guard !Task.isCancelled else { return }
+            if CollectionReadAccess(error) != nil {
+                // A current access refusal cannot retain private exploration memory.
+                // A later explicit refresh starts from the original zero cursor.
+                reset(); hasMore = false
+            }
             self.error = error
         }
     }

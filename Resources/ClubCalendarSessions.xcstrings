@@ -1,0 +1,182 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "strings": {
+    "sessions.title": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "真实场次月历"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monthly sessions"
+          }
+        }
+      }
+    },
+    "sessions.governor": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "治理者视角：包含未发布及已取消场次；状态不表示可报名。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Governance view includes unpublished and cancelled sessions. Status does not establish registration eligibility."
+          }
+        }
+      }
+    },
+    "sessions.public": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公开视角：仅本次权限可见的已发布场次，不代表治理权限。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public view shows published sessions visible to this request. It grants no governance access."
+          }
+        }
+      }
+    },
+    "sessions.truncated": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本月结果已截断，并非完整排期；未显示不表示没有场次。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This month’s results are truncated, not a complete schedule. Missing sessions may still exist."
+          }
+        }
+      }
+    },
+    "sessions.updated": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数据更新时间"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data updated"
+          }
+        }
+      }
+    },
+    "sessions.emptyPartial": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次未返回场次且结果被截断，不能判断本月是否有其他场次。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No sessions were returned and results are truncated. Other sessions may exist."
+          }
+        }
+      }
+    },
+    "sessions.empty": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本月未返回当前可见场次。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No currently visible sessions were returned for this month."
+          }
+        }
+      }
+    },
+    "sessions.unnamed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未命名场次"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unnamed session"
+          }
+        }
+      }
+    },
+    "sessions.state.PUBLISHED": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已发布"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published"
+          }
+        }
+      }
+    },
+    "sessions.state.UNPUBLISHED": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未发布"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unpublished"
+          }
+        }
+      }
+    },
+    "sessions.state.CANCELLED": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已取消"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelled"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

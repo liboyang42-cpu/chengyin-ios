@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Audio playback is not enabled"
+            "value": "Audio playback isn't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "音频播放尚未启用"
+            "value": "音频播放暂不可用"
           }
         }
       }
@@ -278,13 +278,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "External maps are not enabled"
+            "value": "Opening in Maps isn't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "外部地图尚未启用"
+            "value": "外部地图暂不可用"
           }
         }
       }

@@ -16,7 +16,6 @@ import SwiftUI
         let presentation = appearance.permit
         let offeredRequest = request
         return List {
-            if reader.isOfflineExample { Text("accountCollection.offlineExample").font(.caption) }
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
             else {
@@ -32,11 +31,9 @@ import SwiftUI
                     let rows = coupons.filter { filter.includes($0) }
                     if rows.isEmpty {
                         if filter == .all, submittedQuery.isEmpty {
-                            ContentUnavailableView("accountCollection.coupons.empty", systemImage: "ticket",
-                                                   description: Text("accountCollection.coupons.emptyHint"))
+                            ContentUnavailableView("accountCollection.coupons.empty", systemImage: "ticket")
                         } else {
-                            ContentUnavailableView("accountCollection.coupons.filteredEmpty", systemImage: "line.3.horizontal.decrease.circle",
-                                                   description: Text("accountCollection.coupons.filteredEmptyHint"))
+                            ContentUnavailableView("accountCollection.coupons.filteredEmpty", systemImage: "line.3.horizontal.decrease.circle")
                         }
                     }
                     let selections = model.selections(for: offeredRequest, filter: filter)
@@ -46,6 +43,7 @@ import SwiftUI
                             AccountCollectionCouponDetailView(selection: selection, reader: reader).id(selection.id)
                         } label: { AccountCollectionCouponRow(coupon: coupon) }
                         .buttonStyle(QuestifyCardButtonStyle())
+                        .questifyHidesLinkIndicator()
                         .accessibilityIdentifier("accountCollection.coupon.\(coupon.id)")
                         .questifyCardListRow()
                     }
@@ -54,7 +52,7 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         .appNavigationTitle("accountCollection.coupons.title")
-        .searchable(text: $searchText, prompt: Text("accountCollection.coupons.search"))
+        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("accountCollection.coupons.search"))
         .onSubmit(of: .search) { submittedQuery = searchText }
         .onChange(of: searchText) { _, text in
             if text.isEmpty, !submittedQuery.isEmpty { submittedQuery = "" }
@@ -97,12 +95,8 @@ import SwiftUI
 struct AccountCollectionCouponRow: View {
     let coupon: AccountCollectionCoupon
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .top) {
-                AccountCollectionCouponBadge(status: coupon.status)
-                Spacer(minLength: 0)
-                Image(systemName: "ticket").font(.title2).foregroundStyle(QuestifyPalette.accent).accessibilityHidden(true)
-            }
+        VStack(alignment: .leading, spacing: 12) {
+            AccountCollectionCouponBadge(status: coupon.status)
             AccountCollectionTitle(value: coupon.name, fallback: "accountCollection.coupon.untitled")
                 .font(.title3.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
             if let description = coupon.displayDescription, !description.isEmpty {
@@ -114,11 +108,10 @@ struct AccountCollectionCouponRow: View {
                     .accessibilityIdentifier("accountCollection.coupon.futureStart")
                 QuestifyMetadataLine(label: "accountCollection.coupon.validFrom", value: day, systemImage: "calendar.badge.clock")
             }
-            if coupon.status == .invalid {
-                Label("accountCollection.coupon.invalidHint", systemImage: "xmark.circle").font(.footnote)
-            } else if let day = AccountCollectionCoupon.calendarDay(coupon.endTime) {
+            // The pill already says Invalid; an unknown end date is left out rather than spelled out.
+            if coupon.status != .invalid, let day = AccountCollectionCoupon.calendarDay(coupon.endTime) {
                 QuestifyMetadataLine(label: "accountCollection.coupon.validUntil", value: day, systemImage: "calendar")
-            } else { Text("accountCollection.coupon.validityUnknown").font(.footnote).foregroundStyle(.secondary) }
+            }
         }.questifyCardSurface()
     }
 }

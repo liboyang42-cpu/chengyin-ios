@@ -6,13 +6,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ending condition source"
+            "value": "Ending trigger"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "结局条件来源"
+            "value": "结局触发条件"
           }
         }
       }
@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose a defined source"
+            "value": "Choose a trigger"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "选择已有条件来源"
+            "value": "选择触发条件"
           }
         }
       }
@@ -54,13 +54,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only this condition’s reference changes after confirmation. Its operator, other conditions and fallback remain unchanged. Unknown saved values stay intact until you choose a replacement."
+            "value": "Only this condition changes. Other conditions and the fallback stay."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "确认后只改此条件的引用，运算符、其它条件和兜底设置保持不变；未知现存值在明确替换前保留。"
+            "value": "只修改此条件，其他条件和兜底保持不变。"
           }
         }
       }
@@ -70,13 +70,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No unambiguous source is available. Nodes need a unique saved server ID; no ID is invented."
+            "value": "No triggers available. Save your stops first, then try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无可明确定位的来源。站点须有唯一的已保存服务端 ID，不会生成或猜测 ID。"
+            "value": "暂无可选条件，请先保存站点后再试。"
           }
         }
       }
@@ -86,13 +86,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm this source"
+            "value": "Use this trigger"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "确认此来源"
+            "value": "使用此条件"
           }
         }
       }

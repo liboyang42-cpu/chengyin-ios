@@ -2,6 +2,7 @@ import SwiftUI
 
 @MainActor
 struct MerchantOperationsHomeView: View {
+    @Environment(\.cityMerchantOperationsFactory) private var cityMerchantFactory
     let reader: any MerchantOperationsReading
     var destinationFactory: ((MerchantOperationsDestination, MerchantOperationsAccess) -> AnyView)? = nil
     @State private var access: MerchantOperationsAccess?
@@ -9,34 +10,59 @@ struct MerchantOperationsHomeView: View {
     @State private var loadedScope: UUID?
     @State private var loading = false
     @State private var generation = 0
-    private let destinations: [MerchantOperationsDestination] = [.profile, .businessStatus, .decor, .gallery, .story, .cooperation, .character, .assets, .cityNodes, .templates]
+    @StateObject private var readLifetime = MerchantOperationsHomeReadLifetime()
+    @Environment(\.scenePhase) private var scenePhase
+    /// Source pages/merchant/decor groups: 门店信息, 品牌介绍, 门店相册, AI 店铺角色, 合作经营.
+    private let groups: [(titleKey: LocalizedStringKey, destinations: [MerchantOperationsDestination])] = [
+        ("merchant.decor.section.store", [.profile, .businessStatus]),
+        ("merchant.decor.section.brand", [.story, .decor]),
+        ("merchant.decor.section.gallery", [.gallery]),
+        ("merchant.decor.section.character", [.character, .assets]),
+        ("merchant.decor.section.coop", [.cooperation, .cityNodes, .templates]),
+    ]
     var body: some View {
-        ScrollView {
-            LazyVStack(spacing: 18) {
-                MerchantOperationsBoundary(isExample: reader.isOfflineExample)
-                if loadedScope == reader.scope, let access {
-                    ForEach(destinations.filter { access.allows($0) }) { destination in
-                        NavigationLink {
-                            if let destinationFactory { destinationFactory(destination, access) }
-                            else { MerchantOperationsDocumentView(reader: reader, destination: destination) }
-                        } label: {
-                            QuestifyImageEntityCard(imageSource: nil, title: "", fallbackTitle: LocalizedStringKey(destination.titleKey), fallbackSymbol: symbol(destination), minimumHeight: 180) {
-                                Text(LocalizedStringKey(destination.entryHintKey))
+        let readPermit = readLifetime.permit
+        List {
+            MerchantOperationsBoundary(isExample: reader.isOfflineExample)
+            if loadedScope == reader.scope, let access {
+                if access.identity.active && access.profileWrite && access.identity.allows(.basicRead), let cityMerchantFactory {
+                    NavigationLink { SessionCityMerchantIntentView(factory: cityMerchantFactory) } label: {
+                        Label { Text("cityMerchant.entry", tableName: "CityMerchantOperations") } icon: { Image(systemName: "storefront") }
+                    }.accessibilityIdentifier("merchant.operations.cityEntry")
+                }
+                ForEach(Array(groups.enumerated()), id: \.offset) { _, group in
+                    let visible = group.destinations.filter { access.allows($0) }
+                    if !visible.isEmpty {
+                        Section(group.titleKey) {
+                            ForEach(visible) { destination in
+                                NavigationLink {
+                                    if let destinationFactory { destinationFactory(destination, access) }
+                                    else { MerchantOperationsDocumentView(reader: reader, destination: destination) }
+                                } label: {
+                                    Label(LocalizedStringKey(destination.titleKey), systemImage: symbol(destination))
+                                }
+                                .accessibilityIdentifier("merchant.operations.entry." + destination.id)
                             }
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("merchant.operations.entry." + destination.id)
                     }
-                    if !access.identity.active { Text("merchant.access.inactive").foregroundStyle(.secondary) }
-                } else if let issue, loadedScope == reader.scope {
-                    MerchantOperationsIssueView(issue: issue)
-                    Button("action.retry") { Task { await load() } }.accessibilityIdentifier("merchant.operations.retry")
-                } else { ProgressView("merchant.loading") }
-            }.padding()
+                }
+                if !access.identity.active { Text("merchant.access.inactive").foregroundStyle(.secondary) }
+            } else if let issue, loadedScope == reader.scope {
+                ContentUnavailableView {
+                    Label { MerchantOperationsIssueView(issue: issue) } icon: { Image(systemName: "exclamationmark.triangle") }
+                } actions: {
+                    Button("action.retry") { Task { await load(readPermit) } }.accessibilityIdentifier("merchant.operations.retry")
+                }
+            } else { ProgressView("merchant.loading").frame(maxWidth: .infinity) }
         }
         .appNavigationTitle("merchant.operations.title")
-        .refreshable { await load() }
-        .task(id: reader.scope) { await load() }
+        .refreshable { await load(readPermit) }
+        .task(id: readPermit) { await load(readPermit) }
+        .onAppear { readLifetime.appear(active: scenePhase == .active) }
+        .onDisappear { readLifetime.disappear() }
+        .onChange(of: scenePhase) { _, phase in readLifetime.sceneChanged(active: phase == .active) }
+        .onChange(of: reader.scope) { _, _ in readLifetime.sourceChanged() }
+        .onChange(of: ObjectIdentifier(reader)) { _, _ in readLifetime.sourceChanged() }
     }
     private func symbol(_ destination: MerchantOperationsDestination) -> String {
         switch destination { case .profile, .decor, .businessStatus: return "storefront"; case .gallery: return "photo.on.rectangle"
@@ -44,17 +70,18 @@ struct MerchantOperationsHomeView: View {
         case .npcMapPoint: return "mappin.and.ellipse"
         case .assets: return "waveform"; case .cityNodes: return "mappin.and.ellipse"; case .templates, .template: return "rectangle.grid.2x2" }
     }
-    private func load() async {
+    private func load(_ permit: UUID?) async {
+        guard !Task.isCancelled, readLifetime.allows(permit) else { return }
         generation += 1; let request = generation, scope = reader.scope
         access = nil; issue = nil; loadedScope = nil; loading = true
         defer { if request == generation { loading = false } }
         do {
             guard reader.isConfigured else { throw APIError.notConfigured }
             let value = try await reader.access()
-            guard !Task.isCancelled, request == generation, scope == reader.scope else { return }
+            guard !Task.isCancelled, request == generation, scope == reader.scope, readLifetime.allows(permit) else { return }
             access = value; loadedScope = scope
         } catch {
-            guard !Task.isCancelled, !(error is CancellationError), request == generation, scope == reader.scope else { return }
+            guard !Task.isCancelled, !(error is CancellationError), request == generation, scope == reader.scope, readLifetime.allows(permit) else { return }
             issue = .init(error); loadedScope = scope
         }
     }
@@ -271,12 +298,16 @@ struct MerchantOperationsDocumentView: View {
     }
 }
 
+/// Shown only for the offline example account. Live screens no longer carry a standing
+/// "saving is unavailable" banner; a failed save reports itself where it happens.
 struct MerchantOperationsBoundary: View {
     let isExample: Bool
     var body: some View {
-        Label(LocalizedStringKey(isExample ? "merchant.operations.exampleBoundary" : "merchant.operations.liveDisabled"), systemImage: "lock.shield")
-            .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            .accessibilityIdentifier("merchant.operations.boundary")
+        if isExample {
+            Label("merchant.operations.exampleBoundary", systemImage: "info.circle")
+                .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("merchant.operations.boundary")
+        }
     }
 }
 struct MerchantOperationsIssueView: View {
@@ -296,7 +327,6 @@ private struct MerchantOperationsCityView: View {
         List {
             Section {
                 if let cityNodeHub { NavigationLink { cityNodeHub() } label: { Text("merchantCityNode.title", tableName: "MerchantCityNode") }.accessibilityIdentifier("merchant.operations.cityNodeHub") }
-                Text("merchant.operations.cityReadOnly").font(.footnote)
                 if let used = catalog.used, let max = catalog.max, used >= 0, max > 0 {
                     LabeledContent("merchant.operations.quota", value: "\(used) / \(max)")
                     if catalog.quotaExhausted { Text("merchant.operations.quotaExhausted").foregroundStyle(.secondary) }
@@ -312,7 +342,6 @@ private struct MerchantOperationsCityView: View {
                             Text(LocalizedStringKey(node.status == 1 ? "merchant.operations.node.online" : node.status == 0 ? "merchant.operations.node.offline" : "merchant.operations.review.unknown"))
                             if let template = node.templateTitle { LabeledContent("merchant.operations.template", value: template) }
                             if let tags = node.tagsText { LabeledContent("merchant.operations.tags", value: tags) }
-                            Text("merchant.operations.cityReadOnly").font(.footnote).foregroundStyle(.secondary)
                         }.appNavigationTitle("merchant.operations.nodeDetail")
                     } label: {
                         if let name = node.name, !name.isEmpty { Text(verbatim: name) } else { Text("merchant.operations.untitled") }
@@ -337,10 +366,8 @@ private struct MerchantOperationsAssetsView: View {
     let resources: MerchantAssetResources
     var body: some View {
         List {
-            Section { Text("merchant.operations.resourcesBoundary").font(.footnote) }
             Section("merchant.operations.voice") {
                 Text(LocalizedStringKey(resources.voice.statusKey)).accessibilityIdentifier("merchant.operations.voiceStatus")
-                Text("merchant.operations.voiceDisabled").font(.footnote).foregroundStyle(.secondary)
             }
             Section("merchant.operations.avatar") {
                 Text(LocalizedStringKey(resources.avatar.available ? "merchant.operations.providerAvailable" : "merchant.operations.providerUnavailable"))
@@ -350,7 +377,6 @@ private struct MerchantOperationsAssetsView: View {
                     if let style = job.style { LabeledContent("merchant.operations.style", value: style) }
                     if job.status == "FAILED", let reason = job.failReason { Text(verbatim: reason).foregroundStyle(.secondary) }
                 } else { Text("merchant.operations.noAvatarJob") }
-                Text("merchant.operations.avatarDisabled").font(.footnote).foregroundStyle(.secondary)
             }
         }
     }

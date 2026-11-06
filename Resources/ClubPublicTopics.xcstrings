@@ -1,0 +1,116 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "publicTopics.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public activities"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公开活动"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公開活動"
+          }
+        }
+      }
+    },
+    "publicTopics.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activities visible to the current viewer. This list does not grant membership, management access or session admission."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅展示当前身份可见的活动。本列表不授予成员、管理或场次参与权限。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "僅展示目前身分可見的活動。本列表不授予成員、管理或場次參與權限。"
+          }
+        }
+      }
+    },
+    "publicTopics.guestHandoff": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can browse this list as a guest. Opening the ordinary topic detail retains its existing sign-in requirement."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "游客可浏览此列表。打开普通主题详情仍遵循其现有登录要求。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "訪客可瀏覽此列表。開啟一般主題詳情仍遵循其既有登入要求。"
+          }
+        }
+      }
+    },
+    "publicTopics.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The public activity reader is not currently available. No empty result or membership status has been inferred."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公开活动读取当前不可用。这不代表没有活动，也不代表成员身份。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公開活動讀取目前無法使用。這不代表沒有活動，也不代表成員身分。"
+          }
+        }
+      }
+    },
+    "publicTopics.removed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This activity is no longer in the current visible list. The list has been refreshed; no old detail was opened."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此活动已不在当前可见列表中。列表已刷新，未打开旧详情。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此活動已不在目前可見清單中。清單已重新整理，未開啟舊詳情。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

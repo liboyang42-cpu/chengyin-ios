@@ -13,8 +13,6 @@ struct PlayBranchHistoryView: View {
         NavigationStack {
             List {
                 Section {
-                    Text(branchHistoryLocalized("branchHistory.detail", locale: locale))
-                        .font(.subheadline).fixedSize(horizontal: false, vertical: true)
                     if let history {
                         switch history.state {
                         case .unavailable: message("branchHistory.unavailable", id: "branchHistory.unavailable")
@@ -45,7 +43,7 @@ struct PlayBranchHistoryView: View {
                     }
                 }
                 #endif
-                ToolbarItem(placement: .confirmationAction) {
+                ToolbarItem(placement: .bottomBar) {
                     Button(branchHistoryLocalized("branchHistory.close", locale: locale)) { dismiss() }
                         .accessibilityIdentifier("branchHistory.close")
                 }

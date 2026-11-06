@@ -49,12 +49,20 @@ public struct OfficialActionReview: Identifiable, Equatable {
         id = UUID(); self.command = command; self.snapshot = snapshot; body = try command.payload()
     }
 }
+/// A presentation lease, not a permission or a write authorization.
+public struct OfficialActionPresentation: Equatable {
+    fileprivate let id = UUID()
+    fileprivate let identity: OfficialActionIdentity?
+    fileprivate init(identity: OfficialActionIdentity?) { self.identity = identity }
+}
 public enum OfficialActionState: Equatable { case idle, reviewing, checking, submitting, acknowledged, rejected, unknown }
 @MainActor public final class OfficialActionCoordinator {
     private let access: any OfficialActionAccess
     private let locks: any OfficialActionLockStore
     private let now: () -> Date
     private var pending: OfficialActionReview?
+    private var presentation: OfficialActionPresentation?
+    private var presentationIsActive = false
     private var generation = UUID()
     private var busy = false
     private var verifiedReadback: OfficialActionReadback?
@@ -71,11 +79,39 @@ public enum OfficialActionState: Equatable { case idle, reviewing, checking, sub
         let parts = [identity.namespace, String(identity.accountID), command.scope]
         return String(decoding: (try? JSONEncoder().encode(parts)) ?? Data(), as: UTF8.self)
     }
-    public func cancelReview() { generation = UUID(); pending = nil; if !busy { state = .idle } }
-    public func prepare(_ command: OfficialActionCommand) async throws -> OfficialActionReview {
+    public func beginPresentation() -> OfficialActionPresentation {
+        cancelReview()
+        let value = OfficialActionPresentation(identity: access.identity)
+        presentation = value; presentationIsActive = true
+        return value
+    }
+    public func ownsPresentation(_ value: OfficialActionPresentation) -> Bool {
+        presentation == value && presentationIsActive && access.identity == value.identity
+    }
+    public func cancelReview(presentation value: OfficialActionPresentation) {
+        // A late dismissal may only retire its own sheet, even after identity changed.
+        guard presentation == value else { return }
+        cancelReview()
+        presentation = value
+    }
+    public func resumePresentation(_ value: OfficialActionPresentation) -> Bool {
+        guard presentation == value, access.identity == value.identity else { return false }
+        presentationIsActive = true
+        return true
+    }
+    public func cancelReview() { presentationIsActive = false; presentation = nil; generation = UUID(); pending = nil; if !busy { state = .idle } }
+    public func prepare(_ command: OfficialActionCommand, presentation value: OfficialActionPresentation? = nil) async throws -> OfficialActionReview {
+        if let value {
+            try Task.checkCancellation()
+            guard ownsPresentation(value) else { throw OfficialActionFailure.stale }
+        }
         guard !busy else { throw OfficialActionFailure.busy }
         guard let identity = access.identity else { throw OfficialActionFailure.forbidden }
         guard !(try locks.contains(key(command, identity))) else { throw OfficialActionFailure.locked }
+        if value == nil {
+            // Accepted legacy calls cannot inherit a sheet's cancellation owner.
+            presentation = nil; presentationIsActive = false
+        }
         busy = true; defer { busy = false }
         generation = UUID(); let revision = generation; pending = nil; verifiedReadback = nil; readbackIdentity = nil; state = .checking
         let snapshot = try await access.snapshot(for: command)
@@ -84,7 +120,11 @@ public enum OfficialActionState: Equatable { case idle, reviewing, checking, sub
         let review = try OfficialActionReview(command: command, snapshot: snapshot)
         pending = review; state = .reviewing; return review
     }
-    public func confirm(_ review: OfficialActionReview) async throws -> OfficialActionReceipt {
+    public func confirm(_ review: OfficialActionReview, presentation value: OfficialActionPresentation? = nil) async throws -> OfficialActionReceipt {
+        if let value {
+            try Task.checkCancellation()
+            guard ownsPresentation(value) else { throw OfficialActionFailure.stale }
+        }
         guard access.enabled else { throw OfficialActionFailure.disabled }
         guard !busy else { throw OfficialActionFailure.busy }
         guard pending == review, access.identity == review.snapshot.identity else { throw OfficialActionFailure.stale }

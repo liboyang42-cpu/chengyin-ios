@@ -1,0 +1,150 @@
+{
+  "version": "1.0",
+  "sourceLanguage": "en",
+  "strings": {
+    "seriesOriginal.title": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原创建结果"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original creation result"
+          }
+        }
+      }
+    },
+    "seriesOriginal.notice": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只核对原请求的完整创建回执，不代表当前排期。不会重新创建或解除原请求锁。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read the complete original creation receipt. It is not the current schedule. This does not retry creation or release the original lock."
+          }
+        }
+      }
+    },
+    "seriesOriginal.read": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核对原创建结果"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check original creation result"
+          }
+        }
+      }
+    },
+    "seriesOriginal.failed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法核对。原请求仍保持锁定。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to verify. The original request remains locked."
+          }
+        }
+      }
+    },
+    "seriesOriginal.legacy": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未保留完整原请求，结果仍未知。不能生成新请求代替核对。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The complete original request was not retained. The outcome remains unknown; a replacement request cannot verify it."
+          }
+        }
+      }
+    },
+    "seriesOriginal.unknown": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚无可核实的原创建回执，结果仍未知。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No verifiable original creation receipt is available. The outcome remains unknown."
+          }
+        }
+      }
+    },
+    "seriesOriginal.applied": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已找到原请求的完整创建回执。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The complete original creation receipt was found."
+          }
+        }
+      }
+    },
+    "seriesOriginal.unavailable": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原创建结果核对尚未配置，或当前权限不可用。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original-result verification is not configured or current permission is unavailable."
+          }
+        }
+      }
+    },
+    "seriesOriginal.complete": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看完整原始回执"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View complete original receipt"
+          }
+        }
+      }
+    }
+  }
+}

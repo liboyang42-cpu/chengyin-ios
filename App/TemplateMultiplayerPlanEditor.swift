@@ -83,7 +83,6 @@ import Combine
     var body: some View {
         Form {
             Section {
-                Text("templateTeam.instructions").font(.callout)
                 if editor.needsReload {
                     Text("templateTeam.changed").font(.caption)
                     Button("templateTeam.reload") { editor.reload() }.disabled(!editor.canReload)
@@ -110,7 +109,6 @@ import Combine
             Section("templateTeam.order") {
                 TextEditor(text: editor.orderInput()).frame(minHeight: 92).textInputAutocapitalization(.never).autocorrectionDisabled()
                     .accessibilityLabel("templateTeam.order").accessibilityIdentifier("creator.team.order")
-                Text("templateTeam.orderHint").font(.caption)
             }.disabled(!editor.canEdit)
             Section("templateTeam.preview") {
                 if editor.turns.isEmpty { Text("templateTeam.emptyOrder").font(.caption) }
@@ -125,7 +123,7 @@ import Combine
             }
             if !editor.issues.isEmpty {
                 Section("templateAuthor.validationTitle") {
-                    ForEach(Array(editor.issues.enumerated()), id: \.offset) { _, issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)); Text(verbatim: issue.path).font(.caption) } }
+                    ForEach(Array(editor.issues.enumerated()), id: \.offset) { _, issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(.red) } }
                 }
             }
         }.navigationTitle("templateTeam.title").onAppear { editor.reload() }.onDisappear { editor.retire() }

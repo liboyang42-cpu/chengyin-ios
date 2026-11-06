@@ -58,7 +58,7 @@ import SwiftUI
                 }
             }
         }
-        .privacySensitive().navigationTitle("playBadge.collection")
+        .privacySensitive().navigationTitle("playBadge.collection").navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("playBadge.collection")
         .toolbar {
             Button("profile.refresh", systemImage: "arrow.clockwise") { reads.start { await model.load() } }

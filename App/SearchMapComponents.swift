@@ -12,11 +12,17 @@ struct SearchMapIssue: View {
     let key: String
     var retry: (() -> Void)? = nil
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(alignment: .leading, spacing: 12) {
             Label(LocalizedStringKey(key), systemImage: key.contains("unauthorized") ? "lock" : "exclamationmark.circle")
+                .font(.subheadline.weight(.semibold))
                 .fixedSize(horizontal: false, vertical: true)
-            if let retry { Button("searchMap.retry", action: retry).buttonStyle(.bordered).frame(minHeight: 44) }
-        }.padding().frame(maxWidth: .infinity).accessibilityIdentifier("searchMap.issue")
+            if let retry {
+                Button(action: retry) { Text("searchMap.retry").frame(minHeight: 44) }
+                    .buttonStyle(.bordered)
+            }
+        }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
+            .accessibilityElement(children: .contain).accessibilityIdentifier("searchMap.issue")
     }
     static func key(_ error: Error) -> String {
         switch error as? APIError {

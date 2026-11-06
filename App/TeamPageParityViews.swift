@@ -8,17 +8,23 @@ struct TeamPageHeader: View {
     var confirmedJoinMode: TeamJoinMode? = nil
     @Environment(\.locale) private var locale
     private var chinese: Bool { locale.language.languageCode?.identifier == "zh" }
+    @ViewBuilder private var teamTitle: some View {
+        let title = detail.team.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        if title.isEmpty { Text("team.untitled").font(.title2.bold()) }
+        else { Text(verbatim: title).font(.title2.bold()).fixedSize(horizontal: false, vertical: true) }
+    }
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             if kind == .invitation {
-                Text("team.page.eyebrow").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                Text("team.page.inviteExplainer").fixedSize(horizontal: false, vertical: true)
+                teamTitle
+                Text("team.page.inviteExplainer").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("teamPage.inviteExplainer")
             } else {
                 Text(LocalizedStringKey(detail.team.status.key)).font(.caption.weight(.semibold))
                     .padding(.horizontal, 10).padding(.vertical, 4)
                     .background(TeamPagePresentation.statusIsLive(detail.team.status) ? Color.accentColor.opacity(0.18) : Color.secondary.opacity(0.12), in: Capsule())
                     .accessibilityIdentifier("teamPage.status")
+                teamTitle
                 HStack(spacing: 4) {
                     Text(LocalizedStringKey(TeamPagePresentation.modeKey(confirmedJoinMode ?? detail.team.joinMode)))
                     Text(verbatim: "·").accessibilityHidden(true)
@@ -60,7 +66,7 @@ struct TeamPageStateView: View {
             Text(LocalizedStringKey(state.detailKey)).font(.footnote).foregroundStyle(.secondary)
                 .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
             if let key = state.actionKey, let action = handler {
-                Button(LocalizedStringKey(key), action: action).buttonStyle(.borderedProminent).frame(minHeight: 44)
+                Button(LocalizedStringKey(key), action: action).buttonStyle(.questifyPrimary).frame(minHeight: 44)
                     .accessibilityIdentifier("teamPage.state.action")
             }
         }.padding().frame(maxWidth: .infinity)

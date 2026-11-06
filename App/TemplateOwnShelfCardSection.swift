@@ -14,17 +14,12 @@ struct TemplateOwnShelfCardSection: View {
         if let facts {
             TemplateOwnShelfCardFactLines(facts: facts, zh: zh, rowID: rowID)
         }
-        if let action = plan.action, plan.isDispatchable == false {
-            Text(LocalizedStringKey(action.labelKey))
-                .accessibilityIdentifier("templateOwnShelf.market.plan.\(rowID)")
-            Text(verbatim: zh ? "广场操作仅预览，未发送，不是发布" : "Marketplace action is a preview. Nothing is sent. This is not a publish.")
-                .font(.caption).foregroundStyle(.secondary)
-                .accessibilityIdentifier("templateOwnShelf.market.held.\(rowID)")
-        }
+        // The marketplace plan is never dispatchable here, so it isn't shown: no dead action, no "preview only" caption.
     }
 }
 
 private struct TemplateOwnShelfCardFactLines: View {
+    @Environment(\.locale) private var locale
     let facts: TemplateOwnShelfCardFacts
     let zh: Bool
     let rowID: Int
@@ -34,36 +29,25 @@ private struct TemplateOwnShelfCardFactLines: View {
                 .accessibilityIdentifier("templateOwnShelf.card.rating.\(rowID)")
         }
         if let count = facts.useCount {
-            Text(verbatim: zh ? "\(count) 次引用" : "\(count) references")
-                .accessibilityIdentifier("templateOwnShelf.card.uses.\(rowID)")
+            fact("templateOwnShelf.card.useCount", String(count), id: "templateOwnShelf.card.uses.\(rowID)")
         }
         if let duration = facts.durationMinutes {
-            Text(verbatim: zh ? "\(duration)分钟" : "\(duration) min")
-                .accessibilityIdentifier("templateOwnShelf.card.duration.\(rowID)")
+            fact("templateOwnShelf.card.durationLabel", appLocalized("templateOwnShelf.card.minutes \(duration)", locale: locale), id: "templateOwnShelf.card.duration.\(rowID)")
         }
         if let created = facts.createTime {
-            Text(verbatim: created)
-                .accessibilityIdentifier("templateOwnShelf.card.created.\(rowID)")
+            fact("templateOwnShelf.card.createdLabel", created, id: "templateOwnShelf.card.created.\(rowID)")
         }
         if let feedback = facts.reviewFeedback {
             Text("discovery.templateDetail.reviewFeedback \(feedback)")
                 .accessibilityIdentifier("templateOwnShelf.card.feedback.\(rowID)")
         }
     }
-}
-
-/// Source danger copy inside the existing delete review. The confirm control stays the shelf confirm button.
-struct TemplateOwnShelfDeleteReviewCopy: View {
-    let title: String
-    var body: some View {
-        Text("templateOwnShelf.delete.title \(title)")
-            .accessibilityIdentifier("templateOwnShelf.delete.title")
-        Text("templateOwnShelf.delete.body")
-            .accessibilityIdentifier("templateOwnShelf.delete.body")
-        ForEach(TemplateOwnShelfDeleteCopy.consequenceKeys, id: \.self) { key in
-            Text(LocalizedStringKey(key))
+    /// Label left, value right; the value keeps the row's identifier.
+    private func fact(_ title: LocalizedStringKey, _ value: String, id: String) -> some View {
+        HStack {
+            Text(title)
+            Spacer()
+            Text(verbatim: value).foregroundStyle(.secondary).accessibilityIdentifier(id)
         }
-        Text("templateOwnShelf.delete.confirm")
-            .accessibilityIdentifier("templateOwnShelf.delete.confirm")
     }
 }

@@ -33,7 +33,7 @@ struct AuthChannelAppleButton: UIViewRepresentable {
         private var window: UIWindow?
         init(model: AuthChannelModel) { self.model = model }
         @objc func signIn(_ sender: ASAuthorizationAppleIDButton) {
-            guard controller == nil, let window = sender.window,
+            guard model.canStart, controller == nil, let window = sender.window,
                   let attempt = model.coordinator.beginAppleAuthorization() else { return }
             self.window = window; self.attempt = attempt
             let request = ASAuthorizationAppleIDProvider().createRequest()

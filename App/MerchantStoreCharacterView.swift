@@ -107,6 +107,15 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
                 t("storeCharacter.gate.deniedTitle")
             } description: { denyText(reason) }
             .accessibilityIdentifier("aiNPC.gate.denied")
+        case .currentReadDenied(let reason):
+            // A current read refusal is not a network failure or a new initial-admission exit.
+            ContentUnavailableView {
+                t("storeCharacter.gate.deniedTitle")
+            } description: { denyText(reason) } actions: {
+                Button { Task { await c.load() } } label: { t("storeCharacter.action.retry") }
+                    .accessibilityIdentifier("aiNPC.currentReadDenied.retry")
+            }
+            .accessibilityIdentifier("aiNPC.currentReadDenied")
         case .failed(let message):
             ContentUnavailableView {
                 t("storeCharacter.load.failedTitle")
@@ -226,7 +235,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
                         Spacer()
                     }
                 }
-                .buttonStyle(.borderedProminent).disabled(c.saving || c.saveLocked).accessibilityIdentifier("aiNPC.avatar.save")
+                .buttonStyle(.questifyPrimary).disabled(c.saving || c.saveLocked).accessibilityIdentifier("aiNPC.avatar.save")
             }
         }
     }
@@ -422,7 +431,7 @@ private struct StoreCharacterPresetSheet: View {
                 }
                 .padding()
                 Button { c.confirmPreset() } label: { t("storeCharacter.preset.use").frame(maxWidth: .infinity) }
-                    .buttonStyle(.borderedProminent).padding(.horizontal).accessibilityIdentifier("aiNPC.preset.use")
+                    .buttonStyle(.questifyPrimary).padding(.horizontal).accessibilityIdentifier("aiNPC.preset.use")
             }
             .navigationTitle(t("storeCharacter.preset.title")).navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -456,10 +465,6 @@ private struct StoreCharacterVoiceSheet: View {
                 case .ready:
                     Section {
                         t("storeCharacter.voice.readyBody").accessibilityIdentifier("aiNPC.voice.ready")
-                        if c.voice?.sample != nil {
-                            Button {} label: { t("storeCharacter.voice.playOriginal") }.disabled(true)
-                            t("storeCharacter.voice.playbackUnavailable").font(.footnote).foregroundStyle(.secondary)
-                        }
                         Button { c.resetRecording() } label: { t("storeCharacter.voice.rerecord") }.accessibilityIdentifier("aiNPC.voice.rerecord")
                     }
                 case .none, .failed:
@@ -507,7 +512,7 @@ private struct StoreCharacterVoiceSheet: View {
             .accessibilityElement().accessibilityLabel(t("storeCharacter.voice.progress"))
             t("storeCharacter.voice.sentence1")
             Button {} label: { t("storeCharacter.voice.hold").frame(maxWidth: .infinity) }
-                .buttonStyle(.borderedProminent).disabled(true).accessibilityIdentifier("aiNPC.voice.hold")
+                .buttonStyle(.questifyPrimary).disabled(true).accessibilityIdentifier("aiNPC.voice.hold")
             t("storeCharacter.voice.recordingUnavailable").font(.footnote).foregroundStyle(.secondary)
             if c.canRecord {
                 Button { c.useSyntheticRecording() } label: { t("storeCharacter.voice.useSample") }
@@ -519,7 +524,6 @@ private struct StoreCharacterVoiceSheet: View {
         Section {
             t("storeCharacter.voice.recordedTitle").font(.headline).accessibilityIdentifier("aiNPC.voice.recorded")
             (Text(verbatim: String(recording.durationSeconds)) + t("storeCharacter.voice.recordedHint")).font(.footnote).foregroundStyle(.secondary)
-            Button {} label: { t("storeCharacter.voice.play") }.disabled(true)
             Button { c.resetRecording() } label: { t("storeCharacter.voice.rerecord") }
                 .disabled(c.voiceBusy || c.voiceUnknown).accessibilityIdentifier("aiNPC.voice.reset")
             Button { c.prepareEnroll() } label: {

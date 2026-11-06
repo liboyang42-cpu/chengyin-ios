@@ -75,7 +75,7 @@ struct UsageConsentGateView: View {
                             guard checked else { showsCheckRequired = true; return }
                             onAgree()
                         } label: { Text("authEntry.gate.agree", tableName: "AuthEntry").frame(maxWidth: .infinity) }
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(.questifyPrimary)
                             .disabled(!checked)
                             .accessibilityIdentifier("authEntry.gate.agree")
                     }

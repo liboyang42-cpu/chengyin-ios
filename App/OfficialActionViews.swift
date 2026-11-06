@@ -1,7 +1,6 @@
 import SwiftUI
 
-/// Additive sheet; host constructs one coordinator per identity and destroys the sheet on epoch changes.
-/// Existing official read views remain unchanged.
+/// Original shared sheet. Each occurrence owns its review; host identity gates remain in force.
 @MainActor struct OfficialActionSheet: View {
     let coordinator: OfficialActionCoordinator
     let command: OfficialActionCommand
@@ -9,56 +8,76 @@ import SwiftUI
     var noticeTitleKey: String? = nil
     var noticeBodyKey: String? = nil
     @Environment(\.dismiss) private var dismiss
-    @State private var review: OfficialActionReview?
-    @State private var busy = false
-    @State private var message: String?
-    @State private var receipt: OfficialActionReceipt?
-    @State private var rejectionReason: String?
+    @Environment(\.scenePhase) private var scenePhase
+    @StateObject private var model: OfficialActionPresentationModel
+    init(coordinator: OfficialActionCoordinator, command: OfficialActionCommand,
+         noticeTitleKey: String? = nil, noticeBodyKey: String? = nil) {
+        self.coordinator = coordinator; self.command = command
+        self.noticeTitleKey = noticeTitleKey; self.noticeBodyKey = noticeBodyKey
+        _model = StateObject(wrappedValue: OfficialActionPresentationModel(coordinator: coordinator, command: command))
+    }
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    Label("officialAction.reviewNotice", systemImage: "lock.shield")
-                    Text(LocalizedStringKey(command.titleKey)).font(.headline)
-                    Text("officialAction.noOutcomePromise").foregroundStyle(.secondary)
-                }
-                if noticeTitleKey != nil || noticeBodyKey != nil {
-                    Section {
-                        if let noticeTitleKey { Text(LocalizedStringKey(noticeTitleKey)).font(.headline) }
-                        if let noticeBodyKey { Text(LocalizedStringKey(noticeBodyKey)).foregroundStyle(.secondary) }
-                    }.accessibilityIdentifier("official.inbox.confirmation.\(command.scope)")
-                }
-                if let review {
-                    Section("officialAction.target") {
-                        Text(review.command.scope).textSelection(.enabled)
-                        if let event = review.snapshot.event { Text(event.title) }
-                        if let invite = review.snapshot.invite { Text(invite.title) }
-                        // Exact immutable payload, including explicit audience/channel and location details.
-                        if let body = review.body, let object = try? JSONSerialization.jsonObject(with: body),
-                           let pretty = try? JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys]) {
-                            Text(String(decoding: pretty, as: UTF8.self)).font(.body.monospaced())
-                                .textSelection(.enabled).accessibilityIdentifier("officialAction.reviewPayload")
-                        }
-                    }
-                    Section {
-                        Button("officialAction.confirm") { submit(review) }
-                            .disabled(busy || !coordinator.enabled || receipt != nil)
-                            .frame(minHeight: 44).accessibilityIdentifier("officialAction.confirm")
-                        if !coordinator.enabled { Text("officialAction.disabled").foregroundStyle(.secondary) }
-                    }
-                }
-                if busy { ProgressView().accessibilityLabel(Text("officialAction.working")) }
-                if let message { Text(LocalizedStringKey(message)).accessibilityIdentifier("officialAction.message") }
-                if let rejectionReason { Text(rejectionReason).accessibilityIdentifier("officialAction.rejectionReason") }
-                if let receipt { receiptView(receipt) }
+            Group {
+                if model.isBound(to: coordinator, command: command) {
+                    form
+                } else { Text("officialAction.stale") }
             }
             .navigationTitle("officialAction.review")
             .toolbar { ToolbarItem(placement: .cancellationAction) {
-                Button("officialAction.close") { coordinator.cancelReview(); dismiss() }.disabled(busy)
+                Button("officialAction.close") { model.disappear(); dismiss() }.disabled(model.busy)
             } }
-            .interactiveDismissDisabled(busy)
-            .task { await prepare() }
-            .onDisappear { coordinator.cancelReview() }
+            .interactiveDismissDisabled(model.busy)
+            .onAppear { model.appear(isActive: scenePhase == .active) }
+            .onChange(of: scenePhase) { _, phase in model.sceneChanged(isActive: phase == .active) }
+            .onChange(of: coordinator.identity) { _, _ in model.synchronizeIdentity() }
+            .onChange(of: ObjectIdentifier(coordinator)) { _, _ in model.disappear() }
+            .onChange(of: command) { _, _ in model.disappear() }
+            .onDisappear { model.disappear() }
+        }
+    }
+    private var form: some View {
+        Form {
+            Section {
+                Label("officialAction.reviewNotice", systemImage: "lock.shield")
+                Text(LocalizedStringKey(command.titleKey)).font(.headline)
+                Text("officialAction.noOutcomePromise").foregroundStyle(.secondary)
+            }
+            if noticeTitleKey != nil || noticeBodyKey != nil {
+                Section {
+                    if let noticeTitleKey { Text(LocalizedStringKey(noticeTitleKey)).font(.headline) }
+                    if let noticeBodyKey { Text(LocalizedStringKey(noticeBodyKey)).foregroundStyle(.secondary) }
+                }.accessibilityIdentifier("official.inbox.confirmation.\(command.scope)")
+            }
+            if let review = model.review {
+                Section("officialAction.target") {
+                    Text(review.command.scope).textSelection(.enabled)
+                    if let event = review.snapshot.event { Text(event.title) }
+                    if let invite = review.snapshot.invite { Text(invite.title) }
+                    // Exact immutable payload, including explicit audience/channel and location details.
+                    if let body = review.body, let object = try? JSONSerialization.jsonObject(with: body),
+                       let pretty = try? JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys]) {
+                        Text(String(decoding: pretty, as: UTF8.self)).font(.body.monospaced())
+                            .textSelection(.enabled).accessibilityIdentifier("officialAction.reviewPayload")
+                    }
+                }
+                Section {
+                    Button("officialAction.confirm") { model.submit(review) }
+                        .disabled(!model.canConfirm)
+                        .frame(minHeight: 44).accessibilityIdentifier("officialAction.confirm")
+                    if !coordinator.enabled { Text("officialAction.disabled").foregroundStyle(.secondary) }
+                }
+            }
+            if model.busy { ProgressView().accessibilityLabel(Text("officialAction.working")) }
+            if let message = model.message {
+                Text(LocalizedStringKey(message)).accessibilityIdentifier("officialAction.message")
+                if model.canReview {
+                    Button("officialAction.review") { model.readAgain() }
+                        .frame(minHeight: 44).accessibilityIdentifier("officialAction.review")
+                }
+            }
+            if let rejectionReason = model.rejectionReason { Text(rejectionReason).accessibilityIdentifier("officialAction.rejectionReason") }
+            if let receipt = model.receipt { receiptView(receipt) }
         }
     }
     @ViewBuilder private func receiptView(_ receipt: OfficialActionReceipt) -> some View {
@@ -73,32 +92,6 @@ import SwiftUI
             case .acknowledged: Text("officialAction.acknowledged")
             }
             Text("officialAction.refreshFacts").foregroundStyle(.secondary)
-        }
-    }
-    private func prepare() async {
-        busy = true; defer { busy = false }
-        do { review = try await coordinator.prepare(command) }
-        catch { message = issue(error) }
-    }
-    private func submit(_ review: OfficialActionReview) {
-        busy = true; message = nil
-        Task { defer { busy = false }
-            do { receipt = try await coordinator.confirm(review) }
-            catch {
-                if case let OfficialActionFailure.rejected(_, reason) = error { rejectionReason = reason }
-                message = issue(error); self.review = nil
-            }
-        }
-    }
-    private func issue(_ error: Error) -> String {
-        switch error {
-        case OfficialActionFailure.disabled: return "officialAction.disabled"
-        case OfficialActionFailure.locked: return "officialAction.locked"
-        case OfficialActionFailure.unknown: return "officialAction.unknown"
-        case OfficialActionFailure.storage: return "officialAction.storage"
-        case OfficialActionFailure.stale: return "officialAction.stale"
-        case OfficialActionFailure.forbidden: return "officialAction.forbidden"
-        default: return coordinator.state == .unknown ? "officialAction.unknown" : "officialAction.rejected"
         }
     }
 }

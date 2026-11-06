@@ -74,6 +74,68 @@ def validate_literal_text_tables(source, root, objects, project_obj):
         return match.group(0)[:start-match.start()]+match.group(0)[end-match.start():]
     return pattern.sub(checked,source)
 
+def validate_literal_resource_tables(source, root, objects, project_obj):
+    """Prove only a literal, locale-bound Foundation String resource lookup.
+
+    Keep unsupported call shapes in the original default-key scan: no dynamic
+    table/key, interpolation, extra bundle, qualified call or locale expression.
+    All table/key/resource/bilingual checks belong to the unchanged Text helper.
+    """
+    pattern=re.compile(r'(?<![\w.])String\s*\(\s*localized\s*:\s*LocalizedStringResource\s*\(\s*"([A-Za-z0-9]+(?:\.[A-Za-z0-9]+)+)"\s*,\s*table\s*:\s*"([A-Za-z0-9_]+)"\s*,\s*locale\s*:\s*[A-Za-z_][A-Za-z0-9_]*\s*\)\s*\)')
+    def checked(match):
+        key,table=match.groups()
+        literal='Text('+json.dumps(key)+', tableName: '+json.dumps(table)+')'
+        assert validate_literal_text_tables(literal,root,objects,project_obj)!=literal
+        # Mask this key occurrence alone. Default Text or any unproven lookup
+        # using the same key must still pass the original Localizable gate.
+        start,end=match.span(1)
+        return match.group(0)[:start-match.start()]+match.group(0)[end-match.start():]
+    return pattern.sub(checked,source)
+
+def validate_bound_participant_issue_tables(source, root, objects, project_obj):
+    """Prove one closed dynamic lookup shape; never exempt arbitrary dynamic tables.
+
+    An immutable ParticipantScreenIssue.key is bound to a literal table in the
+    same single-line switch case. Its renderer must forward those exact fields.
+    Unsupported mutations/renderers fail closed. Only the proven assignment
+    occurrence is masked; default Text using the same key is still checked.
+    """
+    declarations=list(re.finditer(r'^struct ParticipantScreenIssue\s*\{\n(?P<body>.*?)^\}', source, re.M | re.S))
+    if not declarations: return source
+    assert len(declarations)==1, 'Ambiguous ParticipantScreenIssue binding'
+    declaration=declarations[0]; body=declaration.group('body')
+    pairs=list(re.finditer(r'^\s*case\s+\.[A-Za-z0-9_]+:\s*key\s*=\s*"(?P<key>[A-Za-z0-9]+(?:\.[A-Za-z0-9]+)+)";\s*tableName\s*=\s*"(?P<table>[A-Za-z0-9_]+)"[ \t]*$', body, re.M))
+    if not pairs: return source
+    assert '/*' not in body and '//' not in body, 'Unsupported comments in dynamic issue binding'
+    assert re.search(r'^\s*let key:\s*String\s*$',body,re.M), 'Issue key must remain immutable'
+    assert re.search(r'^\s*private\(set\) var tableName:\s*String\?\s*=\s*nil\s*$',body,re.M), 'Issue table must start nil and have a private setter'
+    assert len(re.findall(r'\btableName\b',body))==len(pairs)+1, 'Unproven issue table mutation or use'
+    switches=list(re.finditer(r'\bswitch block\s*\{(?P<cases>[^{}]*)\}',body))
+    assert len(switches)==1, 'Expected one closed issue-reason switch'
+    switch=switches[0]
+    case_pattern=re.compile(r'case\s+\.[A-Za-z0-9_]+:\s*key\s*=\s*"[A-Za-z0-9]+(?:\.[A-Za-z0-9]+)+"(?:;\s*tableName\s*=\s*"[A-Za-z0-9_]+")?')
+    for line in switch.group('cases').splitlines():
+        if line.strip(): assert case_pattern.fullmatch(line.strip()), 'Unsupported issue switch case body'
+    assert all(switch.start('cases')<=pair.start('key')<switch.end('cases') for pair in pairs), 'Binding is outside the closed switch'
+    renderers=list(re.finditer(r'^struct ParticipantIssueText:\s*View\s*\{\n(?P<body>.*?)^\}',source,re.M | re.S))
+    assert len(renderers)==1, 'Expected one ParticipantIssueText renderer'
+    renderer=renderers[0].group('body')
+    assert '/*' not in renderer and '//' not in renderer, 'Unsupported comments in dynamic issue renderer'
+    assert re.search(r'^\s*let issue:\s*ParticipantScreenIssue\s*$',renderer,re.M), 'Renderer must consume the bound issue type'
+    call=r'(?<![\w.])Text\s*\(\s*LocalizedStringKey\s*\(\s*issue\.key\s*\)\s*,\s*tableName:\s*issue\.tableName\s*\)'
+    assert len(re.findall(call,renderer))==1, 'Renderer must forward the exact key and table without another bundle'
+    assert len(re.findall(r'issue\.key\b',renderer))==1 and len(re.findall(r'issue\.tableName\b',renderer))==1, 'Ambiguous dynamic issue lookup'
+    spans=[]
+    for pair in pairs:
+        key,table=pair.group('key','table')
+        # Reuse all original resource-membership, unique-table, key and complete
+        # bilingual checks, without changing that validator or unioning catalogs.
+        literal='Text('+json.dumps(key)+', tableName: '+json.dumps(table)+')'
+        assert validate_literal_text_tables(literal,root,objects,project_obj)!=literal
+        spans.append((declaration.start('body')+pair.start('key'), declaration.start('body')+pair.end('key')))
+    for start,end in reversed(spans): source=source[:start]+source[end:]
+    return source
+
 project_path=ROOT/'Questify.xcodeproj/project.pbxproj'
 project=parse_project(project_path.read_text())
 objects=project['objects']; project_obj=objects[project['rootObject']]
@@ -129,7 +191,9 @@ localizable_ui=localizable_ui.replace('OfficialReadScreen(reader: reader, isPriv
 localizable_ui=localizable_ui.replace('MerchantTemplateStoryTimelineContent(timeline: timeline, prefix: "merchant.storyTimeline.review")', 'MerchantTemplateStoryTimelineContent(timeline: timeline)')
 # Exact computed accessibility IDs only; identical literals in Text still require translations.
 localizable_ui=localizable_ui.replace('var accessibilityID: String { switch self { case .history: return "roam.live.pausedHistory.open"; case .settings: return "roam.live.pausedSettings.open"; case .album: return "roam.live.pausedAlbum.open" } }', '')
+localizable_ui=validate_bound_participant_issue_tables(localizable_ui,ROOT,objects,project_obj)
 localizable_ui=validate_literal_text_tables(localizable_ui,ROOT,objects,project_obj)
+localizable_ui=validate_literal_resource_tables(localizable_ui,ROOT,objects,project_obj)
 keys=set(re.findall(r'"((?:welcome|role|registration|settings|language|action|auth|account|activity|scanner|discovery|profile|merchant|club|roam|messaging|participant|play|message|topic|region|homeFeed|usApple|ticketWallet|square|cooperation|accountCollection|creatorContent|growth|official|officialAction|projectEdit|nearby|team|orderLifecycle|templateAuthor|publishModes|wallet|couponManagement|im)\.[A-Za-z0-9.]+)"',localizable_ui))
 keys={key for key in keys if not key.endswith('.')}  # Prefixes concatenate a separately validated dynamic key.
 assert not keys-set(catalog['strings']),keys-set(catalog['strings'])

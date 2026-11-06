@@ -28,6 +28,8 @@ public enum SocialEditorPurpose: String, Identifiable {
     @State private var confirmsDiscard = false
     @FocusState private var textFocused: Bool
     private var hasDraft: Bool { hasText && text != initialText }
+    private var commentLengthLimit: Int? { SocialCommentLength.limit(purpose: purpose, generation: contentGeneration) }
+    private var commentTooLong: Bool { SocialCommentLength.isTooLong(text, purpose: purpose, generation: contentGeneration) }
     private var hasText: Bool { [.createPost, .editPost, .comment].contains(purpose) }
     private var state: SocialActionState { _ = revision; return coordinator.state(target: target, generation: contentGeneration) }
     private var title: String { "social.editor.\(purpose.rawValue)" }
@@ -45,13 +47,22 @@ public enum SocialEditorPurpose: String, Identifiable {
                 Section("social.text") {
                     TextEditor(text: $text).frame(minHeight: 160).accessibilityLabel("social.text")
                         .accessibilityIdentifier("social.editor.text").focused($textFocused).disabled(state.locksForm)
-                    if purpose == .editPost { Text("social.editPreservesMedia").font(.footnote).foregroundStyle(.secondary) }
+                    if let limit = commentLengthLimit {
+                        LabeledContent {
+                            Text(verbatim: "\(text.utf16.count) / \(limit)").monospacedDigit()
+                        } label: { Text("count", tableName: "SocialCommentLength") }
+                            .font(.footnote).accessibilityIdentifier("social.editor.commentLength")
+                        if commentTooLong {
+                            Text("tooLong", tableName: "SocialCommentLength")
+                                .font(.footnote).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("social.editor.commentTooLong")
+                        }
+                    }
                 }
             }
             if (purpose == .like && contentGeneration == .communityV1) || purpose == .bookmark || (purpose == .commentLike && contentGeneration == .communityV1) {
                 Section {
                     Toggle("social.actionEnabled", isOn: $enabled).disabled(state.locksForm)
-                    Text("social.explicitActionHint").font(.footnote).foregroundStyle(.secondary)
                 }
             }
             if purpose == .like && contentGeneration == .legacySquare { Section { Text("squareReport.legacyLikeHint").font(.footnote) } }
@@ -75,7 +86,7 @@ public enum SocialEditorPurpose: String, Identifiable {
             SocialActionStateView(state: state)
             Section {
                 Button("social.review") { textFocused = false; Task { await prepare() } }
-                    .disabled(preparing || state.locksForm || coordinator.identity.accountID == nil || (hasText && SocialText.nonempty(text) == nil) || (needsLegacyReason && legacyReportReason == nil))
+                    .disabled(preparing || commentTooLong || state.locksForm || coordinator.identity.accountID == nil || (hasText && SocialText.nonempty(text) == nil) || (needsLegacyReason && legacyReportReason == nil))
                     .accessibilityIdentifier("social.editor.review")
             }
         }
@@ -135,7 +146,7 @@ public enum SocialEditorPurpose: String, Identifiable {
         }
     }
     private func prepare() async {
-        guard !preparing else { return }
+        guard !preparing, !commentTooLong else { return }
         let identity = coordinator.identity; preparing = true; issue = nil
         defer { preparing = false; revision += 1 }
         do {

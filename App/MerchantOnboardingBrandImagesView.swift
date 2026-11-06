@@ -13,7 +13,6 @@ import UIKit
     var body: some View {
         let displayed = model.draft.brandImages
         Section("merchant.onboardingBrand.title") {
-            Text("merchant.onboardingBrand.hint").font(.footnote)
             if model.draft.brandImagesSourceUnavailable {
                 Text("merchant.onboardingBrand.sourceUnavailable").foregroundStyle(.secondary)
             }

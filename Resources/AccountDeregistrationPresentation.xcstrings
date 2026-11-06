@@ -1,0 +1,774 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "c08.display.1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account balance (CNY)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账户余额（元）"
+          }
+        }
+      }
+    },
+    "c08.display.2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Points"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "积分"
+          }
+        }
+      }
+    },
+    "c08.display.3": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open orders and after-sales requests"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原进行中订单/售后数量"
+          }
+        }
+      }
+    },
+    "c08.display.4": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending valid registrations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待处理有效报名数量"
+          }
+        }
+      }
+    },
+    "c08.display.5": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending refunds"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待完成退款数量"
+          }
+        }
+      }
+    },
+    "c08.display.6": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WeChat balance transfer pending"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "微信零钱是否在途"
+          }
+        }
+      }
+    },
+    "c08.display.7": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending bank withdrawal amount (CNY)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "银行在途申请金额（元）"
+          }
+        }
+      }
+    },
+    "c08.display.8": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clubs I own: IDs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本人主理俱乐部 ID"
+          }
+        }
+      }
+    },
+    "c08.display.9": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fragment and Easter egg collections"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "碎片/彩蛋收藏数量"
+          }
+        }
+      }
+    },
+    "c08.display.10": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending WeChat withdrawal amount (CNY)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "微信零钱在途申请金额（元）"
+          }
+        }
+      }
+    },
+    "c08.display.11": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MOD settlement currencies, states and amounts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原MOD结算币种/状态/金额"
+          }
+        }
+      }
+    },
+    "c08.display.12": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MOD debt records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原MOD债务记录数量"
+          }
+        }
+      }
+    },
+    "c08.display.13": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MOD settlement references"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原MOD结算引用数量"
+          }
+        }
+      }
+    },
+    "c08.display.14": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My active club memberships"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本人有效俱乐部成员身份"
+          }
+        }
+      }
+    },
+    "c08.display.15": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Known city season participation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已知城市玩法赛季参与"
+          }
+        }
+      }
+    },
+    "c08.display.16": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creator ledger read status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原创作者账本读取状态"
+          }
+        }
+      }
+    },
+    "c08.display.17": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen withdrawal amount (CNY)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原提现冻结金额（元）"
+          }
+        }
+      }
+    },
+    "c08.display.18": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MOD income, reversals and payments"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原MOD收入/冲正/已付事实"
+          }
+        }
+      }
+    },
+    "c08.display.19": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legacy publisher cash-sharing limits"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "旧发布者现金分成边界"
+          }
+        }
+      }
+    },
+    "c08.display.20": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original seasons and my participation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原赛季与本人参与记录"
+          }
+        }
+      }
+    },
+    "c08.display.21": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current season progress and deletion impact"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "赛季当前进度与注销影响"
+          }
+        }
+      }
+    },
+    "c08.display.22": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My original final rankings and reward receipts by season"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "逐季本人原最终排名与奖励回执"
+          }
+        }
+      }
+    },
+    "c08.display.23": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original reward deletion impact and unsettled policy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "赛季奖励的原注销影响与未定政策"
+          }
+        }
+      }
+    },
+    "c08.display.24": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original season participation source is not enabled or cannot be read"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原赛季参与源尚未启用或不可读"
+          }
+        }
+      }
+    },
+    "c08.display.25": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deletion impact on season progress is not yet confirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "赛季进度的注销影响尚未闭合"
+          }
+        }
+      }
+    },
+    "c08.display.26": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some original final rankings or reward receipts are unconfirmed, not zero rewards"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分原赛季最终排名或奖励回执不可确认（不是零奖励）"
+          }
+        }
+      }
+    },
+    "c08.display.27": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalidation of season rankings and rewards is not yet confirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "赛季排名与奖励作废尚未闭合"
+          }
+        }
+      }
+    },
+    "c08.display.28": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My account deletion impact (not proof of completed cleanup)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本人注销影响清单（不是清理完成证明）"
+          }
+        }
+      }
+    },
+    "c08.display.29": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only normal accounts may receive new rewards. Historical payments remain recorded. Invalidation and recovery rules are unresolved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正常账号才可新增发放；历史实发保留；作废与追回规则未闭合"
+          }
+        }
+      }
+    },
+    "c08.display.30": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "是"
+          }
+        }
+      }
+    },
+    "c08.display.31": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "否"
+          }
+        }
+      }
+    },
+    "c08.display.32": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unconfirmed coverage: "
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未核清的覆盖："
+          }
+        }
+      }
+    },
+    "c08.display.33": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These items do not mean zero assets, no seasons or completed cleanup. This impact list cannot be used to confirm deletion."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这些项目不能按零资产、无赛季或已清理处理；本版清单不能用于确认注销。"
+          }
+        }
+      }
+    },
+    "c08.display.34": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impact version: "
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清单版本："
+          }
+        }
+      }
+    },
+    "c08.display.35": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After reading this impact list, type “注销” to confirm"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已阅读本版影响清单，请输入“注销”确认"
+          }
+        }
+      }
+    },
+    "c08.display.36": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My original deletion application"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本人原注销申请"
+          }
+        }
+      }
+    },
+    "c08.display.37": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your impact list changed or is missing. This original deletion application was not performed. Refresh, read and confirm again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本人影响清单已变化或缺失，本次未执行原注销申请。请刷新并重新阅读确认。"
+          }
+        }
+      }
+    },
+    "c08.display.38": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This UUID did not create a new deletion application. Applying again requires reading, verification and explicit confirmation again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该 UUID 未创建新注销申请。重新申请需重新阅读、验证并明确确认。"
+          }
+        }
+      }
+    },
+    "c08.display.39": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original result remains UNKNOWN. Check it read-only, without resending or treating current PENDING status as an original receipt."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原申请结果仍 UNKNOWN；只读核对，不重发，也不把当前 PENDING 当成原回执。"
+          }
+        }
+      }
+    },
+    "c08.display.40": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original request needs verification. After signing in again, recover it read-only using the same UUID. No automatic submission."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求待核对；重新登录后可按同一 UUID 只读恢复，不自动提交。"
+          }
+        }
+      }
+    },
+    "c08.display.41": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The impact list is unavailable. Missing items do not mean zero. Refresh and confirm again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "影响清单尚未取得；不能将缺失项视为零。请刷新后重新确认。"
+          }
+        }
+      }
+    },
+    "c08.display.42": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submitting confirms the same impact version shown above. Unconfirmed coverage does not mean zero assets or completed cleanup. The server requires a fresh read if facts change."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交即确认上方同一版本的本人影响清单；未核覆盖不等于零资产或已清理。服务器发现变化会要求重新读取。"
+          }
+        }
+      }
+    },
+    "c08.display.43": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original request: "
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求："
+          }
+        }
+      }
+    },
+    "c08.display.44": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This UUID was accepted, not finally deleted. The independent current status is shown below."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该 UUID 的申请已受理，不是最终注销完成；下方是独立的当前状态。"
+          }
+        }
+      }
+    },
+    "c08.display.45": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Application ID: "
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申请编号："
+          }
+        }
+      }
+    },
+    "compliance.cancellationConfirmed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server confirmed cancellation of the deletion application."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器已确认撤回注销申请。"
+          }
+        }
+      }
+    },
+    "compliance.completed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server confirmed that account deletion is complete."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器已确认账号注销完成。"
+          }
+        }
+      }
+    },
+    "compliance.impactChanged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The impact list changed or facts are unconfirmed. Deletion was not performed. Refresh and confirm again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "影响清单已变化或仍有未核事实，未执行注销。请刷新重新确认。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -35,11 +35,13 @@ import SwiftUI
                     if model.core.canRecoverCommands {
                         Button("couponManagement.checkPendingResults") { model.run { await model.core.recoverPendingCommands() } }
                             .disabled(model.working).accessibilityIdentifier("couponManagement.recover")
-                        Text("couponManagement.recoveryNotice").font(.footnote).foregroundStyle(.secondary)
                     }
                     Text("couponManagement.chinaTime").font(.footnote).foregroundStyle(.secondary)
                     if model.working || model.core.loading { ProgressView("couponManagement.loading") }
-                    else if model.core.rows.isEmpty { Text("couponManagement.empty").foregroundStyle(.secondary) }
+                    else if model.core.rows.isEmpty {
+                        ContentUnavailableView("couponManagement.empty", systemImage: "ticket")
+                            .listRowBackground(Color.clear)
+                    }
                     ForEach(model.core.rows) { row in
                         NavigationLink {
                             CouponManagementDetailView(model: model, id: row.id)
@@ -59,13 +61,17 @@ import SwiftUI
                 }
                 .refreshable { await model.core.load(); model.revision += 1 }
                 .toolbar {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button { creating = true } label: { Label("couponManagement.create", systemImage: "plus") }
-                            .disabled(model.working || !model.core.canReviewPublish).accessibilityIdentifier("couponManagement.create")
+                    // Hidden, not disabled, when publishing is not available for this account.
+                    if model.core.canReviewPublish {
+                        ToolbarItem(placement: .primaryAction) {
+                            Button { creating = true } label: { Label("couponManagement.create", systemImage: "plus") }
+                                .disabled(model.working).accessibilityIdentifier("couponManagement.create")
+                        }
                     }
                 }
             }
         }
+        .merchantM02Page()
         .navigationTitle("couponManagement.title")
         .task(id: sessionKey) {
             model.synchronize(); creating = false
@@ -82,11 +88,7 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
     let surface: CouponManagementNoticeSurface
     var body: some View {
         Section {
-            if !model.core.canSubmit { Text("couponManagement.dormant").font(.footnote) }
             if model.core.canSimulate { Text("couponManagement.synthetic").font(.footnote).foregroundStyle(.secondary) }
-            if model.core.canSubmit && (!model.core.canReviewPublish || !model.core.canReviewStop) {
-                Text("couponManagement.unavailable").font(.footnote)
-            }
             if model.core.recoveryFinished { Text("couponManagement.recoveryFinished") }
             if let issue = model.core.issue { Text(LocalizedStringKey(issue.messageKey)).accessibilityIdentifier("couponManagement.notice.\(surface.rawValue).issue") }
             if let issue = model.core.issue, case .server(let message) = issue { Text(message) }
@@ -114,14 +116,12 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
                     LabeledContent("couponManagement.type") { Text(LocalizedStringKey(row.typeKey)) }
                     LabeledContent("couponManagement.start", value: CouponValidityTime.display(row.startTime) ?? "—")
                     LabeledContent("couponManagement.end", value: CouponValidityTime.display(row.endTime) ?? "—")
-                    Text("couponManagement.dateNotice").font(.footnote)
                     Text("couponManagement.chinaTime").font(.footnote)
                 }
                 if let code = row.publishedBatchCode {
                     Section("couponManagement.batchCode.title") {
                         Text(verbatim: code).font(.body.monospaced()).privacySensitive()
                             .accessibilityIdentifier("couponManagement.batchCode.value")
-                        Text("couponManagement.batchCode.referenceOnly").font(.footnote).foregroundStyle(.secondary)
                     }.accessibilityIdentifier("couponManagement.batchCode.section")
                 }
                 Section("couponManagement.counts") {
@@ -139,14 +139,19 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
                         Button("couponManagement.reviewStop", role: .destructive) { model.run { await model.core.prepareStop(id) } }
                             .disabled(model.working || !model.core.canReviewStop).accessibilityIdentifier("couponManagement.stop.review")
                     }
-                    Text("couponManagement.claimUnavailable").font(.footnote)
                 }
                 if let review = model.core.review { CouponManagementReviewSection(model: model, review: review) }
             } else if model.working { ProgressView("couponManagement.loading") }
             else { Text("couponManagement.unavailable") }
         }
+        .merchantM02Page()
         .navigationTitle("couponManagement.detail")
-        .toolbar { Button("couponManagement.refresh") { model.run { await model.core.load() } }.disabled(model.working) }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { model.run { await model.core.load() } } label: { Label("couponManagement.refresh", systemImage: "arrow.clockwise") }
+                    .disabled(model.working)
+            }
+        }
         .task { await model.core.load(); model.revision += 1 }
         .onDisappear { model.cancelReview() }
     }
@@ -192,6 +197,8 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
         }
         .environment(\.timeZone, CouponValidityTime.timeZone)
         .environment(\.calendar, CouponValidityTime.calendar)
+        .merchantM02Page()
+        .scrollDismissesKeyboard(.interactively)
         .navigationTitle("couponManagement.create")
         .interactiveDismissDisabled(model.core.draft.dirty || model.working)
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("couponManagement.cancel") { if model.core.draft.dirty { discard = true } else { dismiss() } }.disabled(model.working) } }
@@ -213,20 +220,22 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
         Section {
             switch review.intent {
             case .publish(let draft):
-                Text("couponManagement.chinaTime").font(.footnote)
-                Text(draft.name).font(.headline)
-                Text(draft.description)
+                LabeledContent("couponManagement.name", value: draft.name)
+                if !draft.description.isEmpty { LabeledContent("couponManagement.description", value: draft.description) }
+                LabeledContent("couponManagement.type") { Text(LocalizedStringKey(CouponManagementDraft.typeKey(draft.couponType))) }
                 LabeledContent("couponManagement.quantity", value: draft.quantity)
-                Text(LocalizedStringKey(CouponManagementDraft.typeKey(draft.couponType)))
                 if let start = draft.startTime { LabeledContent("couponManagement.start") { Text(CouponValidityTime.display(start)) } }
                 if let end = draft.endTime { LabeledContent("couponManagement.end") { Text(CouponValidityTime.display(end)) } }
+                Button(LocalizedStringKey(model.core.canSimulate ? "couponManagement.simulate" : "couponManagement.publishConfirm")) { model.run { await model.core.confirm(review) } }
+                    .buttonStyle(.questifyPrimary)
+                    .frame(maxWidth: .infinity)
+                    .listRowBackground(Color.clear)
+                    .disabled(model.working || !model.core.canConfirm(review)).accessibilityIdentifier("couponManagement.confirm")
             case .stop(let row):
-                Text(row.name ?? appLocalized("couponManagement.coupon", locale: locale)).font(.headline)
-                Text("couponManagement.stopPolicy")
+                Text("couponManagement.stopQuestion \(row.name ?? appLocalized("couponManagement.coupon", locale: locale))").font(.headline)
+                Button(LocalizedStringKey(model.core.canSimulate ? "couponManagement.simulate" : "couponManagement.stopConfirm"), role: .destructive) { model.run { await model.core.confirm(review) } }
+                    .disabled(model.working || !model.core.canConfirm(review)).accessibilityIdentifier("couponManagement.confirm")
             }
-            Text("couponManagement.reviewNotice").font(.footnote)
-            Button(LocalizedStringKey(model.core.canSimulate ? "couponManagement.simulate" : "couponManagement.confirmSubmission")) { model.run { await model.core.confirm(review) } }
-                .disabled(model.working || !model.core.canConfirm(review)).accessibilityIdentifier("couponManagement.confirm")
             Button("couponManagement.cancel") { model.cancelReview() }.disabled(model.working)
         } header: {
             Text("couponManagement.review").accessibilityIdentifier("couponManagement.review")

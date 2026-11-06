@@ -63,18 +63,22 @@ struct RoamRunCardParityMeta: View {
     }
 }
 
-/// 那年今日 / 月度回顾 / 导出 row inside the history page. Export has no native screen yet.
+/// 那年今日 / 月度回顾 / 导出 row inside the history page. Export is listed only with its owner-only tools.
 @MainActor struct RoamHistoryToolsRow: View {
     let reader: (any RoamPassportToolsReading)?
+    var privateTools: (any RoamPrivateToolsServing)? = nil
+    var anniversaryRouteDestination: ((String) -> AnyView)? = nil
     var body: some View {
         HStack(spacing: 12) {
-            NavigationLink { RoamAnniversaryView(reader: reader) } label: { tool("roamSub.w208.history.tool.anniversary", "calendar") }
+            NavigationLink { RoamAnniversaryView(reader: reader, routeDestination: anniversaryRouteDestination) } label: { tool("roamSub.w208.history.tool.anniversary", "calendar") }
                 .accessibilityIdentifier("roamSub.w208.history.tool.anniversary")
-            NavigationLink { RoamMonthlyRecapView(reader: reader) } label: { tool("roamSub.w208.history.tool.recap", "list.bullet") }
+            NavigationLink { RoamMonthlyRecapView(reader: reader, routeDestination: anniversaryRouteDestination) } label: { tool("roamSub.w208.history.tool.recap", "list.bullet") }
                 .accessibilityIdentifier("roamSub.w208.history.tool.recap")
-            NavigationLink { RoamExportUnavailableView() } label: { tool("roamSub.w208.history.tool.export", "arrow.down.doc") }
-                .accessibilityLabel(Text("roamSub.w208.history.tool.exportLabel"))
-                .accessibilityIdentifier("roamSub.w208.history.tool.export")
+            if let privateTools {
+                NavigationLink { RoamExplorationExportView(tools: privateTools) } label: { tool("roamSub.w208.history.tool.export", "arrow.down.doc") }
+                    .accessibilityLabel(Text("roamSub.w208.history.tool.exportLabel"))
+                    .accessibilityIdentifier("roamSub.w208.history.tool.export")
+            }
         }.buttonStyle(.bordered)
     }
     private func tool(_ key: LocalizedStringKey, _ symbol: String) -> some View {
@@ -252,22 +256,18 @@ struct RoamShareLinkDormantNotice: View {
             Label(LocalizedStringKey(node.favorited ? "roamSub.w208.poi.favorited" : "roamSub.w208.poi.favorite"), systemImage: node.favorited ? "heart.fill" : "heart")
                 .font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("roamSub.w208.poi.favoriteState")
             if node.coordinate == nil { Label("roamSub.w208.poi.noNavigation", systemImage: "location.slash").font(.footnote).foregroundStyle(.secondary) }
-            NavigationLink {
-                RoamCityStampFlowView(kind: "sign", place: node.name.isEmpty ? nil : node.name, cameraDestination: stampDestination)
-            } label: { Label("roamSub.w208.poi.dropStamp", systemImage: "envelope") }
-                .frame(minHeight: 44).accessibilityIdentifier("roamSub.w208.poi.dropStamp")
+            // 投一张 is hidden: this card has no stamp-exchange coordinator to send with, so the
+            // flow could only end on a disabled send button.
             if card.primary == .showVoucher {
                 NavigationLink { RoamCityVoucherCodeView(poiID: node.poiId, name: node.name) } label: {
                     Label(LocalizedStringKey(card.primaryKey), systemImage: "qrcode")
-                }.buttonStyle(.borderedProminent).frame(minHeight: 44)
+                }.buttonStyle(.questifyPrimary).frame(minHeight: 44)
                     .accessibilityIdentifier("roamSub.w208.poi.primary")
-            } else {
-                Button(LocalizedStringKey(card.primaryKey)) {}.buttonStyle(.borderedProminent).frame(minHeight: 44)
-                    .disabled(true).accessibilityIdentifier("roamSub.w208.poi.primary")
-                if card.primary == .interact {
-                    Text("roamSub.w208.poi.interactDormant").font(.caption).foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+            } else if card.primary != .interact {
+                // Completed / pending states are status, not an action.
+                Label(LocalizedStringKey(card.primaryKey), systemImage: card.primary == .completed ? "checkmark.seal" : "lock")
+                    .font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("roamSub.w208.poi.primary")
             }
         }.accessibilityElement(children: .contain).accessibilityIdentifier("roamSub.w208.poi.node")
     }
@@ -371,11 +371,10 @@ struct RoamPOIMissingView: View {
             NavigationLink { if let cameraDestination { cameraDestination() } else { RoamStampCameraView() } } label: {
                 Label("roamSub.w208.stamp.takePhoto", systemImage: "camera")
             }.frame(minHeight: 44).accessibilityIdentifier("roamSub.w208.stamp.takePhoto")
-            Text("roamSub.w208.stamp.dragHint").font(.footnote).foregroundStyle(.secondary)
             Button {
                 Task { await send() }
             } label: { Text(LocalizedStringKey(working ? "roamSub.w208.stamp.sending" : "roamSub.w208.stamp.send")).frame(maxWidth: .infinity, minHeight: 44) }
-                .buttonStyle(.borderedProminent).disabled(!canSend && fixtureReceipt == nil)
+                .buttonStyle(.questifyPrimary).disabled(!canSend && fixtureReceipt == nil)
                 .accessibilityIdentifier("roamSub.w208.stamp.send")
             if failed { Text("roamSub.w208.stamp.retry").font(.footnote).foregroundStyle(.red).accessibilityIdentifier("roamSub.w208.stamp.failed") }
             if exchange == nil && fixtureReceipt == nil {
@@ -447,7 +446,7 @@ struct RoamPOIMissingView: View {
             Button {
                 dismiss()
             } label: { Text("roamSub.w208.stamp.done").frame(maxWidth: .infinity, minHeight: 44) }
-                .buttonStyle(.borderedProminent).disabled(slip.got && !revealed)
+                .buttonStyle(.questifyPrimary).disabled(slip.got && !revealed)
                 .accessibilityIdentifier("roamSub.w208.stamp.done")
             if slip.got && !revealed { Text("roamSub.w208.stamp.revealFirst").font(.caption).foregroundStyle(.secondary) }
         }

@@ -69,7 +69,6 @@ import SwiftUI
         ScrollViewReader { scroll in
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("searchMap.manualDisclosure").font(.footnote).foregroundStyle(.secondary)
                 if reader.isOfflineExample { Text("searchMap.offline").font(.caption) }
                 if let area, !area.label.isEmpty { Text(verbatim: area.label).font(.headline) }
                 if mode == .city {
@@ -82,7 +81,7 @@ import SwiftUI
                 }
                 if mode == .city { layerControls }
                 Button("searchMap.searchArea") { startLoad() }
-                    .buttonStyle(.borderedProminent).frame(minHeight: 44)
+                    .buttonStyle(.questifyPrimary).frame(minHeight: 44)
                     .disabled(area == nil || !reader.isConfigured || loading)
                     .accessibilityIdentifier("searchMap.searchArea")
                 if visibleCityResults != nil { refreshControls }
@@ -99,7 +98,6 @@ import SwiftUI
                         if !reader.isOfflineExample { viewportControls }
                     } else {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("searchMap.appleMapDisclosure").font(.footnote)
                             Button("searchMap.showMap") { mapCameraIdentityArea = area; mapEnabled = true }.buttonStyle(.bordered).frame(minHeight: 44)
                                 .accessibilityIdentifier("searchMap.showMap")
                         }
@@ -135,7 +133,7 @@ import SwiftUI
             selectionFocused = true
         }
         }
-        .appNavigationTitle(key: mode == .city ? "searchMap.citySearch" : "searchMap.nearby")
+        .appNavigationTitle(key: mode == .city ? "searchMap.mapTitle" : "searchMap.nearby")
         .navigationDestination(item: $layerNavigation) { route in
             if route.readerID == ObjectIdentifier(reader), route.scope == reader.scope, reader.isConfigured {
                 switch route.target {
@@ -242,10 +240,6 @@ import SwiftUI
                 .font(.footnote).fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("mapViewport.status")
             if let ticket {
-                Text("mapViewport.draft").font(.caption)
-                Text(verbatim: "\(ticket.viewport.center.latitude), \(ticket.viewport.center.longitude) · WGS84")
-                    .font(.caption).fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier("mapViewport.draft")
                 Button("mapViewport.clear") {
                     guard context == viewportContext, viewportSelection.current(in: context)?.id == ticket.id else { return }
                     invalidateViewport()
@@ -269,7 +263,6 @@ import SwiftUI
             if mapLayers.isEmpty {
                 Text("mapLayers.none").font(.subheadline).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("mapLayers.none")
-                Text("mapLayers.none.hint").font(.footnote).fixedSize(horizontal: false, vertical: true)
                 Button("mapLayers.showAll") { mapLayers.showAll() }.frame(minHeight: 44)
                     .accessibilityIdentifier("mapLayers.showAll")
             }
@@ -398,6 +391,7 @@ import SwiftUI
             ContentUnavailableView(LocalizedStringKey(mapLayers.shows(.activities) && pagination.nextPage != nil ? "mapPagination.noMatchesYet" : "searchMap.empty"), systemImage: "mappin.slash")
         }
         if mapLayers.shows(.activities) {
+            Text("searchMap.kind.activity").font(.headline).accessibilityAddTraits(.isHeader)
             let missingCoordinateCount = pagination.rows.filter { !$0.hasValidCoordinates }.count
             if missingCoordinateCount > 0 {
                 LabeledContent("searchMap.listOnly") { Text(missingCoordinateCount, format: .number) }.font(.footnote)
@@ -411,6 +405,7 @@ import SwiftUI
             activityPaginationControls
         }
         if mapLayers.shows(.cityPlaces) {
+            Text("searchMap.cityNodes").font(.headline).accessibilityAddTraits(.isHeader)
             ForEach(value.nodes) { row in
                 Button { openLayerCity(row, rendered: renderedContext) } label: {
                     QuestifyImageEntityCard(imageSource: reader.isOfflineExample ? nil : row.imageURL, title: row.name, subtitle: row.templateTitle ?? row.merchantName, fallbackTitle: "searchMap.untitled", fallbackSymbol: "mappin", minimumHeight: 230) {
@@ -424,7 +419,6 @@ import SwiftUI
     @ViewBuilder private var refreshControls: some View {
         if refresh.isLoading {
             ProgressView("mapRefresh.loading").accessibilityIdentifier("mapRefresh.loading")
-            Text("mapRefresh.previousWhileLoading").font(.footnote).foregroundStyle(.secondary)
         } else {
             Button { startRefresh() } label: {
                 Text(LocalizedStringKey(refresh.hasRetainedResults ? "mapRefresh.retry" : "mapRefresh.refresh"))
@@ -450,7 +444,6 @@ import SwiftUI
         } else if let failure = pagination.failure {
             VStack(alignment: .leading, spacing: 8) {
                 Label(LocalizedStringKey(failure == .unauthorized ? "searchMap.partialSignIn" : "mapPagination.failed"), systemImage: "exclamationmark.circle")
-                Text("mapPagination.retained").font(.footnote).foregroundStyle(.secondary)
                 if failure == .unauthorized, let onSignIn {
                     Button("searchMap.signIn", action: onSignIn).frame(minHeight: 44)
                 } else {
@@ -460,9 +453,6 @@ import SwiftUI
                 }
             }.accessibilityIdentifier("mapPagination.failure")
         } else if pagination.nextPage != nil {
-            if pagination.rows.isEmpty {
-                Text("mapPagination.filteredPage").font(.footnote).foregroundStyle(.secondary)
-            }
             Button("mapPagination.more") { startLoadMore() }
                 .buttonStyle(.bordered).frame(minHeight: 44)
                 .disabled(loading || refresh.isLoading || !reader.isConfigured)
@@ -491,7 +481,7 @@ import SwiftUI
     }
     private func nearbyDetail(_ node: RoamRouteNode, area: RoamSearchArea) -> some View {
         List {
-            Text(verbatim: node.addressName).font(.title2.bold())
+            Text(verbatim: node.addressName).font(.title3.weight(.semibold))
             if let address = node.address { Text(verbatim: address) }
             if let topicID = node.topicId, topicID > 0 {
                 NavigationLink { destination(.topic(topicID)) } label: { Text("searchMap.relatedTopic") }
@@ -499,7 +489,6 @@ import SwiftUI
             if let coordinate = node.coordinate {
                 NavigationLink { SearchRoutePreviewView(origin: area.coordinate, destination: coordinate, name: node.addressName, scope: reader.scope, navigationReference: try? WalkingTargetReference(kind: .nearbyNode, id: node.id), offline: reader.isOfflineExample) } label: { Text("searchMap.routePreview") }.accessibilityIdentifier("searchMap.openRoute")
             }
-            Text("searchMap.routeNodeDomain").font(.footnote).foregroundStyle(.secondary)
         }.appNavigationTitle("searchMap.nodeDetail")
     }
     private func invalidate() {

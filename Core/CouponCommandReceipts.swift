@@ -164,7 +164,9 @@ enum CouponCommandReceipt {
                (try? CouponCommandCanonical.stopID(record.request)) == raw, envelope.data?.id == nil { return .receipt(id, envelope.msg) }
         }
         if receipt.outcome == "REJECTED", envelope.code == 500, envelope.data?.id == nil {
-            if command.operation == "PUBLISH", ["QUOTA_REJECTED", "PUBLISH_RATE_LIMITED", "WRITE_NOT_APPLIED"].contains(receipt.reasonCode),
+            // Original producer records these preflight refusals before the coupon writer.
+            // They prove only rejection of this exact command, never publication or permission to retry.
+            if command.operation == "PUBLISH", ["QUOTA_REJECTED", "PUBLISH_RATE_LIMITED", "WRITE_NOT_APPLIED", "INPUT_CHANGED", "SAFETY_REJECTED"].contains(receipt.reasonCode),
                receipt.couponId == nil, receipt.couponStatusAtExecution == nil { return .rejected(envelope.msg ?? receipt.reasonCode) }
             if command.operation == "STOP", ["COUPON_NOT_FOUND", "COUPON_MANUALLY_INVALIDATED", "COUPON_ALREADY_STOPPED", "COUPON_ENDED", "STOP_CAS_NOT_APPLIED"].contains(receipt.reasonCode),
                receipt.couponId == (try? CouponCommandCanonical.stopID(record.request)),

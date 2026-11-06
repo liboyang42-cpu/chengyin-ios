@@ -75,16 +75,16 @@ import FoundationNetworking
         func send(_ request: URLRequest) async throws -> (Data, Int) {
             requests.append(request)
             if request.url?.path == "/api/publish/home" { return (Data(#"{"code":200,"data":{"permission":{"canProPublish":true},"quota":{"themesRemaining":2}}}"#.utf8), 200) }
-            return (try createReply.get(), 200)
+            return (try projectOriginalTestReceipt(request, legacy: createReply.get()), 200)
         }
-        var creates: Int { requests.filter { $0.url?.path == "/api/topic/v2/create" }.count }
+        var creates: Int { requests.filter { $0.url?.path == "/api/topic/edit-requests/submit" }.count }
     }
     private func harness(_ reply: Result<Data, URLError>) throws -> (ProjectEditSession, ProjectEditLocalStore, ProjectEditHTTPService, Wire) {
         let session = try ProjectEditSession(accountID: 42, epoch: 1, storageNamespace: "author-save-test")
         let store = ProjectEditLocalStore(storage: ProjectEditMemoryStorage())
         let configuration = try APIConfiguration(baseURL: URL(string: "https://example.com")!)
         let credentials = try ProjectEditCredentials(session: session, token: "synthetic-only-token")
-        let approval = try OperationEndpointApproval(baseURL: configuration.baseURL, namespace: session.storageNamespace, accountID: session.accountID, paths: [ProjectEditStoryContract.createPath])
+        let approval = try OperationEndpointApproval(baseURL: configuration.baseURL, namespace: session.storageNamespace, accountID: session.accountID, paths: [ProjectEditStoryContract.createPath, ProjectEditRequestContract.submitPath])
         let wire = Wire(reply)
         let service = ProjectEditHTTPService(configuration: configuration, transport: wire, owner: .personal, approval: approval, store: store, currentCredentials: { credentials })
         return (session, store, service, wire)
@@ -99,7 +99,8 @@ import FoundationNetworking
         let pending = try XCTUnwrap(co.pending)
         XCTAssertNil(pending.completedTopicID); XCTAssertEqual(try store.pending(session: session, identity: pending.identity)?.dispatchStarted, true)
 
-        // A later success reply cannot be used: no create requestId exists to match it by name.
+        // A later success reply is not used by UUID-only lookup or a matching title.
+        // Only the original paired envelope may be read with an independent read grant.
         wire.createReply = .success(Data(#"{"code":200,"data":{"topicId":7001,"auditTaskId":1,"reviewState":"PENDING","published":false,"bundledTemplateIds":[]}}"#.utf8))
         let reopened = ProjectEditCoordinator(initial: .init(draft: draft), service: service, store: store, currentSession: { session })
         await reopened.load()

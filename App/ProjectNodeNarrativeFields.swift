@@ -133,7 +133,7 @@ struct ProjectNodeNarrativeHostIdentity: Hashable {
                         }
                         if controller.saveUnconfirmed { Section { Text("projectNodeNarrative.saveUnconfirmed") } }
                     } else { Text("projectNodeNarrative.stale").accessibilityIdentifier("projectNodeNarrative.stale") }
-                }
+                }.modifier(ProjectEditorFormSurface())
                 .navigationTitle("projectNodeNarrative.title").navigationBarTitleDisplayMode(.inline)
                 .scrollDismissesKeyboard(.interactively)
                 .toolbar {

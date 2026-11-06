@@ -1,0 +1,40 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "roam.nearbyEvents.teamsLoading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activities are ready. Loading team information…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动已加载，正在读取队伍信息…"
+          }
+        }
+      }
+    },
+    "roam.nearbyEvents.teamsFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activities are ready, but team information could not be loaded. You can still view activity details."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动已加载，但队伍信息暂时无法读取。仍可查看活动详情。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

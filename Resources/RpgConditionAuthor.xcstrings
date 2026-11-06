@@ -1,0 +1,294 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "strings": {
+    "rpgCondition.copy.000": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing schema2 rules are required. Missing, older or unrecognized configuration is not overwritten."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "须已有原 schema2 规则；不覆盖缺失、旧版或未识别配置。"
+          }
+        }
+      }
+    },
+    "rpgCondition.copy.001": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set the values explicitly according to the original contract. Nothing has been written back."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请按原合同明确配置；未写回。"
+          }
+        }
+      }
+    },
+    "rpgCondition.copy.002": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuration is unchanged. Original bytes are preserved; no additional save or publication occurred."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置未变，保留原字节；没有新增保存或发布。"
+          }
+        }
+      }
+    },
+    "rpgCondition.copy.003": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local saving of the complete draft was not confirmed. Your edits and preview are retained; retry local saving. Nothing has been saved to the server or published."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原完整本地草稿保存未确认；编辑和预览保留，可重试本地保存。尚未保存服务器或发布。"
+          }
+        }
+      }
+    },
+    "rpgCondition.copy.004": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original save flow saved the complete local draft. Nothing has been saved to the server or published."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原保存器已保存完整本地草稿，尚未保存服务器或发布。"
+          }
+        }
+      }
+    },
+    "rpgCondition.copy.005": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original project or configuration changed. Nothing was overwritten."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原项目或配置已变化，未覆盖。"
+          }
+        }
+      }
+    },
+    "rpgCondition.copy.006": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original RPG condition rules"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原 RPG 状态规则"
+          }
+        }
+      }
+    },
+    "rpgCondition.copy.007": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load this topic’s condition configuration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取本主题原状态配置"
+          }
+        }
+      }
+    },
+    "rpgCondition.copy.008": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The project or session changed. Close and reopen; the old working copy cannot be written back."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "项目或会话已变化，请关闭重开，不能写回旧副本。"
+          }
+        }
+      }
+    },
+    "rpgCondition.copy.009": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable conditions (up to 2 stacks each, 5 types total)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显式启用正式状态（每状态最多2层，总类数5）"
+          }
+        }
+      }
+    },
+    "rpgCondition.copy.010": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explicitly keep this switch and use capacity 5"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明确保留当前开关并采用正式容量5"
+          }
+        }
+      }
+    },
+    "rpgCondition.copy.011": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original durations apply: fatigue lasts 3 nodes, cold/heatstroke 4, focus 1, fear/excitement 2; inspiration lasts 1 active check. Duration decreases only on first node completion, not on GET or re-entry. Rest, successful checks and known environment conditions use the original events, not labels."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "持续沿原正式规则：疲惫3节点，受寒/中暑4，专注1，恐惧/亢奋2；受启发1次主动检定。节点首完才扣持续，GET或重进不扣。休息/成功检定/已知环境沿原事件，不是标签。"
+          }
+        }
+      }
+    },
+    "rpgCondition.copy.012": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review condition rules"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预览原状态规则"
+          }
+        }
+      }
+    },
+    "rpgCondition.copy.013": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry saving the complete local draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试保存原完整项目草稿"
+          }
+        }
+      }
+    },
+    "rpgCondition.copy.014": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm and save the complete local draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认保存原完整项目草稿"
+          }
+        }
+      }
+    },
+    "rpgCondition.copy.015": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Writes only the original schema2 condition switch and capacity 5. Continue through the original project save, request recovery and publication. Template condition-effect editing is not connected. This page does not change player conditions or reset existing runs."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只写入原 schema2 的状态启用值与正式容量5，仍需原项目保存、请求恢复和发布。模板状态效果编辑尚未接入；本页不改变玩家状态或重置旧局。"
+          }
+        }
+      }
+    },
+    "rpgCondition.copy.016": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close without saving"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭状态编辑副本"
+          }
+        }
+      }
+    },
+    "rpgCondition.localOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saves only the local draft. Does not save to the server or publish."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅保存本地草稿，不保存服务器或发布。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

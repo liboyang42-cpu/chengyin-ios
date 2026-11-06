@@ -135,13 +135,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This ticket contains an unsupported meeting-point value. It is kept unchanged and is read-only; full submission is blocked."
+            "value": "This ticket's meeting point can't be edited here. It's kept as is, but you can't submit until it's fixed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此票种含不支持的集合点数据，已原样保留并设为只读；完整提交被阻止。"
+            "value": "此票种的集合点无法在这里修改，已原样保留；修正前无法提交。"
           }
         }
       }

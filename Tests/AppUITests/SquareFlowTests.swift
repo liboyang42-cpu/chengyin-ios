@@ -90,7 +90,7 @@ final class SquareFlowTests: XCTestCase {
     }
     func testUnconfiguredAndUnauthorizedStayHonest() {
         launch("unconfigured")
-        XCTAssertTrue(app.staticTexts["Square service is not configured"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Square isn't available right now"].waitForExistence(timeout: 10))
         XCTAssertFalse(app.buttons["square.row.701"].exists)
         app.terminate(); launch("unauthorized")
         XCTAssertTrue(app.staticTexts["Your session could not be verified. Sign in again to continue"].waitForExistence(timeout: 10))

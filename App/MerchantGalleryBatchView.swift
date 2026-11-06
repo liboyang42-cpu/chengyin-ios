@@ -8,8 +8,6 @@ import UIKit
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("image.retained.boundary").font(.footnote)
-            Text("image.galleryBatch.boundary").font(.footnote)
             Button("image.galleryBatch.select") { Task { await batch.select(binding: binding) } }
                 .disabled(!available || batch.selecting || batch.blocked || batch.active)
                 .accessibilityIdentifier("image.galleryBatch.select")
@@ -25,9 +23,6 @@ import UIKit
                         if let image = UIImage(data: review.selection.jpeg) {
                             Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 240).accessibilityLabel("image.retained.preview")
                         }
-                        Text(verbatim: review.scope.realm)
-                        Text("image.retained.byteCount \(review.selection.jpeg.count)").font(.caption)
-                        .accessibilityIdentifier("image.retained.byteCount")
                         Button("image.retained.confirmUpload") { Task { await batch.confirmUpload(review) } }
                             .disabled(!batch.current || batch.selecting)
                             .accessibilityIdentifier("image.galleryBatch.confirmUpload")

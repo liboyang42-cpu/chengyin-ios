@@ -48,7 +48,8 @@ class ProjectEditPreparedNodeChecks(unittest.TestCase):
         self.assertNotIn('guard fullEdit',read('App/ProjectEditPreparedReview.swift'))
     def test_local_saving_result_is_explicit_and_real_node_save_uses_captured_lease(self):
         model=read('App/ProjectEditView.swift')
-        self.assertIn('let saved = coordinator.saveLocal(draft); coordinator.prepare(draft)',model)
+        self.assertIn('func review(intent: ProjectEditSubmissionIntent = .ordinary)',model)
+        self.assertIn('let saved = coordinator.saveLocal(draft); coordinator.prepare(draft, intent: intent)',model)
         self.assertIn('reviewLocalSaveConfirmed = saved',model)
         view=read('App/ProjectEditDetailForms.swift')
         self.assertIn('if !localSaveConfirmed',view)

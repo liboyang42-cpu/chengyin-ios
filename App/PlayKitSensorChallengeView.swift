@@ -45,11 +45,10 @@ import SwiftUI
                 Text(LocalizedStringKey(kind == .ballShake ? "playkit.ball.calibration" : "playkit.audio.calibration"))
             }
             if stage.phase == .measured {
-                Text("playkit.sensor.measuredBoundary").font(.footnote).foregroundStyle(.secondary)
                 Button("playkit.review") {
                     guard let payload = stage.payload else { return }
                     requestReview(stage.submitAction, payload, {})
-                }.buttonStyle(.borderedProminent).disabled(!enabled || !active || stage.payload == nil)
+                }.buttonStyle(.questifyPrimary).disabled(!enabled || !active || stage.payload == nil)
                     .accessibilityIdentifier("playkit.sensor.review")
             } else if stage.phase == .ready {
                 Button("playkit.sensor.reviewStart") {
@@ -59,13 +58,12 @@ import SwiftUI
                         // acknowledgement. A stale callback cannot restart sensors.
                         if stage.startAfterAcknowledgement(attempt: token, revisionIdentity: currentRevisionIdentity?() ?? revisionIdentity) { onDirty() }
                     }
-                }.buttonStyle(.borderedProminent).disabled(!enabled || !active)
+                }.buttonStyle(.questifyPrimary).disabled(!enabled || !active)
                     .accessibilityIdentifier("playkit.sensor.start")
-                Text("playkit.sensor.startBoundary").font(.footnote).foregroundStyle(.secondary)
             } else if stage.phase == .idle || stage.phase == .interrupted {
                 Button(LocalizedStringKey(kind == .compass ? "playkit.compass.begin" : "playkit.sensor.calibrate")) {
                     onDirty(); stage.begin(active: active)
-                }.buttonStyle(.borderedProminent).disabled(!enabled || !active || !stage.supported)
+                }.buttonStyle(.questifyPrimary).disabled(!enabled || !active || !stage.supported)
                     .accessibilityIdentifier("playkit.sensor.calibrate")
             }
             if [.authorizing, .calibrating, .running, .ready].contains(stage.phase) {
@@ -136,7 +134,7 @@ import SwiftUI
                         Capsule().fill(Color.secondary).frame(width: 2, height: mark % 3 == 0 ? 18 : 10)
                             .offset(y: -105).rotationEffect(.degrees(Double(mark) * 30))
                     }
-                    Image(systemName: "location.north.fill").font(.system(size: 72))
+                    Image(systemName: "location.north.fill").resizable().scaledToFit().frame(width: 60, height: 72)
                         .foregroundStyle(stage.compass.aligned ? Color.green : Color.accentColor)
                         .rotationEffect(.degrees(stage.compass.needleDegrees))
                         .opacity(stage.compass.heading == nil ? 0.25 : 1)

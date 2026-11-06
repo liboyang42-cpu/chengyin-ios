@@ -85,7 +85,7 @@ final class MerchantEngagementFlowTests: XCTestCase {
         let app = launch("productionFactory"); prepareSegment(app)
         let confirm = app.buttons["merchant.engagement.confirm"]
         reveal(confirm, app: app)
-        XCTAssertEqual(confirm.label, "Confirm reviewed action")
+        XCTAssertEqual(confirm.label, "Confirm")
         confirm.tap()
         let receipt = app.staticTexts["The segment-save response was received."]
         reveal(receipt, app: app)
@@ -95,7 +95,7 @@ final class MerchantEngagementFlowTests: XCTestCase {
         let app = launch("productionFactory", language: "zh-Hans"); prepareSegment(app)
         let confirm = app.buttons["merchant.engagement.confirm"]
         reveal(confirm, app: app)
-        XCTAssertEqual(confirm.label, "确认已审核操作")
+        XCTAssertEqual(confirm.label, "确认")
         cancelReview(app)
         XCTAssertTrue(app.navigationBars["客户运营"].exists)
         attachFixtureScreenshot(self, app: app, name: "Chinese CRM review canceled without receipt")

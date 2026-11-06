@@ -26,15 +26,81 @@ import SwiftUI
         } else { ContentUnavailableView("roam.tasks.changed", systemImage: "person.crop.circle.badge.exclamationmark") }
     }
 }
-@MainActor private final class RoamOfficialTasksViewModel: ObservableObject {
+/// Foreground visit admission only; the original Core model owns the two-list snapshot.
+@MainActor final class RoamOfficialTasksViewModel: ObservableObject {
     let model: RoamOfficialTasksModel
     @Published private var revision = 0
+    private var mounted = false
+    private var foreground = false
+    private var visit = UUID()
+    private var work: Task<Void, Never>?
+    var isVisible: Bool { mounted && foreground }
     init(roam: any RoamExperienceReading, official: any OfficialEventReading) {
         model = .init(roam: roam, official: official)
         model.onChange = { [weak self] in self?.revision &+= 1 }
     }
+    func appear(foreground: Bool) {
+        mounted = true; self.foreground = foreground
+        retire(preservingSnapshot: false)
+        if foreground { model.appear(); readAction()() }
+    }
+    func disappear(preservingSnapshot: Bool) {
+        mounted = false; retire(preservingSnapshot: preservingSnapshot)
+    }
+    func setForeground(_ value: Bool, preservingSnapshot: Bool) {
+        guard foreground != value else { return }
+        foreground = value; retire(preservingSnapshot: preservingSnapshot)
+        // The pushed detail keeps its original snapshot. Foreground cannot remount
+        // or reload this hidden list and revoke the accepted detail target.
+        if value && mounted { model.appear(); readAction()() }
+    }
+    func ownerChanged() {
+        retire(preservingSnapshot: false)
+        // Preserve the original keyed task's current-owner recovery, but only on
+        // the mounted foreground list. A source notification cannot remount it.
+        if isVisible { model.appear(); readAction()() }
+    }
+    private func retire(preservingSnapshot: Bool) {
+        visit = UUID(); work?.cancel(); work = nil
+        if preservingSnapshot { model.cancelPending() } else { model.invalidate() }
+        revision &+= 1
+    }
+    private func accepts(_ offered: UUID, owner: RoamOfficialTasksOwner) -> Bool {
+        isVisible && offered == visit && owner == model.owner && !Task.isCancelled
+    }
+    func readAction() -> () -> Void {
+        let offered = visit, owner = model.owner
+        return { [weak self] in
+            guard let self, self.accepts(offered, owner: owner) else { return }
+            self.work?.cancel()
+            self.work = Task { [weak self] in
+                guard let self else { return }
+                await self.read(offered: offered, owner: owner)
+            }
+        }
+    }
+    func refreshAction() -> () async -> Void {
+        let offered = visit, owner = model.owner
+        return { [weak self] in
+            guard let self else { return }
+            await self.read(offered: offered, owner: owner)
+        }
+    }
+    private func read(offered: UUID, owner: RoamOfficialTasksOwner) async {
+        guard accepts(offered, owner: owner) else { return }
+        await model.load()
+    }
 }
 @MainActor struct RoamOfficialTasksView: View {
+    let roamReader: any RoamExperienceReading
+    let reader: any OfficialEventReading
+    var body: some View {
+        RoamOfficialTasksContent(roamReader: roamReader, reader: reader)
+            .id(RoamOfficialTasksOwner(roam: roamReader, official: reader))
+    }
+}
+@MainActor private struct RoamOfficialTasksContent: View {
+    @Environment(\.scenePhase) private var scenePhase
     let reader: any OfficialEventReading
     @StateObject private var viewModel: RoamOfficialTasksViewModel
     @State private var bucket: OfficialEventBucket = .live
@@ -46,7 +112,9 @@ import SwiftUI
     private var model: RoamOfficialTasksModel { viewModel.model }
     private var query: OfficialEventBrowseQuery { .init(bucket: bucket, keyword: keyword) }
     var body: some View {
+        let retry = viewModel.readAction(), refresh = viewModel.refreshAction()
         List {
+            if viewModel.isVisible {
             Section {
                 TextField("official.search", text: $keyword).textFieldStyle(.roundedBorder)
                     .accessibilityIdentifier("roam.tasks.search")
@@ -59,7 +127,7 @@ import SwiftUI
                 if let error = model.error {
                     Section {
                         Text("roam.tasks.stale").font(.caption).foregroundStyle(.secondary)
-                        OfficialIssueView(issue: .init(error), retry: { Task { await model.load() } })
+                        OfficialIssueView(issue: .init(error), retry: retry)
                     }.accessibilityIdentifier("roam.tasks.stale")
                 }
                 let rows = snapshot.visible(query)
@@ -71,7 +139,7 @@ import SwiftUI
                     }
                     ForEach(rows) { event in
                         Button {
-                            guard target == nil else { return }
+                            guard viewModel.isVisible, target == nil else { return }
                             target = model.select(eventID: event.id, query: query, renderedSnapshotID: snapshot.id)
                         } label: { OfficialEventCard(event: event) }
                             .buttonStyle(QuestifyCardButtonStyle()).questifyCardListRow()
@@ -80,24 +148,28 @@ import SwiftUI
                     }
                 }
             } else if let error = model.error {
-                Section { OfficialIssueView(issue: .init(error), retry: { Task { await model.load() } }) }
+                Section { OfficialIssueView(issue: .init(error), retry: retry) }
                     .accessibilityIdentifier("roam.tasks.error")
             }
             if model.isLoading || (model.snapshot == nil && model.error == nil) {
                 ProgressView("official.loading").accessibilityIdentifier("roam.tasks.loading")
             }
-        }.navigationTitle("roam.tasks.title")
-            .task(id: model.owner) { await model.load() }
-            .onAppear { model.appear() }
-            .onDisappear { if target == nil { model.invalidate() } else { model.cancelPending() } }
-            .refreshable { await model.load() }
-            .onChange(of: model.owner) { _, _ in bucket = .live; keyword = ""; target = nil }
+            } else { ProgressView("official.loading").accessibilityIdentifier("roam.tasks.loading") }
+        }.navigationTitle("roam.tasks.title").navigationBarTitleDisplayMode(.inline)
+            .onAppear { viewModel.appear(foreground: scenePhase == .active) }
+            .onDisappear { viewModel.disappear(preservingSnapshot: target != nil) }
+            .onChange(of: scenePhase) { _, phase in
+                viewModel.setForeground(phase == .active, preservingSnapshot: target != nil)
+            }
+            .refreshable { await refresh() }
+            .onChange(of: model.owner) { _, _ in bucket = .live; keyword = ""; target = nil; viewModel.ownerChanged() }
             .navigationDestination(item: $target) { selection in
                 if model.mayRemainOpen(selection) {
                     OfficialEventDetailView(id: selection.eventID, reader: reader)
                 } else { ContentUnavailableView("roam.tasks.changed", systemImage: "person.crop.circle.badge.exclamationmark") }
             }
             .accessibilityIdentifier("roam.tasks.browser")
+            .privacySensitive()
     }
 }
 #if DEBUG

@@ -76,11 +76,14 @@ import SwiftUI
     private func L(_ key: String.LocalizationValue) -> String { String(localized: key, table: "PlayStoreDay") }
 
     private func stateView(_ key: String.LocalizationValue, id: String) -> some View {
-        VStack(spacing: 16) {
-            Text(L(key)).multilineTextAlignment(.center)
+        ContentUnavailableView {
+            Label { Text(L(key)) } icon: { Image(systemName: id == "signedOut" ? "person.crop.circle" : id == "failed" ? "exclamationmark.triangle" : "storefront") }
+        } actions: {
             Button { Task { await model.load() } } label: { Text("playStoreDay.refresh", tableName: "PlayStoreDay") }
+                .buttonStyle(.bordered)
                 .disabled(model.phase == .loading).accessibilityIdentifier("storeDayPage.refresh")
-        }.padding().frame(maxWidth: .infinity).accessibilityElement(children: .contain).accessibilityIdentifier("storeDayPage.state." + id)
+        }
+        .accessibilityElement(children: .contain).accessibilityIdentifier("storeDayPage.state." + id)
     }
 
     // MARK: Page
@@ -108,7 +111,7 @@ import SwiftUI
             Color.secondary.opacity(0.12)
             if let url {
                 AsyncImage(url: url) { image in image.resizable().scaledToFill() } placeholder: { Image(systemName: "mappin.circle").font(.largeTitle) }
-            } else { Image(systemName: "mappin.circle").font(.system(size: 44)).foregroundStyle(.secondary) }
+            } else { Image(systemName: "mappin.circle").font(.largeTitle).foregroundStyle(.secondary) }
         }
         .frame(maxWidth: .infinity).frame(height: 180).clipShape(RoundedRectangle(cornerRadius: 20)).accessibilityHidden(true)
     }
@@ -157,9 +160,9 @@ import SwiftUI
         VStack(alignment: .leading, spacing: 12) {
             Text("playStoreDay.section.reference", tableName: "PlayStoreDay").font(.headline)
             HStack {
-                stat(node.inStoreLoad.map(String.init) ?? "0", L("playStoreDay.stat.load"), id: "load")
-                stat(node.servicePerHour.map(Self.number) ?? "0", L("playStoreDay.stat.perHour"), id: "perHour")
-                stat(node.expectedWaitMinutes.map(String.init) ?? "0", L("playStoreDay.stat.wait"), id: "wait")
+                stat(node.inStoreLoad.map(String.init) ?? "—", L("playStoreDay.stat.load"), id: "load")
+                stat(node.servicePerHour.map(Self.number) ?? "—", L("playStoreDay.stat.perHour"), id: "perHour")
+                stat(node.expectedWaitMinutes.map(String.init) ?? "—", L("playStoreDay.stat.wait"), id: "wait")
             }
         }
     }
@@ -220,7 +223,7 @@ import SwiftUI
     }
     private func primary(_ title: String, disabled: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) { Text(verbatim: title).bold().frame(maxWidth: .infinity) }
-            .buttonStyle(.borderedProminent).controlSize(.large).disabled(disabled).accessibilityIdentifier("storeDayPage.cta.primary")
+            .buttonStyle(.questifyPrimary).controlSize(.large).disabled(disabled).accessibilityIdentifier("storeDayPage.cta.primary")
     }
 
     // MARK: Sheets

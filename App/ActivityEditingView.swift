@@ -24,19 +24,36 @@ import SwiftUI
     var reviewable: Bool { editable && draft?.changed == true && service.canUpdate }
     var ownerID: UUID { visit }
     func appear(active: Bool) {
+        let resumes = !self.active && active
         visible = true; setActive(active)
+        if current && !resumes { restorePending() }
+    }
+    private func restorePending() {
         guard current else { return }
         lockUnverified = true
         do {
-            pending = try service.pending(id: activityID, session: session); lockUnverified = false
-            if draft == nil, let saved = try service.drafts.load(id: activityID, session: session),
-               pending == nil || saved.requestID == pending?.operationID { draft = saved.draft }
-            if pending != nil { status = "unknown" }
+            pending = try service.pending(id: activityID, session: session)
+            if let pending {
+                let saved = try service.drafts.load(id: activityID, session: session)
+                draft = saved?.requestID == pending.operationID ? saved?.draft : nil
+                status = "unknown"
+            } else {
+                if draft == nil { draft = try service.drafts.load(id: activityID, session: session)?.draft }
+                // The previous visit was retired before dispatch; no receipt is inferred.
+                if status == "sending" { status = "notSent" }
+            }
+            lockUnverified = false
         } catch { status = "unavailable" }
     }
     func setActive(_ value: Bool) {
+        let resuming = !active && value
         active = value
         if !value { retireReview(); visit = UUID(); busy = false }
+        else if resuming && visible {
+            // A suspended submit may already have persisted its original request.
+            // Refresh that local lock before exposing editing in the new visit.
+            restorePending()
+        }
     }
     func disappear() { visible = false; visit = UUID(); busy = false; retireReview() }
     private func valid(_ captured: UUID) -> Bool { current && visit == captured }

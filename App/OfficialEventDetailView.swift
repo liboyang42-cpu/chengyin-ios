@@ -29,8 +29,10 @@ enum OfficialDetailID {
     var onLogin: (() -> Void)? = nil
     /// Optional bound-topic names and route; without it THEME missions stay plain rows.
     var topicLinks: OfficialTopicLinks? = nil
+    @StateObject private var sourceObservation = OfficialReadInvalidationObserver()
     @State private var topicNames: [Int: String] = [:]
     @State private var topicNameFailed = false
+    @State private var topicNamesScope: UUID?
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
     @State private var visit = UUID()
@@ -57,6 +59,9 @@ enum OfficialDetailID {
                            issueCopy: OfficialEventDetailView.issueCopy, onBack: { dismiss() },
                            load: { try await reader.detail(id: id) }) { event in
             let presentation = OfficialEventDetailPresentation(event: event, now: Date())
+            let namesKey = OfficialTopicNamesKey(eventID: event.id, ids: OfficialDetailTopicLinks.topicIDs(event),
+                                                scope: reader.scope, topicScope: topicLinks?.reader.scope)
+            let namesVisit = visit
             List {
                 OfficialEventCard(event: event).questifyCardListRow()
                 HStack(spacing: 8) {
@@ -103,10 +108,8 @@ enum OfficialDetailID {
                         }
                         if presentation.missions.isEmpty { Text("official.detailParity.tasks.empty") }
                         if topicNameFailed {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("official.w206.detail.topicName.failed").font(.subheadline)
-                                Text("official.w206.detail.topicName.stillOpen").font(.footnote).foregroundStyle(.secondary)
-                            }.accessibilityElement(children: .combine).accessibilityIdentifier(OfficialDetailID.topicNameError)
+                            Text("official.w206.detail.topicName.failed").font(.subheadline).foregroundStyle(.secondary)
+                                .accessibilityIdentifier(OfficialDetailID.topicNameError)
                         }
                         ForEach(presentation.missions, id: \.index) { mission in
                             let topicID = mission.binding?.themeTopicID
@@ -178,7 +181,6 @@ enum OfficialDetailID {
                         Text("official.signInForProgress")
                         if let onLogin { Button("official.signIn", action: onLogin).frame(minHeight: 44) }
                     }
-                    Text("official.actionsDeferred").font(.footnote).foregroundStyle(.secondary)
                 }
                 if reader.isAuthenticated, let actions {
                     let lease = OfficialDetailReturnLease(eventID: id, scope: reader.scope, visit: visit)
@@ -190,25 +192,27 @@ enum OfficialDetailID {
                         readback = UUID()
                     })
                 }
-                Section {
-                    // Source CTA wording. Only the theme CTA navigates (to its bound topic);
-                    // roam routes are not wired here and signup stays with OfficialParticipationActions.
-                    if let topicLinks, let topic = OfficialDetailTopicLinks.ctaTopic(event, cta: presentation.cta) {
+                // Source CTA wording. Only the theme CTA navigates (to its bound topic); signup stays with
+                // OfficialParticipationActions. An action label that cannot act here is not drawn as a button:
+                // only the waiting / ended states remain, as plain status text.
+                if let topicLinks, let topic = OfficialDetailTopicLinks.ctaTopic(event, cta: presentation.cta) {
+                    Section {
                         NavigationLink { topicLinks.destination(topic) } label: {
                             Text(LocalizedStringKey(presentation.cta.key)).font(.headline).frame(maxWidth: .infinity, minHeight: 44)
                         }.accessibilityIdentifier(OfficialDetailID.ctaTopic)
-                    } else {
-                        Text(LocalizedStringKey(presentation.cta.key)).font(.headline)
-                            .foregroundStyle(presentation.cta.isSourceAction ? Color.accentColor : Color.secondary)
+                    }
+                } else if !presentation.cta.isSourceAction {
+                    Section {
+                        Text(LocalizedStringKey(presentation.cta.key))
+                            .foregroundStyle(.secondary)
                             .frame(maxWidth: .infinity, minHeight: 44)
                             .accessibilityIdentifier(OfficialDetailID.cta)
                     }
                 }
                 if reader.isOfflineExample { Section { OfficialReadOnlyNotice(offline: true) } }
             }.accessibilityIdentifier("official.detail.content")
-            .task(id: OfficialTopicNamesKey(eventID: event.id, ids: OfficialDetailTopicLinks.topicIDs(event),
-                                             scope: reader.scope, topicScope: topicLinks?.reader.scope)) {
-                await loadTopicNames(OfficialDetailTopicLinks.topicIDs(event))
+            .task(id: namesKey) {
+                await loadTopicNames(namesKey, detailVisit: namesVisit)
             }
         }
         .appNavigationTitle("official.detail").navigationBarTitleDisplayMode(.inline)
@@ -217,23 +221,39 @@ enum OfficialDetailID {
         .onChange(of: id) { _, _ in visit = UUID() }
         .onChange(of: reader.scope) { _, _ in visit = UUID() }
         .onChange(of: scenePhase) { _, _ in visit = UUID() }
+        .onAppear { sourceObservation.bind(reader) }
+        .onChange(of: ObjectIdentifier(reader)) { _, _ in sourceObservation.bind(reader) }
+        .onChange(of: sourceObservation.revision) { _, _ in
+            guard sourceObservation.isBound(to: reader) else { return }
+            if topicNamesScope != reader.scope {
+                topicNames = [:]; topicNameFailed = false; topicNamesScope = nil
+            }
+        }
+        .onDisappear { sourceObservation.stop() }
     }
 }
 extension OfficialEventDetailView {
     /// Source _loadBoundTopicNames: signed-in viewers only; a stale or failed read never blocks the row.
-    func loadTopicNames(_ ids: [Int]) async {
-        topicNames = [:]; topicNameFailed = false
-        guard let topicLinks, reader.isAuthenticated, !ids.isEmpty else { return }
-        let scope = topicLinks.reader.scope
+    func loadTopicNames(_ key: OfficialTopicNamesKey, detailVisit: UUID) async {
+        // Capture the rendered event/source before enqueueing; an old view task
+        // must not resolve its topic IDs under a newly selected official source.
+        guard !Task.isCancelled, key.eventID == id, key.scope == reader.scope, visit == detailVisit else { return }
+        topicNames = [:]; topicNameFailed = false; topicNamesScope = nil
+        guard let topicLinks, reader.isAuthenticated, !key.ids.isEmpty,
+              key.topicScope == topicLinks.reader.scope else { return }
+        let scope = topicLinks.reader.scope, officialScope = key.scope
+        let ids = key.ids
         var names: [Int: String] = [:], failed = false
         for id in ids {
             do {
                 let name = try await topicLinks.reader.topicDetail(id: id).name.trimmingCharacters(in: .whitespacesAndNewlines)
                 if name.isEmpty { failed = true } else { names[id] = name }
             } catch { if error is CancellationError { return }; failed = true }
-            guard !Task.isCancelled, topicLinks.reader.scope == scope else { return }
+            guard !Task.isCancelled, topicLinks.reader.scope == scope,
+                  reader.scope == officialScope, visit == detailVisit else { return }
         }
-        topicNames = names; topicNameFailed = failed
+        guard !Task.isCancelled, reader.scope == officialScope, visit == detailVisit else { return }
+        topicNames = names; topicNameFailed = failed; topicNamesScope = officialScope
     }
 }
 struct OfficialTopicNamesKey: Hashable {

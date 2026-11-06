@@ -61,3 +61,30 @@ import SwiftUI
     }
 }
 
+
+// P04 presentation only. These modifiers neither create nor consume a request, grant or receipt.
+private struct P04LifecycleSurface: ViewModifier {
+    @Environment(\.themeDomain) private var domain
+    func body(content: Content) -> some View {
+        content
+            .listStyle(.insetGrouped)
+            .font(Theme.Font.body)
+            .tint(Theme.Color.accent(in: domain))
+            .scrollContentBackground(.hidden)
+            .background(Theme.Color.bgPage(in: domain))
+    }
+}
+
+extension View {
+    func p04LifecycleSurface() -> some View { modifier(P04LifecycleSurface()) }
+    func p04FactRow() -> some View {
+        frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.vertical, Theme.Space.s1)
+    }
+    func p04RecoveryRecord() -> some View {
+        frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.vertical, Theme.Space.s2)
+    }
+}

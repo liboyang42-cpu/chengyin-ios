@@ -1,3 +1,4 @@
+#if DEBUG
 import SwiftUI
 
 /// Registered by the host's offline --uitesting-module objectCards branch only.
@@ -21,3 +22,4 @@ import SwiftUI
         }
     }
 }
+#endif

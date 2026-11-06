@@ -23,16 +23,19 @@ import SwiftUI
 @MainActor struct ProfileContactQREditor: View {
     let edit: ProfileTextFieldEdit
     let reader: (any RetainedPublicImageReading)?
+    let savedPreview: (() -> AnyView)?
     let cancel: () -> Void
     let confirm: (Bool) -> Void
     @State private var removes: Bool
     init(edit: ProfileTextFieldEdit, reader: (any RetainedPublicImageReading)? = nil,
-         cancel: @escaping () -> Void, confirm: @escaping (Bool) -> Void) {
+         savedPreview: (() -> AnyView)? = nil, cancel: @escaping () -> Void, confirm: @escaping (Bool) -> Void) {
+        self.savedPreview = savedPreview
         self.edit = edit; self.reader = reader; self.cancel = cancel; self.confirm = confirm
         _removes = State(initialValue: edit.draft.removesContactQR)
     }
     var body: some View {
         Form {
+            if let savedPreview { Section { savedPreview() } }
             Section {
                 if edit.snapshot.wechat.isEmpty {
                     ContentUnavailableView("profile.contactQR.empty", systemImage: "qrcode")

@@ -107,13 +107,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Read-only records from this nearby result. They do not confirm completion, reward delivery, or eligibility to claim."
+          "value": "Records for this nearby place. They don't confirm completion, reward delivery or eligibility to claim."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "当前附近读取中的只读记录，不代表已完成、奖励到账或领取资格。"
+          "value": "此附近地点的记录，不代表已完成、奖励已到账或可领取。"
         }
       }
     }

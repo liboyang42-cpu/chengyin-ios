@@ -104,3 +104,35 @@ class PaidProfessionalContracts(unittest.TestCase):
         self.assertIn('Tests/CoreTests', self.source('Package.swift'))
         for name in ['WorkshopPaidProfessionalNormalFlowTests.swift','WorkshopPaidProfessional.xcstrings']:
             self.assertIn(name,project)
+
+    def test_background_retires_protected_review_and_preserves_original_recovery(self):
+        controller = self.source('Core/WorkshopPaidProfessionalController.swift')
+        self.assertIn('public func suspend(', controller)
+        self.assertIn('public func resume(', controller)
+        suspend = controller.split('public func suspend(', 1)[1].split('public func resume(', 1)[0]
+        for marker in ['displayed.suspended = true', 'displayed.action?.revoke()', 'lifetime?.revoke()', 'clearVisible()']:
+            self.assertIn(marker, suspend)
+        self.assertNotIn('store.', suspend)
+        resume = controller.split('public func resume(', 1)[1].split('private func clearVisible(', 1)[0]
+        self.assertIn('return offerRecovery(displayed)', resume)
+        self.assertNotIn('submit', resume)
+        self.assertIn('!displayed.suspended', controller)
+        view = self.source('App/WorkshopPaidProfessionalView.swift')
+        for marker in ['if scenePhase != .active {', '.disabled(scenePhase != .active)', 'controller.suspend(displayed)', 'schedule(controller.resume(displayed))', 'guard isVisible, scenePhase == .active, let action', 'modeConfirmed = false; cancelConfirmed = false']:
+            self.assertIn(marker, view)
+
+    def test_only_read_continuations_retry_original_collection_and_cursor(self):
+        controller = self.source('Core/WorkshopPaidProfessionalController.swift')
+        self.assertIn('retryPhase: Phase? = nil', controller)
+        self.assertEqual(controller.count('retryPhase: .history'), 1)
+        self.assertEqual(controller.count('retryPhase: .targets'), 1)
+        self.assertIn('issue == .unavailable || issue == .malformed', controller)
+        for method, next_method, phase in [('offerMoreOperations', 'offerInspect', 'history'), ('offerMoreTargets', 'offerSelect', 'targets')]:
+            section = controller.split('public func ' + method, 1)[1].split('public func ' + next_method, 1)[0]
+            self.assertIn('before: cursor', section)
+            self.assertIn('retryPhase: .' + phase, section)
+            self.assertNotIn('store.', section)
+            self.assertNotIn('submit', section)
+        view = self.source('App/WorkshopPaidProfessionalView.swift')
+        self.assertIn('controller.issue == nil ? "moreHistory" : "retry"', view)
+        self.assertIn('controller.issue == nil ? "moreTargets" : "retry"', view)

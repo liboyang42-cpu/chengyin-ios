@@ -15,7 +15,7 @@ import SwiftUI
         generation &+= 1; comments = []; phase = .idle; hasNext = false
     }
     func load(page: Int, isCurrent: @escaping () -> Bool) async {
-        guard page > 0, isCurrent(), (try? context.currentSession().identity) == target.context.identity else { invalidate(); return }
+        guard page == 1, isCurrent(), (try? context.currentSession().identity) == target.context.identity else { invalidate(); return }
         generation &+= 1; let ticket = generation
         self.page = page; phase = .loading; comments = []; hasNext = false
         do {
@@ -26,7 +26,7 @@ import SwiftUI
             }
             guard !Task.isCancelled, ticket == generation, isCurrent(), try context.currentSession() == session else { return }
             guard Set(result.comments.map(\.id)).count == result.comments.count else { throw ClubCommunityFailure.invalid }
-            comments = result.comments; hasNext = comments.count >= 50 && page < Int.max; phase = .ready
+            comments = result.comments; hasNext = false; phase = .ready
         } catch {
             guard ticket == generation else { return }
             guard !Task.isCancelled, isCurrent(), (try? context.currentSession().identity) == target.context.identity else { invalidate(); return }
@@ -109,15 +109,6 @@ import SwiftUI
                             }.accessibilityElement(children: .combine)
                                 .accessibilityIdentifier("club.discussion.comment.\(comment.id)")
                         }
-                    }
-                    HStack {
-                        Button("club.community.previous") { load(max(1, reader.page - 1)) }
-                            .disabled(reader.page == 1 || reader.phase == .loading)
-                        Spacer()
-                        Text(reader.page, format: .number).accessibilityLabel(Text("club.discussion.page") + Text(" \(reader.page)"))
-                        Spacer()
-                        Button("club.community.next") { if reader.page < Int.max { load(reader.page + 1) } }
-                            .disabled(!reader.hasNext || reader.phase == .loading)
                     }
                     Button("club.community.refresh") { load(reader.page) }.disabled(reader.phase == .loading)
                     Button("club.discussion.full") { trace("full"); if current { fullComments = true; trace("full-requested") } }

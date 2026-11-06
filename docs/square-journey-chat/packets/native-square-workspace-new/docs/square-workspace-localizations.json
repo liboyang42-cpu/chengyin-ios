@@ -54,13 +54,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Publication contract"
+            "value": "Post type"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "发布契约"
+            "value": "发布方式"
           }
         }
       }
@@ -262,13 +262,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Current edit contract retains server images and location. Media changes require a separately supported workflow."
+            "value": "Your images and location are kept when you edit. Changing them isn't available here."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前编辑契约保留服务器图片与地点。修改媒体需要其他已支持的流程。"
+            "value": "编辑时会保留已有图片和地点，此处暂不支持修改。"
           }
         }
       }
@@ -742,13 +742,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm only this reviewed draft. A receipt does not prove publication or approval."
+            "value": "Confirm this draft. Sending it doesn't mean it's published or has passed review."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅确认当前检查过的草稿。收到回执不代表已发布或审核通过。"
+            "value": "确认此草稿。提交不代表已发布或已通过审核。"
           }
         }
       }

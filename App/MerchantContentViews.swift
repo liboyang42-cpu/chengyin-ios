@@ -13,6 +13,9 @@ import SwiftUI
         ScrollView {
             LazyVStack(spacing: 18) {
                 MerchantContentBoundary()
+                NavigationLink { MerchantOfferWithdrawalRecoveryEntry() } label: {
+                    Label("原供给撤回结果", systemImage: "clock.arrow.circlepath")
+                }.accessibilityIdentifier("merchant.offerWithdrawal.originalRecovery")
                 ForEach(routes) { query in
                     NavigationLink {
                         // Source citynode/index; without a host destination keep the generic document.
@@ -96,7 +99,6 @@ struct MerchantContentBoundary: View {
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 18) {
-                MerchantContentBoundary()
                 if !model.projectPresentationIsCurrent { Text("merchant.projectWorkspace.changed") }
                 else {
                 MerchantContentStatus(model: model, allowsRecovery: !readOnlyProject)
@@ -165,7 +167,6 @@ struct MerchantContentBoundary: View {
             NavigationLink("merchant.content.saveNPC") { MerchantContentEditView(service: service, query: query, kind: .npc(node)) }
             NavigationLink("merchant.content.voice") { MerchantContentDocumentView(service: service, query: .voice(nodeID: node)) }
             NavigationLink("merchant.content.enrollVoice") { MerchantContentEditView(service: service, query: .npc(nodeID: node), kind: .voice(node)) }
-            Text("merchant.content.voiceBoundary").font(.footnote).foregroundStyle(.secondary)
         case .voice: MerchantContentFields(value: s.value, names: ["voiceStatus", "voiceSample"])
         case .game: MerchantContentStationView(service: service, snapshot: s)
         case .poster: MerchantContentCodeView(snapshot: s)
@@ -209,7 +210,8 @@ struct MerchantContentBoundary: View {
                     }
             }
         }
-        if !c.busy && allowsReload { Button("action.retry") { Task {
+        // Retry only where there is something to recover from, not under a page that loaded.
+        if !c.busy && allowsReload && (c.issue != nil || c.serverMessage != nil || c.snapshot == nil) { Button("action.retry") { Task {
             if let reload { await reload() } else { await model.load() }
         } }.accessibilityIdentifier("merchant.content.reload") }
     }
@@ -420,6 +422,7 @@ struct MerchantContentFields: View {
     @Environment(\.merchantGameNodeDestination) private var gameNodeDestination
     var participantsDestination: (() -> AnyView)? = nil
     var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
         MerchantContentFields(value: value["topic"], names: ["name", "title", "city"])
         // Host and participant are independent source projections; both can be present.
         if value["host"].object != nil {
@@ -441,7 +444,6 @@ struct MerchantContentFields: View {
                 if !(value["topic"]["circleThemeCode"].text ?? "").isEmpty {
                     MerchantContentFields(value: value["topic"], names: ["circleReviewedAt"])
                     Button("merchant.content.reviewCircle") { model.prepare(.reviewCircle(topicID: topicID, scope: "MERCHANT")) }
-                    Text("merchant.content.circleRules").font(.footnote)
                 }
             }
             }
@@ -458,7 +460,27 @@ struct MerchantContentFields: View {
                     .accessibilityIdentifier("merchant.content.gameNode.pause")
             }
         }
-        if value["host"].object == nil && value["join"].object == nil { Text("merchant.content.noWorkspace") }
+        if value["host"].object == nil && value["join"].object == nil {
+            ContentUnavailableView("merchant.content.noWorkspace", systemImage: "tray")
+        }
+        }
+        // Mini-program merchantinfo rows: each entry reads as a tappable row with a chevron, not bare link text.
+        .buttonStyle(MerchantContentRowLinkStyle())
+    }
+}
+/// A grouped row for navigation entries inside the merchant content pages.
+struct MerchantContentRowLinkStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: 8) {
+            configuration.label.foregroundStyle(.primary)
+            Spacer(minLength: 8)
+            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary).accessibilityHidden(true)
+        }
+        .padding(.horizontal, 16)
+        .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+        .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .opacity(configuration.isPressed ? 0.7 : 1)
+        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
 @MainActor struct MerchantContentStationView: View {
@@ -508,29 +530,17 @@ struct MerchantContentCodeView: View {
     @ObservedObject var model: MerchantContentViewModel
     let review: MerchantContentReview
     @Environment(\.dismiss) private var dismiss
-    private var bodyText: String {
-        guard let request = try? review.command.request() else { return "" }
-        let value: MerchantContentValue
-        switch request.body { case .json(let f): value = .object(f); case .form(let f): value = .object(f.mapValues { .string($0) }) }
-        let encoder = JSONEncoder(); encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        return (try? encoder.encode(value)).map { String(decoding: $0, as: UTF8.self) } ?? ""
-    }
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    MerchantContentBoundary()
-                    Text(LocalizedStringKey("merchant.content." + review.command.key)).font(.title2)
-                    Text("merchant.content.immutableReview").font(.footnote)
-                    LabeledContent("merchant.content.field.merchantID", value: String(review.baseline.access.merchantID ?? 0))
-                    Text(verbatim: review.command.scopeKey).font(.caption)
-                    Text(verbatim: bodyText).font(.system(.body, design: .monospaced)).textSelection(.enabled)
+            Form {
+                Section {
+                    Text(LocalizedStringKey("merchant.content." + review.command.key)).font(.headline)
                     if let availability = review.command.registrationAvailability {
                         MerchantRegistrationAvailabilityReview(source: .init(review.baseline.value), replacement: availability)
                     }
                     if case .cancelClaim(let poiID) = review.command,
                        let target = MerchantCityClaimWithdrawal(poiID: poiID, snapshot: review.baseline) {
-                        if let name = target.name, !name.isEmpty { Text(verbatim: name).font(.headline) }
+                        if let name = target.name, !name.isEmpty { Text(verbatim: name) }
                         Text("merchant.cityClaim.withdrawConsequence")
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("merchant.cityClaim.reviewNotice")
@@ -542,19 +552,30 @@ struct MerchantContentCodeView: View {
                     }
                     if case .station(let command) = review.command, command.pausesWithoutFallback {
                         Label("merchant.stationPause.reviewTitle", systemImage: "exclamationmark.triangle")
-                            .font(.headline)
                         Text("merchant.stationPause.noFallbackConsequence")
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("merchant.stationPause.reviewNotice")
                     }
-                    Text("merchant.content.reviewWarning").font(.footnote)
+                }
+                Section {
                     Button("merchant.content.confirm") { Task { await model.confirm(review); dismiss() } }
-                        .buttonStyle(.borderedProminent).disabled(model.coordinator.busy || !model.coordinator.service.permits(review.command))
+                        .buttonStyle(.questifyPrimary)
+                        .frame(maxWidth: .infinity)
+                        .listRowBackground(Color.clear)
+                        .disabled(model.coordinator.busy || !model.coordinator.service.permits(review.command))
                         .accessibilityIdentifier("merchant.content.confirm")
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("action.cancel") { model.cancel(); dismiss() }.accessibilityIdentifier("merchant.content.review.cancel")
-                }.padding()
-            }.appNavigationTitle("merchant.content.review")
-        }.interactiveDismissDisabled(model.coordinator.busy)
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+        .interactiveDismissDisabled(model.coordinator.busy)
     }
 }
 

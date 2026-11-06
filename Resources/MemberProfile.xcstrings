@@ -230,13 +230,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Benefits aren't available in this build yet."
+            "value": "No benefits to show."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前配置暂不能读取权益。"
+            "value": "暂无权益"
           }
         }
       }
@@ -358,13 +358,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading your profile…"
+            "value": "Loading…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在读取主页…"
+            "value": "加载中…"
           }
         }
       }
@@ -396,7 +396,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "登录未成功"
+            "value": "登录后查看我的主页"
           }
         }
       }
@@ -413,6 +413,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "连续探索："
+          }
+        }
+      }
+    },
+    "member.card.balance": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Balance"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账户余额"
           }
         }
       }
@@ -438,13 +454,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Profile details aren't available in this build. Name and level come from your signed-in account."
+            "value": "Your profile didn't load."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前配置暂不能读取主页资料，名称与等级来自已登录账号。"
+            "value": "主页资料没加载出来"
           }
         }
       }
@@ -550,13 +566,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This account can't read its media right now. Refresh and try again."
+            "value": "Your media can't be shown right now. Refresh and try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账号暂不能读取本人媒体，请刷新重试"
+            "value": "暂时无法显示你的媒体，请刷新重试"
           }
         }
       }
@@ -598,13 +614,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading media…"
+            "value": "Loading…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在读取媒体…"
+            "value": "加载中…"
           }
         }
       }
@@ -630,13 +646,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh media status"
+            "value": "Refresh"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "刷新媒体状态"
+            "value": "刷新"
           }
         }
       }
@@ -646,13 +662,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign in again to see your media."
+            "value": "Sign in to see your media."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请重新登录查看本人媒体"
+            "value": "登录后查看我的媒体"
           }
         }
       }
@@ -790,13 +806,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Media review status isn't available in this build yet."
+            "value": "Review status can't be shown right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前配置暂不能读取本人媒体。"
+            "value": "暂时无法显示审核状态"
           }
         }
       }
@@ -806,13 +822,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "View my media and review status"
+            "value": "View my media"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看本人媒体与审核状态"
+            "value": "查看我的媒体"
           }
         }
       }
@@ -838,13 +854,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Turning this off immediately stops showing your location to other users. It doesn't affect your own location or tracks."
+            "value": "When it's off, other people can't see your location."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "关闭后立即停止向其他用户展示位置，不影响自己的定位和轨迹。"
+            "value": "关闭后他人看不到你的位置"
           }
         }
       }
@@ -886,13 +902,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This build can't submit this change yet. Nothing has been changed."
+            "value": "This change can't be made right now. Nothing has been changed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前版本暂不能提交此操作，尚未做任何更改。"
+            "value": "暂不能提交此操作，尚未做任何更改。"
           }
         }
       }
@@ -902,13 +918,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "After you withdraw, Roam stops reading your live location and recording new tracks."
+            "value": "Withdrawing stops recording your tracks."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "撤回后，漫游不会继续读取实时位置或记录新的轨迹。"
+            "value": "撤回后停止记录轨迹"
           }
         }
       }
@@ -1245,6 +1261,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "昨天"
+          }
+        }
+      }
+    },
+    "member.favorites.postsEmpty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No saved posts yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无收藏的帖文"
           }
         }
       }

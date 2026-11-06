@@ -102,6 +102,10 @@ import SwiftUI
                     }, report: { row in AnyView(reportButton(row.id)) })
                 }
             }
+            NavigationLink {
+                ClubCalendarSessionsView(context: readContext, access: governance.access)
+            } label: { Text("sessions.title", tableName: "ClubCalendarSessions") }
+                .accessibilityIdentifier("club.calendar.sessions.open")
             Button("club.gov.refresh") { refresh() }.disabled(model.loading)
                 .accessibilityIdentifier("club.calendar.refresh")
         }

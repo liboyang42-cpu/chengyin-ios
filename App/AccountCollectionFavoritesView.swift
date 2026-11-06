@@ -78,8 +78,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
                 AccountCollectionIssueView(issue: issue, retry: { Task { await refresh() } })
             } else {
                 if model.state.visibleRows(scope: key.scope).filter({ !unliked.contains($0.id) }).isEmpty {
-                    ContentUnavailableView("accountCollection.favorites.empty", systemImage: "heart",
-                                           description: Text("accountCollection.favorites.emptyHint"))
+                    ContentUnavailableView("accountCollection.favorites.empty", systemImage: "heart")
                         .accessibilityIdentifier("accountCollection.favorites.empty")
                 }
                 ForEach(model.state.visibleRows(scope: key.scope).filter { !unliked.contains($0.id) }) { topic in
@@ -214,7 +213,9 @@ private struct AccountCollectionFavoriteCard: View {
                 AccountCollectionIssueView(issue: issue, retry: { Task { await refresh() } })
             } else {
                 if model.state.visibleRows(scope: key.scope).isEmpty {
-                    ContentUnavailableView("square.empty", systemImage: "bookmark")
+                    ContentUnavailableView {
+                        Label { Text("member.favorites.postsEmpty", tableName: "MemberProfile") } icon: { Image(systemName: "bookmark") }
+                    }
                         .accessibilityIdentifier("accountCollection.posts.empty")
                 }
                 ForEach(model.state.visibleRows(scope: key.scope)) { post in

@@ -70,13 +70,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Route provider and advisories"
+            "value": "Route details and notices"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "路线提供方与提示"
+            "value": "路线详情与提示"
           }
         }
       }

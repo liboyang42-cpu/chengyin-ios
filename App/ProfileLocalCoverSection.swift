@@ -115,7 +115,6 @@ extension ProfileLocalCoverOwner {
             VStack(alignment: .leading, spacing: 12) {
                 if model.controller.ownsContext {
                     cover(model.controller.saved)
-                    Text("profile.localCover.deviceOnly").font(.footnote).foregroundStyle(.secondary)
                     if let message = model.controller.messageKey {
                         Text(LocalizedStringKey(message)).accessibilityIdentifier("profile.localCover.message")
                     }
@@ -246,19 +245,25 @@ extension ProfileLocalCoverOwner {
             Text("profile.localCover.crop")
             if hasError {
                 Text("profile.localCover.cropFailed")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.red)
                     .accessibilityIdentifier("profile.localCover.cropFailure")
             }
             if let rect {
                 ProfileCoverGesturePreview(draftID: draft.id, source: draft.source, position: $position, isCurrent: isCurrent)
                     .aspectRatio(16.0 / 9.0, contentMode: .fit).frame(maxHeight: 240)
-                Text("profile.localCover.gestureHint").font(.footnote).foregroundStyle(.secondary)
                 Slider(value: $position.horizontal, in: 0...1).accessibilityLabel("image.crop.horizontal")
                 Slider(value: $position.vertical, in: 0...1).accessibilityLabel("image.crop.vertical")
                 Slider(value: $position.zoom, in: 1...4).accessibilityLabel("image.crop.zoom")
-                Button(LocalizedStringKey(hasError ? "profile.localCover.cropRetry" : "image.crop.confirm")) {
+                // Mini-program pages/crop offers 还原 next to the crop action.
+                Button("profile.localCover.cropReset") { position = ProfileCoverCropPosition() }
+                    .buttonStyle(.bordered)
+                Button {
                     guard isCurrent() else { return }; confirm(draft.id, rect)
+                } label: {
+                    if hasError { Text("profile.localCover.cropRetry") }
+                    else { Text("reviewLocalSave", tableName: "ProfileLocalCoverCrop") }
                 }
+                    .buttonStyle(.questifyPrimary)
                     .accessibilityIdentifier("profile.localCover.cropConfirm")
             }
             Button("action.cancel", role: .cancel, action: cancel).accessibilityIdentifier("profile.localCover.cropCancel")

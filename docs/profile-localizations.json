@@ -36,7 +36,7 @@
   },
   {
     "key": "profile.readOnly",
-    "en": "Read-only preview. Changes and payments aren’t available here yet.",
+    "en": "View only. Changes and payments aren't available here right now.",
     "zh-Hans": "当前仅支持查看，暂不支持修改或支付。"
   },
   {

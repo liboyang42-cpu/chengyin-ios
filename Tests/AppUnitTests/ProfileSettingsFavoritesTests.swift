@@ -220,7 +220,11 @@ import UIKit
             currentSession: { [weak session = h.session] in
                 session?.socialAccountReader.identity == identity ? gateSession : nil
             })
+        let trace = DiagnosticTrace()
         let owner = ProfileSettingsFavoritesOwner()
+        owner.diagnosticEvent = { trace.record($0) }
+        defer { owner.diagnosticEvent = nil; trace.emit() }
+        trace.record("test.begin")
         let root = NavigationStack {
             Form { ProfileSettingsFavoritesEntry(session: h.session, owner: owner) }
                 .modifier(ProfileSettingsFavoritesNavigation(session: h.session, owner: owner))
@@ -237,17 +241,26 @@ import UIKit
         let route = try XCTUnwrap(owner.route)
         for _ in 0..<100 where !h.wire.paths.contains("list") { try await Task.sleep(for: .milliseconds(20)) }
         XCTAssertTrue(h.wire.paths.contains("list"))
+        trace.record("test.post.open.request")
         XCTAssertTrue(owner.openPost(.init(id: 101, generation: .legacySquare), from: route, current: .current(h.session)))
+        trace.record("test.post.selected")
         let selection = try XCTUnwrap(owner.posts.selection)
         for _ in 0..<100 where !h.wire.paths.contains("info") { try await Task.sleep(for: .milliseconds(20)) }
         XCTAssertTrue(h.wire.paths.contains("info")); XCTAssertTrue(selection.isCurrent)
         XCTAssertEqual(owner.route?.id, route.id)
         XCTAssertTrue(owner.posts.close(id: selection.id))
         XCTAssertTrue(owner.accepts(route, current: .current(h.session)))
+        trace.record("test.collection.close.request")
         owner.binding(for: route).wrappedValue = nil
         XCTAssertNil(owner.route); XCTAssertFalse(selection.isCurrent)
         XCTAssertTrue(owner.open(.current(h.session)))
     }
+    @MainActor private final class DiagnosticTrace {
+        private var events: [String] = []
+        func record(_ event: String) { events.append("\(events.count + 1):\(event)") }
+        func emit() { print("PROFILE_CI_TRACE settings " + events.joined(separator: " | ")) }
+    }
+
 }
 
 @MainActor private final class SettingsFavoritesGateStub: SquareCommunityFeatureReading {

@@ -5,6 +5,9 @@ import SwiftUI
     let coordinator: ProfileEditCoordinator
     let sessionRevision: UInt64
     var categoryReader: (any DiscoveryReading)? = nil
+    var nicknameReader: (any ProfileNicknameAvailabilityReading)? = nil
+    var currentReviewReader: ProfileCurrentReviewReader? = nil
+    var savedMedia: ProfileSavedMediaReaders? = nil
     func context(memberID: Int, reader: any SocialAccountReading, isCurrent: Bool) -> ProfileSelfEditContext? {
         .init(memberID: memberID, reader: reader, viewer: reader.identity, readerRevision: reader.presentationRevision,
               readerConfigured: reader.isConfigured, coordinator: coordinator, editorIdentity: coordinator.identity,
@@ -24,7 +27,7 @@ import SwiftUI
                 // Reuse the whole existing editor, including local field edits, discard review,
                 // server-save gates and durable unknown-write handling. No shortcut save.
                 ProfileEditView(coordinator: access.coordinator, sessionRevision: access.sessionRevision,
-                    categoryReader: access.categoryReader)
+                    categoryReader: access.categoryReader, currentReviewReader: access.currentReviewReader, nicknameReader: access.nicknameReader, savedMedia: access.savedMedia)
                     .id(ticket.id)
             } else {
                 ContentUnavailableView {

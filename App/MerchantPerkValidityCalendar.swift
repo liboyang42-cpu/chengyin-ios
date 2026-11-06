@@ -111,7 +111,7 @@ struct MerchantPerkValidityContext: Equatable {
                     Text("merchant.perkCalendar.chinaTime").font(.footnote)
                     if session.draft.preservesExistingValue(now: now) {
                         Text("merchant.perkCalendar.existing").font(.footnote)
-                        Text(verbatim: session.draft.original)
+                        Text(verbatim: session.draft.original).fixedSize(horizontal: false, vertical: true)
                     }
                     Toggle("merchant.perkCalendar.enabled", isOn: Binding(get: { session.draft.enabled }, set: { session.setEnabled($0) }))
                         .accessibilityIdentifier("merchant.perkCalendar.enabled")
@@ -125,6 +125,7 @@ struct MerchantPerkValidityContext: Equatable {
                 }.disabled(!session.isCurrent || session.asksDiscard)
             }
             .navigationTitle("merchant.perkCalendar.title")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { if session.requestClose() { close() } } }
                 ToolbarItem(placement: .confirmationAction) { Button("merchant.perkCalendar.apply", action: apply).disabled(!session.isCurrent || session.asksDiscard) }

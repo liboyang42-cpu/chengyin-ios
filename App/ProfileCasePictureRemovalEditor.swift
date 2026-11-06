@@ -3,6 +3,7 @@ import SwiftUI
 /// All-image removal stays available; optional position selection only removes from the original snapshot.
 @MainActor struct ProfileCasePictureRemovalEditor: View {
     let edit: ProfileTextFieldEdit
+    let savedPreview: (() -> AnyView)?
     let cancel: () -> Void
     let confirm: (Bool) -> Void
     let reader: (any RetainedPublicImageReading)?
@@ -15,7 +16,8 @@ import SwiftUI
     }
     @State private var removes: Bool
     private var imageCount: Int { ProfileCasePortfolio(casePics: edit.snapshot.casePics).imageCount }
-    init(edit: ProfileTextFieldEdit, reader: (any RetainedPublicImageReading)? = nil, cancel: @escaping () -> Void, confirm: @escaping (Bool) -> Void, confirmSubset: (([Int]) -> Void)? = nil) {
+    init(edit: ProfileTextFieldEdit, reader: (any RetainedPublicImageReading)? = nil, savedPreview: (() -> AnyView)? = nil, cancel: @escaping () -> Void, confirm: @escaping (Bool) -> Void, confirmSubset: (([Int]) -> Void)? = nil) {
+        self.savedPreview = savedPreview
         self.edit = edit; self.cancel = cancel; self.confirm = confirm
         self.reader = reader; self.confirmSubset = confirmSubset
         let count = ProfileCasePortfolio(casePics: edit.snapshot.casePics).imageCount
@@ -25,6 +27,7 @@ import SwiftUI
     }
     var body: some View {
         Form {
+            if let savedPreview { Section { savedPreview() } }
             Section {
                 LabeledContent("profile.caseRemoval.count", value: String(imageCount))
                     .accessibilityIdentifier("profile.caseRemoval.count")
@@ -53,7 +56,6 @@ import SwiftUI
                             LabeledContent("profile.caseSubset.originalImage", value: String(index + 1))
                         }.accessibilityIdentifier("profile.caseSubset.keep.\(index)")
                     }
-                    Text("profile.caseSubset.positionHint").font(.footnote).foregroundStyle(.secondary)
                     if let reader {
                         NativeMediaGalleryEntry(sources: ProfileCasePortfolio(casePics: edit.snapshot.casePics).images,
                             scope: edit.id, titleKey: "profile.case.images", reader: reader)

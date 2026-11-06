@@ -115,6 +115,8 @@ import SwiftUI
         return pages.sourcePage(for: row)
     }
     private func load(_ requested: MerchantBusinessQuery, appendAftercare: Bool, appendReviews: Bool = false, expectedTeamResult: UUID? = nil, expectedTeamRecovery: UUID? = nil, expectedTeamMerchantID: Int? = nil) async {
+        // A retired queued read must not clear a newer snapshot or its original result.
+        guard !Task.isCancelled else { return }
         // A refresh always starts a fresh page-one generation. No old rows survive
         // a refresh, failed replacement, bucket/context change or dismissal.
         let resultQuery = Self.resultRefreshQuery(requested)
@@ -305,7 +307,9 @@ import SwiftUI
         let queuedRequest = accessModel.request
         List {
             if reader.isOfflineExample { Text("merchant.business.synthetic").foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.synthetic") }
-            Text("merchant.business.boundary").font(.footnote).foregroundStyle(.secondary)
+            // Entry does not grant report access; the destination rechecks original APP permissions.
+            NavigationLink { SessionCityMerchantValueView() } label: { CityMerchantValueCopy.text("merchantTitle") }
+                .accessibilityIdentifier("cityValue.merchant.entry")
             if let access = accessModel.access(for: reader) {
                 Section {
                     Text(access.name ?? "#\(access.merchantID)").font(.title3.bold())
@@ -322,6 +326,9 @@ import SwiftUI
                         }
                     }
                     if access.allows("merchant:verify") {
+                        NavigationLink(value: MerchantBusinessHomeRoute(target: .cityArrival(merchantID: Int64(access.merchantID)), reader: reader, journal: journal)) {
+                            CityArrivalCopy.text("merchantEntry").frame(minHeight: 44)
+                        }.accessibilityIdentifier("cityArrival.merchant.entry")
                         NavigationLink(value: MerchantBusinessHomeRoute(target: .scan, reader: reader, journal: journal)) {
                             Label("merchant.business.scan", systemImage: "qrcode.viewfinder")
                         }
@@ -350,6 +357,7 @@ import SwiftUI
                     if let nativeVerificationDestination { nativeVerificationDestination() }
                     else { MerchantScanPreviewView() }
                 case .cityNode: CityNodeRedeemView(reader: route.reader, journal: route.journal)
+                case .cityArrival(let merchantID): SessionCityArrivalMerchantView(merchantID: merchantID)
                 }
             } else { Text("merchant.business.stale") }
         }
@@ -431,10 +439,7 @@ import SwiftUI
     }
     private var state: MerchantBusinessCoordinator { model.coordinator }
     private var isRedemptionLedger: Bool { if case .redemptions = query { return true }; return false }
-    var body: some View {
-        let capturedCustomerRoute = customerQueryRoute
-        let presentedReview = state.confirmation
-        let presentedEditorID = editor?.id
+    @ViewBuilder private var pageContent: some View {
         let renderedTeamScope = reader.scope
         let renderedTeamAuthorization = reader.authorizationGeneration
         List {
@@ -444,9 +449,13 @@ import SwiftUI
             if let key = model.aftercareLoadFailureKey ?? state.failureKey {
                 Section { Text(LocalizedStringKey(key)).accessibilityIdentifier("merchant.business.error")
                     if case .rejected(_, let message) = state.failure, let message { Text(message).foregroundStyle(.secondary) }
+                    if !state.isBusy, !state.isLocked { Button("action.retry") { Task { await reload() } } }
                 }
             }
             if state.isLocked { Text("merchant.business.unknownResult").accessibilityIdentifier("merchant.business.locked") }
+            if case .reviews = query, let snapshot = state.snapshot, state.isCurrent, !state.isBusy, state.failureKey == nil {
+                MerchantReviewReplyRecoverySection(reader: reader, journal: journal, access: snapshot.access)
+            }
             if MerchantBusinessViewModel.resultRefreshQuery(query) != nil, let recoveryID = model.teamRecoveryID {
                 Section {
                     Text("merchant.business.stale")
@@ -472,7 +481,6 @@ import SwiftUI
                 }
                 if sourcePageMatches(snapshot) {
                 if reviewSource != nil {
-                    Text("merchant.business.reviews.sourcePageNotice").font(.footnote).foregroundStyle(.secondary)
                     if !snapshot.document.rows.contains(where: { $0.id == reviewSource?.reviewID }) {
                         Text("merchant.business.reviews.sourcePageMissing").accessibilityIdentifier("merchant.business.reviews.sourcePageMissing")
                     }
@@ -525,10 +533,11 @@ import SwiftUI
                         rowActions(row, access: snapshot.access)
                     }
                 } else if let progress = snapshot.document.aftercareProgress {
-                    MerchantAftercareProgressView(progress: progress)
+                    // Source detail puts the decision actions (or the read-only line) right under the hero.
                     if let refund = snapshot.document.rows.first(where: { $0.kind == .refund }) {
                         Section { rowActions(refund, access: snapshot.access) }
                     }
+                    MerchantAftercareProgressView(progress: progress)
                 } else {
                     ForEach(snapshot.document.sections) { section in
                         let rows = visibleRows(section, in: snapshot.document)
@@ -579,7 +588,14 @@ import SwiftUI
             if reviewSource != nil, let snapshot = state.snapshot, !sourcePageMatches(snapshot) {
                 Text("merchant.business.stale").accessibilityIdentifier("merchant.business.reviews.sourcePageStale")
             }
-            if !state.isBusy { Button("merchant.business.refresh") { Task { await reload() } }.accessibilityIdentifier("merchant.business.refresh") }
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                if !state.isBusy {
+                    Button { Task { await reload() } } label: { Label("merchant.business.refresh", systemImage: "arrow.clockwise") }
+                        .accessibilityIdentifier("merchant.business.refresh")
+                }
+            }
         }
         .confirmationDialog("merchant.noteDraft.discardTitle", isPresented: Binding(
             get: { discardNoteDraftGeneration != nil }, set: { if !$0 { discardNoteDraftGeneration = nil } }),
@@ -587,6 +603,13 @@ import SwiftUI
                 Button("merchant.noteDraft.discard", role: .destructive) { noteDrafts.discard(ifGeneration: generation) }
                 Button("action.cancel", role: .cancel) { }
             } message: { _ in Text("merchant.noteDraft.discardBody") }
+    }
+    var body: some View {
+        let capturedCustomerRoute = customerQueryRoute
+        let presentedReview = state.confirmation
+        // Preserve the outgoing host until its original dismissal consumes the review handoff.
+        let presentedEditorID = editor?.id ?? pendingMutationEditorID
+        pageContent
         .appNavigationTitle(key: query.titleKey)
         .modifier(MerchantCustomerContactStablePresentation(owner: model, flow: $customerContactFlow))
         .task(id: reader.scope) { await reload() }
@@ -594,11 +617,16 @@ import SwiftUI
         .background {
             Color.clear.frame(width: 0, height: 0)
         .sheet(item: MerchantAftercareDraftReturn.editorBinding($editor, presentedID: presentedEditorID), onDismiss: {
+            recordBusinessLifecycle("editor.onDismiss", presentedID: presentedEditorID)
             guard editor == nil, let presentedEditorID else { return }
             if MerchantAftercareDraftReturn.ownsDismissal(presentedID: presentedEditorID,
                 currentEditorID: editor?.id, pendingEditorID: pendingMutationEditorID), let mutation = pendingMutation {
                 pendingMutation = nil; pendingMutationEditorID = nil; draftReturn.discard()
-                if sourcePageCanPrepare(mutation) { model.prepare(mutation) }
+                if sourcePageCanPrepare(mutation) {
+                    recordBusinessLifecycle("editor.prepareEntered", presentedID: presentedEditorID)
+                    model.prepare(mutation)
+                    recordBusinessLifecycle("editor.prepareReturned", presentedID: presentedEditorID)
+                }
             } else {
                 if draftReturn.resumedEditorID == presentedEditorID { draftReturn.discard() }
                 if aftercareReturn.resumedEditorID == presentedEditorID { aftercareReturn.discard() }
@@ -621,15 +649,23 @@ import SwiftUI
                 editor = nil
                 return true
             }, onReview: { mutation in
+                recordBusinessLifecycle("editor.onReview", presentedID: context.id)
                 guard scenePhase == .active, editor?.id == context.id else { return }
                 if case .note = context.kind {
-                    guard noteDrafts.retireForReview(editorID: context.id) else { editor = nil; return }
+                    guard noteDrafts.retireForReview(editorID: context.id) else {
+                        recordBusinessLifecycle("editor.noteLeaseRejected", presentedID: context.id)
+                        editor = nil; return
+                    }
+                    recordBusinessLifecycle("editor.noteLeaseRetired", presentedID: context.id)
                 }
                 draftReturn.discard(); aftercareReturn.discard()
                 guard sourcePageCanPrepare(mutation) else { pendingMutation = nil; editor = nil; return }
                 pendingMutation = mutation; pendingMutationEditorID = context.id; editor = nil
+                recordBusinessLifecycle("editor.pendingStored", presentedID: context.id)
             })
         }
+        .onAppear { recordBusinessLifecycle("editorHost.appeared", presentedID: presentedEditorID) }
+        .onDisappear { recordBusinessLifecycle("editorHost.disappeared", presentedID: presentedEditorID) }
         .id(presentedEditorID)
         }
         .sheet(item: Binding(get: { state.confirmation?.id == presentedReview?.id ? state.confirmation : nil }, set: { value in
@@ -650,7 +686,9 @@ import SwiftUI
                     } else { Task { await model.confirm(review) } }
                 },
                 editDraft: editAftercare ?? capture.map { captured in { _ = draftReturn.requestReturn(captured) } })
+                .onAppear { recordBusinessLifecycle("review.appeared") }
                 .onDisappear {
+                    recordBusinessLifecycle("review.disappeared")
                     if let ticket = aftercareReturn.didDismiss(reviewID: review.id) {
                         Task { @MainActor in
                             guard let restored = aftercareReturn.resume(ticket,
@@ -687,6 +725,7 @@ import SwiftUI
             if let retired = draftReturn.synchronize(), editor?.id == retired { editor = nil }
         }
         .onChange(of: scenePhase) { _, phase in
+            recordBusinessLifecycle("page.sceneChanged", scene: phase)
             model.teamPageSceneChanged(active: phase == .active)
             model.ledgerPreviewSceneChanged(active: phase == .active)
             if let retired = aftercareReturn.sceneChanged(active: phase == .active), editor?.id == retired { editor = nil }
@@ -695,9 +734,15 @@ import SwiftUI
             if phase == .active { draftReturn.activate(); noteDrafts.activate() }
             else if let retired = draftReturn.retire(), editor?.id == retired { editor = nil }
         }
-        .onChange(of: reader.scope) { _, _ in aftercareReturn.retire(); customerFilterDisclosure.ownerChanged(); teamAccessDetailsExpanded = false; noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; pendingMutationEditorID = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
-        .onChange(of: reader.authorizationGeneration) { _, _ in aftercareReturn.retire(); customerFilterDisclosure.ownerChanged(); teamAccessDetailsExpanded = false; noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; pendingMutationEditorID = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
-        .onDisappear { model.teamPageDisappeared(); model.ledgerPreviewDisappeared(); aftercareReturn.disappear(); customerFilterDisclosure.viewDisappeared(); teamAccessDetailsExpanded = false; noteDrafts.retire(); draftReturn.retire(); editor = nil; pendingMutation = nil; pendingMutationEditorID = nil; model.invalidate() }
+        .onChange(of: reader.scope) { _, _ in recordBusinessLifecycle("page.scopeChanged"); aftercareReturn.retire(); customerFilterDisclosure.ownerChanged(); teamAccessDetailsExpanded = false; noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; pendingMutationEditorID = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
+        .onChange(of: reader.authorizationGeneration) { _, _ in recordBusinessLifecycle("page.authorizationChanged"); aftercareReturn.retire(); customerFilterDisclosure.ownerChanged(); teamAccessDetailsExpanded = false; noteDrafts.discard(); draftReturn.retire(); if scenePhase == .active { draftReturn.activate() }; editor = nil; pendingMutation = nil; pendingMutationEditorID = nil; reviewSourceDestination = nil; selection = []; model.invalidate() }
+        .onDisappear { recordBusinessLifecycle("page.disappeared"); model.teamPageDisappeared(); model.ledgerPreviewDisappeared(); aftercareReturn.disappear(); customerFilterDisclosure.viewDisappeared(); teamAccessDetailsExpanded = false; noteDrafts.retire(); draftReturn.retire(); editor = nil; pendingMutation = nil; pendingMutationEditorID = nil; model.invalidate() }
+    }
+    private func recordBusinessLifecycle(_ event: String, presentedID: UUID? = nil, scene: ScenePhase? = nil) {
+        guard MerchantBusinessLifecycleDiagnostics.enabled else { return }
+        MerchantBusinessLifecycleDiagnostics.record(event, scene: scene ?? scenePhase,
+            editor: editor != nil, pending: pendingMutation != nil, confirmation: state.confirmation != nil,
+            sameIdentity: presentedID != nil && (editor?.id == presentedID || pendingMutationEditorID == presentedID))
     }
     private var customerFilterExpansion: Binding<Bool> {
         let scope = reader.scope, authorization = reader.authorizationGeneration
@@ -715,15 +760,15 @@ import SwiftUI
                    expected.document.query == query, case .customers(let applied) = query {
                     let expectedRevision = model.revision
                     let appliedExactly = MerchantCustomerAppliedQuery.sameFilter(applied, customerFilterDraft)
-                    Button(locale.language.languageCode?.identifier == "zh" ? "使用当前筛选管理分群与导出" : "Manage segments and exports for this filter") {
+                    Button("merchant.business.customers.manageFilter") {
                         guard scenePhase == .active else { return }
                         customerQueryRoute = model.customerEngagementSelection(query: query, draft: customerFilterDraft,
                             expected: expected, revision: expectedRevision)
                     }.disabled(!appliedExactly || !state.isCurrent || state.isBusy || state.isLocked || state.failureKey != nil)
                         .accessibilityIdentifier("merchant.business.customers.manageAppliedFilter")
                     if !appliedExactly {
-                        Text(locale.language.languageCode?.identifier == "zh" ? "请先应用当前输入的筛选。" : "Apply your edited filter first.")
-                            .font(.footnote).foregroundStyle(.secondary)
+                        Text("merchant.business.customers.applyFirst")
+                            .font(.footnote).foregroundStyle(.red)
                     }
                 }
                 Picker("merchant.business.segment", selection: $segment) {
@@ -768,7 +813,6 @@ import SwiftUI
                         applyCustomerFilter()
                     }.disabled(state.isBusy || state.isLocked || state.failureKey != nil || scenePhase != .active)
                         .accessibilityIdentifier("merchant.business.customers.clearFilters")
-                    Text("merchant.customerFilters.keepsSearch").font(.footnote).foregroundStyle(.secondary)
                 }
             }
         }
@@ -776,14 +820,15 @@ import SwiftUI
             Section {
                 Picker("merchant.business.bucket", selection: Binding(get: { bucket }, set: { query = .aftercare($0, page: 1); Task { await reload() } })) {
                     ForEach(MerchantAftercareBucket.allCases, id: \.self) { Text(LocalizedStringKey("merchant.business.bucket." + String($0.rawValue))).tag($0) }
-                }.accessibilityIdentifier("merchant.business.bucket")
+                }
+                .pickerStyle(.segmented)
+                .accessibilityIdentifier("merchant.business.bucket")
                 TextField("merchant.business.aftercare.search", text: $model.listFilters.aftercareKeyword)
                     .textInputAutocapitalization(.never).autocorrectionDisabled().submitLabel(.search)
                     .focused($aftercareSearchFocused).onSubmit { aftercareSearchFocused = false }
                     .accessibilityLabel(Text("merchant.business.aftercare.search"))
                     .accessibilityHint(Text("merchant.business.aftercare.searchScope"))
                     .accessibilityIdentifier("merchant.business.aftercare.keyword")
-                Text("merchant.business.aftercare.searchScope").font(.footnote).foregroundStyle(.secondary)
                 if !model.listFilters.aftercareKeyword.isEmpty {
                     Button("merchant.business.aftercare.clearSearch") { model.listFilters.aftercareKeyword = "" }
                         .accessibilityIdentifier("merchant.business.aftercare.clearSearch")
@@ -796,8 +841,7 @@ import SwiftUI
                     ForEach(MerchantReviewFilter.allCases, id: \.self) { filter in
                         Text(LocalizedStringKey("merchant.business.reviews.filter." + filter.rawValue)).tag(filter)
                     }
-                }.pickerStyle(.menu).accessibilityIdentifier("merchant.business.reviews.filter")
-                Text("merchant.business.reviews.filterScope").font(.footnote).foregroundStyle(.secondary)
+                }.pickerStyle(.segmented).accessibilityIdentifier("merchant.business.reviews.filter")
                 if model.listFilters.review != .all {
                     Button("merchant.business.reviews.clearFilter") { model.listFilters.review = .all }
                         .accessibilityIdentifier("merchant.business.reviews.clearFilter")
@@ -815,8 +859,9 @@ import SwiftUI
                 if MerchantRedemptionFilter(rawValue: filter) == nil {
                     Text("merchant.redemptionFilter.unknown").tag(filter).disabled(true)
                 }
-            }.accessibilityIdentifier("merchant.business.redemptions.filter")
-            Text("merchant.redemptionFilter.meaning").font(.footnote).foregroundStyle(.secondary)
+            }
+            .pickerStyle(.segmented)
+            .accessibilityIdentifier("merchant.business.redemptions.filter")
         }
     }
     @ViewBuilder private func summary(_ document: MerchantBusinessDocument) -> some View {
@@ -838,7 +883,6 @@ import SwiftUI
                     if let presentation = MerchantReviewSummaryPresentation(document: document) {
                         MerchantReviewSummaryHeader(presentation: presentation)
                     }
-                    Text("merchant.business.reviews.summaryScope").font(.footnote).foregroundStyle(.secondary)
                 }
                 ForEach(MerchantBusinessDocument.overviewMoneyKeys + ["adjustmentPendingCount", "count", "pendingAmount", "arrivedAmount", "pendingReplyCount", "monthNewCount", "replyRatePct", "averageRating", "all", "repeat", "new", "noted", "monthlyNew"], id: \.self) { key in
                     if document.query == .overview, key == "personalArrivedThisMonthNet" {
@@ -929,7 +973,6 @@ import SwiftUI
         }
         if row.kind == .refund, row.fields["canRespond"]?.bool == true, access.allows("merchant:aftercare:respond") {
             Button("merchant.business.respond") { editor = .init(kind: .aftercare(row)) }.accessibilityIdentifier("merchant.business.respond")
-            Text("merchant.business.opinionOnly").font(.footnote).foregroundStyle(.secondary)
         }
         if row.kind == .refund, case .refund = query,
            let reason = MerchantAftercareParity.readOnlyReason(canRespondPermission: access.allows("merchant:aftercare:respond"),

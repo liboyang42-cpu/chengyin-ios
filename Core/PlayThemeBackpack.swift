@@ -1,9 +1,9 @@
 import Foundation
 
-/// Read-only projection of the mini-program theme backpack (`pages/play/theme-backpack.wxml`,
+/// Display projection of the mini-program theme backpack (`pages/play/theme-backpack.wxml`,
 /// `utils/theme-backpack.js present`). Source: `GET api/play/theme/state {topicId, activityId?}`.
-/// Use, discard, receive, plan, trade and zero-HP recovery are live writes and are not ported;
-/// the 任务 tab therefore shows an explicit unavailable state.
+/// Personal inventory writes are separately reviewed by PlayThemeBackpackActions.
+/// TEAM, plans, trade and zero-HP recovery remain outside that writer.
 public struct PlayThemeBackpack: Equatable, Sendable {
     public enum ValueName: Equatable, Sendable {
         case server(String)
@@ -175,12 +175,31 @@ public protocol PlayThemeBackpackReading: AnyObject {
     public enum Phase: Equatable { case idle, loading, ready, failed(message: String?), unavailable }
     public private(set) var phase: Phase
     public private(set) var backpack: PlayThemeBackpack?
+    public let actions: PlayThemeBackpackActions?
+    public var displayedBackpack: PlayThemeBackpack? {
+        if let actions { return actions.isCurrent ? actions.facts?.backpack : nil }
+        return backpack
+    }
     private let reader: (any PlayThemeBackpackReading)?
     private var generation: UInt64 = 0
-    public init(reader: (any PlayThemeBackpackReading)?) { self.reader = reader; phase = reader == nil ? .unavailable : .idle }
+    public init(reader: (any PlayThemeBackpackReading)?, actions: PlayThemeBackpackActions? = nil) {
+        self.reader = reader; self.actions = actions
+        phase = reader == nil && actions == nil ? .unavailable : .idle
+    }
 
     /// Read on open and on explicit refresh only (the mini-program's 10/30 s poll is not ported).
     public func refresh() async {
+        if let actions {
+            await actions.refresh()
+            backpack = actions.isCurrent ? actions.facts?.backpack : nil
+            switch actions.phase {
+            case .loading: phase = .loading
+            case .unavailable: phase = .unavailable
+            case .failed(let message): phase = .failed(message: message)
+            default: phase = backpack == nil ? .idle : .ready
+            }
+            return
+        }
         guard let reader, phase != .loading else { return }
         generation &+= 1; let request = generation
         phase = .loading

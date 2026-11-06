@@ -14,8 +14,8 @@ struct PrivacyProtectionView: View {
             Section {
                 ForEach(PrivacyGuideSummaryPresentation.defaultItems) { item in
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(verbatim: item.title).font(.subheadline.weight(.medium))
-                        Text(verbatim: item.detail).font(.footnote).foregroundStyle(.secondary)
+                        Text(LocalizedStringKey(item.id + ".title"), tableName: "PrivacyGuideSummary").font(.subheadline.weight(.medium))
+                        Text(LocalizedStringKey(item.id + ".detail"), tableName: "PrivacyGuideSummary").font(.footnote).foregroundStyle(.secondary)
                     }
                 }
             }

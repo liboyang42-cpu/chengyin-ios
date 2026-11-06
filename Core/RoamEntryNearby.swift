@@ -75,7 +75,11 @@ public enum RoamEntryNearbyRoute {
         guard let payload = try? JSONDecoder().decode(Envelope.self, from: data).data,
               payload.radius == radius, payload.items.count <= maximumItems else { throw APIError.malformedResponse }
         let visible = payload.items.filter(\.isSupported)
-        guard Set(visible.map(\.id)).count == visible.count else { throw APIError.malformedResponse }
+        // Retired kinds may be hidden, but an invalid current kind is not an empty search.
+        // Match the independently approved event layer instead of silently losing bad rows.
+        guard Set(visible.map(\.id)).count == visible.count,
+              payload.items.allSatisfy({ $0.kind != "activity" && $0.kind != "topic" || $0.sourceID > 0 })
+        else { throw APIError.malformedResponse }
         return visible
     }
 }

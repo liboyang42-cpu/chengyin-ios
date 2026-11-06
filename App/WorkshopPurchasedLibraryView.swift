@@ -31,7 +31,6 @@ struct WorkshopPurchasedAccountLink: View {
         let displayed = navigation.listAppearance
         let rendered = displayed.permit
         List {
-            Section { purchasedText("scope").font(.footnote).fixedSize(horizontal: false, vertical: true) }
             switch browser.phase {
             case .idle, .loading: ProgressView { purchasedText("loading") }
             case .notEnabled: PurchasedUnavailableView()
@@ -40,6 +39,7 @@ struct WorkshopPurchasedAccountLink: View {
                 purchasedText(browser.phase == .invalidated ? "sessionChanged" : "failed")
                 if browser.phase != .invalidated { Button { navigation.scheduleList(rendered) } label: { purchasedText("retry") } }
             case .ready:
+                if browser.issue == .unavailable { purchasedText("failed") }
                 ForEach(browser.rows) { item in
                     Button { navigation.select(licenseId: item.id, presentation: rendered) } label: {
                         VStack(alignment: .leading, spacing: 6) {
@@ -51,7 +51,7 @@ struct WorkshopPurchasedAccountLink: View {
                     }.accessibilityIdentifier("workshopPurchased.row." + item.id)
                 }
                 if let cursor = browser.nextCursor {
-                    Button { navigation.scheduleList(rendered, before: cursor) } label: { purchasedText("next") }
+                    Button { navigation.scheduleList(rendered, before: cursor) } label: { purchasedText(browser.issue == .unavailable ? "retry" : "next") }
                 }
             }
             if let checkedAt = browser.checkedAt { Section { Text(verbatim: checkedAt) } header: { purchasedText("checkedAt") } }
@@ -96,14 +96,14 @@ struct WorkshopPurchasedAccountLink: View {
                 let item = detail.item
                 Section {
                     PurchasedFact("license", item.licenseId); PurchasedFact("module", item.moduleId)
-                    PurchasedFact("version", item.purchasedVersionId); PurchasedFact("contentHash", item.contentHash)
+                    PurchasedFact("version", item.purchasedVersionId)
                     purchasedText("status." + item.status.rawValue).accessibilityIdentifier("workshopPurchased.status")
                     PurchasedFact("acquiredAt", item.acquiredAt); PurchasedFact("checkedAt", detail.checkedAt)
                     purchasedText("perpetual").font(.headline)
                     purchasedText("durationScope").fixedSize(horizontal: false, vertical: true)
                 } header: { purchasedText("record") }
                 Section {
-                    PurchasedFact("termsVersion", item.termsVersion); PurchasedFact("termsHash", item.termsHash)
+                    PurchasedFact("termsVersion", item.termsVersion)
                     PurchasedPolicy("commercialUse", item.commercialUse.rawValue)
                     PurchasedPolicy("adaptation", item.adaptation.rawValue)
                     PurchasedPolicy("translation", item.translation.rawValue)
@@ -133,8 +133,16 @@ private struct PurchasedFact: View {
     @Environment(\.locale) private var locale
     init(_ key: String, _ value: String) { self.key = key; self.value = value }
     var body: some View {
-        RevolutInsetRow(title: purchasedLabel(key, locale: locale), value: value)
-            .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
+            Text(verbatim: purchasedLabel(key, locale: locale))
+                .font(RevolutContentStyle.quiet).foregroundStyle(RevolutContentStyle.secondary)
+            Text(verbatim: value)
+                .font(RevolutContentStyle.row).foregroundStyle(RevolutContentStyle.primary)
+                .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, RevolutContentStyle.spacing)
+        .accessibilityElement(children: .combine)
     }
 }
 private struct PurchasedPolicy: View {
@@ -142,8 +150,16 @@ private struct PurchasedPolicy: View {
     @Environment(\.locale) private var locale
     init(_ key: String, _ policy: String) { self.key = key; self.policy = policy }
     var body: some View {
-        RevolutInsetRow(title: purchasedLabel(key, locale: locale), value: purchasedLabel("policy." + policy, locale: locale))
-            .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
+            Text(verbatim: purchasedLabel(key, locale: locale))
+                .font(RevolutContentStyle.quiet).foregroundStyle(RevolutContentStyle.secondary)
+            Text(verbatim: purchasedLabel("policy." + policy, locale: locale))
+                .font(RevolutContentStyle.row).foregroundStyle(RevolutContentStyle.primary)
+                .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, RevolutContentStyle.spacing)
+        .accessibilityElement(children: .combine)
     }
 }
 private struct PurchasedLimit: View {
@@ -151,8 +167,16 @@ private struct PurchasedLimit: View {
     @Environment(\.locale) private var locale
     init(_ key: String, _ value: WorkshopPurchasedItem.Limit) { self.key = key; self.value = value }
     var body: some View {
-        RevolutInsetRow(title: purchasedLabel(key, locale: locale), value: value.unlimited ? purchasedLabel("explicitUnlimited", locale: locale) : String(value.maximum))
-            .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
+            Text(verbatim: purchasedLabel(key, locale: locale))
+                .font(RevolutContentStyle.quiet).foregroundStyle(RevolutContentStyle.secondary)
+            Text(verbatim: value.unlimited ? purchasedLabel("explicitUnlimited", locale: locale) : String(value.maximum))
+                .font(RevolutContentStyle.row).foregroundStyle(RevolutContentStyle.primary)
+                .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, RevolutContentStyle.spacing)
+        .accessibilityElement(children: .combine)
     }
 }
 private struct PurchasedUnavailableView: View {

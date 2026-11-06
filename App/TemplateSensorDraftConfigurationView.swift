@@ -21,7 +21,6 @@ import SwiftUI
     private var value: TemplateSensorDraft { model.draft.sensorDraft ?? .init() }
     var body: some View {
         if model.canEdit, model.draft.id == nil, model.draft.validationMethod.rawValue == 7 {
-            Text("sensorDraft.scope").font(.caption).foregroundStyle(.secondary)
             if value.canEdit {
                 Picker("sensorDraft.type", selection: Binding<String>(get: { value.selectedType ?? "" }, set: {
                     guard let kind = TemplateSensorDraft.Kind(rawValue: $0) else { return }
@@ -32,7 +31,7 @@ import SwiftUI
                 }.accessibilityIdentifier("sensorDraft.type")
                 ForEach(value.kind?.parameters ?? [], id: \.rawValue) { parameter in
                     VStack(alignment: .leading) {
-                        Text(LocalizedStringKey(parameter.labelKey))
+                        Text(LocalizedStringKey(parameter.labelKey)).font(.subheadline.weight(.semibold))
                         TextField(LocalizedStringKey(parameter.labelKey), text: Binding(get: { value.input(parameter) }, set: { model.setSensorInput(parameter, $0) }))
                             .focused($focusedParameter, equals: parameter.rawValue)
                             .keyboardType(.numberPad).accessibilityIdentifier("sensorDraft.input." + parameter.rawValue)
@@ -70,7 +69,6 @@ import SwiftUI
 struct TemplateSensorDraftPreviewContent: View {
     let draft: TemplateSensorDraft
     var body: some View {
-        Text("sensorDraft.scope").foregroundStyle(.secondary)
         if !draft.canEdit { Text("sensorDraft.preserved").accessibilityIdentifier("sensorDraft.preview.preserved") }
         else if let kind = draft.kind {
             Text(LocalizedStringKey(kind.labelKey))

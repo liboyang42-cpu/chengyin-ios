@@ -61,44 +61,86 @@ struct SquarePostContent: View {
     var compact = false
     var showImages = true
     var mediaScope: UUID = UUID()
+    /// The detail page shows likes and comments in its action row instead.
+    var showsCounts = true
+    private static let disclosures: Set<String> = ["SPONSORED", "GIFTED", "MERCHANT_OWNER", "MERCHANT_EMPLOYEE"]
+    /// Mini-program `post-head`: avatar, name, time; then the text, media and the post's own facts.
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top) {
-                Image(systemName: "person.crop.circle").font(.title2).accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 4) {
-                    if let name = post.nickname, !name.isEmpty { Text(verbatim: name).font(.headline) }
-                    else { Text("square.unknownAuthor").font(.headline) }
-                    if post.verified { Label("square.verified", systemImage: "checkmark.seal").font(.caption) }
-                    if post.memberLevel > 0 { LabeledContent("square.level", value: String(post.memberLevel)).font(.caption) }
-                    if let badge = post.authorBadge { Text(verbatim: badge).font(.caption) }
-                    if let badge = post.noticeBadge { Text(verbatim: badge).font(.caption).bold() }
+            HStack(alignment: .center, spacing: 10) {
+                SquareAuthorAvatar(source: post.avatar)
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 4) {
+                        if let name = post.nickname, !name.isEmpty { Text(verbatim: name).font(.headline) }
+                        else { Text("square.unknownAuthor").font(.headline) }
+                        if post.verified {
+                            Image(systemName: "checkmark.seal.fill").foregroundStyle(QuestifyPalette.accent)
+                                .accessibilityLabel(Text("square.verified"))
+                        }
+                    }
+                    if !post.createTime.isEmpty { SquareXcxRelativeTime(createTime: post.createTime, now: Date()).font(.caption).foregroundStyle(.secondary) }
                 }
+                Spacer(minLength: 0)
             }
-            if let contents = post.contents { Text(verbatim: contents).lineLimit(compact ? 5 : nil).textSelection(.enabled) }
+            if post.memberLevel > 0 || post.authorBadge != nil || post.noticeBadge != nil {
+                HStack(spacing: 8) {
+                    if post.memberLevel > 0 { Text("square.levelBadge \(post.memberLevel)") }
+                    if let badge = post.authorBadge { Text(verbatim: badge) }
+                    if let badge = post.noticeBadge { Text(verbatim: badge).bold() }
+                }
+                .font(.caption).foregroundStyle(.secondary)
+            }
+            if let contents = post.contents, !contents.isEmpty { Text(verbatim: contents).lineLimit(compact ? 5 : nil).textSelection(.enabled) }
             if showImages && !post.images.isEmpty {
                 NativeMediaGalleryEntry(sources: post.images, scope: mediaScope, titleKey: "media.destination.squareImages", compact: compact)
             }
             if showImages && !compact, let routeImage = post.routeImage {
                 NativeMediaGalleryEntry(sources: [routeImage], scope: mediaScope, titleKey: "media.destination.squareImages")
             }
-            if let address = post.address, !address.isEmpty { Label { Text(verbatim: address) } icon: { Image(systemName: "mappin") } }
+            if let address = post.address, !address.isEmpty { Label { Text(verbatim: address) } icon: { Image(systemName: "mappin") }.font(.subheadline) }
             if let club = post.clubName { LabeledContent("square.club", value: club) }
             if let title = post.referenceTitle { LabeledContent("square.reference", value: title) }
-            else if let type = post.referenceType, let id = post.referenceID {
-                LabeledContent("square.reference", value: "\(type) #\(id)")
-            }
             if post.nodeTotal > 0 {
                 LabeledContent("square.routeProgress", value: "\(post.nodeDoneCount) / \(post.nodeTotal)")
             }
             if post.completed { Label("square.completed", systemImage: "checkmark.circle") }
-            if !post.createTime.isEmpty { SquareXcxRelativeTime(createTime: post.createTime, now: Date()).font(.caption).foregroundStyle(.secondary) }
-            LabeledContent("square.likes", value: String(max(0, post.likeCount)))
-            LabeledContent("square.comments", value: String(max(0, post.commentCount)))
-            if post.disclosureType != "NONE" { LabeledContent("square.disclosure", value: post.disclosureType) }
+            if showsCounts {
+                HStack(spacing: 16) {
+                    Label { Text(max(0, post.likeCount), format: .number) } icon: { Image(systemName: post.isLiked == 1 ? "heart.fill" : "heart") }
+                        .accessibilityLabel(Text("square.xcx.likesA11y \(max(0, post.likeCount))"))
+                    Label { Text(max(0, post.commentCount), format: .number) } icon: { Image(systemName: "bubble.right") }
+                        .accessibilityLabel(Text("square.xcx.commentsA11y \(max(0, post.commentCount))"))
+                }
+                .font(.subheadline).foregroundStyle(.secondary)
+            }
+            if Self.disclosures.contains(post.disclosureType) {
+                Label(LocalizedStringKey("squareWorkspace.policy." + post.disclosureType), systemImage: "info.circle").font(.caption)
+            }
             ForEach(Array(post.safetyLabels.enumerated()), id: \.offset) { _, label in
                 Label { SquareSafetyLabel(value: label) } icon: { Image(systemName: "exclamationmark.triangle") }
             }
         }
+    }
+}
+
+/// Round author avatar; a plain symbol when the post carries none.
+struct SquareAuthorAvatar: View {
+    let source: String?
+    var size: CGFloat = 40
+    var body: some View {
+        Group {
+            if let url = QuestifyCardArtwork.safeURL(source) {
+                AsyncImage(url: url) { phase in
+                    if let image = phase.image { image.resizable().scaledToFill() } else { fallback }
+                }
+            } else { fallback }
+        }
+        .frame(width: size, height: size)
+        .clipShape(Circle())
+        .accessibilityHidden(true)
+    }
+    private var fallback: some View {
+        Image(systemName: "person.crop.circle.fill").resizable().scaledToFit().foregroundStyle(.secondary)
     }
 }
 

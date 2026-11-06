@@ -23,9 +23,13 @@ public struct SquareReportService {
         configuration = offlineConfiguration; self.transport = transport
         readsEnabled = true; writesEnabled = true; synthetic = true
     }
-    func request(path: String, method: String = "GET", token: String, body: [String: SquareGovernanceJSON]? = nil) throws -> URLRequest {
+    func request(path: String, method: String = "GET", token: String, body: [String: SquareGovernanceJSON]? = nil, query: [URLQueryItem] = []) throws -> URLRequest {
         guard AuthRequestBuilder.isValidToken(token) else { throw SquareReportFailure.signedOut }
-        var request = URLRequest(url: configuration.baseURL.appendingPathComponent(path))
+        let base = configuration.baseURL.appendingPathComponent(path)
+        guard var components = URLComponents(url: base, resolvingAgainstBaseURL: false) else { throw SquareReportFailure.invalid }
+        if !query.isEmpty { components.queryItems = query }
+        guard let url = components.url else { throw SquareReportFailure.invalid }
+        var request = URLRequest(url: url)
         request.httpMethod = method; request.cachePolicy = .reloadIgnoringLocalCacheData
         request.httpShouldHandleCookies = false
         request.setValue(token, forHTTPHeaderField: "Authorization")
@@ -36,9 +40,9 @@ public struct SquareReportService {
         }
         return request
     }
-    private func read(path: String, token: String, check: () throws -> Void) async throws -> SquareGovernanceJSON {
+    private func read(path: String, query: [URLQueryItem] = [], token: String, check: () throws -> Void) async throws -> SquareGovernanceJSON {
         guard readsEnabled else { throw SquareReportFailure.disabled }
-        let request = try request(path: path, token: token)
+        let request = try request(path: path, token: token, query: query)
         try Task.checkCancellation(); try check()
         let (data, status) = try await transport.send(request)
         try Task.checkCancellation(); try check()
@@ -52,6 +56,20 @@ public struct SquareReportService {
         guard id > 0 else { throw SquareReportFailure.invalid }
         let raw = try await read(path: "api/community-trust/reports/\(id)", token: token, check: check)
         return try .init(raw: raw)
+    }
+    /// Server-owned exact request filter, never a scan for the current matching target.
+    func original(_ intent: SquareReportOriginalIntent, token: String, check: () throws -> Void) async throws -> SquareReportReceipt? {
+        guard intent.validRequest else { throw SquareReportFailure.unknown }
+        let raw = try await read(path: "api/community-trust/reports/mine",
+            query: [.init(name: "requestId", value: intent.requestID)], token: token, check: check)
+        guard let rows = raw.array, rows.count <= 1 else { throw SquareReportFailure.unknown }
+        guard let row = rows.first else { return nil } // UNKNOWN, never permission to submit again.
+        guard let evidence = row["evidenceAssetIds"].array, evidence.isEmpty,
+              let version = row["version"].int, version >= 0,
+              let receipt = try? SquareReportReceipt(raw: row), try intent.matches(receipt) else {
+            throw SquareReportFailure.unknown
+        }
+        return receipt
     }
     func command(_ review: SquareReportReview, token: String) throws -> URLRequest {
         // The server requires a nonempty description and rejects all attachments.
@@ -75,10 +93,17 @@ public struct SquareReportService {
         return receipt
     }
     static func decode(_ data: Data, status: Int, mutation: Bool) throws -> SquareGovernanceJSON {
-        guard let raw = try? JSONDecoder().decode(SquareGovernanceJSON.self, from: data), let code = raw["code"].int else {
+        // Authentication can be rejected by an intermediary without a JSON envelope.
+        // This only selects the existing sign-in presentation; a dispatched mutation's
+        // durable journal remains locked and must never be inferred not to have run.
+        if status == 401 { throw SquareReportFailure.signedOut }
+        let body = try? JSONDecoder().decode(SquareGovernanceJSON.self, from: data)
+        // Preserve existing business-401 precedence, even on another HTTP failure status.
+        if body?["code"].int == 401 { throw SquareReportFailure.signedOut }
+        if !mutation && status == 403 { throw SquareReportFailure.rejected(403) }
+        guard let raw = body, let code = raw["code"].int else {
             throw mutation ? SquareReportFailure.unknown : .malformed
         }
-        if status == 401 || code == 401 { throw SquareReportFailure.signedOut }
         guard (200..<300).contains(status) else { throw mutation ? SquareReportFailure.unknown : .malformed }
         guard code == 200 else { throw SquareReportFailure.rejected(code) }
         return raw["data"]

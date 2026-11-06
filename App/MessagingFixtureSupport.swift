@@ -136,7 +136,7 @@ struct MessagingFixtureHostView: View {
         NavigationStack {
             MessagingHomeView(reader: reader, expanded: expanded, squareDestination: { close in
                 AnyView(VStack {
-                    Text("Synthetic Square destination").accessibilityIdentifier("messaging.fixture.square")
+                    Text("d7.imFixture.square").accessibilityIdentifier("messaging.fixture.square")
                     Button("action.close", action: close).accessibilityIdentifier("messaging.fixture.square.close")
                 })
             })

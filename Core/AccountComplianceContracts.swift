@@ -63,23 +63,29 @@ public struct ComplianceDeregistration: Decodable, Equatable {
     public let executeAfter: String?
     /// Precheck only. Absent keeps the established SMS contract; the backend sends it for every precheck.
     public let verificationMethod: String?
+    public let impact: AccountDeregistrationImpact?
     public var eligible: Bool { status == "ELIGIBLE" }
     public var blocked: Bool { status == "BLOCKED" }
-    /// Mini-program deregister-flow: PENDING is pending even before executeAfter is known;
-    /// CANCELLED and FAILED return to the precheck path like NORMAL.
-    public var pending: Bool { status == "PENDING" || (executeAfter != nil && !Self.startable.union(["ELIGIBLE", "BLOCKED"]).contains(status)) }
+    /// Current server state only, not a receipt attributing cancellation to a request ID.
+    /// The backend returns CANCELLED; NORMAL means no application exists.
+    public var cancellationConfirmed: Bool { status == "CANCELLED" }
+    public var completed: Bool { status == "COMPLETED" }
+    /// The date is informational, not a state discriminator. COMPLETED and unknown
+    /// states can retain executeAfter and must never expose a cancellation action.
+    public var pending: Bool { status == "PENDING" }
     public var startable: Bool { Self.startable.contains(status) }
     static let startable: Set<String> = ["NORMAL", "CANCELLED", "FAILED"]
     /// iOS can verify only by SMS. WECHAT reconfirmation needs a fresh mini-program wx.login
     /// code bound to the account's mini-program openid, which a native app cannot produce.
     public var verificationAvailableOnThisDevice: Bool { verificationMethod == nil || verificationMethod == "SMS" }
-    enum CodingKeys: String, CodingKey { case status, blockers, executeAfter, verificationMethod }
+    enum CodingKeys: String, CodingKey { case status, blockers, executeAfter, verificationMethod, impact }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         // Missing status is unknown, never guessed NORMAL/eligible.
         status = try c.decodeIfPresent(String.self, forKey: .status) ?? "UNKNOWN"
         blockers = try c.decodeIfPresent([String].self, forKey: .blockers) ?? []
         executeAfter = try c.decodeIfPresent(String.self, forKey: .executeAfter)
+        impact = try c.decodeIfPresent(AccountDeregistrationImpact.self, forKey: .impact)
         // A present but malformed method is never treated as the usable legacy SMS path.
         if c.contains(.verificationMethod), (try? c.decodeNil(forKey: .verificationMethod)) != true {
             verificationMethod = (try? c.decode(String.self, forKey: .verificationMethod)) ?? "UNKNOWN"
@@ -96,6 +102,29 @@ public struct ComplianceMarketingConsent: Decodable, Equatable, Identifiable {
     public var id: String { "\(merchantRowId)|\(merchantOwnerMemberId)" }
     public func value(_ channel: ComplianceMarketingChannel) -> Bool { channel == .inApp ? inAppOptedIn : couponOptedIn }
     public var valid: Bool { merchantRowId > 0 && merchantOwnerMemberId > 0 }
+    public func operation(_ channel: ComplianceMarketingChannel) -> String { "marketing|\(id)|\(channel.rawValue)" }
+}
+/// A review is bound to the account/session and authoritative load that the user saw.
+public struct ComplianceMarketingReview: Equatable {
+    public let row: ComplianceMarketingConsent
+    public let channel: ComplianceMarketingChannel
+    public let optedIn: Bool
+    let session: ComplianceSession
+    let revision: UUID
+    let issuance: UUID?
+}
+/// Original request history is distinct from a separate latest consent-list projection.
+public struct ComplianceMarketingSnapshot {
+    public let rows: [ComplianceMarketingConsent]
+    public let unresolvedOperations: Set<String>
+    public let reconciledCurrentState: Bool
+    public let originalResults: [MerchantMarketingConsentOriginalReceipt]
+    public let currentAvailable: Bool
+    public init(rows:[ComplianceMarketingConsent],unresolvedOperations:Set<String>,reconciledCurrentState:Bool,
+                originalResults:[MerchantMarketingConsentOriginalReceipt]=[],currentAvailable:Bool=true){
+        self.rows=rows;self.unresolvedOperations=unresolvedOperations;self.reconciledCurrentState=reconciledCurrentState
+        self.originalResults=originalResults;self.currentAvailable=currentAvailable
+    }
 }
 /// Only operation metadata is stored: never tokens, phone, SMS, legal document text or responses.
 public struct CompliancePendingOperation: Codable, Equatable {
@@ -103,14 +132,37 @@ public struct CompliancePendingOperation: Codable, Equatable {
     public let operation: String
     public let requestID: String
     public let epoch: UInt64
+    /// Missing original target or realm in old marketing rows stays UNKNOWN.
+    public let marketingOptedIn: Bool?
+    public let marketingRealm: String?
+    /// Absent in old journals: never guess a realm, original protocol or impact revision.
+    public let deregistrationRealm: String?
+    public let deregistrationOriginalVersion: Int?
+    public let deregistrationImpactRevision: String?
+    public init(scope: String, operation: String, requestID: String, epoch: UInt64,
+                marketingOptedIn: Bool? = nil, marketingRealm: String? = nil,
+                deregistrationRealm: String? = nil, deregistrationOriginalVersion: Int? = nil,
+                deregistrationImpactRevision: String? = nil) {
+        self.scope = scope; self.operation = operation; self.requestID = requestID; self.epoch = epoch
+        self.marketingOptedIn = marketingOptedIn; self.marketingRealm = marketingRealm
+        self.deregistrationRealm = deregistrationRealm; self.deregistrationOriginalVersion = deregistrationOriginalVersion
+        self.deregistrationImpactRevision = deregistrationImpactRevision
+    }
 }
 @MainActor public protocol ComplianceJournaling: AnyObject {
+    var isDurable: Bool { get }
     func pending(scope: String, operation: String) throws -> CompliancePendingOperation?
+    func marketingPending(scope: String) throws -> [CompliancePendingOperation]
     func begin(_ operation: CompliancePendingOperation) throws
     func resolve(scope: String, operation: String) throws
 }
+extension ComplianceJournaling {
+    public var isDurable: Bool { false }
+    public func marketingPending(scope: String) throws -> [CompliancePendingOperation] { throw ComplianceFailure.unavailable }
+}
 /// Atomic durable journal. A corrupt/unreadable file fails closed; never silently resets locks.
 @MainActor public final class ComplianceFileJournal: ComplianceJournaling {
+    public let isDurable = true
     private let url: URL
     public init(url: URL) { self.url = url }
     private func read() throws -> [CompliancePendingOperation] {
@@ -121,7 +173,16 @@ public struct CompliancePendingOperation: Codable, Equatable {
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         try JSONEncoder().encode(rows).write(to: url, options: .atomic)
     }
-    public func pending(scope: String, operation: String) throws -> CompliancePendingOperation? { try read().first { $0.scope == scope && $0.operation == operation } }
+    public func pending(scope: String, operation: String) throws -> CompliancePendingOperation? {
+        let rows = try read().filter { $0.scope == scope && $0.operation == operation }
+        guard rows.count <= 1 else { throw ComplianceFailure.malformed }
+        return rows.first
+    }
+    public func marketingPending(scope: String) throws -> [CompliancePendingOperation] {
+        let rows = try read().filter { $0.scope == scope && $0.operation.hasPrefix("marketing|") }
+        guard Set(rows.map(\.operation)).count == rows.count else { throw ComplianceFailure.malformed }
+        return rows
+    }
     public func begin(_ operation: CompliancePendingOperation) throws {
         var rows = try read()
         guard !rows.contains(where: { $0.scope == operation.scope && $0.operation == operation.operation }) else { throw ComplianceFailure.unresolved }

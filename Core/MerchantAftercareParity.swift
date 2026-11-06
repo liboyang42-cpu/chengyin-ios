@@ -45,11 +45,9 @@ public enum MerchantAftercareParity {
             isTakenOver = text("platformTakeoverAt") != nil
             activityTitle = text("activityTitle")
             if let money = try? MerchantBusinessMoney(fields["refundAmount"]), let raw = money.raw,
-               let value = Decimal(string: raw, locale: Locale(identifier: "en_US_POSIX")), value >= 0 {
-                var cents = value * 100, rounded = Decimal()
-                NSDecimalRound(&rounded, &cents, 0, .plain)
-                amountCents = NSDecimalNumber(decimal: rounded).intValue
-                amountDisplay = MerchantAftercareParity.yuan(amountCents ?? 0)
+               let cents = MerchantAftercareParity.exactDisplayCents(raw) {
+                amountCents = cents
+                amountDisplay = MerchantAftercareParity.yuan(cents)
             } else { amountCents = nil; amountDisplay = nil }
         }
     }
@@ -74,9 +72,8 @@ public enum MerchantAftercareParity {
         let todayKey = dayKey(today), yesterdayKey = dayKey(shift(today, by: -1))
         return order.enumerated().map { index, key in
             let rows = buckets[key] ?? []
-            let complete = rows.allSatisfy { $0.amountCents != nil }
             let truncated = index == order.count - 1 && !lastGroupComplete
-            let total = allowTotals && complete && !truncated ? yuan(rows.reduce(0) { $0 + ($1.amountCents ?? 0) }) : nil
+            let total = allowTotals && !truncated ? checkedTotal(rows).map(yuan) : nil
             return DayGroup(id: key.isEmpty ? "unknown" : key, label: label(key, todayKey: todayKey, yesterdayKey: yesterdayKey, year: today.year ?? 0),
                             rows: rows, total: total)
         }
@@ -101,10 +98,33 @@ public enum MerchantAftercareParity {
               let moved = calendar.date(byAdding: .day, value: days, to: date) else { return value }
         return calendar.dateComponents([.year, .month, .day], from: moved)
     }
+    // This is a display bound, not a refund/eligibility limit. Preserve the source
+    // rounding rule, but never truncate an unrepresentable Decimal into a signed Int.
+    private static func exactDisplayCents(_ raw: String) -> Int? {
+        guard let value = Decimal(string: raw, locale: Locale(identifier: "en_US_POSIX")),
+              !value.isNaN, value >= 0 else { return nil }
+        var cents = value * 100, rounded = Decimal()
+        guard !cents.isNaN else { return nil }
+        NSDecimalRound(&rounded, &cents, 0, .plain)
+        guard !rounded.isNaN,
+              let exact = Int(NSDecimalNumber(decimal: rounded).stringValue), exact >= 0,
+              Decimal(exact) == rounded else { return nil }
+        return exact
+    }
+    private static func checkedTotal(_ rows: [ListRow]) -> Int? {
+        var total = 0
+        for row in rows {
+            guard let cents = row.amountCents else { return nil }
+            let addition = total.addingReportingOverflow(cents)
+            guard !addition.overflow else { return nil }
+            total = addition.partialValue
+        }
+        return total
+    }
     static func yuan(_ cents: Int) -> String {
         let sign = cents < 0 ? "-" : ""
-        let value = abs(cents)
-        return "\(sign)¥\(value / 100).\(String(format: "%02d", value % 100))"
+        let value = cents.magnitude
+        return "\(sign)¥\(value / 100).\(String(format: "%02d", Int(value % 100)))"
     }
 
     /// Source aftercare/index.wxml per-tab empty copy.

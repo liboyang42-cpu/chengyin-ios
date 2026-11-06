@@ -46,6 +46,10 @@ import UIKit
         guard mutate({ $0.consumePop(cover) }) else { return }
         load(.batches, page: state.batches.page)
     }
+    func batchDenied(_ cover: MerchantLedgerBatchCover) {
+        guard mutate({ $0.denyFromBatch(cover) }) else { return }
+        cancelTasks()
+    }
     func loadAll() {
         load(.overview, page: 1)
         load(.entries, page: 1)
@@ -70,12 +74,15 @@ import UIKit
                 return self.state.owner == owner && slot.generation == ticket && slot.isLoading && !Task.isCancelled
             })
             guard !Task.isCancelled else { mutate { $0.cancel(section, generation: ticket) }; return }
-            _ = mutate { $0.succeed(section, generation: ticket, owner: owner, snapshot: snapshot) }
+            let result = mutate { $0.succeed(section, generation: ticket, owner: owner, snapshot: snapshot) }
+            if result == .rejected("merchant.business.denied") { cancelTasks() }
         } catch is CancellationError {
             mutate { $0.cancel(section, generation: ticket) }
         } catch {
             guard !Task.isCancelled else { mutate { $0.cancel(section, generation: ticket) }; return }
-            mutate { $0.fail(section, generation: ticket, owner: owner, key: MerchantLedgerSettlementFailure.key(error)) }
+            let key = MerchantLedgerSettlementFailure.key(error)
+            let accepted = mutate { $0.fail(section, generation: ticket, owner: owner, key: key) }
+            if accepted && key == "merchant.business.denied" { cancelTasks() }
         }
     }
 }
@@ -96,12 +103,18 @@ import UIKit
             section(.overview)
             section(.entries)
             section(.batches)
-            Button("merchant.business.refresh") { model.loadAll() }
-                .accessibilityIdentifier("merchant.ledgerSettlement.refresh")
+        }
+        .refreshable { model.loadAll() }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { model.loadAll() } label: { Label("merchant.business.refresh", systemImage: "arrow.clockwise") }
+                    .accessibilityIdentifier("merchant.ledgerSettlement.refresh")
+            }
         }
         .navigationTitle(Text("merchant.business.overview"))
         .navigationDestination(item: cover) { item in
-            MerchantLedgerBatchDetailView(reader: reader, batchID: item.batchID, owner: item.owner) { model.childPopped(item) }
+            MerchantLedgerBatchDetailView(reader: reader, batchID: item.batchID, owner: item.owner,
+                onDenied: { model.batchDenied(item) }, onReturn: { model.childPopped(item) })
                 .id(item.id)
         }
         .background(MerchantLedgerSettlementLeaveAnchor(coveringChild: model.state.cover != nil, leave: { model.leave() }).frame(width: 0, height: 0))
@@ -115,9 +128,7 @@ import UIKit
         let slot = model.state.section(id)
         Section {
             switch slot.phase {
-            case .idle:
-                Text("merchant.ledgerSettlement.notLoaded", tableName: "MerchantLedgerSettlement").foregroundStyle(.secondary)
-            case .loading:
+            case .idle, .loading:
                 ProgressView("merchant.loading").accessibilityIdentifier("merchant.ledgerSettlement.loading." + id.rawValue)
             case .failed:
                 if let key = slot.failureKey { Text(LocalizedStringKey(key)) }
@@ -190,13 +201,15 @@ import UIKit
     let reader: any MerchantBusinessReading
     let batchID: Int
     private let onReturn: () -> Void
+    private let onDenied: () -> Void
     @Published private(set) var state: MerchantLedgerBatchDetailRead
     private var task: Task<Void, Never>?
     private var returned = false
-    init(reader: any MerchantBusinessReading, batchID: Int, owner: MerchantLedgerSettlementOwner, onReturn: @escaping () -> Void) {
+    init(reader: any MerchantBusinessReading, batchID: Int, owner: MerchantLedgerSettlementOwner, onDenied: @escaping () -> Void = {}, onReturn: @escaping () -> Void) {
         self.reader = reader
         self.batchID = batchID
         self.onReturn = onReturn
+        self.onDenied = onDenied
         state = .init(owner: owner)
     }
     deinit { task?.cancel() }
@@ -231,12 +244,15 @@ import UIKit
                 return self.state.owner == owner && self.state.slot.generation == ticket && self.state.slot.isLoading && !Task.isCancelled
             })
             guard !Task.isCancelled else { mutate { $0.cancel(generation: ticket) }; return }
-            _ = mutate { $0.succeed(generation: ticket, owner: owner, batchID: batch.rawValue, snapshot: snapshot) }
+            let result = mutate { $0.succeed(generation: ticket, owner: owner, batchID: batch.rawValue, snapshot: snapshot) }
+            if result == .rejected("merchant.business.denied") { onDenied() }
         } catch is CancellationError {
             mutate { $0.cancel(generation: ticket) }
         } catch {
             guard !Task.isCancelled else { mutate { $0.cancel(generation: ticket) }; return }
-            mutate { $0.fail(generation: ticket, owner: owner, key: MerchantLedgerSettlementFailure.key(error)) }
+            let key = MerchantLedgerSettlementFailure.key(error)
+            let accepted = mutate { $0.fail(generation: ticket, owner: owner, key: key) }
+            if accepted && key == "merchant.business.denied" { onDenied() }
         }
     }
 }
@@ -245,29 +261,27 @@ import UIKit
     let reader: any MerchantBusinessReading
     let batchID: Int
     @StateObject private var model: MerchantLedgerBatchDetailModel
-    init(reader: any MerchantBusinessReading, batchID: Int, owner: MerchantLedgerSettlementOwner, onReturn: @escaping () -> Void) {
+    init(reader: any MerchantBusinessReading, batchID: Int, owner: MerchantLedgerSettlementOwner, onDenied: @escaping () -> Void = {}, onReturn: @escaping () -> Void) {
         self.reader = reader
         self.batchID = batchID
-        _model = StateObject(wrappedValue: MerchantLedgerBatchDetailModel(reader: reader, batchID: batchID, owner: owner, onReturn: onReturn))
+        _model = StateObject(wrappedValue: MerchantLedgerBatchDetailModel(reader: reader, batchID: batchID, owner: owner, onDenied: onDenied, onReturn: onReturn))
     }
     var body: some View {
         let slot = model.state.slot
         List {
             if slot.isLoading { ProgressView("merchant.loading") }
             if let key = slot.failureKey {
-                Text(LocalizedStringKey(key))
-                Button("action.retry") { model.appear() }.disabled(slot.isLoading)
+                ContentUnavailableView {
+                    Label(LocalizedStringKey(key), systemImage: "exclamationmark.triangle")
+                } actions: {
+                    Button("action.retry") { model.appear() }.disabled(slot.isLoading)
+                }
             }
             if let snapshot = slot.snapshot, let batch = snapshot.document.sections.first(where: { $0.id == "batch" })?.rows.first {
                 let count = detailCount(snapshot.document)
                 Section {
                     MerchantLedgerBatchHero(hero: MerchantLedgerParity.batchHero(batch.fields))
                     MerchantLedgerBatchStatementCard(statement: MerchantLedgerParity.batchStatementSummary(batch.fields, lineCount: count))
-                    if count > 0 {
-                        Text(verbatim: returnedLineCount(count)).font(.footnote)
-                    }
-                    Text("merchant.ledgerSettlement.detailIncomplete", tableName: "MerchantLedgerSettlement")
-                        .font(.footnote).foregroundStyle(.secondary)
                 }
                 detailRows(snapshot.document, id: "earnings")
                 detailRows(snapshot.document, id: "adjustments")
@@ -283,10 +297,6 @@ import UIKit
         document.sections.reduce(0) { count, section in
             section.id == "earnings" || section.id == "adjustments" ? count + section.rows.count : count
         }
-    }
-    private func returnedLineCount(_ count: Int) -> String {
-        let format = Bundle.main.localizedString(forKey: "merchant.ledgerSettlement.returnedDetails %lld", value: "Detail lines returned in this response: %lld", table: "MerchantLedgerSettlement")
-        return String(format: format, locale: Locale.current, Int64(count))
     }
     @ViewBuilder private func detailRows(_ document: MerchantBusinessDocument, id: String) -> some View {
         let rows = document.sections.first(where: { $0.id == id })?.rows ?? []

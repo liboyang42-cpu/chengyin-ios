@@ -6,8 +6,10 @@ import SwiftUI
     let service: any MerchantGameNodeServing
     let topicID: Int?
     let focusPause: Bool
-    @State private var result: MerchantGameNodeEntriesResult?
-    @State private var loadedScope: UUID?
+    @StateObject private var reads = MerchantGameNodeEntryReadModel()
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var visible = false
+    private var result: MerchantGameNodeEntriesResult? { reads.currentResult(service: service) }
     init(service: any MerchantGameNodeServing, topicID: Int?, focusPause: Bool = false) {
         self.service = service; self.topicID = topicID; self.focusPause = focusPause
     }
@@ -18,12 +20,12 @@ import SwiftUI
     }
     var body: some View {
         Group {
-            if loadedScope != service.scope || result == nil {
+            if result == nil {
                 ProgressView().frame(maxWidth: .infinity, minHeight: 200)
             } else if case .failure(let message)? = result {
                 VStack(spacing: 12) {
                     MerchantGameNodeCopy.text(message)
-                    Button { Task { await load() } } label: { MerchantGameNodeCopy.text("merchantGameNode.retry") }
+                    Button { reads.refresh(service: service) } label: { MerchantGameNodeCopy.text("merchantGameNode.retry") }
                         .buttonStyle(.bordered).accessibilityIdentifier("gameNode.entries.retry")
                 }.frame(maxWidth: .infinity, minHeight: 200).accessibilityIdentifier("gameNode.entries.failure")
             } else if rows.isEmpty {
@@ -49,13 +51,17 @@ import SwiftUI
             }
         }
         .navigationTitle(MerchantGameNodeCopy.string("merchantGameNode.title"))
-        .task(id: service.scope) { await load() }
-    }
-    private func load() async {
-        let scope = service.scope
-        result = nil
-        let value = await service.loadEntries()
-        guard scope == service.scope, !Task.isCancelled else { return }
-        result = value; loadedScope = scope
+        .onAppear { visible = true; if scenePhase == .active { reads.appear(service: service) } }
+        .onDisappear { visible = false; reads.disappear() }
+        .onChange(of: ObjectIdentifier(service)) { _, _ in
+            if visible && scenePhase == .active { reads.appear(service: service) } else { reads.disappear() }
+        }
+        .onChange(of: service.scope) { _, _ in reads.refresh(service: service) }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active && visible { reads.appear(service: service) } else { reads.disappear() }
+        }
+        .task(id: reads.request?.id) {
+            if let ticket = reads.request { await reads.read(ticket, service: service) }
+        }
     }
 }

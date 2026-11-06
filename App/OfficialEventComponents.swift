@@ -38,6 +38,7 @@ struct OfficialIssueView: View {
     var copy: OfficialIssueCopy? = nil
     var onBack: (() -> Void)? = nil
     var body: some View {
+        ScrollView {
         VStack(alignment: .leading, spacing: 16) {
             if let copy {
                 VStack(alignment: .leading, spacing: 8) {
@@ -45,7 +46,7 @@ struct OfficialIssueView: View {
                     Text(copy.detail).foregroundStyle(.secondary)
                 }.fixedSize(horizontal: false, vertical: true)
             }
-            Label(issue.key, systemImage: "info.circle").font(copy == nil ? nil : Font.footnote)
+            Label(issue.key, systemImage: symbol).font(copy == nil ? .headline : .footnote)
                 .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("official.issue")
             if case .unauthorized = issue, let onLogin {
                 Button("official.signIn", action: onLogin).frame(minHeight: 44)
@@ -58,7 +59,18 @@ struct OfficialIssueView: View {
                 Button(backTitle, action: onBack).frame(minHeight: 44)
                     .accessibilityIdentifier(copy.backIdentifier)
             }
-        }.padding()
+        }.frame(maxWidth: .infinity, alignment: .leading)
+            .padding(20).modifier(OfficialFlowActions())
+            .accessibilityElement(children: .contain)
+        }
+    }
+    private var symbol: String {
+        switch issue {
+        case .unauthorized, .noPublisherPermission, .forbidden: return "lock.shield"
+        case .failed: return "exclamationmark.triangle"
+        case .unavailable: return "doc.questionmark"
+        case .unconfigured: return "info.circle"
+        }
     }
 }
 
@@ -74,6 +86,7 @@ struct OfficialIssueView: View {
     var onBack: (() -> Void)? = nil
     let load: () async throws -> Value
     @ViewBuilder let content: (Value) -> Content
+    @StateObject private var sourceObservation = OfficialReadInvalidationObserver()
     @State private var value: Value?
     @State private var issue: OfficialScreenIssue?
     @State private var copy: OfficialIssueCopy?
@@ -104,6 +117,16 @@ struct OfficialIssueView: View {
         .task(id: key) { await refresh() }
         .refreshable { await refresh() }
         .onDisappear { generation &+= 1; loading = false }
+        .onAppear { sourceObservation.bind(reader) }
+        .onChange(of: ObjectIdentifier(reader)) { _, _ in sourceObservation.bind(reader) }
+        .onChange(of: sourceObservation.revision) { _, _ in
+            guard sourceObservation.isBound(to: reader) else { return }
+            // A new-key task may already own loading. Retire only the previous
+            // content; the existing keyed task owns cancellation and refetch.
+            guard loadedKey != key else { return }
+            value = nil; issue = nil; copy = nil; loadedKey = nil
+        }
+        .onDisappear { sourceObservation.stop() }
     }
     private func refresh() async {
         generation &+= 1
@@ -127,10 +150,11 @@ struct OfficialIssueView: View {
 struct OfficialReadOnlyNotice: View {
     let offline: Bool
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if offline { Label("official.offlineExample", systemImage: "testtube.2") }
-            Text("official.readOnly")
-        }.font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+        // Unavailable actions are simply absent; only the example-content marker remains.
+        if offline {
+            Label("official.offlineExample", systemImage: "info.circle")
+                .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+        }
     }
 }
 struct OfficialEventCard: View {
@@ -139,29 +163,63 @@ struct OfficialEventCard: View {
         QuestifyImageEntityCard(imageSource: event.coverImage, title: event.title, subtitle: event.subtitle,
                                 fallbackTitle: "official.untitled", fallbackSymbol: "sparkles") {
             Label(LocalizedStringKey(event.statusKey), systemImage: "calendar")
+                .font(.subheadline.weight(.semibold))
             if event.paused { Label("official.status.paused", systemImage: "pause.circle") }
             if event.recruitmentBlocked == true {
                 VStack(alignment: .leading, spacing: 4) {
                     Label("official.informationIncomplete", systemImage: "exclamationmark.triangle")
                         .fontWeight(.semibold)
                     if let reason = event.recruitmentWarningReason { Text(verbatim: reason) }
-                    else { Text("official.informationReasonUnknown") }
                 }
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityElement(children: .combine)
             }
             if let city = event.city, !city.isEmpty {
                 QuestifyImageEntityMetadata(label: "official.city", value: city, systemImage: "mappin")
-            } else { Text("official.cityUnknown") }
+            }
             // Source card meta: countdown · city · "N 人参与", then "全城已点亮 N%".
             if let countdown = event.countdown(now: Date()) { OfficialCountdownText(value: countdown) }
             if let participants = event.participants { Text("official.card.participants \(participants)") }
             if event.collectivePercentShown {
-                if let percent = event.collective?.percent { Text("official.card.collective \(min(100, max(0, percent)))") }
+                if let percent = event.collective?.percent {
+                    ProgressView(value: Double(min(100, max(0, percent))), total: 100).accessibilityHidden(true)
+                    Text("official.card.collective \(min(100, max(0, percent)))")
+                }
                 else { Text("official.card.collectiveUnknown") }
             }
-            if QuestifyCardArtwork.safeURL(event.coverImage) == nil { Text("official.imageUnavailable").font(.caption) }
         }
+    }
+}
+
+/// Local O01 styling. It reads the existing caller domain and changes no access or action state.
+struct OfficialFlowSurface: ViewModifier {
+    @Environment(\.themeDomain) private var domain
+    func body(content: Content) -> some View {
+        content.font(.body).listStyle(.insetGrouped).formStyle(.grouped)
+            .scrollContentBackground(.hidden)
+            .background(Theme.Generated.color("--cy-color-bg-page", in: domain) ?? Color(uiColor: .systemGroupedBackground))
+            .tint(Theme.Generated.color("--cy-color-brand", in: domain) ?? Color.accentColor)
+            .preferredColorScheme(domain.colorScheme)
+    }
+}
+
+struct OfficialFlowNotice: View {
+    let text: String
+    var symbol = "info.circle"
+    var body: some View {
+        Label { Text(verbatim: text).fixedSize(horizontal: false, vertical: true) }
+            icon: { Image(systemName: symbol).accessibilityHidden(true) }
+            .font(.footnote).foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12).background(.quaternary, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .accessibilityElement(children: .combine)
+    }
+}
+
+struct OfficialFlowActions: ViewModifier {
+    func body(content: Content) -> some View {
+        content.buttonStyle(.bordered).controlSize(.large)
+            .multilineTextAlignment(.leading)
     }
 }
 struct OfficialCountdownText: View {
@@ -179,6 +237,7 @@ struct OfficialCountdownText: View {
         case .days(let n): return Text(key) + Text(verbatim: " ") + Text("official.countdown.days \(n)")
         case .hours(let n): return Text(key) + Text(verbatim: " ") + Text("official.countdown.hours \(n)")
         case .minutes(let n): return Text(key) + Text(verbatim: " ") + Text("official.countdown.minutes \(n)")
+        case .unknown: return Text("official.notAnnounced")
         }
     }
 }
@@ -187,8 +246,39 @@ struct OfficialEventTimeValue: View {
     var body: some View {
         switch value {
         case .text(let text): Text(verbatim: text)
-        case .milliseconds(let number): Text(Date(timeIntervalSince1970: number / 1000), format: .dateTime.year().month().day().hour().minute())
+        case .milliseconds:
+            if let date = value?.displayDate {
+                Text(date, format: .dateTime.year().month().day().hour().minute())
+            } else { Text("official.notAnnounced") }
         case nil: Text("official.notAnnounced")
         }
+    }
+}
+
+/// Functional footer only; system safe-area insets reserve space above the home indicator.
+struct OfficialFlowActionBar<Content: View>: View {
+    @Environment(\.themeDomain) private var domain
+    private let content: Content
+    init(@ViewBuilder content: () -> Content) { self.content = content() }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) { content }
+            .frame(maxWidth: .infinity).padding(.horizontal, 16).padding(.vertical, 12)
+            .controlSize(.large).background(.bar)
+            .tint(Theme.Generated.color("--cy-color-brand", in: domain) ?? Color.accentColor)
+            .preferredColorScheme(domain.colorScheme)
+    }
+}
+
+/// Original identifiers remain selectable and fully readable, including long hashes.
+struct OfficialRecordValue: View {
+    let title: LocalizedStringKey
+    let value: String
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title).font(.caption).foregroundStyle(.secondary)
+            Text(verbatim: value).font(.footnote.monospaced()).lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+        }.frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .combine)
     }
 }

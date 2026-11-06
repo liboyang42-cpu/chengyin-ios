@@ -61,7 +61,7 @@ import SwiftUI
         let currentAvailabilitySource = c.snapshot.map { MerchantRegistrationAvailabilitySource($0.value) }
         let renderedScope = service.scope
         Form {
-            Section { MerchantContentBoundary(); MerchantContentStatus(model: model, allowsReload: !dirty, reload: {
+            Section { MerchantContentStatus(model: model, allowsReload: !dirty, reload: {
                 guard service.scope == renderedScope, !dirty, !c.busy, !c.locked else { return }
                 addressGeneration = UUID()
                 await model.load()
@@ -98,7 +98,6 @@ import SwiftUI
                             .disabled(c.busy || c.locked || c.receipt != nil)
                             .accessibilityIdentifier("merchant.content.review")
                     } else { Text("merchant.content.completeFields").foregroundStyle(.secondary) }
-                    Text("merchant.content.mediaBoundary").font(.footnote)
                 }
             } else if c.busy { ProgressView("merchant.loading") }
         }
@@ -201,7 +200,6 @@ import SwiftUI
             Section("merchant.content.registrationContent") {
                 ForEach(["addressName", "address", "longitude", "latitude", "activityDesc", "picUrl", "limitNum"], id: \.self) { field($0) }
                 if case .registrationCreate = kind { field("cooperateDate") }
-                if case .registrationCreate = kind { Text("merchant.content.registrationPreservation").font(.footnote) }
             }
             if case .registrationCreate = kind { applyDateSection }
             if case .registrationEdit = kind, let block = MerchantApplyXcx.editBlock(status: s.value["status"].integer, auditStatus: s.value["auditStatus"].integer,
@@ -222,7 +220,7 @@ import SwiftUI
                 }
             }
         case .chapterNode:
-            Section { templates(s); ForEach(["name", "description", "address", "longitude", "latitude", "imgUrl", "businessTime"], id: \.self) { field($0) }; Text("merchant.content.nodeReviewWarning").font(.footnote); Text("merchant.content.xpUnavailable").font(.footnote) }
+            Section { templates(s); ForEach(["name", "description", "address", "longitude", "latitude", "imgUrl", "businessTime"], id: \.self) { field($0) }; Text("merchant.content.nodeReviewWarning").font(.footnote).foregroundStyle(.secondary) }
         case .placement:
             let renderedAddress = addressContext(s)
             Section { MerchantCityQuotaSummary(quota: .init(catalog: s.value["catalog"])) }

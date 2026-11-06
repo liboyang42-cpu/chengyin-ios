@@ -262,13 +262,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No eligible activities. Eligibility comes from your paid participation records on the server."
+            "value": "No eligible activities. Only activities you've paid for and joined can be reported."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无可投诉活动，资格以服务端已支付参与记录为准。"
+            "value": "暂无可投诉活动，仅可投诉你已支付并参与的活动。"
           }
         }
       }

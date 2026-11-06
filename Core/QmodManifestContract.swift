@@ -1,5 +1,127 @@
 import Foundation
 
+/// Local JSON syntax/ambiguity check only. This does not compile a ServerPlan,
+/// validate node capabilities, or replace server-side validation of original bytes.
+enum QmodJSONInspection {
+    enum Failure: String, Error { case malformed, duplicateKey, depthExceeded }
+
+    static func validate(_ data: Data) throws {
+        var parser = Parser(bytes: Array(data))
+        try parser.value(depth: 0)
+        parser.whitespace()
+        guard parser.offset == parser.bytes.count else { throw Failure.malformed }
+    }
+
+    private struct Parser {
+        let bytes: [UInt8]
+        var offset = 0
+
+        mutating func whitespace() {
+            while offset < bytes.count && [9, 10, 13, 32].contains(bytes[offset]) { offset += 1 }
+        }
+
+        mutating func take(_ byte: UInt8) -> Bool {
+            guard offset < bytes.count, bytes[offset] == byte else { return false }
+            offset += 1
+            return true
+        }
+
+        mutating func value(depth: Int) throws {
+            // Technical recursion stop, not a business limit or schema version.
+            guard depth <= 64 else { throw Failure.depthExceeded }
+            whitespace()
+            guard offset < bytes.count else { throw Failure.malformed }
+            switch bytes[offset] {
+            case 123: // object
+                offset += 1
+                whitespace()
+                if take(125) { return }
+                var keys = Set<String>()
+                while true {
+                    whitespace()
+                    let key = try string()
+                    guard keys.insert(key).inserted else { throw Failure.duplicateKey }
+                    whitespace()
+                    guard take(58) else { throw Failure.malformed }
+                    try value(depth: depth + 1)
+                    whitespace()
+                    if take(125) { return }
+                    guard take(44) else { throw Failure.malformed }
+                }
+            case 91: // array
+                offset += 1
+                whitespace()
+                if take(93) { return }
+                while true {
+                    try value(depth: depth + 1)
+                    whitespace()
+                    if take(93) { return }
+                    guard take(44) else { throw Failure.malformed }
+                }
+            case 34: _ = try string()
+            case 116: try literal([116, 114, 117, 101])
+            case 102: try literal([102, 97, 108, 115, 101])
+            case 110: try literal([110, 117, 108, 108])
+            case 45, 48...57: try number()
+            default: throw Failure.malformed
+            }
+        }
+
+        mutating func literal(_ expected: [UInt8]) throws {
+            for byte in expected {
+                guard take(byte) else { throw Failure.malformed }
+            }
+        }
+
+        mutating func string() throws -> String {
+            let start = offset
+            guard take(34) else { throw Failure.malformed }
+            while offset < bytes.count {
+                let byte = bytes[offset]
+                offset += 1
+                if byte == 34 {
+                    // Decode escapes before comparing keys, including surrogate
+                    // pairs. Invalid UTF-8/escapes/control characters fail here.
+                    guard let decoded = try? JSONDecoder().decode(String.self, from: Data(bytes[start..<offset])) else {
+                        throw Failure.malformed
+                    }
+                    return decoded
+                }
+                if byte < 32 { throw Failure.malformed }
+                if byte == 92 {
+                    guard offset < bytes.count else { throw Failure.malformed }
+                    offset += 1
+                }
+            }
+            throw Failure.malformed
+        }
+
+        mutating func number() throws {
+            _ = take(45)
+            guard offset < bytes.count else { throw Failure.malformed }
+            if !take(48) {
+                guard offset < bytes.count, (49...57).contains(bytes[offset]) else { throw Failure.malformed }
+                digits()
+            }
+            if take(46) {
+                let start = offset
+                digits()
+                guard offset > start else { throw Failure.malformed }
+            }
+            if take(101) || take(69) {
+                if !take(43) { _ = take(45) }
+                let start = offset
+                digits()
+                guard offset > start else { throw Failure.malformed }
+            }
+        }
+
+        mutating func digits() {
+            while offset < bytes.count, (48...57).contains(bytes[offset]) { offset += 1 }
+        }
+    }
+}
+
 /// Reform plan v9 part C §3 / U08: the single standard-module (qmod) line. This
 /// validates an author-side manifest before any submission exists, reusing the
 /// existing publishing, license and runtime systems. H5 packages remain design-only
@@ -66,7 +188,12 @@ public struct QmodManifest: Equatable, Sendable {
     /// Parses manifest.json bytes. Unknown keys, authority keys and non-canonical shapes are rejected.
     /// JSONSerialization checks key sets only; typed values use JSONDecoder so booleans never pass as numbers.
     public init(data: Data, limits: QmodLimitProfile) throws {
-        guard data.count <= 262_144, let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw QmodManifestIssue.malformed }
+        guard data.count <= 262_144 else { throw QmodManifestIssue.malformed }
+        // Foundation parsers may select different values for repeated keys. Reject
+        // the original bytes before either parser discards that information.
+        do { try QmodJSONInspection.validate(data) }
+        catch { throw QmodManifestIssue.malformed }
+        guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw QmodManifestIssue.malformed }
         if let key = root.keys.sorted().first(where: { Self.authorityKeys.contains($0) }) { throw QmodManifestIssue.authorityField(key) }
         guard Set(root.keys).isSubset(of: Self.allowedKeys) else { throw QmodManifestIssue.malformed }
         func keys(_ value: Any?) -> Set<String>? { (value as? [String: Any]).map { Set($0.keys) } }

@@ -1,0 +1,2198 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "strings": {
+    "zeroHP.copy.000": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生命值域 · 归零后"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Health · At zero"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.001": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑生命归零策略"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit zero-health policy"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.002": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "挑战／等待、恢复值与次数上限、耗尽后策略及归零回复"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Challenge or wait, recovery amount and limit, fallback policy, and reply"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.003": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生命开关与上限沿用原值域配置；这里不执行挑战、不恢复生命或发奖。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The existing health setting and limit are unchanged. This editor does not run challenges, restore health, or award rewards."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.004": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前项目不可完整编辑，请返回原项目读取权限与版本。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full editing is unavailable. Return to the project to reload access and version."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.005": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原归零配置无法安全编辑；已保留原文，未替换为默认配置。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This zero-health configuration cannot be edited safely. Its original data is preserved; no defaults were substituted."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.006": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支持矩阵或已绑定玩法详情未读取。只读适配未配置、权限变化或网络失败时不能假定支持；可重试，副本尚未写回。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load support information or the linked gameplay. Missing read access, changed permissions, or a network error cannot be treated as support. Retry; your working copy has not been written back."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.007": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前选择不符合原配置约束；副本未改变。请查看该字段的原因。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This selection does not meet the existing constraints. Your working copy is unchanged. Check the field's explanation."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.008": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先保存本主题服务器草稿并回读，再选择真实挑战节点"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save and reload this topic's server draft before selecting a saved challenge node."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.009": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支持矩阵或已绑定玩法版本已变化，已读取新版本；请核对提示后再完成。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Support information or linked gameplay has changed. The latest version is loaded. Review the notices before finishing."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.010": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原本地保存未确认；已保留归零策略与挑战副本，请重试本地保存。尚未保存服务器或发布。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local saving wasn't confirmed. Your policy and challenge working copy is retained. Retry local saving. Nothing has been saved to the server or published."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.011": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "权限、玩法版本或引用未能确认，未覆盖原草稿。请重试读取；服务器保存尚未发起。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Access, gameplay version, or references couldn't be verified. Your original draft is unchanged. Retry loading; no server save has started."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.012": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先编辑副本，完成后沿原保存器持久保存整份本地草稿；本地保存失败会保留副本。退出或返回放弃未确认副本，之后仍须在原项目保存服务器草稿／发布。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit a working copy. Done saves the full local draft through the existing saver; a failed local save retains the copy. Leaving discards unconfirmed edits. You still need to save or publish from the original project."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.013": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取支持矩阵与已绑定玩法"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading support information and linked gameplay"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.014": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "项目、账号、权限、版本或编辑实例已变化，旧副本不能写回。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The project, account, access, version, or editing session has changed. This old copy cannot be written back."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.015": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取本项目"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload project"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.016": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试支持矩阵与玩法详情"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry support and gameplay details"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.017": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "值域"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " resource"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.018": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未开启；仅禁止扣该值的任务不会启用生命"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disabled. Blocking health-cost tasks does not enable health."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.019": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兼容配置 · 只读"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compatibility · Read only"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.020": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "旧版 BLOCK_PAID／LEGACY_END／旧挑战、原生端未支持的步数恢复及未知版本原样保留；退出与完成都不改写原配置。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legacy BLOCK_PAID, LEGACY_END, old challenges, unsupported step recovery, and unknown versions are preserved. Neither Cancel nor Done rewrites them."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.021": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复到："
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore to: "
+          }
+        }
+      }
+    },
+    "zeroHP.copy.022": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多恢复次数："
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery limit: "
+          }
+        }
+      }
+    },
+    "zeroHP.copy.023": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次数用完后："
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After the limit: "
+          }
+        }
+      }
+    },
+    "zeroHP.copy.024": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "微信运动证明未在原生端开放；本机步数不是等价证明，不能启用或修改此恢复项。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WeRun proof is unavailable in the native app. Device steps are not equivalent proof. This recovery option cannot be enabled or edited."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.025": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "归零时回复"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reply at zero"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.026": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回复内容（最多 2000 字）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reply (up to 2,000 UTF-16 units)"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.027": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可留空；不会覆盖普通节点的通过／没通过回复。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional. Does not replace ordinary nodes' pass or fail replies."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.028": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请修正后完成"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resolve before finishing"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.029": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未取得当前支持矩阵，不能替换为默认配置。原草稿及未完成请求保持不变。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current support information is unavailable. Defaults will not be substituted. The original draft and pending requests are unchanged."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.030": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生命归零后"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When health reaches zero"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.031": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.032": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.033": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "归零后"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "At zero"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.034": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "真实恢复挑战节点"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved recovery challenge nodes"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.035": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从本主题已保存节点的已绑定玩法选择，不创建临时模板。挑战不扣费、不发普通奖励、不推进章节；完成后沿原章节同步排除主／备挑战节点。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose linked gameplay from this topic's saved nodes; no temporary template is created. Challenges do not charge, award ordinary rewards, or advance chapters. Main and alternative challenge nodes are excluded through the existing chapter synchronization."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.036": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先保存主题和挑战节点，并回读服务器草稿，再返回选择。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save the topic and challenge nodes, reload the server draft, then return to choose."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.037": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主挑战"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Main challenge"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.038": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复玩法："
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery gameplay: "
+          }
+        }
+      }
+    },
+    "zeroHP.copy.039": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未选择"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not selected"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.040": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未绑定"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not linked"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.041": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " · 可以移除"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " · Can be removed"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.042": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可作答的题目类备选"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Answerable question alternative"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.043": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需完成次数（1–99）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required completions (1–99)"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.044": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "限时秒数（1–86400）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time limit in seconds (1–86400)"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.045": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复条件与耗尽后"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery and fallback"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.046": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待分钟（1–10080）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wait in minutes (1–10080)"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.047": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复步数（1–100000）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steps to recover (1–100000)"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.048": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原规则以归零后第一次同步的微信运动步数为起点。原生端不以本地传感器替代；此选项不可启用。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original rule starts from the first WeRun sync after reaching zero. Native sensors cannot replace it; this option cannot be enabled."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.049": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多恢复次数（1–99）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery limit (1–99)"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.050": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次数用完后"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After the limit"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.051": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.052": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题失败"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fail the topic"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.053": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅禁止扣该值的任务"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Block only tasks that cost health"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.054": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成恢复挑战"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete a recovery challenge"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.055": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "走够步数"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk enough steps"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.056": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待一段时间"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wait"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.057": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第一章初始状态"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chapter one initial state"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.058": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原 RPG 数值资源"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing RPG resources"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.059": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生命值"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Health"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.060": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "禁止所有收费动作"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Block all paid actions"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.061": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "旧版结束"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legacy ending"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.062": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先保存全部节点，并在进行方式与节点引导中修正章节关系后再完成"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save all nodes and correct chapter relationships in progression and node guidance before finishing."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.063": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请配置所选恢复条件"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configure the selected recovery condition."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.064": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只能设置所选的恢复项；请重新选择归零策略后完成"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the selected recovery option may be configured. Select the zero-health policy again before finishing."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.065": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "归零时回复不能超过 2000 字"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The reply must not exceed 2,000 UTF-16 units."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.066": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择有效的 HP 归零策略"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a supported zero-health policy."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.067": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原 schema2 HP 声明未明确，请先在原 RPG 数值资源编辑器确认；不代填默认值"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The schema2 HP declaration is incomplete. Confirm it in the existing RPG resource editor. Defaults will not be supplied."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.068": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生命值域无法读取，请在原值域编辑器检查"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The health resource could not be read. Check it in the original resource editor."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.069": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复配置版本不受支持"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This recovery configuration version is unsupported."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.070": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复值"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery amount"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.071": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先修正生命值上限"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correct the health maximum first."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.072": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多恢复次数"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery limit"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.073": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择次数用完后的策略"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a policy for when the limit is reached."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.074": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待分钟"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wait minutes"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.075": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复步数"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery steps"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.076": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需完成次数"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required completions"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.077": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复挑战限时（秒）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Challenge time limit (seconds)"
+          }
+        }
+      }
+    },
+    "zeroHP.copy.078": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存节点身份重复，请重新读取原草稿"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved node identities are duplicated. Reload the original draft."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.079": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先保存主题和挑战节点，再选择主挑战"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save the topic and challenge nodes before choosing the main challenge."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.080": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备选挑战最多 3 个，不能重复，须为本主题其他真实节点"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose up to three distinct alternative challenges from other saved nodes in this topic."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.081": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "微信运动步数恢复未在原生端开放；不能使用本机步数代替证明。已有配置保留，需改为支持的策略后才能完成修改。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WeRun step recovery is unavailable in the native app. Device steps cannot replace its proof. Existing settings are preserved; select a supported policy to finish editing."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.082": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前主题的玩法支持信息未就绪，请重试读取"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gameplay support information is not ready. Retry loading."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.083": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前主题不支持此归零策略；请先核对进行方式与原玩法配置"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This topic does not support this zero-health policy. Check progression and the original gameplay settings."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.084": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先保存真实节点并绑定可读取的原玩法模板"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save a real node and link an original gameplay template that can be read."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.085": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这种玩法不能用作归零挑战"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This gameplay cannot be used as a zero-health challenge."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.086": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原玩法配置无法读取，请重试"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't read the original gameplay settings. Retry."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.087": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进入下一段暂未开放"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advancing to the next segment is unavailable."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.088": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "归零挑战不能配置普通结果费用或奖励；请在原玩法中修正"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery challenges cannot include ordinary outcome costs or rewards. Correct the original gameplay."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.089": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "归零挑战不能同时配置普通任务、设施、扣费、次数或效果；请选择专用挑战节点"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery challenges cannot also configure ordinary tasks, facilities, charges, counts, or effects. Choose a dedicated challenge node."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.090": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "个人或独立队伍的挑战不能绑定跨队表决"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personal or independent-team challenges cannot link cross-team voting."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.091": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此玩法暂不支持归零恢复，请选择其他挑战节点"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This gameplay does not support zero-health recovery. Choose another challenge node."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.092": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这种玩法没有归零挑战恢复支持"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This gameplay has no recovery-challenge support."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.093": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检定恢复须先在原玩法中配置通过／没通过之后"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configure pass and fail outcomes in the original gameplay before using check recovery."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.094": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复玩法须匹配主挑战节点，请重新选择主挑战"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery gameplay must match the main challenge node. Select the main challenge again."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.095": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检定恢复须先配置通过／没通过之后"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configure pass and fail outcomes before using check recovery."
+          }
+        }
+      }
+    },
+    "zeroHP.copy.096": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "体能或传感器主挑战须配置至少一个可作答的题目类备选；挑战不扣费、不发普通奖励、不推进章节"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A physical or sensor-based main challenge needs at least one answerable question alternative. Challenges do not charge, award ordinary rewards, or advance chapters."
+          }
+        }
+      }
+    },
+    "zeroHP.node": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "节点 %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Node %@"
+          }
+        }
+      }
+    },
+    "zeroHP.enabled": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已开启 · 上限 %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enabled · Maximum %@"
+          }
+        }
+      }
+    },
+    "zeroHP.editResource": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如需修改开关、开局值或上限，请退出本面板，到%@编辑。完成后不会自动改动初始生命。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To change the switch, initial value, or maximum, leave this panel and edit %@. Finishing does not change initial health."
+          }
+        }
+      }
+    },
+    "zeroHP.nodeTemplate": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存节点 %@ · 绑定模板 %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved node %@ · Linked template %@"
+          }
+        }
+      }
+    },
+    "zeroHP.alternatives": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备选节点（%@/3）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alternative nodes (%@/3)"
+          }
+        }
+      }
+    },
+    "zeroHP.removeStale": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除失效备选节点 %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove unavailable alternative node %@"
+          }
+        }
+      }
+    },
+    "zeroHP.restoreRange": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复到（1–%@）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore to (1–%@)"
+          }
+        }
+      }
+    },
+    "zeroHP.integerRange": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@须为 %@ 至 %@ 的整数"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ must be an integer from %@ to %@."
+          }
+        }
+      }
+    },
+    "zeroHP.nodeGone": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "节点 %@ 已删除或未保存，请重新选择"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Node %@ was deleted or is not saved. Choose again."
+          }
+        }
+      }
+    },
+    "zeroHP.fixPath": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先在原玩法编辑器修正结果或工具配置：%@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correct the outcome or tool settings in the original gameplay editor: %@"
+          }
+        }
+      }
+    },
+    "zeroHP.minutes": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 分钟"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ minutes"
+          }
+        }
+      }
+    },
+    "zeroHP.steps": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 步"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ steps"
+          }
+        }
+      }
+    },
+    "zeroHP.hpExtra": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hp含原资源合同之外字段；不会删除它们。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HP contains fields outside the original resource contract. They will not be deleted."
+          }
+        }
+      }
+    },
+    "zeroHP.hpBoolean": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hp启用配置须为明确布尔值。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HP enabled must be an explicit Boolean."
+          }
+        }
+      }
+    },
+    "zeroHP.hpInitial": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hp初始值须为非负整数。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Initial HP must be a nonnegative integer."
+          }
+        }
+      }
+    },
+    "zeroHP.hpMaximum": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hp初始值不能超过该资源上限。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Initial HP cannot exceed its maximum."
+          }
+        }
+      }
+    },
+    "zeroHP.hpExplicit": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hp本次编辑须明确启用状态、上限和初始值；不代填默认值。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Specify HP enabled, maximum, and initial value explicitly. No defaults are supplied."
+          }
+        }
+      }
+    },
+    "zeroHP.hpRange": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hp上限须为%@–%@整数。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HP maximum must be an integer from %@ to %@."
+          }
+        }
+      }
+    },
+    "zeroHP.doneHint": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存本地草稿后关闭；不会保存服务器或发布。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save the local draft and close. Does not save to the server or publish."
+          }
+        }
+      }
+    },
+    "zeroHP.enableEnglish": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先开启%@（%@）。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable %@ in %@ first."
+          }
+        }
+      }
+    },
+    "zeroHP.gameplay.pricePair": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "价格配对"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Price pairing"
+          }
+        }
+      }
+    },
+    "zeroHP.gameplay.blindTaste": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "盲尝"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blind tasting"
+          }
+        }
+      }
+    },
+    "zeroHP.gameplay.check": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检定"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check"
+          }
+        }
+      }
+    },
+    "zeroHP.gameplay.diceRoll": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "掷骰"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dice roll"
+          }
+        }
+      }
+    },
+    "zeroHP.gameplay.coinFlip": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "抛硬币"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coin flip"
+          }
+        }
+      }
+    },
+    "zeroHP.gameplay.random": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "随机"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Random"
+          }
+        }
+      }
+    },
+    "zeroHP.gameplay.estimate": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "估测"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estimate"
+          }
+        }
+      }
+    },
+    "zeroHP.gameplay.qa": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "问答"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Question and answer"
+          }
+        }
+      }
+    },
+    "zeroHP.gameplay.sort": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "排序"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sort"
+          }
+        }
+      }
+    },
+    "zeroHP.gameplay.match": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配对"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Match"
+          }
+        }
+      }
+    },
+    "zeroHP.gameplay.classify": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分类"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Classify"
+          }
+        }
+      }
+    },
+    "zeroHP.gameplay.typeIn": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入答案"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Typed answer"
+          }
+        }
+      }
+    },
+    "zeroHP.gameplay.ballShake": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "摇球"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ball shake"
+          }
+        }
+      }
+    },
+    "zeroHP.gameplay.reaction": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "反应"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reaction"
+          }
+        }
+      }
+    },
+    "zeroHP.gameplay.quietHold": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保持安静"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet hold"
+          }
+        }
+      }
+    },
+    "zeroHP.gameplay.shout": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喊声"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shout"
+          }
+        }
+      }
+    },
+    "zeroHP.gameplay.compass": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "指南针"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compass"
+          }
+        }
+      }
+    },
+    "zeroHP.gameplay.stopwatch": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "秒表"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopwatch"
+          }
+        }
+      }
+    },
+    "zeroHP.gameplay.countdown": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "倒计时"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Countdown"
+          }
+        }
+      }
+    },
+    "zeroHP.readOnlyDoneHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close the read-only configuration. No draft is saved or changed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭只读配置，不保存或修改草稿。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

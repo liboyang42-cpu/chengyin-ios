@@ -55,7 +55,7 @@ import XCTest
         tap("approvedRelease.close", in: app, fixed: true); tap("projectEdit.fixture.reopen", in: app, fixed: true); tap("approvedRelease.read", in: app)
         value("approvedRelease.publication.requestID", requestID, in: app); XCTAssertFalse(app.buttons["approvedRelease.publish"].exists)
         tap("approvedRelease.publication.check", in: app)
-        value("approvedRelease.publication.releaseID", "501", in: app); value("approvedRelease.publication.approval", "最近一次服务端检查时已审核通过", in: app)
+        value("approvedRelease.publication.releaseID", "501", in: app); value("approvedRelease.publication.approval", "最近一次核对时已通过审核", in: app)
         tap("approvedRelease.close", in: app, fixed: true)
         let probe = try inspect(app); XCTAssertEqual(probe.releasePublishCount, 1); XCTAssertEqual(probe.releaseStatusCount, 1); XCTAssertEqual(probe.releaseAllocatedCount, 1); XCTAssertEqual(Set(probe.releaseRequestIDs), Set([requestID]))
         app.terminate();

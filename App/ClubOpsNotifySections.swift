@@ -21,7 +21,6 @@ struct ClubOpsNotifyContentFields: View {
     @Binding var content: String
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.content.section").font(.headline)
             label("clubOpsJN.notify.field.title", count: title, limit: ClubOpsNotifyPresentation.titleLimit)
             TextField(text: $title) { Text("clubOpsJN.notify.placeholder.title", tableName: "ClubOpsJoinNotify") }
                 .accessibilityIdentifier("club.gov.input.title")

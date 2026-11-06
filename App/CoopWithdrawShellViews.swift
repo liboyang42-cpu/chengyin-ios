@@ -7,31 +7,26 @@ import SwiftUI
     @State private var showsSupport = false
     var body: some View {
         List {
-            Section {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("cooperation.withdraw.title").font(.title3.bold())
-                    Text("cooperation.withdraw.subtitle").font(.subheadline).foregroundStyle(.secondary)
-                }
-            }
+            // Source: the page title says 提现方式已调整; the body is one neutral notice and one action.
             if isSignedIn {
-                Section {
-                    VStack(spacing: 8) {
-                        Image(systemName: "bubble.left.and.text.bubble.right").font(.largeTitle).foregroundStyle(.secondary)
-                        Text("cooperation.finance.withdraw").font(.headline)
-                        Text("cooperation.withdraw.detail").font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
-                    }.frame(maxWidth: .infinity).padding(.vertical, 12)
-                        .accessibilityElement(children: .combine).accessibilityAddTraits(.updatesFrequently)
-                        .accessibilityIdentifier("cooperation.withdraw.notice")
+                ContentUnavailableView {
+                    Label("cooperation.finance.withdraw", systemImage: "bubble.left.and.text.bubble.right")
+                } description: {
+                    Text("cooperation.withdraw.detail")
                 }
-                Section {
-                    Button { showsSupport = true } label: { Text("cooperation.finance.withdraw").frame(maxWidth: .infinity) }
-                        .buttonStyle(.borderedProminent).accessibilityIdentifier("cooperation.withdraw.contact")
-                }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("cooperation.withdraw.notice")
             } else {
                 Section { Text("cooperation.login").accessibilityIdentifier("cooperation.withdraw.login") }
             }
         }
         .appNavigationTitle("cooperation.withdraw.title")
+        .questifyBottomAction {
+            if isSignedIn {
+                Button { showsSupport = true } label: { Text("cooperation.finance.withdraw").frame(maxWidth: .infinity) }
+                    .accessibilityIdentifier("cooperation.withdraw.contact")
+            }
+        }
         .onChange(of: isSignedIn) { _, signedIn in if !signedIn { showsSupport = false } }
         .sheet(isPresented: $showsSupport) { WithdrawalSupportContactView() }
         .accessibilityIdentifier("cooperation.withdraw")
@@ -50,17 +45,13 @@ import SwiftUI
         Group {
             if let reader = reader ?? composedReader {
                 WalletWithdrawalsView(reader: reader)
-                    .safeAreaInset(edge: .top) {
-                        Text("cooperation.withdrawRecords.subtitle").font(.footnote).foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal).padding(.vertical, 4)
-                            .background(.bar)
-                    }
             } else {
-                List {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("cooperation.withdrawRecords.failed.title").font(.headline)
-                        Text("cooperation.withdrawRecords.failed.detail").font(.footnote).foregroundStyle(.secondary)
-                    }.accessibilityElement(children: .combine).accessibilityIdentifier("cooperation.withdrawRecords.failed")
+                ContentUnavailableView {
+                    Label("cooperation.withdrawRecords.failed.title", systemImage: "exclamationmark.triangle")
+                        .accessibilityIdentifier("cooperation.withdrawRecords.failed")
+                } description: {
+                    Text("cooperation.withdrawRecords.failed.detail")
+                } actions: {
                     Button("cooperation.refresh") { attempt += 1 }.accessibilityIdentifier("cooperation.withdrawRecords.retry")
                 }
             }

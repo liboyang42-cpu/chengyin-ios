@@ -9,7 +9,20 @@ public struct WorkshopModuleImportEntry: Equatable {
 
     public mutating func importMetadata(_ object: [String: String], entry: String, originalRequestID: String) throws {
         try WorkshopModuleImportGate.inspect(object)
-        if gate.originalRequestID == originalRequestID, gate.entry == entry { return }
+        // Match the gate's existing request normalization on first import and every replay.
+        let canonicalRequestID = originalRequestID.trimmingCharacters(in: .whitespacesAndNewlines)
+        if gate.originalRequestID == canonicalRequestID, gate.entry == entry {
+            // A request replays its original catalog facts, not any later body with the same ID.
+            // Use the original decoder so accepted normalization and metadata-only scope stay intact.
+            if let original = gate.manifest {
+                let incoming = try WorkshopModuleImportGate.decodeManifest(object)
+                guard incoming == original else { throw WorkshopModuleImportFailure.requestMismatch }
+                return
+            }
+            // A failed first validation retained this request but accepted no catalog facts.
+            // Resume only the gate's original imported -> validated -> preview path.
+            guard gate.phase == .imported else { throw WorkshopModuleImportFailure.requestMismatch }
+        }
         try gate.importFromNormalEntry(entry: entry, format: .metadataManifestV1, originalRequestID: originalRequestID)
         try gate.validate(object)
         try gate.previewMetadataOnly()
@@ -24,7 +37,7 @@ public struct WorkshopModuleImportEntry: Equatable {
               object["formatVersion"] == "1.0", object["kind"] == "questify.mod",
               object["entrypoint"] == "content.json",
               let packageID = object["packageId"], packageID == entry,
-              let version = object["packageVersion"], Self.semver(version),
+              let version = object["packageVersion"], QmodManifest.strictSemver(version),
               let hash = object["contentHash"], WorkshopModuleImportGate.sha256Hex(hash),
               let schema = object["schemaVersion"],
               let path = object["filePath"], path == "content.json",
@@ -51,11 +64,4 @@ public struct WorkshopModuleImportEntry: Equatable {
         }
     }
 
-    private static func semver(_ value: String) -> Bool {
-        let parts = value.split(separator: ".", omittingEmptySubsequences: false)
-        guard parts.count == 3 else { return false }
-        return parts.allSatisfy { part in
-            !part.isEmpty && part.allSatisfy(\.isNumber) && !(part.count > 1 && part.hasPrefix("0"))
-        }
-    }
 }

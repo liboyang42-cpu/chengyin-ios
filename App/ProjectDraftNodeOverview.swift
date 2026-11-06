@@ -134,7 +134,8 @@ import SwiftUI
                     }
                 } else { Text("projectNodeOverview.stale", tableName: "ProjectDraftNodeOverview") }
             }
-            .navigationTitle(Text("projectNodeOverview.title", tableName: "ProjectDraftNodeOverview"))
+            .listStyle(.insetGrouped).environment(\.defaultMinListRowHeight, 44)
+            .navigationBarTitleDisplayMode(.inline).navigationTitle(Text("projectNodeOverview.title", tableName: "ProjectDraftNodeOverview"))
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { controller.close(original) } } }
             .navigationDestination(item: controller.destinationBinding(selected)) { destination in
                 ProjectDraftNodeOverviewDestination(controller: controller, original: destination)

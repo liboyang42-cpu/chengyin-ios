@@ -49,33 +49,43 @@ struct TopicDetailView: View {
     private func content(_ value: TopicDetail) -> some View {
         ScrollViewReader { proxy in
         List {
+            // Mini-program `det1` hero: cover, type and title, then the stat bar and the 详情 / 故事 / 路线 tabs.
             Section {
-                if reader.isOfflineExample { Text("topic.offlineExample").font(.caption) }
-                TopicXcxHero(topic: value)
                 let covers = value.images.isEmpty ? (value.imageURL.map { [$0] } ?? []) : Array(value.images.prefix(9))
-                if covers.isEmpty { Text("topicXcx.coverHint").font(.caption).foregroundStyle(.secondary) }
-                else { NativeMediaGalleryEntry(sources: covers, scope: key.scope, titleKey: "media.destination.squareImages", compact: true) }
+                if covers.isEmpty {
+                    // No cover: a clean surface with no text.
+                    RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(uiColor: .tertiarySystemFill))
+                        .frame(height: 180).accessibilityHidden(true)
+                } else { NativeMediaGalleryEntry(sources: covers, scope: key.scope, titleKey: "media.destination.squareImages", compact: true) }
+                TopicXcxHero(topic: value)
                 Text(verbatim: value.name).font(.title2.bold())
-                TopicXcxStatBar(cells: TopicXcxFacts.statBar(value))
-                TopicXcxTabs(proxy: proxy)
-                TopicTotalStops(count: value.locationCount, identifier: "topic.totalStops")
                 if value.betaFlag == 1 {
                     // Source topic-beta block: badge plus feedback note.
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("topic.source.betaBadge").font(.subheadline.bold())
+                    HStack(spacing: 8) {
+                        Text("topic.source.betaBadge").font(.caption.bold())
+                            .padding(.horizontal, 8).padding(.vertical, 3)
+                            .background(Capsule().fill(QuestifyPalette.accent.opacity(0.18)))
                         Text("topic.source.betaNote").font(.caption).foregroundStyle(.secondary)
                     }.fixedSize(horizontal: false, vertical: true).accessibilityElement(children: .combine)
                 }
-                if let subtitle = value.subtitle { Text(verbatim: subtitle) }
+                TopicXcxStatBar(cells: TopicXcxFacts.statBar(value))
+                TopicXcxTabs(proxy: proxy)
+            }
+            // 详情 tab: one-line intro, the long introduction and audio, then the plain facts.
+            Section {
+                TopicTotalStops(count: value.locationCount, identifier: "topic.totalStops")
+                if let subtitle = value.subtitle { Text(verbatim: subtitle).font(.headline) }
                 if let introduction = value.introduction { Text(verbatim: introduction).textSelection(.enabled) }
                 if let audio = value.audioURL, !audio.isEmpty { PlatformAudioHost(rawURL: audio, scope: reader.scope, makeModel: makeAudio) }
-                if let club = value.clubName { Text(verbatim: club) }
-                if !value.categoryNames.isEmpty { Text(verbatim: value.categoryNames.joined(separator: " · ")) }
-                if let start = value.startDate { LabeledContent("topic.start", value: start) }
-                if let end = value.endDate { LabeledContent("topic.end", value: end) }
-                if let count = value.merchantCount { LabeledContent("topic.merchants", value: String(count)) }
-                if let seconds = value.totalTimeSeconds { LabeledContent("topic.durationSeconds") { TopicXcxDurationText(seconds: seconds) } }
             }.id(TopicXcxTab.details.anchor)
+            if value.startDate != nil || value.endDate != nil || value.merchantCount != nil || value.totalTimeSeconds != nil {
+                Section {
+                    if let start = value.startDate { LabeledContent("topic.start", value: start) }
+                    if let end = value.endDate { LabeledContent("topic.end", value: end) }
+                    if let count = value.merchantCount { LabeledContent("topic.merchants", value: String(count)) }
+                    if let seconds = value.totalTimeSeconds { LabeledContent("topic.durationSeconds") { TopicXcxDurationText(seconds: seconds) } }
+                }
+            }
             if let records = reader as? any TopicThemeRecordsReading {
                 // Source 我的游玩记录 row; always shown, the sheet handles empty/sign-in states.
                 Section {
@@ -118,28 +128,25 @@ struct TopicDetailView: View {
                 if value.merchantClosed { Label("topic.closedNotice", systemImage: "storefront") }
                 if value.selfPlay == 1 {
                     TopicPrice(value: value.selfPlayPrice, label: "topic.selfPlayPrice")
-                    Button("contextSelfPlay.title") { showingSelfPlay = true }
-                        .disabled(!value.canOfferPurchase).accessibilityIdentifier("contextSelfPlay.open")
+                    if value.canOfferPurchase {
+                        Button("contextSelfPlay.title") { showingSelfPlay = true }
+                            .accessibilityIdentifier("contextSelfPlay.open")
+                    }
                 }
-                Text("topic.readOnly").font(.footnote).foregroundStyle(.secondary)
             }
             if value.showStoryPaywall {
                 Section("topic.lockedStory") {
                     Label("topic.lockedNotice", systemImage: "lock")
                     LabeledContent("topic.lockedChapters", value: String(value.lockedChapterCount)).accessibilityIdentifier("topic.lockedChapters")
                     Text("topicXcx.paywall.detail").font(.footnote)
-                    if value.selfPlay == 1 {
-                        Button("topicXcx.paywall.unlock") { showingSelfPlay = true }.disabled(!value.canOfferPurchase).accessibilityIdentifier("topic.paywall.unlock")
+                    if value.selfPlay == 1 && value.canOfferPurchase {
+                        Button("topicXcx.paywall.unlock") { showingSelfPlay = true }.accessibilityIdentifier("topic.paywall.unlock")
                     }
-                    Text("topicXcx.paywall.recover").font(.caption).foregroundStyle(.secondary)
                 }
             }
             Section("topic.chapters") {
                 if value.chapters.isEmpty {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("topic.noChapters")
-                        Text("topicXcx.nodes.emptyDetail").font(.footnote).foregroundStyle(.secondary)
-                    }
+                    Text("topic.noChapters").foregroundStyle(.secondary)
                 }
                 // Index identity preserves source order even when backend IDs are absent/duplicated.
                 ForEach(Array(value.chapters.enumerated()), id: \.offset) { _, chapter in
@@ -271,7 +278,6 @@ struct TopicChapterView: View {
                             }
                         }
                     }
-                    Section { Text("topic.readOnly").font(.footnote) }
                 }
             }
         }.appNavigationTitle("topic.chapter").navigationBarTitleDisplayMode(.inline)

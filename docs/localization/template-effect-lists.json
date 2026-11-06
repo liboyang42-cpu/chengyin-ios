@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use a clue., relation. or counter. variable. sys.luck supports INC by 1–3 under the existing contract."
+            "value": "Use a clue., relation. or counter. variable. sys.luck can only be increased by 1–3."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "变量使用 clue.、relation. 或 counter. 前缀。既有合同中的 sys.luck 仅支持增加 1–3。"
+            "value": "变量使用 clue.、relation. 或 counter. 前缀。sys.luck 仅支持增加 1–3。"
           }
         }
       }
@@ -102,13 +102,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No effects configured for this choice or outcome."
+            "value": "No effects set for this choice or outcome."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此选项或结果尚未配置效果。"
+            "value": "此选项或结果尚未设置效果。"
           }
         }
       }

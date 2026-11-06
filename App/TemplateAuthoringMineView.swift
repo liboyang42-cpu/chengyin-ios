@@ -28,8 +28,6 @@ import SwiftUI
     var body: some View {
         List {
             Section {
-                Text("templateAuthor.mineScope").foregroundStyle(.secondary)
-                Text("templateAuthor.shelf.pageScope").font(.caption)
                 readStateCopy
                 TextField("templateAuthor.shelf.keyword", text: $keyword)
                     .submitLabel(.search)
@@ -43,7 +41,7 @@ import SwiftUI
                         Task { await refreshClearedKeyword(stamp: stamp, refreshUnfiltered: true) }
                     } label: {
                         Label {
-                            Text(verbatim: creatorLocale.language.languageCode?.identifier == "zh" ? "清除搜索" : "Clear search")
+                            Text("templateAuthor.shelf.clearSearch")
                         } icon: { Image(systemName: "xmark.circle") }
                     }.disabled(busy).accessibilityIdentifier("templateAuthor.shelf.clearSearch")
                 }
@@ -52,10 +50,19 @@ import SwiftUI
             }
             ForEach(appliedKeyword == keyword ? rows : []) { row in
                 Section {
-                    Text(verbatim: row.title).font(.headline)
+                    // Mini-program 我的节点玩法 card: title (opens the detail), status and facts, then actions.
                     if let id = MemberPlayTemplateID(rawValue: row.id), memberDetail != nil {
-                        Button { selectedMember = id } label: { Label("memberTemplate.title", systemImage: "doc.text.magnifyingglass") }
-                            .accessibilityIdentifier("memberTemplate.mine.\(row.id)")
+                        Button { selectedMember = id } label: {
+                            HStack {
+                                Text(verbatim: row.title).font(.headline).foregroundStyle(Color.primary)
+                                Spacer()
+                                Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+                            }
+                        }
+                        .accessibilityLabel(Text(verbatim: row.title))
+                        .accessibilityIdentifier("memberTemplate.mine.\(row.id)")
+                    } else {
+                        Text(verbatim: row.title).font(.headline)
                     }
                     if let id = MemberPlayTemplateID(rawValue: row.id), ownerConfiguration != nil {
                         Button("templateOwnerConfig.open") { selectedConfiguration = id }
@@ -65,8 +72,7 @@ import SwiftUI
                         Button(workshopCreatorLocalized("workshopCreator.open", locale: creatorLocale)) { selectedCreatorConsent = WorkshopCreatorConsentSelection(source: id) }
                             .accessibilityIdentifier("workshopCreator.open.\(row.id)")
                     }
-                    LabeledContent("templateAuthor.shelf.identity", value: String(row.id))
-                    if let text = row.description { Text(verbatim: text) }
+                    if let text = row.description, !text.isEmpty { Text(verbatim: text).foregroundStyle(.secondary) }
                     let state = rowStates[row.id] ?? .unknown
                     LabeledContent("templateShelfState.personal.title") { Text(LocalizedStringKey(state.personal.rawValue)) }
                         .accessibilityIdentifier("templateShelfState.personal.\(row.id)")
@@ -77,14 +83,15 @@ import SwiftUI
                             .accessibilityIdentifier("templateShelfState.feedback.\(row.id)")
                     }
                     TemplateOwnShelfCardSection(facts: cardFacts[row.id], state: state, rowID: row.id)
-                    Text(LocalizedStringKey(row.publishStatus == 1 ? "templateAuthor.shelf.inLibrary" : "templateAuthor.shelf.outLibrary"))
-                        .accessibilityIdentifier("templateAuthor.shelf.libraryState.\(row.id)")
-                    Text("templateAuthor.existingEditUnavailable").font(.caption).foregroundStyle(.secondary)
+                    LabeledContent("templateAuthor.shelf.libraryTitle") {
+                        Text(LocalizedStringKey(row.publishStatus == 1 ? "templateAuthor.shelf.inLibrary" : "templateAuthor.shelf.outLibrary"))
+                            .accessibilityIdentifier("templateAuthor.shelf.libraryState.\(row.id)")
+                    }
                     Button(LocalizedStringKey(row.publishStatus == 1 ? "templateAuthor.shelf.removeLibrary" : "templateAuthor.shelf.addLibrary")) {
                         prepare(row.id, .libraryStatus)
                     }.disabled(!coordinator.canSubmit || locked || busy || !coordinator.rows.contains(row)).accessibilityIdentifier("templateAuthor.shelf.library.\(row.id)")
                         .disabled(readSnapshot)
-                    Button("templateAuthor.shelf.delete", role: .destructive) { prepare(row.id, .remove) }
+                    Button(role: .destructive) { prepare(row.id, .remove) } label: { Text("templateAuthor.shelf.delete").foregroundStyle(.red) }
                         .disabled(!coordinator.canSubmit || locked || busy || !coordinator.rows.contains(row)).accessibilityIdentifier("templateAuthor.shelf.delete.\(row.id)")
                         .disabled(readSnapshot)
                 }
@@ -95,6 +102,7 @@ import SwiftUI
             }
             if appliedKeyword == keyword, let messageKey { Text(LocalizedStringKey(messageKey)).accessibilityIdentifier("templateAuthor.shelf.status") }
         }.navigationTitle("templateAuthor.mine")
+            .refreshable { await refresh() }
             // Stable typed destination survives invalidation of its source list on push.
             .navigationDestination(item: $selectedMember) { id in
                 if let memberDetail { memberDetail(id) }
@@ -125,33 +133,40 @@ import SwiftUI
             .sheet(item: $review, onDismiss: { coordinator.cancelShelfReview() }) { value in
                 NavigationStack {
                     Form {
-                        Section("templateAuthor.reviewTitle") {
-                            Text(verbatim: value.title)
-                            LabeledContent("templateAuthor.shelf.identity", value: String(value.templateID.rawValue))
-                                .accessibilityElement(children: .ignore)
-                                .accessibilityLabel(Text("templateAuthor.shelf.identity"))
-                                .accessibilityValue(Text(verbatim: String(value.templateID.rawValue)))
-                                .accessibilityIdentifier("templateAuthor.shelf.identity")
-                            Text(LocalizedStringKey(value.action == .remove ? "templateAuthor.shelf.deleteReview" : value.desiredPublishStatus == 1 ? "templateAuthor.shelf.addReview" : "templateAuthor.shelf.removeReview"))
-                            if value.action == .remove { TemplateOwnShelfDeleteReviewCopy(title: value.title) }
-                            Text("templateAuthor.shelf.readback")
+                        Section {
+                            if value.action == .remove {
+                                Text("templateOwnShelf.delete.title \(value.title)")
+                                    .font(.headline)
+                                    .accessibilityIdentifier("templateOwnShelf.delete.title")
+                                Text("templateOwnShelf.delete.irreversible")
+                            } else if value.desiredPublishStatus == 1 {
+                                Text("templateAuthor.shelf.addQuestion \(value.title)")
+                                    .font(.headline)
+                                    .accessibilityIdentifier("templateAuthor.shelf.question")
+                            } else {
+                                Text("templateAuthor.shelf.removeQuestion \(value.title)")
+                                    .font(.headline)
+                                    .accessibilityIdentifier("templateAuthor.shelf.question")
+                            }
                         }
                         if coordinator.canSimulate { Text("templateAuthor.fixtureNotice") }
                         if coordinator.canSubmit {
-                            Button(LocalizedStringKey(coordinator.canSimulate ? "templateAuthor.confirmSimulation" : "templateAuthor.confirmRequest"), role: value.action == .remove ? .destructive : nil) {
-                                busy = true; locked = true
-                                Task {
-                                    let stamp = viewRequest
-                                    await coordinator.confirmShelf(value)
-                                    guard stamp == viewRequest, !Task.isCancelled else { return }
-                                    review = nil
-                                    await coordinator.shelfReader.refresh(keyword: keyword)
-                                    guard stamp == viewRequest, !Task.isCancelled else { return }
-                                    sync(); busy = false
-                                }
-                            }.disabled(busy).accessibilityIdentifier("templateAuthor.shelf.confirm")
-                        } else { Text("templateAuthor.unavailable") }
-                    }.navigationTitle("templateAuthor.reviewTitle")
+                            Section {
+                                Button(LocalizedStringKey(coordinator.canSimulate ? "templateAuthor.confirmSimulation" : value.action == .remove ? "templateOwnShelf.delete.confirm" : value.desiredPublishStatus == 1 ? "templateAuthor.shelf.addConfirm" : "templateAuthor.shelf.removeConfirm"), role: value.action == .remove ? .destructive : nil) {
+                                    busy = true; locked = true
+                                    Task {
+                                        let stamp = viewRequest
+                                        await coordinator.confirmShelf(value)
+                                        guard stamp == viewRequest, !Task.isCancelled else { return }
+                                        review = nil
+                                        await coordinator.shelfReader.refresh(keyword: keyword)
+                                        guard stamp == viewRequest, !Task.isCancelled else { return }
+                                        sync(); busy = false
+                                    }
+                                }.disabled(busy).accessibilityIdentifier("templateAuthor.shelf.confirm")
+                            }
+                        } else { Text("templateAuthor.unavailable").foregroundStyle(.secondary) }
+                    }.navigationBarTitleDisplayMode(.inline)
                         .toolbar {
                             ToolbarItem(placement: .cancellationAction) {
                                 Button("templateAuthor.cancel") { coordinator.cancelShelfReview(); review = nil }
@@ -167,6 +182,8 @@ import SwiftUI
                             #endif
                         }
                 }
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
             }
     }
     private static func replacesReadKey(_ key: String) -> Bool {
@@ -178,7 +195,7 @@ import SwiftUI
         } else if readMessageKey == "templateOwnShelf.read.denied" || !coordinator.canRead {
             TemplateOwnShelfReadCopy(title: "templateOwnShelf.read.denied", subtitle: "templateOwnShelf.read.deniedHint", action: "templateOwnShelf.read.retry", identifier: "templateOwnShelf.read.retry") { Task { await refresh() } }
         } else if appliedKeyword == keyword, busy, rows.isEmpty, readMessageKey == nil {
-            Text("templateOwnShelf.read.loading").accessibilityIdentifier("templateOwnShelf.read.loading")
+            ProgressView { Text("templateOwnShelf.read.loading") }.frame(maxWidth: .infinity).accessibilityIdentifier("templateOwnShelf.read.loading")
         } else if appliedKeyword == keyword, readMessageKey == "templateAuthor.listUnavailable", rows.isEmpty {
             TemplateOwnShelfReadCopy(title: "templateOwnShelf.read.failed", action: "templateOwnShelf.read.retry", identifier: "templateOwnShelf.read.retry") { Task { await refresh() } }
         } else if appliedKeyword == keyword, readMessageKey == "templateAuthor.listUnavailable" {

@@ -46,8 +46,8 @@
   },
   {
     "key": "cooperation.unconfigured",
-    "en": "Cooperation service is not configured",
-    "zh-Hans": "合作服务尚未配置"
+    "en": "Cooperation isn't available right now",
+    "zh-Hans": "合作暂不可用"
   },
   {
     "key": "cooperation.failure",
@@ -76,18 +76,18 @@
   },
   {
     "key": "cooperation.offline",
-    "en": "Offline synthetic example",
-    "zh-Hans": "离线合成示例"
+    "en": "Example content",
+    "zh-Hans": "示例内容"
   },
   {
     "key": "cooperation.partial",
-    "en": "Some cooperation sources could not be loaded",
-    "zh-Hans": "部分合作来源未能加载"
+    "en": "Some cooperation info couldn't be loaded",
+    "zh-Hans": "部分合作信息未能加载"
   },
   {
     "key": "cooperation.readOnly",
-    "en": "Read-only cooperation. Sending or handling invitations, applications, candidate decisions, contact creation, supply, reviews and financial actions are not available here yet.",
-    "zh-Hans": "只读合作信息。此处暂不提供发出或处理邀约、申请、候选确认、建立联系、供给申报、评价及资金操作。"
+    "en": "Cooperation details. Sending or handling invitations, applications, candidates, contacts, supply, reviews and payments isn't available here yet.",
+    "zh-Hans": "合作信息。此处暂不支持发出或处理邀约、申请、候选确认、建立联系、供给申报、评价及资金操作。"
   },
   {
     "key": "cooperation.invitations",
@@ -121,8 +121,8 @@
   },
   {
     "key": "cooperation.registrations.more",
-    "en": "The server reports more registrations. Further pages are not available here yet.",
-    "zh-Hans": "服务端提示还有更多报名，此处暂不支持后续分页。"
+    "en": "There are more registrations that can't be shown here yet.",
+    "zh-Hans": "还有更多报名，此处暂无法显示。"
   },
   {
     "key": "cooperation.unnamed",
@@ -221,18 +221,18 @@
   },
   {
     "key": "cooperation.inviteState",
-    "en": "Related invitation status from source",
-    "zh-Hans": "相关邀约的原始状态"
+    "en": "Invitation status",
+    "zh-Hans": "邀约状态"
   },
   {
     "key": "cooperation.sourceStatus",
-    "en": "Status code from source",
-    "zh-Hans": "服务端状态码"
+    "en": "Status code",
+    "zh-Hans": "状态码"
   },
   {
     "key": "cooperation.terms",
-    "en": "Terms snapshot",
-    "zh-Hans": "条款快照"
+    "en": "Terms",
+    "zh-Hans": "合作条款"
   },
   {
     "key": "cooperation.termsFrozen",
@@ -321,8 +321,8 @@
   },
   {
     "key": "cooperation.financeUnavailable",
-    "en": "Deposit payment and refund actions are not available in this native version.",
-    "zh-Hans": "此原生版本暂不支持保证金支付与退款操作。"
+    "en": "Deposit payment and refunds aren't available in the app right now.",
+    "zh-Hans": "App 暂不支持保证金支付与退款。"
   },
   {
     "key": "cooperation.legacy",
@@ -341,8 +341,8 @@
   },
   {
     "key": "cooperation.pool.clubHint",
-    "en": "The server reports that this account has no club. Club creation is not available on this screen.",
-    "zh-Hans": "服务端确认当前账号暂无俱乐部。此页面暂不提供创建俱乐部。"
+    "en": "This account doesn't have a club yet. You can't create a club on this screen.",
+    "zh-Hans": "当前账号暂无俱乐部，此页面暂不支持创建俱乐部。"
   },
   {
     "key": "cooperation.pool.empty",
@@ -486,8 +486,8 @@
   },
   {
     "key": "cooperation.currencyUnknown",
-    "en": "Currency has not been confirmed by the service.",
-    "zh-Hans": "服务端尚未确认币种。"
+    "en": "Currency not confirmed yet.",
+    "zh-Hans": "币种尚未确认。"
   },
   {
     "key": "cooperation.parties",

@@ -76,17 +76,37 @@ extension EnvironmentValues {
         }
     }
 }
+/// Retain the factory reader for one exact session issuance. The reader's own
+/// live authorization fence still rejects revocation, expiry and role changes.
+/// No published state is changed while SwiftUI renders this host.
+@MainActor final class MerchantLedgerInboxReaderOwner: ObservableObject {
+    private weak var session: AppSession?
+    private var issuance: String?
+    private var retained: MessagingSessionReader?
+
+    func reader(for session: AppSession) -> MessagingSessionReader {
+        let current = session.messagingViewIdentity
+        if self.session === session, issuance == current, let retained { return retained }
+        self.session = session
+        issuance = current
+        let reader = session.messagingReader
+        retained = reader
+        return reader
+    }
+}
+
 @MainActor struct SessionMerchantLedgerInboxView: View {
     @ObservedObject var session: AppSession
     let source: MerchantLedgerInboxSource
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var gate = MerchantLedgerInboxGate()
+    @StateObject private var readerOwner = MerchantLedgerInboxReaderOwner()
     @State private var isVisible = false
     private var ownsSource: Bool { source.reader === session.merchantBusinessReader && source.current }
     var body: some View {
         ZStack {
-            if ownsSource, gate.permits(source, messaging: session.messagingReader) {
-                MessagingHomeView(reader: session.messagingReader, mediaReader: session.socialMessageMediaReader,
+            if ownsSource, gate.permits(source, messaging: readerOwner.reader(for: session)) {
+                MessagingHomeView(reader: readerOwner.reader(for: session), mediaReader: session.socialMessageMediaReader,
                     senderForConversation: { session.messageSender(for: $0) }, expanded: session.imExpandedNavigation)
                     .id(session.messagingViewIdentity)
             } else if gate.busy { ProgressView("merchant.loading") }
@@ -107,6 +127,6 @@ extension EnvironmentValues {
         guard isVisible, scenePhase == .active, ownsSource else { gate.deactivate(); return }
         gate.activate()
         guard let permit = gate.openingPermit() else { return }
-        Task { await gate.open(source, currentMessaging: { session.messagingReader }, permit: permit) }
+        Task { await gate.open(source, currentMessaging: { readerOwner.reader(for: session) }, permit: permit) }
     }
 }

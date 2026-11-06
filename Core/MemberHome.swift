@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
@@ -10,6 +11,8 @@ public struct MemberIdentitySnapshot: Decodable, Equatable {
     public let id: Int?
     public let nickname: String
     public let avatar: String
+    /// Exact decoded self-info source; never trim or rewrite a signed URL for media reads.
+    public let avatarSource: String?
     public let role: String
     public let levelID: Int?
     public let city: String
@@ -36,6 +39,7 @@ public struct MemberIdentitySnapshot: Decodable, Equatable {
         id = Self.integer(c, .id)
         nickname = Self.text(c, .nickname) ?? Self.text(c, .nickName) ?? ""
         avatar = Self.text(c, .avatar) ?? ""
+        avatarSource = try? c.decodeIfPresent(String.self, forKey: .avatar)
         role = Self.text(c, .role) ?? ""
         levelID = Self.integer(c, .levelId)
         city = Self.text(c, .city) ?? ""
@@ -242,19 +246,24 @@ public struct MemberHomeSession: Equatable {
     public let accountID: Int
     public let epoch: UInt64
     public let roleInfoApproval: UUID?
+    public let role: String?
+    public let viewerRevision: UInt64
     let token: String
-    public init(accountID: Int, epoch: UInt64, token: String, roleInfoApproval: UUID?) throws {
+    public init(accountID: Int, epoch: UInt64, token: String, roleInfoApproval: UUID?,
+                role: String? = nil, viewerRevision: UInt64 = 0) throws {
         guard accountID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         self.accountID = accountID; self.epoch = epoch; self.token = token; self.roleInfoApproval = roleInfoApproval
+        self.role = role; self.viewerRevision = viewerRevision
     }
     public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.accountID == rhs.accountID && lhs.epoch == rhs.epoch && lhs.roleInfoApproval == rhs.roleInfoApproval &&
+            lhs.viewerRevision == rhs.viewerRevision && lhs.role.map({ Data($0.utf8) }) == rhs.role.map({ Data($0.utf8) }) &&
             lhs.token.utf8.elementsEqual(rhs.token.utf8)
     }
 }
 
 @MainActor public protocol MemberHomeReading: AnyObject {
-    /// Changes whenever the account, epoch or role-info approval changes.
+    /// Changes whenever the account, epoch, host role/viewer lifetime or role-info approval changes.
     var scope: UUID { get }
     var isSignedIn: Bool { get }
     var isConfigured: Bool { get }
@@ -263,11 +272,11 @@ public struct MemberHomeSession: Equatable {
     func roleInfo() async throws -> MemberRoleInfo
 }
 
-@MainActor public final class MemberHomeSessionReader: MemberHomeReading {
+@MainActor @Observable public final class MemberHomeSessionReader: MemberHomeReading {
     private let service: MemberHomeService?
     private let currentSession: () -> MemberHomeSession?
     private let onUnauthorized: (MemberHomeSession) -> Void
-    private var snapshot: MemberHomeSession?
+    @ObservationIgnored private var snapshot: MemberHomeSession?
     private var stamp = UUID()
     public var scope: UUID {
         let current = currentSession()

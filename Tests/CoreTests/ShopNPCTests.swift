@@ -59,7 +59,7 @@ import XCTest
     func testEmptySafeTextNeverFallsBackToUnverifiedText() { XCTAssertThrowsError(try ShopNPCReply.decode(Data(#"{"code":200,"data":{"requestId":"00000000-0000-0000-0000-000000000001","outcomeStatus":"SUCCEEDED","safetyDecision":"PASS","retryable":false,"safeText":"","text":"plain"}}"#.utf8), voice: false)) }
     func testTextIgnoresASR() throws { XCTAssertNil(try ShopNPCReply.decode(Data(#"{"code":200,"asr":"x","data":{"requestId":"00000000-0000-0000-0000-000000000001","outcomeStatus":"SUCCEEDED","safetyDecision":"PASS","retryable":false,"safeText":"safe"}}"#.utf8), voice: false).asr) }
     func testBusinessErrorPreservesMessage() {
-        XCTAssertThrowsError(try ShopNPCReply.decode(Data(#"{"code":403,"msg":"店铺分身对话还没开放"}"#.utf8), voice: false)) { XCTAssertEqual($0 as? ShopNPCFailure, .server(code: 403, message: "店铺分身对话还没开放")) }
+        XCTAssertThrowsError(try ShopNPCReply.decode(Data(#"{"code":403,"msg":"店铺分身对话暂不可用"}"#.utf8), voice: false)) { XCTAssertEqual($0 as? ShopNPCFailure, .server(code: 403, message: "店铺分身对话暂不可用")) }
     }
     func testMissingCodeIsNotSuccess() { XCTAssertThrowsError(try ShopNPCReply.decode(Data(#"{"data":{"text":"answer"}}"#.utf8), voice: false)) }
     func testClipBounds() { XCTAssertThrowsError(try ShopNPCVoiceClip(bytes: Data([1]), duration: 0.49)); XCTAssertThrowsError(try ShopNPCVoiceClip(bytes: Data([1]), duration: 61)); XCTAssertThrowsError(try ShopNPCVoiceClip(bytes: Data(count: 2 * 1024 * 1024 + 1), duration: 1)) }

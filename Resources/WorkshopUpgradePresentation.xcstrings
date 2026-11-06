@@ -1,0 +1,454 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "terms.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use of your purchased version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已购版本永久可用说明"
+          }
+        }
+      }
+    },
+    "terms.summary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "License %@ · Module %@ · Purchased version %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "授权编号 %@ · 模组 %@ · 已购版本 %@"
+          }
+        }
+      }
+    },
+    "terms.survival": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can keep using the purchased version of this theme or game package after your membership or subscription ends."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已购主题或玩法包对所购版本享永久使用权，不随会员或订阅到期而失效。"
+          }
+        }
+      }
+    },
+    "terms.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current license status is unknown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前授权状态未知。"
+          }
+        }
+      }
+    },
+    "terms.redistribution.allowed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redistribution is allowed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许分发"
+          }
+        }
+      }
+    },
+    "terms.redistribution.denied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perpetual use is limited to your own account within the license terms. Resale, sublicensing and redistribution are prohibited."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "永久使用权仅限本人账号按授权范围使用，严禁转售、转授或二次分发。"
+          }
+        }
+      }
+    },
+    "manifest.h5.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "H5 packages are not supported yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "H5 模组包暂未开放（仅设计阶段）"
+          }
+        }
+      }
+    },
+    "manifest.h5.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only standard qmod (questify.mod) packages are supported. questify.h5 remains in design; the app has no WebView container and will not load these packages."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前阶段仅支持标准 qmod (questify.mod) 模组包；questify.h5 仍处于设计阶段，客户端不提供 WebView 容器且拒绝加载。"
+          }
+        }
+      }
+    },
+    "manifest.authority.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The manifest includes a protected field"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清单包含服务端权威字段"
+          }
+        }
+      }
+    },
+    "manifest.authority.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "manifest.json must not declare this server-controlled field: %@."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "manifest.json 不得声明服务端权威字段：%@。"
+          }
+        }
+      }
+    },
+    "manifest.format.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unsupported package format"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不支持的模组包格式"
+          }
+        }
+      }
+    },
+    "manifest.format.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only standard questify.mod packages with formatVersion 1.0 are supported."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅支持 formatVersion 为 1.0 的 questify.mod 标准模组包。"
+          }
+        }
+      }
+    },
+    "manifest.file.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A file is too large"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "单文件体积超出上限"
+          }
+        }
+      }
+    },
+    "manifest.file.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File %@ (%@ B) exceeds the limit (%@ B)."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件 %@ 大小 (%@ B) 超出上限 (%@ B)。"
+          }
+        }
+      }
+    },
+    "manifest.count.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too many files"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件数量超出上限"
+          }
+        }
+      }
+    },
+    "manifest.count.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The package contains %@ files, exceeding the limit of %@."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模组包文件数 (%@) 超出上限 (%@)。"
+          }
+        }
+      }
+    },
+    "manifest.expanded.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The expanded package is too large"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解压总大小超出上限"
+          }
+        }
+      }
+    },
+    "manifest.expanded.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The expanded package size (%@ B) exceeds the limit (%@ B)."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模组包总大小 (%@ B) 超出上限 (%@ B)。"
+          }
+        }
+      }
+    },
+    "manifest.invalid.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The package manifest could not be validated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模组包清单校验未通过"
+          }
+        }
+      }
+    },
+    "manifest.invalid.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the package name, semantic version, entry file, dependency hashes and complete file list in manifest.json."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请检查 manifest.json 的包名、语义化版本号、入口文件、依赖哈希及文件列表完整性。"
+          }
+        }
+      }
+    },
+    "manifest.proposal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Package limits (%@) are proposals for load testing, not the final limits approved by the server."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "包体限制配置 (%@) 为预压测建议值，非服务端最终审批阈值。"
+          }
+        }
+      }
+    },
+    "upgrade.versions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed %@ (%@) → Upgrade %@ (%@)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前已安装 %@ (%@) → 候选升级 %@ (%@)"
+          }
+        }
+      }
+    },
+    "upgrade.pinned": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published versions and active runs stay on their original version (%@). Upgrading only creates a new local draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已发布版本与正在运行的场次将固定保持原版本 (%@)，升级仅生成新的本地草稿。"
+          }
+        }
+      }
+    },
+    "upgrade.review": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The upgrade draft changes capabilities or content and must pass review again before publication."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "升级草稿包含能力或内容变更，提交发布前必须重新通过审核。"
+          }
+        }
+      }
+    },
+    "upgrade.covered": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your license covers this version. Confirm to create an upgrade draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前授权涵盖此升级版本，可在确认后生成升级草稿。"
+          }
+        }
+      }
+    },
+    "upgrade.purchase": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your purchased version remains available permanently. This new version requires a separate license purchase before upgrading."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已购版本永久可用，但此候选新版本需另行购买授权后方可升级。"
+          }
+        }
+      }
+    },
+    "upgrade.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "License coverage has not been confirmed by the server. This upgrade cannot proceed yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端授权覆盖范围未确认，暂不可执行升级。"
+          }
+        }
+      }
+    },
+    "upgrade.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I have reviewed the capability changes and understand that existing runs keep their original version and the new draft must be reviewed again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我已核对能力差异，知晓现有场次保持原版本且新草稿需重新送审"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

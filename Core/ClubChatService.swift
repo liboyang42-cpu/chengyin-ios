@@ -69,6 +69,15 @@ public enum ClubChatPhase: Equatable { case idle, entering, ready(MessagingConve
         guard canEnter, !Task.isCancelled else { return }
         generation &+= 1; let request = generation; phase = .entering; onChange?()
         var dispatched = false
+        defer {
+            // A same-generation cancellation must not strand the screen in entering.
+            // Once get-or-create was dispatched it may have created/repaired the group.
+            // Navigation/account replacement owns its own state and must not be overwritten.
+            if Task.isCancelled, isCurrent, generation == request, phase == .entering {
+                phase = dispatched ? .unknown : .idle
+                onChange?()
+            }
+        }
         do {
             let club = try await clubs.clubDetail(id: clubID)
             guard isCurrent, generation == request, !Task.isCancelled else { return }

@@ -79,7 +79,6 @@ enum WalletFundsStagePhase: Equatable {
                 Text("wallet.earnings.stages.unknown", tableName: "WalletEarningsOverview")
                     .accessibilityIdentifier("wallet.earnings.stages.unknown")
                     .accessibilityLabel(Text("wallet.earnings.stages.unknown", tableName: "WalletEarningsOverview"))
-                separate
             case .empty, .known:
                 if let value = funds.value, WalletFundsStageClassifier.showsAmounts(phase) {
                     amounts(value, phase: phase)
@@ -88,6 +87,7 @@ enum WalletFundsStagePhase: Equatable {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .fixedSize(horizontal: false, vertical: true)
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("wallet.earnings.stages")
     }
     @ViewBuilder private func amounts(_ value: WalletFundsStages, phase: WalletFundsStagePhase) -> some View {
@@ -115,13 +115,6 @@ enum WalletFundsStagePhase: Equatable {
             .accessibilityLabel(Text("wallet.available"))
             .accessibilityValue(Text(verbatim: format.amount(value.withdrawable, currency: value.currency)))
             .privacySensitive()
-        Text("wallet.notPayout")
-        separate
-    }
-    private var separate: some View {
-        Text("wallet.earnings.stages.separate", tableName: "WalletEarningsOverview")
-            .font(.footnote).foregroundStyle(.secondary)
-            .accessibilityIdentifier("wallet.earnings.stages.separate")
     }
 }
 
@@ -144,28 +137,12 @@ struct WalletEarningsTabHold: Equatable {
 @MainActor struct WalletEarningsTabBar: View {
     let tab: WalletEarningsTabHold.Tab
     let select: (WalletEarningsTabHold.Tab) -> Void
+    /// Keep the existing total vertical slot while giving each native segment 44pt bounds.
     var body: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(spacing: 8) { buttons }
-            VStack(alignment: .leading, spacing: 8) { buttons }
-        }
-        .padding(.horizontal).padding(.vertical, 8)
-        .accessibilityIdentifier("wallet.earnings.tabs")
-    }
-    private var buttons: some View {
-        Group {
-            button(.income, Text("wallet.earnings.tab.income", tableName: "WalletEarningsOverview"))
-                .accessibilityIdentifier("wallet.earnings.tab.income")
-            button(.organizer, Text("wallet.earnings.tab.organizer", tableName: "WalletEarningsOverview"))
-                .accessibilityIdentifier("wallet.earnings.tab.organizer")
-        }
-    }
-    private func button(_ which: WalletEarningsTabHold.Tab, _ label: Text) -> some View {
-        Button { select(which) } label: {
-            label.frame(maxWidth: .infinity, minHeight: 44)
-        }
-        .buttonStyle(.bordered)
-        .accessibilityAddTraits(tab == which ? .isSelected : AccessibilityTraits())
+        WalletEarningsAccessibleTabs(tab: tab, select: select)
+            .frame(height: 44)
+            .padding(.horizontal, Theme.Space.pageX)
+            .padding(.vertical, max(0, Theme.Space.s2 - 6))
     }
 }
 

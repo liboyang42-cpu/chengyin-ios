@@ -80,7 +80,8 @@ public struct ProfileService {
         catch {
             try Task.checkCancellation()
             return ProfileBadgeWall(identities: identities.identity, medals: nil,
-                                    medalFailureMessage: (error as? ProfileReadFailure)?.message)
+                                    medalFailureMessage: (error as? ProfileReadFailure)?.message,
+                                    medalReadRestriction: ProfileMedalReadRestriction.classify(error))
         }
     }
 

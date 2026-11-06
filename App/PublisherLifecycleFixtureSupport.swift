@@ -1,3 +1,4 @@
+#if DEBUG
 import SwiftUI
 #if canImport(FoundationNetworking)
 import FoundationNetworking
@@ -63,3 +64,4 @@ private actor PublisherLifecycleFixtureHTTP: HTTPTransport {
         }
     }
 }
+#endif

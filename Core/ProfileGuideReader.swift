@@ -2,6 +2,8 @@ import Foundation
 import Observation
 
 @MainActor @Observable public final class ProfileGuideListReader: SocialAccountReading {
+    // Optional instance-local observer for tests; never logs content or identifiers.
+    @ObservationIgnored public var diagnosticEvent: ((String) -> Void)?
     public let context: RuntimeDependencyContext
     public let viewerRevision: UInt64
     private let service: SocialAccountService?
@@ -42,38 +44,45 @@ import Observation
         return value
     }
     public func appear(foreground: Bool) {
+        diagnosticEvent?(foreground ? "guide.appear.active" : "guide.appear.inactive")
         guard !presented || self.foreground != foreground else { return }
         if hasAppeared { revision &+= 1 }
         presented = true; self.foreground = foreground; hasAppeared = true; readGeneration = UUID()
     }
-    public func disappear() { presented = false; readGeneration = UUID() }
+    public func disappear() { diagnosticEvent?("guide.disappear"); presented = false; readGeneration = UUID() }
     public func setForeground(_ value: Bool) {
+        diagnosticEvent?(value ? "guide.foreground.true" : "guide.foreground.false")
         guard foreground != value else { return }
         foreground = value; readGeneration = UUID()
         if presented && value { revision &+= 1 }
     }
     public func refresh() {
-        guard isVisible, isConfigured else { return }
+        guard isVisible, isConfigured else { diagnosticEvent?("guide.refresh.rejected"); return }
+        diagnosticEvent?("guide.refresh.accepted")
         revision &+= 1; receipt = UUID(); readGeneration = UUID(); accepted.removeAll()
     }
     public func retire() { retired = true; presented = false; receipt = UUID(); readGeneration = UUID(); accepted.removeAll() }
     public func informationList() async throws -> [SocialInformation] {
-        try Task.checkCancellation()
-        guard isCurrent, isVisible else { throw CancellationError() }
-        guard let selected = activeAccess(), let service else { throw APIError.notConfigured }
+        diagnosticEvent?("guide.read.enter")
+        do { try Task.checkCancellation() } catch { diagnosticEvent?("guide.read.entryCancelled"); throw error }
+        guard isCurrent, isVisible else { diagnosticEvent?("guide.read.notCurrentOrVisible"); throw CancellationError() }
+        guard let selected = activeAccess(), let service else { diagnosticEvent?("guide.read.notConfigured"); throw APIError.notConfigured }
         receipt = UUID(); accepted.removeAll()
         let captured = receipt, generation = readGeneration
         func valid() -> Bool {
             !Task.isCancelled && isVisible && isCurrent && activeAccess() === selected && receipt == captured && readGeneration == generation
         }
         do {
+            diagnosticEvent?("guide.read.dispatch")
             let rows = try await service.informationList(token: context.session.token)
-            guard valid() else { throw CancellationError() }
+            guard valid() else { diagnosticEvent?("guide.read.invalidated"); throw CancellationError() }
             guard Set(rows.map(\.id)).count == rows.count else { throw APIError.malformedResponse }
+            diagnosticEvent?("guide.read.accepted")
             accepted = Dictionary(uniqueKeysWithValues: rows.map { ($0.id, $0) })
             return rows
         } catch {
-            guard valid() else { throw CancellationError() }
+            diagnosticEvent?(error is CancellationError ? "guide.read.cancelled" : "guide.read.error")
+            guard valid() else { diagnosticEvent?("guide.read.invalidated"); throw CancellationError() }
             if error as? APIError == .unauthorized { onUnauthorized(context) }
             throw error
         }

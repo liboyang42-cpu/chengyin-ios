@@ -10,7 +10,8 @@ import UIKit
     @Environment(\.dismiss) private var dismiss
     @Environment(\.displayScale) private var displayScale
     @Environment(\.openURL) private var openURL
-    @StateObject private var photoSave = RoamSharePhotoSaveModel()
+    @StateObject private var photoSave: RoamSharePhotoSaveModel
+    @StateObject private var presentation: RoamSharePresentationLifetime
     @State private var includeRoute = false
     @State private var channelPolicy = RoamShareChannelPolicy()
     @State private var image: UIImage?
@@ -20,7 +21,11 @@ import UIKit
     @State private var renderedOwner: RoamHistoryLiveOwner?
     @State private var albumGuide = RoamShareAlbumGuideState()
     @State private var guideSourceChanged = false
-    init(record: RoamHistoryRecord, reader: any RoamExperienceReading) {
+    @State private var systemShare: RoamHistorySystemShareRequest?
+    init(record: RoamHistoryRecord, reader: any RoamExperienceReading, photoSaveModel: RoamSharePhotoSaveModel? = nil) {
+        let model = photoSaveModel ?? RoamSharePhotoSaveModel()
+        _photoSave = StateObject(wrappedValue: model)
+        _presentation = StateObject(wrappedValue: .init(photoSave: model))
         self.record = record; self.reader = reader
         presentationOwner = RoamHistoryLiveOwner(reader: reader)
     }
@@ -47,9 +52,9 @@ import UIKit
                     photoSaveControls(image)
                     if !allowedAlbumDestinations.isEmpty { albumGuideControls(image) }
                     if channelPolicy.permits(.systemShare) {
-                        ShareLink(item: Image(uiImage: image), preview: SharePreview(Text("roam.share.title"), image: Image(uiImage: image))) {
+                        Button { beginSystemShare(image) } label: {
                             Label("roam.share.system", systemImage: "square.and.arrow.up")
-                        }.disabled(photoSave.inFlight || photoSave.state.phase == .sourceChanged)
+                        }.disabled(photoSave.inFlight || albumGuide.pending != nil || systemShare != nil || photoSave.state.phase == .sourceChanged)
                             .accessibilityIdentifier("roam.share.system")
                     }
                 } else {
@@ -63,31 +68,50 @@ import UIKit
                         renderedOwner = image == nil ? nil : presentationOwner
                     }.accessibilityIdentifier("roam.share.prepare")
                 }
-                Text("roam.share.saveHint").font(.caption).foregroundStyle(.secondary)
             }.padding()
         }.navigationTitle("roam.share.title")
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { dismiss() } } }
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { presentation.retire(); invalidateImage(); dismiss() } } }
+            .background(RoamShareNativeLifetime(presentation: presentation).frame(width: 0, height: 0))
+            .onAppear { presentation.appear() }
             .onChange(of: record) { _, _ in includeRoute = false; channelPolicy.reset(); invalidateImage() }
             .onChange(of: RoamHistoryLiveOwner(reader: reader)) { _, _ in includeRoute = false; channelPolicy.reset(); invalidateImage() }
             .onChange(of: photoSave.state.phase) { _, phase in receiveAlbumGuide(phase) }
             .sheet(item: Binding(get: { albumGuide.guide }, set: { if $0 == nil { albumGuide.dismissGuide() } })) { guide in
                 if permitsAlbumGuide(guide.destination) { RoamShareAlbumGuideView(guide: guide) }
             }
-            .onDisappear {
-                // A full-height guide may cover its presenter; retain its confirmed image.
-                // Record/owner changes above always invalidate both, including while covered.
-                if albumGuide.guide == nil { channelPolicy.reset(); invalidateImage() }
+            .sheet(item: $systemShare) { request in
+                // Recheck after the tap as well: a local record or owner may have
+                // changed before SwiftUI actually presents the system sheet.
+                if channelPolicy.permits(.systemShare), image === request.image,
+                   preparedSelection == request.selection, request.isCurrent(reader: reader) {
+                    RoamHistorySystemShareSheet(request: request, reader: reader)
+                } else {
+                    Text("roam.share.photoSaveSourceChanged").foregroundStyle(.secondary)
+                }
             }
+            // Cover/permission alerts are not departures. The native attachment owns true
+            // removal even when a guide or system sheet already covers this presenter.
     }
     private func invalidateImage() {
         photoSave.invalidate()
         albumGuide.invalidate()
+        systemShare = nil
         guideSourceChanged = false
         image = nil; renderedRecord = nil; renderingFailed = false
         renderedOwner = nil
     }
+    private func beginSystemShare(_ image: UIImage) {
+        guard channelPolicy.permits(.systemShare), !photoSave.inFlight,
+              albumGuide.pending == nil, albumGuide.guide == nil, systemShare == nil else { return }
+        guard self.image === image, let selection = preparedSelection,
+              let request = RoamHistorySystemShareRequest(image: image, selection: selection,
+                  owner: presentationOwner, reader: reader, presentation: presentation) else {
+            invalidateImage(); guideSourceChanged = true; return
+        }
+        systemShare = request
+    }
     private var sourceIsCurrent: Bool {
-        guard presentationOwner == RoamHistoryLiveOwner(reader: reader), presentationOwner.isAuthorized else { return false }
+        guard presentation.isActive, presentationOwner == RoamHistoryLiveOwner(reader: reader), presentationOwner.isAuthorized else { return false }
         return (try? reader.history().first { $0.ts == record.ts }) == record
     }
     private var preparedSelection: RoamSharePhotoSaveState.Selection? {
@@ -215,4 +239,45 @@ import UIKit
         }.padding(24).frame(maxWidth: .infinity, alignment: .leading)
             .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24))
     }
+}
+
+/// A system export uses the same prepared image, but not a stale local-history
+/// receipt. This is read-only and retains the share surface's existing owner gate.
+@MainActor struct RoamHistorySystemShareRequest: Identifiable {
+    let id = UUID()
+    let image: UIImage
+    let selection: RoamSharePhotoSaveState.Selection
+    private let owner: RoamHistoryLiveOwner
+    private weak var presentation: RoamSharePresentationLifetime?
+    private let requiresPresentation: Bool
+    private var presentationIsCurrent: Bool { !requiresPresentation || presentation?.isActive == true }
+
+    init?(image: UIImage, selection: RoamSharePhotoSaveState.Selection,
+          owner: RoamHistoryLiveOwner, reader: any RoamExperienceReading,
+          presentation: RoamSharePresentationLifetime? = nil) {
+        self.image = image; self.selection = selection; self.owner = owner
+        self.presentation = presentation; requiresPresentation = presentation != nil
+        guard isCurrent(reader: reader) else { return nil }
+    }
+    func isCurrent(reader: any RoamExperienceReading) -> Bool {
+        guard presentationIsCurrent, owner.isAuthorized, owner == RoamHistoryLiveOwner(reader: reader),
+              let records = try? reader.history(), owner == RoamHistoryLiveOwner(reader: reader), presentationIsCurrent else { return false }
+        let matching = records.filter { $0.ts == selection.record.ts }
+        return matching.count == 1 && matching.first == selection.record
+    }
+    func makeActivityController(reader: any RoamExperienceReading) -> UIActivityViewController? {
+        // UIKit may create the controller after SwiftUI evaluated the sheet body.
+        guard isCurrent(reader: reader) else { return nil }
+        return UIActivityViewController(activityItems: [image], applicationActivities: nil)
+    }
+}
+
+@MainActor private struct RoamHistorySystemShareSheet: UIViewControllerRepresentable {
+    let request: RoamHistorySystemShareRequest
+    let reader: any RoamExperienceReading
+    func makeUIViewController(context: Context) -> UIViewController {
+        if let controller = request.makeActivityController(reader: reader) { return controller }
+        return UIViewController()
+    }
+    func updateUIViewController(_ controller: UIViewController, context: Context) {}
 }

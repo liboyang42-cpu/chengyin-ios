@@ -4,6 +4,7 @@ import SwiftUI
     let reader: any GrowthCenterReading
     @Environment(\.growthExploreHomeAction) private var onExploreHome
     @Environment(\.scenePhase) private var scenePhase
+    private var reads: GrowthNormalReadTask { model.overviewReads }
     @State private var query = GrowthBoardQuery()
     @State private var explorePresentationID = UUID()
     @State private var exploreVisible = false
@@ -25,7 +26,10 @@ import SwiftUI
             if !reader.isAuthenticated { GrowthCenterIssueView(issue: .login) }
             else if !reader.isConfigured { GrowthCenterIssueView(issue: .notConfigured) }
             else if model.isLoading || model.loadedKey != key { ProgressView("growth.loading") }
-            else if let issue = model.issue(key: key) { GrowthCenterIssueView(issue: issue, retry: { Task { await load() } }) }
+            else if let issue = model.issue(key: key) {
+                if issue == .notConfigured { GrowthNormalLeaderboardHoldView() }
+                else { GrowthCenterIssueView(issue: issue, retry: reload) }
+            }
             else if let board = model.value(key: key) {
                 if let rank = board.me.rank {
                     Section("growth.myRank") { GrowthLeaderboardRow(entry: board.me, fallback: "growth.me", metric: board.metric, isMe: true).accessibilityIdentifier("growth.board.me.\(rank)") }
@@ -67,7 +71,7 @@ import SwiftUI
         .appNavigationTitle("growth.board.title")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button { Task { await load() } } label: { Label("growth.refresh", systemImage: "arrow.clockwise") }
+                Button(action: reload) { Label("growth.refresh", systemImage: "arrow.clockwise") }
                     .disabled(model.isLoading || !reader.isAuthenticated || !reader.isConfigured)
                     .accessibilityIdentifier("growth.board.refresh")
             }
@@ -78,7 +82,9 @@ import SwiftUI
         .onChange(of: scenePhase) { _, _ in explorePresentationID = UUID() }
         .onChange(of: ObjectIdentifier(reader)) { _, value in latestReaderID = value; explorePresentationID = UUID() }
     }
-    private func load() async {
+    private func reload() { reads.start { await readLeaderboard() } }
+    private func load() async { await reads.run { await readLeaderboard() } }
+    private func readLeaderboard() async {
         explorePresentationID = UUID(); exploreConsumed = false; latestReaderID = ObjectIdentifier(reader)
         guard reader.isAuthenticated, reader.isConfigured else { model.invalidate(); return }
         let captured = key, requested = query

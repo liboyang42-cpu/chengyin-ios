@@ -36,6 +36,20 @@ public struct TemplateAuthoringPending: Codable, Equatable {
     public var acknowledged: Bool? = nil
     public var savedDraft: TemplateAuthoringSavedDraft? = nil
     public var publishedReceipt: TemplateAuthoringPublishReceipt? = nil
+    /// Missing on legacy local-only operations. Never synthesize a producer identity for them.
+    public var serverRequest: TemplateAuthoringRequestReceipt.Submit? = nil
+    public var serverReceipt: TemplateAuthoringRequestReceipt.Receipt? = nil
+    public var originalRequestValid: Bool {
+        guard let serverRequest else { return serverReceipt == nil }
+        guard serverRequest.matches(operationID: operationID, request: request) else { return false }
+        guard let serverReceipt else { return !terminal && acknowledged == nil && savedDraft == nil && publishedReceipt == nil }
+        guard serverReceipt.matches(serverRequest), terminal == serverReceipt.committed else { return false }
+        guard serverReceipt.committed else { return acknowledged == nil && savedDraft == nil && publishedReceipt == nil }
+        guard acknowledged == true, let id = serverReceipt.memberTemplateID else { return false }
+        return request.path == "/api/template/draft"
+            ? savedDraft?.memberTemplateID == id && publishedReceipt == nil
+            : publishedReceipt?.memberTemplateID == id && savedDraft == nil
+    }
 }
 @MainActor public protocol TemplateAuthoringStorage: AnyObject {
     func read(_ key: String) throws -> Data?
@@ -74,18 +88,18 @@ public enum TemplateAuthoringRestore: Equatable {
     public func pending(session: TemplateAuthoringSession, identity: TemplateAuthoringIdentity) throws -> TemplateAuthoringPending? {
         guard let raw = try storage.read(key(session, "pending:" + identity.draftID.uuidString)) else { return nil }
         let value = try JSONDecoder().decode(TemplateAuthoringPending.self, from: raw)
-        guard value.ownerKey == session.ownerKey, value.identity == identity,
+        guard value.ownerKey == session.ownerKey, value.identity == identity, value.originalRequestValid,
               (value.savedDraft == nil || value.savedDraft?.matches(value, session: session) == true),
               (value.publishedReceipt == nil || value.publishedReceipt?.matches(value, session: session) == true) else { throw TemplateAuthoringError.invalidContract }
         return value
     }
     public func savePending(_ value: TemplateAuthoringPending, session: TemplateAuthoringSession) throws {
         guard value.ownerKey == session.ownerKey else { throw TemplateAuthoringError.changedSession }
-        guard (value.savedDraft == nil || value.savedDraft?.matches(value, session: session) == true),
+        guard value.originalRequestValid, (value.savedDraft == nil || value.savedDraft?.matches(value, session: session) == true),
               (value.publishedReceipt == nil || value.publishedReceipt?.matches(value, session: session) == true) else { throw TemplateAuthoringError.invalidContract }
         // Receipt and terminal flag occupy one existing pending record, never two independent writes.
         try storage.write(JSONEncoder().encode(value), key: key(session, "pending:" + value.identity.draftID.uuidString))
-        if value.savedDraft != nil || value.publishedReceipt != nil {
+        if value.serverRequest != nil || value.savedDraft != nil || value.publishedReceipt != nil {
             guard try pending(session: session, identity: value.identity) == value else { throw TemplateAuthoringError.storageUnavailable }
         }
     }

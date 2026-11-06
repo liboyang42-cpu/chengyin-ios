@@ -395,7 +395,7 @@ INVERSE_DELTAS = {'App/TemplateAuthoringMineView.swift': ((871,
                                       b'roved": {\n      "extractionState": "manual",\n      "loca'
                                       b'lizations": {\n        "en": {\n          "stringUnit": {\n'
                                       b'            "state": "translated",\n            "value": '
-                                      b'"Personal review approved"\n          }\n        },\n      '
+                                      b'"Review passed"\n          }\n        },\n      '
                                       b'  "zh-Hans": {\n          "stringUnit": {\n            "st'
                                       b'ate": "translated",\n            "value": "\xe4\xb8'
                                       b'\xaa\xe4\xba\xba\xe5\xae\xa1\xe6\xa0\xb8\xe9\x80'

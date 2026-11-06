@@ -28,7 +28,7 @@ struct WithdrawalApplyParitySection: View {
                 Text("withdrawal.apply.note.detail").font(.footnote).foregroundStyle(.secondary)
             }.accessibilityElement(children: .combine).accessibilityIdentifier("withdrawal.apply.note")
             Button("withdrawal.apply.contact") { showContact = true }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.questifyPrimary)
                 .disabled(roleGate == .denied)
                 .accessibilityIdentifier("withdrawal.apply.contact")
         }

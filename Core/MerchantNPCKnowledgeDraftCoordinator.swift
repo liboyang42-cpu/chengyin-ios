@@ -52,7 +52,7 @@ import Foundation
         } catch {
             guard operation == generation else { return }
             guard reader.scope == session, reader.isAuthenticated, isContextCurrent(), !Task.isCancelled else { invalidate(); return }
-            fail(.unavailable)
+            fail(error as? MerchantOperationsFailure == .accessDenied ? .accessDenied : .unavailable)
         }
     }
     public func edit(_ value: MerchantNPCKnowledgeDraft) {
@@ -80,7 +80,7 @@ import Foundation
             guard isCurrent, !Task.isCancelled else { invalidate(); return }
             // A failed authority refresh hides and discards local content; it is not
             // permission to keep editing an unverified merchant snapshot.
-            fail(.unavailable)
+            fail(error as? MerchantOperationsFailure == .accessDenied ? .accessDenied : .unavailable)
         }
     }
     /// Cancel drops unsaved edits; a validated memory copy can be reopened only

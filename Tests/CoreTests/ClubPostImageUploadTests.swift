@@ -16,7 +16,7 @@ final class ClubPostImageUploadTests: XCTestCase {
     }
 
     func testReferenceValidatorRejectsFixtureInvalidDelimitersAndUnapprovedOrigins() async throws {
-        // Synthetic fixture URLs are strictly rejected
+        // Example URLs are strictly rejected
         let syntheticList = try await ClubCommunitySyntheticImages().uploadSynthetic([Data([1])])
         let synthetic = try XCTUnwrap(syntheticList.first)
         XCTAssertFalse(

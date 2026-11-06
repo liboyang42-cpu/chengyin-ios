@@ -14,6 +14,7 @@ import SwiftUI
     @State private var historyReader = RoamExperienceFixtureReader(scenario: .content)
     @State private var shareReader = RoamShareSnapshotFixtureReader()
     @State private var toolsReader = RoamPassportToolsFixtureReader(scenario: .content)
+    @State private var privateTools = RoamPrivateToolsFixture(scenario: .content)
     init() {
         let args = ProcessInfo.processInfo.arguments
         let index = args.firstIndex(of: Self.argument)
@@ -23,7 +24,7 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             switch scenario {
-            case "history": RoamHistoryView(reader: historyReader, toolsReader: toolsReader)
+            case "history": RoamHistoryView(reader: historyReader, toolsReader: toolsReader, privateToolsReader: privateTools)
             case "sharedReady": RoamSharedFootprintView(token: RoamShareSnapshotFixtureReader.readyToken, reader: shareReader)
             case "sharedGone": RoamSharedFootprintView(token: RoamShareSnapshotFixtureReader.goneToken, reader: shareReader, onOpenRoam: {})
             case "sharedError": RoamSharedFootprintView(token: String(repeating: "a", count: 32), reader: shareReader)

@@ -132,8 +132,8 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
         let expected = context
         let permit = model.permit(in: expected)
         let snapshot = model.snapshotID
-        VStack(alignment: .leading, spacing: 12) {
-            Text("club.gov.field.audienceType").font(.headline)
+        // Rows sit directly in the 选择受众 section (mini-program list card): label, 「N 人」, checkmark.
+        Group {
             if model.loading || permit == nil { ProgressView("club.loading").accessibilityIdentifier("club.audience.loading") }
             if isCurrent(), let permit, let options = model.accepted(expected, access: access) {
                 ForEach(options) { option in
@@ -141,20 +141,22 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
                         guard canEdit(), isCurrent(), model.canSelect(option.id, snapshotID: snapshot, permit: permit, access: access) else { return }
                         if selection != option.id { selection = option.id }
                     } label: {
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: 2) {
                             HStack {
-                                Text(LocalizedStringKey("club.gov.choice." + option.id))
+                                Text(LocalizedStringKey("club.gov.choice." + option.id)).foregroundStyle(option.enabled ? .primary : .secondary)
                                 Spacer()
-                                if selection == option.id { Image(systemName: "checkmark") }
+                                if option.enabled, let count = option.count {
+                                    ClubOpsJoinNotifyCopy.people(count).monospacedDigit().foregroundStyle(.secondary)
+                                }
+                                Image(systemName: "checkmark").foregroundStyle(Color.accentColor)
+                                    .opacity(selection == option.id ? 1 : 0).accessibilityHidden(true)
                             }
-                            if option.needsActivity { Text("club.audience.chooseEvent").font(.footnote) }
+                            // Mini-program row-desc: why an event-only audience can't be picked here.
+                            if option.needsActivity { Text("club.audience.chooseEvent").font(.footnote).foregroundStyle(.secondary) }
                             else if !option.enabled {
-                                if ClubNotificationAudienceReadModel.eventAudienceIDs.contains(option.id) { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.eventDenied").font(.footnote) }
-                                else { Text("club.gov.denied").font(.footnote) }
+                                if ClubNotificationAudienceReadModel.eventAudienceIDs.contains(option.id) { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.eventDenied").font(.footnote).foregroundStyle(.secondary) }
+                                else { Text("club.gov.denied").font(.footnote).foregroundStyle(.secondary) }
                             }
-                            else if let count = option.count {
-                                LabeledContent("club.gov.field.totalCount", value: String(count)).font(.footnote)
-                            } else { Text("club.gov.unknownValue").font(.footnote) }
                         }.contentShape(Rectangle())
                     }
                     .disabled(!canEdit() || !option.enabled)
@@ -166,13 +168,13 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
                 Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.audience.error")
             }
             if isCurrent(), permit != nil, model.failure == .forbidden { ClubOpsNotifyDeniedText() }
-            if model.countsUnavailable, isCurrent() { Text("club.gov.unknownValue").accessibilityIdentifier("club.audience.countsUnavailable") }
+            if model.countsUnavailable, isCurrent() { Text("club.audience.countsUnavailable").foregroundStyle(.secondary).accessibilityIdentifier("club.audience.countsUnavailable") }
             if model.failure != .forbidden {
                 Button(LocalizedStringKey(model.failure == nil && !model.countsUnavailable ? "club.gov.refresh" : "action.retry")) {
                     guard canEdit(), isCurrent(), let permit else { return }
                     Task { await model.load(permit, access: access, isCurrent: isCurrent) }
                 }.disabled(!canEdit() || model.loading || permit == nil).accessibilityIdentifier("club.audience.reload")
             }
-        }.buttonStyle(.borderless).accessibilityElement(children: .contain)
+        }.buttonStyle(.plain)
     }
 }

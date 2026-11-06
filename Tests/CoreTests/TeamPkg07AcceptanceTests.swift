@@ -1,7 +1,7 @@
 import XCTest
 @testable import QuestifyCore
 
-/// Package 07 team acceptance: invite → detail/join review → result → return. Synthetic fixtures only;
+/// Package 07 team acceptance: invite → detail/join review → result → return. Examples only;
 /// a synthetic outcome is never production success and production writes stay closed.
 @MainActor final class TeamPkg07AcceptanceTests: XCTestCase {
     private final class Box { var value: TeamSession?; init(_ v: TeamSession?) { value = v } }

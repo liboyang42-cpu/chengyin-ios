@@ -26,8 +26,6 @@ struct ProfileOrderFilterSection: View {
                 Button("profile.orderFilter.clear") { selection = .all }
                     .accessibilityIdentifier("profile.orderFilter.clear")
             }
-        } footer: {
-            Text("profile.orderFilter.localHint")
         }
     }
 }

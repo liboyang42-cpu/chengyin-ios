@@ -17,8 +17,13 @@ extension EnvironmentValues {
     let pending: Int
     @Environment(\.merchantPredictionWorkbenchEntry) private var entry
     var body: some View {
-        Label { Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.workbenchAlert %lld", pending)) } icon: { Image(systemName: "questionmark.bubble") }
-            .foregroundStyle(.orange).accessibilityIdentifier("merchantOps.predict.workbenchAlert")
+        let announcement = MerchantOpsCopy.text("merchantOps.predict.workbenchAlert %lld", pending)
+        Label { Text(verbatim: announcement) } icon: { Image(systemName: "questionmark.bubble") }
+            .foregroundStyle(.orange)
+            // One informational announcement, not separate symbol and count focus stops.
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(verbatim: announcement))
+            .accessibilityIdentifier("merchantOps.predict.workbenchAlert")
         if let entry { entry() }
     }
 }

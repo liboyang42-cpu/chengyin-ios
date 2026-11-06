@@ -3,17 +3,11 @@ import Foundation
 import FoundationNetworking
 #endif
 
-/// The platform issues the one-time shell description. An already held
-/// API configuration whose base URL is https supplies the host: parentOrigin
-/// and the shell URL are that host, scheme https, with no userinfo and no extra
-/// domain. The nonce is minted here. License and author records do not carry
-/// parentOrigin, nonce, or a shell URL, and this type does not read those fields
-/// from them. The POST body is the nonce. A different host does not load. The
-/// existing parent then opens the shell, and the install recovery entry reads
-/// the owned install receipt for the same install request id. advanced/start and
-/// a payment native-context are not the ticket. A missing or non-https
-/// configuration closes only this launch. This type does not invent a
-/// certificate, a zip, or an approval.
+/// Legacy launch facade. An API configuration and an installed license cannot
+/// issue a server ticket or establish an isolated hosting origin. Until the
+/// frozen backend provides that contract, launch fails closed. Reading the
+/// original owned installation receipt remains available; it is not an H5
+/// completion receipt. No client nonce is minted or sent to the API origin.
 public struct H5LaunchIssuer {
     public enum Close: Equatable, Sendable {
         case missingConfiguration
@@ -21,6 +15,7 @@ public struct H5LaunchIssuer {
         case hostMismatch
         case advancedStartRefused
         case paymentNativeContextRefused
+        case serverIssuedLaunchUnavailable
     }
 
     /// ACTIVE license row: licenseId, moduleId, purchasedVersionId, contentHash,
@@ -59,11 +54,6 @@ public struct H5LaunchIssuer {
         }
     }
 
-    private struct IssuedOrigin: Equatable {
-        let parentOrigin: String
-        let shellURL: URL
-    }
-
     public let owned: LicenseInstall
     public let author: AuthorSubmission
     public let configuration: APIConfiguration?
@@ -86,7 +76,7 @@ public struct H5LaunchIssuer {
         self.parent = H5ShellParentFlow(requestID: owned.requestID, entry: entry)
     }
 
-    /// One-time POST from the held configuration. Nil closes only this launch.
+    /// No launch without a server-issued one-use ticket and isolated origin.
     @discardableResult
     public mutating func issue() -> URLRequest? {
         issue(baseURL: configuration?.baseURL)
@@ -168,27 +158,8 @@ public struct H5LaunchIssuer {
         guard baseURL.scheme == "https" else { return fail(.notHTTPS) }
         if Self.mentionsAdvancedStart(baseURL) { return fail(.advancedStartRefused) }
         if Self.mentionsPaymentNativeContext(baseURL) { return fail(.paymentNativeContextRefused) }
-        let nonce = Self.mintNonce()
-        guard let issued = Self.issuedOrigin(baseURL: baseURL),
-              issued.shellURL.host == baseURL.host, issued.shellURL.port == baseURL.port,
-              let launch = H5LaunchDescription(parentOrigin: issued.parentOrigin, nonce: nonce, mainToken: nil),
-              let request = H5ShellParentFlow.loadRequest(shellURL: issued.shellURL, launch: launch),
-              request.httpMethod == "POST",
-              request.url?.scheme == "https", request.url?.user == nil, request.url?.password == nil,
-              request.url?.host == issued.shellURL.host, request.url?.port == issued.shellURL.port,
-              request.url?.query == nil, request.url?.fragment == nil,
-              Self.sameHost(issued.parentOrigin, issued.shellURL),
-              Self.bodyIsNonceOnly(request, nonce: nonce),
-              !Self.mentionsAdvancedStart(issued.shellURL),
-              !Self.mentionsPaymentNativeContext(issued.shellURL),
-              request.url?.absoluteString.contains(nonce) != true else {
-            return fail(.hostMismatch)
-        }
-        launchClosed = nil
-        presentedLaunch = launch
-        presentedShellURL = issued.shellURL
-        parent = H5ShellParentFlow(requestID: owned.requestID, entry: entry)
-        return request
+        guard baseURL.user == nil, baseURL.password == nil, baseURL.host != nil else { return fail(.hostMismatch) }
+        return fail(.serverIssuedLaunchUnavailable)
     }
 
     private mutating func readClosed(identity: WorkshopInstallIdentity,
@@ -208,43 +179,6 @@ public struct H5LaunchIssuer {
         presentedShellURL = nil
         parent = H5ShellParentFlow(requestID: owned.requestID, entry: entry)
         return nil
-    }
-
-    private static func mintNonce() -> String {
-        UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
-    }
-
-    /// Host already on the base URL. Scheme is https. Userinfo is not copied.
-    /// No extra domain label and no invented shell path are added.
-    private static func issuedOrigin(baseURL: URL) -> IssuedOrigin? {
-        guard baseURL.scheme == "https",
-              let parts = URLComponents(url: baseURL, resolvingAgainstBaseURL: false),
-              parts.scheme == "https", parts.user == nil, parts.password == nil,
-              let host = parts.host, !host.isEmpty,
-              !host.contains("/"), !host.contains("@"), !host.contains("\\"), !host.contains(" ") else { return nil }
-        let text = originText(host: host, port: parts.port)
-        guard let shellURL = URL(string: text),
-              shellURL.scheme == "https", shellURL.host == host, shellURL.port == parts.port,
-              shellURL.user == nil, shellURL.password == nil,
-              shellURL.query == nil, shellURL.fragment == nil else { return nil }
-        let path = shellURL.path
-        guard path.isEmpty || path == "/" else { return nil }
-        guard URL(string: text)?.host == host, URL(string: text)?.port == parts.port else { return nil }
-        return IssuedOrigin(parentOrigin: text, shellURL: shellURL)
-    }
-
-    private static func originText(host: String, port: Int?) -> String {
-        let name = host.contains(":") && !host.contains("]") ? "[\(host)]" : host
-        if let port { return "https://\(name):\(port)" }
-        return "https://\(name)"
-    }
-
-    private static func sameHost(_ parentOrigin: String, _ shellURL: URL) -> Bool {
-        guard let origin = URL(string: parentOrigin),
-              origin.scheme == "https", origin.user == nil, origin.password == nil,
-              origin.host == shellURL.host, origin.port == shellURL.port,
-              shellURL.scheme == "https", shellURL.user == nil, shellURL.password == nil else { return false }
-        return true
     }
 
     private static func bodyIsNonceOnly(_ request: URLRequest, nonce: String) -> Bool {

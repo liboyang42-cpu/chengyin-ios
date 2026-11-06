@@ -34,6 +34,7 @@ public struct CityGameReview: Equatable, Sendable {
     public let read: CityReadSnapshot
     private var pending = CityPendingAction()
     private var stream: CityDeltaStream?
+    private var snapshotWatermark: CityGameSnapshot?
     private let service: (any CityGameServing)?
     private let capabilities: ReformWorldCapabilities
     private let memberId: String
@@ -41,17 +42,30 @@ public struct CityGameReview: Equatable, Sendable {
     private let now: () -> Date
     private let serverOffset: () -> TimeInterval
     private var generation = UUID()
+    private let journal: CityActionRecoveryJournal?
+    private var journalBlocked = false
 
     public init(read: CityReadSnapshot, service: (any CityGameServing)?, capabilities: ReformWorldCapabilities, memberId: String,
-                isCurrent: @escaping () -> Bool, now: @escaping () -> Date = { Date() }, serverOffset: @escaping () -> TimeInterval = { 0 }) {
+                isCurrent: @escaping () -> Bool, now: @escaping () -> Date = { Date() }, serverOffset: @escaping () -> TimeInterval = { 0 },
+                journal: CityActionRecoveryJournal? = nil) {
         self.read = read; self.service = service; self.capabilities = capabilities; self.memberId = memberId
         self.isCurrent = isCurrent; self.now = now; self.serverOffset = serverOffset
-        if service == nil || !capabilities.allows(.cityActions) || !ReformWire.id(memberId) { phase = .disabled }
+        self.journal = journal
+        if service == nil || !capabilities.allows(.cityActions) || !ReformWire.id(memberId) { phase = .disabled; return }
+        do {
+            if let intent = try journal?.restore(memberId: memberId, read: read) {
+                try pending.begin(intent, capabilities: capabilities)
+                phase = .unknown
+            }
+        } catch {
+            // Corruption or scope mismatch must never unlock a new write.
+            journalBlocked = true; phase = .unknown; notice = .unavailable
+        }
     }
 
     public var pendingIntent: CityActionIntent? { pending.intent }
     public var isBusy: Bool { [.loading, .quoting, .sending].contains(phase) }
-    public var canRetryExact: Bool { phase == .unknown && pending.intent != nil && isCurrent() }
+    public var canRetryExact: Bool { phase == .unknown && !journalBlocked && pending.intent != nil && isCurrent() }
 
     /// Why the board accepts no new actions right now, if anything.
     public var boardNotice: Notice? {
@@ -72,7 +86,7 @@ public struct CityGameReview: Equatable, Sendable {
     /// paused or blocked by the safety overlay; neutral goals stay offered at zero points.
     public func actions(for property: CityPropertyState) -> [CityActionKind] {
         guard phase == .ready, boardNotice == nil, let snapshot, snapshot.roundSeq != nil, hasActionBudget,
-              property.status.acceptsNewActions else { return [] }
+              snapshot.contains(property), property.status.acceptsNewActions else { return [] }
         switch property.role {
         case .neutral: return [.acceptTask]
         case .operable:
@@ -90,13 +104,13 @@ public struct CityGameReview: Equatable, Sendable {
     /// A service may be accepted only when its fee is published and the property is open.
     public func canAcceptService(_ service: CityServiceOffer, on property: CityPropertyState) -> Bool {
         guard phase == .ready, boardNotice == nil, snapshot?.roundSeq != nil, hasActionBudget, property.status.acceptsNewActions,
-              !property.heldByMyTeam, property.status != .available else { return false }
+              !property.heldByMyTeam, property.status != .available, snapshot?.offers(service, on: property) == true else { return false }
         return service.memberPointsFee != nil
     }
 
     /// Logout, account/role/token change or leaving the board invalidates every reference.
     public func invalidate() {
-        generation = UUID(); snapshot = nil; review = nil; stream = nil; notice = nil; lastOutcome = nil
+        generation = UUID(); snapshot = nil; snapshotWatermark = nil; review = nil; stream = nil; notice = nil; lastOutcome = nil
         pending = CityPendingAction(); phase = .invalidated
     }
 
@@ -107,14 +121,15 @@ public struct CityGameReview: Equatable, Sendable {
     }
 
     public func load() async {
-        guard gate(), let service, !isBusy, phase != .review else { return }
+        guard gate(), !journalBlocked, let service, !isBusy, phase != .review else { return }
+        if pending.intent != nil { await readBack(); return }
         let ticket = generation, wasUnknown = phase == .unknown
         phase = .loading
         do {
             let value = try await service.snapshot(for: read)
-            try value.validate(against: read)
+            try value.validate(against: read, previous: snapshotWatermark)
             guard ticket == generation, gate() else { return }
-            snapshot = value
+            snapshot = value; snapshotWatermark = value
             let cursor = try CityStreamCursor(boardId: value.boardId, seasonId: value.seasonId, rulesReleaseId: value.rules.rulesReleaseId,
                                               boardVersion: value.boardVersion, sequence: value.sequence)
             if stream == nil { stream = CityDeltaStream(cursor: cursor) } else { stream?.reset(to: cursor) }
@@ -216,13 +231,35 @@ public struct CityGameReview: Equatable, Sendable {
             }
             return
         } catch { self.review = nil; phase = .ready; notice = .invalidQuote; return }
+        do { try journal?.save(intent, memberId: memberId, read: read) }
+        catch {
+            // No dispatch if the request cannot be durably recorded. Keep it locked
+            // because a store failure can have an uncertain persistence outcome.
+            self.review = nil; journalBlocked = true; phase = .unknown; notice = .unavailable; return
+        }
         self.review = nil
         await send(intent)
     }
 
-    /// Re-sends the identical pending intent (same requestId and body).
+    /// Always look up the original receipt first. A missing receipt permits only
+    /// the identical intent; a failed or mismatched lookup never dispatches.
     public func retryExact() async {
-        guard gate(), canRetryExact, let intent = pending.intent else { return }
+        guard gate(), !journalBlocked, canRetryExact, let intent = pending.intent, let service else { return }
+        let ticket = generation
+        phase = .sending
+        do {
+            let receipt = try await service.receipt(for: intent)
+            guard ticket == generation, gate() else { return }
+            if let receipt {
+                guard ticket == generation, gate() else { return }
+                try settle(receipt)
+                await load()
+                return
+            }
+        } catch {
+            guard ticket == generation, gate() else { return }
+            phase = .unknown; notice = .unknownOutcome; return
+        }
         await send(intent)
     }
 
@@ -243,7 +280,7 @@ public struct CityGameReview: Equatable, Sendable {
 
     /// Reads the receipt for the pending requestId; a missing receipt keeps it unknown.
     public func readBack() async {
-        guard gate(), phase == .unknown, let service, let intent = pending.intent else { return }
+        guard gate(), !journalBlocked, phase == .unknown, let service, let intent = pending.intent else { return }
         let ticket = generation
         phase = .sending
         do {
@@ -259,6 +296,11 @@ public struct CityGameReview: Equatable, Sendable {
     }
 
     private func settle(_ receipt: CityActionReceipt) throws {
+        // Validate and clear persistence before releasing the in-memory lock.
+        // If clearing fails, a future lookup reads the same receipt again.
+        guard let intent = pending.intent else { throw CityActionIssue.illegalTransition }
+        try receipt.validate(for: intent)
+        try journal?.clear(intent, memberId: memberId, read: read)
         let outcome = try pending.resolve(receipt)
         lastOutcome = outcome
         if outcome == .unknown { throw CityActionIssue.receiptMismatch }

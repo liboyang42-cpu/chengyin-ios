@@ -1,0 +1,886 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "homeReturn.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel this restore"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消本次恢复"
+          }
+        }
+      }
+    },
+    "homeReturn.checkIn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verify home location manually"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手动验证回家位置"
+          }
+        }
+      }
+    },
+    "homeReturn.confirmRestore": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm this run’s HP restore"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认恢复本局生命值"
+          }
+        }
+      }
+    },
+    "homeReturn.decision.alreadyAtMax": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Already full. Nothing changed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已满，无变化。"
+          }
+        }
+      }
+    },
+    "homeReturn.decision.proofConsumed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The proof was already used. This does not confirm this restore succeeded. Verify again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "凭证已被使用，不能视为本次恢复成功。请重新验证。"
+          }
+        }
+      }
+    },
+    "homeReturn.decision.restored": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restored to the maximum."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已恢复到上限。"
+          }
+        }
+      }
+    },
+    "homeReturn.decision.versionConflict": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Values changed elsewhere. A fresh account read is required."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生命值已在别处变化，需要重新读取账户。"
+          }
+        }
+      }
+    },
+    "homeReturn.failure.cooldown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore is cooling down. Try again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复冷却中，请稍后再试。"
+          }
+        }
+      }
+    },
+    "homeReturn.failure.dwellRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stay here and tap Verify again after the indicated wait. No automatic sampling."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请继续停留，等待所示时间后再次点击手动验证；不会自动采样。"
+          }
+        }
+      }
+    },
+    "homeReturn.failure.homeChanged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your home changed. Check in again with the new home."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "据点已变更，请按新据点重新核验。"
+          }
+        }
+      }
+    },
+    "homeReturn.failure.invalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something went wrong. Nothing has been restored."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "出现问题，未恢复任何数值。"
+          }
+        }
+      }
+    },
+    "homeReturn.failure.locationOff": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location services are off. Turn them on in Settings, then try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "定位服务已关闭，请在设置中开启后重试。"
+          }
+        }
+      }
+    },
+    "homeReturn.failure.lowAccuracy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location accuracy is too low. Move to an open spot and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "定位精度不足，请到开阔处再试。"
+          }
+        }
+      }
+    },
+    "homeReturn.failure.network": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current information could not be loaded or verified. Refresh before trying again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法读取或验证当前信息，请刷新后再试。"
+          }
+        }
+      }
+    },
+    "homeReturn.failure.outOfRadius": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You are not at your home point yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你尚未到达据点范围。"
+          }
+        }
+      }
+    },
+    "homeReturn.failure.permissionDenied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location permission is not granted. Allow \"While Using\" in Settings to check manually."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未授予定位权限。请在设置中允许“使用期间”后手动核验。"
+          }
+        }
+      }
+    },
+    "homeReturn.failure.proofExpired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The verification expired or was already used. Verify again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "验证凭证已过期或已使用，请重新手动验证。"
+          }
+        }
+      }
+    },
+    "homeReturn.failure.runUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This run is no longer active or does not allow home restore. Ended or failed runs cannot be revived."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该局不再进行中，或规则不允许回家恢复。不能复活已结束或失败的局。"
+          }
+        }
+      }
+    },
+    "homeReturn.failure.staleFix": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your location is out of date. Wait a moment and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "定位已过期，请稍候再试。"
+          }
+        }
+      }
+    },
+    "homeReturn.failure.storageUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Secure recovery storage is unavailable. No new restore will be sent. Refresh later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安全恢复记录暂不可用。不会发送新恢复请求，请稍后刷新。"
+          }
+        }
+      }
+    },
+    "homeReturn.loadMoreRuns": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load more eligible runs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载更多可恢复单局"
+          }
+        }
+      }
+    },
+    "homeReturn.manual": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A location sample is taken only when you tap Verify. Restoring requires a separate confirmation. No background location."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只会在你点击验证时采集一次前台位置。验证通过后，仍需单独确认恢复。不会后台定位。"
+          }
+        }
+      }
+    },
+    "homeReturn.moreUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More runs could not be loaded. The list is still partial; tap Load more to retry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载更多失败，当前仍是不完整列表，请手动重试。"
+          }
+        }
+      }
+    },
+    "homeReturn.needHome": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set your private home first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先设置私人据点。"
+          }
+        }
+      }
+    },
+    "homeReturn.noReceiptYet": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No result yet. Check again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无结果，请稍后再查。"
+          }
+        }
+      }
+    },
+    "homeReturn.noRuns": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No eligible active runs."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有符合条件的进行中单局。"
+          }
+        }
+      }
+    },
+    "homeReturn.notEnabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return-home restore isn't available right now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回家恢复暂不可用"
+          }
+        }
+      }
+    },
+    "homeReturn.phase.checking": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking your arrival…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在核验到达…"
+          }
+        }
+      }
+    },
+    "homeReturn.phase.disabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不可用"
+          }
+        }
+      }
+    },
+    "homeReturn.phase.dwelling": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stay at home, then verify again manually"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要停留后再次手动验证"
+          }
+        }
+      }
+    },
+    "homeReturn.phase.invalidated": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Session changed. Reopen this page."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会话已变化，请重新打开此页。"
+          }
+        }
+      }
+    },
+    "homeReturn.phase.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取…"
+          }
+        }
+      }
+    },
+    "homeReturn.phase.ready": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可操作"
+          }
+        }
+      }
+    },
+    "homeReturn.phase.restoring": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restoring…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在恢复…"
+          }
+        }
+      }
+    },
+    "homeReturn.phase.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不可用"
+          }
+        }
+      }
+    },
+    "homeReturn.phase.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Result not confirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果未确认"
+          }
+        }
+      }
+    },
+    "homeReturn.phase.verified": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location verified. Not restored yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置验证通过，尚未恢复"
+          }
+        }
+      }
+    },
+    "homeReturn.readBack": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查询结果"
+          }
+        }
+      }
+    },
+    "homeReturn.readbackRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The request receipt is confirmed, but current HP readback is pending. Refresh; no old balance is shown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次请求回执已核对，但尚未读回最新生命值。请刷新，暂不显示旧余额。"
+          }
+        }
+      }
+    },
+    "homeReturn.refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新"
+          }
+        }
+      }
+    },
+    "homeReturn.refreshRuns": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh eligible runs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新可恢复单局"
+          }
+        }
+      }
+    },
+    "homeReturn.restorePurpose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore only this selected run’s HP to its server-frozen maximum. No luck, items, or other runs are affected."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅恢复当前所选局的生命值至该局服务端冻结上限。不恢复幸运、道具或其他局资源。"
+          }
+        }
+      }
+    },
+    "homeReturn.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry same request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试同一请求"
+          }
+        }
+      }
+    },
+    "homeReturn.runBoundary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only your active runs with explicit home-restore rules are listed. Choose the run to restore."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只列出本人正在进行且规则明确允许回家恢复的局。请明确选择本次要恢复的局。"
+          }
+        }
+      }
+    },
+    "homeReturn.runsTruncated": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is a partial list of eligible runs, not all runs."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前列表仅显示部分符合条件的局，并非全部。"
+          }
+        }
+      }
+    },
+    "homeReturn.scope.global": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Player stamina (all-player resource)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩家体力（全局资源）"
+          }
+        }
+      }
+    },
+    "homeReturn.scope.run": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HP for this run only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅本局生命值"
+          }
+        }
+      }
+    },
+    "homeReturn.scope.theme": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stamina for this theme only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅本主题体力"
+          }
+        }
+      }
+    },
+    "homeReturn.selectRun": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an active run"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择进行中单局"
+          }
+        }
+      }
+    },
+    "homeReturn.selectedRun": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected run"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次所选单局"
+          }
+        }
+      }
+    },
+    "homeReturn.sourceActivity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动"
+          }
+        }
+      }
+    },
+    "homeReturn.sourceTopic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topic"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题"
+          }
+        }
+      }
+    },
+    "homeReturn.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return home"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回到据点"
+          }
+        }
+      }
+    },
+    "homeReturn.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return-home rules or run status could not be loaded. Try refreshing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法读取回家恢复规则或单局状态，请稍后刷新。"
+          }
+        }
+      }
+    },
+    "homeReturn.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The restore result is not confirmed. Check the result before retrying."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复结果未确认，请先查询再重试。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

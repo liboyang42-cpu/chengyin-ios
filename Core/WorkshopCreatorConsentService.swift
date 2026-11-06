@@ -121,6 +121,12 @@ private enum WorkshopCreatorAccess {
             return receipt
         } catch {
             try check(life, writing: true)
+            // Preserve a current authentication denial for presentation retirement only.
+            // It is NOT proof that the dispatched declaration did not commit; the caller
+            // must retain the same original request and recover its server status.
+            if let failure = error as? WorkshopCreatorConsentIssue, failure == .unauthorized {
+                throw failure
+            }
             // The server may have committed. Preserve the same request ID; never auto-resubmit.
             throw WorkshopCreatorConsentIssue.unknown
         }

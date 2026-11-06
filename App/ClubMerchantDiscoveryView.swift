@@ -71,10 +71,10 @@ import SwiftUI
             guard let permit = model.activate(scope) else { return }
             await model.load(clubReader: clubReader, reader: reader, permit: permit)
         }
-        .sheet(item: Binding(get: { presentation.selection }, set: { if $0 == nil { presentation.close() } })) { choice in
+        .sheet(item: presentation.selectionBinding) { choice in
             if let profile {
                 ClubMerchantProfileDestination(selection: choice, profile: profile, presentation: presentation,
-                    close: { presentation.close() })
+                    close: { presentation.close(id: choice.id) })
                     .presentationDetents([.large]).presentationCompactAdaptation(.sheet)
             }
         }

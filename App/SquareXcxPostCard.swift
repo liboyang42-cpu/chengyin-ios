@@ -66,7 +66,7 @@ struct SquareXcxPostCard: View {
             if showsMedia, let cover = facts.playCover {
                 NativeMediaGalleryEntry(sources: [cover], scope: mediaScope, titleKey: "media.destination.squareImages", compact: true)
             }
-        }.padding(10).background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.1)))
+        }.padding(10).background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color(uiColor: .tertiarySystemFill)))
             .accessibilityElement(children: .contain).accessibilityIdentifier("square.card.play")
     }
     private var counters: some View {
@@ -101,11 +101,14 @@ struct SquareXcxRelativeTime: View {
 @MainActor struct SquareXcxUpcomingStrip: View {
     let reader: any OfficialEventReading
     var destination: ((Int) -> AnyView)? = nil
+    @StateObject private var sourceObservation = OfficialReadInvalidationObserver()
+    @State private var loadGeneration = UUID()
+    @State private var loadingScope: UUID?
     @State private var items: [SquareUpcomingBannerItem] = []
     @State private var loadedScope: UUID?
     var body: some View {
         Group {
-            if !items.isEmpty {
+            if loadedScope == reader.scope, !items.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
                         ForEach(items) { item in
@@ -119,6 +122,14 @@ struct SquareXcxRelativeTime: View {
             }
         }
         .task(id: reader.scope) { await load() }
+        .onAppear { sourceObservation.bind(reader) }
+        .onChange(of: ObjectIdentifier(reader)) { _, _ in sourceObservation.bind(reader) }
+        .onChange(of: sourceObservation.revision) { _, _ in
+            guard sourceObservation.isBound(to: reader) else { return }
+            if loadingScope != reader.scope { loadGeneration = UUID(); loadingScope = nil }
+            if loadedScope != reader.scope { items = []; loadedScope = nil }
+        }
+        .onDisappear { loadGeneration = UUID(); sourceObservation.stop() }
     }
     private func card(_ item: SquareUpcomingBannerItem) -> some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -139,19 +150,23 @@ struct SquareXcxRelativeTime: View {
                 Text("square.xcx.upcoming.participants").font(.caption2).foregroundStyle(.secondary)
             }
         }.padding(12).frame(minWidth: 260, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 14).fill(Color.secondary.opacity(0.12)))
+            .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(uiColor: .secondarySystemGroupedBackground)))
     }
     private func load() async {
         let scope = reader.scope
-        guard reader.isConfigured, loadedScope != scope else { return }
+        guard !Task.isCancelled, reader.isConfigured, loadedScope != scope else { return }
+        loadGeneration = UUID(); let generation = loadGeneration
+        loadingScope = scope
+        defer { if generation == loadGeneration { loadingScope = nil } }
         do {
             let events = try await reader.events(city: nil)
             try Task.checkCancellation()
-            guard scope == reader.scope else { return }
+            guard generation == loadGeneration, scope == reader.scope else { return }
             items = SquareUpcomingBannerItem.select(events, now: Date()); loadedScope = scope
         } catch {
-            // Source hides the strip on any failure; the feed itself is unaffected.
-            guard scope == reader.scope else { return }
+            // Source hides the strip on a current failure; stale cancellation cannot clear a newer load.
+            guard !Task.isCancelled, !(error is CancellationError),
+                  generation == loadGeneration, scope == reader.scope else { return }
             items = []
         }
     }

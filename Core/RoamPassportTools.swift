@@ -192,6 +192,8 @@ public struct RoamRecapCounts: Equatable, Decodable {
 
 public struct RoamRecapRecord: Equatable, Identifiable {
     public let id: String
+    /// Service projection: topic ID for routes, POI ID for places, owned stamp ID for stamps.
+    public let objectID: String?
     public let title: String
     /// Shanghai wall time "yyyy-MM-dd HH:mm:ss".
     public let occurredAt: String
@@ -215,10 +217,14 @@ public struct RoamMonthlyRecapPage: Equatable {
     public let items: [RoamRecapRecord]
     public let hasMore: Bool
     public let nextBeforeID: String?
+    /// A terminal continuation is still only one page, never the complete month.
+    public let sourceBeforeID: String?
 
     /// Weekly columns exist only once every record of the month has been read (no invented partial chart).
     public var weeks: [RoamRecapWeek] {
-        guard !hasMore, !items.isEmpty else { return [] }
+        let total: Int
+        switch kind { case .routes: total = counts.routes; case .places: total = counts.places; case .stamps: total = counts.stamps }
+        guard sourceBeforeID == nil, !hasMore, !items.isEmpty, items.count == total else { return [] }
         var counts = [0, 0, 0, 0, 0]
         for item in items { counts[min(4, (item.dayOfMonth - 1) / 7)] += 1 }
         let top = counts.max() ?? 0
@@ -226,30 +232,34 @@ public struct RoamMonthlyRecapPage: Equatable {
     }
 
     private struct Raw: Decodable {
-        struct Item: Decodable { let id: RoamToolID; let title: String?; let occurredAt: String }
-        let month: String; let kind: String; let counts: RoamRecapCounts
+        struct Item: Decodable { let id: RoamToolID; let objectId: RoamToolID?; let title: String?; let occurredAt: String }
+        let month: String; let kind: String; let timeZone: String; let counts: RoamRecapCounts
         let items: [Item]; let hasMore: Bool; let nextBeforeId: RoamToolID?
     }
     public static func decode(_ data: Data, query: RoamMonthlyRecapQuery) throws -> RoamMonthlyRecapPage {
         struct Envelope: Decodable { let data: Raw }
         let value: Raw
         do { value = try JSONDecoder().decode(Envelope.self, from: data).data } catch { throw APIError.malformedResponse }
-        guard value.month == query.month, value.kind == query.kind.rawValue, value.items.count <= query.limit,
+        guard value.month == query.month, value.kind == query.kind.rawValue, value.timeZone == "Asia/Shanghai", value.items.count <= query.limit,
               value.counts.routes >= 0, value.counts.places >= 0, value.counts.stamps >= 0,
               let (year, month) = RoamShanghaiCalendar.parseMonth(query.month) else { throw APIError.malformedResponse }
         if value.hasMore { guard value.nextBeforeId != nil, !value.items.isEmpty else { throw APIError.malformedResponse } }
         else { guard value.nextBeforeId == nil else { throw APIError.malformedResponse } }
         var seen = Set<String>()
+        var previousID = query.beforeID.flatMap(Int64.init)
         var items: [RoamRecapRecord] = []
         for item in value.items {
             guard let wall = RoamShanghaiCalendar.wallTime(item.occurredAt, requireMilliseconds: false),
                   wall.year == year, wall.month == month else { throw APIError.malformedResponse }
             // Same-page duplicates are collapsed exactly as the mini-program client does.
             guard seen.insert(item.id.text).inserted else { continue }
-            items.append(RoamRecapRecord(id: item.id.text, title: item.title ?? "", occurredAt: item.occurredAt, dayOfMonth: wall.day, monthOfYear: wall.month))
+            guard let recordID = Int64(item.id.text), previousID.map({ recordID < $0 }) ?? true else { throw APIError.malformedResponse }
+            previousID = recordID
+            items.append(RoamRecapRecord(id: item.id.text, objectID: item.objectId?.text, title: item.title ?? "", occurredAt: item.occurredAt, dayOfMonth: wall.day, monthOfYear: wall.month))
         }
+        if value.hasMore, value.nextBeforeId?.text != items.last?.id { throw APIError.malformedResponse }
         return RoamMonthlyRecapPage(month: value.month, kind: query.kind, counts: value.counts, items: items,
-                                    hasMore: value.hasMore, nextBeforeID: value.nextBeforeId?.text)
+                                    hasMore: value.hasMore, nextBeforeID: value.nextBeforeId?.text, sourceBeforeID: query.beforeID)
     }
 }
 

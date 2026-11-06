@@ -23,6 +23,8 @@ public struct ClubOperationsDraft: Equatable {
     public var activityPrefs: [String] = []
     /// Existing media references are preserved. Native media upload is not enabled.
     public var logo = "", cover = ""
+    public internal(set) var logoUpload: ClubProfileMediaReceipt?
+    public internal(set) var coverUpload: ClubProfileMediaReceipt?
     public var prioritySignupEnabled = false
     public var memberReservedQuota = ""
     public var joinPolicy = 0
@@ -60,8 +62,8 @@ public struct ClubOperationsDraft: Equatable {
             guard memberReservedQuota.trimmed.allSatisfy({ $0.isASCII && $0.isNumber }),
                   let quota = Int(memberReservedQuota.trimmed), quota >= 0 else { throw ClubOperationsBlock.invalidQuota }
         }
-        // Without a verified upload contract, callers cannot introduce media references.
-        guard logo == (original?.club.logo ?? ""), cover == (original?.club.cover ?? "") else { throw ClubOperationsBlock.mediaUnavailable }
+        // Changed references require exact owner-minted proof; liveness is rechecked before dispatch.
+        try validateMedia(original: original)
     }
     func fields(original: ClubOperationsProfile?) throws -> [String: Any] {
         try validate(original: original)
@@ -198,13 +200,25 @@ public enum ClubOperationsWriteAvailability: Equatable { case unverified, approv
     var identity: ClubReadIdentity? { get }
     var isConfigured: Bool { get }
     var writeAvailability: ClubOperationsWriteAvailability { get }
+    /// Separate opt-in capability. Ordinary club access never grants welcome-note writes or receipt reads.
+    var welcomeNote: ClubWelcomeNoteService? { get }
+    /// Live presentation fence; a role/authority refresh retires existing welcome editors.
+    var welcomeNoteRevision: UInt64 { get }
+    var profileMedia: ClubProfileMediaService? { get }
+    var profileDrafts: ClubProfileLocalDraftContext? { get }
     func hasPending(target: ClubOperationsTarget) -> Bool
     func snapshot(target: ClubOperationsTarget) async throws -> ClubOperationsSnapshot
     func perform(_ command: ClubOperationsCommand, target: ClubOperationsTarget, expectedIdentity: ClubReadIdentity) async throws -> ClubOperationsReceipt
 }
 private extension String { var trimmed: String { trimmingCharacters(in: .whitespacesAndNewlines) } }
 
-public extension ClubOperationsAccess { func hasPending(target: ClubOperationsTarget) -> Bool { false } }
+public extension ClubOperationsAccess {
+    var welcomeNote: ClubWelcomeNoteService? { nil }
+    var welcomeNoteRevision: UInt64 { 0 }
+    var profileMedia: ClubProfileMediaService? { nil }
+    var profileDrafts: ClubProfileLocalDraftContext? { nil }
+    func hasPending(target: ClubOperationsTarget) -> Bool { false }
+}
 
 /// Canonical workspace tabs for post-create club routing.
 /// Validates `requestedTab` and safely falls back to `.overview` when nil, unknown, or unverified.

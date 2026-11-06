@@ -1,0 +1,125 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "cancellationConsent.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local consent request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机同意请求"
+          }
+        }
+      }
+    },
+    "cancellationConsent.unread": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The local consent request has not been read. New consent and applications are unavailable until it is checked."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未读取本机同意请求。核对前无法发起新的同意或注销申请。"
+          }
+        }
+      }
+    },
+    "cancellationConsent.none": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No unconfirmed consent request is saved locally for this account. This does not confirm consent or an account cancellation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机未保存此账号的未确认同意请求。这不代表已同意或已注销。"
+          }
+        }
+      }
+    },
+    "cancellationConsent.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The result of a consent request saved on this device is unconfirmed. New consent and applications are blocked. Refresh only reads saved information and existing application status; it does not resend this request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机保存的同意请求结果未确认，暂不能发起新的同意或注销申请。刷新仅重读本机信息及已有申请状态，不会重新发送此请求。"
+          }
+        }
+      }
+    },
+    "cancellationConsent.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The local consent request could not be read. New consent and applications are blocked. The saved record has not been cleared; refresh to read it again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法读取本机同意请求，暂不能发起新的同意或注销申请。保存记录未被清除，可刷新重新读取。"
+          }
+        }
+      }
+    },
+    "cancellationConsent.scope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local information is shown for this account and storage scope. Older records do not identify the server environment or notice version. The current account cancellation status is shown separately."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里只展示当前账号及存储范围内的本机信息。旧记录没有服务器环境或须知版本，不能据此核准归属。当前注销状态单独展示。"
+          }
+        }
+      }
+    },
+    "cancellationConsent.request": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved request reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机保存的请求编号"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

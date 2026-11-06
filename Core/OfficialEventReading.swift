@@ -5,15 +5,30 @@ import Foundation
 public struct OfficialReadContext: Equatable {
     public let epoch: UInt64
     public let accountID: Int?
+    public let role: String?
+    public let viewerRevision: UInt64
+    public let publicSourceRevision: UUID?
     fileprivate let token: String?
     public var isAuthenticated: Bool { accountID != nil && token != nil }
-    public init(guestEpoch: UInt64) { epoch = guestEpoch; accountID = nil; token = nil }
-    public init(accountID: Int, epoch: UInt64, token: String) throws {
+    public init(guestEpoch: UInt64, viewerRevision: UInt64 = 0, publicSourceRevision: UUID? = nil) {
+        epoch = guestEpoch; accountID = nil; token = nil; role = nil
+        self.viewerRevision = viewerRevision; self.publicSourceRevision = publicSourceRevision
+    }
+    public init(accountID: Int, epoch: UInt64, token: String, role: String? = nil,
+                viewerRevision: UInt64 = 0, publicSourceRevision: UUID? = nil) throws {
         guard accountID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         self.accountID = accountID; self.epoch = epoch; self.token = token
+        self.role = role; self.viewerRevision = viewerRevision; self.publicSourceRevision = publicSourceRevision
+    }
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.epoch == rhs.epoch && lhs.accountID == rhs.accountID && lhs.viewerRevision == rhs.viewerRevision &&
+        lhs.publicSourceRevision == rhs.publicSourceRevision &&
+        lhs.role.map { Data($0.utf8) } == rhs.role.map { Data($0.utf8) } &&
+        lhs.token.map { Data($0.utf8) } == rhs.token.map { Data($0.utf8) }
     }
 }
 @MainActor public protocol OfficialEventReading: AnyObject {
+    var invalidationSignal: OfficialReadInvalidationSignal? { get }
     var isConfigured: Bool { get }
     var isAuthenticated: Bool { get }
     var isOfflineExample: Bool { get }
@@ -26,7 +41,11 @@ public struct OfficialReadContext: Equatable {
     func myPublished() async throws -> OfficialPublished
     func broadcastStats(id: Int) async throws -> OfficialBroadcastStats
 }
+public extension OfficialEventReading {
+    var invalidationSignal: OfficialReadInvalidationSignal? { nil }
+}
 @MainActor public final class OfficialSessionReader: OfficialEventReading {
+    public let invalidationSignal: OfficialReadInvalidationSignal?
     private let service: OfficialEventService?
     private let currentContext: () -> OfficialReadContext
     private let onUnauthorized: (OfficialReadContext) -> Void
@@ -41,8 +60,10 @@ public struct OfficialReadContext: Equatable {
         return stamp
     }
     public init(service: OfficialEventService?, currentContext: @escaping () -> OfficialReadContext,
+                invalidationSignal: OfficialReadInvalidationSignal? = nil,
                 onUnauthorized: @escaping (OfficialReadContext) -> Void = { _ in }) {
         self.service = service; self.currentContext = currentContext; self.onUnauthorized = onUnauthorized
+        self.invalidationSignal = invalidationSignal
         snapshot = currentContext()
     }
     public func events(city: String? = nil) async throws -> [OfficialEvent] {

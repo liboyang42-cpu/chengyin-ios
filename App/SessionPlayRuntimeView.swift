@@ -14,6 +14,10 @@ import UIKit
         Group {
             switch destination {
             case .journey(let scope):
+                VStack(spacing: 0) {
+                    if let recovery=session.cityOriginalRecovery(scope:scope) {
+                        CityOrientationOriginalRecoveryView(model:recovery)
+                    }
                 if let model = session.playExperience(for: scope) {
                     let auxiliary = auxiliaryStore.models(revision: session.sessionRevision, scope: scope, topicID: model.snapshot?.result.topicID,
                         provider: auxiliaryProvider ?? session.playThemeAuxiliaryProvider)
@@ -43,6 +47,7 @@ import UIKit
                                 growthReader: session.growthCenterReader, isCurrent: { model.identity != nil }).id(session.profileReader.identity))
                         })
                 } else { Text("playx.disabled") }
+                }
             case .director(let activityID):
                 if let model = session.playDirector(activityID: activityID) { PlayDirectorView(model: model) }
                 else { Text("playx.disabled") }

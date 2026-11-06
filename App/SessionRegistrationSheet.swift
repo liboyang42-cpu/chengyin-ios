@@ -6,7 +6,7 @@ import SwiftUI
     @EnvironmentObject private var session:AppSession
     var body:some View {
         RegistrationSheetView(activity:activity,coordinator:session.registrationCoordinator,
-                              participantReader:session.profileReader,
+                              participantReader:session.participantReader,
                               orderReader:session.ownedOrderReader,
                               participantCoordinator:session.participantCoordinator,
                               currentIdentity:{ session.profileReader.identity },

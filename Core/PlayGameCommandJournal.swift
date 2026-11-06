@@ -10,6 +10,8 @@ public struct PlayPendingGameCommand: Codable, Equatable {
     public let nodeID: Int?
     public let requestID: String
     public let expectedRevision: Int
+    public let authorityEpoch: Int?
+    public let sharedPlanIdentity: PlaySharedPlanIdentity?
     public let action: String
     /// Sorted-key JSON of the exact payload; never re-derived from the current view.
     let payload: Data
@@ -18,16 +20,21 @@ public struct PlayPendingGameCommand: Codable, Equatable {
     init(command: PlayPlayerCommand, session: PlayExperienceSession, sessionID: Int) throws {
         guard sessionID > 0 else { throw PlayExperienceError.persistenceUnavailable }
         let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
+        authorityEpoch = nil; sharedPlanIdentity = nil
         owner = .init(session: session); originEpoch = session.epoch
         activityID = command.activityID; nodeID = command.nodeID; requestID = command.requestID
         expectedRevision = command.expectedRevision; action = command.action.rawValue
         payload = try encoder.encode(command.payload); self.sessionID = sessionID
         guard try self.command() == command else { throw PlayExperienceError.persistenceUnavailable }
     }
+    func validateOriginalCommand() throws {
+        if sharedPlanIdentity != nil { _ = try planCommand() }
+        else { _ = try command() }
+    }
     /// Rebuilds the identical command; any tampered or unreadable field fails closed.
     func command() throws -> PlayPlayerCommand {
         do {
-            guard let kind = PlayPlayerCommand.Action(rawValue: self.action), sessionID > 0 else { throw PlayExperienceError.persistenceUnavailable }
+            guard sharedPlanIdentity == nil, authorityEpoch == nil, let kind = PlayPlayerCommand.Action(rawValue: self.action), sessionID > 0 else { throw PlayExperienceError.persistenceUnavailable }
             let decoded = try JSONDecoder().decode([String: PlayWireValue].self, from: self.payload)
             return try PlayPlayerCommand(activityID: activityID, nodeID: nodeID, requestID: requestID,
                                          expectedRevision: expectedRevision, action: kind, payload: decoded)

@@ -44,12 +44,14 @@ struct ProfileTextFieldEdit: Identifiable {
 struct ProfileTextFieldEditor: View {
     let edit: ProfileTextFieldEdit
     let caseImageReader: (any RetainedPublicImageReading)?
+    let nicknameReader: (any ProfileNicknameAvailabilityReading)?
     let cancel: () -> Void
     let confirm: (String) -> Void
     @State private var text: String
     @FocusState private var focused: Bool
-    init(edit: ProfileTextFieldEdit, caseImageReader: (any RetainedPublicImageReading)? = nil, cancel: @escaping () -> Void, confirm: @escaping (String) -> Void) {
+    init(edit: ProfileTextFieldEdit, caseImageReader: (any RetainedPublicImageReading)? = nil, nicknameReader: (any ProfileNicknameAvailabilityReading)? = nil, cancel: @escaping () -> Void, confirm: @escaping (String) -> Void) {
         self.edit = edit; self.caseImageReader = caseImageReader; self.cancel = cancel; self.confirm = confirm
+        self.nicknameReader = nicknameReader
         _text = State(initialValue: edit.originalText)
     }
     var body: some View {
@@ -66,6 +68,8 @@ struct ProfileTextFieldEditor: View {
                         .textContentType(.nickname).focused($focused)
                         .accessibilityIdentifier("profile.edit.name")
                     ProfileFieldLimitCounter(text: text)
+                    ProfileNicknameSheetSection(edit: edit, text: $text, reader: nicknameReader)
+                        .id(nicknameReader?.sourceRevision)
                 } else if edit.field == .introduction {
                     TextField(LocalizedStringKey(edit.field.titleKey), text: $text,
                               prompt: Text("member.profile.introductionPrompt", tableName: "MemberProfile"), axis: .vertical)

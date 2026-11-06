@@ -93,6 +93,7 @@ public struct ClubCommunityPendingRecord: Codable, Equatable, Sendable {
     public let phase: Phase
     public let requestID: String?
     public let postVersion: Int?
+    public let receiptNamespace: String?
 
     public init(
         version: Int = 1,
@@ -101,7 +102,8 @@ public struct ClubCommunityPendingRecord: Codable, Equatable, Sendable {
         operationKind: String,
         phase: Phase,
         requestID: String? = nil,
-        postVersion: Int? = nil
+        postVersion: Int? = nil,
+        receiptNamespace: String? = nil
     ) throws {
         let normalizedRequestID: String?
         if let rawRequestID = requestID {
@@ -118,6 +120,9 @@ public struct ClubCommunityPendingRecord: Codable, Equatable, Sendable {
                 throw ClubCommunityPendingJournalFailure.corrupt
             }
         }
+        guard receiptNamespace == nil || receiptNamespace == "club-post-v1" else {
+            throw ClubCommunityPendingJournalFailure.corrupt
+        }
         guard version == 1,
               Self.allowedOperationKinds.contains(operationKind) else {
             throw ClubCommunityPendingJournalFailure.corrupt
@@ -129,6 +134,7 @@ public struct ClubCommunityPendingRecord: Codable, Equatable, Sendable {
         self.phase = phase
         self.requestID = normalizedRequestID
         self.postVersion = postVersion
+        self.receiptNamespace = receiptNamespace
     }
 }
 
@@ -206,6 +212,7 @@ public final class ClubCommunityStoredPendingJournal: ClubCommunityPendingJourna
         guard bytes.count <= 4096,
               let decoded = try? JSONDecoder().decode(ClubCommunityPendingRecord.self, from: bytes),
               decoded.version == 1,
+              (decoded.receiptNamespace == nil || decoded.receiptNamespace == "club-post-v1"),
               decoded.target == target,
               ClubCommunityPendingRecord.allowedOperationKinds.contains(decoded.operationKind),
               (decoded.requestID == nil || (!decoded.requestID!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && decoded.requestID!.utf8.count <= 128)),
@@ -240,7 +247,8 @@ public final class ClubCommunityStoredPendingJournal: ClubCommunityPendingJourna
             operationKind: existing.operationKind,
             phase: .unknownLocked,
             requestID: existing.requestID,
-            postVersion: existing.postVersion
+            postVersion: existing.postVersion,
+            receiptNamespace: existing.receiptNamespace
         )
         try persist(updated)
     }

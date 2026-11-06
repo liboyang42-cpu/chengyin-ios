@@ -582,12 +582,15 @@ struct ClubGovernanceReadView: View {
             }
             if operation == .customers {
                 Section {
+                    // Mini-program club/customers: filter chips, then search (typing already re-reads).
                     Picker("club.gov.filter", selection: customerFilterBinding) {
                         ForEach(["all", "repeat", "new", "remark"], id: \.self) { Text(LocalizedStringKey("club.gov.filter." + $0)).tag($0) }
+                    }.pickerStyle(.segmented).labelsHidden()
+                    HStack {
+                        Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
+                        TextField("club.gov.keyword", text: customerKeywordBinding).submitLabel(.search)
+                            .onSubmit { loadCustomersNow() }
                     }
-                    TextField("club.gov.keyword", text: customerKeywordBinding).submitLabel(.search)
-                        .onSubmit { loadCustomersNow() }
-                    Button("club.gov.search") { loadCustomersNow() }.disabled(loading)
                 }
             }
             if operation == .topicCustomers {
@@ -599,6 +602,9 @@ struct ClubGovernanceReadView: View {
                     }.accessibilityIdentifier("club.gov.topicCustomers.filter")
                         .onChange(of: topicCustomerFilter) { _, _ in Task { await load() } }
                     Text("club.gov.topicCustomers.countScope").font(.footnote).foregroundStyle(.secondary)
+                }
+                if let clubID = scope.clubID, let topicID = scope.topicID {
+                    ClubParticipationTrendSection(clubID: clubID, topicID: topicID, identity: identity, viewerRevision: readContext.viewerRevision, access: access)
                 }
             }
             if operation == .leaderboard {
@@ -1126,8 +1132,29 @@ struct ClubGovernanceReadView: View {
         customerTopic = target
     }
     private func link(_ target: ClubGovernanceRead, _ targetScope: ClubGovernanceScope? = nil) -> some View {
-        NavigationLink { ClubGovernanceReadView(operation: target, scope: targetScope ?? scope, identity: identity, access: access, coordinator: coordinator) } label: { Label(LocalizedStringKey("club.gov." + target.rawValue), systemImage: "chevron.right.circle") }
+        NavigationLink { ClubGovernanceReadView(operation: target, scope: targetScope ?? scope, identity: identity, access: access, coordinator: coordinator) } label: { Label(LocalizedStringKey("club.gov." + target.rawValue), systemImage: Self.symbol(target)) }
             .accessibilityIdentifier("club.gov.route." + target.rawValue)
+    }
+    /// One meaningful icon per workspace entry instead of the same chevron on every row.
+    static func symbol(_ read: ClubGovernanceRead) -> String {
+        switch read {
+        case .stats, .topicStats: return "chart.bar"
+        case .customers, .topicCustomers, .customer: return "person.2"
+        case .settlement: return "yensign.circle"
+        case .eventTopics, .series, .occurrences: return "calendar"
+        case .bans, .members: return "hand.raised"
+        case .cases: return "exclamationmark.bubble"
+        case .roles: return "person.badge.key"
+        case .audienceCounts: return "megaphone"
+        case .topics, .topicOverview: return "map"
+        case .editions: return "square.stack"
+        case .dissolutionBlockers: return "trash"
+        case .leaderboard: return "trophy"
+        case .posts, .feed: return "text.bubble"
+        case .topicSettings: return "gearshape"
+        case .recruit: return "storefront"
+        default: return "chevron.right.circle"
+        }
     }
     @ViewBuilder private func enrollmentLink(focusTopicID: Int? = nil) -> some View {
         if let clubID = scope.clubID {
@@ -1173,10 +1200,13 @@ struct ClubGovernanceReadView: View {
     @ViewBuilder private func content(_ snapshot: ClubGovernanceSnapshot) -> some View {
         let value = snapshot.value
         if operation == .access {
-            Section("club.gov.roles") {
-                ForEach(snapshot.permissions?.roleCodes ?? [], id: \.self) { code in
-                    if ["CLUB_OWNER", "CLUB_CO_OWNER", "CLUB_OPERATOR", "CLUB_MEMBER", "EVENT_LEAD", "EVENT_CHECKIN"].contains(code) { Text(LocalizedStringKey("club.gov.role." + code)) }
-                    else { Text(verbatim: code) }
+            // Viewer's own roles, by name. Unrecognised internal codes are not shown.
+            let knownRoles = (snapshot.permissions?.roleCodes ?? []).filter { ["CLUB_OWNER", "CLUB_CO_OWNER", "CLUB_OPERATOR", "CLUB_MEMBER", "EVENT_LEAD", "EVENT_CHECKIN"].contains($0) }
+            if !knownRoles.isEmpty {
+                Section("club.gov.yourRoles") {
+                    ForEach(knownRoles, id: \.self) { code in
+                        Label(LocalizedStringKey("club.gov.role." + code), systemImage: "person.badge.key")
+                    }
                 }
             }
             Section("club.gov.workspace") {
@@ -1201,10 +1231,29 @@ struct ClubGovernanceReadView: View {
                 }
             }
         } else if operation == .hostStatus {
-            ClubGovernanceFactRows(value: value, fields: ["accountRole", "registered"])
-            if value["accountRole"] == .string("merchant") { Text("club.gov.hostMerchantBlocked") }
-            else if value["accountRole"] == .string("club") { Text("club.gov.hostExisting") }
-            else { edit(.hostApply); Text("club.gov.identityGate") }
+            // Mini-program club/apply: intro → form; merchant accounts get a blocked state; hosts see the done card.
+            if value["accountRole"] == .string("merchant") {
+                ContentUnavailableView {
+                    Label("club.host.merchant.title", systemImage: "storefront")
+                } description: { Text("club.gov.hostMerchantBlocked") }
+                    .listRowBackground(Color.clear)
+            } else if value["accountRole"] == .string("club") {
+                Section("club.host.done.title") {
+                    LabeledContent("club.host.done.status") { Text("club.host.done.active").foregroundStyle(.green) }
+                    LabeledContent("club.host.done.limitLabel") { Text("club.host.done.limitValue") }
+                }
+            } else {
+                Section {
+                    Text("club.host.intro.title").font(.title2.weight(.bold))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.vertical, Theme.Space.s2)
+                    Label("club.host.intro.instant", systemImage: "checkmark.circle")
+                    Label("club.host.intro.limit", systemImage: "person.3")
+                }
+                Section {
+                    edit(.hostApply).buttonStyle(.questifyPrimary).frame(maxWidth: .infinity)
+                }.listRowBackground(Color.clear)
+            }
         } else if operation == .roster {
             if let roster = try? ClubRosterPresentation(snapshot: snapshot, context: readContext) {
                 let source = attendanceSource
@@ -1219,7 +1268,13 @@ struct ClubGovernanceReadView: View {
             ClubOpsRoleSection(roles: snapshot, context: readContext, access: access, assign: AnyView(edit(.assignRole))) { row in
                 AnyView(edit(.revokeRole, seed: row.revokeSeed))
             }
-            Section("club.gov.roleDefinitions") { ForEach(Array((value["roles"].array ?? []).enumerated()), id: \.offset) { _, row in ClubGovernanceFactRows(value: row, fields: ["name", "roleCode", "scopeType"]) } }
+            ClubRoleRevocationRecoverySection(recovery: coordinator.roleRevocation, context: readContext, access: access) { Task { await load() } }
+            ClubRoleAssignmentRecoverySection(recovery: coordinator.roleAssignment, context: readContext, access: access) { Task { await load() } }
+            // Role names only; the raw role code and scope type are internal.
+            Section("club.gov.roleDefinitions") { ForEach(Array((value["roles"].array ?? []).enumerated()), id: \.offset) { _, row in
+                if let name = row["name"].string { Text(verbatim: name) }
+                else if let code = row["roleCode"].string { Text(LocalizedStringKey("club.gov.role." + code)) }
+            } }
         } else if operation == .bans, let bans = try? ClubOpsBanList(snapshot: snapshot) {
             ClubOpsBanSection(list: bans) { row in AnyView(edit(.unban, seed: row.unbanSeed ?? [:])) }
             Section { link(.members) }
@@ -1231,28 +1286,49 @@ struct ClubGovernanceReadView: View {
             ClubTopicMerchantContent(snapshot: snapshot, context: readContext, snapshotGeneration: snapshotGeneration, readGeneration: generation, access: access)
         } else if operation == .topicOverview {
             let terminalContext = readContext, terminalGeneration = snapshotGeneration
+            // Mini-program club/topic-detail order: title + status → quick entries → 未通过原因 →
+            // 剧情与玩法 → 接下来 (sessions) → director (terminal sessions) → rules.
+            Section {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(verbatim: value["name"].string ?? value["title"].string ?? "—").font(.title2.weight(.bold))
+                        .fixedSize(horizontal: false, vertical: true)
+                    if let status = value["status"].string, ["reviewing", "rejected", "confirmed", "preparing", "running", "ended"].contains(status) {
+                        Text(LocalizedStringKey("club.topic.status." + status)).font(.subheadline.weight(.semibold))
+                            .foregroundStyle(status == "rejected" ? Color.red : (status == "running" ? Color.green : Color.secondary))
+                    }
+                }.accessibilityElement(children: .combine)
+                ClubGovernanceFactRows(value: value, fields: ["startDate", "endDate", "playModeText"])
+            }
+            Section { link(.topicStats); link(.topicSettings); link(.topicCustomers); link(.recruit); enrollmentLink(focusTopicID: scope.topicID) }
+            if let reason = value["rejectReason"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !reason.isEmpty {
+                Section("club.topic.rejectReason") { Text(verbatim: reason).foregroundStyle(.red) }
+            }
+            Section {
+                NavigationLink { ClubGovernanceStoryView(snapshot: $snapshot, snapshotContext: $snapshotContext, snapshotGeneration: $snapshotGeneration, loading: $loading, failure: $failure, context: readContext, identity: identity, access: access, coordinator: coordinator, reload: { await load() }) } label: { Label("club.gov.story", systemImage: "book.pages") }.accessibilityIdentifier("club.gov.openStory")
+            }
+            Section("club.topic.upcoming") {
+                let sessions = value["activityList"].array ?? []
+                if sessions.isEmpty { Text("club.topic.noSessions").foregroundStyle(.secondary) }
+                ForEach(Array(sessions.enumerated()), id: \.offset) { _, row in
+                    if let id = row["id"].int {
+                        let target = ClubGovernanceScope(clubID: scope.clubID, topicID: scope.topicID, activityID: id)
+                        NavigationLink { ClubGovernanceEventView(scope: target, identity: identity, access: access, coordinator: coordinator) } label: {
+                            if let name = row["name"].string { Text(verbatim: name) } else { Text("club.gov.eventID \(id)") }
+                        }
+                        if let startDate = row["startDate"].string, ClubOpsTimeRequest.date(startDate) != nil {
+                            NavigationLink("context.ops.title") {
+                                ClubOpsTimeView(activityID: id, original: startDate, owner: opsTimeFactory?(id)) { Task { await load() } }
+                            }.accessibilityIdentifier("club.context.editOps.\(id)")
+                        }
+                    }
+                }
+            }
             ClubTerminalSessionEntry(snapshot: snapshot, context: terminalContext, snapshotGeneration: terminalGeneration,
                 host: terminalSessions, access: access, sourceIsCurrent: {
                     !loading && self.snapshot == snapshot && snapshotContext == terminalContext && readContext == terminalContext &&
                     snapshotGeneration == terminalGeneration && identity == access.identity && scenePhase == .active
                 }, presentation: terminalPresentation)
-            ClubGovernanceFactRows(value: value, fields: ["name", "title", "auditStatus", "rejectReason", "status", "startDate", "endDate", "playModeText", "storyReady", "gameConfiguredCount"])
-            Section { link(.topicStats); link(.topicSettings); link(.topicCustomers); link(.recruit); enrollmentLink(focusTopicID: scope.topicID) }
             Section { NavigationLink("context.rules.title") { ClubOperatingRulesView() }.accessibilityIdentifier("club.context.openRules") }
-            Section("club.gov.story") {
-                NavigationLink { ClubGovernanceStoryView(snapshot: $snapshot, snapshotContext: $snapshotContext, snapshotGeneration: $snapshotGeneration, loading: $loading, failure: $failure, context: readContext, identity: identity, access: access, coordinator: coordinator, reload: { await load() }) } label: { Label("club.gov.story", systemImage: "book.pages") }.accessibilityIdentifier("club.gov.openStory")
-            }
-            Section("club.gov.events") { ForEach(Array((value["activityList"].array ?? []).enumerated()), id: \.offset) { _, row in
-                if let id = row["id"].int {
-                    let target = ClubGovernanceScope(clubID: scope.clubID, topicID: scope.topicID, activityID: id)
-                    if let startDate = row["startDate"].string, ClubOpsTimeRequest.date(startDate) != nil {
-                        NavigationLink("context.ops.title") {
-                            ClubOpsTimeView(activityID: id, original: startDate, owner: opsTimeFactory?(id)) { Task { await load() } }
-                        }.accessibilityIdentifier("club.context.editOps.\(id)")
-                    }
-                    NavigationLink { ClubGovernanceEventView(scope: target, identity: identity, access: access, coordinator: coordinator) } label: { Text(verbatim: row["name"].string ?? "#\(id)") }
-                }
-            } }
         } else if operation == .audienceCounts {
             Section {
                 if let rows = try? ClubOpsNotifyPresentation.audienceRows(value) { ClubOpsNotifyAudienceRows(rows: rows) }
@@ -1262,7 +1338,7 @@ struct ClubGovernanceReadView: View {
         } else if operation == .dissolutionBlockers {
             Section("club.gov.deposits") { dataRows(value["deposits"].array ?? []) }
             Section("club.gov.settlements") { dataRows(value["settlements"].array ?? []) }
-            Text("club.gov.financialGate"); edit(.dissolve)
+            edit(.dissolve).foregroundStyle(.red)
         } else if operation == .settlement {
             let settlementSummary = try? ClubOpsSettlementSummary(value: value, scope: scope)
             if let settlementSummary, settlementSummary.hasTopics { ClubOpsSettlementSummaryCard(summary: settlementSummary) }
@@ -1277,7 +1353,6 @@ struct ClubGovernanceReadView: View {
             } else if let settlementSummary, !settlementSummary.isOwner, settlementSummary.hasTopics {
                 ClubOpsSettlementOwnerOnlyWithdraw()
             }
-            Text("club.gov.financialGate")
             if let presentation = try? ClubSettlementDetailPresentation(snapshot: snapshot, context: readContext) {
                 let sourceContext = readContext, sourceGeneration = snapshotGeneration, sourceNamespace = access.storageNamespace
                 let source = ClubSettlementReturnOwner.Source(presentation: presentation, context: sourceContext,
@@ -1328,6 +1403,8 @@ struct ClubGovernanceReadView: View {
                         AnyView(ClubGovernanceReadView(operation: .customer, scope: .init(clubID: scope.clubID, memberID: id), identity: identity, access: access, coordinator: coordinator))
                     }
                 } else { Text("club.gov.malformed").accessibilityIdentifier("clubOps.customers.malformed") }
+            } else if operation == .checkin {
+                ClubCheckinDetailRows(value: value)
             } else {
                 ClubGovernanceFactRows(value: value, fields: ClubGovernanceFactRows.summaryFields)
                 if operation == .series {
@@ -1345,7 +1422,7 @@ struct ClubGovernanceReadView: View {
                snapshotCustomerFilters == customerFilters {
                 let sourceContext = readContext, sourceGeneration = snapshotGeneration
                 let sourceFilters = customerFilters
-                Button("discovery.clearFilters") {
+                Button("club.gov.customers.showAll") {
                     clearCustomerFilters(source: snapshot, context: sourceContext,
                                          sourceGeneration: sourceGeneration, filters: sourceFilters)
                 }.buttonStyle(.borderless)
@@ -1454,7 +1531,9 @@ struct ClubGovernanceEventView: View {
                 Label { Text("clubOpsEvent.entry.event", tableName: "ClubOpsEvent") } icon: { Image(systemName: "person.crop.circle.badge.checkmark") }
             }.accessibilityIdentifier("clubOpsEvent.open.event")
             ForEach([ClubGovernanceRead.roster, .occurrenceStatus, .roles, .audienceCounts, .topicStats], id: \.rawValue) { operation in
-                NavigationLink { ClubGovernanceReadView(operation: operation, scope: scope, identity: identity, access: access, coordinator: coordinator) } label: { Text(LocalizedStringKey("club.gov." + operation.rawValue)) }
+                // Original role approval and journal own exactly club + optional activity.
+                let target = operation == .roles ? ClubGovernanceScope(clubID: scope.clubID, activityID: scope.activityID) : scope
+                NavigationLink { ClubGovernanceReadView(operation: operation, scope: target, identity: identity, access: access, coordinator: coordinator) } label: { Text(LocalizedStringKey("club.gov." + operation.rawValue)) }
             }
             if scope.topicID != nil {
                 NavigationLink { ClubGovernanceCommandForm(route: .init(operation: .issueGroupCode, scope: scope), identity: identity, access: access, coordinator: coordinator) } label: { Label("club.gov.action.issueGroupCode", systemImage: "qrcode") }
@@ -1516,7 +1595,7 @@ struct ClubGovernanceEventView: View {
                 Picker("club.story.sections", selection: $tab) {
                     Text("club.story.route").tag(ClubStoryTab.route).accessibilityIdentifier("club.story.tab.route")
                     Text("club.story.play").tag(ClubStoryTab.play).accessibilityIdentifier("club.story.tab.play")
-                }.pickerStyle(.segmented).accessibilityIdentifier("club.story.tabs")
+                }.pickerStyle(.segmented).labelsHidden().listRowBackground(Color.clear).accessibilityIdentifier("club.story.tabs")
                 if presentation.chapters.isEmpty {
                     ClubStoryEmptyState(title: "club.story.noChapters", detail: "club.story.noRoute")
                 } else if tab == .route {
@@ -1533,12 +1612,11 @@ struct ClubGovernanceEventView: View {
                         } header: { ClubStoryChapterHeader(chapter: chapter) }
                     }
                 } else {
-                    chapterPicker(presentation.chapters)
+                    chapterPicker(presentation.chapters).listRowBackground(Color.clear)
                     if let chapter = presentation.chapters.first(where: { $0.id == selectedChapter }) ?? presentation.chapters.first {
                         playContent(chapter)
                     }
                 }
-                Section { Text("club.gov.storyProjection").font(.footnote).foregroundStyle(.secondary) }
             } else {
                 Text("club.story.sourceUnavailable").accessibilityIdentifier("club.story.sourceUnavailable")
             }

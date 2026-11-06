@@ -7,6 +7,7 @@ import SwiftUI
     var onClose: (() -> Void)? = nil
     var onLogin: (() -> Void)? = nil
     var topicLinks: OfficialTopicLinks? = nil
+    @StateObject private var sourceObservation = OfficialReadInvalidationObserver()
     @State private var bucket: OfficialEventBucket = .live
     @State private var keyword = ""
     @State private var publisherScope: UUID?
@@ -28,7 +29,6 @@ import SwiftUI
                             Text(LocalizedStringKey(value.tabTitleKey)).tag(value)
                         }
                     }.pickerStyle(.segmented).frame(minHeight: 44).accessibilityIdentifier("official.filter")
-                    summaryLinks
                 }.padding(.horizontal)
                 OfficialReadScreen(reader: reader, isPrivate: privateList, requestID: privateList ? "mine" : "public", onLogin: onLogin,
                                    load: { if privateList { return try await reader.myEvents() }; return try await reader.events(city: nil) }) { rows in
@@ -38,27 +38,34 @@ import SwiftUI
             .appNavigationTitle("official.title")
             .toolbar {
                 if let onClose { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose) } }
+                // The app has no WeChat capsule, so 我发布的 and 邀约 take the top-right slot.
+                ToolbarItemGroup(placement: .topBarTrailing) { summaryLinks }
             }
             .task(id: reader.scope) { await checkPublisherPermission() }
             .onChange(of: reader.scope) { _, _ in keyword = "" }
+        .onAppear { sourceObservation.bind(reader) }
+        .onChange(of: ObjectIdentifier(reader)) { _, _ in sourceObservation.bind(reader) }
+        .onChange(of: sourceObservation.revision) { _, _ in
+            guard sourceObservation.isBound(to: reader) else { return }
+            keyword = ""
+            if publisherScope != reader.scope { canPublish = false; publisherScope = nil }
+        }
+        .onDisappear { sourceObservation.stop() }
             // Keep IDs on the search, filter, and action leaves. A VStack ID can
             // propagate to those controls and hide their individual identifiers.
         }
     }
-    /// The source keeps the navigation bar to the page title and places these
-    /// secondary entries at the end of the summary row ("我发布的 ›", "邀约 ›").
-    private var summaryLinks: some View {
-        HStack(spacing: 16) {
-            Spacer(minLength: 0)
+    /// The mini-program puts these at the end of its summary row only because the WeChat capsule
+    /// owns the top-right corner; here they are the page's two toolbar entries.
+    @ViewBuilder private var summaryLinks: some View {
             if canPublish && publisherScope == reader.scope {
                 NavigationLink { OfficialPublishedView(reader: reader, actions: actions, onLogin: onLogin) } label: {
-                    Label("official.publishedLink", systemImage: "chevron.right").labelStyle(OfficialTrailingIconLabelStyle())
+                    Text("official.publishedLink")
                 }.frame(minHeight: 44).accessibilityIdentifier("official.publishedLink")
             }
             NavigationLink { OfficialInboxView(reader: reader, actions: actions, publisher: canPublish && publisherScope == reader.scope, onLogin: onLogin) } label: {
-                Label("official.inboxLink", systemImage: "chevron.right").labelStyle(OfficialTrailingIconLabelStyle())
+                Text("official.inboxLink")
             }.frame(minHeight: 44).accessibilityIdentifier("official.inboxLink")
-        }.font(.subheadline)
     }
     private func eventList(_ rows: [OfficialEvent]) -> some View {
         let visible = query.visible(rows)
@@ -76,10 +83,11 @@ import SwiftUI
                     }
                 }.font(.caption).foregroundStyle(.secondary).accessibilityIdentifier("officialList.summary")
                 if visible.isEmpty {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(LocalizedStringKey(query.emptyTitleKey)).font(.headline)
-                        Text(LocalizedStringKey(query.emptyDetailKey)).font(.subheadline).foregroundStyle(.secondary)
-                    }.fixedSize(horizontal: false, vertical: true)
+                    ContentUnavailableView {
+                        Label(LocalizedStringKey(query.emptyTitleKey), systemImage: "sparkles")
+                    } description: {
+                        Text(LocalizedStringKey(query.emptyDetailKey))
+                    }
                 }
             }
             ForEach(visible) { event in
@@ -89,6 +97,7 @@ import SwiftUI
             }
             Section { OfficialReadOnlyNotice(offline: reader.isOfflineExample) }
         }
+        .listStyle(.insetGrouped)
     }
     private func checkPublisherPermission() async {
         let captured = reader.scope
@@ -99,10 +108,5 @@ import SwiftUI
             guard !Task.isCancelled, reader.scope == captured else { return }
             canPublish = allowed; publisherScope = captured
         } catch { /* A failed capability check does not break public discovery or expose publishing. */ }
-    }
-}
-private struct OfficialTrailingIconLabelStyle: LabelStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        HStack(spacing: 2) { configuration.title; configuration.icon.imageScale(.small).accessibilityHidden(true) }
     }
 }

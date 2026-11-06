@@ -83,6 +83,10 @@ actor PrivateHomeSystemKeychain: PrivateHomeKeychainPrimitive {
     private func decode(_ item: PrivateHomeKeychainItem) throws -> PrivateHomeMutation {
         guard item.bytes.count <= 8_192, item.tag.count == 32 else { throw PrivateHomeIssue.storageUnavailable }
         do {
+            // Reject ambiguous stored JSON before typed decoding can collapse identity keys.
+            // The existing byte cap bounds parsing; retain original bytes for decode and recovery.
+            guard let text = String(data: item.bytes, encoding: .utf8),
+                  let root = try? ContentDraftJSON.parse(text), case .object = root else { throw PrivateHomeIssue.storageUnavailable }
             let record = try JSONDecoder().decode(Record.self, from: item.bytes)
             guard record.schema == 1, record.namespace == scope.namespace, record.accountID == scope.accountID else { throw PrivateHomeIssue.storageUnavailable }
             try record.mutation.validate()

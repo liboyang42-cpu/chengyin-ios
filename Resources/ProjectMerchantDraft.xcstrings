@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose one of your store’s saved AI drafts. This changes only this node’s local template reference."
+            "value": "Choose one of your store's saved AI drafts for this stop."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "选择本人店铺已保存的 AI 草稿，仅修改本节点的本地模板引用。"
+            "value": "为此地点选择店铺已保存的 AI 草稿。"
           }
         }
       }
@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Owner draft reading is not configured for this account. Your existing template reference is retained."
+            "value": "Store drafts aren't available right now. Your current template stays selected."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账户尚未配置本店草稿读取，已有模板引用会保留。"
+            "value": "本店草稿暂不可用，已选模板会保留。"
           }
         }
       }
@@ -86,13 +86,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pages are checked as they load. Refresh to see newly saved drafts. Source facts remain historical; choosing a draft does not confirm them."
+            "value": "Refresh to see newly saved drafts. Choosing a draft doesn't confirm its details."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "每页加载时检查当前状态。新保存的草稿需刷新查看。来源事实仍是历史记录，选择草稿不表示确认事实。"
+            "value": "刷新可查看新保存的草稿。选择草稿不代表确认其中的信息。"
           }
         }
       }
@@ -166,13 +166,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This source is no longer an unchanged, available draft. It cannot be selected."
+            "value": "This draft has changed or is no longer available. It can't be selected."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此来源已不再是未修改的可用草稿，无法选择。"
+            "value": "该草稿已变更或不可用，无法选择。"
           }
         }
       }
@@ -198,13 +198,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review template reference"
+            "value": "Check template"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "检查模板引用"
+            "value": "检查模板"
           }
         }
       }
@@ -214,13 +214,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This reference grants no publication or usage rights. Existing save, facts confirmation, review and release checks still apply."
+            "value": "Publishing still goes through the usual checks and review."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此引用不授予发布权或使用权，仍需经过已有保存、事实确认、审核与发布检查。"
+            "value": "发布仍需经过常规检查与审核。"
           }
         }
       }
@@ -230,13 +230,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check and use this reference"
+            "value": "Use this template"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新检查并使用此引用"
+            "value": "使用此模板"
           }
         }
       }
@@ -310,13 +310,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The selected source has changed. Refresh and choose again."
+            "value": "This draft has changed. Refresh and choose again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "所选来源已变化，请刷新后重新选择。"
+            "value": "该草稿已变更，请刷新后重新选择。"
           }
         }
       }
@@ -326,13 +326,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Other gameplay creation and editing are not connected in this field."
+            "value": "Other gameplay can be chosen in the play editor."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此处尚未接入其他玩法的创建与编辑。"
+            "value": "其他玩法可在玩法编辑器中选择。"
           }
         }
       }

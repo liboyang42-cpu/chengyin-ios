@@ -9,10 +9,10 @@ public struct ClubOpsNotifyCampaign: Equatable {
     public let successCount: Int
     public let failedCount: Int
     public let phase: Phase
-    /// Only an explicit `PROCESSING` shows "后台还在投递" (CU-C-135).
+    /// Only an explicit `PROCESSING` shows "后台还在投递".
     public let processing: Bool
     /// `total - success - failed`, never negative; not a separate server field.
-    public var pendingCount: Int { max(totalCount - successCount - failedCount, 0) }
+    public var pendingCount: Int { max(max(totalCount - successCount, 0) - failedCount, 0) }
     public var canRetryFailed: Bool { failedCount > 0 }
     public init(value: ClubGovernanceValue) throws {
         guard let id = value["id"].int, id > 0 else { throw ClubGovernanceFailure.malformed }

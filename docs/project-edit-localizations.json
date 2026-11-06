@@ -32,8 +32,8 @@
     "zh-Hans": "路线类别编号，以逗号分隔"
   },
   "projectEdit.categoriesHint": {
-    "en": "Enter verified category IDs. The category picker is not connected yet.",
-    "zh-Hans": "请输入已核实的类别编号。类别选择器尚未接入。"
+    "en": "Enter valid category IDs. Category selection isn't available right now.",
+    "zh-Hans": "请输入有效的类别编号。类别选择暂不可用。"
   },
   "projectEdit.schedule": {
     "en": "Route schedule",
@@ -60,8 +60,8 @@
     "zh-Hans": "招商截止日期"
   },
   "projectEdit.dateFormat": {
-    "en": "Use YYYY-MM-DD or YYYY-MM-DD HH:mm. Times stay in the source service's local-time format.",
-    "zh-Hans": "请输入 YYYY-MM-DD 或 YYYY-MM-DD HH:mm。时间按原服务的本地时间格式保留。"
+    "en": "Use YYYY-MM-DD or YYYY-MM-DD HH:mm, in local time.",
+    "zh-Hans": "请输入 YYYY-MM-DD 或 YYYY-MM-DD HH:mm（本地时间）。"
   },
   "projectEdit.structure": {
     "en": "Chapters and stops",
@@ -76,8 +76,8 @@
     "zh-Hans": "章节名称"
   },
   "projectEdit.chapterCarryOver": {
-    "en": "Existing artwork, audio, atmosphere and merchant terms are preserved. Editing those settings is not connected yet.",
-    "zh-Hans": "已有图片、音频、配色及商家条款均会保留。这些设置的编辑尚未接入。"
+    "en": "Existing artwork, audio, atmosphere and merchant terms are kept. Editing these settings isn't available right now.",
+    "zh-Hans": "已有图片、音频、配色及商家条款均会保留。这些设置暂不可编辑。"
   },
   "projectEdit.addChapter": {
     "en": "Add chapter",
@@ -160,8 +160,8 @@
     "zh-Hans": "纬度"
   },
   "projectEdit.coordinatesHint": {
-    "en": "Enter verified coordinates. Map search is not connected; zero coordinates are invalid under the source rules.",
-    "zh-Hans": "请输入已核实的坐标。地图搜索尚未接入；原规则不接受零坐标。"
+    "en": "Enter verified coordinates. Map search isn't available right now. Coordinates of 0 aren't accepted.",
+    "zh-Hans": "请输入已核实的坐标。地图搜索暂不可用；坐标不能为 0。"
   },
   "projectEdit.nodeMinutes": {
     "en": "Minutes at stop",
@@ -180,8 +180,8 @@
     "zh-Hans": "保留的玩法模板编号"
   },
   "projectEdit.gameplayDeferred": {
-    "en": "Existing gameplay stays attached. Creating, selecting and editing gameplay templates is not connected yet.",
-    "zh-Hans": "已有玩法关联会保留。创建、选择和编辑玩法模板尚未接入。"
+    "en": "Existing gameplay stays linked. Creating, choosing and editing gameplay templates isn't available right now.",
+    "zh-Hans": "已有玩法会保留。创建、选择和编辑玩法模板暂不可用。"
   },
   "projectEdit.tickets": {
     "en": "Tickets",
@@ -208,8 +208,8 @@
     "zh-Hans": "票价"
   },
   "projectEdit.priceHint": {
-    "en": "Enter 0 for a free ticket. Leaving this blank is not a free ticket. Currency follows the source service; no conversion is performed.",
-    "zh-Hans": "免费票请填写 0。留空不代表免费。币种沿用原服务，不进行换算。"
+    "en": "Enter 0 for a free ticket. Leaving this blank doesn't make it free. Prices aren't converted between currencies.",
+    "zh-Hans": "免费票请填写 0。留空不代表免费。价格不做币种换算。"
   },
   "projectEdit.totalStock": {
     "en": "Total stock",
@@ -248,8 +248,8 @@
     "zh-Hans": "同步到创意广场"
   },
   "projectEdit.advancedPreserved": {
-    "en": "Existing ownership, collaborators, self-play, rewards, media and commerce settings are preserved. Those advanced editors are not connected yet.",
-    "zh-Hans": "已有归属、合作者、自玩、奖励、媒体及商业设置均会保留。高级编辑功能尚未接入。"
+    "en": "Ownership, collaborators, self-play, rewards, media and sales settings stay as they are. Editing them here isn't available right now.",
+    "zh-Hans": "已有归属、合作者、自玩、奖励、媒体及商业设置均会保留，暂不支持在此编辑。"
   },
   "projectEdit.yes": {
     "en": "Yes",
@@ -272,28 +272,28 @@
     "zh-Hans": "检查路线"
   },
   "projectEdit.reviewHint": {
-    "en": "Review this frozen copy before continuing.",
-    "zh-Hans": "继续前请检查这份内容快照。"
+    "en": "Review these details before continuing.",
+    "zh-Hans": "继续前请检查这些内容。"
   },
   "projectEdit.fixBeforeReview": {
     "en": "Complete these fields",
     "zh-Hans": "请完善以下内容"
   },
   "projectEdit.fixtureBadge": {
-    "en": "Synthetic fixture",
-    "zh-Hans": "模拟数据"
+    "en": "Example",
+    "zh-Hans": "示例"
   },
   "projectEdit.localBadge": {
     "en": "Local draft only",
     "zh-Hans": "仅本机草稿"
   },
   "projectEdit.fixtureNotice": {
-    "en": "Synthetic editing demo. All data and outcomes are simulated; nothing is uploaded or published.",
-    "zh-Hans": "模拟编辑演示。所有数据及结果均为模拟，不上传、不发布。"
+    "en": "Example content. Nothing here is uploaded or published.",
+    "zh-Hans": "示例内容，不会上传或发布。"
   },
   "projectEdit.unconfigured": {
-    "en": "Publishing is not connected. You can edit and save a local draft; nothing will be sent.",
-    "zh-Hans": "发布服务尚未接入。你可以编辑并保存本机草稿，不会发送任何内容。"
+    "en": "Publishing isn't available right now. You can still edit and save a draft on this device; nothing will be sent.",
+    "zh-Hans": "发布暂不可用。你仍可编辑并在本机保存草稿，不会发送任何内容。"
   },
   "projectEdit.confirmSimulation": {
     "en": "Confirm simulation",
@@ -348,8 +348,8 @@
     "zh-Hans": "此草稿与当前编辑器不兼容，未载入。"
   },
   "projectEdit.revisionConflict": {
-    "en": "The server revision changed. Reload the current project; the old local draft will not overwrite it.",
-    "zh-Hans": "服务端版本已变化。请重新加载当前项目；旧本机草稿不会覆盖新版本。"
+    "en": "This project was updated elsewhere. Reload the latest version; your old draft won't overwrite it.",
+    "zh-Hans": "该项目已在别处更新。请重新加载最新内容；旧草稿不会覆盖新内容。"
   },
   "projectEdit.discardLocal": {
     "en": "Discard local draft",
@@ -412,8 +412,8 @@
     "zh-Hans": "当前发布权限或剩余配额不允许新建此路线。"
   },
   "projectEdit.mediaDeferred": {
-    "en": "Reference text only. Media picking, uploading and preview are not connected.",
-    "zh-Hans": "仅编辑引用文本。媒体选择、上传与预览尚未接入。"
+    "en": "Text only. Choosing, uploading and previewing media isn't available right now.",
+    "zh-Hans": "仅可编辑文字。媒体选择、上传与预览暂不可用。"
   },
   "projectEdit.fixture.signOut": {
     "en": "Sign out fixture",
@@ -520,8 +520,8 @@
     "zh-Hans": "提交已核对的更改"
   },
   "projectEdit.confirmLiveHint": {
-    "en": "Submit these exact changes to the server. A lost response will stay locked to prevent duplicate submission.",
-    "zh-Hans": "将这些更改提交至服务器。若回执丢失，将保留锁定以避免重复提交。"
+    "en": "Submit these changes? If no response comes back, editing stays locked to prevent a duplicate submission.",
+    "zh-Hans": "提交这些更改？如未收到结果，将保持锁定以避免重复提交。"
   },
   "projectEdit.validation.rewards": {
     "en": "Check self-play price, quota and reward coupon ID.",
@@ -560,8 +560,8 @@
     "zh-Hans": "九宫格已关闭"
   },
   "projectEdit.completion.serverConditions": {
-    "en": "Edit nine cells in S order. The server decides when each cell is lit; labels do not change conditions.",
-    "zh-Hans": "按 S 形编辑九格；点亮条件由服务端判定。名称仅改变展示，不改变条件。"
+    "en": "Edit the nine cells in S order. Each cell lights up based on its conditions; labels don't change the conditions.",
+    "zh-Hans": "按 S 形编辑九格；每格按条件点亮。名称仅改变展示，不改变条件。"
   },
   "projectEdit.completion.label": {
     "en": "Cell label (optional, up to 24 UTF-16 units)",
@@ -572,8 +572,8 @@
     "zh-Hans": "奖励券 ID（可留空）"
   },
   "projectEdit.completion.couponHint": {
-    "en": "Use an existing numeric reward coupon ID. The server checks eligibility; this does not issue a coupon.",
-    "zh-Hans": "只填现有奖励券的数字 ID；有效性与发放资格由服务端复核，不会立即发券。"
+    "en": "Enter the numeric ID of an existing reward coupon. Eligibility is checked separately; this doesn't issue a coupon.",
+    "zh-Hans": "只填现有奖励券的数字 ID；发放资格将另行审核，不会立即发券。"
   },
   "projectEdit.completion.feedback": {
     "en": "Reward feedback (up to 120 UTF-16 units)",
@@ -664,8 +664,8 @@
     "zh-Hans": "这些日期仅保存和展示，目前不控制购票时段。日期按服务端墙上时间提交，不按设备时区换算。"
   },
   "projectEdit.saleLegacy": {
-    "en": "An unsupported saved value is read-only and will be preserved.",
-    "zh-Hans": "不支持的已保存值为只读，并将原样保留。"
+    "en": "This saved setting can't be changed here. It will be kept as is.",
+    "zh-Hans": "此已保存的设置无法在这里修改，将原样保留。"
   },
   "projectEdit.syncThemeDates": {
     "en": "Match theme dates",

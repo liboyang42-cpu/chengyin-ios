@@ -167,13 +167,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Showing the first five projects in source order."
+            "value": "Showing the first five projects."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "按来源顺序展示前5个项目。"
+            "value": "展示前 5 个项目。"
           }
         }
       }
@@ -199,13 +199,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The service provides completion rate as completions divided by player participations. Missing metrics stay unknown; no rate is calculated on this screen."
+            "value": "Completion rate is completions divided by player participations. Missing figures are shown as unknown."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "完成率由服务端按完成人次÷游玩人次提供。缺失指标保留未知，此页不自行计算比率。"
+            "value": "完成率 = 完成人次 ÷ 游玩人次。缺失的数据显示为未知。"
           }
         }
       }

@@ -54,14 +54,16 @@ public struct MerchantPublicProductionApproval {
     private let approval: MerchantPublicProductionApproval
     private let api: APIConfiguration
     private let transport: any HTTPTransport
+    private let chatTransport: any HTTPTransport
     private let current: () -> MerchantPublicHostContext?
     private let grants: () -> MerchantNPCGrants
     private let journal: (any OperationPendingJournal)?
     public init?(api: APIConfiguration, approval: MerchantPublicProductionApproval? = nil,
-                 transport: any HTTPTransport, journal: (any OperationPendingJournal)? = nil,
+                 transport: any HTTPTransport, chatTransport: (any HTTPTransport)? = nil, journal: (any OperationPendingJournal)? = nil,
                  current: @escaping () -> MerchantPublicHostContext?, grants: @escaping () -> MerchantNPCGrants = { .init() }) {
         guard let approval, let captured = current(), approval.matches(captured), api.baseURL == captured.baseURL else { return nil }
         self.captured = captured; self.approval = approval; self.api = api; self.transport = transport
+        self.chatTransport = chatTransport ?? transport
         self.current = current; self.grants = grants; self.journal = journal
         if approval.publicHomeRead {
             homeReader = MerchantPublicScopedHomeReader(api: api, transport: transport, captured: captured, current: current)
@@ -78,7 +80,7 @@ public struct MerchantPublicProductionApproval {
     public func chatClient(currentScope: @escaping (PublicMerchantRowID) -> MerchantNPCScope?) -> MerchantNPCHTTPClient {
         guard chatGrants.chatAllowed, let journal else { return .init() }
         return .init(transport: MerchantPublicChatTransport(api: api, approval: approval, captured: captured,
-            transport: transport, homeReader: homeReader, journal: journal, current: current,
+            transport: chatTransport, homeReader: homeReader, journal: journal, current: current,
             grants: { self.chatGrants }, currentScope: currentScope))
     }
     /// Existing legacy resource DTOs do not match this backend. Keep that seam hard closed.
@@ -169,18 +171,73 @@ public struct MerchantPublicProductionApproval {
         request.setValue(token, forHTTPHeaderField: "Authorization")
         let result: (Data, Int)
         do { result = try await transport.send(request) } catch { throw MerchantNPCFailure.unknownOutcome }
-        guard valid(input.scope), !Task.isCancelled, result.0.count <= 1024 * 1024 else { throw MerchantNPCFailure.unknownOutcome }
+        guard valid(input.scope), !Task.isCancelled else { throw MerchantNPCFailure.unknownOutcome }
+        if let denial = MerchantNPCGameDispatchDenial(rawValue: result.1) { throw denial }
+        guard result.0.count <= 1024 * 1024 else { throw MerchantNPCFailure.unknownOutcome }
+        if (200..<300).contains(result.1),
+           let object = try? JSONSerialization.jsonObject(with: result.0) as? [String: Any],
+           let code = object["code"] as? Int,
+           let denial = MerchantNPCGameDispatchDenial(rawValue: code) { throw denial }
         // Only the exact request's terminal source status reconciles its pending lock.
         guard (200..<300).contains(result.1),
               let envelope = try? JSONSerialization.jsonObject(with: result.0) as? [String: Any],
               envelope["code"] as? Int == 200,
               let data = envelope["data"] as? [String: Any], data["requestId"] as? String == requestID,
-              let status = data["outcomeStatus"] as? String,
-              ["PROCESSING", "SUCCEEDED", "FAILED", "REJECTED"].contains(status),
-              let retryable = data["retryable"] as? Bool else { throw MerchantNPCFailure.unknownOutcome }
-        if status != "PROCESSING" && !retryable {
+              let bytes = try? JSONSerialization.data(withJSONObject: data),
+              let reply = try? JSONDecoder().decode(MerchantNPCReply.self, from: bytes),
+              (try? reply.validate(requestID: id)) != nil else { throw MerchantNPCFailure.unknownOutcome }
+        if reply.outcomeStatus != "PROCESSING" && !reply.canRetry {
             do { try journal.clear(record) } catch { throw MerchantNPCFailure.unknownOutcome }
         }
         return .init(status: result.1, body: result.0)
+    }
+}
+
+/// Game-only extraction of the existing signed-in merchant NPC adapter.
+/// The public-home transport stays independent. An adapter recognizes only an
+/// already-approved exact game POST; it never creates a grant or original-read authority.
+@MainActor public final class MerchantGameNPCProductionTransport: HTTPTransport {
+    private let approval: MerchantPublicProductionApproval
+    private let captured: MerchantPublicHostContext
+    private let transport: any HTTPTransport
+    private let current: () -> MerchantPublicHostContext?
+    private let grants: () -> MerchantNPCGrants
+    public init(approval: MerchantPublicProductionApproval, context: MerchantPublicHostContext,
+                transport: any HTTPTransport, current: @escaping () -> MerchantPublicHostContext?,
+                grants: @escaping () -> MerchantNPCGrants) {
+        self.approval = approval; captured = context; self.transport = transport
+        self.current = current; self.grants = grants
+    }
+    private func accepts(_ request: URLRequest) -> Bool {
+        guard current() == captured, captured.accountID != nil, approval.matches(captured), grants().chatAllowed,
+              request.httpMethod == "POST", !request.httpShouldHandleCookies,
+              request.httpBodyStream == nil, request.url?.query == nil, request.url?.fragment == nil,
+              request.url?.absoluteString == captured.baseURL.appendingPathComponent("api/ai/npc/merchant-chat").absoluteString,
+              request.value(forHTTPHeaderField: "Authorization") == captured.token,
+              request.value(forHTTPHeaderField: "Proxy-Authorization") == nil,
+              request.value(forHTTPHeaderField: "Cookie") == nil,
+              request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+              let body = request.httpBody, body.count <= 4096,
+              let fields = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+              Set(fields.keys) == ["requestId", "bizId", "message"],
+              let raw = fields["requestId"] as? String, UUID(uuidString: raw)?.uuidString == raw,
+              let row = fields["bizId"] as? Int, let identity = PublicMerchantRowID(row),
+              approval.chatMerchantRows.contains(identity),
+              let message = fields["message"] as? String, MerchantNPCMessageDraft(message).isValid,
+              let canonical = try? JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys]),
+              canonical == body else { return false }
+        return true
+    }
+    public func send(_ request: URLRequest) async throws -> (Data, Int) {
+        try Task.checkCancellation()
+        guard accepts(request) else { throw APIError.notConfigured }
+        let result = try await transport.send(request)
+        try Task.checkCancellation()
+        guard accepts(request) else { throw CancellationError() }
+        // An exact current HTTP denial carries no trusted content. Preserve its
+        // status even when its untrusted body is oversized; never settle the UUID.
+        if MerchantNPCGameDispatchDenial(rawValue: result.1) != nil { return (Data(), result.1) }
+        guard result.0.count <= 1_048_576 else { throw CancellationError() }
+        return result
     }
 }

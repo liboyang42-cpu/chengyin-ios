@@ -104,7 +104,7 @@ import SwiftUI
             VStack(spacing: 12) {
                 stateView(title: "merchantCityNode.create.login", sub: nil, identifier: "cityNodeCreate.login", retry: false)
                 Button { dismiss() } label: { Text(verbatim: "去登录") }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.questifyPrimary)
                     .accessibilityIdentifier("cityNodeCreate.login.action")
             }
         } else if c.issue == "merchant.content.denied" {
@@ -120,7 +120,7 @@ import SwiftUI
             if let sub { Text(verbatim: sub).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center) }
             if retry {
                 Button { Task { await model.load(); seedIfNeeded() } } label: { MerchantCityNodeCopy.text("merchantCityNode.action.retry") }
-                    .buttonStyle(.borderedProminent).accessibilityIdentifier("cityNodeCreate.retry")
+                    .buttonStyle(.questifyPrimary).accessibilityIdentifier("cityNodeCreate.retry")
             }
         }.frame(maxWidth: .infinity).padding(.vertical, 40).accessibilityElement(children: .contain).accessibilityIdentifier(identifier)
     }
@@ -151,10 +151,6 @@ import SwiftUI
             MerchantCityNodeInlineError(titleKey: "merchantCityNode.create.readbackTitle",
                 message: MerchantCityNodeCopy.string(readback == .missing ? "merchantCityNode.create.readbackMissing" : "merchantCityNode.create.readbackFailed"),
                 actionKey: "merchantCityNode.create.readbackRetry", identifier: "cityNodeCreate.readback.retry") { submit() }
-        }
-        if !MerchantCityNodeWriteGate.enabled(permitsWrites: service.permitsWrites, isOfflineExample: isOfflineFixture, path: "api/merchant/city-node/save") {
-            MerchantCityNodeCopy.text("merchantCityNode.write.disabled").font(.footnote).foregroundStyle(.secondary)
-                .accessibilityIdentifier("cityNodeCreate.writesDisabled")
         }
     }
 
@@ -193,15 +189,12 @@ import SwiftUI
                 let meta = [summary.interaction.map { MerchantCityNodeCopy.string(interactionKey($0)) },
                             summary.validationMethod.map { MerchantCityNodeCopy.string(validationKey($0)) }].compactMap { $0 }
                 if !meta.isEmpty { Text(verbatim: meta.joined(separator: " · ")).font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("cityNodeCreate.template.summary") }
-            } else {
-                MerchantCityNodeCopy.text("merchantCityNode.create.templateHint").font(.footnote).foregroundStyle(.secondary)
             }
             Button { openTemplate() } label: {
                 MerchantCityNodeCopy.text(templateID > 0 ? "merchantCityNode.create.reconfigure" : "merchantCityNode.create.configure")
             }.buttonStyle(.bordered)
                 .disabled(!handoff.active || handoffFactory == nil || !templateBinding.canOpen() || handoff.busy || handoff.opening != nil)
                 .accessibilityIdentifier("cityNodeCreate.template.configure")
-            if handoffFactory == nil { MerchantCityNodeCopy.text("merchantCityNode.create.templateUnavailable").font(.caption).foregroundStyle(.secondary) }
             if handoff.busy && handoff.opening == nil { ProgressView() }
             if handoff.recoveryNeeded, handoff.opening == nil, c.snapshot == nil {
                 Button { let permit = handoff.generation; Task { await handoff.recoverParent(binding: templateBinding, permit: permit) } } label: {
@@ -236,7 +229,7 @@ import SwiftUI
                         .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("cityNodeCreate.address.hint")
                     HStack {
                         Button { confirmProfileAddress() } label: { MerchantCityNodeCopy.text("merchantCityNode.create.confirmAddress") }
-                            .buttonStyle(.borderedProminent).disabled(submitting || submittedID != nil).accessibilityIdentifier("cityNodeCreate.address.confirm")
+                            .buttonStyle(.questifyPrimary).disabled(submitting || submittedID != nil).accessibilityIdentifier("cityNodeCreate.address.confirm")
                         Button(action: choose) { MerchantCityNodeCopy.text("merchantCityNode.create.repick") }
                             .buttonStyle(.bordered).disabled(!canChoose).accessibilityIdentifier("cityNodeCreate.address.repick")
                     }
@@ -249,7 +242,6 @@ import SwiftUI
                 Button(action: choose) { MerchantCityNodeCopy.text("merchantCityNode.create.markOnMap") }
                     .buttonStyle(.bordered).disabled(!canChoose).accessibilityIdentifier("cityNodeCreate.address.mark")
             }
-            if placeSearch == nil { MerchantCityNodeCopy.text("merchantCityNode.create.mapUnavailable").font(.caption).foregroundStyle(.secondary) }
         }.padding().frame(maxWidth: .infinity, alignment: .leading).background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
             .accessibilityElement(children: .contain).accessibilityIdentifier("cityNodeCreate.address")
     }
@@ -261,7 +253,7 @@ import SwiftUI
                 if submitting { ProgressView() }
                 MerchantCityNodeCopy.text(submittedID != nil ? "merchantCityNode.create.reread" : "merchantCityNode.create.submit")
             }.font(.headline).frame(maxWidth: .infinity).padding(.vertical, 6)
-        }.buttonStyle(.borderedProminent).disabled(!ready && submittedID == nil).padding().background(.bar)
+        }.buttonStyle(.questifyPrimary).disabled(!ready && submittedID == nil).padding().background(.bar)
             .accessibilityIdentifier("cityNodeCreate.submit")
     }
 

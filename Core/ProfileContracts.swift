@@ -299,17 +299,29 @@ public struct ProfileMedal: Decodable, Equatable {
     }
 }
 
+/// Local classification of a failed medal read, never a server grant or inferred empty result.
+public enum ProfileMedalReadRestriction: Equatable {
+    case denied, unavailable
+    static func classify(_ error: Error) -> Self? {
+        if (error as? ProfileReadFailure)?.isDenied == true || error as? APIError == .httpStatus(403) { return .denied }
+        if error as? APIError == .notConfigured { return .unavailable }
+        return nil
+    }
+}
 public struct ProfileBadgeWall: Equatable {
     public let identities: [ProfileIdentityBadge]
     /// nil means loading medals failed, not an empty collection.
     public let medals: [ProfileMedal]?
     public let medalFailureMessage: String?
+    public let medalReadRestriction: ProfileMedalReadRestriction?
     public var isPartial: Bool { medals == nil }
     public var isEmpty: Bool { identities.isEmpty && medals?.isEmpty == true }
-    public init(identities: [ProfileIdentityBadge], medals: [ProfileMedal]?, medalFailureMessage: String? = nil) {
+    public init(identities: [ProfileIdentityBadge], medals: [ProfileMedal]?, medalFailureMessage: String? = nil,
+                medalReadRestriction: ProfileMedalReadRestriction? = nil) {
         self.identities = identities
         self.medals = medals
         self.medalFailureMessage = medalFailureMessage
+        self.medalReadRestriction = medals == nil ? medalReadRestriction : nil
     }
 }
 

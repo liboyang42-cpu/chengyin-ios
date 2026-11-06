@@ -18,8 +18,13 @@ import SwiftUI
             }
             if model.busy, model.cardSessionID == nil { ProgressView("playx.themeRecords.loading") }
             if model.cardSessionID == nil, let issue = model.issue { issueText(issue) }
-            if model.hasMore, !model.rows.isEmpty || model.issue == .historyFailed {
-                Button(model.issue == .historyFailed ? "playx.themeRecords.reload" : "playx.themeRecords.more") { Task { await model.loadMore() } }
+            if PlayThemeRecordsPagination.isOffered(model) {
+                Button(model.issue == .historyFailed ? "playx.themeRecords.reload" : "playx.themeRecords.more") {
+                    Task {
+                        guard PlayThemeRecordsPagination.isOffered(model), !model.busy else { return }
+                        await model.loadMore()
+                    }
+                }
                     .disabled(model.busy).accessibilityIdentifier("playx.themeRecords.more")
             }
         }
@@ -114,5 +119,14 @@ import SwiftUI
         case .actions: return Text("playx.themeRecords.actions")
         case .rescues: return Text("playx.themeRecords.rescues")
         }
+    }
+}
+
+/// Refusal is not a transient read failure. Preserve the loaded rows, but do not
+/// turn a retained pagination cursor into a retry after 401 / 403 / code 2.
+@MainActor enum PlayThemeRecordsPagination {
+    static func isOffered(_ model: PlayThemeRecordsCoordinator) -> Bool {
+        model.issue != .refused && model.hasMore
+            && (!model.rows.isEmpty || model.issue == .historyFailed)
     }
 }

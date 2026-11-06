@@ -45,7 +45,7 @@ import SwiftUI
                     .accessibilityIdentifier("media.poster.scan")
                     .accessibilityFocused($focusedControl, equals: .scan)
             }
-        }.navigationTitle("media.poster.title")
+        }.navigationTitle("media.poster.title").navigationBarTitleDisplayMode(.inline)
             .fullScreenCover(isPresented: $showingScanner, onDismiss: {
                 guard scenePhase == .active, cameraEnabled else { return }
                 focusedControl = canScan ? .scan : .status

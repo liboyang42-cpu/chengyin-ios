@@ -2,29 +2,149 @@ import SwiftUI
 import Observation
 import UIKit
 
+@MainActor private func roamStampMetadataScope(_ reader: any RoamExperienceReading) -> UUID? {
+    if let reader = reader as? RoamAlbumMetadataReader { return reader.scope }
+    return (reader as? RoamReceivedStampReader)?.scope
+}
+@MainActor private func roamStampIsMetadataOnly(_ reader: any RoamExperienceReading) -> Bool {
+    reader is RoamAlbumMetadataReader || reader is RoamReceivedStampReader
+}
+
 @MainActor struct RoamStampAlbumView: View {
     let reader: any RoamExperienceReading
     var stampDestination: (() -> AnyView)? = nil
     let readOnlyScope: RoamStampAlbumReadOnlyScope?
-    @State private var pager: RoamAlbumPager
-    @State private var revision = 0
-    @State private var loading = false
     init(reader: any RoamExperienceReading, stampDestination: (() -> AnyView)? = nil, readOnlyScope: RoamStampAlbumReadOnlyScope? = nil) {
         self.stampDestination = stampDestination; self.readOnlyScope = readOnlyScope
         self.reader = reader
-        let albumReader: any RoamExperienceReading
-        if let readOnlyScope { albumReader = readOnlyScope } else { albumReader = reader }
-        _pager = State(initialValue: RoamAlbumPager(reader: albumReader))
     }
     var canShowAlbum: Bool { readOnlyScope?.matches(reader) ?? true }
-    var allowsCapture: Bool { readOnlyScope == nil && !(reader is RoamAlbumMetadataReader) }
-    var allowsRemoteImages: Bool { readOnlyScope?.allowsRemoteImages ?? !(reader is RoamAlbumMetadataReader) }
+    var allowsCapture: Bool { readOnlyScope == nil && !roamStampIsMetadataOnly(reader) }
+    var allowsRemoteImages: Bool { readOnlyScope?.allowsRemoteImages ?? !roamStampIsMetadataOnly(reader) }
     @ViewBuilder var captureDestination: some View {
         if allowsCapture {
             if let stampDestination { stampDestination() } else { AnyView(RoamStampCameraView()) }
         }
     }
     var body: some View {
+        RoamStampAlbumContent(album: self).id(RoamAlbumReadOwner(reader: reader, scope: readOnlyScope))
+            .modifier(RoamReceivedStampNavigation(isEntry: !(reader is RoamReceivedStampReader)))
+    }
+}
+
+/// Exact original reader and optional frozen metadata scope, not new image/capture permission.
+struct RoamAlbumReadOwner: Hashable {
+    let readerID: ObjectIdentifier
+    let identity: RoamExperienceIdentity?
+    let metadataScope: UUID?
+    let presentationScope: UUID?
+    let configured: Bool
+    let current: Bool
+    @MainActor init(reader: any RoamExperienceReading, scope: RoamStampAlbumReadOnlyScope?) {
+        readerID = ObjectIdentifier(reader); identity = reader.identity
+        metadataScope = roamStampMetadataScope(reader)
+        presentationScope = scope?.id; configured = reader.isConfigured
+        current = scope?.matches(reader) ?? true
+    }
+}
+
+/// Only read intents retire on cover. Source rows and the existing metadata lease survive a push.
+@MainActor final class RoamAlbumReadPresentation: ObservableObject {
+    let pager: RoamAlbumPager
+    let reader: any RoamExperienceReading
+    let scope: RoamStampAlbumReadOnlyScope?
+    private let owner: RoamAlbumReadOwner
+    @Published private var revision = 0
+    @Published private(set) var loading = false
+    private var mounted = false
+    private var foreground = false
+    private var needsAppearanceRead = false
+    private var operation = UUID()
+    private var work: Task<Void, Never>?
+    init(reader: any RoamExperienceReading, scope: RoamStampAlbumReadOnlyScope?) {
+        self.reader = reader; self.scope = scope; owner = .init(reader: reader, scope: scope)
+        let albumReader: any RoamExperienceReading
+        if let scope { albumReader = scope } else { albumReader = reader }
+        pager = .init(reader: albumReader)
+    }
+    var isCurrent: Bool {
+        owner == RoamAlbumReadOwner(reader: reader, scope: scope) && (scope?.matches(reader) ?? true)
+    }
+    func appear(foreground: Bool) {
+        mounted = true; self.foreground = foreground; needsAppearanceRead = true; retire()
+        readOnAppearance()
+    }
+    func disappear() { mounted = false; needsAppearanceRead = false; retire() }
+    func setForeground(_ value: Bool) {
+        guard foreground != value else { return }
+        foreground = value; retire(); readOnAppearance()
+    }
+    private func readOnAppearance() {
+        // Defer an initial inactive mount, but never refresh a hidden parent or revive a retired lease.
+        guard mounted, foreground, needsAppearanceRead, isCurrent else { return }
+        readAction(refresh: true)()
+    }
+    private func retire() {
+        operation = UUID(); work?.cancel(); work = nil
+        pager.cancelPending(); loading = false; revision &+= 1
+    }
+    private func accepts(_ offered: UUID) -> Bool {
+        mounted && foreground && isCurrent && operation == offered && !Task.isCancelled
+    }
+    private func begin(_ offered: UUID, refresh: Bool) -> UUID? {
+        guard accepts(offered), refresh || (!loading && pager.hasMore) else { return nil }
+        operation = UUID(); work?.cancel(); work = nil
+        if refresh { pager.reset() }
+        loading = true; return operation
+    }
+    func readAction(refresh: Bool = false) -> () -> Void {
+        let offered = operation
+        return { [weak self] in
+            guard let self, let issued = self.begin(offered, refresh: refresh) else { return }
+            self.work = Task { [weak self] in
+                guard let self else { return }
+                await self.read(issued: issued)
+            }
+        }
+    }
+    func refreshAction() -> () async -> Void {
+        let offered = operation
+        return { [weak self] in
+            guard let self, let issued = self.begin(offered, refresh: true) else { return }
+            await self.read(issued: issued)
+        }
+    }
+    private func read(issued: UUID) async {
+        guard operation == issued else { return }
+        guard accepts(issued) else { retire(); return }
+        needsAppearanceRead = false
+        await pager.loadNext()
+        guard operation == issued else { return }
+        guard accepts(issued) else {
+            if !isCurrent { pager.reset() }
+            retire(); return
+        }
+        loading = false; work = nil; operation = UUID(); revision &+= 1
+    }
+}
+
+@MainActor private struct RoamStampAlbumContent: View {
+    let album: RoamStampAlbumView
+    @Environment(\.scenePhase) private var scenePhase
+    @StateObject private var presentation: RoamAlbumReadPresentation
+    init(album: RoamStampAlbumView) {
+        self.album = album
+        _presentation = StateObject(wrappedValue: .init(reader: album.reader, scope: album.readOnlyScope))
+    }
+    private var reader: any RoamExperienceReading { album.reader }
+    private var readOnlyScope: RoamStampAlbumReadOnlyScope? { album.readOnlyScope }
+    private var canShowAlbum: Bool { album.canShowAlbum }
+    private var allowsCapture: Bool { album.allowsCapture }
+    private var allowsRemoteImages: Bool { album.allowsRemoteImages }
+    private var captureDestination: some View { album.captureDestination }
+    private var pager: RoamAlbumPager { presentation.pager }
+    var body: some View {
+        let read = presentation.readAction(), refresh = presentation.refreshAction()
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 20) {
                 if canShowAlbum {
@@ -32,14 +152,14 @@ import UIKit
                 if let total = pager.total { StampAlbumTotalHeader(total: total) }
                 if let error = pager.error {
                     if CollectionReadAccess(error) == .denied { StampAlbumDeniedNotice() }
-                    else { RoamExperienceIssue(error: error) { Task { await load() } } }
+                    else { RoamExperienceIssue(error: error, retry: read) }
                 }
                 if pager.loaded && pager.stamps.isEmpty {
                     ContentUnavailableView("roam.experience.albumEmpty", systemImage: "rectangle.stack", description: Text("roam.experience.albumEmptyHint"))
                         .accessibilityIdentifier("roam.experience.album.empty")
                     if allowsCapture {
                         NavigationLink { captureDestination } label: { Label("stampAlbum.openCamera", systemImage: "camera") }
-                            .buttonStyle(.borderedProminent).frame(minHeight: 44)
+                            .buttonStyle(.questifyPrimary).frame(minHeight: 44)
                             .accessibilityIdentifier("roam.experience.album.openCamera")
                     }
                 }
@@ -48,9 +168,9 @@ import UIKit
                         RoamStampCard(stamp: stamp, offline: reader.isOfflineExample, allowsRemoteImages: allowsRemoteImages)
                     }.buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("roam.experience.album.stamp")
                 }
-                if loading { ProgressView("roam.loading") }
-                if pager.hasMore && !loading && pager.loaded {
-                    Button("roam.experience.loadMore") { Task { await load() } }
+                if presentation.loading { ProgressView("roam.loading") }
+                if pager.hasMore && !presentation.loading && pager.loaded {
+                    Button("roam.experience.loadMore", action: read)
                         .buttonStyle(.bordered).accessibilityIdentifier("roam.experience.album.more")
                 }
                 } else { RoamStampReadOnlyUnavailable() }
@@ -63,22 +183,11 @@ import UIKit
                     }
                 }
             }
-            .task(id: reader.identity) { await refresh() }
+            .onAppear { presentation.appear(foreground: scenePhase == .active) }
+            .onChange(of: scenePhase) { _, phase in presentation.setForeground(phase == .active) }
             .refreshable { await refresh() }
-            .onDisappear { pager.cancelPending(); revision += 1; loading = false }
+            .onDisappear { presentation.disappear() }
             .accessibilityIdentifier("roam.experience.album")
-    }
-    private func refresh() async {
-        guard canShowAlbum else { pager.reset(); revision += 1; loading = false; return }
-        revision += 1; loading = false; pager.reset(); await load()
-    }
-    private func load() async {
-        guard canShowAlbum, !loading else { return }
-        revision += 1; let ticket = revision
-        loading = true
-        await pager.loadNext()
-        guard canShowAlbum else { pager.reset(); revision += 1; loading = false; return }
-        if revision == ticket { loading = false; revision += 1 }
     }
 }
 struct RoamStampCard: View {
@@ -97,13 +206,12 @@ struct RoamStampCard: View {
                 if offline {
                     ZStack {
                         RoundedRectangle(cornerRadius: 12).fill(Color.accentColor.opacity(0.13))
-                        Image(systemName: "building.2.crop.circle").font(.system(size: 52)).foregroundStyle(.tint)
+                        Image(systemName: "building.2.crop.circle").font(.largeTitle).imageScale(.large).foregroundStyle(.tint)
                     }.frame(height: 140).accessibilityLabel(Text("roam.experience.sampleArt"))
                 } else if allowsRemoteImages { RoamStampImage(source: stamp.picUrl) }
                 else { Label("roam.experience.imageUnavailable", systemImage: "photo") }
                 if let caption = stamp.caption, !caption.isEmpty { Text(verbatim: caption).font(.title3).multilineTextAlignment(.leading) }
                 if let date = stamp.createTime { Text(verbatim: date.replacingOccurrences(of: "T", with: " ")).font(.caption).foregroundStyle(.secondary) }
-                if stamp.checkState == 0 { Text("roam.experience.reviewNotSubmitted").font(.caption).foregroundStyle(.secondary) }
             }
         }
     }
@@ -132,7 +240,6 @@ private struct RoamStampImage: View {
                 if canShowStamp {
                     RoamExperienceNotice(offline: offline)
                     RoamStampCard(stamp: stamp, offline: offline, allowsRemoteImages: allowsRemoteImages && (readOnlyScope?.allowsRemoteImages ?? true))
-                    Text("roam.experience.albumPrivacy").font(.caption).foregroundStyle(.secondary)
                 } else { RoamStampReadOnlyUnavailable() }
             }.padding()
         }.navigationTitle("roam.experience.cityStamp")
@@ -150,7 +257,7 @@ struct RoamCityStampDraftView: View {
                 RoamExperienceCard {
                     VStack(alignment: .leading, spacing: 18) {
                         Label("roam.experience.draftOnly", systemImage: "pencil.and.outline").font(.caption).foregroundStyle(.secondary)
-                        Image(systemName: "camera.metering.none").font(.system(size: 52)).foregroundStyle(.tint).frame(maxWidth: .infinity).padding()
+                        Image(systemName: "camera.metering.none").font(.largeTitle).imageScale(.large).foregroundStyle(.tint).frame(maxWidth: .infinity).padding()
                             .accessibilityHidden(true)
                         TextField("roam.experience.caption", text: $draft.caption, axis: .vertical)
                             .lineLimit(2...5).textFieldStyle(.roundedBorder)
@@ -158,7 +265,7 @@ struct RoamCityStampDraftView: View {
                         LabeledContent("roam.experience.remaining", value: String(draft.remaining)).font(.caption).monospacedDigit()
                         if !draft.canReview { Label("roam.experience.captionLimit", systemImage: "exclamationmark.circle").foregroundStyle(.red) }
                         Button("roam.experience.previewDraft") { withAnimation(reduceMotion ? nil : QuestifyMotion.content) { review = true } }
-                            .buttonStyle(.borderedProminent).disabled(!draft.canReview)
+                            .buttonStyle(.questifyPrimary).disabled(!draft.canReview)
                             .accessibilityIdentifier("roam.experience.stamp.preview")
                         if review {
                             Divider()
@@ -195,13 +302,13 @@ final class RoamAlbumPageOwner: ObservableObject {}
     init(reader: any RoamExperienceReading, identity: RoamExperienceIdentity,
          isCurrent: @escaping () -> Bool) {
         base = reader; readerID = ObjectIdentifier(reader); expected = identity; presentationIsCurrent = isCurrent
-        metadataScope = (reader as? RoamAlbumMetadataReader)?.scope
+        metadataScope = roamStampMetadataScope(reader)
     }
     var isCurrent: Bool {
         !retired && (!pageOwnerWasBound || pageOwner != nil) && presentationIsCurrent() && base.identity == expected &&
-        (base as? RoamAlbumMetadataReader)?.scope == metadataScope
+        roamStampMetadataScope(base) == metadataScope
     }
-    var allowsRemoteImages: Bool { !(base is RoamAlbumMetadataReader) }
+    var allowsRemoteImages: Bool { !roamStampIsMetadataOnly(base) }
     var hasPageOwner: Bool { pageOwnerWasBound && pageOwner != nil }
     func bind(to owner: RoamAlbumPageOwner) {
         if pageOwnerWasBound {

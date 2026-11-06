@@ -26,8 +26,8 @@
   },
   {
     "key": "message.send.accepted",
-    "en": "Server accepted the message. This is not a read receipt.",
-    "zh-Hans": "服务器已接收消息，不代表对方已读。"
+    "en": "Message sent. This doesn't mean it's been read.",
+    "zh-Hans": "消息已发送，不代表对方已读。"
   },
   {
     "key": "message.send.placeholder",

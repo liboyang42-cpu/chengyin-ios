@@ -88,7 +88,7 @@ import XCTest
         reveal(raw, in: app, hittable: false)
         XCTAssertEqual(Array(raw.label.utf8), Array(try XCTUnwrap(original.draft.questionImg).utf8))
         tap("templateMedia.synthetic.ready", in: app)
-        state("Review this local image crop. The source aspect ratio is retained.", in: app)
+        state("Check the image crop. The original aspect ratio is kept.", in: app)
         let zoom = app.sliders["template.imageCrop.zoom"]
         reveal(zoom, in: app); zoom.adjust(toNormalizedSliderPosition: 0.4)
         tap("template.imageCrop.confirm", in: app)

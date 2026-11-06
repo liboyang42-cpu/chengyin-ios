@@ -27,18 +27,29 @@ struct ClubActionPanel: View {
         Section {
             if coordinator.identity != identity || !identity.isSignedIn {
                 Text("club.signInRequired").foregroundStyle(.secondary)
-            } else if !coordinator.isConfigured {
-                Text("club.action.unavailable").foregroundStyle(.secondary)
             } else {
+                // Same-account original result/UNKNOWN remains visible after grant revocation.
+                // Its journal is not a current permission and cannot enable a new writer.
                 stateContent(state)
-                if case .available(let action) = availability {
+                if !coordinator.isConfigured {
+                    Text("club.action.unavailable").foregroundStyle(.secondary)
+                }
+                if coordinator.isConfigured, case .available(let action) = availability {
                     if action == .apply {
-                        TextField("club.application.message", text: $joinMessage, axis: .vertical)
+                        TextField(text: $joinMessage, axis: .vertical) {
+                            Text("club.admission.messageLabel", tableName: "ClubApplicationMessage")
+                        }
                             .disabled(isWorking || state.preventsNewAction)
                             .accessibilityIdentifier("club.application.message")
                         Text("club.application.messageHelp").font(.caption).foregroundStyle(.secondary)
                         if !ClubApplicationMessage.isValid(joinMessage, for: .apply) {
-                            Text("club.application.messageTooLong").foregroundStyle(.secondary)
+                            Group {
+                                if ClubApplicationMessage.isMissingRequiredMessage(joinMessage) {
+                                    Text("club.admission.messageRequired", tableName: "ClubApplicationMessage")
+                                } else {
+                                    Text("club.application.messageTooLong")
+                                }
+                            }.foregroundStyle(.secondary)
                                 .accessibilityIdentifier("club.application.messageTooLong")
                         }
                     }
@@ -74,7 +85,7 @@ struct ClubActionPanel: View {
         case .outcomeUnknown:
             Text("club.action.unknown").accessibilityIdentifier("club.action.unknown")
             Button("club.action.readback") { readBack() }
-                .disabled(isWorking).accessibilityIdentifier("club.action.readback")
+                .disabled(isWorking || !coordinator.isConfigured).accessibilityIdentifier("club.action.readback")
             readbackContent
         case .acknowledged(let receipt):
             if let message = receipt.message, !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -82,7 +93,7 @@ struct ClubActionPanel: View {
             } else { Text("club.action.acknowledged").accessibilityIdentifier("club.action.acknowledged") }
             readbackContent
             if coordinator.readback(clubID: club.id) == .unavailable {
-                Button("club.action.readback") { readBack() }.disabled(isWorking).accessibilityIdentifier("club.action.readback")
+                Button("club.action.readback") { readBack() }.disabled(isWorking || !coordinator.isConfigured).accessibilityIdentifier("club.action.readback")
             }
         case .notSent: Text("club.action.notSent").accessibilityIdentifier("club.action.notSent")
         case .rejected(let failure):

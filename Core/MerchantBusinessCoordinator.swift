@@ -6,8 +6,10 @@ public struct MerchantBusinessIntent: Codable, Equatable {
     public let merchantID: Int
     public let target: String
     public let requestID: String
-    public init(scope: MerchantBusinessScope, merchantID: Int, target: String, requestID: String) {
-        realm = scope.realm; accountID = scope.accountID; self.merchantID = merchantID; self.target = target; self.requestID = requestID
+    /// Missing on historical journals; never reconstructed from current review content.
+    public let reviewOriginal: MerchantReviewReplyOriginal?
+    public init(scope: MerchantBusinessScope, merchantID: Int, target: String, requestID: String, reviewOriginal: MerchantReviewReplyOriginal? = nil) {
+        realm = scope.realm; accountID = scope.accountID; self.merchantID = merchantID; self.target = target; self.requestID = requestID; self.reviewOriginal = reviewOriginal
     }
     public func sameTarget(as other: Self) -> Bool { realm == other.realm && accountID == other.accountID && merchantID == other.merchantID && target == other.target }
 }
@@ -103,6 +105,8 @@ public struct MerchantBusinessConfirmation: Equatable, Identifiable {
     }
     public func cancelConfirmation() { confirmationGeneration += 1; confirmation = nil }
     public func load(_ query: MerchantBusinessQuery) async {
+        // A retired queued read must not clear a newer snapshot or its original result.
+        guard !Task.isCancelled else { return }
         invalidate(); let generation = self.generation, scope = reader.scope
         isBusy = true
         defer { if generation == self.generation { isBusy = false } }
@@ -142,7 +146,7 @@ public struct MerchantBusinessConfirmation: Equatable, Identifiable {
             try review.mutation.validate(in: latest.document, access: latest.access, roles: latest.roles)
         } catch { if generation == self.generation { set(error) }; return }
         let journalScope = MerchantBusinessScope(realm: review.journalRealm, accountID: review.scope.accountID, epoch: review.scope.epoch)
-        let intent = MerchantBusinessIntent(scope: journalScope, merchantID: review.baseline.access.merchantID, target: review.mutation.targetKey, requestID: review.requestID)
+        let intent = MerchantBusinessIntent(scope: journalScope, merchantID: review.baseline.access.merchantID, target: review.mutation.targetKey, requestID: review.requestID, reviewOriginal: MerchantReviewReplyOriginal(mutation: review.mutation))
         do { try journal.reserve(intent) } catch { set(error); return }
         isLocked = true
         // A journal implementation may reenter. Check cancellation and the exact review

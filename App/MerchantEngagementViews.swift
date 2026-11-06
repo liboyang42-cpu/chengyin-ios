@@ -22,9 +22,9 @@ import SwiftUI
     var body: some View {
         List {
             Section {
-                Text(LocalizedStringKey(reader.isSyntheticEnabled ? "merchant.engagement.synthetic" : "merchant.engagement.scopedBoundary")).font(.footnote).foregroundStyle(.secondary)
+                if reader.isSyntheticEnabled { Text("merchant.engagement.synthetic").font(.footnote).foregroundStyle(.secondary) }
                 if let name = model.access?.identity?.name { Text(name).font(.headline) }
-                if let issue = model.issue { Text(LocalizedStringKey(issue)); Text("merchant.engagement.staleHistory").font(.footnote) }
+                if let issue = model.issue { Text(LocalizedStringKey(issue)) }
                 if let failure = state.failure { Text(LocalizedStringKey(failure.key)).accessibilityIdentifier("merchant.engagement.error") }
                 if state.locked { Text("merchant.business.unknownResult").accessibilityIdentifier("merchant.engagement.locked") }
                 if model.loading || state.busy { ProgressView("merchant.loading") }
@@ -43,7 +43,7 @@ import SwiftUI
                         Button {
                             if let saved = segment.filter { var updated = saved; updated.keyword = filter.keyword; filter = updated; appliedCustomers = updated.customerQuery }
                         } label: {
-                            VStack(alignment: .leading) { Text(segment.name ?? "#\(segment.id)"); Text("#\(segment.id)").font(.caption).foregroundStyle(.secondary) }
+                            Text(segment.name ?? "#\(segment.id)")
                         }.disabled(segment.filter == nil).accessibilityIdentifier("merchant.engagement.segment.\(segment.id)")
                     }
                     if let appliedCustomers, let businessReader {
@@ -55,7 +55,6 @@ import SwiftUI
                 Section("merchant.engagement.outreach") {
                     Button("merchant.engagement.createCampaign") { editor = .init(kind: .campaign) }.accessibilityIdentifier("merchant.engagement.createCampaign")
                     Button("merchant.engagement.broadcast") { editor = .init(kind: .broadcast) }.accessibilityIdentifier("merchant.engagement.broadcast")
-                    Text("merchant.engagement.audienceBoundary").font(.footnote).foregroundStyle(.secondary)
                 }
                 Section("merchant.engagement.history") {
                     ForEach(model.campaigns) { task in
@@ -158,8 +157,8 @@ import SwiftUI
                             Task { try? await state.consumeContact(using: MerchantContactDeviceAdapter(deviceEffectsAllowed: true)); model.objectWillChange.send() }
                         }
                     }
-                case .invitationAccepted(let member): Text("merchant.engagement.membershipReceipt"); Text(LocalizedStringKey("merchant.business.role." + (member.fields.mbText("roleCode") ?? ""))); Text("merchant.engagement.refreshIdentity").font(.footnote)
-                case .evidenceUploaded(_, _, let result): Text("merchant.engagement.evidenceReady"); Text(result.objectKey).font(.caption).textSelection(.enabled); Text("merchant.engagement.evidenceNotSubmitted").font(.footnote)
+                case .invitationAccepted(let member): Text("merchant.engagement.membershipReceipt"); Text(LocalizedStringKey("merchant.business.role." + (member.fields.mbText("roleCode") ?? "")))
+                case .evidenceUploaded(_, _, let result): Text("merchant.engagement.evidenceReady"); Text("merchant.engagement.evidenceNotSubmitted").font(.footnote)
                 }
                 Button("merchant.engagement.clearReceipt") { model.clearReceipt() }
             }
@@ -202,7 +201,7 @@ struct MerchantEngagementCounts: View {
 struct MerchantCampaignTaskFields: View {
     let task: MerchantCampaignTask
     var body: some View {
-        LabeledContent("merchant.engagement.taskID", value: String(task.id)); if let title = task.title { Text(title).font(.headline) }
+        if let title = task.title { Text(title).font(.headline) }
         if let content = task.source["content"]?.string { Text(content) }
         MerchantEngagementStatus(value: task.status); MerchantEngagementCounts(counts: task.counts)
         if !task.recipients.isEmpty {
@@ -211,7 +210,6 @@ struct MerchantCampaignTaskFields: View {
                     Text(recipient.source.mbText("customerName") ?? "—")
                     MerchantEngagementStatus(value: recipient.source.mbText("status"))
                     if let reason = recipient.source.mbText("failureMessage") { Text(reason).font(.footnote) }
-                    if let code = recipient.source.mbText("failureCode"), !code.isEmpty { Text(code).font(.caption) }
                 }
             }
         }

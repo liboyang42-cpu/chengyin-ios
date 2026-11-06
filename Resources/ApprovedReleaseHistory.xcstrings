@@ -1,0 +1,70 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "approvedRelease.history.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved publication requests"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存的发布请求"
+          }
+        }
+      }
+    },
+    "approvedRelease.history.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View this exact saved version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看此请求保存的精确版本"
+          }
+        }
+      }
+    },
+    "approvedRelease.history.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is the exact version saved with this request, not the latest draft or preparation. A saved request alone is not proof of publication or player access."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是随此请求保存的精确版本，不是最新草稿或发布准备内容。仅保存请求不代表发布成功，也不证明玩家已有访问权限。"
+          }
+        }
+      }
+    },
+    "approvedRelease.history.refreshFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The latest status check failed. The saved server receipt is retained; current approval has not been refreshed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次状态查询失败。已保留原服务端回执，但尚未刷新当前审核状态。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

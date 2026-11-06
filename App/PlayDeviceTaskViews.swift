@@ -68,7 +68,6 @@ import SwiftUI
     var body: some View {
         List {
             Section("playx.stopwatch") {
-                Text("playx.stopwatch.local").font(.footnote)
                 LabeledContent("playx.stopwatch.target") { Text(verbatim: PlayTimedDisplayLocalization.seconds(machine.target, locale: locale)) }
                 TimelineView(.periodic(from: .now, by: 0.05)) { _ in
                     Text(verbatim: machine.visibleElapsed(now: ProcessInfo.processInfo.systemUptime).map { PlayTimedDisplayLocalization.number($0, locale: locale) } ?? "—.—")
@@ -79,7 +78,7 @@ import SwiftUI
                 Button(LocalizedStringKey(machine.phase == .running ? "playx.stopwatch.stop" : "playx.stopwatch.start")) {
                     if machine.phase == .running { machine.stop(now: ProcessInfo.processInfo.systemUptime) }
                     else { machine.begin(now: ProcessInfo.processInfo.systemUptime) }
-                }.buttonStyle(.borderedProminent).accessibilityIdentifier("playx.stopwatch.toggle")
+                }.buttonStyle(.questifyPrimary).accessibilityIdentifier("playx.stopwatch.toggle")
                 if let result = machine.result {
                     LabeledContent("playx.stopwatch.stars") { Text(verbatim: PlayTimedDisplayLocalization.count(result.stars, locale: locale)) }
                     LabeledContent("playx.stopwatch.diff") { Text(verbatim: PlayTimedDisplayLocalization.seconds(result.difference, locale: locale)) }
@@ -88,7 +87,7 @@ import SwiftUI
                 LabeledContent("playx.stopwatch.rounds") { Text(verbatim: PlayTimedDisplayLocalization.count(machine.rounds, locale: locale)) }
                 if let best = machine.bestDifference { LabeledContent("playx.stopwatch.best") { Text(verbatim: PlayTimedDisplayLocalization.seconds(best, locale: locale)) } }
             }
-        }.navigationTitle("playx.stopwatch").accessibilityIdentifier("playx.stopwatch.view")
+        }.navigationTitle("playx.stopwatch").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("playx.stopwatch.view")
             .onChange(of: scenePhase) { _, phase in if phase != .active { machine.interrupt() } }
             .onDisappear { machine.interrupt() }
     }
@@ -118,7 +117,7 @@ import SwiftUI
                         .accessibilityIdentifier("playx.stillness.review")
                 }
             }
-        }.navigationTitle("playx.stillness").accessibilityIdentifier("playx.stillness.stream")
+        }.navigationTitle("playx.stillness").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("playx.stillness.stream")
             .onChange(of: scenePhase) { _, phase in if phase != .active { model.pause() } }
             .onDisappear { model.pause() }
     }

@@ -214,7 +214,6 @@ import SwiftUI
                             var block = ProjectEditBlock(kind: .text); block.selectBeat(.outcome); block.setField("field", .string("line")); block.nodeID = node.id
                             var c = chapter.wrappedValue; c.blocks?.append(block); chapter.wrappedValue = c
                         }.disabled(blocks.count >= 200 || chapter.wrappedValue.nodes.isEmpty)
-                        Text("projectEdit.storyFlowHint").font(.caption).foregroundStyle(.secondary)
                     }.id("project-issue-anchor-storyFlow")
                 }
                 if handlesPendingRemoval {
@@ -222,7 +221,6 @@ import SwiftUI
                 }
                 if handlesCityNodeRemoval {
                     Section {
-                        Text("projectCityNodeRemoval.scope", tableName: "ProjectCityStoryNodeRemoval").font(.footnote)
                         ProjectCityStoryNodeRemovalStatus(controller: cityRemoval)
                     }
                 }
@@ -251,12 +249,11 @@ import SwiftUI
                     }
                     Button("projectEdit.addNode", systemImage: "plus", action: addNode).disabled(pendingGap != nil || chapter.wrappedValue.preserved["opening"] == .bool(true) || chapter.wrappedValue.preserved["ending"]?.object != nil || (model.draft.product == .city && !chapter.wrappedValue.hasRealStory) || (chapter.wrappedValue.blocks?.count ?? 0) >= 200)
                         .accessibilityIdentifier("projectEdit.addNode")
-                    if model.draft.product == .city && !chapter.wrappedValue.hasRealStory { Text("projectEdit.validation.story").foregroundStyle(.secondary) }
+                    if model.draft.product == .city && !chapter.wrappedValue.hasRealStory { Text("projectEdit.validation.story").font(.footnote).foregroundStyle(.red) }
                 }.id("project-issue-anchor-nodes")
                 if let key = model.coordinator.messageKey {
                     Section { Text(LocalizedStringKey(key)).accessibilityIdentifier("projectStoryAudio.localStatus") }
                 }
-                Section { Text("projectEdit.chapterCarryOver").foregroundStyle(.secondary) }
             } else { Text("projectEdit.signIn") }
         }.modifier(ProjectEditIssueInitialScroll(anchor: initialIssueAnchor)).disabled(!model.fullEdit)
             .appNavigationTitle(key: starterLease == nil && chapterOverride == nil ? "projectEdit.chapterDetails" : "projectEdit.storyFlow").navigationBarTitleDisplayMode(.inline)
@@ -433,7 +430,6 @@ import SwiftUI
                 TextField("projectEdit.address", text: $node.address).accessibilityIdentifier("projectEdit.address")
                 TextField("projectEdit.longitude", text: $node.longitude).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("projectEdit.longitude").id("project-issue-anchor-coordinates")
                 TextField("projectEdit.latitude", text: $node.latitude).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("projectEdit.latitude")
-                Text("projectEdit.coordinatesHint").font(.caption).foregroundStyle(.secondary)
                 Stepper {
                     LabeledContent("projectEdit.nodeMinutes", value: String(node.nodeTime))
                 } onIncrement: {
@@ -445,14 +441,15 @@ import SwiftUI
                 .id("project-issue-anchor-nodeTime")
                 ProjectEditReferenceField(title: "projectEdit.nodeImages", value: $node.imgUrl, identifier: "projectEdit.nodeImages")
             }
-            Section("projectEdit.gameplay") {
-                if let id = node.templateID {
-                    LabeledContent("projectEdit.templateID", value: String(id))
-                }
+            Section {
+                // The template is chosen by the selection field below; its number isn't shown to people.
                 if let merchantDraftContext {
                     ProjectMerchantDraftField(context: merchantDraftContext).id(merchantDraftContext.id)
-                    Text(ProjectMerchantDraftCopy.value(.otherGameplay, locale: merchantDraftLocale)).foregroundStyle(.secondary)
-                } else { Text("projectEdit.gameplayDeferred").foregroundStyle(.secondary) }
+                } else if node.templateID != nil {
+                    Label("projectEdit.gameplayLinked", systemImage: "checkmark.circle").foregroundStyle(.secondary)
+                }
+            } header: {
+                if merchantDraftContext != nil || node.templateID != nil { Text("projectEdit.gameplay") }
             }.id("project-issue-anchor-gameplay")
         }
     }
@@ -468,7 +465,6 @@ import SwiftUI
             Section("projectEdit.ticketDetails") {
                 TextField("projectEdit.ticketName", text: ticket.name).accessibilityIdentifier("projectEdit.ticketName").id("project-issue-anchor-ticketName")
                 TextField("projectEdit.ticketPrice", text: ticket.price).keyboardType(.decimalPad).accessibilityIdentifier("projectEdit.ticketPrice").id("project-issue-anchor-price")
-                Text("projectEdit.priceHint").font(.caption).foregroundStyle(.secondary)
                 TextField("projectEdit.totalStock", text: ticket.totalStock).keyboardType(.numberPad).accessibilityIdentifier("projectEdit.totalStock").id("project-issue-anchor-stock")
                 TextField("projectEdit.teamSize", text: ticket.teamSize).keyboardType(.numberPad).id("project-issue-anchor-team")
                 TextField("projectEdit.description", text: ticket.description, axis: .vertical).lineLimit(3...8)
@@ -478,9 +474,8 @@ import SwiftUI
                     .disabled(!ticket.wrappedValue.canEditSaleTime(end: false))
                 ProjectEditDateField(title: "projectEdit.saleEnd", value: ticket.saleEndTime, identifier: "projectEdit.saleEnd").dateEditing(.init(model: model, field: .saleEnd(ticketID)))
                     .disabled(!ticket.wrappedValue.canEditSaleTime(end: true))
-                Text("projectEdit.saleStoredOnly").font(.caption).foregroundStyle(.secondary)
                 if !ticket.wrappedValue.canEditSaleTime(end: false) || !ticket.wrappedValue.canEditSaleTime(end: true) {
-                    Text("projectEdit.saleLegacy").font(.caption).foregroundStyle(.secondary)
+                    Text("projectEdit.saleLegacy").font(.footnote).foregroundStyle(.secondary)
                 }
             }.id("project-issue-anchor-ticketSale")
             Section("projectEdit.ticketSchedule") {
@@ -488,7 +483,6 @@ import SwiftUI
                     Toggle("projectEdit.syncThemeDates", isOn: model.ticketDateSync(ticketID))
                         .disabled(!ticket.wrappedValue.canEditThemeDateSync)
                         .accessibilityIdentifier("projectEdit.syncThemeDates")
-                    Text("projectEdit.syncThemeDatesHint").font(.caption).foregroundStyle(.secondary)
                     if !ticket.wrappedValue.canEditThemeDateSync { Text("projectEdit.syncThemeDatesLegacy").font(.caption).foregroundStyle(.secondary) }
                 }
                 if model.draft.product == .freeExplore && ticket.wrappedValue.syncsWithThemeDates {
@@ -502,7 +496,6 @@ import SwiftUI
                 if model.draft.product == .city {
                     ProjectTicketMeetingPointFields(model: model, ticketID: ticketID)
                 }
-                Text("projectEdit.ticketScopeHint").foregroundStyle(.secondary)
             }.id("project-issue-anchor-ticketSchedule")
         }.modifier(ProjectEditIssueInitialScroll(anchor: initialIssueAnchor)).disabled(!model.fullEdit).appNavigationTitle("projectEdit.ticketDetails")
             .navigationBarTitleDisplayMode(.inline).scrollDismissesKeyboard(.interactively)
@@ -521,22 +514,20 @@ struct ProjectEditReviewView: View {
         NavigationStack {
             Form {
                 Section {
-                    Label("projectEdit.reviewHint", systemImage: "checklist")
+                    if confirmation.intent != .ordinary { ProjectCloudDraftIntentSummary(intent: confirmation.intent) }
                     Text(LocalizedStringKey(canSimulate ? "projectEdit.fixtureNotice" : (canSubmit ? "projectEdit.confirmLiveHint" : "projectEdit.unconfigured")))
                 }
                 if !localSaveConfirmed { Section { Text("projectPrepared.localSaveUnconfirmed").accessibilityIdentifier("projectPrepared.localSaveUnconfirmed") } }
                 ProjectEditPreparedNodesView(value: .init(payload: confirmation.payload))
                 ProjectStoryImagePreparedReferences(payload: confirmation.payload)
                 ProjectStoryAudioPreparedReferences(payload: confirmation.payload)
-                ProjectEditPreparedPayloadView(payload: confirmation.payload)
-                Section { Text("projectPrepared.draftContext") }
                 Section("projectEdit.basics") {
                     row("projectEdit.name", confirmation.draft.name)
                     row("projectEdit.subtitle", confirmation.draft.subtitle)
                     row("projectEdit.description", confirmation.draft.description)
                     row("projectEdit.cover", confirmation.draft.imgUrl)
                     row("projectEdit.gallery", confirmation.draft.imgArr)
-                    row("projectEdit.categories", confirmation.draft.categoryIDs.map(String.init).joined(separator: ","))
+                    row("projectEdit.categoriesTitle", confirmation.draft.categoryIDs.isEmpty ? "—" : String(confirmation.draft.categoryIDs.count))
                     row("projectEdit.startDate", confirmation.draft.startDate)
                     row("projectEdit.endDate", confirmation.draft.endDate)
                     if confirmation.draft.product == .freeExplore { row("projectEdit.deadline", confirmation.draft.recruitDeadline) }
@@ -578,21 +569,36 @@ struct ProjectEditReviewView: View {
                         let sale = (try? ticket.saleTimePayloads()) ?? [:]
                         row("projectEdit.saleStart", sale["saleStartTime"]?.text ?? ticket.saleStartTime)
                         row("projectEdit.saleEnd", sale["saleEndTime"]?.text ?? ticket.saleEndTime)
-                        Text("projectEdit.saleStoredOnly").font(.caption).foregroundStyle(.secondary)
                         if !ticket.canEditSaleTime(end: false) || !ticket.canEditSaleTime(end: true) { Text("projectEdit.saleLegacy") }
 
                     }
                 }
                 Section("projectEdit.visibility") {
+                    if confirmation.intent == .ordinary {
                     LabeledContent { Text(LocalizedStringKey(confirmation.draft.publishToCreative ? "projectEdit.yes" : "projectEdit.no")) } label: { Text("projectEdit.publishToCreative") }
-                    Text("projectEdit.advancedPreserved")
+                    } else {
+                        LabeledContent { Text(LocalizedStringKey(confirmation.payload["publishToCreative"] == .number(1) ? "projectEdit.yes" : "projectEdit.no")) } label: { Text("projectEdit.publishToCreative") }
+                    }
                 }
-                if canSubmit {
-                    Button(LocalizedStringKey(canSimulate ? "projectEdit.confirmSimulation" : "projectEdit.confirmLive"), action: confirm).disabled(busy)
-                        .accessibilityIdentifier("projectEdit.confirmSimulation")
-                }
-                Button("action.cancel", role: .cancel, action: cancel).accessibilityIdentifier("projectEdit.cancelReview")
             }.appNavigationTitle("projectEdit.reviewTitle").navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("action.cancel", role: .cancel, action: cancel).accessibilityIdentifier("projectEdit.cancelReview")
+                    }
+                }
+                .questifyBottomAction {
+                    if canSubmit {
+                        if confirmation.intent == .ordinary || canSimulate {
+                            Button(action: confirm) { Text(LocalizedStringKey(canSimulate ? "projectEdit.confirmSimulation" : "projectEdit.confirmLive")).frame(maxWidth: .infinity) }
+                                .disabled(busy).accessibilityIdentifier("projectEdit.confirmSimulation")
+                        } else {
+                            Button(action: confirm) {
+                                Text(LocalizedStringKey(ProjectCloudDraftReceiptPresentation.intentKey(confirmation.intent)), tableName: "ProjectCloudDraftReceipt")
+                                    .fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity)
+                            }.disabled(busy).accessibilityIdentifier("projectEdit.confirmIntent")
+                        }
+                    }
+                }
                 .interactiveDismissDisabled(busy)
         }
     }

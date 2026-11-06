@@ -200,6 +200,7 @@ private final class QmodAuthorImportHostProbe: UIViewController {
 
 @MainActor
 struct QmodAuthorImportView: View {
+    @Environment(\.locale) private var locale
     @StateObject private var model: QmodAuthorImportModel
     @State private var activePicker: QmodFileImporterBinding?
 
@@ -209,43 +210,38 @@ struct QmodAuthorImportView: View {
 
     var body: some View {
         List {
-            Section(header: Text(verbatim: "本机边界")) {
-                Text(verbatim: QmodLocalInspectionReport.fixedServerDenialText)
+            Section {
+                Text("qmodImport.intro")
                     .accessibilityIdentifier("qmod.authorImport.serverStatus")
-                Text(verbatim: "体积与条数上限来自调用方给出的限制档 \(model.limits.profileVersion)，不是正式业务规则，也不是打开文件前的读入停止线。")
-                Text(verbatim: "读入停止线 \(model.readBudget.maxBytes) 字节只属于本进程，不是限制档 \(model.limits.profileVersion)，也不是正式业务规则。")
-                    .accessibilityIdentifier("qmod.authorImport.readBudget")
-                Text(verbatim: "压缩倍数止损 \(model.expansionGuard.numerator):\(model.expansionGuard.denominator) 只是本进程安全停止，不是正式业务规则。")
-                Text(verbatim: QmodLocalInspectionReport.fixedExecutionDenialText)
             }
             Section {
-                Button(action: { activePicker = QmodFileImporterBinding(token: model.beginPicking()) }) { Text(verbatim: "选择包") }
+                Button(action: { activePicker = QmodFileImporterBinding(token: model.beginPicking()) }) { Label("qmodImport.pick", systemImage: "doc.badge.plus") }
                     .accessibilityIdentifier("qmod.authorImport.pick")
-                Button(action: { activePicker = QmodFileImporterBinding(token: model.beginPicking()) }) { Text(verbatim: "换包") }
+                Button(action: { activePicker = QmodFileImporterBinding(token: model.beginPicking()) }) { Text("qmodImport.replace") }
                     .disabled(model.session.phase == .idle)
                     .accessibilityIdentifier("qmod.authorImport.replace")
-                Button(action: { model.recheck() }) { Text(verbatim: "复检") }
+                Button(action: { model.recheck() }) { Text("qmodImport.recheck") }
                     .disabled(!model.session.canRecheck)
                     .accessibilityIdentifier("qmod.authorImport.recheck")
-                Button(action: { model.cancel() }) { Text(verbatim: "取消") }
+                Button(action: { model.cancel() }) { Text("qmodImport.cancel") }
                     .disabled(model.session.phase == .idle || model.session.phase == .cancelled)
                     .accessibilityIdentifier("qmod.authorImport.cancel")
             }
             if model.session.phase == .choosing {
                 Section {
-                    Text(verbatim: "正在选择新的包。上一份检查已停止，它的结果不会当成这次选择。")
+                    Text("qmodImport.choosing")
                         .accessibilityIdentifier("qmod.authorImport.choosing")
                 }
             }
             if model.session.phase == .inspecting {
                 Section {
-                    Text(verbatim: "正在检查。取消或换包会丢弃这一次的结果。")
+                    Text("qmodImport.inspecting")
                         .accessibilityIdentifier("qmod.authorImport.inspecting")
                 }
             }
             if model.session.phase == .cancelled {
                 Section {
-                    Text(verbatim: "已取消。上一份报告已丢弃，不会再套用。")
+                    Text("qmodImport.cancelled")
                         .accessibilityIdentifier("qmod.authorImport.cancelled")
                 }
             }
@@ -253,7 +249,7 @@ struct QmodAuthorImportView: View {
                 reportSections(report)
             }
         }
-        .navigationTitle(Text(verbatim: "本机 qmod 检查"))
+        .navigationTitle(Text("qmodImport.title"))
         .accessibilityIdentifier("qmod.authorImport.root")
         .privacySensitive()
         .background {
@@ -271,31 +267,25 @@ struct QmodAuthorImportView: View {
 
     @ViewBuilder
     private func reportSections(_ report: QmodLocalInspectionReport) -> some View {
-        Section(header: Text(verbatim: "本机报告")) {
+        Section(header: Text("qmodImport.report")) {
             Text(verbatim: report.outcomeText)
                 .accessibilityIdentifier("qmod.authorImport.outcome")
-            Text(verbatim: report.serverDenialText)
-            Text(verbatim: report.proposalDenialText)
-            Text(verbatim: report.readBudgetDenialText)
-            Text(verbatim: report.expansionDenialText)
-            Text(verbatim: "检查序号 \(report.generation) · \(report.packageLabel)")
-                .font(.footnote.monospaced())
+            LabeledContent("qmodImport.file", value: report.packageLabel)
                 .accessibilityIdentifier("qmod.authorImport.generation")
             if let packageId = report.manifestPackageId {
-                Text(verbatim: "清单包名 \(packageId)")
-                    .font(.footnote.monospaced())
+                LabeledContent("qmodImport.packageName", value: packageId)
             }
         }
         .accessibilityIdentifier("qmod.authorImport.report")
         if !report.issues.isEmpty {
-            Section(header: Text(verbatim: "错误定位")) {
+            Section(header: Text("qmodImport.problems")) {
                 ForEach(Array(report.issues.enumerated()), id: \.offset) { index, issue in
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(verbatim: qmodArchiveIssueTitle(issue))
-                            .font(.subheadline.weight(.semibold))
-                        Text(verbatim: qmodArchiveIssueDetail(issue))
+                        Text(verbatim: qmodArchiveIssueTitle(issue, locale: locale))
+                            .font(.subheadline.weight(.semibold)).foregroundStyle(.red)
+                        Text(verbatim: qmodArchiveIssueDetail(issue, locale: locale))
                             .font(.footnote)
-                        Text(verbatim: qmodArchiveIssueLocation(issue))
+                        Text(verbatim: qmodArchiveIssueLocation(issue, locale: locale))
                             .font(.caption.monospaced())
                             .foregroundStyle(.secondary)
                     }
@@ -304,12 +294,11 @@ struct QmodAuthorImportView: View {
             }
         }
         if !report.fileSummaries.isEmpty {
-            Section(header: Text(verbatim: "逐文件摘要")) {
+            Section(header: Text("qmodImport.files")) {
                 ForEach(report.fileSummaries, id: \.path) { file in
                     VStack(alignment: .leading, spacing: 4) {
                         Text(verbatim: file.path).font(.subheadline.monospaced())
-                        Text(verbatim: file.sha256).font(.caption.monospaced())
-                        Text(verbatim: "\(file.bytes) 字节 · \(file.matchesManifest ? "与清单一致" : "未与清单核对通过")")
+                        Text(file.matchesManifest ? "qmodImport.fileMatches \(file.bytes)" : "qmodImport.fileMismatch \(file.bytes)")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -321,71 +310,67 @@ struct QmodAuthorImportView: View {
 
 }
 
-private func qmodArchiveIssueLocation(_ issue: QmodArchiveIssue) -> String {
+private func qmodArchiveIssueLocation(_ issue: QmodArchiveIssue, locale: Locale) -> String {
     var parts: [String] = []
-    if let index = issue.entryIndex { parts.append("条目 \(index)") }
-    if let offset = issue.headerOffset { parts.append("偏移 \(offset)") }
+    if let index = issue.entryIndex { parts.append(appLocalized("qmodImport.entry \(index)", locale: locale)) }
     if let path = issue.path { parts.append(path) }
-    return parts.isEmpty ? "归档" : parts.joined(separator: " · ")
+    return parts.isEmpty ? appLocalized("qmodImport.archive", locale: locale) : parts.joined(separator: " · ")
 }
 
-private func qmodArchiveIssueTitle(_ issue: QmodArchiveIssue) -> String {
+private func qmodArchiveIssueTitle(_ issue: QmodArchiveIssue, locale: Locale) -> String {
     switch issue.code {
-    case .pathTraversal: return "路径穿越"
-    case .duplicatePath: return "路径重复"
-    case .abnormalCompression: return "异常压缩"
-    case .symlink: return "符号链接"
-    case .notARegularFile: return "不是普通文件"
-    case .unsafeEntry: return "不允许的路径"
-    case .corrupt: return "归档损坏"
-    case .digestMismatch: return "摘要不一致"
+    case .pathTraversal: return appLocalized("qmodImport.issue.pathTraversal", locale: locale)
+    case .duplicatePath: return appLocalized("qmodImport.issue.duplicatePath", locale: locale)
+    case .abnormalCompression: return appLocalized("qmodImport.issue.abnormalCompression", locale: locale)
+    case .symlink: return appLocalized("qmodImport.issue.symlink", locale: locale)
+    case .notARegularFile: return appLocalized("qmodImport.issue.notARegularFile", locale: locale)
+    case .unsafeEntry: return appLocalized("qmodImport.issue.unsafeEntry", locale: locale)
+    case .corrupt: return appLocalized("qmodImport.issue.corrupt", locale: locale)
+    case .digestMismatch: return appLocalized("qmodImport.issue.digestMismatch", locale: locale)
     case .manifest(let manifestIssue): return QmodManifestIssueNotice(issue: manifestIssue).titleText
-    case .proposalPresentedAsBusinessRule: return "限额被当成正式规则"
-    case .limitProfileNotApproved: return "限制档未经审定"
-    case .archiveTooLarge: return "包体积超过本机上限"
-    case .fileTooLarge: return "单文件超过本机上限"
-    case .expandedTooLarge: return "展开体积超过本机上限"
-    case .tooManyEntries: return "条目过多"
-    case .unexpectedEntry: return "清单之外的文件"
-    case .missingEntry: return "缺少清单中的文件"
-    case .unsupportedMethod: return "不支持的压缩方法"
-    case .unsupportedZip64: return "不支持 ZIP64"
-    case .encrypted: return "加密条目"
-    case .localFileUnreadable: return "无法读取本地文件"
-    case .readBudgetPosedAsRule: return "读入停止线被当成提案或正式规则"
-    case .readBudgetUnsafe: return "读入停止线超过内存安全上限"
-    case .readBudgetExceeded: return "超过本进程读入停止线"
-    case .checkCancelled: return "检查已取消"
+    case .proposalPresentedAsBusinessRule: return appLocalized("qmodImport.issue.proposalPresentedAsBusinessRule", locale: locale)
+    case .limitProfileNotApproved: return appLocalized("qmodImport.issue.limitProfileNotApproved", locale: locale)
+    case .archiveTooLarge: return appLocalized("qmodImport.issue.archiveTooLarge", locale: locale)
+    case .fileTooLarge: return appLocalized("qmodImport.issue.fileTooLarge", locale: locale)
+    case .expandedTooLarge: return appLocalized("qmodImport.issue.expandedTooLarge", locale: locale)
+    case .tooManyEntries: return appLocalized("qmodImport.issue.tooManyEntries", locale: locale)
+    case .unexpectedEntry: return appLocalized("qmodImport.issue.unexpectedEntry", locale: locale)
+    case .missingEntry: return appLocalized("qmodImport.issue.missingEntry", locale: locale)
+    case .unsupportedMethod: return appLocalized("qmodImport.issue.unsupportedMethod", locale: locale)
+    case .unsupportedZip64: return appLocalized("qmodImport.issue.unsupportedZip64", locale: locale)
+    case .encrypted: return appLocalized("qmodImport.issue.encrypted", locale: locale)
+    case .localFileUnreadable: return appLocalized("qmodImport.issue.localFileUnreadable", locale: locale)
+    case .readBudgetPosedAsRule: return appLocalized("qmodImport.issue.readBudgetPosedAsRule", locale: locale)
+    case .readBudgetUnsafe: return appLocalized("qmodImport.issue.readBudgetUnsafe", locale: locale)
+    case .readBudgetExceeded: return appLocalized("qmodImport.issue.readBudgetExceeded", locale: locale)
+    case .checkCancelled: return appLocalized("qmodImport.issue.checkCancelled", locale: locale)
     }
 }
 
-private func qmodArchiveIssueDetail(_ issue: QmodArchiveIssue) -> String {
+private func qmodArchiveIssueDetail(_ issue: QmodArchiveIssue, locale: Locale) -> String {
     switch issue.code {
-    case .pathTraversal(let path): return "条目 \(path) 跳出了包内相对路径。文件没有被展开。"
-    case .duplicatePath(let path): return "路径 \(path) 与另一条目在大小写折叠后重复。"
-    case .abnormalCompression(_, let compressed, let uncompressed): return "声明的展开大小 \(uncompressed) 字节相对压缩大小 \(compressed) 字节超过本进程止损。没有继续展开。"
-    case .symlink(let path): return "\(path) 是符号链接。链接没有被跟随，目标没有被当作包内文件。"
-    case .notARegularFile(let path): return "\(path) 不是普通文件。"
-    case .unsafeEntry(let path): return "\(path) 不在本版允许的相对路径内。"
-    case .corrupt(let detail): return "归档结构无法核验（\(detail)）。"
-    case .digestMismatch(let path, let actual, let declared, let actualBytes, let declaredBytes):
-        return "\(path) 实际摘要 \(actual)（\(actualBytes) 字节），清单声明 \(declared)（\(declaredBytes) 字节）。"
+    case .pathTraversal(let path): return appLocalized("qmodImport.detail.pathTraversal \(path)", locale: locale)
+    case .duplicatePath(let path): return appLocalized("qmodImport.detail.duplicatePath \(path)", locale: locale)
+    case .abnormalCompression: return appLocalized("qmodImport.detail.abnormalCompression", locale: locale)
+    case .symlink(let path): return appLocalized("qmodImport.detail.symlink \(path)", locale: locale)
+    case .notARegularFile(let path): return appLocalized("qmodImport.detail.notARegularFile \(path)", locale: locale)
+    case .unsafeEntry(let path): return appLocalized("qmodImport.detail.unsafeEntry \(path)", locale: locale)
+    case .corrupt: return appLocalized("qmodImport.detail.corrupt", locale: locale)
+    case .digestMismatch(let path, _, _, _, _): return appLocalized("qmodImport.detail.digestMismatch \(path)", locale: locale)
     case .manifest(let manifestIssue): return QmodManifestIssueNotice(issue: manifestIssue).bodyText
-    case .proposalPresentedAsBusinessRule: return "调用方把压缩止损标成了正式业务规则。检查已拒绝，没有读取包。"
-    case .limitProfileNotApproved(let version): return "限制档 \(version) 没有 isProposal 标记。数字只作为本机上限，不能当成已审定业务规则，因此本报告不算通过。"
-    case .archiveTooLarge(let actual, let limit): return "包大小 \(actual) 字节，本机上限 \(limit) 字节。这不是正式业务规则。"
-    case .fileTooLarge(_, let actual, let limit): return "单文件 \(actual) 字节，本机上限 \(limit) 字节。这不是正式业务规则。"
-    case .expandedTooLarge(_, let actual, let limit): return "展开后将达到 \(actual) 字节，本机上限 \(limit) 字节。这不是正式业务规则。"
-    case .tooManyEntries(let actual, let limit): return "内容条目 \(actual) 个，本机上限 \(limit) 个（不含单独的 manifest.json）。这不是正式业务规则。"
-    case .unexpectedEntry(let path): return "\(path) 不在 manifest.json 的文件列表中。"
-    case .missingEntry(let path): return "清单要求的 \(path) 没有通过归档核验。"
-    case .unsupportedMethod(_, let method): return "压缩方法 \(method) 不能在本机安全展开。"
-    case .unsupportedZip64: return "ZIP64 不在本机检查范围内。"
-    case .encrypted(let path): return "\(path) 带加密标记。本机不解密。"
-    case .localFileUnreadable(let path): return "没有读到完整的普通文件 \(path)。"
-    case .readBudgetPosedAsRule: return "读入停止线被标成了提案档或正式业务规则。文件没有打开。"
-    case .readBudgetUnsafe: return "这个读入停止线不能安全地加一而不溢出。文件没有打开。这是本进程的技术上限，不是业务包限额。"
-    case .readBudgetExceeded(_, let limit): return "打开的文件超过本进程读入停止线 \(limit) 字节。超出的字节没有读入。这不是提案档，也不是正式业务规则。"
-    case .checkCancelled: return "这次检查已取消。结果不会被采用。"
+    case .proposalPresentedAsBusinessRule, .limitProfileNotApproved, .readBudgetPosedAsRule, .readBudgetUnsafe:
+        return appLocalized("qmodImport.detail.settings", locale: locale)
+    case .archiveTooLarge(let actual, let limit): return appLocalized("qmodImport.detail.tooLarge \(actual) \(limit)", locale: locale)
+    case .fileTooLarge(_, let actual, let limit): return appLocalized("qmodImport.detail.tooLarge \(actual) \(limit)", locale: locale)
+    case .expandedTooLarge(_, let actual, let limit): return appLocalized("qmodImport.detail.tooLarge \(actual) \(limit)", locale: locale)
+    case .tooManyEntries(let actual, let limit): return appLocalized("qmodImport.detail.tooManyEntries \(actual) \(limit)", locale: locale)
+    case .unexpectedEntry(let path): return appLocalized("qmodImport.detail.unexpectedEntry \(path)", locale: locale)
+    case .missingEntry(let path): return appLocalized("qmodImport.detail.missingEntry \(path)", locale: locale)
+    case .unsupportedMethod: return appLocalized("qmodImport.detail.unsupportedMethod", locale: locale)
+    case .unsupportedZip64: return appLocalized("qmodImport.detail.unsupportedZip64", locale: locale)
+    case .encrypted(let path): return appLocalized("qmodImport.detail.encrypted \(path)", locale: locale)
+    case .localFileUnreadable(let path): return appLocalized("qmodImport.detail.localFileUnreadable \(path)", locale: locale)
+    case .readBudgetExceeded: return appLocalized("qmodImport.detail.readBudgetExceeded", locale: locale)
+    case .checkCancelled: return appLocalized("qmodImport.detail.checkCancelled", locale: locale)
     }
 }

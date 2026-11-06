@@ -138,7 +138,7 @@ public struct MerchantLedgerSettlementRead: Equatable {
         }
         // The snapshot's own access is the permission. The read API is not widened.
         if (try? snapshot.access.require(query.permissions)) == nil {
-            update(id) { $0.fail(key: "merchant.business.denied", generation: ticket) }
+            retireDeniedPresentation()
             return .rejected("merchant.business.denied")
         }
         merchantID = snapshot.access.merchantID
@@ -149,9 +149,28 @@ public struct MerchantLedgerSettlementRead: Equatable {
     @discardableResult public mutating func fail(_ id: MerchantLedgerSettlementSection, generation ticket: Int,
                                                  owner expected: MerchantLedgerSettlementOwner, key: String) -> Bool {
         guard owner == expected else { return false }
+        let slot = section(id)
+        guard slot.generation == ticket, slot.isLoading else { return false }
+        if key == "merchant.business.denied" { retireDeniedPresentation(); return true }
         var wrote = false
         update(id) { wrote = $0.fail(key: key, generation: ticket) }
         return wrote
+    }
+
+    /// A current denial retires this display lease only, never the global grant.
+    private mutating func retireDeniedPresentation() {
+        leave()
+        for id in MerchantLedgerSettlementSection.allCases {
+            update(id) { slot in
+                if let ticket = slot.begin(page: 1) { _ = slot.fail(key: "merchant.business.denied", generation: ticket) }
+            }
+        }
+    }
+
+    @discardableResult public mutating func denyFromBatch(_ expected: MerchantLedgerBatchCover) -> Bool {
+        guard cover == expected, expected.owner == owner, expected.epoch == epoch else { return false }
+        retireDeniedPresentation()
+        return true
     }
 
     public mutating func cancel(_ id: MerchantLedgerSettlementSection, generation ticket: Int) {

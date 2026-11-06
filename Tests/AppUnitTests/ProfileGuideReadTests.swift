@@ -163,6 +163,10 @@ import UIKit
     }
     func testOrdinaryConfiguredGuideLoadsOriginalListAndRefreshesWithoutWrites()async throws {
         let h=try Harness();await h.login();let reader=try h.reader();h.wire.requests=[]
+        let trace = DiagnosticTrace()
+        reader.diagnosticEvent = { trace.record($0) }
+        defer { reader.diagnosticEvent = nil; trace.emit() }
+        trace.record("test.begin")
         let view=ProfileGuideHost(reader:reader,makeArticleReader:{h.session.makeProfileGuideArticleReader($0)})
         let host=UIHostingController(rootView:AnyView(NavigationStack{view}.environment(\.scenePhase,.active)))
         let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window;window.rootViewController=host;window.makeKeyAndVisible()
@@ -178,11 +182,12 @@ import UIKit
         for _ in 0..<100 where h.wire.requests.isEmpty {
             revealDocuments(in:host.view);try await Task.sleep(for:.milliseconds(20))
         }
-        XCTAssertEqual(h.wire.paths,["infomation_list"]);reader.refresh()
+        XCTAssertEqual(h.wire.paths,["infomation_list"]);trace.record("test.refresh.request");reader.refresh()
         for _ in 0..<100 where h.wire.requests.count<2 {
             revealDocuments(in:host.view);try await Task.sleep(for:.milliseconds(20))
         }
         XCTAssertEqual(h.wire.paths,["infomation_list","infomation_list"])
+        trace.record("test.root.remove")
         host.rootView=AnyView(Text("Left guide"));host.view.layoutIfNeeded()
         for _ in 0..<100 where reader.isVisible{try await Task.sleep(for:.milliseconds(20))}
         XCTAssertFalse(reader.isVisible);let count=h.wire.requests.count
@@ -203,6 +208,13 @@ import UIKit
         for _ in 0..<100 where captured.selection.isCurrent{try await Task.sleep(for:.milliseconds(20))}
         XCTAssertFalse(captured.selection.isCurrent);XCTAssertTrue(list.isConfigured)
     }
+
+    @MainActor private final class DiagnosticTrace {
+        private var events: [String] = []
+        func record(_ event: String) { events.append("\(events.count + 1):\(event)") }
+        func emit() { print("PROFILE_CI_TRACE guide " + events.joined(separator: " | ")) }
+    }
+
     private func firstRow(_ reader:ProfileGuideListReader)async throws->SocialInformation {
         let rows=try await reader.informationList();return try XCTUnwrap(rows.first)
     }

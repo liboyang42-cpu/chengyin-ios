@@ -73,13 +73,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The current source value is retained. Choose a listed venue only if you want to replace it."
+          "value": "Your current venue type is kept. Choose one from the list only if you want to change it."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "当前来源值已保留；只有选择列表中的场所类型才会替换它。"
+          "value": "当前场所类型将保留；如需更换，请从列表中选择。"
         }
       }
     }

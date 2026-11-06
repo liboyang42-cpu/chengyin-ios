@@ -15,9 +15,6 @@ struct LoginView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section {
-                    Text(intent == .merchant ? LocalizedStringKey("auth.merchantNotice") : LocalizedStringKey("auth.playerNotice"))
-                }
                 if session.canUsePassword {
                 Section("auth.existingAccount") {
                     TextField("auth.username",text:$username)
@@ -46,6 +43,7 @@ struct LoginView: View {
                 if let key=session.errorKey {
                     Section { Text(LocalizedStringKey(key)).foregroundStyle(.red).accessibilityIdentifier("auth.error") }
                 }
+                SessionRestorationRetrySection(session: session)
                 if !consentGranted {
                     UsageConsentSignInRequirement(market: session.operationalMarket, granted: $consentGranted)
                 }
@@ -60,7 +58,6 @@ struct LoginView: View {
                     }
                         .disabled(session.isWorking || !consentGranted)
                         .accessibilityIdentifier("auth.otherChannels")
-                    Text("auth.registrationPending").foregroundStyle(.secondary)
                 }
             }
             .appNavigationTitle("auth.title")

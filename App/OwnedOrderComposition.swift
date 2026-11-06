@@ -7,6 +7,7 @@ import SwiftUI
     @ObservedObject var session: AppSession
     var body: some View {
         OwnedOrdersLifecycleHost(session: session)
+            .environment(\.freeExploreBundleReadProvider, session.freeExploreBundleReadProvider)
             .id(session.ownedOrderReader.identity)
     }
 }

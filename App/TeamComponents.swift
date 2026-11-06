@@ -77,9 +77,10 @@ import UniformTypeIdentifiers
         hasPending = coordinator.pending != nil
     }
     var body: some View {
+        // Only real messages (and the example-content marker) earn a box; no standing "unavailable" banner.
+        if canSimulate || messageKey != nil {
         VStack(alignment: .leading, spacing: 8) {
             if canSimulate { Label("team.fixtureNotice", systemImage: "testtube.2").accessibilityIdentifier("team.fixtureNotice") }
-            Text("team.writesDisabled")
             if let key = messageKey {
                 Label(LocalizedStringKey(key), systemImage: hasPending ? "exclamationmark.triangle" : "info.circle")
                     .accessibilityIdentifier("team.message")
@@ -87,6 +88,7 @@ import UniformTypeIdentifiers
         }.font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             .padding().frame(maxWidth: .infinity, alignment: .leading)
             .background(.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
+        }
     }
 }
 struct TeamCard: View {
@@ -159,7 +161,7 @@ struct TeamMemberRow: View {
                             guard model.coordinator.review == review else { return }
                             if await model.run(permit: permit, { await model.coordinator.confirm(review) }) { dismiss() }
                         }
-                    }.buttonStyle(.borderedProminent).frame(minHeight: 44)
+                    }.buttonStyle(.questifyPrimary).frame(minHeight: 44)
                         .disabled(!model.coordinator.canSubmit || model.running)
                         .accessibilityIdentifier("team.review.confirm")
                     if case .disband(let teamID) = review.action {

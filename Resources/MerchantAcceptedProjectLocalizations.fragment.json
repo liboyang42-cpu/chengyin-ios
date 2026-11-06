@@ -36,13 +36,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Accepted terms do not create chapters or stations. The project shows only the workspace and participation returned for your current merchant identity."
+          "value": "Accepting the terms doesn't create chapters or stations. This project shows only the workspace and participation for your current merchant account."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "接受合作条款不会自动生成章节或站点。这里只展示服务端为当前商家身份返回的项目工作区和承接记录。"
+          "value": "接受合作条款不会自动生成章节或站点。这里只显示当前商家身份的项目工作区和承接记录。"
         }
       }
     }

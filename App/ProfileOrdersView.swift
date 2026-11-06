@@ -32,11 +32,11 @@ struct ProfileOrdersView: View {
                     ProfileEmptyState(title: "profile.orders.sourceEmpty", hint: "profile.orders.sourceEmptyHint", symbol: "ticket", identifier: "profile.orders.empty")
                     if let discoverRoutes {
                         Button("profile.orderParity.discover") { discoverRoutes() }
-                            .buttonStyle(.borderedProminent).frame(minHeight: 44)
+                            .buttonStyle(.questifyPrimary).frame(minHeight: 44)
                             .accessibilityIdentifier("profile.orders.discover")
                     } else if rootTabSwitch.isAvailable {
                         Button("profile.orderParity.discover") { rootTabSwitch(.home) }
-                            .buttonStyle(.borderedProminent).frame(minHeight: 44)
+                            .buttonStyle(.questifyPrimary).frame(minHeight: 44)
                             .accessibilityIdentifier("profile.orders.discover")
                     }
                 }
@@ -58,7 +58,7 @@ struct ProfileOrdersView: View {
                                     ProfileOrderRow(order: order, historyState: order.historyState(now: clock.date))
                                 }.accessibilityIdentifier("profile.order.\(order.id)")
                             }
-                        } footer: { Text("profile.readOnly") }
+                        }
                     }
                 }
             }
@@ -130,13 +130,16 @@ private struct ProfileOrderRow: View {
                     Text("profile.orders.number \(number)").font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 8)
-                Text(LocalizedStringKey("orderLifecycle.state." + historyState.rawValue)).font(.subheadline)
+                QuestifyStatusBadge(title: LocalizedStringKey("orderLifecycle.state." + historyState.rawValue),
+                                    systemImage: Self.symbol(historyState),
+                                    emphasized: historyState == .pendingPayment || historyState == .notStarted || historyState == .inProgress,
+                                    stateKey: historyState.rawValue)
             }
             switch order.sourceMode {
             case .cityOrienteering?:
-                (Text("profile.orders.mode.city").bold() + Text(verbatim: " · ") + Text("profile.orders.mode.cityHint")).font(.caption)
+                Text("profile.orders.mode.city").bold().font(.caption)
             case .freeExplore?:
-                (Text("profile.orders.mode.free").bold() + Text(verbatim: " · ") + Text("profile.orders.mode.freeHint")).font(.caption)
+                Text("profile.orders.mode.free").bold().font(.caption)
             case nil: EmptyView()
             }
             if let title = order.title, !title.isEmpty { Text(verbatim: title).font(.headline) }
@@ -150,14 +153,29 @@ private struct ProfileOrderRow: View {
             }
             if let location = order.addressName?.trimmingCharacters(in: .whitespaces), !location.isEmpty, location.lowercased() != "null" {
                 Label { Text(verbatim: location) } icon: { Image(systemName: "mappin.and.ellipse") }.font(.subheadline)
-            } else {
-                Label { Text("profile.orders.placeUnconfirmed") } icon: { Image(systemName: "mappin.and.ellipse") }.font(.subheadline)
             }
+            // Source 实付款 ¥x; an unknown amount shows "—", never a currency caveat.
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text("profile.orders.paid").font(.subheadline)
-                ProfileOrderAmountLabel(amount: order.actualPaidAmount)
+                Text(verbatim: order.actualPaidAmount.map { "¥" + OwnedOrderMoneyText.string($0) } ?? "—")
+                    .font(.subheadline.weight(.semibold)).monospacedDigit()
             }
         }.padding(.vertical, 6)
+    }
+    /// The symbol and label carry the state together, never colour alone.
+    private static func symbol(_ state: OrderLifecycleState) -> String {
+        switch state {
+        case .pendingPayment: return "creditcard"
+        case .notStarted: return "ticket"
+        case .inProgress: return "figure.walk"
+        case .completed: return "checkmark.seal"
+        case .cancelled: return "xmark.circle"
+        case .expired: return "calendar.badge.exclamationmark"
+        case .refunding, .manualRefund: return "arrow.uturn.backward.circle"
+        case .refunded: return "arrow.uturn.backward"
+        case .nonRefundable: return "lock"
+        case .unknown: return "questionmark.circle"
+        }
     }
 }
 
@@ -230,19 +248,13 @@ struct ProfileOrderDetailView: View {
                     if let count = order.pointUsed { LabeledContent("profile.orders.pointsUsed", value: String(count)) }
                     if let amount = order.pointDeductAmount { LabeledContent("profile.orders.pointsDeduction") { ProfileOrderAmountLabel(amount: amount) } }
                     if let amount = order.pointPaymentAmount { LabeledContent("profile.orders.pointsMoney") { ProfileOrderAmountLabel(amount: amount) } }
-                    if let code = order.pointsReturned { LabeledContent("profile.orders.pointsReturnedCode", value: String(code)) }
-                    // The source shows only the payment method label; keep the code only when no label exists.
-                    if order.sourcePaymentTypeLabelKey == nil, let code = order.paymentType,
-                       order.paymentTypeLabel?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false {
-                        LabeledContent("profile.orders.paymentTypeCode", value: String(code))
-                    }
+                    // The source shows only the payment method label; a bare method code is not shown.
                     if let amount = order.refundAmount { LabeledContent("profile.orders.refundAmount") { ProfileOrderAmountLabel(amount: amount) } }
                     if let code = order.refundApplicationStatus {
                         LabeledContent("profile.orderParity.refundApplication") { ProfileOrderCodeText(label: .refundApplication(code)) }
                     }
                     ProfileOptionalRow(key: "profile.orders.manualRefund", value: order.manualRefundCaseStatus)
                     ProfileOptionalRow(key: "profile.orders.refundDeadline", value: order.refundDeadlineDisplay)
-                    Text("profile.orders.moneyFactsHint").foregroundStyle(.secondary)
                 }
                 ProfileOrderSourceDetailSections(order: order)
                 if let lifecycleCoordinator {
@@ -256,6 +268,7 @@ struct ProfileOrderDetailView: View {
                     Section { ticketEntry(order: order, tickets: ticketReader) }
                 }
                 ExploreCompletionEntry(order: order, requestedID: id, origin: reader)
+                FreeExploreBundleReadEntry(order: order, requestedID: id, origin: reader)
                 // Source 退款与客服 (报名与客服 when free): 联系客服 opens the read-only support page.
                 Section(LocalizedStringKey(order.isSourceFreeOrder ? "profile.orderP2.supportSection.free" : "profile.orderP2.supportSection")) {
                     NavigationLink { ParticipationSupportView() } label: {
@@ -271,7 +284,6 @@ struct ProfileOrderDetailView: View {
                         }.accessibilityIdentifier("profile.orders.supportLookup")
                     }
                 }
-                Section { Text("profile.readOnly").foregroundStyle(.secondary) }
             }
             }
         }
@@ -347,7 +359,6 @@ struct ProfileOrderTicketScheduleRows: View {
                 .accessibilityIdentifier("profile.order.ticketSchedule")
             ProfileOrderTicketTimeRow(label: "profile.orders.start", value: schedule.start)
             ProfileOrderTicketTimeRow(label: "profile.orders.end", value: schedule.end)
-            Text("profileTicketSchedule.phoneTimeZone").font(.caption).foregroundStyle(.secondary)
         } else {
             if schedule.start != .absent || schedule.end != .absent {
                 Text("profileTicketSchedule.ownerTimes").font(.caption).foregroundStyle(.secondary)
@@ -453,7 +464,7 @@ private struct ProfileOrderCodeText: View {
     var body: some View {
         switch label {
         case .key(let key): Text(LocalizedStringKey(key))
-        case .raw(let code): Text("profile.orderParity.rawCode \(String(code))")
+        case .raw: Text(verbatim: "—")
         }
     }
 }

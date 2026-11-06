@@ -326,6 +326,8 @@ public final class ClubPostImageDraftController: ObservableObject {
     private let uploader: any ClubPostImageUploading
     private let currentContext: () -> ClubPostImageUploadContext?
     private var boundContext: ClubPostImageUploadContext?
+    // Positional identity is lost on removal, including indistinguishable duplicate references.
+    private var referenceRemovalRevision: UInt64 = 0
     private var generation: UInt64 = 0
 
     @Published public private(set) var localCandidates: [RetainedSelectedImage] = []
@@ -430,6 +432,8 @@ public final class ClubPostImageDraftController: ObservableObject {
 
         do {
             let uploaded = try await uploader.upload(image, attemptID: UUID(), context: context)
+            // A retired callback owns no presentation or resources in the newer draft.
+            guard ticket == generation else { return false }
             guard !Task.isCancelled,
                   ticket == generation,
                   let live = validateCurrentContext(),
@@ -466,6 +470,7 @@ public final class ClubPostImageDraftController: ObservableObject {
 
     public func removeUploadedReference(at index: Int) {
         guard uploadedReferences.indices.contains(index) else { return }
+        referenceRemovalRevision &+= 1
         let removed = uploadedReferences.remove(at: index)
         if !uploadedReferences.contains(removed) {
             previewsByReference.removeValue(forKey: removed)
@@ -524,6 +529,8 @@ public final class ClubPostImageDraftController: ObservableObject {
             return false
         }
 
+        let originalReference = uploadedReferences[index]
+        let originalRemovalRevision = referenceRemovalRevision
         generation &+= 1
         let ticket = generation
         isUploading = true
@@ -531,11 +538,15 @@ public final class ClubPostImageDraftController: ObservableObject {
 
         do {
             let uploaded = try await uploader.upload(image, attemptID: UUID(), context: context)
+            // A retired callback owns no presentation or resources in the newer draft.
+            guard ticket == generation else { return false }
             guard !Task.isCancelled,
                   ticket == generation,
                   let live = validateCurrentContext(),
                   live == context,
+                  referenceRemovalRevision == originalRemovalRevision,
                   uploadedReferences.indices.contains(index),
+                  uploadedReferences[index].utf8.elementsEqual(originalReference.utf8),
                   let verified = uploader.permittedReference(uploaded, for: live) else {
                 if currentContext() != context {
                     invalidate()

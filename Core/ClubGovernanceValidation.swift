@@ -133,7 +133,8 @@ public enum ClubGovernanceValidation {
         try require(positive(value["id"]) && count(value["totalCount"]) && count(value["successCount"]) && count(value["failedCount"]))
         if let expectedID { try require(value["id"].int == expectedID) }
         // The remainder may still be pending. A receipt is not proof of delivery.
-        try require((value["successCount"].int ?? 0) + (value["failedCount"].int ?? 0) <= (value["totalCount"].int ?? 0))
+        let (finished, overflow) = (value["successCount"].int ?? 0).addingReportingOverflow(value["failedCount"].int ?? 0)
+        try require(!overflow && finished <= (value["totalCount"].int ?? 0))
     }
     static func validateSettlement(_ value: ClubGovernanceValue) throws {
         let status = value["settledAmountStatus"].string, missing = value["unverifiedSettledCount"].int

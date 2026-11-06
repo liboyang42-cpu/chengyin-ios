@@ -52,13 +52,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Approved App ID"
+          "value": "App ID"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "已审核的 App ID"
+          "value": "App ID"
         }
       }
     }

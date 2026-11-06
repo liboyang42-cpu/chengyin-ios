@@ -102,11 +102,16 @@ public struct MerchantOperationsService {
             let value: MerchantStoreProfile = try await read("api/merchant/info", body: .form([:]), token: token)
             guard value.id == access.identity.merchantID else { throw APIError.malformedResponse }
             return .draft(.profile(value))
-        case .decor, .gallery, .story, .cooperation:
+        case .decor:
+            // Original info carries the complete industry set; preserve existing PROFILE_WRITE.
+            let value: MerchantStoreProfileAndDecor = try await read("api/merchant/info", body: .form([:]), token: token)
+            guard value.profile.id == access.identity.merchantID else { throw APIError.malformedResponse }
+            return .draft(.decor(value.decor))
+        case .gallery, .story, .cooperation:
             let value: MerchantStorefront = try await read("api/merchant/coop-profile", body: .json, token: token)
             if let id = value.profile.id, id != access.identity.merchantID { throw APIError.malformedResponse }
             switch destination {
-            case .decor: return .draft(.decor(value.decor)); case .gallery: return .draft(.gallery(value.decor))
+            case .gallery: return .draft(.gallery(value.decor))
             case .story: return .draft(.story(value)); default: return .draft(.cooperation(value.cooperation))
             }
         case .character:

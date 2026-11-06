@@ -49,6 +49,7 @@ import Observation
         guard before == nil || before == nextCursor, let presentation = action.presentation, listPresentation === presentation, action.isLive, !Task.isCancelled, current(), action.claim() else { return }
         listLifetime?.revoke(); let lifetime = WorkshopPurchasedReadLifetime(action: action); listLifetime = lifetime
         let ticket = UUID(); listGeneration = ticket
+        let priorRows = rows, priorCheckedAt = checkedAt, priorCursor = nextCursor
         closeDetail(); rows = []; checkedAt = nil; nextCursor = nil; issue = nil; phase = .loading
         do {
             let page = try await reader.list(before: before, lifetime: lifetime)
@@ -59,7 +60,15 @@ import Observation
         } catch {
             guard action.isLive, current(), listGeneration == ticket else { return }
             guard !Task.isCancelled else { closeList(); return }
-            issue = (error as? WorkshopPurchasedIssue) ?? .unavailable
+            let failure = (error as? WorkshopPurchasedIssue) ?? .unavailable
+            if failure == .unauthorized { invalidate(); issue = failure; return }
+            if failure == .unavailable, let before, before == priorCursor, !priorRows.isEmpty {
+                // A failed continuation did not replace the accepted page. Preserve
+                // its original cursor for an explicit retry, never an automatic read.
+                rows = priorRows; checkedAt = priorCheckedAt; nextCursor = priorCursor
+                issue = failure; phase = .ready; return
+            }
+            issue = failure
             phase = issue == .disabled || issue == .notFound ? .notEnabled : .failed
         }
     }
@@ -89,7 +98,11 @@ import Observation
         } catch {
             guard action.isLive, current(), detailGeneration == ticket else { return }
             guard !Task.isCancelled else { closeDetail(); return }
-            detailIssue = (error as? WorkshopPurchasedIssue) ?? .unavailable; detailLoading = false
+            let failure = (error as? WorkshopPurchasedIssue) ?? .unavailable
+            if failure == .unauthorized {
+                invalidate(); issue = failure; detailIssue = failure; return
+            }
+            detailIssue = failure; detailLoading = false
         }
     }
     public func closeDetail() {

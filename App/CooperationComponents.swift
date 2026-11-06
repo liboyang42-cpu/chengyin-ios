@@ -3,22 +3,50 @@ import SwiftUI
 @MainActor final class CooperationScreenModel<Value>: ObservableObject {
     @Published private var revision: UInt64 = 0
     private let state = CooperationReadModel<Value>()
+    private var task: Task<Void, Never>?
     var isLoading: Bool { state.isLoading }
-    func value(scope: UUID) -> Value? { state.visibleValue(scope: scope) }
-    func issue(scope: UUID) -> CooperationIssue? { state.visibleIssue(scope: scope) }
-    func cancelPending() { state.cancelPending(); revision &+= 1 }
-    func load(scope: UUID, currentScope: () -> UUID, operation: () async throws -> Value) async {
+    var loadedScope: UUID? { state.loadedScope }
+    var loadedOwner: CooperationReadOwner? { state.loadedOwner }
+    var presentation: CooperationReadPresentation? { state.presentation }
+    func value(owner: CooperationReadOwner) -> Value? { state.visibleValue(owner: owner) }
+    func issue(owner: CooperationReadOwner) -> CooperationIssue? { state.visibleIssue(owner: owner) }
+    func invalidate() { state.invalidate(); revision &+= 1 }
+    func beginPresentation(owner: CooperationReadOwner) -> CooperationReadPresentation? {
+        task?.cancel(); task = nil
+        let permit = state.beginPresentation(owner: owner); revision &+= 1
+        return permit
+    }
+    func endPresentation(preservingValues: Bool = true) {
+        task?.cancel(); task = nil
+        state.endPresentation(preservingValues: preservingValues); revision &+= 1
+    }
+    func accepts(_ permit: CooperationReadPresentation, currentOwner: CooperationReadOwner) -> Bool {
+        state.accepts(permit, currentOwner: currentOwner)
+    }
+    @discardableResult func schedule(presentation: CooperationReadPresentation?, currentOwner: CooperationReadOwner,
+                  operation: @escaping @MainActor (CooperationReadPresentation) async -> Void) -> Task<Void, Never>? {
+        guard let presentation, accepts(presentation, currentOwner: currentOwner) else { return nil }
+        task?.cancel()
+        task = Task { @MainActor [weak self] in
+            guard !Task.isCancelled, let self, self.accepts(presentation, currentOwner: currentOwner) else { return }
+            await operation(presentation)
+        }
+        return task
+    }
+    func refresh(presentation: CooperationReadPresentation?, currentOwner: CooperationReadOwner,
+                 operation: @escaping @MainActor (CooperationReadPresentation) async -> Void) async {
+        guard let pending = schedule(presentation: presentation, currentOwner: currentOwner, operation: operation) else { return }
+        await withTaskCancellationHandler { await pending.value } onCancel: { pending.cancel() }
+    }
+    func load(presentation: CooperationReadPresentation, currentOwner: () -> CooperationReadOwner,
+              operation: () async throws -> Value) async {
+        guard !Task.isCancelled, accepts(presentation, currentOwner: currentOwner()) else { return }
         revision &+= 1
-        await state.load(scope: scope, currentScope: currentScope, operation: operation)
+        await state.load(presentation: presentation, currentOwner: currentOwner, operation: operation)
         revision &+= 1
     }
 }
-private struct CooperationLoadKey: Hashable {
-    let scope: UUID
-    let configured: Bool
-    let authenticated: Bool
-    let resource: String
-}
+
 /// Native List/NavigationStack transitions respect the system Reduce Motion setting.
 /// No per-row timer, custom spring, animation package or invented success feedback.
 @MainActor struct CooperationReadScreen<Value, Content: View>: View {
@@ -27,40 +55,55 @@ private struct CooperationLoadKey: Hashable {
     let operation: () async throws -> Value
     @ViewBuilder let content: (Value) -> Content
     @StateObject private var model = CooperationScreenModel<Value>()
-    @State private var refresh: UInt64 = 0
-    private var key: CooperationLoadKey {
-        CooperationLoadKey(scope: reader.scope, configured: reader.isConfigured, authenticated: reader.isAuthenticated, resource: "\(resource).\(refresh)")
-    }
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var isVisible = false
+    private var key: CooperationReadOwner { CooperationReadOwner(reader: reader, resource: resource) }
     var body: some View {
-        let scope = reader.scope
+        let owner = key
+        let permit = model.presentation
         List {
             if !reader.isAuthenticated { CooperationIssueView(issue: .login) }
             else if !reader.isConfigured { CooperationIssueView(issue: .unconfigured) }
-            else if let issue = model.issue(scope: scope) {
-                CooperationIssueView(issue: issue, retry: issue.canRetry ? { refresh &+= 1 } : nil)
-            } else if let value = model.value(scope: scope) {
+            else if let issue = model.issue(owner: owner) {
+                CooperationIssueView(issue: issue, retry: issue.canRetry ? { schedule(permit) } : nil)
+            } else if let value = model.value(owner: owner) {
                 if reader.isOfflineExample { Label("cooperation.offline", systemImage: "network.slash").font(.footnote).foregroundStyle(.secondary) }
                 content(value)
             } else { ProgressView("cooperation.loading").accessibilityIdentifier("cooperation.loading") }
         }
         .listStyle(.insetGrouped)
         .toolbar {
-            if reader.isAuthenticated && reader.isConfigured && model.value(scope: scope) != nil {
+            if reader.isAuthenticated && reader.isConfigured && model.value(owner: owner) != nil {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { refresh &+= 1 } label: { Label("cooperation.refresh", systemImage: "arrow.clockwise") }
+                    Button { schedule(permit) } label: { Label("cooperation.refresh", systemImage: "arrow.clockwise") }
                         .accessibilityIdentifier("cooperation.refresh").disabled(model.isLoading)
                 }
             }
         }
-        .refreshable { await reload() }
-        .task(id: key) { await reload() }
-        .onDisappear { model.cancelPending() }
+        .refreshable {
+            await model.refresh(presentation: permit, currentOwner: key) { await load($0) }
+        }
+        .onAppear { isVisible = true; replacePresentation() }
+        .onDisappear { isVisible = false; model.endPresentation() }
+        .onChange(of: key) { _, _ in replacePresentation() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .background { model.endPresentation(preservingValues: false) }
+            else if phase == .active && isVisible && model.presentation == nil { replacePresentation() }
+        }
     }
-    private func reload() async {
-        guard reader.isConfigured, reader.isAuthenticated else { return }
-        let scope = reader.scope
-        await model.load(scope: scope, currentScope: { reader.scope }, operation: operation)
+    private func replacePresentation() {
+        guard isVisible, scenePhase == .active else { model.endPresentation(preservingValues: false); return }
+        schedule(model.beginPresentation(owner: key))
     }
+    private func schedule(_ permit: CooperationReadPresentation?) {
+        model.schedule(presentation: permit, currentOwner: key) { await load($0) }
+    }
+    private func load(_ permit: CooperationReadPresentation) async {
+        guard isVisible, scenePhase == .active, !Task.isCancelled,
+              model.accepts(permit, currentOwner: key) else { return }
+        await model.load(presentation: permit, currentOwner: { key }, operation: operation)
+    }
+
 }
 struct CooperationIssueView: View {
     let issue: CooperationIssue
@@ -82,13 +125,10 @@ struct CooperationIssueView: View {
         return "exclamationmark.triangle"
     }
 }
+/// Formerly a standing "handling isn't available here yet" footnote. Screens show the actions they
+/// support and hide the rest, so this renders nothing.
 struct CooperationReadOnlyNotice: View {
-    var body: some View {
-        Label("cooperation.readOnly", systemImage: "info.circle")
-            .font(.footnote).foregroundStyle(.secondary)
-            .fixedSize(horizontal: false, vertical: true)
-            .accessibilityIdentifier("cooperation.readOnly")
-    }
+    var body: some View { EmptyView() }
 }
 struct CooperationName: View {
     let name: String?

@@ -210,7 +210,7 @@ final class WalletCommerceFlowTests: XCTestCase {
     }
     func testBankFormIsReachableAndClearlyDormant() {
         let app = launch(); app.buttons["wallet.fixture.bankWithdrawal"].tap()
-        XCTAssertTrue(app.staticTexts["Bank-card submission is not enabled in this build. No banking details will be sent."].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Withdrawing to a bank card isn't available right now. No bank details will be sent."].waitForExistence(timeout: 5))
         XCTAssertTrue(app.secureTextFields["bank.withdrawal.account"].exists)
         XCTAssertFalse(app.buttons["bank.withdrawal.confirmSubmit"].exists)
     }

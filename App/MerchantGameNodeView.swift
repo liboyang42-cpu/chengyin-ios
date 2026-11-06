@@ -25,8 +25,7 @@ enum MerchantGameNodeCopy {
     @StateObject private var model: MerchantGameNodeViewModel
     @Environment(\.scenePhase) private var scenePhase
     @State private var showsServiceTime = false
-    @State private var showsScanImport = false
-    @State private var scannedText: String?
+    @StateObject private var submissionImport = MerchantGameNodeImportController()
     init(service: any MerchantGameNodeServing, activityID: Int?, nodeID: Int? = nil, focusPause: Bool = false) {
         _model = StateObject(wrappedValue: .init(service: service, activityID: activityID, nodeID: nodeID, focusPause: focusPause))
     }
@@ -34,21 +33,46 @@ enum MerchantGameNodeCopy {
     private var writeBlocked: Bool { c.writeState != .idle || !c.permitsWrites }
 
     var body: some View {
+        let importID = submissionImport.session?.id
         page
         .sheet(isPresented: Binding(get: { c.sheet != nil }, set: { if !$0 { c.closeSheet() } })) { sheetContent }
         .sheet(isPresented: $showsServiceTime) { MerchantGameNodeServiceTimeSheet(model: model) }
-        .sheet(isPresented: $showsScanImport, onDismiss: {
-            // Open the reviewed verify sheet only after the import sheet has fully dismissed.
-            if let text = scannedText { scannedText = nil; c.openVerify(scanned: text) }
-        }) { MerchantGameNodeScanImportSheet(scanned: $scannedText) }
+        .sheet(isPresented: submissionImport.presentationBinding(), onDismiss: {
+            if let identifier = submissionImport.finishDismissal(id: importID), scenePhase == .active {
+                c.openVerify(submissionID: identifier)
+            }
+        }) {
+            if let session = submissionImport.session {
+                MerchantGameNodeScanImportSheet(session: session,
+                    cancel: { submissionImport.cancel(session) },
+                    apply: { submissionImport.accept(session) })
+            }
+        }
         .alert(MerchantGameNodeCopy.text(confirmTitleKey), isPresented: confirmationShown, presenting: c.confirmation) { command in
             confirmActions(command)
         } message: { command in MerchantGameNodeCopy.text(confirmMessageKey(command)) }
         .fullScreenCover(isPresented: Binding(get: { c.checkinVisible }, set: { if !$0 { c.closeCheckin() } })) {
             MerchantGameNodeCheckinView(model: model)
         }
-        .onChange(of: scenePhase) { _, phase in if phase != .active { c.closeCheckin() } }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { c.closeCheckin(); submissionImport.invalidate() }
+        }
+        .onChange(of: model.revision) { _, _ in submissionImport.invalidate() }
+        .onDisappear { submissionImport.invalidate() }
         .overlay(alignment: .bottom) { toastView }
+    }
+    private func openSubmissionImport() {
+        let revision = model.revision, scope = c.service.scope
+        let nodeID = c.station?.nodeID
+        submissionImport.open { [weak model] in
+            guard let model else { return false }
+            let owner = model.coordinator
+            return scenePhase == .active && model.revision == revision &&
+                owner.service.scope == scope && owner.service.isAuthenticated && owner.permitsWrites &&
+                owner.viewState == .ready && owner.station?.nodeID == nodeID &&
+                owner.station?.canVerify == true && owner.writeState == .idle &&
+                owner.sheet == nil && owner.confirmation == nil
+        }
     }
     private var confirmationShown: Binding<Bool> {
         Binding(get: { c.confirmation != nil }, set: { if !$0 { c.dismissConfirmation() } })
@@ -252,7 +276,7 @@ enum MerchantGameNodeCopy {
                 }
                 if station.canAccept {
                     Button { c.prepareAccept() } label: { MerchantGameNodeCopy.text("merchantGameNode.invite.accept").frame(maxWidth: .infinity) }
-                        .buttonStyle(.borderedProminent).disabled(writeBlocked).accessibilityIdentifier("gameNode.accept")
+                        .buttonStyle(.questifyPrimary).disabled(writeBlocked).accessibilityIdentifier("gameNode.accept")
                 }
             }
         }
@@ -290,7 +314,7 @@ enum MerchantGameNodeCopy {
             }
             Button { Task { await c.submitReady() } } label: {
                 HStack { if c.writeState == .submitting { ProgressView() }; MerchantGameNodeCopy.text("merchantGameNode.ready.submit") }.frame(maxWidth: .infinity)
-            }.buttonStyle(.borderedProminent).disabled(writeBlocked).accessibilityIdentifier("gameNode.ready.submit")
+            }.buttonStyle(.questifyPrimary).disabled(writeBlocked).accessibilityIdentifier("gameNode.ready.submit")
         }
     }
     private func labeled<Content: View>(_ key: String, required: Bool, @ViewBuilder content: () -> Content) -> some View {
@@ -308,7 +332,7 @@ enum MerchantGameNodeCopy {
             MerchantGameNodeCopy.text("merchantGameNode.pauseInfo.refund").font(.footnote).foregroundStyle(.secondary)
             if station.canResume {
                 Button { c.prepareResume() } label: { MerchantGameNodeCopy.text("merchantGameNode.pauseInfo.resume").frame(maxWidth: .infinity) }
-                    .buttonStyle(.borderedProminent).disabled(writeBlocked).accessibilityIdentifier("gameNode.resume")
+                    .buttonStyle(.questifyPrimary).disabled(writeBlocked).accessibilityIdentifier("gameNode.resume")
             }
         }
     }
@@ -323,7 +347,7 @@ enum MerchantGameNodeCopy {
         card("merchantGameNode.run.title", "merchantGameNode.run.sub", id: "gameNode.runCard") {
             if station.playable {
                 Button { Task { await c.showCheckin() } } label: { MerchantGameNodeCopy.text("merchantGameNode.run.checkin").frame(maxWidth: .infinity) }
-                    .buttonStyle(.borderedProminent).disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.checkin")
+                    .buttonStyle(.questifyPrimary).disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.checkin")
             }
             if station.canPause {
                 Button { c.openPause() } label: { MerchantGameNodeCopy.text("merchantGameNode.run.pause").frame(maxWidth: .infinity) }
@@ -333,8 +357,8 @@ enum MerchantGameNodeCopy {
                 HStack {
                     Button { c.openVerify() } label: { MerchantGameNodeCopy.text("merchantGameNode.run.manualVerify").frame(maxWidth: .infinity) }
                         .buttonStyle(.bordered).disabled(writeBlocked).accessibilityIdentifier("gameNode.verify.manual")
-                    Button { showsScanImport = true } label: { MerchantGameNodeCopy.text("merchantGameNode.run.scanVerify").frame(maxWidth: .infinity) }
-                        .buttonStyle(.borderedProminent).disabled(writeBlocked).accessibilityIdentifier("gameNode.verify.scan")
+                    Button { openSubmissionImport() } label: { MerchantGameNodeCopy.text("merchantGameNode.run.scanVerify").frame(maxWidth: .infinity) }
+                        .buttonStyle(.questifyPrimary).disabled(writeBlocked).accessibilityIdentifier("gameNode.verify.scan")
                 }
             }
         }
@@ -368,7 +392,6 @@ enum MerchantGameNodeCopy {
                 info("merchantGameNode.recap.completed", "\(recap.normalCompletedCount) / \(recap.fallbackCompletedCount)", fallback: "merchantGameNode.recap.pending")
                 info("merchantGameNode.recap.pauses", String(recap.pauseEventCount), fallback: "merchantGameNode.recap.pending")
                 info("merchantGameNode.recap.authorized", String(recap.authorizedContentCount), fallback: "merchantGameNode.recap.pending")
-                MerchantGameNodeCopy.text("merchantGameNode.recap.policy").font(.footnote).foregroundStyle(.secondary)
             } else {
                 MerchantGameNodeCopy.text("merchantGameNode.recap.pending").font(.footnote).foregroundStyle(.secondary)
             }
@@ -454,7 +477,7 @@ struct MerchantGameNodeCivilDateField: View {
             MerchantGameNodeChoices(reasons: MerchantGameNodeReason.decline, selected: c.declineDraft.reason?.code) { c.declineDraft.reason = $0 }
             Button(role: .destructive) { Task { await c.submitDecline() } } label: {
                 HStack { if c.writeState == .submitting { ProgressView() }; MerchantGameNodeCopy.text("merchantGameNode.decline.submit") }.frame(maxWidth: .infinity)
-            }.buttonStyle(.borderedProminent).disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.decline.submit")
+            }.buttonStyle(.questifyPrimary).disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.decline.submit")
         }
     }
 }
@@ -489,7 +512,7 @@ struct MerchantGameNodeCivilDateField: View {
             }
             Button(role: .destructive) { Task { await c.submitPause() } } label: {
                 HStack { if c.writeState == .submitting { ProgressView() }; MerchantGameNodeCopy.text("merchantGameNode.pause.submit") }.frame(maxWidth: .infinity)
-            }.buttonStyle(.borderedProminent).disabled(!c.pauseDraft.canSubmit || c.writeState != .idle).accessibilityIdentifier("gameNode.pause.submit")
+            }.buttonStyle(.questifyPrimary).disabled(!c.pauseDraft.canSubmit || c.writeState != .idle).accessibilityIdentifier("gameNode.pause.submit")
         }
     }
 }
@@ -513,30 +536,41 @@ struct MerchantGameNodeCivilDateField: View {
             }
             Button { Task { await c.submitVerify() } } label: {
                 HStack { if c.writeState == .submitting { ProgressView() }; MerchantGameNodeCopy.text("merchantGameNode.verify.submit") }.frame(maxWidth: .infinity)
-            }.buttonStyle(.borderedProminent).disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.verify.submit")
+            }.buttonStyle(.questifyPrimary).disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.verify.submit")
         }
     }
 }
-/// Camera scanning is not executed here: scanned text is pasted, parsed locally, then the
-/// reviewed verify sheet opens with the extracted submission ID.
+/// Paste, inspect an unverified identifier, then explicitly return to the original verify form.
 @MainActor private struct MerchantGameNodeScanImportSheet: View {
-    @Binding var scanned: String?
-    @Environment(\.dismiss) private var dismiss
-    @State private var text = ""
+    @ObservedObject var session: MerchantGameNodeImportSession
+    let cancel: () -> Void
+    let apply: () -> Void
     var body: some View {
         NavigationStack {
             Form {
-                Section {
-                    TextField(MerchantGameNodeCopy.string("merchantGameNode.scan.placeholder"), text: $text, axis: .vertical)
-                        .lineLimit(3...6).accessibilityIdentifier("gameNode.scan.text")
-                } footer: { MerchantGameNodeCopy.text("merchantGameNode.scan.cameraUnavailable") }
-                Button {
-                    scanned = String(text.prefix(4_096)); dismiss()
-                } label: { MerchantGameNodeCopy.text("merchantGameNode.scan.use") }
-                    .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty).accessibilityIdentifier("gameNode.scan.use")
+                Text("merchant.submissionImport.instructions")
+                Text("merchant.submissionImport.noCamera").font(.footnote)
+                if let code = session.code {
+                    Section("merchant.submissionImport.unverified") {
+                        Text(verbatim: code.submissionID)
+                        Text("merchant.submissionImport.unverifiedBody").font(.footnote)
+                        Button("merchant.submissionImport.apply", action: apply)
+                            .disabled(!session.isCurrent).accessibilityIdentifier("gameNode.scan.use")
+                        Button("merchant.submissionImport.edit") { session.update("") }
+                    }
+                } else {
+                    SecureField("merchant.submissionImport.input", text: Binding(get: { session.raw }, set: session.update))
+                        .textInputAutocapitalization(.never).autocorrectionDisabled()
+                        .disabled(!session.isCurrent).accessibilityIdentifier("gameNode.scan.text")
+                    Button("merchant.submissionImport.preview") { session.preview() }
+                        .disabled(!session.isCurrent || session.raw.isEmpty)
+                }
+                if let issue = session.issue { Text(LocalizedStringKey(issue)).foregroundStyle(.secondary) }
             }
-            .navigationTitle(MerchantGameNodeCopy.string("merchantGameNode.run.scanVerify")).navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button { dismiss() } label: { MerchantGameNodeCopy.text("merchantGameNode.cancel") } } }
+            .navigationTitle(MerchantGameNodeCopy.string("merchantGameNode.run.scanVerify"))
+            .toolbar { ToolbarItem(placement: .cancellationAction) {
+                Button(action: cancel) { MerchantGameNodeCopy.text("merchantGameNode.cancel") }
+            } }
         }
     }
 }

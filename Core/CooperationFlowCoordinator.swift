@@ -123,6 +123,11 @@ public struct CoopFlowReview: Equatable {
         guard executor.dispatchScope == accepted.dispatchScope else { throw CoopFlowFailure.stale }
         guard fresh.baseline == accepted.baseline else { throw CoopFlowFailure.conflict }
         guard try !hasLock(accepted.operation, account: session.accountID, scope: accepted.dispatchScope) else { throw CoopFlowFailure.ambiguous }
+        // Fresh evidence may suspend past the original confirmation deadline or revoke a
+        // separately supplied host gate. Recheck before acquiring a durable dispatch lock.
+        let dispatchAge = now().timeIntervalSince(accepted.created)
+        guard dispatchAge >= 0, dispatchAge <= 120 else { throw CoopFlowFailure.stale }
+        guard enabled(), executor.permitsDispatch(accepted.operation) else { throw CoopFlowFailure.disabled }
         let key = scopedLockKey(accepted.operation, account: session.accountID, scope: accepted.dispatchScope)
         try locks.acquire(key)
         // Any throw after acquire (timeout/cancel/malformed/server rejection/account switch) remains locked.

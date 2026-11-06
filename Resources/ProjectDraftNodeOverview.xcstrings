@@ -54,13 +54,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Map preview is unavailable: stored coordinates have no verified MapKit display datum. Numeric validity does not establish map alignment."
+            "value": "The map can't be shown for these stops."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "地图预览暂不可用：保存的坐标尚无经过验证的 MapKit 显示坐标系。数值有效不代表地图位置准确。"
+            "value": "无法为这些地点显示地图。"
           }
         }
       }
@@ -230,13 +230,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Coordinates are numerically valid; their display datum is unverified."
+            "value": "Location entered"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "坐标数值有效，但显示坐标系尚未验证。"
+            "value": "已填写位置"
           }
         }
       }

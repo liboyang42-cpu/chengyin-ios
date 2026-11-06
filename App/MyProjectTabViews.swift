@@ -54,7 +54,6 @@ extension EnvironmentValues {
     let shelf: MyProjectTemplateShelfHost?
     var body: some View {
         Section {
-            Text("myProject.template.scope").font(.caption).foregroundStyle(.secondary)
             if let shelf {
                 NavigationLink { shelf.make() } label: {
                     Label("myProject.template.open", systemImage: "square.stack.3d.up")
@@ -154,13 +153,10 @@ extension EnvironmentValues {
         rows.contains { !MyProjectListPresentation.card($0, merchantScopeAccess: merchantScopeAccess).operations.isEmpty }
     }
     var body: some View {
+        // None of 上下架 / 取消 / 删除 can run yet, so the long-press menu offers nothing rather than a
+        // column of disabled rows. The operations are still computed for when an endpoint is approved.
         let card = MyProjectListPresentation.card(project, merchantScopeAccess: merchantScopeAccess)
-        ForEach(card.operations, id: \.self) { op in
-            Button(role: op == .delete ? .destructive : nil) {} label: {
-                Text(LocalizedStringKey(op == .toggle ? card.toggleKey : op.localizationKey))
-            }.disabled(true)
-        }
-        if !card.operations.isEmpty { Text("myProject.op.unavailable") }
+        if card.operations.isEmpty { EmptyView() }
     }
 }
 

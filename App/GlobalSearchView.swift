@@ -39,43 +39,43 @@ import SwiftUI
         .init(readerID: ObjectIdentifier(reader), scope: reader.scope, isAuthenticated: reader.isAuthenticated,
               isConfigured: reader.isConfigured, query: filter)
     }
+    /// Mini-program `pages/search2`: search field with 筛选, then 搜索历史, 推荐搜索 and 类别, then the map entry.
+    /// Results replace the suggestions in place (the mini-program pushes `search2/result`).
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                if historyFailure { Text("searchMap.historyUnavailable").font(.caption).foregroundStyle(.secondary) }
-                if reader.isOfflineExample { Text("searchMap.offline").font(.caption).foregroundStyle(.secondary) }
-                HStack {
+        List {
+            Section {
+                HStack(spacing: 8) {
+                    Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
                     TextField("searchMap.placeholder", text: Binding(get: { filter.keyword }, set: setKeyword)).textInputAutocapitalization(.never)
                         .submitLabel(.search).onSubmit { Task { await search() } }
                         .accessibilityIdentifier("searchMap.keyword")
-                    Button { openFilters() } label: { Label("searchMap.filters", systemImage: "line.3.horizontal.decrease") }
-                        .labelStyle(.iconOnly).frame(minWidth: 44, minHeight: 44).accessibilityIdentifier("searchMap.filters")
-                }.padding(12).background(.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
+                    Button { openFilters() } label: { Label("searchMap.filters", systemImage: "line.3.horizontal.decrease.circle") }
+                        .labelStyle(.iconOnly).buttonStyle(.borderless)
+                        .frame(minWidth: 44, minHeight: 44).accessibilityIdentifier("searchMap.filters")
+                }
+                if historyFailure { Text("searchMap.historyUnavailable").font(.footnote).foregroundStyle(.secondary) }
+                if reader.isOfflineExample { Label("searchMap.offline", systemImage: "wifi.slash").font(.footnote).foregroundStyle(.secondary) }
+            }
+            Section {
                 Button("searchMap.search") { Task { await search() } }
-                    .buttonStyle(.borderedProminent).frame(minHeight: 44).disabled(!reader.isConfigured || !filter.canSearch)
+                    .buttonStyle(.questifyPrimary).frame(maxWidth: .infinity, minHeight: 44).disabled(!reader.isConfigured || !filter.canSearch)
                     .accessibilityIdentifier("searchMap.submit")
-                HStack {
-                    NavigationLink { SearchMapExplorerView(reader: reader, mode: .city, initialFilter: filter, onSignIn: onSignIn, destination: destination) } label: { Label("searchMap.citySearch", systemImage: "mappin.and.ellipse") }
-                    NavigationLink { SearchMapExplorerView(reader: reader, mode: .nearby, onSignIn: onSignIn, destination: destination) } label: { Label("searchMap.nearby", systemImage: "map") }
-                }.buttonStyle(.bordered).frame(minHeight: 44)
-                if let publicLayers {
-                    NavigationLink { MapPublicLayerCallerView(caller: publicLayers) } label: { Text(verbatim: "Public layers").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading) }
-                        .accessibilityIdentifier("mapPublic.entry")
+            }
+            .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
+            if !reader.isConfigured {
+                Section { SearchMapIssue(key: "searchMap.notConfigured").questifyCardListRow() }
+            } else {
+                if loading {
+                    Section { ProgressView("searchMap.loading").frame(maxWidth: .infinity).accessibilityIdentifier("searchMap.loading") }
                 }
-                NavigationLink {
-                    MerchantDiscoverView(reader: reader, publicMerchant: publicMerchant)
-                } label: { Label("merchant.discover.title", systemImage: "storefront") }
-                    .frame(minHeight: 44).accessibilityIdentifier("merchant.discover.entry")
-                if !reader.isConfigured { SearchMapIssue(key: "searchMap.notConfigured") }
-                else {
-                    if loading { ProgressView("searchMap.loading").frame(maxWidth: .infinity).accessibilityIdentifier("searchMap.loading") }
-                    if let issue { SearchMapIssue(key: issue) { Task { await search() } } }
-                    if let snapshot = retainedResults.snapshot(in: resultContext) {
-                        results(snapshot.results, retainedKinds: snapshot.retainedKinds)
-                    } else if !loading && issue == nil { suggestions }
-                }
-            }.padding()
+                if let issue { Section { SearchMapIssue(key: issue) { Task { await search() } }.questifyCardListRow() } }
+                if let snapshot = retainedResults.snapshot(in: resultContext) {
+                    results(snapshot.results, retainedKinds: snapshot.retainedKinds)
+                } else if !loading && issue == nil { suggestions }
+            }
+            mapSection
         }
+        .listStyle(.insetGrouped)
         .appNavigationTitle("searchMap.title")
         .sheet(isPresented: $showsFilters) {
             let presentationID = filterPresentationID
@@ -135,88 +135,140 @@ import SwiftUI
     @ViewBuilder private var suggestions: some View {
         let context = categoryRecovery.context(for: categoryOwner)
         if !history.isEmpty {
-            HStack {
-                Text("searchMap.history").font(.headline)
-                Spacer()
-                Button("searchMap.clearHistory") { if historyStore.clear(namespace: historyNamespace) { history = [] }; historyFailure = historyStore.failed }
-                    .frame(minHeight: 44).accessibilityIdentifier("searchMap.clearHistory")
-            }
-            ForEach(history, id: \.self) { keyword in
-                Button { setKeyword(keyword); Task { await search() } } label: { Label(keyword, systemImage: "clock") }
+            Section {
+                ForEach(history, id: \.self) { keyword in
+                    Button { setKeyword(keyword); Task { await search() } } label: {
+                        Label(keyword, systemImage: "clock.arrow.circlepath").foregroundStyle(.primary)
+                    }
                     .frame(minHeight: 44)
+                }
+            } header: {
+                HStack {
+                    Text("searchMap.history")
+                    Spacer()
+                    Button("searchMap.clearHistory") { if historyStore.clear(namespace: historyNamespace) { history = [] }; historyFailure = historyStore.failed }
+                        .font(.footnote).textCase(nil).buttonStyle(.borderless)
+                        .frame(minHeight: 44).accessibilityIdentifier("searchMap.clearHistory")
+                }
             }
         }
         if !recommendedKeywords.isEmpty {
-            Text("searchMap.recommended").font(.headline)
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 88))], spacing: 8) {
-                ForEach(Array(recommendedKeywords.enumerated()), id: \.offset) { index, keyword in
-                    Button { setKeyword(keyword); Task { await search() } } label: {
-                        Text(verbatim: keyword).frame(maxWidth: .infinity, minHeight: 44)
-                    }.buttonStyle(.bordered).disabled(!reader.isConfigured)
-                        .accessibilityIdentifier("searchMap.recommended.\(index)")
+            Section("searchMap.recommended") {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 88))], spacing: 8) {
+                    ForEach(Array(recommendedKeywords.enumerated()), id: \.offset) { index, keyword in
+                        Button { setKeyword(keyword); Task { await search() } } label: {
+                            Text(verbatim: keyword).frame(maxWidth: .infinity, minHeight: 44)
+                        }.buttonStyle(.bordered).disabled(!reader.isConfigured)
+                            .accessibilityIdentifier("searchMap.recommended.\(index)")
+                    }
                 }
+                .padding(.vertical, 4)
             }
         }
-        Text("searchMap.categories").font(.headline)
-        if categoryLoading {
-            ProgressView("searchMap.loading").accessibilityIdentifier("globalSearch.category.loading")
-        } else if categoryFailed {
-            SearchMapIssue(key: "searchMap.categoryFailed") {
-                guard !showsFilters, let context else { return }
-                _ = categoryRecovery.retry(in: context)
-            }
-        }
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 125))], spacing: 12) {
-            ForEach(categories) { category in
-                Button {
-                    guard !showsFilters, let context, categoryRecovery.accepts(context) else { return }
-                    var next = filter; next.categoryID = category.id; applyFilter(next)
-                } label: {
-                    Text(verbatim: category.name).frame(maxWidth: .infinity, minHeight: 44)
-                }.buttonStyle(.bordered).accessibilityIdentifier("searchMap.category.\(category.id)")
+        // 类别 hides once the directory is known to be empty; loading and failure still show.
+        if categoryLoading || categoryFailed || !categories.isEmpty {
+            Section("searchMap.categories") {
+                if categoryLoading {
+                    ProgressView("searchMap.loading").frame(maxWidth: .infinity).accessibilityIdentifier("globalSearch.category.loading")
+                } else if categoryFailed {
+                    SearchMapIssue(key: "searchMap.categoryFailed") {
+                        guard !showsFilters, let context else { return }
+                        _ = categoryRecovery.retry(in: context)
+                    }
+                    .questifyCardListRow()
+                }
+                if !categories.isEmpty {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 125))], spacing: 12) {
+                        ForEach(categories) { category in
+                            Button {
+                                guard !showsFilters, let context, categoryRecovery.accepts(context) else { return }
+                                var next = filter; next.categoryID = category.id; applyFilter(next)
+                            } label: {
+                                Text(verbatim: category.name).frame(maxWidth: .infinity, minHeight: 44)
+                            }.buttonStyle(.bordered).accessibilityIdentifier("searchMap.category.\(category.id)")
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
             }
         }
     }
+    /// Mini-program `search-actions__map` (在地图上找活动与主题节点), plus the native map and shop entries.
+    private var mapSection: some View {
+        Section {
+            NavigationLink { SearchMapExplorerView(reader: reader, mode: .city, initialFilter: filter, onSignIn: onSignIn, destination: destination) } label: { Label("searchMap.citySearch", systemImage: "mappin.and.ellipse") }
+            NavigationLink { SearchMapExplorerView(reader: reader, mode: .nearby, onSignIn: onSignIn, destination: destination) } label: { Label("searchMap.nearby", systemImage: "location") }
+            if let publicLayers {
+                NavigationLink { MapPublicLayerCallerView(caller: publicLayers) } label: { Label("searchMap.publicLayers", systemImage: "square.3.layers.3d") }
+                    .accessibilityIdentifier("mapPublic.entry")
+            }
+            NavigationLink {
+                MerchantDiscoverView(reader: reader, publicMerchant: publicMerchant)
+            } label: { Label("merchant.discover.title", systemImage: "storefront") }
+                .accessibilityIdentifier("merchant.discover.entry")
+        }
+    }
     @ViewBuilder private func results(_ value: GlobalSearchResults, retainedKinds: [GlobalSearchKind]) -> some View {
-        if loading && !value.rows.isEmpty {
-            Text("globalSearchRetention.refreshing").font(.footnote).foregroundStyle(.secondary)
-                .accessibilityIdentifier("globalSearchRetention.refreshing")
+        // Mini-program `pages/search2/result`: result tabs first. Segmented when the labels fit, a menu otherwise,
+        // so counts never clip on small phones or at large text sizes.
+        Section {
+            ViewThatFits(in: .horizontal) {
+                kindPicker(value).pickerStyle(.segmented).fixedSize()
+                kindPicker(value).pickerStyle(.menu)
+            }
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
         }
-        if !retainedKinds.isEmpty {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("globalSearchRetention.stale")
-                ForEach(retainedKinds, id: \.self) { kind in Label(kind.titleKey, systemImage: "clock.arrow.circlepath") }
-            }.font(.footnote).accessibilityIdentifier("globalSearchRetention.stale")
-        }
-        if !value.gatedKinds.isEmpty {
-            Label("searchMap.partialSignIn", systemImage: "lock").font(.footnote)
-                .accessibilityIdentifier("searchMap.guestGate")
-            if let onSignIn { Button("searchMap.signIn", action: onSignIn).frame(minHeight: 44) }
-        }
-        if !value.failedKinds.isEmpty {
-            VStack(alignment: .leading) {
-                Text(LocalizedStringKey(value.allFailed ? "searchMap.allFailed" : "searchMap.partialFailure"))
-                ForEach(value.failedKinds, id: \.self) { kind in Label(kind.titleKey, systemImage: "exclamationmark.circle") }
-                Button("searchMap.retry") { Task { await search() } }.frame(minHeight: 44)
-            }.font(.footnote).accessibilityIdentifier("searchMap.partialFailure")
-        }
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack {
-                Button("searchMap.all") { selectedKind = nil }.buttonStyle(.bordered)
-                ForEach(GlobalSearchKind.allCases, id: \.self) { kind in
-                    Button { selectedKind = kind } label: { Text(kind.titleKey) + Text(verbatim: " \(value.count(kind))") }
-                        .buttonStyle(.bordered).accessibilityAddTraits(selectedKind == kind ? [.isSelected] : [])
-                        .accessibilityIdentifier("searchMap.kind.\(kind.rawValue)")
+        if (loading && !value.rows.isEmpty) || !retainedKinds.isEmpty || !value.gatedKinds.isEmpty || !value.failedKinds.isEmpty {
+            Section {
+                if loading && !value.rows.isEmpty {
+                    Text("globalSearchRetention.refreshing").font(.footnote).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("globalSearchRetention.refreshing")
                 }
-            }.frame(minHeight: 44)
+                if !retainedKinds.isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("globalSearchRetention.stale")
+                        ForEach(retainedKinds, id: \.self) { kind in Label(kind.titleKey, systemImage: "clock.arrow.circlepath") }
+                    }.font(.footnote).accessibilityIdentifier("globalSearchRetention.stale")
+                }
+                if !value.gatedKinds.isEmpty {
+                    Label("searchMap.partialSignIn", systemImage: "lock").font(.footnote)
+                        .accessibilityIdentifier("searchMap.guestGate")
+                    if let onSignIn { Button("searchMap.signIn", action: onSignIn).frame(minHeight: 44) }
+                }
+                if !value.failedKinds.isEmpty {
+                    VStack(alignment: .leading) {
+                        Text(LocalizedStringKey(value.allFailed ? "searchMap.allFailed" : "searchMap.partialFailure"))
+                        ForEach(value.failedKinds, id: \.self) { kind in Label(kind.titleKey, systemImage: "exclamationmark.circle") }
+                        Button("searchMap.retry") { Task { await search() } }.buttonStyle(.borderless).frame(minHeight: 44)
+                    }.font(.footnote).accessibilityIdentifier("searchMap.partialFailure")
+                }
+            }
         }
         let visible = value.rows.filter { selectedKind == nil || $0.kind == selectedKind }
-        if visible.isEmpty && !loading && !value.allFailed && value.failedKinds.isEmpty && value.gatedKinds.isEmpty { ContentUnavailableView("searchMap.empty", systemImage: "magnifyingglass", description: Text("searchMap.emptyHint")) }
-        ForEach(visible) { row in
-            NavigationLink { destination(row.destination) } label: { SearchMapCard(row: row, offline: reader.isOfflineExample) }
-                .buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("searchMap.result.\(row.id)")
+        Section {
+            if value.showsEmptyState(for: selectedKind, isLoading: loading) {
+                ContentUnavailableView("searchMap.empty", systemImage: "magnifyingglass")
+            }
+            ForEach(visible) { row in
+                NavigationLink { destination(row.destination) } label: { SearchMapCard(row: row, offline: reader.isOfflineExample) }
+                    .buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("searchMap.result.\(row.id)")
+                    .questifyHidesLinkIndicator()
+                    .questifyCardListRow()
+            }
         }
-        Text("searchMap.pageLimit").font(.caption).foregroundStyle(.secondary)
+    }
+    private func kindPicker(_ value: GlobalSearchResults) -> some View {
+        Picker("searchMap.resultKinds", selection: $selectedKind) {
+            Text("searchMap.all").tag(GlobalSearchKind?.none)
+            ForEach(GlobalSearchKind.allCases, id: \.self) { kind in
+                (Text(kind.titleKey) + Text(verbatim: " \(value.count(kind))"))
+                    .tag(Optional(kind))
+                    .accessibilityIdentifier("searchMap.kind.\(kind.rawValue)")
+            }
+        }
+        .labelsHidden()
     }
     private func applyFilter(_ next: GlobalSearchQuery) {
         // Invalidate synchronously, including category-only searches cleared to an empty query.

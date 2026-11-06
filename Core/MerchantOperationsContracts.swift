@@ -111,6 +111,42 @@ public struct MerchantStoreDecor: Decodable, Equatable {
     public var gallery: [String]
     public var tags: [String]
     public var categoryID: Int?
+    public let categoryIds: String?
+    public private(set) var categoryIDsReplacement: [Int]?
+    public var sourceIndustries: [MerchantStoreIndustryName]
+    public var selectedCategoryIDs: [Int] { categoryIDsReplacement ?? Self.categoryIDs(categoryIds, fallback: categoryID) ?? [] }
+    public var categorySourceUnavailable: Bool { Self.categoryIDs(categoryIds, fallback: categoryID) == nil }
+    public var industryNames: [String] { selectedCategoryIDs.map { id in sourceIndustries.first(where: { $0.id == id })?.name ?? "#\(id)" } }
+    private static func categoryIDs(_ raw: String?, fallback: Int?) -> [Int]? {
+        guard let raw, !raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            // Legacy nil/zero means no selected industry, not a selectable category #0.
+            guard let fallback, fallback != 0 else { return [] }
+            // Preserve invalid source values, but never present them as a valid selection.
+            guard fallback > 0, fallback <= Int(Int32.max) else { return nil }
+            return [fallback]
+        }
+        let parts = raw.split(separator: ",", omittingEmptySubsequences: false).map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        var ids: [Int] = []
+        for text in parts {
+            guard text.range(of: #"\A[1-9][0-9]*\z"#, options: .regularExpression) != nil, let id = Int(text), id <= Int(Int32.max) else { return nil }
+            if !ids.contains(id) { ids.append(id) }
+        }
+        return ids
+    }
+    public static func == (a: Self, b: Self) -> Bool {
+        // Category names are live display metadata, not a local modification or writer input.
+        a.coverImage == b.coverImage && a.slogan == b.slogan && a.cityRole == b.cityRole && a.storyTitle == b.storyTitle &&
+        a.gallery == b.gallery && a.tags == b.tags && a.categoryID == b.categoryID && a.categoryIds == b.categoryIds &&
+        a.categoryIDsReplacement == b.categoryIDsReplacement && a.featuredType == b.featuredType && a.featuredID == b.featuredID &&
+        a.serviceTag == b.serviceTag && a.serviceText == b.serviceText && a.locationLat == b.locationLat &&
+        a.locationLng == b.locationLng && a.locationVerified == b.locationVerified
+    }
+    public mutating func selectIndustries(_ ids: [Int], catalog: [MerchantStoreIndustry]) throws {
+        guard !categorySourceUnavailable, (1...5).contains(ids.count), Set(ids).count == ids.count,
+              ids.allSatisfy({ id in id > 0 && id <= Int(Int32.max) && catalog.contains { $0.id == id } }) else { throw APIError.invalidRequest }
+        categoryIDsReplacement = ids == Self.categoryIDs(categoryIds, fallback: categoryID) ? nil : ids
+        sourceIndustries = catalog.map { .init(id: $0.id, name: $0.name) }
+    }
     public var featuredType: Int?
     public var featuredID: Int?
     public var serviceTag: String?
@@ -119,7 +155,7 @@ public struct MerchantStoreDecor: Decodable, Equatable {
     public var locationLng: Double?
     public var locationVerified: Int?
     private enum CodingKeys: String, CodingKey {
-        case coverImage, slogan, cityRole, storyTitle, gallery, tags, categoryId, featuredType, featuredId
+        case coverImage, slogan, cityRole, storyTitle, gallery, tags, categoryId, categoryIds, sysCategoryList, featuredType, featuredId
         case serviceTag, serviceText, locationLat, locationLng, locationVerified
     }
     public init(from decoder: Decoder) throws {
@@ -129,6 +165,8 @@ public struct MerchantStoreDecor: Decodable, Equatable {
         cityRole = try c.decodeIfPresent(String.self, forKey: .cityRole) ?? ""
         storyTitle = try c.decodeIfPresent(String.self, forKey: .storyTitle) ?? ""
         gallery = try Self.list(c, .gallery); tags = try Self.list(c, .tags)
+        categoryIds = try c.decodeIfPresent(String.self, forKey: .categoryIds)
+        sourceIndustries = try c.decodeIfPresent([MerchantStoreIndustryName].self, forKey: .sysCategoryList) ?? []
         categoryID = c.merchantInteger(.categoryId); featuredType = c.merchantInteger(.featuredType); featuredID = c.merchantInteger(.featuredId)
         serviceTag = try c.decodeIfPresent(String.self, forKey: .serviceTag)
         serviceText = try c.decodeIfPresent(String.self, forKey: .serviceText)
@@ -152,20 +190,27 @@ public struct MerchantStoreDecor: Decodable, Equatable {
         return values.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
     }
     public var blocker: String? {
+        if let ids = categoryIDsReplacement, !(1...5).contains(ids.count) || Set(ids).count != ids.count { return "merchant.industry.selectionInvalid" }
         if gallery.count > 9 { return "merchant.operations.galleryLimit" }
         if ((featuredType ?? 0) > 0) != ((featuredID ?? 0) > 0) { return "merchant.operations.featuredIncomplete" }
-        if (coverImage ?? "").isEmpty && slogan.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && cityRole.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && storyTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && gallery.isEmpty && tags.isEmpty && (categoryID ?? 0) <= 0 && !(featuredType == 0 && featuredID == nil) { return "merchant.operations.decorEmpty" }
+        if (coverImage ?? "").isEmpty && slogan.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && cityRole.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && storyTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && gallery.isEmpty && tags.isEmpty && selectedCategoryIDs.isEmpty && !(featuredType == 0 && featuredID == nil) { return "merchant.operations.decorEmpty" }
         return nil
     }
     /// This full payload is a contract preview only; no production send exists.
     public func fields() throws -> [String: Any] {
-        ["coverImage": coverImage as Any? ?? NSNull(), "slogan": slogan.trimmingCharacters(in: .whitespacesAndNewlines),
+        var fields: [String: Any] = ["coverImage": coverImage as Any? ?? NSNull(), "slogan": slogan.trimmingCharacters(in: .whitespacesAndNewlines),
          "cityRole": cityRole.trimmingCharacters(in: .whitespacesAndNewlines), "storyTitle": storyTitle.trimmingCharacters(in: .whitespacesAndNewlines),
          "gallery": try Self.listString(gallery), "tags": try Self.listString(tags),
-         "categoryId": categoryID as Any? ?? NSNull(), "featuredType": featuredType as Any? ?? NSNull(),
+         "featuredType": featuredType as Any? ?? NSNull(),
          "featuredId": featuredID as Any? ?? NSNull(), "serviceTag": serviceTag as Any? ?? NSNull(),
          "serviceText": serviceText as Any? ?? NSNull(), "locationLat": locationLat as Any? ?? NSNull(),
          "locationLng": locationLng as Any? ?? NSNull(), "locationVerified": locationVerified as Any? ?? NSNull()]
+        if let ids = categoryIDsReplacement {
+            guard (1...5).contains(ids.count), Set(ids).count == ids.count, ids.allSatisfy({ $0 > 0 && $0 <= Int(Int32.max) }) else { throw APIError.invalidRequest }
+            // Only explicit replacement is writable. Omission preserves current server industries.
+            fields["categoryIds"] = ids.map(String.init).joined(separator: ",")
+        }
+        return fields
     }
     public static func listString(_ values: [String]) throws -> String {
         String(decoding: try JSONEncoder().encode(values), as: UTF8.self)

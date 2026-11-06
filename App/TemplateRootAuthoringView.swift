@@ -7,12 +7,10 @@ import Combine
     var body: some View {
         Form {
             Section("creatorRoot.rules") {
-                Text("creatorRoot.separateCount").font(.footnote)
                 Picker("creatorRoot.mistakeTier", selection: Binding(get: { model.draft.advanced.value["mistakeTier"]?.string ?? "" }, set: { model.draft.advanced.value["mistakeTier"] = $0.isEmpty ? nil : .string($0) })) {
                     Text("creatorRoot.defaultTier").tag("")
                     ForEach(["easy", "medium", "hard"], id: \.self) { Text(LocalizedStringKey("creator.choice." + $0)).tag($0) }
                 }
-                Text("creatorRoot.damageServer").font(.footnote)
                 Picker("playkitAuthor.presentation", selection: Binding(get: { model.draft.advanced.explicitPresentation }, set: { model.draft.advanced.setPresentation($0) })) {
                     Text("playkitAuthor.presentation.default").tag(""); Text("playkitAuthor.presentation.inline").tag("inline"); Text("playkitAuthor.presentation.focused").tag("fullscreen")
                 }
@@ -20,7 +18,6 @@ import Combine
             Section("creatorRoot.variants") {
                 NavigationLink { TemplateLowHPPresetView(model: model) } label: { TemplateLowHPPresetEntryLabel() }
                     .accessibilityIdentifier("templateLowHP.open")
-                Text("creatorRoot.firstMatch").font(.footnote)
                 ForEach(Array(model.draft.advanced.rootVariants.enumerated()), id: \.offset) { index, _ in
                     NavigationLink { TemplateVariantEditor(model: model, index: index) } label: { HStack { Text("creatorRoot.variant"); Text(verbatim: String(index + 1)) } }
                 }.onDelete { indexes in var rows = model.draft.advanced.rootVariants; for index in indexes.sorted(by: >) { rows.remove(at: index) }; model.draft.advanced.value["variants"] = .array(rows) }
@@ -30,13 +27,12 @@ import Combine
             }
             Section("creatorRoot.roleViews") {
                 Toggle("templateAuthor.moduleEnabled", isOn: Binding(get: { model.draft.advanced.enabled("roleViews") }, set: { model.draft.advanced.setRoleViewsEnabled($0) }))
-                Text("creatorRoot.roleViewsLimit").font(.footnote)
                 if model.draft.advanced.enabled("roleViews") {
                     ForEach(["A", "B"], id: \.self) { role in NavigationLink { TemplateRoleViewEditor(model: model, role: role) } label: { HStack { Text("creatorRoot.roleLabel"); Text(verbatim: role) } } }
                 }
             }
             Section { NavigationLink("creatorRoot.rehearse") { TemplateRootRehearsalView(draft: model.draft.advanced) }.disabled(!model.draft.advanced.issues.isEmpty) }
-            if !issues.isEmpty { Section("templateAuthor.validationTitle") { ForEach(issues) { issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)); Text(verbatim: issue.path).font(.caption) } } } }
+            if !issues.isEmpty { Section("templateAuthor.validationTitle") { ForEach(issues) { issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(.red) } } } }
         }.navigationTitle("creatorRoot.rules").toolbar { EditButton() }.disabled(!model.canEdit)
     }
 }
@@ -70,10 +66,9 @@ import Combine
                 Button("creator.add") {
                     guard let field = newField else { return }; var fields = relax; fields[field.rawValue] = .string(field.initialOperation); model.draft.advanced.setRootVariant(index, key: "relax", entry: .object(fields)); newField = nil
                 }.disabled(newField == nil)
-                Text("creatorRoot.eligibleOnly").font(.footnote)
             }
             let issues = model.draft.advanced.rootCreatorIssues.filter { $0.path.hasPrefix("variants[\(index + 1)]") }
-            if !issues.isEmpty { Section("templateAuthor.validationTitle") { ForEach(issues) { issue in Text(LocalizedStringKey(issue.labelKey)) } } }
+            if !issues.isEmpty { Section("templateAuthor.validationTitle") { ForEach(issues) { issue in Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(.red) } } }
         }.navigationTitle("creatorRoot.variant")
     }
 }
@@ -105,7 +100,6 @@ private struct TemplateConditionEditor: View {
             TextField("creator.field.var", text: text("var")).textInputAutocapitalization(.never)
             TextField("creator.field.value", text: text("value")).keyboardType(.numbersAndPunctuation)
         }
-        Text("creatorRoot.conditionScope").font(.footnote)
     }
 }
 
@@ -132,7 +126,6 @@ private struct TemplateConditionEditor: View {
                 }))
                 TextField("creator.field.title", text: binding("title"), axis: .vertical)
                 TextField("creator.field.body", text: binding("body"), axis: .vertical)
-                Text("creatorRoot.roleTextLimit").font(.caption)
             }
             Section("creatorRoot.roleItems") {
                 ForEach(items.indices, id: \.self) { index in
@@ -161,7 +154,6 @@ private struct TemplateConditionEditor: View {
         Picker("creatorRoot.rollMode", selection: binding("rollMode")) { ForEach(["normal", "advantage", "disadvantage"], id: \.self) { Text(LocalizedStringKey("creatorRoot.roll." + $0)).tag($0) } }
         TextField("creator.field.successText", text: binding("successText"), axis: .vertical)
         TextField("creator.field.failText", text: binding("failText"), axis: .vertical)
-        Text("creatorRoot.d20Bounds").font(.footnote)
         NavigationLink("creatorRoot.d20Preview") { TemplateD20RehearsalView(draft: model.draft.advanced) }.disabled(!model.draft.advanced.legacyVariantIssues.isEmpty)
     }
 }

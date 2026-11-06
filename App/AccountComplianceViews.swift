@@ -3,9 +3,46 @@ import SwiftUI
 @MainActor final class ComplianceViewModel: ObservableObject {
     @Published var state: ComplianceState
     let coordinator: AccountComplianceCoordinator
-    init(_ coordinator: AccountComplianceCoordinator) {
-        self.coordinator = coordinator; state = coordinator.state
-        coordinator.onChange = { [weak self] in self?.state = $0 }
+    private let cancellationPresentation: AccountDeregistrationPresentation?
+    private let marketingPresentation: AccountMarketingPresentation?
+    private var ended = false
+    init(_ coordinator: AccountComplianceCoordinator, isDeregistration: Bool = false, isMarketing: Bool = false) {
+        self.coordinator = coordinator
+        cancellationPresentation = isDeregistration ? coordinator.beginDeregistrationPresentation() : nil
+        marketingPresentation = !isDeregistration && isMarketing ? coordinator.beginMarketingPresentation() : nil
+        state = coordinator.state
+        coordinator.onChange = { [weak self] value in
+            guard let self else { return }
+            if let lease = self.cancellationPresentation, !self.coordinator.ownsDeregistrationPresentation(lease) {
+                self.state = .init()
+            } else if let lease = self.marketingPresentation, !self.coordinator.ownsMarketingPresentation(lease) {
+                self.state = .init()
+            } else { self.state = value }
+        }
+    }
+    func cancellationIntent(resume: Bool = false) -> AccountDeregistrationIntent? {
+        guard !ended, !Task.isCancelled, let lease = cancellationPresentation else { return nil }
+        if resume, !coordinator.resumeDeregistrationPresentation(lease) { state = .init(); state.error = "compliance.unavailable"; return nil }
+        return coordinator.captureDeregistrationIntent(lease)
+    }
+    func pauseCancellation() {
+        guard let lease = cancellationPresentation else { return }
+        coordinator.pauseDeregistrationPresentation(lease); state = .init()
+    }
+    func marketingRead(resume: Bool = false) -> AccountMarketingReadIntent? {
+        guard !ended, !Task.isCancelled, let lease = marketingPresentation else { return nil }
+        if resume, !coordinator.resumeMarketingPresentation(lease) { state = .init(); state.error = "compliance.unavailable"; return nil }
+        return coordinator.captureMarketingRead(lease)
+    }
+    func pauseMarketing() {
+        guard let lease = marketingPresentation else { return }
+        coordinator.pauseMarketingPresentation(lease); state = .init()
+    }
+    func endPresentation() {
+        ended = true
+        if cancellationPresentation != nil { pauseCancellation() }
+        else if marketingPresentation != nil { pauseMarketing() }
+        else { coordinator.invalidate() }
     }
 }
 /// Add to Settings Form with an injected coordinator; sheet dismissal never retries a write.
@@ -13,16 +50,27 @@ import SwiftUI
     let makeCoordinator: () -> AccountComplianceCoordinator
     let market: RegionalMarket?
     let legalReader: any SettingsLegalReading
+    var showsNPCChatDataEntry = true
     @State private var selected: ComplianceDestination?
     @State private var npcChatData: NPCChatDataPresentation?
     var body: some View {
         Section("compliance.title") {
             ForEach(ComplianceDestination.allCases) { destination in
-                Button(LocalizedStringKey(destination.title)) { selected = destination }
+                if destination == .marketing {
+                    NavigationLink {
+                        AccountComplianceSheet(coordinator: makeCoordinator(), destination: destination,
+                            market: market, legalReader: legalReader, showsCloseButton: false)
+                    } label: { Text(LocalizedStringKey(destination.title)) }
                     .accessibilityIdentifier("compliance.open.\(destination.rawValue)")
+                } else {
+                    Button(LocalizedStringKey(destination.title)) { selected = destination }
+                        .accessibilityIdentifier("compliance.open.\(destination.rawValue)")
+                }
             }
+            if showsNPCChatDataEntry {
             Button("npcData.title") { npcChatData = .init(coordinator: makeCoordinator().makeNPCChatDataCoordinator()) }
                 .accessibilityIdentifier("npcData.open")
+            }
         }
         .sheet(item: $selected) { destination in
             NavigationStack {
@@ -38,24 +86,32 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
     var title: String { "compliance.\(rawValue)" }
 }
 @MainActor struct AccountComplianceSheet: View {
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     @StateObject private var model: ComplianceViewModel
     let destination: ComplianceDestination
     let market: RegionalMarket?
     let legalReader: any SettingsLegalReading
+    let showsCloseButton: Bool
     @Environment(\.dismiss) private var dismiss
     @State private var agreement = false
     @State private var document: SettingsLegalDocument?
     @State private var phone = ""
     @State private var code = ""
     @State private var cancelReview = false
-    init(coordinator: AccountComplianceCoordinator, destination: ComplianceDestination, market: RegionalMarket?, legalReader: any SettingsLegalReading) {
-        _model = StateObject(wrappedValue: ComplianceViewModel(coordinator)); self.destination = destination; self.market = market; self.legalReader = legalReader
+    @State private var cancelIntent: AccountDeregistrationIntent?
+    @State private var marketingChange: ComplianceMarketingReview?
+    init(coordinator: AccountComplianceCoordinator, destination: ComplianceDestination, market: RegionalMarket?, legalReader: any SettingsLegalReading, showsCloseButton: Bool = true) {
+        _model = StateObject(wrappedValue: ComplianceViewModel(coordinator, isDeregistration: destination == .cancellation, isMarketing: destination == .marketing)); self.destination = destination; self.market = market; self.legalReader = legalReader
+        self.showsCloseButton = showsCloseButton
     }
     var body: some View {
         Form {
             if model.state.busy { ProgressView("compliance.loading").accessibilityIdentifier("compliance.loading") }
-            if let error = model.state.error { Text(LocalizedStringKey(error)).foregroundStyle(.red).accessibilityIdentifier("compliance.error") }
+            if let error = model.state.error {
+                Text(LocalizedStringKey(error), tableName: error == "compliance.impactChanged" ? "AccountDeregistrationPresentation" : nil)
+                    .foregroundStyle(.red).accessibilityIdentifier("compliance.error")
+            }
             switch destination {
             case .cancellation: cancellation
             case .roam: roam
@@ -63,25 +119,102 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             }
         }
         .navigationTitle(Text(LocalizedStringKey(destination.title)))
-        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("compliance.close") { code = ""; phone = ""; dismiss() } } }
+        .toolbar {
+            if showsCloseButton {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("compliance.close") { code = ""; phone = ""; dismiss() }
+                }
+            }
+        }
         .disabled(model.state.busy)
         .interactiveDismissDisabled(model.state.busy)
         .task {
-            if destination == .marketing { await model.coordinator.loadMarketing() }
-            if destination == .cancellation {
-                if let availability = try? await legalReader.document(type: .cancellationNotice, market: market), case .sourceDocument(let value) = availability { document = value }
-                await model.coordinator.load()
+            if destination == .marketing, scenePhase == .active,
+               let intent = model.marketingRead(resume: true) { await model.coordinator.loadMarketing(intent: intent) }
+            if destination == .cancellation, scenePhase == .active,
+               let intent = model.cancellationIntent(resume: true) { await loadCancellation(intent) }
+        }
+        .onDisappear {
+            code = ""; phone = ""; agreement = false; cancelReview = false; cancelIntent = nil
+            marketingChange = nil
+            model.endPresentation()
+        }
+        .onChange(of: model.coordinator.deregistrationOriginalRevision) { _, _ in
+            guard destination == .cancellation else { return }
+            code = ""; phone = ""; agreement = false; cancelReview = false; cancelIntent = nil
+            model.pauseCancellation()
+        }
+        .onChange(of: model.coordinator.marketingOriginalRevision) { _, _ in
+            guard destination == .marketing else { return }
+            marketingChange = nil; model.pauseMarketing()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if destination == .marketing {
+                marketingChange = nil
+                if phase != .active { model.pauseMarketing() }
+                else if let intent = model.marketingRead(resume: true) { Task { await model.coordinator.loadMarketing(intent: intent) } }
+                return
+            }
+            guard destination == .cancellation else { return }
+            code = ""; phone = ""; agreement = false; cancelReview = false; cancelIntent = nil
+            if phase != .active { model.pauseCancellation() }
+            else if let intent = model.cancellationIntent(resume: true) { Task { await loadCancellation(intent) } }
+        }
+        .confirmationDialog("compliance.cancelReview", isPresented: $cancelReview) {
+            Button("compliance.cancelApplication", role: .destructive) {
+                guard let intent = cancelIntent else { return }; cancelIntent = nil
+                Task { await model.coordinator.cancel(explicitlyConfirmed: true, intent: intent) }
             }
         }
-        .onDisappear { code = ""; phone = ""; model.coordinator.invalidate() }
-        .confirmationDialog("compliance.cancelReview", isPresented: $cancelReview) {
-            Button("compliance.cancelApplication", role: .destructive) { Task { await model.coordinator.cancel(explicitlyConfirmed: true) } }
-        }
+    }
+    private func loadCancellation(_ intent: AccountDeregistrationIntent) async {
+        guard model.coordinator.isCurrentDeregistrationIntent(intent) else { return }
+        let availability = try? await legalReader.document(type: .cancellationNotice, market: market)
+        guard model.coordinator.isCurrentDeregistrationIntent(intent), scenePhase == .active else { return }
+        if case .sourceDocument(let value)? = availability { document = value } else { document = nil }
+        await model.coordinator.load(intent: intent)
+    }
+    private func requestCancellationRead() {
+        guard scenePhase == .active, let intent = model.cancellationIntent() else { return }
+        cancelReview = false; cancelIntent = nil
+        Task { await loadCancellation(intent) }
     }
     @ViewBuilder private var cancellation: some View {
+        Section {
+            Text(LocalizedStringKey(model.state.localCancellationConsent.messageKey), tableName: "AccountDeregistrationConsent")
+                .accessibilityIdentifier("cancellationConsent.state")
+            if let request = model.state.localCancellationConsent.requestID {
+                Text("cancellationConsent.request", tableName: "AccountDeregistrationConsent").font(.caption)
+                Text(verbatim: request).font(.caption).textSelection(.enabled)
+            }
+            Text("cancellationConsent.scope", tableName: "AccountDeregistrationConsent").font(.footnote)
+        } header: {
+            Text("cancellationConsent.title", tableName: "AccountDeregistrationConsent")
+        }
+        .accessibilityElement(children: .combine)
+        if let request = model.state.originalApplicationRequestID {
+            Section {
+                (Text("c08.display.43", tableName: "AccountDeregistrationPresentation") + Text(verbatim: request)).font(.caption).textSelection(.enabled)
+                if let receipt = model.state.originalApplication {
+                    Text(receipt.outcome)
+                    if receipt.reason == "ACCOUNT_IMPACT_CHANGED_REFRESH_AND_CONFIRM" { Text("c08.display.37", tableName: "AccountDeregistrationPresentation") }
+                    if let impact = receipt.impactAtConfirmation { AccountDeregistrationImpactSection(impact: impact) }
+                    if receipt.accepted {
+                        Text("c08.display.44", tableName: "AccountDeregistrationPresentation")
+                        if let applicationID = receipt.applicationId {
+                            Text("c08.display.45", tableName: "AccountDeregistrationPresentation") + Text(verbatim: String(applicationID))
+                        }
+                    } else if receipt.settled {
+                        Text("c08.display.38", tableName: "AccountDeregistrationPresentation")
+                    } else { Text("c08.display.39", tableName: "AccountDeregistrationPresentation") }
+                } else { Text("c08.display.40", tableName: "AccountDeregistrationPresentation") }
+            } header: { Text("c08.display.36", tableName: "AccountDeregistrationPresentation") }
+        }
         if let status = model.state.status {
+            if let impact = status.impact { AccountDeregistrationImpactSection(impact: impact) }
+            else { Text("c08.display.41", tableName: "AccountDeregistrationPresentation") }
             Section("compliance.serverStatus") {
-                Text(status.status).accessibilityIdentifier("compliance.serverStatus")
+                statusText(status.status).accessibilityIdentifier("compliance.serverStatus")
                 ForEach(Array(status.blockers.enumerated()), id: \.offset) { _, blocker in Text(blocker) }
                 if status.executeAfter != nil || status.pending { DeregistrationExecuteAfterRow(raw: status.executeAfter) }
             }
@@ -89,6 +222,9 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
         switch model.state.step {
         case .idle: EmptyView()
         case .notice, .blocked:
+            if model.state.status?.cancellationConfirmed == true {
+                Text("compliance.cancellationConfirmed", tableName: "AccountDeregistrationPresentation").accessibilityIdentifier("compliance.cancellationConfirmed")
+            }
             Section {
                 if let document {
                     Text(document.title).font(.headline)
@@ -97,34 +233,71 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                         Text(section.heading).font(.headline); Text(section.body)
                     }
                     // Source content stays exact; availability is not release approval.
-                    Toggle("compliance.agreeNotice", isOn: $agreement).accessibilityIdentifier("compliance.agreeNotice")
+                    Toggle("compliance.agreeNotice", isOn: $agreement)
+                        .disabled(!model.state.localCancellationConsent.allowsNewConsent)
+                        .accessibilityIdentifier("compliance.agreeNotice")
                 } else { Text("compliance.legalMissing") }
-                Button("compliance.precheck") { Task { await model.coordinator.precheckAndAgree(documentRead: document != nil, explicitAgreement: agreement) } }
-                    .disabled(document == nil || !agreement).accessibilityIdentifier("compliance.precheck")
+                Button("compliance.precheck") {
+                    guard let intent = model.cancellationIntent() else { return }
+                    let displayedVersion = document?.version
+                    let documentWasRead = document != nil
+                    let explicitlyAgreed = agreement
+                    Task { await model.coordinator.precheckAndAgree(documentRead: documentWasRead,
+                        explicitAgreement: explicitlyAgreed, expectedConsentVersion: displayedVersion, intent: intent) }
+                }
+                    .disabled(document?.version.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false
+                        || !agreement || !model.state.localCancellationConsent.allowsNewConsent)
+                    .accessibilityIdentifier("compliance.precheck")
             }
         case .verify:
             Section {
                 TextField("compliance.phone", text: $phone).textContentType(.telephoneNumber).keyboardType(.phonePad).accessibilityIdentifier("compliance.phone")
-                Button("compliance.sendSMS") { Task { await model.coordinator.sendSMS(phone: phone, explicitlyRequested: true) } }.accessibilityIdentifier("compliance.sendSMS")
+                Button("compliance.sendSMS") {
+                    guard let intent = model.cancellationIntent() else { return }; let number = phone
+                    Task { await model.coordinator.sendSMS(phone: number, explicitlyRequested: true, intent: intent) }
+                }
+                    .disabled(!model.state.localCancellationConsent.allowsNewConsent).accessibilityIdentifier("compliance.sendSMS")
                 if model.state.smsSent { Text("compliance.smsSent") }
                 TextField("compliance.code", text: $code).textContentType(.oneTimeCode).keyboardType(.numberPad).accessibilityIdentifier("compliance.code")
-                Button("compliance.review") { model.coordinator.prepareReview(code: code); code = "" }.disabled(!model.state.smsSent).accessibilityIdentifier("compliance.review")
+                Button("compliance.review") {
+                    guard model.cancellationIntent() != nil else { return }
+                    model.coordinator.prepareReview(code: code); code = ""
+                }.disabled(!model.state.smsSent || !model.state.localCancellationConsent.allowsNewConsent).accessibilityIdentifier("compliance.review")
             }
         case .verificationUnavailable:
-            DeregistrationVerificationUnavailableSection(method: model.state.status?.verificationMethod) { Task { await model.coordinator.load() } }
+            DeregistrationVerificationUnavailableSection(method: model.state.status?.verificationMethod) { requestCancellationRead() }
         case .review:
             Section {
                 Text("compliance.reviewWarning")
-                Button("compliance.submit", role: .destructive) { Task { await model.coordinator.apply(explicitlyConfirmed: true); code = ""; phone = "" } }.accessibilityIdentifier("compliance.submit")
-                Button("compliance.back") { model.coordinator.backToVerification() }
+                Text("c08.display.42", tableName: "AccountDeregistrationPresentation")
+                if let impact = model.state.status?.impact, impact.confirmable {
+                    AccountDeregistrationImpactConfirmation(revision: impact.revision) {
+                        guard let intent = model.cancellationIntent() else { return }; code = ""; phone = ""
+                        Task { await model.coordinator.apply(explicitlyConfirmed: true, intent: intent) }
+                    }.id(impact.revision).disabled(!model.state.localCancellationConsent.allowsNewConsent)
+                }
+                Button("compliance.back") {
+                    guard model.cancellationIntent() != nil else { return }
+                    model.coordinator.backToVerification()
+                }
             }
         case .pending:
             Text("compliance.pending")
-            Button("compliance.cancelApplication", role: .destructive) { cancelReview = true }.accessibilityIdentifier("compliance.cancelApplication")
+            Button("compliance.cancelApplication", role: .destructive) { cancelIntent = model.cancellationIntent(); cancelReview = cancelIntent != nil }.accessibilityIdentifier("compliance.cancelApplication")
+        case .completed: Text("compliance.completed", tableName: "AccountDeregistrationPresentation").accessibilityIdentifier("compliance.completed")
         case .freshLogin: Text("compliance.freshLogin").accessibilityIdentifier("compliance.freshLogin")
         case .unknown: Text("compliance.unknown").accessibilityIdentifier("compliance.unknown")
         }
-        Button("compliance.refresh") { Task { await model.coordinator.load() } }
+        Button("compliance.refresh") { requestCancellationRead() }
+    }
+    /// Server status codes (PENDING / ELIGIBLE / BLOCKED) read as plain words, as the mini-program titles them.
+    private func statusText(_ raw: String) -> Text {
+        switch raw.uppercased() {
+        case "PENDING": return Text("compliance.status.pending")
+        case "ELIGIBLE": return Text("compliance.status.eligible")
+        case "BLOCKED": return Text("compliance.status.blocked")
+        default: return Text(verbatim: raw)
+        }
     }
     private var roam: some View {
         Section {
@@ -138,16 +311,59 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
     private var marketing: some View {
         Section {
             Text("compliance.marketingExplanation")
+            if model.state.marketingLoaded && model.state.marketing.isEmpty {
+                Text("compliance.marketing.empty", tableName: "MarketingConsentOriginalPresentation").accessibilityIdentifier("compliance.marketing.empty")
+            }
+            Text("marketingOriginal.scope", tableName: "MarketingConsentOriginalPresentation")
+            ForEach(model.state.marketingOriginalResults) { receipt in
+                MarketingConsentOriginalReceiptView(receipt: receipt)
+            }
+            if !model.state.marketingLoaded {
+                Text("marketingOriginal.current.unconfirmed", tableName: "MarketingConsentOriginalPresentation")
+            }
+
+            if !model.state.marketingUnresolved.isEmpty {
+                Text("compliance.marketing.unknown", tableName: "MarketingConsentOriginalPresentation").accessibilityIdentifier("compliance.marketing.unknown")
+            }
+            if !model.state.marketing.isEmpty {
+                Text("marketingOriginal.current.title", tableName: "MarketingConsentOriginalPresentation")
+                    .font(.headline).accessibilityAddTraits(.isHeader)
+            }
             ForEach(model.state.marketing) { row in
                 VStack(alignment: .leading) {
                     Text(row.merchantName ?? appLocalized("compliance.merchant", locale: locale))
                     ForEach(ComplianceMarketingChannel.allCases, id: \.rawValue) { channel in
-                        Toggle(LocalizedStringKey("compliance.channel." + channel.rawValue), isOn: Binding(get: { row.value(channel) }, set: { value in Task { await model.coordinator.setMarketing(row, channel: channel, optedIn: value) } }))
+                        Toggle(LocalizedStringKey("compliance.channel." + channel.rawValue), isOn: Binding(get: { row.value(channel) }, set: { value in
+                            guard scenePhase == .active, model.marketingRead() != nil else { return }
+                            marketingChange = model.coordinator.reviewMarketing(row, channel: channel, optedIn: value)
+                        }))
+                            .disabled(model.coordinator.reviewMarketing(row, channel: channel, optedIn: !row.value(channel)) == nil)
                             .accessibilityIdentifier("compliance.marketing.\(row.id).\(channel.rawValue)")
                     }
                 }
             }
-            Button("compliance.refresh") { Task { await model.coordinator.loadMarketing() } }
+            Button("compliance.refresh") {
+                guard scenePhase == .active, let intent = model.marketingRead() else { return }
+                marketingChange = nil
+                Task { await model.coordinator.loadMarketing(intent: intent) }
+            }.accessibilityIdentifier("compliance.marketing.refresh")
+        }
+        .confirmationDialog(Text("compliance.marketing.review", tableName: "MarketingConsentOriginalPresentation"), isPresented: Binding(
+            get: { marketingChange != nil }, set: { if !$0 { marketingChange = nil } }), titleVisibility: .visible) {
+            if let change = marketingChange {
+                Button {
+                    guard scenePhase == .active, model.marketingRead() != nil else { marketingChange = nil; return }
+                    marketingChange = nil
+                    Task { await model.coordinator.setMarketing(change, explicitlyConfirmed: true) }
+                } label: { Text(change.optedIn ? "compliance.marketing.confirmOptIn" : "compliance.marketing.confirmOptOut", tableName: "MarketingConsentOriginalPresentation") }
+                    .accessibilityIdentifier("compliance.marketing.confirm")
+                Button("compliance.close", role: .cancel) { marketingChange = nil }
+            }
+        } message: {
+            if let change = marketingChange {
+                Text(verbatim: change.row.merchantName ?? appLocalized("compliance.merchant", locale: locale))
+                Text(LocalizedStringKey("compliance.channel." + change.channel.rawValue))
+            }
         }
     }
 }

@@ -83,7 +83,7 @@ final class SocialAccountFlowTests: XCTestCase {
         let confirm = app.buttons["social.review.confirm"]; reveal(confirm); confirm.tap()
         XCTAssertTrue(app.staticTexts["social.state.acknowledged"].waitForExistence(timeout: 5),
                       "Synthetic review stage: " + syntheticReviewDiagnostic())
-        XCTAssertTrue(text("Nothing was sent externally").exists); XCTAssertFalse(confirm.isEnabled)
+        XCTAssertTrue(text("Nothing was sent").exists); XCTAssertFalse(confirm.isEnabled)
     }
     func testUncertainOutcomeStaysLockedAfterDismissalAndReturn() {
         launch("editor", scenario: "unknown"); enterReview()

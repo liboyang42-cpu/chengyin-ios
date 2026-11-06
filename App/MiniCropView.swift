@@ -31,7 +31,7 @@ import UIKit
                 Button("publishParity.crop.cancel", role: .cancel, action: onCancel).accessibilityIdentifier("miniCrop.cancel")
                 Spacer()
                 Button("publishParity.crop.useOriginal") { advance(.original) }.accessibilityIdentifier("miniCrop.useOriginal")
-                Button("publishParity.crop.confirm") { confirm() }.buttonStyle(.borderedProminent)
+                Button("publishParity.crop.confirm") { confirm() }.buttonStyle(.questifyPrimary)
                     .accessibilityIdentifier("miniCrop.confirm")
             }
         }

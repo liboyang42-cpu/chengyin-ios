@@ -79,7 +79,6 @@ import SwiftUI
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             LabeledContent("templateChoiceRows.count", value: "\(editor.letters.count) / 4")
-            Text("templateAuthor.optionMedia.scope").font(.caption).foregroundStyle(.secondary)
             if !model.draft.choiceOptionMedia.isSupported {
                 Text("templateAuthor.optionMedia.unsupported").accessibilityIdentifier("templateAuthor.optionMedia.unsupported")
             }
@@ -95,12 +94,13 @@ import SwiftUI
                     TemplateAuthoringField("question" + letter.rawValue, text: editor.text(letter),
                         accessibilityID: "templateChoiceRows.text." + letter.rawValue)
                     ForEach(TemplateChoiceOptionMedia.Kind.allCases) { kind in
+                        Text(LocalizedStringKey(kind.labelKey)).font(.subheadline.weight(.semibold))
                         TextField(LocalizedStringKey(kind.labelKey), text: editor.attachment(letter, kind))
                             .textInputAutocapitalization(.never).autocorrectionDisabled()
                             .disabled(!model.draft.choiceOptionMedia.isSupported)
                             .accessibilityIdentifier("templateAuthor.optionMedia." + letter.rawValue + "." + kind.rawValue)
                     }
-                    TemplateBasicFieldClearButton(model: model, field: .optionMedia(letter))
+                    TemplateBasicFieldClearButton(model: model, field: .optionMedia(letter), iconOnly: false)
                     Button("templateChoiceRows.remove", role: .destructive, action: editor.action(.remove(letter)))
                         .disabled(!editor.rows.canRemove)
                         .accessibilityLabel(Text("templateChoiceRows.removeLetter \(letter.rawValue)"))

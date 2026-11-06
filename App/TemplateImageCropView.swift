@@ -25,7 +25,6 @@ import SwiftUI
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("template.imageCrop.title").font(.headline)
-            Text("template.imageCrop.localOnly").font(.footnote)
             if let rect, let preview = try? TemplateImageCropRenderer.preview(draft.source, rect: rect) {
                 Image(uiImage: preview).resizable()
                     .aspectRatio(CGFloat(draft.source.width) / CGFloat(draft.source.height), contentMode: .fit)

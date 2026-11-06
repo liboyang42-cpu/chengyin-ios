@@ -21,27 +21,28 @@ struct ClubOpsFailureSection: View {
     let filtered: Bool
     let destination: (Int) -> AnyView
     var body: some View {
+        // The count is data (it follows the filter), so it heads the list rather than sitting alone.
         Section {
-            Text("clubOps.customers.count \(list.total) \(list.monthNew)", tableName: "ClubOpsCustomer")
-                .font(.subheadline).foregroundStyle(.secondary).accessibilityIdentifier("clubOps.customers.count")
-        }
-        if list.rows.isEmpty {
-            Section {
-                if filtered {
-                    Text("clubOps.customers.filteredEmpty", tableName: "ClubOpsCustomer").font(.headline)
-                    Text("clubOps.customers.filteredEmptyDetail", tableName: "ClubOpsCustomer").foregroundStyle(.secondary)
-                } else {
-                    Text("clubOps.customers.empty", tableName: "ClubOpsCustomer").font(.headline)
-                    Text("clubOps.customers.emptyDetail", tableName: "ClubOpsCustomer").foregroundStyle(.secondary)
-                }
-            }.accessibilityIdentifier("clubOps.customers.empty")
-        } else {
-            Section {
-                ForEach(list.rows) { row in
-                    NavigationLink { destination(row.id) } label: { ClubOpsCustomerRowView(row: row) }
-                        .accessibilityIdentifier("club.gov.route.customer")
-                }
+            if list.rows.isEmpty {
+                Group {
+                    if filtered {
+                        ContentUnavailableView {
+                            Label { Text("clubOps.customers.filteredEmpty", tableName: "ClubOpsCustomer") } icon: { Image(systemName: "line.3.horizontal.decrease.circle") }
+                        } description: { Text("clubOps.customers.filteredEmptyDetail", tableName: "ClubOpsCustomer") }
+                    } else {
+                        ContentUnavailableView {
+                            Label { Text("clubOps.customers.empty", tableName: "ClubOpsCustomer") } icon: { Image(systemName: "person.2") }
+                        }
+                    }
+                }.accessibilityIdentifier("clubOps.customers.empty")
             }
+            ForEach(list.rows) { row in
+                NavigationLink { destination(row.id) } label: { ClubOpsCustomerRowView(row: row) }
+                    .accessibilityIdentifier("club.gov.route.customer")
+            }
+        } header: {
+            Text("clubOps.customers.count \(list.total) \(list.monthNew)", tableName: "ClubOpsCustomer")
+                .accessibilityIdentifier("clubOps.customers.count")
         }
     }
 }
@@ -99,10 +100,8 @@ struct ClubOpsCustomerRowView: View {
         } header: { Text("clubOps.customer.overview", tableName: "ClubOpsCustomer") }
         Section {
             if detail.records.isEmpty {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("clubOps.customer.recordsEmpty", tableName: "ClubOpsCustomer").font(.headline)
-                    Text("clubOps.customer.recordsEmptyDetail", tableName: "ClubOpsCustomer").foregroundStyle(.secondary)
-                }.accessibilityIdentifier("clubOps.customer.recordsEmpty")
+                Text("clubOps.customer.recordsEmpty", tableName: "ClubOpsCustomer").foregroundStyle(.secondary)
+                    .accessibilityIdentifier("clubOps.customer.recordsEmpty")
             }
             ForEach(detail.records) { record in
                 if let action = topicAction(record) {

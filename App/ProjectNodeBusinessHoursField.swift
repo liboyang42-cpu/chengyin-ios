@@ -82,6 +82,7 @@ struct ProjectNodeBusinessHoursHostIdentity: Hashable {
 }
 
 @MainActor struct ProjectNodeBusinessHoursField: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ObservedObject private var model: ProjectEditModel
     @StateObject private var controller: ProjectNodeBusinessHoursController
     init(model: ProjectEditModel, chapterID: String, nodeID: String) {
@@ -92,9 +93,9 @@ struct ProjectNodeBusinessHoursHostIdentity: Hashable {
         let capture = controller.capture(snapshot)
         let original = controller.opening
         Section {
-            if let text = snapshot.rawText, !text.isEmpty { Text(verbatim: text).textSelection(.enabled) }
-            else if snapshot.reason == nil { Text("projectNodeHours.empty", tableName: "ProjectNodeBusinessHours") }
-            if let reason = snapshot.reason { Text(LocalizedStringKey("projectNodeHours.reason." + reason.rawValue), tableName: "ProjectNodeBusinessHours").font(.caption) }
+            if let text = snapshot.rawText, !text.isEmpty { Text(verbatim: text).textSelection(.enabled).fixedSize(horizontal: false, vertical: true) }
+            else if snapshot.reason == nil { Text("projectNodeHours.empty", tableName: "ProjectNodeBusinessHours").fixedSize(horizontal: false, vertical: true) }
+            if let reason = snapshot.reason { Text(LocalizedStringKey("projectNodeHours.reason." + reason.rawValue), tableName: "ProjectNodeBusinessHours").font(.caption).fixedSize(horizontal: false, vertical: true) }
             Button { if let capture { controller.open(capture) } } label: { Text("projectNodeHours.edit", tableName: "ProjectNodeBusinessHours") }
                 .disabled(capture == nil || original != nil).accessibilityIdentifier("projectNodeHours.edit")
         } header: { Text("projectNodeHours.title", tableName: "ProjectNodeBusinessHours") }
@@ -109,7 +110,7 @@ struct ProjectNodeBusinessHoursHostIdentity: Hashable {
                     Section {
                         timeFields(original, start: true)
                         timeFields(original, start: false)
-                        Text(verbatim: value.text).font(.headline).accessibilityIdentifier("projectNodeHours.preview")
+                        Text(verbatim: value.text).font(.headline).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("projectNodeHours.preview")
                         if original.capture.snapshot.value != nil {
                             Button(role: .destructive) { controller.chooseClear(original) } label: {
                                 Text("projectNodeHours.clear", tableName: "ProjectNodeBusinessHours")
@@ -118,7 +119,7 @@ struct ProjectNodeBusinessHoursHostIdentity: Hashable {
                     }
                 } else if controller.clearSelected {
                     Section {
-                        Text("projectNodeHours.clearPending", tableName: "ProjectNodeBusinessHours")
+                        Text("projectNodeHours.clearPending", tableName: "ProjectNodeBusinessHours").fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("projectNodeHours.clearPending")
                         Button { controller.undoClear(original) } label: {
                             Text("projectNodeHours.keep", tableName: "ProjectNodeBusinessHours")
@@ -126,14 +127,13 @@ struct ProjectNodeBusinessHoursHostIdentity: Hashable {
                     }
                 } else {
                     Section {
-                        Text("projectNodeHours.empty", tableName: "ProjectNodeBusinessHours")
+                        Text("projectNodeHours.empty", tableName: "ProjectNodeBusinessHours").fixedSize(horizontal: false, vertical: true)
                         Button { controller.beginReplacement(original) } label: { Text("projectNodeHours.begin", tableName: "ProjectNodeBusinessHours") }
                             .accessibilityIdentifier("projectNodeHours.begin")
                     }
                 }
-                Section { Text("projectNodeHours.scope", tableName: "ProjectNodeBusinessHours").font(.caption) }
             }
-            .navigationTitle(Text("projectNodeHours.title", tableName: "ProjectNodeBusinessHours"))
+            .navigationBarTitleDisplayMode(.inline).navigationTitle(Text("projectNodeHours.title", tableName: "ProjectNodeBusinessHours"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { controller.close(original) } }
                 ToolbarItem(placement: .confirmationAction) {
@@ -145,14 +145,17 @@ struct ProjectNodeBusinessHoursHostIdentity: Hashable {
     }
     private func timeFields(_ original: ProjectNodeBusinessHoursController.Opening, start: Bool) -> some View {
         VStack(alignment: .leading) {
-            Text(start ? "projectNodeHours.start" : "projectNodeHours.end", tableName: "ProjectNodeBusinessHours").font(.headline)
-            HStack {
+            Text(start ? "projectNodeHours.start" : "projectNodeHours.end", tableName: "ProjectNodeBusinessHours").font(.headline).fixedSize(horizontal: false, vertical: true)
+            let timeLayout = dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+                : AnyLayout(HStackLayout())
+            timeLayout {
                 Picker(selection: component(original, start: start, hour: true)) {
                     ForEach(0...23, id: \.self) { Text(verbatim: String($0)).tag($0) }
-                } label: { Text("projectNodeHours.hour", tableName: "ProjectNodeBusinessHours") }
+                } label: { Text("projectNodeHours.hour", tableName: "ProjectNodeBusinessHours").fixedSize(horizontal: false, vertical: true) }
                 Picker(selection: component(original, start: start, hour: false)) {
                     ForEach(0...59, id: \.self) { Text(verbatim: String($0)).tag($0) }
-                } label: { Text("projectNodeHours.minute", tableName: "ProjectNodeBusinessHours") }
+                } label: { Text("projectNodeHours.minute", tableName: "ProjectNodeBusinessHours").fixedSize(horizontal: false, vertical: true) }
             }
         }
     }

@@ -92,7 +92,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "据点申请"
+            "value": "节点申请"
           }
         }
       }
@@ -108,7 +108,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "据点投放"
+            "value": "节点投放"
           }
         }
       }
@@ -428,7 +428,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "下线这个据点？"
+            "value": "下线这个节点？"
           }
         }
       }
@@ -438,13 +438,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server checks your online-node quota again."
+            "value": "Your listed-node limit will be checked again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端会重新校验在架据点配额。"
+            "value": "将重新校验在架节点数量上限。"
           }
         }
       }
@@ -460,7 +460,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "上架这个据点？"
+            "value": "上架这个节点？"
           }
         }
       }
@@ -476,7 +476,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "提交成功后形成待平台审核的申请，不代表据点已上线。"
+            "value": "提交成功后形成待平台审核的申请，不代表节点已上线。"
           }
         }
       }
@@ -796,7 +796,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "登录后配置据点"
+            "value": "登录后配置节点"
           }
         }
       }
@@ -1222,13 +1222,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The submission result is unknown. It will not be resent; read the latest server state instead."
+            "value": "We couldn't confirm whether this was submitted. It won't be sent again; refresh to see the latest status."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "提交结果未确认，不会重复提交；请以服务端最新状态为准。"
+            "value": "提交结果未确认，不会重复提交；请刷新查看最新状态。"
           }
         }
       }
@@ -1238,13 +1238,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A placement application in review was read back."
+            "value": "Found your placement application in review."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已读到审核中的投放申请。"
+            "value": "已找到审核中的投放申请。"
           }
         }
       }
@@ -1254,13 +1254,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No placement application in review was read back yet. The result is still unconfirmed."
+            "value": "No placement application in review was found yet. The result is still unconfirmed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂未读到审核中的投放申请，结果仍未确认。"
+            "value": "暂未找到审核中的投放申请，结果仍未确认。"
           }
         }
       }
@@ -1292,7 +1292,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有据点"
+            "value": "还没有节点"
           }
         }
       }
@@ -1356,7 +1356,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "据点就是门店在漫游地图上的互动打卡点。投放或认领申请经平台审核通过后，玩家才会在地图看到；到店可按模板完成暗号、问答、拍照、扫码或 GPS 验证。"
+            "value": "节点就是门店在漫游地图上的互动打卡点。投放或认领申请经平台审核通过后，玩家才会在地图看到；到店可按模板完成暗号、问答、拍照、扫码或 GPS 验证。"
           }
         }
       }
@@ -1372,7 +1372,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "据点是什么"
+            "value": "节点是什么"
           }
         }
       }
@@ -1414,7 +1414,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photo spot"
+            "value": "Photo node"
           }
         },
         "zh-Hans": {
@@ -1452,7 +1452,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "把门店变成漫游地图上的互动据点"
+            "value": "把门店变成漫游地图上的互动节点"
           }
         }
       }
@@ -1484,7 +1484,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "据点加载失败"
+            "value": "节点加载失败"
           }
         }
       }
@@ -1532,7 +1532,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "据点下线失败"
+            "value": "节点下线失败"
           }
         }
       }
@@ -1580,7 +1580,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "据点上架失败"
+            "value": "节点上架失败"
           }
         }
       }
@@ -1676,7 +1676,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前岗位没有据点管理权限"
+            "value": "当前岗位没有节点管理权限"
           }
         }
       }
@@ -1708,7 +1708,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前岗位不能管理据点"
+            "value": "当前岗位不能管理节点"
           }
         }
       }
@@ -1740,7 +1740,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "投放据点"
+            "value": "投放节点"
           }
         }
       }
@@ -1756,7 +1756,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在架据点已满，请先下线一个"
+            "value": "在架节点已满，请先下线一个"
           }
         }
       }
@@ -1772,7 +1772,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前没有据点配额"
+            "value": "当前没有节点配额"
           }
         }
       }
@@ -1788,7 +1788,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "据点配额暂未取回，请重试"
+            "value": "节点配额暂未取回，请重试"
           }
         }
       }
@@ -1846,13 +1846,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Save it, print it and post it. Players scan it in store to complete the interaction."
+            "value": "Save it and post it in store. It stays valid."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "长按保存并打印张贴。玩家到店扫码完成互动。"
+            "value": "长按保存后张贴，长期有效"
           }
         }
       }
@@ -1948,7 +1948,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在架据点 %1$lld/%2$lld"
+            "value": "在架节点 %1$lld/%2$lld"
           }
         }
       }
@@ -1964,7 +1964,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在读取据点配额"
+            "value": "正在读取节点配额"
           }
         }
       }
@@ -1980,7 +1980,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": " · 当前没有据点配额，暂不能投放新据点"
+            "value": " · 当前没有节点配额，暂不能投放新节点"
           }
         }
       }
@@ -2012,7 +2012,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "据点配额暂未取回"
+            "value": "节点配额暂未取回"
           }
         }
       }
@@ -2060,7 +2060,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "我的据点"
+            "value": "我的节点"
           }
         }
       }
@@ -2374,13 +2374,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Live node actions are not enabled. Nothing will be sent."
+            "value": "Node actions aren't available right now. Nothing will be sent."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "真实据点操作尚未启用，不会发送任何请求。"
+            "value": "节点操作暂不可用，不会发送任何请求。"
           }
         }
       }
@@ -2390,13 +2390,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Node actions are paused. The list above is the latest server readback; nothing will be resent."
+            "value": "Node actions are paused. The list above is up to date; nothing will be sent again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已暂停据点操作。以上为服务端最新读取结果，不会重复发送。"
+            "value": "节点操作已暂停。以上为最新列表，不会重复发送。"
           }
         }
       }

@@ -68,7 +68,7 @@ import SwiftUI
                         }
                     }
                 } else { Text(text(.stale)).accessibilityIdentifier("projectMerchantDraft.stale") }
-            }.navigationTitle(text(.choose)).scrollDismissesKeyboard(.interactively)
+            }.navigationBarTitleDisplayMode(.inline).navigationTitle(text(.choose)).scrollDismissesKeyboard(.interactively)
                 .toolbar { ToolbarItem(placement: .cancellationAction) {
                     Button("action.cancel") { controller.cancel(original) }.accessibilityIdentifier("projectMerchantDraft.cancel")
                 } }

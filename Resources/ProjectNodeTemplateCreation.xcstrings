@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open the existing personal gameplay editor. A real saved draft receipt is required before returning to this exact node; a local save alone cannot create a template ID."
+            "value": "Create a new play, save it as a draft, then come back to use it on this stop."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "打开现有本人玩法编辑器。只有真实保存草稿回执才能返回此节点，仅本机保存不会产生玩法 ID。"
+            "value": "新建玩法并保存草稿，然后回到此处用于本地点。"
           }
         }
       }
@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Creation or owner draft reading is unavailable, or an existing operation remains locked. Existing drafts and references are kept."
+            "value": "You can't create a play right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "新建或本人草稿读取暂不可用，或已有操作仍锁定；现有草稿与引用均保留。"
+            "value": "暂时无法新建玩法。"
           }
         }
       }
@@ -54,13 +54,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This entry saves a personal gameplay draft only. It does not publish to the template marketplace or the topic."
+            "value": "Saves the play as your draft. It isn't published."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此入口只保存本人玩法草稿，不发布到玩法广场或主题。"
+            "value": "将玩法保存为你的草稿，不会发布。"
           }
         }
       }
@@ -70,13 +70,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review this saved draft for the captured node"
+            "value": "Back to the stop"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核对这份已保存草稿并返回原节点"
+            "value": "返回地点"
           }
         }
       }
@@ -86,13 +86,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "There is no verified real saved-draft ID to return. A simulated, uncertain or ID-less result is not a created template reference. Do not resubmit an unknown operation."
+            "value": "Save the play as a draft first to use it here."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前没有可核验的真实草稿 ID。模拟、未知或未返回 ID 的结果不能用作新玩法引用；请勿重发结果未知的操作。"
+            "value": "请先将玩法保存为草稿，才能在此使用。"
           }
         }
       }
@@ -102,13 +102,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retry reading this same saved ID"
+            "value": "Try again"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重读同一个已保存 ID"
+            "value": "重试"
           }
         }
       }
@@ -134,13 +134,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The saved member-template ID is shown below. Its owner/detail is checked now and again on confirmation. No private gameplay configuration is copied to this node."
+            "value": "Your saved play is ready to use on this stop."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "下方是保存返回的成员模板 ID。现已核读本人详情，确认时会再次核对；不会向节点复制私有玩法配置。"
+            "value": "已保存的玩法可用于此地点。"
           }
         }
       }
@@ -150,13 +150,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bind this saved gameplay and save locally"
+            "value": "Use on this stop"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "绑定这份已保存玩法并保存到本机"
+            "value": "用于此地点"
           }
         }
       }
@@ -166,13 +166,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This returned draft could not be verified as current, owned ordinary gameplay. The node is unchanged. Retry reads only the same ID and never saves another template."
+            "value": "We couldn't confirm this gameplay draft. The stop wasn't changed. Retrying won't create another copy."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无法确认该返回草稿仍是本人的有效普通玩法，节点未改。重试只读取同一个 ID，不会另存一份模板。"
+            "value": "无法确认该玩法草稿，站点未改动。重试不会另存一份模板。"
           }
         }
       }

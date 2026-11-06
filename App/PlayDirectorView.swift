@@ -160,7 +160,6 @@ import UIKit
                 if [.takeover, .unlock, .pause, .reject].contains(action) { TextField("playx.director.reason", text: $reason, axis: .vertical) }
                 if action == .pause {
                     TextField("playx.player.resumeETA", text: $resumeETA)
-                    Text("playx.director.etaNotice").font(.caption)
                     let plans = projection.stations.first { $0["nodeId"].integer == nodeID }?["fallbackPlanOptions"].array ?? []
                     Picker("playx.director.fallback", selection: $planCode) {
                         Text("playx.director.noFallback").tag("")

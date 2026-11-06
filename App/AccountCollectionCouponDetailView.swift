@@ -16,7 +16,6 @@ import SwiftUI
         let presentation = appearance.permit
         let offeredRequest = request
         return List {
-            if reader.isOfflineExample { Text("accountCollection.offlineExample").font(.caption) }
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
             else if selection.ownerScope != reader.scope { Text("couponCode.stale") }
@@ -50,7 +49,6 @@ import SwiftUI
                        AccountCollectionCoupon.calendarDay(coupon.endTime) == nil {
                         Text("accountCollection.coupon.validityUnknown")
                     }
-                    Text("accountCollection.coupon.calendarHint").font(.footnote).foregroundStyle(.secondary)
                 }
                 if AccountCollectionCoupon.calendarDay(coupon.receivedTime) != nil || AccountCollectionCoupon.calendarDay(coupon.usedTime) != nil {
                     Section("accountCollection.coupon.history") {

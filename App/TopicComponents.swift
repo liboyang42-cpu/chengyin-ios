@@ -47,7 +47,7 @@ struct TopicIssueView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Label(issue.key, systemImage: "exclamationmark.circle")
-            if let retry { Button("topic.retry", action: retry) }
+            if let retry { Button("topic.retry", action: retry).buttonStyle(.bordered).frame(minHeight: 44) }
         }.accessibilityIdentifier("topic.error")
     }
 }

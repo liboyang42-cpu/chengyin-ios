@@ -76,7 +76,6 @@ import Combine
     var body: some View {
         Form {
             Section {
-                Text("templateLegacyQuiz.scope").font(.callout)
                 if editor.needsReload {
                     Text("templateLegacyQuiz.changed").font(.caption)
                     Button("templateLegacyQuiz.reload") { editor.reload() }.disabled(!editor.canReload)
@@ -87,7 +86,6 @@ import Combine
                     Text(verbatim: editor.question).font(.headline)
                     if editor.state == .completed {
                         Label("templateLegacyQuiz.completed", systemImage: "checkmark.circle").accessibilityIdentifier("templateLegacyQuiz.completed")
-                        Text("templateLegacyQuiz.noAward").font(.caption)
                     } else {
                         if editor.method == .text {
                             TextField("templateLegacyQuiz.answer", text: editor.answerInput(), axis: .vertical).textInputAutocapitalization(.never).autocorrectionDisabled()

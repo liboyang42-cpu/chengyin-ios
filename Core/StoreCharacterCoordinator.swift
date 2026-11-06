@@ -6,6 +6,8 @@ import Foundation
     public enum Phase: Equatable {
         case checking, login, loading, ready
         case denied(StoreCharacterDenyReason)
+        /// Current profile read denied; does not change initial admission or original write recovery.
+        case currentReadDenied(StoreCharacterDenyReason)
         case failed(message: String?)
     }
     public enum Screen: Equatable { case home, avatar }
@@ -124,8 +126,11 @@ import Foundation
             saved = profile; home = profile; restoreAvatar(); phase = .ready; changed()
         } catch {
             guard current(stamp, scope) else { return }
-            if StoreCharacterAccessDecision.decide(error: error) == .login { phase = .login }
-            else { phase = .failed(message: message(error)) }
+            switch StoreCharacterAccessDecision.decide(error: error) {
+            case .login: phase = .login
+            case .deny(let reason): phase = .currentReadDenied(reason)
+            default: phase = .failed(message: message(error))
+            }
             changed(); return
         }
         await loadMapPoint()

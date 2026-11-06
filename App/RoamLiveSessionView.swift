@@ -38,14 +38,13 @@ import Combine
     private var currentBrowseReader: (any RoamExperienceReading)? {
         browseReader(for: browse.target?.context.kind ?? .history)
     }
-    var body: some View {
+    private var sessionContent: some View {
         List {
             if offlineExample { RoamExperienceNotice(offline: true) }
-            Section {
-                Label("roam.live.purposeTitle", systemImage: "figure.walk.circle.fill").font(.title2).bold()
-                Text("roam.live.purpose").foregroundStyle(.secondary)
-                Button("roam.live.rules") { showRules = true }.accessibilityIdentifier("roam.live.rules")
-            }
+            // Mini-program pcard: goal line, then 用时 / 地盘 / 距离 (公里).
+            Section { hud }
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
             if owner.phase == .unavailable {
                 Section {
                     Label("roam.live.notApproved", systemImage: "lock.shield")
@@ -66,12 +65,10 @@ import Combine
                     Section {
                         Button("roam.unstarted.continue", systemImage: "arrow.uturn.backward") { owner.continueUnstartedRoam() }
                             .accessibilityIdentifier("roam.unstarted.continue")
-                        Text("roam.unstarted.hint").font(.caption).foregroundStyle(.secondary)
                     }
                 }
                 if owner.phase == .finished, let saved = owner.completedHistory, model.finishedHistory.identity != nil {
                     Section("roam.finishedHistory.title") {
-                        Text("roam.finishedHistory.hint").font(.caption).foregroundStyle(.secondary)
                         NavigationLink {
                             RoamHistoryDetailView(reader: model.finishedHistory, timestamp: saved.timestamp)
                         } label: {
@@ -89,21 +86,16 @@ import Combine
                         Toggle("roam.live.consent", isOn: $purposeAccepted).accessibilityIdentifier("roam.live.consent")
                         if owner.presenceAvailable {
                             Toggle("roam.live.presenceConsent", isOn: $presenceAccepted)
-                            Text("roam.live.presencePrivacy").font(.caption).foregroundStyle(.secondary)
                         }
-                        if owner.record == nil {
-                            Button("roam.live.start", systemImage: "figure.walk") { Task { await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted) } }
-                                .disabled(!purposeAccepted || owner.busy).accessibilityIdentifier("roam.live.start")
-                        } else if owner.record?.finishRequested == false {
-                            Button("roam.live.resume", systemImage: "play.fill") { Task { await owner.resume(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted) } }
-                                .disabled(!purposeAccepted || owner.busy).accessibilityIdentifier("roam.live.resume")
-                        }
+                    } footer: {
+                        // Disclosure of what nearby players see; kept because it is a consent.
+                        if owner.presenceAvailable { Text("roam.live.presencePrivacy") }
                     }
                 }
                 if owner.phase == .active {
                     Section {
-                        Button("roam.live.pause", systemImage: "pause.fill") { owner.pause() }.accessibilityIdentifier("roam.live.pause")
-                        Label(owner.presenceEnabled ? "roam.live.presenceOn" : "roam.live.presenceOff", systemImage: "person.crop.circle")
+                        Label(owner.presenceEnabled ? "roam.live.presenceOn" : "roam.live.presenceOff",
+                              systemImage: owner.presenceEnabled ? "person.wave.2" : "person.crop.circle")
                         if owner.presenceError { Text("roam.live.presenceFailed").foregroundStyle(.secondary) }
                     }
                     if let memory = owner.placeMemory {
@@ -111,17 +103,11 @@ import Combine
                             owner.dismissPlaceMemory(id: memory.id)
                         }
                     }
-                    trace
                     nearby
+                    trace
                 }
                 if owner.phase == .paused { trace }
                 pauseAndBrowse
-                if [.active, .paused].contains(owner.phase), owner.record != nil {
-                    Section {
-                        Button("roam.live.finish", systemImage: "checkmark.circle") { confirmFinish = true }
-                            .disabled(owner.busy).accessibilityIdentifier("roam.live.finish")
-                    }
-                }
                 if owner.phase == .recoveryRequired {
                     Section {
                         Text("roam.live.recoveryHint")
@@ -132,13 +118,25 @@ import Combine
             }
             if let error = owner.error {
                 Section {
-                    Text(errorText(error)).foregroundStyle(.secondary).accessibilityIdentifier("roam.live.error")
+                    Label { Text(errorText(error)) } icon: { Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange) }
+                        .accessibilityIdentifier("roam.live.error")
                 }
             }
-            Section { Text("roam.live.leaveHint").font(.caption).foregroundStyle(.secondary) }
+        }
+        // Identify the list only; the inset actions keep their own accessible identities.
+        .accessibilityIdentifier("roam.live.session")
+        // Mini-program pbar: one main round control (start / pause / continue) with 结束 beside it.
+        .safeAreaInset(edge: .bottom) { actionBar }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { showRules = true } label: { Label("roam.live.rules", systemImage: "info.circle") }
+                    .accessibilityIdentifier("roam.live.rules")
+            }
         }
         .navigationTitle("roam.experience.live")
-        .accessibilityIdentifier("roam.live.session")
+    }
+    private var sessionObservers: some View {
+        sessionContent
         .onAppear { owner.setForeground(scenePhase == .active); owner.prepare(); browse.appear() }
         .onDisappear { nearbyExpanded = true; browse.parentHidden(); owner.pause() }
         .onChange(of: owner.phase) { _, phase in
@@ -155,19 +153,17 @@ import Combine
         .onChange(of: localHistoryReader.map { ObjectIdentifier($0) }) { _, _ in browse.retireIfStale(owner: owner, reader: currentBrowseReader) }
         .onChange(of: albumMetadataReader?.scope) { _, _ in browse.retireIfStale(owner: owner, reader: currentBrowseReader) }
         .onChange(of: albumMetadataReader.map { ObjectIdentifier($0) }) { _, _ in browse.retireIfStale(owner: owner, reader: currentBrowseReader) }
-        .task(id: owner.phase) {
-            guard owner.phase == .active else { return }
-            while !Task.isCancelled && owner.phase == .active {
-                do { try await Task.sleep(for: .seconds(3)) } catch { return }
-                guard !Task.isCancelled, scenePhase == .active else { return }
-                await owner.pulse()
-            }
-        }
+    }
+    var body: some View {
+        sessionObservers
+        .task(id: owner.phase) { await pulseWhileActive() }
         .confirmationDialog("roam.live.finishConfirm", isPresented: $confirmFinish, titleVisibility: .visible) {
             Button("roam.live.finish") { Task { await owner.finish() } }.accessibilityIdentifier("roam.live.finish.confirm")
             Button("action.cancel", role: .cancel) {}
         } message: { Text("roam.live.finishHint") }
-        .sheet(isPresented: $showRules) { NavigationStack { RoamLiveRulesView() } }
+        .sheet(isPresented: $showRules) {
+            NavigationStack { RoamLiveRulesView() }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+        }
         .background {
             RoamPausedBrowseLifetimeAnchor(presentation: browse).frame(width: 0, height: 0)
         }
@@ -178,44 +174,118 @@ import Combine
             }
         }
     }
+    private func pulseWhileActive() async {
+        guard owner.phase == .active else { return }
+        while !Task.isCancelled && owner.phase == .active {
+            do { try await Task.sleep(for: .seconds(3)) } catch { return }
+            guard !Task.isCancelled, scenePhase == .active else { return }
+            await owner.pulse()
+        }
+    }
+    /// Mini-program pcard: the goal line with the phase, then 用时 / 地盘 / 距离 (公里).
+    /// Built inline so every controller change redraws it.
+    private var hud: some View {
+        let active = owner.phase == .active
+        return VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(active ? "roam.live.goal" : phaseText)
+                    .font(.title3.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("roam.live.phase")
+                Spacer(minLength: 0)
+                Circle().fill(active ? Color.green : Color.secondary).frame(width: 10, height: 10)
+                    .accessibilityHidden(true)
+            }
+            HStack(alignment: .top, spacing: 8) {
+                TimelineView(.animation(minimumInterval: 1, paused: owner.phase != .active || !owner.foreground)) { _ in
+                    RoamLiveElapsedRow(seconds: owner.record == nil ? nil : owner.localForegroundElapsedSeconds)
+                }
+                RoamLiveCoverageRow(presentation: .init(controller: owner))
+                RoamLiveStatTile(value: hudDistance, label: "roam.live.stat.distance")
+                    .accessibilityIdentifier("roam.live.distance")
+            }
+        }
+        .padding(16)
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous)
+            .strokeBorder(Color.accentColor.opacity(active ? 0.6 : 0.2), lineWidth: 1.5))
+        .padding(.horizontal)
+    }
+    private var hudDistance: String {
+        guard let meters = owner.record?.distanceMeters, meters.isFinite, meters >= 0 else { return "—" }
+        return (meters / 1000).formatted(.number.precision(.fractionLength(1)))
+    }
+    /// Bottom game bar. Every button keeps its identifier and controller call.
+    @ViewBuilder private var actionBar: some View {
+        let canStart = [.ready, .locationDenied, .paused].contains(owner.phase)
+        let canFinish = [.active, .paused].contains(owner.phase) && owner.record != nil
+        if owner.phase != .unavailable && (canStart || owner.phase == .active || canFinish) {
+            HStack(spacing: 12) {
+                if owner.phase == .active {
+                    Button { owner.pause() } label: {
+                        Label("roam.live.pause", systemImage: "pause.fill").frame(maxWidth: .infinity, minHeight: 30)
+                    }
+                    .buttonStyle(.borderedProminent).controlSize(.large)
+                    .accessibilityIdentifier("roam.live.pause")
+                } else if canStart, owner.record == nil {
+                    Button { Task { await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted) } } label: {
+                        Label("roam.live.start", systemImage: "figure.walk").frame(maxWidth: .infinity, minHeight: 30)
+                    }
+                    .buttonStyle(.borderedProminent).controlSize(.large)
+                    .disabled(!purposeAccepted || owner.busy).accessibilityIdentifier("roam.live.start")
+                } else if canStart, owner.record?.finishRequested == false {
+                    Button { Task { await owner.resume(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted) } } label: {
+                        Label("roam.live.resume", systemImage: "play.fill").frame(maxWidth: .infinity, minHeight: 30)
+                    }
+                    .buttonStyle(.borderedProminent).controlSize(.large)
+                    .disabled(!purposeAccepted || owner.busy).accessibilityIdentifier("roam.live.resume")
+                }
+                if canFinish {
+                    Button(role: .destructive) { confirmFinish = true } label: {
+                        Label("roam.live.finish", systemImage: "flag.checkered").frame(minHeight: 30)
+                    }
+                    .buttonStyle(.bordered).controlSize(.large)
+                    .disabled(owner.busy).accessibilityIdentifier("roam.live.finish")
+                }
+            }
+            .padding(.horizontal).padding(.vertical, 10)
+            .background(.bar)
+        }
+    }
     @ViewBuilder private var pauseAndBrowse: some View {
         if owner.localBrowseIdentity != nil {
-            let copy = RoamPausedBrowseCopy(locale: locale)
             Section {
-                Text(verbatim: copy.hint).font(.caption).foregroundStyle(.secondary)
                 ForEach(RoamPausedBrowseKind.allCases, id: \.self) { kind in
                     let entryID = browse.entryID
                     let reader = browseReader(for: kind)
                     let context = RoamPausedBrowseContext.capture(kind: kind, owner: owner, reader: reader)
-                    Button {
-                        if let context { browse.open(context, entryID: entryID, owner: owner, reader: reader) }
-                    } label: {
-                        Label(copy.label(kind), systemImage: kind.symbol)
-                    }.disabled(context == nil)
+                    if let context {
+                        Button {
+                            browse.open(context, entryID: entryID, owner: owner, reader: reader)
+                        } label: {
+                            Label(LocalizedStringKey(kind.titleKey), systemImage: kind.symbol)
+                        }
                         .accessibilityIdentifier(kind.accessibilityID)
+                    }
                 }
-            } header: { Text(verbatim: copy.title) }
+            } header: { Text("roam.live.more") }
         }
     }
     @ViewBuilder private var status: some View {
-        Section("roam.live.sessionStatus") {
-            Text(phaseText).font(.headline)
-            if owner.busy { ProgressView("roam.loading") }
-            if let record = owner.record {
-                LabeledContent("roam.live.measuredDistance", value: Measurement(value: record.distanceMeters, unit: UnitLength.meters).formatted(.measurement(width: .abbreviated, usage: .asProvided)))
-                RoamLiveCoverageRow(presentation: .init(controller: owner))
-                TimelineView(.animation(minimumInterval: 1, paused: owner.phase != .active || !owner.foreground)) { _ in
-                    RoamLiveElapsedRow(seconds: owner.localForegroundElapsedSeconds)
+        let settled = owner.settlement.map { $0.hasCompleteSettlement } ?? false
+        if owner.busy || owner.record != nil || settled {
+            Section {
+                if owner.busy { ProgressView("roam.loading") }
+                if let record = owner.record {
+                    LabeledContent("roam.live.tiles", value: String(record.allTiles.count - record.pendingTiles.count))
+                    if !record.pendingTiles.isEmpty { LabeledContent("roam.live.pendingTiles", value: String(record.pendingTiles.count)) }
+                    if owner.pendingActionCount > 0 { Text("roam.live.unknownVisit").foregroundStyle(.secondary) }
                 }
-                LabeledContent("roam.live.tiles", value: String(record.allTiles.count - record.pendingTiles.count))
-                if !record.pendingTiles.isEmpty { LabeledContent("roam.live.pendingTiles", value: String(record.pendingTiles.count)) }
-                if owner.pendingActionCount > 0 { Text("roam.live.unknownVisit").foregroundStyle(.secondary) }
-            }
-            if let fact = owner.settlement, fact.hasCompleteSettlement {
-                LabeledContent("roam.live.confirmedXP", value: String(fact.result!.totalXp!))
-                LabeledContent("roam.live.confirmedShops", value: String(fact.result!.sessionShops!))
-                if owner.phase != .finished { Text("roam.live.archivePending") }
-            }
+                if let fact = owner.settlement, fact.hasCompleteSettlement {
+                    LabeledContent("roam.live.confirmedXP", value: String(fact.result!.totalXp!))
+                    LabeledContent("roam.live.confirmedShops", value: String(fact.result!.sessionShops!))
+                    if owner.phase != .finished { Text("roam.live.archivePending").foregroundStyle(.secondary) }
+                }
+            } header: { Text("roam.live.sessionStatus") }
         }
     }
     private var phaseText: LocalizedStringKey {
@@ -239,21 +309,20 @@ import Combine
     @ViewBuilder private var nearby: some View {
         Section("roam.live.nearby") {
             if owner.nearbyReadFailed {
-                if let error = owner.placesReadError {
+                if owner.placesReadError != nil {
                     Label("roam.liveRead.placesFailed", systemImage: "exclamationmark.triangle")
                         .accessibilityIdentifier("roam.liveRead.placesFailed")
-                    Text(errorText(error)).font(.caption).foregroundStyle(.secondary)
                 }
-                if let error = owner.registeredShopsReadError {
+                if owner.registeredShopsReadError != nil {
                     Label("roam.liveRead.shopsFailed", systemImage: "exclamationmark.triangle")
                         .accessibilityIdentifier("roam.liveRead.shopsFailed")
-                    Text(errorText(error)).font(.caption).foregroundStyle(.secondary)
                 }
-                Text("roam.liveRead.failed").font(.caption).foregroundStyle(.secondary)
+                Text("roam.liveRead.failed").font(.subheadline).foregroundStyle(.secondary)
                     .accessibilityIdentifier("roam.liveRead.failed")
-                Button("action.retry") { Task { await owner.retryNearbyRead() } }
-                    .disabled(!owner.canRetryNearbyRead).accessibilityIdentifier("roam.liveRead.retry")
-                Text("roam.liveRead.hint").font(.caption).foregroundStyle(.secondary)
+                if owner.canRetryNearbyRead {
+                    Button("action.retry") { Task { await owner.retryNearbyRead() } }
+                        .accessibilityIdentifier("roam.liveRead.retry")
+                }
             } else if owner.places.isEmpty && owner.registeredShops.isEmpty {
                 Text("roam.live.noPlaces").foregroundStyle(.secondary)
             }
@@ -263,13 +332,13 @@ import Combine
             ForEach(owner.registeredShops) { shop in
                 if nearbyExpanded || owner.busy || owner.error != nil || owner.registeredShopUnresolved(shop) || owner.registeredShopConfirmed(shop) {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(shop.addressName.isEmpty ? "#\(shop.id)" : shop.addressName).font(.headline)
+                        if shop.addressName.isEmpty { Text("roam.unnamed").font(.headline) } else { Text(verbatim: shop.addressName).font(.headline) }
                         if owner.registeredShopUnresolved(shop) { Text("roam.live.unknownVisit").font(.caption) }
                         else if owner.registeredShopConfirmed(shop) { Label("roam.live.arrivalConfirmed", systemImage: "checkmark.circle") }
                         else {
                             Button("roam.live.visitShop") { Task { await owner.visitRegisteredShop(shop) } }
                                 .disabled(owner.busy || owner.registeredShopGap(shop) != 0)
-                            if let gap = owner.registeredShopGap(shop), gap > 0 { Text("roam.live.walkCloser").font(.caption) + Text(" \(gap) m").font(.caption) }
+                            if let gap = owner.registeredShopGap(shop), gap > 0 { Text("roam.live.walkCloser \(gap)").font(.caption).foregroundStyle(.secondary) }
                         }
                     }.padding(.vertical, 4)
                 }
@@ -278,7 +347,7 @@ import Combine
                 if nearbyExpanded || owner.busy || owner.error != nil || owner.actionUnresolved(place, shop: false) || owner.actionUnresolved(place, shop: true)
                     || owner.actionConfirmed(place, shop: false) || owner.actionConfirmed(place, shop: true) {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(place.name).font(.headline)
+                        RoamTitle(place.name).font(.headline)
                         if let text = owner.merchantDescription(for: place) {
                             RoamLiveMerchantDescriptionRow(text: text)
                         }
@@ -297,7 +366,7 @@ import Combine
                 Button(shop ? "roam.live.visitShop" : "roam.live.discover") { Task { if shop { await owner.visitShop(place) } else { await owner.discover(place) } } }
                     .disabled(owner.busy || owner.gapMeters(place, shop: shop) != 0)
                 if let gap = owner.gapMeters(place, shop: shop), gap > 0 {
-                    Text("roam.live.walkCloser").font(.caption) + Text(" \(gap) m").font(.caption)
+                    Text("roam.live.walkCloser \(gap)").font(.caption).foregroundStyle(.secondary)
                 }
             }
         }
@@ -319,7 +388,7 @@ import Combine
             Section("roam.live.ruleArrivalTitle") { Text("roam.live.ruleArrival") }
             Section("roam.live.ruleFinishTitle") { Text("roam.live.ruleFinish") }
             Section("roam.live.rulePrivacyTitle") { Text("roam.live.presencePrivacy"); Text("roam.live.leaveHint") }
-        }.navigationTitle("roam.live.rules")
+        }.navigationTitle("roam.live.rules").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { dismiss() } } }
     }
 }
@@ -357,17 +426,27 @@ struct RoamLiveCoverageCopy {
     }
 }
 
+/// HUD tile 地盘: the explored percentage, or — when it isn't known.
 @MainActor struct RoamLiveCoverageRow: View {
     let presentation: RoamLiveCoveragePresentation
-    @Environment(\.locale) private var locale
     var body: some View {
-        let copy = RoamLiveCoverageCopy(locale: locale)
-        VStack(alignment: .leading, spacing: 6) {
-            LabeledContent { Text(verbatim: presentation.value(locale: locale)) } label: { Text(verbatim: copy.title) }
-            Text(verbatim: copy.hint).font(.caption).foregroundStyle(.secondary)
+        RoamLiveStatTile(value: presentation.percentage.map { "\($0)%" } ?? "—", label: "roam.live.stat.turf")
+            .accessibilityIdentifier("roam.live.localCoverage")
+    }
+}
+
+/// One HUD reading: a large number over a short label, as in the mini-program pstat.
+struct RoamLiveStatTile: View {
+    let value: String
+    let label: LocalizedStringKey
+    var body: some View {
+        VStack(spacing: 2) {
+            Text(verbatim: value).font(.title2.weight(.bold)).monospacedDigit()
+                .lineLimit(1).minimumScaleFactor(0.6)
+            Text(label).font(.caption).foregroundStyle(.secondary).lineLimit(2).multilineTextAlignment(.center)
         }
+        .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("roam.live.localCoverage")
     }
 }
 
@@ -386,18 +465,14 @@ struct RoamLiveElapsedCopy {
         return "\(minutes < 10 ? "0" : "")\(minutes):\(remainder < 10 ? "0" : "")\(remainder)"
     }
 }
+/// HUD tile 用时: mm:ss of this walk's foreground time, or — when it isn't known.
 struct RoamLiveElapsedRow: View {
     let seconds: Int?
-    @Environment(\.locale) private var locale
     var body: some View {
-        let copy = RoamLiveElapsedCopy(locale: locale)
-        VStack(alignment: .leading, spacing: 4) {
-            LabeledContent { Text(verbatim: copy.value(seconds: seconds)).monospacedDigit() }
-                label: { Text(verbatim: copy.title) }
-            Text(verbatim: copy.hint).font(.caption).foregroundStyle(.secondary)
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("roam.live.foregroundElapsed")
+        let known = seconds.map { $0 >= 0 } ?? false
+        RoamLiveStatTile(value: known ? RoamLiveElapsedCopy(locale: Locale(identifier: "en")).value(seconds: seconds) : "—",
+                         label: "roam.live.stat.time")
+            .accessibilityIdentifier("roam.live.foregroundElapsed")
     }
 }
 
@@ -449,18 +524,16 @@ struct RoamFinishedMedalsSection: View {
     let presentation: RoamFinishedMedalsPresentation
     @Environment(\.locale) private var locale
     var body: some View {
-        let copy = RoamFinishedMedalsCopy(locale: locale)
         Section {
             LabeledContent {
-                Text(verbatim: presentation.journey ?? copy.unavailable)
-            } label: { Text(verbatim: copy.journey) }
+                Text(verbatim: presentation.journey ?? "—")
+            } label: { Label("roam.live.medal.journey", systemImage: "medal") }
                 .accessibilityIdentifier("roam.live.finishedMedals.journey")
             LabeledContent {
-                Text(verbatim: presentation.shop ?? copy.unavailable)
-            } label: { Text(verbatim: copy.shop) }
+                Text(verbatim: presentation.shop ?? "—")
+            } label: { Label("roam.live.medal.shop", systemImage: "storefront") }
                 .accessibilityIdentifier("roam.live.finishedMedals.shop")
-            Text(verbatim: copy.hint).font(.caption).foregroundStyle(.secondary)
-        } header: { Text(verbatim: copy.title) }
+        } header: { Text("roam.live.medal.title") }
     }
 }
 
@@ -481,16 +554,15 @@ struct RoamPlaceMemorySection: View {
     let close: () -> Void
     @Environment(\.locale) private var locale
     var body: some View {
-        let copy = RoamPlaceMemoryCopy(locale: locale)
         Section {
             if !placeName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 Text(verbatim: placeName).font(.headline)
             }
             Text(verbatim: text).fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("roam.live.placeMemory.text")
-            Button(action: close) { Text(verbatim: copy.close) }
+            Button(action: close) { Text("roam.live.placeMemory.close") }
                 .accessibilityIdentifier("roam.live.placeMemory.close")
-        } header: { Text(verbatim: copy.title) }
+        } header: { Text("roam.live.placeMemory.title") }
     }
 }
 
@@ -525,12 +597,11 @@ struct RoamFinishedStorySection: View {
     let presentation: RoamFinishedStoryPresentation
     @Environment(\.locale) private var locale
     var body: some View {
-        let copy = RoamFinishedStoryCopy(locale: locale)
         Section {
-            Text(verbatim: presentation.text)
+            Text(verbatim: presentation.text).font(.body.italic())
+                .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("roam.live.finishedStory.text")
-            Text(verbatim: copy.hint).font(.caption).foregroundStyle(.secondary)
-        } header: { Text(verbatim: copy.title) }
+        } header: { Text("roam.live.story.title") }
     }
 }
 
@@ -545,7 +616,7 @@ struct RoamLiveMerchantDescriptionRow: View {
     @Environment(\.locale) private var locale
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(verbatim: RoamLiveMerchantDescriptionCopy(locale: locale).title)
+            Text("roam.live.merchant.about")
                 .font(.caption).foregroundStyle(.secondary)
             Text(verbatim: text).fixedSize(horizontal: false, vertical: true)
         }.accessibilityIdentifier("roam.live.merchantDescription")
@@ -571,17 +642,10 @@ struct RoamNearbyVisibilityButton: View {
     @Environment(\.locale) private var locale
     func toggle() { expanded = !expanded }
     var body: some View {
-        let copy = RoamNearbyVisibilityCopy(locale: locale)
-        VStack(alignment: .leading, spacing: 4) {
-            Button(action: toggle) {
-                Label(expanded ? copy.hide : copy.show, systemImage: expanded ? "chevron.up" : "chevron.down")
-            }
-            .accessibilityIdentifier("roam.live.nearby.visibility")
-            .accessibilityValue(Text(verbatim: expanded ? copy.expanded : copy.collapsed))
-            if !expanded {
-                Text(verbatim: copy.hint).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            }
+        Button(action: toggle) {
+            Label(expanded ? "roam.live.nearby.hide" : "roam.live.nearby.show", systemImage: expanded ? "chevron.up" : "chevron.down")
         }
+        .accessibilityIdentifier("roam.live.nearby.visibility")
     }
 }
 
@@ -610,17 +674,7 @@ struct RoamLiveRouteOverviewSection: View {
     @Environment(\.locale) private var locale
     var hasDrawableRoute: Bool { track.count > 1 }
     var body: some View {
-        let copy = RoamLiveRouteOverviewCopy(locale: locale)
-        Section("roam.experience.routeSketch") {
-            if finished {
-                Text(verbatim: copy.finishedHint).font(.caption).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier("roam.live.finishedRoute.hint")
-            }
-            if paused {
-                Text(verbatim: copy.pausedHint).font(.caption).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+        Section("roam.live.route.title") {
             if hasDrawableRoute {
                 let sketch = RoamRouteSketch(track: track, places: [])
                 Canvas { context, size in
@@ -631,11 +685,9 @@ struct RoamLiveRouteOverviewSection: View {
                     }
                     context.stroke(path, with: .color(.accentColor), style: StrokeStyle(lineWidth: 4, lineCap: .round))
                 }.frame(height: 180).accessibilityHidden(true)
-                LabeledContent(copy.recordedPoints, value: String(track.count))
                     .accessibilityIdentifier("roam.live.routeOverview.points")
-                Text("roam.live.tracePrivacy").font(.caption).foregroundStyle(.secondary)
             } else {
-                Text(verbatim: track.isEmpty ? copy.missing : copy.onePoint)
+                Text("roam.live.route.empty")
                     .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("roam.live.routeOverview.unavailable")
             }
@@ -647,6 +699,7 @@ struct RoamLiveRouteOverviewSection: View {
 enum RoamPausedBrowseKind: CaseIterable, Hashable {
     case history, settings, album
     var symbol: String { switch self { case .history: return "clock.arrow.circlepath"; case .settings: return "location.slash"; case .album: return "rectangle.stack" } }
+    var titleKey: String { switch self { case .history: return "roam.live.more.history"; case .settings: return "roam.live.more.settings"; case .album: return "roam.live.more.album" } }
     var accessibilityID: String { switch self { case .history: return "roam.live.pausedHistory.open"; case .settings: return "roam.live.pausedSettings.open"; case .album: return "roam.live.pausedAlbum.open" } }
 }
 struct RoamPausedBrowseContext: Equatable {
@@ -674,30 +727,48 @@ struct RoamPausedBrowseContext: Equatable {
 }
 @MainActor final class RoamPausedBrowsePresentation: ObservableObject {
     let objectWillChange = ObservableObjectPublisher()
-    private var dismantling = false
-    private(set) var target: RoamPausedBrowseTarget? { willSet { publishChange() } }
-    private(set) var entryID = UUID() { willSet { publishChange() } }
-    private func publishChange() { if !dismantling { objectWillChange.send() } }
+    private(set) var target: RoamPausedBrowseTarget?
+    private(set) var entryID = UUID()
     private var visible = false
     private var attached = false
-    func appear() { if !visible { entryID = UUID() }; visible = true; attached = true }
-    func parentHidden() { visible = false; if target == nil { retire() } }
+    private var lifetimeID: UUID?
+    func appear() {
+        let returning = !visible
+        if returning { entryID = UUID() }
+        visible = true; attached = true
+        if returning { objectWillChange.send() }
+    }
+    func parentHidden() { visible = false; if target == nil { retire(publishing: false) } }
+    func attachLifetime() -> UUID {
+        // Replacing a native host expires its authority before the new host can appear.
+        if lifetimeID != nil { disappear() }
+        let id = UUID(); lifetimeID = id; return id
+    }
+    func isCurrentLifetime(_ id: UUID) -> Bool { lifetimeID == id }
+    func dismantleLifetime(_ id: UUID) {
+        guard isCurrentLifetime(id) else { return }
+        lifetimeID = nil; disappear()
+    }
     func parentDisappeared(departing: Bool, coveredByPresentation: Bool) {
         if !departing && coveredByPresentation && target != nil { parentHidden() }
         else { disappear() }
     }
-    func disappear() { visible = false; attached = false; retire() }
-    func dismantle() {
-        dismantling = true; disappear(); dismantling = false
-        Task { @MainActor [weak self] in self?.objectWillChange.send() }
+    func disappear() { visible = false; attached = false; retire(publishing: false) }
+    func retire() { retire(publishing: true) }
+    private func retire(publishing: Bool) {
+        let album = target?.albumScope
+        target = nil; entryID = UUID()
+        // Native teardown may run inside GraphHost.invalidate. Revoke synchronously,
+        // without notifying that dying graph (including the observable album scope).
+        // Both readers already check this target's exact UUID before and after reads.
+        if publishing { album?.retire(); objectWillChange.send() }
     }
-    func retire() { target?.albumScope?.retire(); target = nil; entryID = UUID() }
     func open(_ rendered: RoamPausedBrowseContext, entryID: UUID, owner: RoamLiveSessionController,
               reader: (any RoamExperienceReading)?) {
         guard attached, visible, self.entryID == entryID, target == nil,
               rendered == RoamPausedBrowseContext.capture(kind: rendered.kind, owner: owner, reader: reader) else { return }
         owner.pause()
-        guard owner.phase == .paused,
+        guard attached, visible, self.entryID == entryID, target == nil, owner.phase == .paused,
               rendered == RoamPausedBrowseContext.capture(kind: rendered.kind, owner: owner, reader: reader) else { return }
         let id = UUID()
         let history: RoamPausedLocalHistoryReader?
@@ -715,6 +786,7 @@ struct RoamPausedBrowseContext: Equatable {
             })
         } else { album = nil }
         target = .init(id: id, context: rendered, historyReader: history, albumScope: album)
+        objectWillChange.send()
     }
     func matches(_ offered: RoamPausedBrowseTarget, owner: RoamLiveSessionController,
                  reader: (any RoamExperienceReading)?) -> Bool {
@@ -819,14 +891,16 @@ struct RoamPausedBrowseCopy {
     }
     func updateUIViewController(_ controller: RoamPausedBrowseLifetimeController, context: Context) {}
     static func dismantleUIViewController(_ controller: RoamPausedBrowseLifetimeController, coordinator: ()) {
-        controller.presentation?.dismantle()
+        controller.presentation?.dismantleLifetime(controller.lifetimeID)
     }
 }
 @MainActor final class RoamPausedBrowseLifetimeController: UIViewController {
     weak var presentation: RoamPausedBrowsePresentation?
+    let lifetimeID: UUID
     private var departing = false
     init(presentation: RoamPausedBrowsePresentation) {
-        self.presentation = presentation; super.init(nibName: nil, bundle: nil)
+        self.presentation = presentation; lifetimeID = presentation.attachLifetime()
+        super.init(nibName: nil, bundle: nil)
     }
     required init?(coder: NSCoder) { return nil }
     private var ancestry: [UIViewController] {
@@ -835,7 +909,9 @@ struct RoamPausedBrowseCopy {
         return result
     }
     override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated); departing = false; presentation?.appear()
+        super.viewDidAppear(animated)
+        guard let presentation, presentation.isCurrentLifetime(lifetimeID) else { return }
+        departing = false; presentation.appear()
     }
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
@@ -843,8 +919,9 @@ struct RoamPausedBrowseCopy {
     }
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
+        guard let presentation, presentation.isCurrentLifetime(lifetimeID) else { return }
         let source = ancestry
-        presentation?.parentDisappeared(
+        presentation.parentDisappeared(
             departing: departing || source.contains { $0.isMovingFromParent || $0.isBeingDismissed },
             coveredByPresentation: source.contains { $0.presentedViewController != nil })
     }

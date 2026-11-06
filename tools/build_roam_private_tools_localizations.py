@@ -113,7 +113,7 @@ KEYS = {
     'roam.export.readNext': ('Read next part', '读取下一块'),
     'roam.export.startReading': ('Start reading', '开始读取'),
     'roam.export.restart': ('Choose another range', '重新选择范围'),
-    'roam.export.sourceChanged': ('The source changed, so the parts read are incomplete. Prepare again.', '来源已变化，已有部分不完整，请重新准备'),
+    'roam.export.sourceChanged': ('Your content changed while preparing the export. Please prepare it again.', '导出准备期间内容有变化，请重新准备。'),
     'roam.export.expired': ('The file content has expired. Prepare again.', '文件内容已过期，请重新准备'),
     'roam.export.saved': ('File saved', '文件保存已完成'),
     'roam.export.cancelled': ('Cancelled; the file was not saved', '已取消，未完成文件操作'),

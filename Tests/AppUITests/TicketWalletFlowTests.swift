@@ -37,7 +37,7 @@ final class TicketWalletFlowTests: XCTestCase {
     func testPartialEmptyIsNotReportedAsCompleteEmptyWallet() {
         launch("partialEmpty")
         XCTAssertTrue(app.staticTexts["Activity tickets could not be loaded"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.staticTexts["No tickets were returned by the available source. The wallet may be incomplete."].exists)
+        XCTAssertTrue(app.staticTexts["No tickets found right now. Your ticket wallet may not show everything."].exists)
         XCTAssertFalse(app.staticTexts["Your ticket wallet is empty"].exists)
         app.buttons["ticketWallet.retry"].tap()
         XCTAssertTrue(app.staticTexts["Activity tickets could not be loaded"].waitForExistence(timeout: 5))
@@ -68,7 +68,7 @@ final class TicketWalletFlowTests: XCTestCase {
         XCTAssertFalse(app.staticTexts["Sample pending chapter"].exists)
     }
     func testEmptyFailureGuestAndConfigurationStatesAreDistinct() {
-        for (scenario, message) in [("empty", "Your ticket wallet is empty"), ("failure", "Tickets could not be loaded"), ("guest", "Sign in to see your tickets"), ("unconfigured", "Ticket service is not configured")] {
+        for (scenario, message) in [("empty", "Your ticket wallet is empty"), ("failure", "Tickets could not be loaded"), ("guest", "Sign in to see your tickets"), ("unconfigured", "Tickets aren't available right now.")] {
             launch(scenario)
             XCTAssertTrue(app.staticTexts[message].waitForExistence(timeout: 10), "Scenario: \(scenario)")
             if scenario != "empty" { XCTAssertFalse(app.staticTexts["Your ticket wallet is empty"].exists) }

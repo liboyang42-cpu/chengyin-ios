@@ -114,7 +114,6 @@ extension PlayKitScreen {
                 else { ProgressView("playkit.imageLoading") }
             }
         } else { Label("playkit.imageGated", systemImage: "photo") }
-        Text("playkit.hidden.boundary").font(.footnote)
         attempts
     }
     @ViewBuilder var predictForm: some View {
@@ -182,7 +181,7 @@ extension PlayKitScreen {
             Button("playkit.review") {
                 guard enabled, let value = wheel.value(at: selectedIndex) else { return }
                 requestReview("SUBMIT_ESTIMATE", ["value": .number(value)], {})
-            }.buttonStyle(.borderedProminent).disabled(!enabled || wheel.value(at: selectedIndex) == nil)
+            }.buttonStyle(.questifyPrimary).disabled(!enabled || wheel.value(at: selectedIndex) == nil)
                 .accessibilityIdentifier("playkit.submit.estimate")
         }.onChange(of: selectedIndex) { _, _ in onDirty() }
     }

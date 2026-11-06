@@ -158,13 +158,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The source or draft changed. Cancel and reopen the time selector."
+          "value": "This information has changed. Cancel and reopen the time picker."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "来源或草稿已变化，请取消后重新打开时间选择。"
+          "value": "信息已变化，请取消后重新打开时间选择。"
         }
       }
     }

@@ -430,6 +430,18 @@ def reviewed_display_impact(path, before, after):
     return row if row is not None and digest(before)==row['before_sha256'] and digest(after)==row['after_sha256'] else None
 
 
+RETIREMENTS = 'tools/current_ci_retirements.json'
+
+
+def reviewed_retirements(root, prior, current):
+    """Reasons for tests removed since the comparison base. A missing reason fails the audit."""
+    path = Path(root) / RETIREMENTS
+    reviews = read_json(path) if path.is_file() else {}
+    old = set(prior['native_methods']) | set(prior['portable_methods'])
+    new = set(current['native_methods']) | set(current['portable_methods'])
+    return {method: reviews[method] for method in old - new if method in reviews}
+
+
 def refresh(root, base, required_since=None):
     current = snapshot(root)
     prior_raw = subprocess.run(['git','-C',str(root),'show',base+':'+MANIFEST], capture_output=True)
@@ -460,7 +472,7 @@ def refresh(root, base, required_since=None):
         before=git(root,'show',base+':'+path);after=(Path(root)/path).read_bytes()
         row=reviewed_display_impact(path,before,after)
         if row is not None:deps.setdefault('reviewed_impacts',{})[path]=row
-    data = {'version':1, 'required_current_methods':required, 'required_since':required_since, 'comparison_base':base, 'snapshot':current, 'audit':audit(prior,current), 'smoke':smoke,
+    data = {'version':1, 'required_current_methods':required, 'required_since':required_since, 'comparison_base':base, 'snapshot':current, 'audit':audit(prior,current,reviewed_retirements(root,prior,current)), 'smoke':smoke,
             'source_dependencies':deps, 'ui_costs':current_ui_costs(root,current)}
     data['additional_base_test_reviews'] = existing.get('additional_base_test_reviews', {})
     additional_base_test_reviews(root, data)

@@ -21,6 +21,10 @@ INFOPLIST_KEY_QuestifyMarket = $(QUESTIFY_MARKET)
 QUESTIFY_API_BASE_URL =
 INFOPLIST_KEY_QuestifyAPIBaseURL = $(QUESTIFY_API_BASE_URL)
 
+// Informational build identity only; it cannot issue a runtime capability.
+QUESTIFY_DEPLOYMENT_ENVIRONMENT = unconfigured
+INFOPLIST_KEY_QuestifyDeploymentEnvironment = $(QUESTIFY_DEPLOYMENT_ENVIRONMENT)
+
 INFOPLIST_KEY_NSCameraUsageDescription = Use the camera to scan QR codes or take aftercare evidence photos when you choose.
 
 // Explicit deployment identity for isolated local session persistence; no default realm.
@@ -33,7 +37,7 @@ INFOPLIST_KEY_QuestifySessionRealm = $(QUESTIFY_SESSION_REALM)
 INFOPLIST_KEY_NSMotionUsageDescription = Read step counts from this iPhone when you choose to review a walking activity. Counts are not proof of walking and do not unlock rewards.
 
 // Declares when-in-use location purpose only; no background location and no Always-authorization keys.
-INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = Use your location only while the app is open and only when you choose to roam, play a location-based activity, or find nearby places. Location is never used in the background and is not shared with other people.
+INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = Use your location only while the app is open and when you choose to roam, play a location-based activity, find nearby places, or explicitly start personal location sharing with a selected person. Personal sharing uploads your location to the service for that person until you stop or the approved sharing period ends. Location is never used in the background.
 
 // Declares the explicit NPC voice recording and local sound-peak gameplay amplitude measurement purposes; does not grant or enable access.
-INFOPLIST_KEY_NSMicrophoneUsageDescription = Use the microphone only when you choose to talk to or set up an NPC voice, or to measure sound peak levels locally on this iPhone during interactive sound gameplay. Sound-challenge amplitude is measured on device without uploading audio, and microphone access stops when you finish and never runs in the background.
+INFOPLIST_KEY_NSMicrophoneUsageDescription = Use the microphone only when you choose to record an IM voice message, talk to or set up an NPC voice, or measure sound peak levels locally on this iPhone during interactive sound gameplay. IM recordings are uploaded only after your separate confirmation for the original audio safety check; sending the message requires another confirmation. Sound-challenge amplitude is measured on device without uploading audio, and microphone access stops when you finish and never runs in the background.

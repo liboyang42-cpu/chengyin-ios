@@ -12,6 +12,8 @@ import SwiftUI
     /// Optional source "即将开始" strip (official events within 24h); nil hides it.
     var upcomingReader: (any OfficialEventReading)? = nil
     var upcomingDestination: ((Int) -> AnyView)? = nil
+    /// Reporter progress survives unavailable or deleted feed targets; nil preserves fixture callers.
+    var reportProgressDestination: (() -> AnyView)? = nil
     @State private var showsWorkspace = false
     @State private var showsComposer = false
     var onClose: (() -> Void)? = nil
@@ -42,6 +44,10 @@ import SwiftUI
                         .disabled(workspace.busy)
                 }
                 if let context = governanceContext(postID: nil) { SquareGovernanceEntryView(context: context) }
+                if let reportProgressDestination {
+                    NavigationLink { reportProgressDestination() } label: { memberReportProgressText("report.history.title") }
+                        .accessibilityIdentifier("squareReport.progress.entry")
+                }
                 Section {
                     if reader.isOfflineExample { Text("square.offlineExample").font(.caption) }
                     Picker("square.feed", selection: $query.mode) {
@@ -84,7 +90,6 @@ import SwiftUI
                         Button("square.loadMore") { Task { await load(reset: false) } }.accessibilityIdentifier("square.loadMore")
                     }
                 }
-                Section { Text("square.readOnly").font(.footnote).foregroundStyle(.secondary) }
             }
             .appNavigationTitle("square.xcx.navTitle")
             .navigationDestination(for: Int.self) { id in SquareDetailView(id: id, contentGeneration: .communityV1, reader: reader, accountReader: accountReader, actions: actions, governanceContext: governanceContext(postID: id), workspace: workspace) }
@@ -121,7 +126,6 @@ import SwiftUI
     }
     @ViewBuilder private var filters: some View {
         if query.mode == .nearby {
-            Text("square.cityPurpose").font(.caption)
             TextField("square.cityCode", text: $cityCode).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityIdentifier("square.cityCode")
             Button("square.applyFilter") { query.cityCode = cityCode }.accessibilityIdentifier("square.applyFilter")
         } else if query.mode == .topic {

@@ -123,8 +123,6 @@ typealias TemplateTimerCancellation = @MainActor () -> Void
     var body: some View {
         Form {
             Section {
-                Text("templateTimer.localOnly").font(.callout)
-                Text("templateTimer.background").font(.footnote).foregroundStyle(.secondary)
                 if controller.mode == .sourceExample { Text("templateTimer.exampleOnly").font(.footnote) }
             }
             if let state = controller.visibleState {
@@ -141,15 +139,17 @@ typealias TemplateTimerCancellation = @MainActor () -> Void
                 }
                 Section {
                     if state.kind == .countdown {
-                        Text(verbatim: countdown(state.remainingSeconds)).font(.largeTitle.monospacedDigit())
-                            .accessibilityIdentifier("templateTimer.countdown")
+                        TemplateTimerRehearsalReading(value: countdown(state.remainingSeconds), identifier: "templateTimer.countdown")
                         ProgressView(value: state.progress)
-                        if state.phase == .finished { Text(verbatim: state.doneText).accessibilityIdentifier("templateTimer.doneText") }
+                        if state.phase == .finished {
+                            Text(verbatim: state.doneText).fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("templateTimer.doneText")
+                        }
                     } else if state.isMasked {
-                        Text("templateTimer.hidden").font(.largeTitle).accessibilityIdentifier("templateTimer.masked")
+                        Text("templateTimer.hidden").font(.largeTitle)
+                            .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("templateTimer.masked")
                     } else {
-                        Text(verbatim: seconds(state.elapsedMs / 1000)).font(.largeTitle.monospacedDigit())
-                            .accessibilityIdentifier("templateTimer.stopwatch")
+                        TemplateTimerRehearsalReading(value: seconds(state.elapsedMs / 1000), identifier: "templateTimer.stopwatch")
                     }
                     if state.phase == .paused { Text("templateTimer.paused") }
                     if let reason = state.abortReason {
@@ -200,6 +200,24 @@ typealias TemplateTimerCancellation = @MainActor () -> Void
     }
     private func seconds(_ value: Double) -> String { String(format: "%.2f", value) }
     private func countdown(_ value: Int) -> String { String(format: "%02d:%02d", value / 60, value % 60) }
+}
+
+/// Keep one complete numeric value at the user's text size. The containing Form
+/// still owns vertical scrolling; only a wide accessibility readout scrolls sideways.
+private struct TemplateTimerRehearsalReading: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    let value: String
+    let identifier: String
+    private var reading: some View {
+        Text(verbatim: value).font(.largeTitle.monospacedDigit())
+            .accessibilityIdentifier(identifier)
+    }
+    var body: some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            ScrollView(.horizontal) { reading.fixedSize() }
+                .fixedSize(horizontal: false, vertical: true)
+        } else { reading }
+    }
 }
 
 // This editor changes local configuration only. It never runs a gameplay timer.
@@ -339,24 +357,7 @@ struct TemplateTimerOutcomeDraft {
 enum TemplateTimerOutcomeText: CaseIterable {
     case title, scope, enabled, seconds, outcome, failed, expired, unknown, validation, preview, disabled, save, cancel, unavailable, reload
     func value(_ locale: Locale) -> String {
-        let chinese = locale.language.languageCode?.identifier == "zh"
-        switch self {
-        case .title: return chinese ? "限时挑战配置" : "Time-limit configuration"
-        case .scope: return chinese ? "仅编辑本地配置。不会启动计时、提交结果、发放奖励或发布。" : "Edit local configuration only. This does not start a timer, submit a result, award a reward or publish."
-        case .enabled: return chinese ? "启用限时挑战" : "Enable time limit"
-        case .seconds: return chinese ? "时长（秒）" : "Duration in seconds"
-        case .outcome: return chinese ? "超时结果" : "Timeout outcome"
-        case .failed: return chinese ? "失败" : "Failed"
-        case .expired: return chinese ? "已超时" : "Expired"
-        case .unknown: return chinese ? "未知结果，请明确选择" : "Unrecognized outcome; choose explicitly"
-        case .validation: return chinese ? "请输入10至86400的整数秒，并明确选择超时结果。" : "Enter a whole number from 10 to 86400 seconds and choose a timeout outcome."
-        case .preview: return chinese ? "配置预览" : "Configuration preview"
-        case .disabled: return chinese ? "限时挑战未启用；仍保留配置。" : "Time limit is disabled; configuration is retained."
-        case .save: return chinese ? "保存到本地草稿" : "Save to local draft"
-        case .cancel: return chinese ? "取消未保存的更改" : "Cancel unsaved changes"
-        case .unavailable: return chinese ? "配置已改变或当前无法编辑。原始草稿未被此页面替换。" : "The configuration changed or cannot be edited now. This page has not replaced the original draft."
-        case .reload: return chinese ? "重新读取当前配置" : "Reload current configuration"
-        }
+        appLocalized(String.LocalizationValue(stringLiteral: "templateTimerOutcome." + String(describing: self)), locale: locale)
     }
 }
 

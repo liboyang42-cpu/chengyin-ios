@@ -58,6 +58,19 @@ extension EnvironmentValues {
     func isCurrent(_ selection: Selection) -> Bool {
         self.selection?.id == selection.id && accepted?() == true
     }
+    /// SwiftUI may finish dismissing an earlier sheet after another visit opens.
+    /// Capture the visit when constructing the binding, never at callback time.
+    var selectionBinding: Binding<Selection?> {
+        let captured = selection?.id
+        return Binding(get: { self.selection }, set: { next in
+            guard next == nil, let captured else { return }
+            self.close(id: captured)
+        })
+    }
+    func close(id: UUID) {
+        guard selection?.id == id else { return }
+        close()
+    }
     func close() { accepted = nil; selection = nil }
 }
 

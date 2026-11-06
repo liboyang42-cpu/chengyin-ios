@@ -1,0 +1,38 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectOriginal.committed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original save was confirmed. Review, publication, and media processing are separate."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原保存已确认。审核、发布与媒体处理仍分别确认。"
+          }
+        }
+      }
+    },
+    "projectOriginal.resume": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue original processing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续原请求后续处理"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

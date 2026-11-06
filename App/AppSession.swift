@@ -4,7 +4,652 @@ import SwiftUI
 
 @MainActor
 final class AppSession: ObservableObject {
-    @Published private(set) var account: Account? { willSet { if account?.id != newValue?.id || account?.effectiveRole.data(using: .utf8) != newValue?.effectiveRole.data(using: .utf8) { invalidateWorkshopReadBindings() }; invalidateOwnerDraftBrowser(); if account?.id != newValue?.id || account?.effectiveRole != newValue?.effectiveRole { invalidateShopNPCConversations(); merchantNPCSessionOwner.invalidate() }; if account?.id != newValue?.id { platformConsumers.invalidate() } } didSet { _ = runtimeDependencies; synchronizeAccountMarketingEntry(); _ = searchMapReader.scope } }
+    private var retainedInvoiceLaunch: (context: RuntimeDependencyContext, viewer: UInt64,
+        configuration: UInt64, approval: UUID, presentation: InvoiceLaunchPresentation)?
+    private var invoiceConfigurationChanging = false
+    private var invoiceConfigurationRevision: UInt64 = 0
+    private func invalidateInvoiceLaunch() {
+        guard let retained = retainedInvoiceLaunch else { return }
+        retainedInvoiceLaunch = nil
+        retained.presentation.coordinator.service.revoke()
+        retained.presentation.invalidate() // Clear displayed PII; do not delete the durable journal.
+    }
+    /// Call BEFORE changing the injected selector, including grant A → nil → A.
+    func withInvoiceLaunchConfigurationChange(_ change: () -> Void) {
+        invoiceConfigurationChanging = true
+        invalidateInvoiceLaunch()
+        change()
+        invoiceConfigurationRevision &+= 1
+        invoiceConfigurationChanging = false
+        objectWillChange.send()
+    }
+    func makeInvoiceLaunchPresentation() -> InvoiceLaunchPresentation? {
+        guard !invoiceConfigurationChanging, let context = currentRuntimeDependencyContext,
+              context.market == .china, context.role.utf8.elementsEqual(context.session.role.utf8),
+              let storageScope, let approval = composition.invoiceLaunchReadApproval(context),
+              approval.matches(context) else { return nil }
+        let viewer = compositionViewerRevision, configuration = invoiceConfigurationRevision
+        if let old = retainedInvoiceLaunch, old.context == context, old.viewer == viewer,
+           old.configuration == configuration, old.approval == approval.revision { return old.presentation }
+        invalidateInvoiceLaunch()
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, !self.invoiceConfigurationChanging,
+                  self.invoiceConfigurationRevision == configuration,
+                  self.compositionViewerRevision == viewer,
+                  self.currentRuntimeDependencyContext == context,
+                  let latest = self.composition.invoiceLaunchReadApproval(context),
+                  latest.revision == approval.revision, latest.matches(context) else { return nil }
+            return self.currentRuntimeDependencyContext
+        }
+        guard let service = composition.makeInvoiceLaunchService(context: context, approval: approval,
+            current: current, unauthorized: { [weak self] in
+                guard let self, current() == context else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch,
+                                      credential: context.session.token)
+            }), let coordinator = try? InvoiceLaunchCoordinator(service: service,
+                store: InvoiceLaunchPendingStore(session: service.session,
+                    storage: composition.storage.invoiceJournal(storageScope))) else { return nil }
+        let presentation = InvoiceLaunchPresentation(coordinator: coordinator, isCurrent: { current() == context })
+        // permits intentionally omitted: all mutation entries remain hidden.
+        retainedInvoiceLaunch = (context, viewer, configuration, approval.revision, presentation)
+        return presentation
+    }
+
+    private weak var retainedNativeWebhookManagement: NativeWebhookCoordinator?
+    private var nativeWebhookConfigurationGeneration: UInt64 = 0
+    func makeNativeChannelModerationFlow(channels: any NativeChannelManagementIntegrationContextProviding,
+                                         captured: NativeChannelManagementIntegrationContext) -> NativeChannelModerationFlow? {
+        guard let storageScope else { return nil }
+        let features: Set<BusinessRuntimeFeature> = [.imChannelModerationRead, .imChannelModerationWrite, .imChannelModerationReceipt]
+        guard let (factory, gate) = channelHostRuntimeFactory(features, current: { channels.contextIsCurrent(captured) }) else { return nil }
+        let issued = factory.routes(features)
+        guard !issued.isEmpty else { return nil }
+        let context = factory.captured, viewer = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard gate.isCurrent, let self else { return false }
+            return self.compositionViewerRevision == viewer && self.currentRuntimeDependencyContext == context
+        }
+        return try? NativeChannelModerationFlow(captured: captured, channels: channels, context: context,
+            transport: factory.client(features), storage: ProjectEditSecureStorage(scope: storageScope), current: current,
+            permits: { method, path in current() && issued.contains(where: { $0.method == method && $0.path == path }) },
+            unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+
+    func makeNativeChannelPersonalStateFlow(channels: any NativeChannelManagementIntegrationContextProviding,
+                                         captured: NativeChannelManagementIntegrationContext) -> NativeChannelPersonalStateFlow? {
+        guard let storageScope else { return nil }
+        let features: Set<BusinessRuntimeFeature> = [.imChannelPersonalStateRead, .imChannelPersonalStateWrite, .imChannelPersonalStateReceipt]
+        guard let (factory, gate) = channelHostRuntimeFactory(features, current: { channels.contextIsCurrent(captured) }) else { return nil }
+        let issued = factory.routes(features)
+        guard !issued.isEmpty else { return nil }
+        let context = factory.captured, viewer = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard gate.isCurrent, let self else { return false }
+            return self.compositionViewerRevision == viewer && self.currentRuntimeDependencyContext == context
+        }
+        return try? NativeChannelPersonalStateFlow(captured: captured, channels: channels, context: context,
+            transport: factory.client(features), storage: ProjectEditSecureStorage(scope: storageScope), current: current,
+            permits: { method, path in current() && issued.contains(where: { $0.method == method && $0.path == path }) },
+            unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+
+    func makeNativeChannelRoleFlow(channels: any NativeChannelManagementIntegrationContextProviding,
+                                         captured: NativeChannelManagementIntegrationContext) -> NativeChannelRoleFlow? {
+        guard let storageScope else { return nil }
+        let features: Set<BusinessRuntimeFeature> = [.imChannelRoleRead, .imChannelRoleWrite, .imChannelRoleReceipt, .imChannelRoleMemberRead]
+        guard let (factory, gate) = channelHostRuntimeFactory(features, current: { channels.contextIsCurrent(captured) }) else { return nil }
+        let issued = factory.routes(features)
+        guard !issued.isEmpty else { return nil }
+        let context = factory.captured, viewer = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard gate.isCurrent, let self else { return false }
+            return self.compositionViewerRevision == viewer && self.currentRuntimeDependencyContext == context
+        }
+        return try? NativeChannelRoleFlow(captured: captured, channels: channels, context: context,
+            transport: factory.client(features), storage: ProjectEditSecureStorage(scope: storageScope), current: current,
+            permits: { method, path in current() && issued.contains(where: { $0.method == method && $0.path == path }) },
+            unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+
+    func makeNativeChannelAuditFlow(channels: any NativeChannelManagementIntegrationContextProviding,
+                                    captured: NativeChannelManagementIntegrationContext) -> NativeChannelAuditFlow? {
+        let features: Set<BusinessRuntimeFeature> = [.imChannelAuditRead]
+        guard let (factory, gate) = channelHostRuntimeFactory(features, current: { channels.contextIsCurrent(captured) }) else { return nil }
+        guard factory.routes(features).contains(where: { $0.method == "GET" && $0.path == "api/im/audit-log" }) else { return nil }
+        let context = factory.captured, viewer = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard gate.isCurrent, let self else { return false }
+            return self.compositionViewerRevision == viewer && self.currentRuntimeDependencyContext == context
+        }
+        return try? NativeChannelAuditFlow(captured: captured, channels: channels, context: context,
+            transport: factory.client(features), current: current, unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+
+    func makeNativeChannelLifecycleAuditFlow(channels: any NativeChannelManagementIntegrationContextProviding,
+                                    captured: NativeChannelManagementIntegrationContext) -> NativeChannelAuditFlow? {
+        let features: Set<BusinessRuntimeFeature> = [.imChannelLifecycleAuditRead]
+        guard let (factory, gate) = channelHostRuntimeFactory(features, current: { channels.contextIsCurrent(captured) }) else { return nil }
+        guard factory.routes(features).contains(where: { $0.method == "GET" && $0.path == "api/channels/\(captured.channelID.rawValue)/op-log" }) else { return nil }
+        let context = factory.captured, viewer = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard gate.isCurrent, let self else { return false }
+            return self.compositionViewerRevision == viewer && self.currentRuntimeDependencyContext == context
+        }
+        return try? NativeChannelAuditFlow(captured: captured, channels: channels, context: context,
+            transport: factory.client(features), current: current, unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            }, source: .lifecycle)
+    }
+
+    func makeNativeChannelManagementFlow(scope: NativeChannelManagementScope) -> NativeChannelManagementCoordinator? {
+        guard let context = currentRuntimeDependencyContext,
+              let configuration = regionalConfiguration?.apiConfiguration, storageScope != nil else { return nil }
+        let viewer = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewer else { return nil }
+            return self.currentRuntimeDependencyContext
+        }
+        let selected: () -> NativeChannelManagementApproval? = { [weak self] in
+            guard let self, current() != nil else { return nil }
+            return self.composition.nativeChannelManagementApproval(context, viewer, scope)
+        }
+        guard let dispatcher = compositionTransport.makeNativeChannelManagementDispatcher(context: context,
+            scope: scope, viewerRevision: viewer, currentRuntime: current,
+            currentViewer: { [weak self] in self?.compositionViewerRevision ?? UInt64.max },
+            selectedApproval: selected) else { return nil }
+        return NativeChannelManagementBinding.make(context: context, viewerRevision: viewer, scope: scope,
+            configuration: configuration, transport: dispatcher, storage: ProjectEditSecureStorage(scope: storageScope),
+            current: current, viewer: { [weak self] in self?.compositionViewerRevision ?? UInt64.max },
+            selectedApproval: selected, onUnauthorized: { [weak self] expected in
+                guard let self, current() == context, expected == context else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+
+    func nativeWebhookManagementDestination(for scope: NativeChannelManagementScope)
+        -> (@MainActor (NativeWebhookScope) throws -> NativeWebhookCoordinator)? {
+        guard scope.guildKind == 1, let captured = currentRuntimeDependencyContext else { return nil }
+        if let configuration = composition.sessionDependencies(captured).nativeWebhookConfiguration {
+            guard configuration.allowsOwner(scope.guildID.rawValue, context: captured) else { return nil }
+        } else if composition.nativeWebhookRuntimeFactory == nil { return nil }
+        let viewer = compositionViewerRevision
+        let configurationGeneration = nativeWebhookConfigurationGeneration
+        return { [weak self] selected in
+            guard let self, self.compositionViewerRevision == viewer, self.nativeWebhookConfigurationGeneration == configurationGeneration,
+                  self.currentRuntimeDependencyContext == captured,
+                  selected.ownerID.rawValue == scope.guildID.rawValue else {
+                throw NativeWebhookClientError.sourceUnavailable("WEBHOOK_REAL_CHANNEL_MANAGEMENT_CONTEXT_UNAVAILABLE")
+            }
+            return try self.makeNativeWebhookManagement(scope: selected)
+        }
+    }
+
+    func makeNativeWebhookManagement(scope: NativeWebhookScope) throws -> NativeWebhookCoordinator {
+        retainedNativeWebhookManagement?.invalidate()
+        guard let captured = currentRuntimeDependencyContext else {
+            throw NativeWebhookClientError.sourceUnavailable("WEBHOOK_NATIVE_SCOPE_RBAC_FACTORY_UNAVAILABLE")
+        }
+        let viewer = compositionViewerRevision
+        let configurationGeneration = nativeWebhookConfigurationGeneration
+        let visit = NativeWebhookRuntimeVisit()
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, visit.isCurrent, self.compositionViewerRevision == viewer,
+                  self.nativeWebhookConfigurationGeneration == configurationGeneration else { return nil }
+            return self.currentRuntimeDependencyContext
+        }
+        let factory: any NativeWebhookRuntimeFactory
+        if let configuration = composition.sessionDependencies(captured).nativeWebhookConfiguration {
+            guard let approval = configuration.approval(for: captured, scope: scope) else {
+                throw NativeWebhookClientError.sourceUnavailable("WEBHOOK_REVIEWED_ENDPOINT_APPROVAL_UNAVAILABLE")
+            }
+            guard let dispatcher = compositionTransport.makeNativeWebhookFinalForwardTransport(
+                context: captured, scope: scope, issued: approval, currentRuntime: current,
+                currentApproval: { [weak self] in
+                    guard let live = self?.composition.sessionDependencies(captured).nativeWebhookConfiguration,
+                          live == configuration else { return nil }
+                    return live.approval(for: captured, scope: scope)
+                }, stillCurrent: { visit.isCurrent }) else {
+                throw NativeWebhookClientError.sourceUnavailable("WEBHOOK_REVIEWED_ENDPOINT_APPROVAL_UNAVAILABLE")
+            }
+            factory = NativeWebhookNormalRuntime.make(configuration: configuration,
+                currentConfiguration: { [weak self] in self?.composition.sessionDependencies(captured).nativeWebhookConfiguration },
+                current: current, transport: dispatcher,
+                onUnauthorized: { [weak self] expected in
+                    guard let self, visit.isCurrent, self.compositionViewerRevision == viewer, self.nativeWebhookConfigurationGeneration == configurationGeneration,
+                          self.currentRuntimeDependencyContext == captured, expected == captured else { return }
+                    self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch,
+                        credential: captured.session.token)
+                })
+        } else if let supplied = composition.nativeWebhookRuntimeFactory { factory = supplied }
+        else { throw NativeWebhookClientError.sourceUnavailable("WEBHOOK_NATIVE_SCOPE_RBAC_FACTORY_UNAVAILABLE") }
+        let coordinator = try factory.make(captured: captured, scope: scope,
+            current: current, journal: composition.storage.operationJournal(),
+            onUnauthorized: { [weak self] expected in
+                guard let self, visit.isCurrent, self.compositionViewerRevision == viewer, self.nativeWebhookConfigurationGeneration == configurationGeneration,
+                      self.currentRuntimeDependencyContext == captured, expected == captured else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch,
+                    credential: captured.session.token)
+            })
+        guard visit.bind(coordinator) else {
+            coordinator.invalidate()
+            throw NativeWebhookClientError.scopeChanged
+        }
+        retainedNativeWebhookManagement = coordinator
+        return coordinator
+    }
+
+    func makeNativeFriendChannelInviteFlow(mode: NativeFriendChannelInviteMode,
+                                          sourceCurrent: @escaping () -> Bool = { true }) -> NativeFriendChannelInviteFlow? {
+        guard mode.valid, sourceCurrent(), let context = currentRuntimeDependencyContext,
+              let approval = composition.nativeFriendChannelInviteApproval(context, mode), approval.mode == mode else { return nil }
+        let viewerRevision = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard let self else { return false }
+            return sourceCurrent() && self.compositionViewerRevision == viewerRevision && self.currentRuntimeDependencyContext == context &&
+                self.composition.nativeFriendChannelInviteApproval(context, mode) == approval && Date() < approval.expiresAt
+        }
+        let ownerKey = (try? JSONSerialization.data(withJSONObject: [context.baseURL.absoluteString,
+            context.session.namespace, String(context.session.accountID)]).base64EncodedString()) ?? ""
+        guard !ownerKey.isEmpty else { return nil }
+        let journal = storageScope.map { NativeFriendChannelInviteJournal(storage: ProjectEditSecureStorage(scope: $0), ownerKey: ownerKey) }
+        guard let service = try? NativeFriendChannelInviteService(context: context, approval: approval,
+            transport: NativeFriendDispatchTransport { [weak self] request in
+                guard let self, current() else { throw NativeFriendFailure.notSent }
+                return try await self.compositionTransport.sendNativeFriendChannelInvite(request, context: context, approval: approval, stillApproved: current)
+            }, current: current, unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            }) else { return nil }
+        return NativeFriendChannelInviteFlow(service: service, journal: journal)
+    }
+
+    func makeNativeFriendChannelInviteFlow(channels: any NativeChannelManagementIntegrationContextProviding,
+                                          captured: NativeChannelManagementIntegrationContext) -> NativeFriendChannelInviteFlow? {
+        guard let context = currentRuntimeDependencyContext, let channel = Int64(captured.channelID.rawValue),
+              captured.identity.owner.accountID == context.session.accountID, ["CLUB", "TEAM"].contains(captured.ownerType),
+              captured.serverPermissionNames.isSuperset(of: ["VIEW_CHANNEL", "MANAGE_CHANNEL"]), channels.contextIsCurrent(captured) else { return nil }
+        return makeNativeFriendChannelInviteFlow(mode: .channel(channel), sourceCurrent: { channels.contextIsCurrent(captured) })
+    }
+
+    func makeNativeFriendChannelSourceFlow(channels: any NativeChannelManagementIntegrationContextProviding,
+                                          captured: NativeChannelManagementIntegrationContext) -> NativeFriendChannelSourceFlow? {
+        guard let context = currentRuntimeDependencyContext, let channelID = Int64(captured.channelID.rawValue),
+              captured.identity.owner.accountID == context.session.accountID, captured.ownerType == "CLUB",
+              captured.serverPermissionNames.contains("VIEW_CHANNEL"), channels.contextIsCurrent(captured),
+              let approval = composition.nativeFriendChannelSourceApproval(context, channelID), approval.channelID == channelID else { return nil }
+        let viewerRevision = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard let self else { return false }
+            return self.compositionViewerRevision == viewerRevision && self.currentRuntimeDependencyContext == context &&
+                channels.contextIsCurrent(captured) && self.composition.nativeFriendChannelSourceApproval(context, channelID) == approval && Date() < approval.expiresAt
+        }
+        return try? NativeFriendChannelSourceFlow(context: context, approval: approval,
+            friend: makeNativeFriendFlow(sourceCurrent: current),
+            transport: NativeFriendDispatchTransport { [weak self] request in
+                guard let self, current() else { throw NativeFriendFailure.notSent }
+                return try await self.compositionTransport.sendNativeFriendChannelSource(request, context: context, approval: approval, stillApproved: current)
+            }, current: current, unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+
+    func makeNativeFriendTeamInviteFlow(mode: NativeFriendTeamInviteMode,
+                                          sourceCurrent: @escaping () -> Bool = { true }) -> NativeFriendTeamInviteFlow? {
+        guard mode.valid, sourceCurrent(), let context = currentRuntimeDependencyContext,
+              let approval = composition.nativeFriendTeamInviteApproval(context, mode), approval.mode == mode else { return nil }
+        let viewerRevision = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard let self else { return false }
+            return sourceCurrent() && self.compositionViewerRevision == viewerRevision && self.currentRuntimeDependencyContext == context &&
+                self.composition.nativeFriendTeamInviteApproval(context, mode) == approval && Date() < approval.expiresAt
+        }
+        let ownerKey = (try? JSONSerialization.data(withJSONObject: [context.baseURL.absoluteString,
+            context.session.namespace, String(context.session.accountID)]).base64EncodedString()) ?? ""
+        guard !ownerKey.isEmpty else { return nil }
+        let journal = storageScope.map { NativeFriendTeamInviteJournal(storage: ProjectEditSecureStorage(scope: $0), ownerKey: ownerKey) }
+        guard let service = try? NativeFriendTeamInviteService(context: context, approval: approval,
+            transport: NativeFriendDispatchTransport { [weak self] request in
+                guard let self, current() else { throw NativeFriendFailure.notSent }
+                return try await self.compositionTransport.sendNativeFriendTeamInvite(request, context: context, approval: approval, stillApproved: current)
+            }, current: current, unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            }) else { return nil }
+        return NativeFriendTeamInviteFlow(service: service, journal: journal)
+    }
+
+    func makeNativeFriendMetadataFlow(peerID: Int64) -> NativeFriendMetadataFlow {
+        let context = currentRuntimeDependencyContext
+        let viewerRevision = compositionViewerRevision
+        let ownerKey = context.flatMap { value in
+            try? JSONSerialization.data(withJSONObject: [value.baseURL.absoluteString,
+                value.session.namespace, String(value.session.accountID)])
+        }.map { "friend-meta:" + $0.base64EncodedString() } ?? "friend-meta:unconfigured"
+        let journal = OperationDefaultsJournal(defaults: composition.storage.defaults)
+        guard let context, let approval = composition.nativeFriendMetadataApproval(context) else {
+            return NativeFriendMetadataFlow(peerID: peerID, service: nil, journal: journal, ownerKey: ownerKey)
+        }
+        let service = try? NativeFriendMetadataService(context: context, approval: approval,
+            currentApproval: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context else { return nil }
+                return self.composition.nativeFriendMetadataApproval(context)
+            }, transport: NativeFriendDispatchTransport { [weak self] request in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context else { throw NativeFriendFailure.notSent }
+                return try await self.compositionTransport.sendNativeFriendMetadata(request, context: context, approval: approval,
+                    stillApproved: { self.compositionViewerRevision == viewerRevision &&
+                        self.currentRuntimeDependencyContext == context && self.composition.nativeFriendMetadataApproval(context) == approval })
+            }, current: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision else { return nil }
+                return self.currentRuntimeDependencyContext
+            }, onUnauthorized: { [weak self] captured in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context, captured == context else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch,
+                    credential: captured.session.token)
+            })
+        return NativeFriendMetadataFlow(peerID: peerID, service: service, journal: journal, ownerKey: ownerKey)
+    }
+
+    func makeNativeFriendDirectoryFlow() -> NativeFriendDirectoryFlow {
+        let context = currentRuntimeDependencyContext
+        let viewerRevision = compositionViewerRevision
+        guard let context, let approval = composition.nativeFriendDirectoryApproval(context) else {
+            return NativeFriendDirectoryFlow(service: nil)
+        }
+        let service = try? NativeFriendDirectoryService(context: context, approval: approval,
+            currentApproval: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context else { return nil }
+                return self.composition.nativeFriendDirectoryApproval(context)
+            }, transport: NativeFriendDispatchTransport { [weak self] request in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context else { throw NativeFriendFailure.notSent }
+                return try await self.compositionTransport.sendNativeFriendDirectory(request, context: context, approval: approval,
+                    stillApproved: { self.compositionViewerRevision == viewerRevision &&
+                        self.currentRuntimeDependencyContext == context && self.composition.nativeFriendDirectoryApproval(context) == approval })
+            }, current: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision else { return nil }
+                return self.currentRuntimeDependencyContext
+            }, onUnauthorized: { [weak self] captured in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context, captured == context else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch,
+                    credential: captured.session.token)
+            })
+        return NativeFriendDirectoryFlow(service: service)
+    }
+
+    func makeNativeFriendProgressCard(item: NativeFriendItem, isCurrent: @escaping () -> Bool) -> NativeFriendProgressCard {
+        let context = currentRuntimeDependencyContext
+        let viewerRevision = compositionViewerRevision
+        guard let context, let approval = composition.nativeFriendProgressApproval(context), isCurrent() else {
+            return NativeFriendProgressCard(source: nil)
+        }
+        let policyOwner = NativeProgressPrivacyInvalidation.owner(origin: context.baseURL, namespace: context.session.namespace, actor: Int64(context.session.accountID))
+        do {
+            let records = try OperationDefaultsJournal(defaults: composition.storage.defaults).pendingRecords(ownerKey: policyOwner)
+                .filter { $0.targetKey.hasPrefix("native-progress-privacy.v1.") }
+            NativeProgressPrivacyInvalidation.restore(owner: policyOwner, requests: Set(records.map(\.operationID)))
+        } catch { NativeProgressPrivacyInvalidation.restore(owner: policyOwner, requests: nil) }
+        let service = try? NativeFriendProgressService(context: context, approval: approval, friend: item,
+            currentApproval: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context, isCurrent() else { return nil }
+                return self.composition.nativeFriendProgressApproval(context)
+            }, transport: NativeFriendDispatchTransport { [weak self] request in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context, isCurrent() else { throw NativeFriendFailure.notSent }
+                return try await self.compositionTransport.sendNativeFriendProgress(request, context: context, approval: approval,
+                    stillApproved: { self.compositionViewerRevision == viewerRevision && isCurrent() &&
+                        self.currentRuntimeDependencyContext == context && self.composition.nativeFriendProgressApproval(context) == approval })
+            }, current: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision else { return nil }
+                return self.currentRuntimeDependencyContext
+            }, relationshipCurrent: isCurrent, onUnauthorized: { [weak self] captured in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context, captured == context else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+            })
+        return NativeFriendProgressCard(source: service)
+    }
+
+    func makeNativeFriendRemovalFlow(item: NativeFriendItem? = nil) -> NativeFriendRemovalFlow {
+        let context = currentRuntimeDependencyContext
+        let viewerRevision = compositionViewerRevision
+        let ownerKey = context.flatMap { value in
+            try? JSONSerialization.data(withJSONObject: [value.baseURL.absoluteString,
+                value.session.namespace, String(value.session.accountID)])
+        }.map { "friend-remove:" + $0.base64EncodedString() } ?? "friend-remove:unconfigured"
+        let journal = OperationDefaultsJournal(defaults: composition.storage.defaults)
+        guard let context, let approval = composition.nativeFriendRemovalApproval(context) else {
+            return NativeFriendRemovalFlow(item: item, service: nil, journal: journal, ownerKey: ownerKey)
+        }
+        let service = try? NativeFriendRemovalService(context: context, approval: approval,
+            currentApproval: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context else { return nil }
+                return self.composition.nativeFriendRemovalApproval(context)
+            }, transport: NativeFriendDispatchTransport { [weak self] request in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context else { throw NativeFriendFailure.notSent }
+                return try await self.compositionTransport.sendNativeFriendRemoval(request, context: context, approval: approval,
+                    stillApproved: { self.compositionViewerRevision == viewerRevision &&
+                        self.currentRuntimeDependencyContext == context && self.composition.nativeFriendRemovalApproval(context) == approval })
+            }, current: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision else { return nil }
+                return self.currentRuntimeDependencyContext
+            }, onUnauthorized: { [weak self] captured in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context, captured == context else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch,
+                    credential: captured.session.token)
+            })
+        return NativeFriendRemovalFlow(item: item, service: service, journal: journal, ownerKey: ownerKey)
+    }
+
+    func makeNativeBlacklistFlow() -> NativeBlacklistFlow {
+        let context = currentRuntimeDependencyContext
+        let viewerRevision = compositionViewerRevision
+        let ownerKey = context.flatMap { value in
+            try? JSONSerialization.data(withJSONObject: [value.baseURL.absoluteString,
+                value.session.namespace, String(value.session.accountID)])
+        }.map { "blacklist:" + $0.base64EncodedString() } ?? "blacklist:unconfigured"
+        let journal = OperationDefaultsJournal(defaults: composition.storage.defaults)
+        guard let context, let approval = composition.nativeBlacklistApproval(context) else {
+            return NativeBlacklistFlow(service: nil, journal: journal, ownerKey: ownerKey)
+        }
+        let service = try? NativeBlacklistService(context: context, approval: approval,
+            currentApproval: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context else { return nil }
+                return self.composition.nativeBlacklistApproval(context)
+            }, transport: NativeBlacklistDispatchTransport { [weak self] request in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context else { throw NativeBlacklistFailure.notSent }
+                return try await self.compositionTransport.sendNativeBlacklist(request, context: context, approval: approval,
+                    stillApproved: { self.compositionViewerRevision == viewerRevision &&
+                        self.currentRuntimeDependencyContext == context && self.composition.nativeBlacklistApproval(context) == approval })
+            }, current: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision else { return nil }
+                return self.currentRuntimeDependencyContext
+            }, onUnauthorized: { [weak self] captured in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context, captured == context else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch,
+                    credential: captured.session.token)
+            })
+        return NativeBlacklistFlow(service: service, journal: journal, ownerKey: ownerKey)
+    }
+
+    func makeNativeFriendFlow(sourceCurrent: @escaping () -> Bool = { true }) -> NativeFriendFlow {
+        let context = currentRuntimeDependencyContext
+        let viewerRevision = compositionViewerRevision
+        let ownerKey = context.flatMap { value in
+            try? JSONSerialization.data(withJSONObject: [value.baseURL.absoluteString,
+                value.session.namespace, String(value.session.accountID)])
+        }.map { "friend:" + $0.base64EncodedString() } ?? "friend:unconfigured"
+        let journal = OperationDefaultsJournal(defaults: composition.storage.defaults)
+        let fullIntent = storageScope.map { NativeFriendIntentJournal(storage: ProjectEditSecureStorage(scope: $0), ownerKey: ownerKey) }
+        guard sourceCurrent(), let context, let approval = composition.nativeFriendApproval(context) else {
+            return NativeFriendFlow(service: nil, journal: journal, ownerKey: ownerKey, intentJournal: fullIntent)
+        }
+        let service = try? NativeFriendService(context: context, approval: approval,
+            currentApproval: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context, sourceCurrent() else { return nil }
+                return self.composition.nativeFriendApproval(context)
+            }, transport: NativeFriendDispatchTransport { [weak self] request in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context, sourceCurrent() else { throw NativeFriendFailure.notSent }
+                return try await self.compositionTransport.sendNativeFriend(request, context: context, approval: approval,
+                    stillApproved: { self.compositionViewerRevision == viewerRevision &&
+                        self.currentRuntimeDependencyContext == context && sourceCurrent() && self.composition.nativeFriendApproval(context) == approval })
+            }, current: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision, sourceCurrent() else { return nil }
+                return self.currentRuntimeDependencyContext
+            }, onUnauthorized: { [weak self] captured in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      self.currentRuntimeDependencyContext == context, captured == context else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch,
+                    credential: captured.session.token)
+            })
+        return NativeFriendFlow(service: service, journal: journal, ownerKey: ownerKey, intentJournal: fullIntent)
+    }
+
+    func nativeChannelProgressTeams(channelID: NativeChannelManagementID, board: NativeChannelProgressBoard) -> [NativeChannelProgressTeamOption]? {
+        guard let context = currentRuntimeDependencyContext else { return nil }
+        return composition.nativeChannelProgressTeamOptions(context, channelID, board)
+    }
+
+    func makeNativeChannelProgressFlow(channels: any NativeChannelManagementIntegrationContextProviding,
+        captured: NativeChannelManagementIntegrationContext, sourceCurrent: @escaping @MainActor () -> Bool) -> NativeChannelProgressCoordinator? {
+        guard let context = currentRuntimeDependencyContext, let storageScope,
+              sourceCurrent(), channels.contextIsCurrent(captured),
+              let selection = composition.nativeChannelProgressSelection(context, captured) else { return nil }
+        let viewer = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewer, sourceCurrent(),
+                  channels.contextIsCurrent(captured) else { return nil }
+            return self.currentRuntimeDependencyContext
+        }
+        let selected: () -> NativeChannelProgressRuntimeSelection? = { [weak self] in
+            guard let self, let latest = current(), ContentDraftContextFence.matches(latest, context),
+                  latest.session == context.session else { return nil }
+            return self.composition.nativeChannelProgressSelection(latest, captured)
+        }
+        let storage = NativeChannelProgressSecureJournalStorage(storage: ProjectEditSecureStorage(scope: storageScope))
+        guard let journal = try? NativeChannelProgressPrivacyJournal(identity: selection.authority.identity, storage: storage),
+              let dispatcher = compositionTransport.makeNativeChannelProgressFinalForward(context: context,
+                  selection: selection, journal: journal, currentRuntime: current, selected: selected,
+                  stillCurrent: sourceCurrent, receiptApproval: { [weak self] command in
+                      guard let self, selected() == selection else { return nil }
+                      return self.composition.nativeChannelProgressReceiptApproval(context, captured, command)
+                  }) else { return nil }
+        return try? NativeChannelProgressBinding.make(context: captured, provider: channels,
+            selectedAuthority: { dispatcher.isCurrent ? selected()?.authority : nil }, dispatcher: dispatcher,
+            token: { dispatcher.isCurrent ? current()?.session.token : nil }, storage: storage,
+            onUnauthorized: { [weak self] in
+                guard let self, dispatcher.isCurrent, current()?.session == context.session else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+
+    func makeNativeChannelProgressPrivacyFlow(channels: any NativeChannelManagementIntegrationContextProviding,
+                                             captured: NativeChannelManagementIntegrationContext) -> NativeProgressPrivacyFlow? {
+        guard let context = currentRuntimeDependencyContext, captured.ownerType == "CLUB", channels.contextIsCurrent(captured),
+              captured.identity.owner.accountID == context.session.accountID, captured.identity.owner.baseURL == context.baseURL.absoluteString,
+              captured.identity.owner.namespace == context.session.namespace, captured.identity.epoch == context.session.epoch,
+              captured.identity.viewerRevision == compositionViewerRevision,
+              captured.serverPermissionNames.isSuperset(of: ["VIEW_CHANNEL", "MANAGE_PROGRESS"]),
+              let id = Int64(captured.channelID.rawValue), let target = try? NativeProgressPrivacyTarget(kind: .channel, id: id) else { return nil }
+        return makeNativeProgressPrivacyFlow(target: target, channelCurrent: { channels.contextIsCurrent(captured) })
+    }
+
+    private func makeNativeProgressPrivacyFlow(target: NativeProgressPrivacyTarget?, channelCurrent: @escaping () -> Bool) -> NativeProgressPrivacyFlow {
+        let context = currentRuntimeDependencyContext, viewerRevision = compositionViewerRevision
+        let ownerKey = context.flatMap { value in
+            try? JSONSerialization.data(withJSONObject: [value.baseURL.absoluteString, value.session.namespace, String(value.session.accountID)])
+        }.map { "progress-privacy:" + $0.base64EncodedString() } ?? "progress-privacy:unconfigured"
+        let journal = OperationDefaultsJournal(defaults: composition.storage.defaults)
+        guard let context, let target, let approval = composition.nativeProgressPrivacyApproval(context, target), channelCurrent() else {
+            return NativeProgressPrivacyFlow(service: nil, journal: journal, ownerKey: ownerKey)
+        }
+        let service = try? NativeProgressPrivacyService(context: context, approval: approval, target: target,
+            transport: NativeFriendDispatchTransport { [weak self] request in
+                guard let self, self.compositionViewerRevision == viewerRevision, self.currentRuntimeDependencyContext == context,
+                      channelCurrent() else { throw NativeFriendFailure.notSent }
+                return try await self.compositionTransport.sendNativeProgressPrivacy(request, context: context, approval: approval,
+                    stillApproved: { self.compositionViewerRevision == viewerRevision && self.currentRuntimeDependencyContext == context &&
+                        channelCurrent() && self.composition.nativeProgressPrivacyApproval(context, target) == approval })
+            }, current: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision else { return nil }; return self.currentRuntimeDependencyContext
+            }, currentApproval: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision, self.currentRuntimeDependencyContext == context else { return nil }
+                return self.composition.nativeProgressPrivacyApproval(context, target)
+            }, channelCurrent: channelCurrent, onUnauthorized: { [weak self] captured in
+                guard let self, self.compositionViewerRevision == viewerRevision, self.currentRuntimeDependencyContext == context, captured == context else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+            })
+        return NativeProgressPrivacyFlow(service: service, journal: journal, ownerKey: ownerKey)
+    }
+
+    func makeNativeChannelWelcome(scope:NativeChannelManagementScope,sourceCurrent:@escaping()->Bool) -> NativeChannelWelcomeFlow? {
+        guard let context=currentRuntimeDependencyContext,let approval=composition.nativeChannelWelcomeApproval(context) else { return nil }
+        let viewer=compositionViewerRevision
+        let available: () -> Bool = { [weak self] in
+            guard let self,sourceCurrent(),self.currentRuntimeDependencyContext == context,self.compositionViewerRevision == viewer else { return false }
+            return self.composition.nativeChannelWelcomeApproval(context) == approval
+        }
+        let dispatch=NativeFriendDispatchTransport { [weak self] request in
+            guard let self,available() else { throw NativeSpaceAdmissionFailure.notSent }
+            return try await self.compositionTransport.sendNativeChannelWelcome(request,context:context,approval:approval,stillApproved:available)
+        }
+        return try? NativeChannelWelcomeFlow(scope:scope,context:context,approval:approval,transport:dispatch,current:available,unauthorized:{ [weak self] in
+            guard let self,available() else { return }
+            self.expireIfMatching(error:APIError.unauthorized,stamp:context.session.epoch,credential:context.session.token)
+        })
+    }
+
+    func makeNativeChannelOnboarding(scope:NativeChannelManagementScope,sourceCurrent:@escaping()->Bool) -> NativeChannelOnboardingFlow? {
+        guard let context=currentRuntimeDependencyContext,let storageScope,let approval=composition.nativeChannelOnboardingApproval(context) else{return nil}
+        let viewer=compositionViewerRevision
+        let available: () -> Bool = { [weak self] in
+            guard let self,sourceCurrent(),self.currentRuntimeDependencyContext==context,self.compositionViewerRevision==viewer else{return false}
+            return self.composition.nativeChannelOnboardingApproval(context)==approval
+        }
+        let dispatch=NativeFriendDispatchTransport { [weak self] request in
+            guard let self,available() else{throw NativeSpaceAdmissionFailure.notSent}
+            return try await self.compositionTransport.sendNativeChannelOnboarding(request,context:context,approval:approval,stillApproved:available)
+        }
+        return try? NativeChannelOnboardingFlow(scope:scope,context:context,approval:approval,transport:dispatch,storage:ProjectEditSecureStorage(scope:storageScope),current:available,unauthorized:{[weak self] in
+            guard let self,available() else{return}
+            self.expireIfMatching(error:APIError.unauthorized,stamp:context.session.epoch,credential:context.session.token)
+        })
+    }
+
+    func withNativeWebhookConfigurationChange(_ change: () -> Void) {
+        nativeWebhookConfigurationGeneration &+= 1
+        retainedNativeWebhookManagement?.invalidate(); retainedNativeWebhookManagement = nil
+        change()
+    }
+
+    @Published private(set) var account: Account? { willSet { if account?.id != newValue?.id || account?.effectiveRole.data(using: .utf8) != newValue?.effectiveRole.data(using: .utf8) { ownMediaAudioPreviewLifetime.retireAll(); ownMediaModelPreviewLifetime.retireAll(); memberIdentityAvatarLifetime.retireAll() }; if account?.id != newValue?.id || account?.effectiveRole != newValue?.effectiveRole { invalidatePersonalLocationShare() }; if account?.id != newValue?.id || account?.effectiveRole.data(using: .utf8) != newValue?.effectiveRole.data(using: .utf8) { invalidateInvoiceLaunch(); invalidateWorkshopReadBindings() }; invalidateOwnerDraftBrowser(); if account?.id != newValue?.id || account?.effectiveRole != newValue?.effectiveRole { invalidateShopNPCConversations(); merchantNPCSessionOwner.invalidate() }; if account?.id != newValue?.id { platformConsumers.invalidate() } } didSet { _ = runtimeDependencies; synchronizeAccountMarketingEntry(); _ = searchMapReader.scope } }
     @Published private(set) var isWorking = false { didSet { synchronizeAccountMarketingEntry() } }
     @Published private(set) var errorKey: String?
     let platformConsumers = PlatformConsumerSessionOwner()
@@ -40,6 +685,26 @@ final class AppSession: ObservableObject {
     private let merchantNPCSessionOwner = MerchantNPCSessionOwner()
     private var merchantNPCGrants: MerchantNPCGrants { merchantPublicFactory?.chatGrants ?? .init() }
     private var merchantNPCJournal: any OperationPendingJournal { composition.storage.operationJournal() }
+    /// Original-result read authority is independent of game dispatch and merchant ownership.
+    func makeMerchantGamePlayerCoordinator(merchantID: Int) -> MerchantGamePlayerCoordinator? {
+        guard let context = currentRuntimeDependencyContext, let token,
+              let configuration = regionalConfiguration?.apiConfiguration,
+              let captured = try? MerchantGamePlayerSession(namespace: context.session.namespace,
+                accountID: context.session.accountID, epoch: context.session.epoch, credential: token) else { return nil }
+        let issued = composition.merchantGamePlayerReadGrant(context)
+        let approved = issued?.matches(context) == true ? issued : nil
+        let viewerRevision = compositionViewerRevision
+        guard let service = try? MerchantGamePlayerService(configuration: configuration, merchantID: merchantID,
+            session: captured, grant: approved, transport: runtimeHTTPTransport, journal: merchantNPCJournal,
+            current: { [weak self] in
+                guard let self, self.currentRuntimeDependencyContext == context, self.token == token,
+                      self.compositionViewerRevision == viewerRevision,
+                      self.composition.merchantGamePlayerReadGrant(context) == issued else { return nil }
+                return captured
+            }) else { return nil }
+        return MerchantGamePlayerCoordinator(service: service)
+    }
+
     private var merchantNPCAccess: (scope: UUID, value: MerchantOperationsAccess, revision: UUID)?
     private func merchantNPCScope(row: PublicMerchantRowID, resource: Bool = false) -> MerchantNPCScope? {
         guard let account, token != nil, let namespace = storageScope?.service else { return nil }
@@ -104,11 +769,15 @@ final class AppSession: ObservableObject {
            retainedMerchantPublicViewerRevision == compositionViewerRevision { return retainedMerchantPublicFactory }
         let dependencies = runtimeDependencies
         let transport: any HTTPTransport
+        let chatTransport: (any HTTPTransport)?
         if let approval = dependencies.merchantPublicApproval {
             transport = compositionTransport.scopedForPublicMerchantHome(approval: approval, context: context)
-        } else { transport = runtimeHTTPTransport }
+            chatTransport = compositionTransport.scopedForMerchantGameNPC(approval: approval, context: context,
+                grants: { dependencies.merchantNPCGrants })
+        } else { transport = runtimeHTTPTransport; chatTransport = nil }
         let viewerRevision = compositionViewerRevision
         let factory = dependencies.makeMerchantPublicFactory(api: api, journal: merchantNPCJournal, transportOverride: transport,
+            chatTransportOverride: chatTransport,
             current: { [weak self] in
                 guard let self, self.compositionViewerRevision == viewerRevision else { return nil }
                 return self.currentMerchantPublicContext
@@ -136,6 +805,30 @@ final class AppSession: ObservableObject {
         context.ownerProfile = .init(makeReader: { [weak self] memberID in
             self?.makeProfilePublicInfoReader(memberID: memberID)
         }, squareReader: squareReader)
+        if let destination = composition.merchantGamePlayerDestination {
+            let makePage: (PublicMerchantRowID, AnyView?) -> AnyView = { [weak self] row, chat in
+                guard let self, let captured = self.currentRuntimeDependencyContext else {
+                    return AnyView(Text("merchantNPC.unavailable"))
+                }
+                let viewerRevision = self.compositionViewerRevision, token = self.token
+                let grant = self.composition.merchantGamePlayerReadGrant(captured)
+                return AnyView(MerchantGameFactsDestination(session: self, current: { [weak self] in
+                    guard let self else { return false }
+                    return self.currentRuntimeDependencyContext == captured && self.token == token &&
+                        self.compositionViewerRevision == viewerRevision &&
+                        self.composition.merchantGamePlayerReadGrant(captured) == grant
+                }, make: { [weak self] in self?.makeMerchantGamePlayerCoordinator(merchantID: row.rawValue) },
+                    render: destination, chat: chat))
+            }
+            context.gameFactsDestination = { makePage($0, nil) }
+            // A local facts renderer must not silently enable NPC chat or make an
+            // existing separately approved sender depend on an absent read grant.
+            if merchantNPCGrants.chatAllowed, let captured = currentRuntimeDependencyContext,
+               let grant = composition.merchantGamePlayerReadGrant(captured), grant.matches(captured),
+               grant.endpoints.paths.isSuperset(of: MerchantGamePlayerReadGrant.playerPaths) {
+                context.gamePlayerDestination = makePage
+            }
+        }
         context.installMerchantNPC(grants: { [weak self] in self?.merchantNPCGrants ?? .init() },
             scopeForRow: { [weak self] in self?.merchantNPCScope(row: $0) },
             currentScope: { [weak self] in self?.merchantNPCScope(row: $0) }, client: merchantNPCClient(resource: false),
@@ -149,6 +842,12 @@ final class AppSession: ObservableObject {
     var clubPostImageUploadApprovalSelector: (RuntimeDependencyContext, Int) -> ClubPostImageUploadApproval? = { _, _ in nil }
     func compositionClubCommunityReadApproval(_ context: RuntimeDependencyContext) -> ClubCommunityReadApproval? {
         composition.clubCommunityReadApproval(context)
+    }
+    func compositionClubPostOriginalApproval(_ context: RuntimeDependencyContext) -> ClubPostOriginalApproval? {
+        composition.clubPostOriginalApproval(context)
+    }
+    func compositionClubCommentOriginalApproval(_ context: RuntimeDependencyContext) -> ClubCommentOriginalApproval? {
+        composition.clubCommentOriginalApproval(context)
     }
     private var communityService: ClubCommunityService {
         resolvedClubCommunityService(fallback: dormantCommunityService)
@@ -183,7 +882,9 @@ final class AppSession: ObservableObject {
         namespace: { [weak self] in self?.storageScope?.service ?? "default" },
         outcomeQuery: ClubCommunityDynamicPendingOutcomeQuery(resolve: { [weak self] in
             self?.clubCommunityPendingOutcomeQueryOverride ?? ClubCommunityDormantPendingOutcomeQuery()
-        })
+        }),
+        originalPublicationResolver: { [weak self] in self?.resolvedClubPostOriginalService() },
+        originalCommentResolver: { [weak self] in self?.resolvedClubCommentOriginalService() }
     )
     func currentClubPostImageUploadContext(clubID: Int, postID: Int?) -> ClubPostImageUploadContext? {
         guard let account, token != nil, let namespace = storageScope?.service else { return nil }
@@ -247,6 +948,14 @@ final class AppSession: ObservableObject {
             }
         )
     }
+    private var currentClubFeedSourceScope: ClubCommunityFeedSourceContext? {
+        guard let context = currentRuntimeDependencyContext,
+              let issued = composition.clubCommunityReadApproval(context), issued.matches(context),
+              issued.endpoints.paths.contains(ClubCommunityReadRoute.feedPath) else { return nil }
+        return .init(identity: .init(accountID: context.session.accountID, epoch: context.session.epoch),
+            viewerRevision: compositionViewerRevision, approvalID: issued.revision,
+            baseURL: context.baseURL, namespace: context.session.namespace, role: context.role)
+    }
     var clubCommunityContext: ClubCommunityContext {
         ClubCommunityContext(
             service: communityService,
@@ -258,7 +967,14 @@ final class AppSession: ObservableObject {
                 guard let self else { throw ClubCommunityFailure.unavailable }
                 return try await self.communityEvidence(clubID: clubID, post: post, comment: comment)
             },
-            postImagePicker: makeClubPostImagePickerContext()
+            postImagePicker: makeClubPostImagePickerContext(),
+            feedSourceScope: { [weak self] in self?.currentClubFeedSourceScope },
+            feedSourceDestination: { [weak self] clubID, captured in
+                guard let self, clubID > 0, self.currentClubFeedSourceScope == captured else { return nil }
+                return AnyView(ClubDetailView(id: clubID, reader: self,
+                    actionCoordinator: self.clubActionCoordinator, management: self.clubManagementContext,
+                    community: self.clubCommunityContext, publicRoster: self.clubPublicRosterReader))
+            }
         )
     }
     private func communityEvidence(clubID: Int, post: ClubCommunityPost?, comment: ClubCommunityComment?) async throws -> ClubCommunityEvidence {
@@ -285,7 +1001,61 @@ final class AppSession: ObservableObject {
         return .init(identity: captured.identity, clubID: clubID, joined: membership.isJoined, owner: membership.isOwner,
             administrator: membership.viewerIsAdmin, post: freshPost, comment: freshComment)
     }
-    private var gate = SessionOperationGate() { didSet { retainedSocialMemberActions?.synchronizeSession(); synchronizePrivateHome(); synchronizeOwnerDraftBrowser() } }
+    // Independent personal-sharing approvals. Restoring metadata never grants location access.
+    private var personalLocationShareReadApproval: PersonalLocationShareEndpointApproval? = nil
+    private var personalLocationShareWriteApproval: PersonalLocationShareEndpointApproval? = nil
+    private var personalLocationShareCaptureApproval: PersonalLocationShareCaptureApproval? = nil
+    /// Reviewed installation seam; revocation/replacement first retires the old service and sensor synchronously.
+    func installReviewedPersonalLocationShareApprovals(read: PersonalLocationShareEndpointApproval?,
+        write: PersonalLocationShareEndpointApproval?, capture: PersonalLocationShareCaptureApproval?) throws {
+        if let capture, capture.scope != personalLocationShareScope { throw PersonalLocationShareFailure.staleSession }
+        retainedPersonalLocationShareHost?.sessionWillChange()
+        personalLocationShareReadApproval = read
+        personalLocationShareWriteApproval = write
+        personalLocationShareCaptureApproval = capture
+    }
+    private var personalLocationShareEpoch: UInt64 = 0
+    private var retainedPersonalLocationShareHost: PersonalLocationShareHost?
+    var personalLocationShareScope: PersonalLocationShareScope? {
+        guard let account, let token, !token.isEmpty, let namespace = storageScope?.service,
+              let baseURL = regionalConfiguration?.apiConfiguration?.baseURL, baseURL.scheme == "https",
+              baseURL.user == nil, baseURL.password == nil, baseURL.query == nil, baseURL.fragment == nil else { return nil }
+        return try? .init(namespace: namespace + "|" + baseURL.absoluteString,
+                          accountId: Int64(account.id), epoch: personalLocationShareEpoch)
+    }
+    private final class UnavailablePersonalLocationJournal: PersonalLocationShareJournaling {
+        func records(scope: PersonalLocationShareScope) throws -> [PersonalLocationSharePendingRecord] { throw PersonalLocationShareFailure.journalUnavailable }
+        func put(_ record: PersonalLocationSharePendingRecord, scope: PersonalLocationShareScope) throws { throw PersonalLocationShareFailure.journalUnavailable }
+        func remove(requestKey: String, scope: PersonalLocationShareScope) throws { throw PersonalLocationShareFailure.journalUnavailable }
+    }
+    private lazy var personalLocationShareJournal: any PersonalLocationShareJournaling = {
+        guard let root = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
+            return UnavailablePersonalLocationJournal()
+        }
+        return PersonalLocationShareFileJournal(directory: root.appendingPathComponent("PersonalLocationSharePending", isDirectory: true))
+    }()
+    var personalLocationShareHost: PersonalLocationShareHost {
+        if let retainedPersonalLocationShareHost { return retainedPersonalLocationShareHost }
+        let host = PersonalLocationShareHost(
+            baseURL: { [weak self] in self?.regionalConfiguration?.apiConfiguration?.baseURL },
+            currentScope: { [weak self] in self?.personalLocationShareScope },
+            token: { [weak self] in self?.token }, journal: personalLocationShareJournal,
+            readApproval: { [weak self] in self?.personalLocationShareReadApproval },
+            writeApproval: { [weak self] in self?.personalLocationShareWriteApproval },
+            captureApproval: { [weak self] in self?.personalLocationShareCaptureApproval })
+        retainedPersonalLocationShareHost = host
+        return host
+    }
+    private func invalidatePersonalLocationShare() {
+        // Shut down under the old identity before replacing account/token; never delete its journal.
+        retainedPersonalLocationShareHost?.sessionWillChange()
+        personalLocationShareEpoch &+= 1
+        personalLocationShareReadApproval = nil
+        personalLocationShareWriteApproval = nil
+        personalLocationShareCaptureApproval = nil
+    }
+
+    private var gate = SessionOperationGate() { didSet { if oldValue.currentStamp != gate.currentStamp { invalidatePersonalLocationShare() }; retainedSocialMemberActions?.synchronizeSession(); synchronizePrivateHome(); synchronizeOwnerDraftBrowser() } }
     private let vault: any AppTokenStorage
     private let composition: AppCompositionRoot
     private let compositionTransport: CompositionHTTPTransport
@@ -513,6 +1283,63 @@ final class AppSession: ObservableObject {
         playExperienceCoordinators[key] = coordinator
         registerPlayContinuationScope(scope)
         return coordinator
+    }
+    private lazy var cityOriginalJournal = CityOrientationTaskJournal(
+        read: { [weak self] key in
+            guard let self else { throw PlayExperienceError.persistenceUnavailable }
+            return try self.templateAuthoringSecureStorage.read(key)
+        }, write: { [weak self] data, key in
+            guard let self else { throw PlayExperienceError.persistenceUnavailable }
+            try self.templateAuthoringSecureStorage.write(data,key:key)
+        })
+    private struct CityOriginalRecoveryKey: Hashable {
+        let play: PlayReaderKey; let run: Int; let approvalRevision: UInt64
+    }
+    private var cityOriginalRecoveryHosts: [CityOriginalRecoveryKey: CityOrientationOriginalRecoveryHost] = [:]
+    func cityOriginalRecovery(scope: PlaySessionScope) -> CityOrientationOriginalRecoveryHost? {
+        guard scope.isValid, let context=currentRuntimeDependencyContext, context.market == .china,
+              let configuration=regionalConfiguration?.apiConfiguration else { return nil }
+        let readApproval=currentPlayReadApprovalKey
+        let playKey=PlayReaderKey(accountID:account?.id,epoch:gate.currentStamp,role:account?.effectiveRole,
+            viewerRevision:compositionViewerRevision,approval:readApproval,scope:scope)
+        let run: Int
+        do {
+            guard let pending=try cityOriginalJournal.pendingSessionID(realm:configuration.baseURL,scope:scope,session:context.session) else { return nil }
+            run=pending
+        } catch { run=0 } // Construct a visible storage-failure host, never interpret failure as absence.
+        let registry=composition.cityOrientationOriginalApprovals, revision=registry.revision
+        let key=CityOriginalRecoveryKey(play:playKey,run:run,approvalRevision:revision)
+        if let retained=cityOriginalRecoveryHosts[key] { return retained }
+        let selected: () -> CityOrientationTaskApproval? = { [weak self] in
+            guard let self, self.currentRuntimeDependencyContext==context, self.compositionViewerRevision==playKey.viewerRevision,
+                  self.currentPlayReadApprovalKey==readApproval, registry.revision==revision,
+                  let value=registry.approval(context:context,sessionID:run,capability:.receiptRead),value.scope==scope else { return nil }
+            return value
+        }
+        let receipt=selected()
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.currentRuntimeDependencyContext==context, self.compositionViewerRevision==playKey.viewerRevision,
+                  self.currentPlayReadApprovalKey==readApproval, registry.revision==revision,selected()==receipt else { return nil }
+            return context
+        }
+        let unauthorized: (RuntimeDependencyContext) -> Void = { [weak self] failed in
+            guard let self, failed==context, self.currentRuntimeDependencyContext==context else { return }
+            self.expireIfMatching(error:APIError.unauthorized,stamp:context.session.epoch,credential:context.session.token)
+        }
+        let dispatch=CityOrientationTaskDispatchTransport { [weak self] request in
+            guard let self,current()==context else { throw PlayExperienceError.disabled }
+            return try await self.compositionTransport.sendCityOrientationOriginalReceipt(request,context:context,
+                receipt:receipt,stillApproved:{current()==context})
+        }
+        let narrow=CityOrientationTaskApprovedTransport(context:context,scope:scope,sessionID:run,receipt:receipt,answer:nil,
+            underlying:dispatch,current:current,selected:{$0 == .receiptRead ? selected() : nil},
+            approvalRevision:revision,currentApprovalRevision:{registry.revision},onUnauthorized:unauthorized)
+        let service=CityOrientationTaskService(configuration:configuration,transport:narrow,
+            receiptTransport:receipt == nil ? nil : narrow,answerTransport:nil,receiptSessionID:run,answerSessionID:nil)
+        let host=CityOrientationOriginalRecoveryHost(scope:scope,service:service,journal:cityOriginalJournal,
+            currentSession:{current()?.session},onUnauthorized:{session in if session==context.session {unauthorized(context)}})
+        cityOriginalRecoveryHosts[key]=host
+        return host
     }
     // w2-19 source pages/play/merchant: store-day reads share the play read approval; every write gate stays off.
     func playStoreDay(scope: PlaySessionScope, nodeID: Int, registrationID: Int = 0, justScanned: Bool = false) -> PlayStoreDayCoordinator? {
@@ -969,7 +1796,43 @@ final class AppSession: ObservableObject {
         retainedPrivateHome = (captured, coordinator)
         return coordinator
     }
+    @Published var nativeHomeReturnApprovalSelector: (RuntimeDependencyContext) -> NativeHomeReturnApproval? = { _ in nil } {
+        didSet {
+            // A selector replacement is a new configuration, even if it returns the same grant.
+            // Invalidate the old owner before it can resume; its durable original is untouched.
+            nativeHomeReturnSelectorRevision = UUID()
+            retainedNativeHomeReturn?.selection.invalidate(); retainedNativeHomeReturn = nil
+        }
+    }
+    private var nativeHomeReturnSelectorRevision = UUID()
+    private var retainedNativeHomeReturn: (context: RuntimeDependencyContext, viewerRevision: UInt64,
+        approval: NativeHomeReturnApproval, selection: NativeHomeReturnSelectionCoordinator)?
+    private func selectedNativeHomeReturnApproval(_ context: RuntimeDependencyContext) -> NativeHomeReturnApproval? {
+        nativeHomeReturnApprovalSelector(context) ?? composition.nativeHomeReturnApproval(context)
+    }
+    var nativeHomeReturnSelection: NativeHomeReturnSelectionCoordinator? {
+        synchronizePrivateHome()
+        if let retainedNativeHomeReturn { return retainedNativeHomeReturn.selection }
+        let viewerRevision = compositionViewerRevision
+        let selectorRevision = nativeHomeReturnSelectorRevision
+        guard let context = currentPrivateHomeContext, let approval = selectedNativeHomeReturnApproval(context), approval.matches(context),
+              let selection = composition.makeNativeHomeReturnSelection(context: context, approval: approval,
+                  current: { [weak self] in
+                      guard let self, self.compositionViewerRevision == viewerRevision,
+                            self.nativeHomeReturnSelectorRevision == selectorRevision else { return nil }
+                      return self.currentPrivateHomeContext
+                  }, selected: { [weak self] context in self?.selectedNativeHomeReturnApproval(context) }) else { return nil }
+        retainedNativeHomeReturn = (context, viewerRevision, approval, selection); return selection
+    }
     private func synchronizePrivateHome() {
+        if let retainedNativeHomeReturn {
+            let live = currentPrivateHomeContext
+            if live != retainedNativeHomeReturn.context || compositionViewerRevision != retainedNativeHomeReturn.viewerRevision ||
+                !retainedNativeHomeReturn.approval.matches(retainedNativeHomeReturn.context) ||
+                live.flatMap({ selectedNativeHomeReturnApproval($0) })?.revision != retainedNativeHomeReturn.approval.revision {
+                retainedNativeHomeReturn.selection.invalidate(); self.retainedNativeHomeReturn = nil
+            }
+        }
         if let retainedPrivateHome, retainedPrivateHome.context != currentPrivateHomeContext { invalidatePrivateHome() }
     }
     /// An offscreen old root cannot reconstruct a coordinator. Reentry explicitly reactivates
@@ -981,6 +1844,7 @@ final class AppSession: ObservableObject {
     /// Also called when the root leaves (including immutable deployment/realm replacement).
     /// Revokes retained references and clears display only; the durable unknown record survives.
     func invalidatePrivateHome() {
+        retainedNativeHomeReturn?.selection.invalidate(); retainedNativeHomeReturn = nil
         retainedPrivateHome?.coordinator.invalidate(); retainedPrivateHome = nil
     }
     private var committingAuthenticatedSession = false
@@ -1006,6 +1870,487 @@ final class AppSession: ObservableObject {
         guard let injected else { return compositionTransport }
         return compositionTransport.replacingUnderlying(injected)
     }
+    private var retainedCityCurrentSnapshot: CityCurrentSnapshotPresentation?
+    private var retainedCityCurrentSnapshotSelection: CityCurrentSnapshotRuntimeSelection?
+    func makeCityCurrentSnapshotPresentation() -> CityCurrentSnapshotPresentation? {
+        guard let context = currentRuntimeDependencyContext,
+              let selection = composition.cityCurrentSnapshotSelection(context, compositionViewerRevision),
+              selection.matches(context, revision: compositionViewerRevision), selection.issued() != nil else {
+            retainedCityCurrentSnapshot?.retire(); retainedCityCurrentSnapshot = nil; retainedCityCurrentSnapshotSelection = nil
+            return nil
+        }
+        if let model = retainedCityCurrentSnapshot, retainedCityCurrentSnapshotSelection === selection, model.isCurrent { return model }
+        retainedCityCurrentSnapshot?.retire(); retainedCityCurrentSnapshot = nil; retainedCityCurrentSnapshotSelection = nil
+        let viewer = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self, weak selection] in
+            guard let self, let selection, self.compositionViewerRevision == viewer,
+                  let now = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, now), context.session == now.session,
+                  self.composition.cityCurrentSnapshotSelection(now, viewer) === selection,
+                  selection.matches(now, revision: viewer), selection.issued() != nil else { return nil }
+            return now
+        }
+        let currentRevision: () -> UInt64 = { [weak self] in self?.compositionViewerRevision ?? UInt64.max }
+        let currentSelection: () -> CityCurrentSnapshotRuntimeSelection? = { [weak self] in
+            guard let self, let now = current() else { return nil }
+            return self.composition.cityCurrentSnapshotSelection(now, self.compositionViewerRevision)
+        }
+        guard let transport = compositionTransport.makeCityCurrentSnapshotTransport(context: context, revision: viewer,
+            selection: selection, currentRuntime: current, currentRevision: currentRevision, currentSelection: currentSelection,
+            unauthorized: { [weak self] in
+                guard let self, current() != nil else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            }),
+            let model = try? CityCurrentSnapshotPresentation(context: context, revision: viewer, query: selection.scope.query,
+                transport: transport, currentContext: current, currentRevision: currentRevision,
+                grant: { [weak selection] in selection?.issued() }) else { return nil }
+        retainedCityCurrentSnapshot = model; retainedCityCurrentSnapshotSelection = selection
+        return model
+    }
+    private var retainedCityOrderedMap: CityOrderedMapPresentation?
+    private var retainedCityOrderedMapSelection: CityOrderedMapRuntimeSelection?
+    func makeCityOrderedMapPresentation() -> CityOrderedMapPresentation? {
+        guard let context = currentRuntimeDependencyContext,
+              let selection = composition.cityOrderedMapSelection(context, compositionViewerRevision),
+              selection.matches(context, revision: compositionViewerRevision), selection.issued() != nil else {
+            retainedCityOrderedMap?.retire(); retainedCityOrderedMap = nil; retainedCityOrderedMapSelection = nil
+            return nil
+        }
+        if let model = retainedCityOrderedMap, retainedCityOrderedMapSelection === selection, model.isCurrent { return model }
+        retainedCityOrderedMap?.retire(); retainedCityOrderedMap = nil; retainedCityOrderedMapSelection = nil
+        let viewer = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self, weak selection] in
+            guard let self, let selection, self.compositionViewerRevision == viewer,
+                  let now = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, now), context.session == now.session,
+                  self.composition.cityOrderedMapSelection(now, viewer) === selection,
+                  selection.matches(now, revision: viewer), selection.issued() != nil else { return nil }
+            return now
+        }
+        let currentRevision: () -> UInt64 = { [weak self] in self?.compositionViewerRevision ?? UInt64.max }
+        let currentSelection: () -> CityOrderedMapRuntimeSelection? = { [weak self] in
+            guard let self, let now = current() else { return nil }
+            return self.composition.cityOrderedMapSelection(now, self.compositionViewerRevision)
+        }
+        guard let transport = compositionTransport.makeCityOrderedMapTransport(context: context, revision: viewer,
+            selection: selection, currentRuntime: current, currentRevision: currentRevision, currentSelection: currentSelection,
+            unauthorized: { [weak self] in
+                guard let self, current() != nil else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            }),
+            let model = try? CityOrderedMapPresentation(selection: selection,
+                transport: transport, currentContext: current, currentRevision: currentRevision,
+                currentSelection: currentSelection) else { return nil }
+        retainedCityOrderedMap = model; retainedCityOrderedMapSelection = selection
+        return model
+    }
+    private var retainedCityParticipationOwner: CityParticipationRuntimeOwner?
+    private var retainedCityParticipationGrants: CityParticipationRuntimeGrants?
+    var cityParticipationRuntimeRevision: UInt64 { compositionViewerRevision }
+    func makeCityParticipationRuntimeOwner() -> CityParticipationRuntimeOwner? {
+        guard let context = currentRuntimeDependencyContext,
+              let grants = composition.cityParticipationRuntimeGrants(context, compositionViewerRevision),
+              grants.matches(context, revision: compositionViewerRevision),
+              let root = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
+            retainedCityParticipationOwner?.retire(); retainedCityParticipationOwner = nil; retainedCityParticipationGrants = nil
+            return nil
+        }
+        if let owner = retainedCityParticipationOwner, retainedCityParticipationGrants === grants, owner.isCurrent { return owner }
+        retainedCityParticipationOwner?.retire(); retainedCityParticipationOwner = nil; retainedCityParticipationGrants = nil
+        let viewer = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self, weak grants] in
+            guard let self, let grants, self.compositionViewerRevision == viewer,
+                  let now = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, now), context.session == now.session,
+                  self.composition.cityParticipationRuntimeGrants(now, viewer) === grants,
+                  grants.matches(now, revision: viewer) else { return nil }
+            return now
+        }
+        let currentRevision: () -> UInt64 = { [weak self] in self?.compositionViewerRevision ?? UInt64.max }
+        let currentGrants: () -> CityParticipationRuntimeGrants? = { [weak self] in
+            guard let self, let now = current() else { return nil }
+            return self.composition.cityParticipationRuntimeGrants(now, self.compositionViewerRevision)
+        }
+        guard let transport = compositionTransport.makeCityParticipationTransport(context: context, revision: viewer,
+            grants: grants, currentRuntime: current, currentRevision: currentRevision, currentGrants: currentGrants,
+            unauthorized: { [weak self] in
+                guard let self, current() != nil else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            }),
+            let owner = try? CityParticipationRuntimeOwner(context: context, revision: viewer, regionID: grants.regionID,
+                directory: root.appendingPathComponent("CityParticipationOriginal", isDirectory: true), transport: transport,
+                currentContext: current, currentRevision: currentRevision,
+                stateGrant: { [weak grants] in grants?.state($0) },
+                invitationGrant: { [weak grants] in grants?.invitation($0, region: $1, code: $2) },
+                commandGrant: { [weak grants] in grants?.command($0) },
+                receiptGrant: { [weak grants] in grants?.receipt($0) }, approve: grants.approval) else { return nil }
+        retainedCityParticipationOwner = owner; retainedCityParticipationGrants = grants
+        return owner
+    }
+    private var retainedCityActionBudgetModel: CityActionBudgetRecovery?
+    private var retainedCityActionBudgetGrants: CityActionBudgetRuntimeGrants?
+    var cityActionBudgetRuntimeRevision: UInt64 { compositionViewerRevision }
+    func makeCityActionBudgetRecovery() -> CityActionBudgetRecovery? {
+        guard let context = currentRuntimeDependencyContext,
+              let grants = composition.cityActionBudgetRuntimeGrants(context, compositionViewerRevision),
+              grants.matches(context, revision: compositionViewerRevision),
+              let root = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
+            retainedCityActionBudgetModel?.close(); retainedCityActionBudgetModel = nil; retainedCityActionBudgetGrants = nil
+            return nil
+        }
+        if let model = retainedCityActionBudgetModel, retainedCityActionBudgetGrants === grants { return model }
+        retainedCityActionBudgetModel?.close(); retainedCityActionBudgetModel = nil; retainedCityActionBudgetGrants = nil
+        let viewer = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self, weak grants] in
+            guard let self, let grants, self.compositionViewerRevision == viewer,
+                  let now = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, now), context.session == now.session,
+                  self.composition.cityActionBudgetRuntimeGrants(now, viewer) === grants,
+                  grants.matches(now, revision: viewer) else { return nil }
+            return now
+        }
+        let currentRevision: () -> UInt64 = { [weak self] in self?.compositionViewerRevision ?? UInt64.max }
+        let currentGrants: () -> CityActionBudgetRuntimeGrants? = { [weak self] in
+            guard let self, let now = current() else { return nil }
+            return self.composition.cityActionBudgetRuntimeGrants(now, self.compositionViewerRevision)
+        }
+        guard let transport = compositionTransport.makeCityActionBudgetTransport(context: context, revision: viewer,
+            grants: grants, currentRuntime: current, currentRevision: currentRevision, currentGrants: currentGrants,
+            unauthorized: { [weak self] in
+                guard let self, current() != nil else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            }),
+            let api = try? APIConfiguration(baseURL: context.baseURL),
+            let journal = try? CityActionBudgetJournal(directory: root.appendingPathComponent("CityActionBudgetOriginal", isDirectory: true)) else { return nil }
+        let model = CityActionBudgetRecovery(configuration: api, region: grants.regionID, transport: transport, journal: journal,
+            currentScope: { [weak grants] in guard current() != nil else { return nil }; return grants?.scope },
+            readGrant: { [weak grants] in guard let grants else { return nil }; return grants.state(grants.scope) },
+            commandGrant: { [weak grants] in guard let grants else { return nil }; return grants.command(grants.scope) },
+            receiptGrant: { [weak grants] in grants?.receipt($0) })
+        retainedCityActionBudgetModel = model; retainedCityActionBudgetGrants = grants
+        return model
+    }
+    private var retainedCityNeutralTaskOwner: CityNeutralTaskRuntimeOwner?
+    var cityNeutralTaskRuntimeRevision: UInt64 { compositionViewerRevision }
+    func makeCityNeutralTaskRuntimeOwner(board: CityReadBoard) -> CityNeutralTaskRuntimeOwner? {
+        guard let context = currentRuntimeDependencyContext,
+              let approval = composition.cityNeutralTaskApproval(context), approval.matches(context),
+              board.regionId == approval.regionID else {
+            retainedCityNeutralTaskOwner?.retire(); retainedCityNeutralTaskOwner = nil; return nil
+        }
+        if let owner = retainedCityNeutralTaskOwner, owner.board == board, owner.approval === approval, owner.isCurrent { return owner }
+        retainedCityNeutralTaskOwner?.retire(); retainedCityNeutralTaskOwner = nil
+        let viewer = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self, weak approval] in
+            guard let self, let approval, self.compositionViewerRevision == viewer,
+                  let live = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, live), context.session == live.session,
+                  self.composition.cityNeutralTaskApproval(live) === approval, approval.matches(live) else { return nil }
+            return live
+        }
+        let currentRevision: () -> UInt64 = { [weak self] in self?.compositionViewerRevision ?? UInt64.max }
+        let selected: (RuntimeDependencyContext) -> CityNeutralTaskApproval? = { [weak self] context in
+            guard current() != nil else { return nil }; return self?.composition.cityNeutralTaskApproval(context)
+        }
+        guard let transport = compositionTransport.makeCityNeutralTaskTransport(context: context, revision: viewer,
+            approval: approval, currentRuntime: current, currentRevision: currentRevision,
+            currentApproval: { guard let live = current() else { return nil }; return selected(live) }),
+            let owner = try? CityNeutralTaskRuntimeOwner(context: context, revision: viewer, board: board,
+                approval: approval, underlying: transport, journal: composition.storage.operationJournal(),
+                current: current, currentRevision: currentRevision, selected: selected,
+                unauthorized: { [weak self] in
+                    guard let self, current() != nil else { return }
+                    self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+                }) else { return nil }
+        retainedCityNeutralTaskOwner = owner; return owner
+    }
+    func makeCityMerchantValueController(read: CityReadSnapshot, reader: CityPlayerReader) -> CityMerchantValueController? {
+        guard let context = currentRuntimeDependencyContext, let selected = reader.pointMapContext, selected.snapshot == read,
+              let scope = try? CityMerchantValueScope(board: read.board),
+              let readApproval = composition.cityPlayerReadApproval(context), readApproval.matches(context),
+              let approval = composition.cityMerchantValueApproval(context), approval.matches(context),
+              approval.readApproval === readApproval, readApproval.regionID == read.board.regionId else { return nil }
+        let viewer = compositionViewerRevision
+        let available: () -> Bool = { [weak self, weak reader] in
+            guard let self, let reader, self.compositionViewerRevision == viewer,
+                  let live = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, live), context.session == live.session,
+                  reader.pointMapContext == selected, approval.matches(live),
+                  self.composition.cityPlayerReadApproval(live) === readApproval,
+                  self.composition.cityMerchantValueApproval(live) === approval else { return false }
+            return true
+        }
+        guard let transport = compositionTransport.makeCityMerchantValueTransport(context: context, approval: approval, scope: scope, approved: available) else { return nil }
+        let service = CityMerchantValueService(approval: approval, scope: scope, transport: transport, current: available,
+            unauthorized: { [weak self] in
+                guard let self, available() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+        guard [CityMerchantValueOperation.merchantAccess, .report, .result, .events].allSatisfy(service.allows) else { return nil }
+        return CityMerchantValueController(service: service, access: { try await service.merchantAccess() }, current: available)
+    }
+    /// Independent bounded-map and visit approvals; no role/login-derived issuance.
+    func makeCityPlayerValueNodeRuntime(visit: CityPlayerValueVisit, owner: CityPlayerValueHostOwner) -> CityPlayerValueNodeRuntime? {
+        guard owner.canPresent, let model = owner.model, model.canOpenSource, model.visit == visit,
+              !visit.closed, let capture = owner.originalCapture, owner.reader.capture == capture,
+              visit.regionId == capture.board.regionId, visit.boardId == capture.board.boardId,
+              visit.seasonId == capture.board.seasonId, visit.rulesReleaseId == capture.board.rulesReleaseId,
+              capture.board.lifecycle == "FROZEN",
+              let page = try? CityPlayerValueMapPage(read: capture, query: capture.query, watermark: capture.watermark, page: capture.page),
+              page.availablePointIDs.contains(visit.pointId),
+              let poiID = Int(exactly: visit.poiId), let context = currentRuntimeDependencyContext,
+              let map = composition.cityValueBoundedMapApproval(context), map.matches(context),
+              let value = composition.cityPlayerValueApproval(context, map, capture),
+              value.mapApproval === map, value.capture == capture, value.matches(context),
+              let grant = composition.cityPlayerValueNodeApproval(context, poiID), grant.poiID == poiID,
+              grant.matches(context), grant.foregroundLocation, grant.camera else { return nil }
+        let revision = compositionViewerRevision
+        let verification = runtimeDependencies.verificationCodeApproval
+        let current: () -> RuntimeDependencyContext? = { [weak self, weak owner, weak model] in
+            guard let self, let owner, let model, self.compositionViewerRevision == revision,
+                  owner.isCurrent, owner.model === model, model.configured,
+                  owner.originalCapture == capture, owner.reader.capture == capture,
+                  model.visit?.visitId == visit.visitId, model.visit?.poiId == visit.poiId, model.visit?.closed == false,
+                  let live = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, live), context.session == live.session,
+                  self.composition.cityValueBoundedMapApproval(live) === map, map.matches(live),
+                  self.composition.cityPlayerValueApproval(live, map, capture) === value, value.matches(live),
+                  self.composition.cityPlayerValueNodeApproval(live, poiID) === grant, grant.matches(live) else { return nil }
+            let issued = self.runtimeDependencies.verificationCodeApproval
+            guard issued?.market == verification?.market, issued?.endpoints == verification?.endpoints,
+                  issued?.kinds == verification?.kinds else { return nil }
+            return live
+        }
+        guard let transport = compositionTransport.makeCityPlayerValueNodeTransport(context: context, revision: revision,
+            approval: grant, verification: verification, currentRuntime: current,
+            currentRevision: { [weak self] in self?.compositionViewerRevision ?? UInt64.max }, approved: { current() != nil }) else { return nil }
+        // Construction is inert; only the existing purpose-confirmed scan asks the device for a fix.
+        let location = CityPlayerValueNodeLocation(device: RuntimeNativeLocationProvider(enabled: true), approved: { current() != nil })
+        return try? CityPlayerValueNodeRuntime(grant: grant, verification: verification, transport: transport,
+            location: location, journal: composition.storage.operationJournal(), current: { current() != nil },
+            unauthorized: { [weak self] in
+                guard let self, current() != nil else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+    func makeCityPlayerValueOwner() -> CityPlayerValueHostOwner? {
+        guard let context = currentRuntimeDependencyContext,
+              let map = composition.cityValueBoundedMapApproval(context), map.matches(context) else { return nil }
+        let revision = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self, weak map] in
+            guard let self, let map, self.compositionViewerRevision == revision,
+                  let live = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, live), context.session == live.session,
+                  self.composition.cityValueBoundedMapApproval(live) === map, map.matches(live) else { return nil }
+            return live
+        }
+        let unauthorized: () -> Void = { [weak self] in
+            guard let self, current() != nil else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+        }
+        let currentMap: () -> CityValueBoundedMapApproval? = { [weak self] in
+            guard let live = current() else { return nil }; return self?.composition.cityValueBoundedMapApproval(live)
+        }
+        guard let reader = compositionTransport.makeCityValueBoundedReader(context: context, revision: revision, approval: map,
+            currentRuntime: current, currentRevision: { [weak self] in self?.compositionViewerRevision ?? UInt64.max },
+            currentApproval: currentMap, unauthorized: unauthorized) else { return nil }
+        return CityPlayerValueHostOwner(reader: reader, current: { current() != nil }, factory: { [weak self, weak reader] capture in
+            guard let self, let reader, let live = current(), reader.capture == capture,
+                  let approval = self.composition.cityPlayerValueApproval(live, map, capture),
+                  approval.mapApproval === map, approval.capture == capture, approval.matches(live) else { return nil }
+            let selected: () -> CityPlayerValueApproval? = { [weak self] in
+                guard let live = current() else { return nil }; return self?.composition.cityPlayerValueApproval(live, map, capture)
+            }
+            guard let service = self.compositionTransport.makeCityPlayerValueService(context: context, revision: revision,
+                approval: approval, capture: capture, currentRuntime: current,
+                currentRevision: { [weak self] in self?.compositionViewerRevision ?? UInt64.max }, currentApproval: selected,
+                currentMapApproval: currentMap, currentCapture: { [weak reader] in reader?.capture }, unauthorized: unauthorized) else { return nil }
+            return CityPlayerValueController(read: capture, service: service)
+        })
+    }
+    /// Independent published-rules read. Login/board visibility never issues this approval.
+    func makeCityPlayerRulesFlow(read: CityReadSnapshot) -> CityPlayerRulesFlow {
+        guard let context = currentRuntimeDependencyContext,
+              let approval = composition.cityPlayerRulesApproval(context), approval.matches(context),
+              approval.regionID == read.board.regionId else { return CityPlayerRulesFlow(client: nil) }
+        let viewer = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self, weak approval] in
+            guard let self, let approval, self.compositionViewerRevision == viewer,
+                  let live = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, live), context.session == live.session,
+                  self.composition.cityPlayerRulesApproval(live) === approval, approval.matches(live) else { return nil }
+            return live
+        }
+        guard let transport = compositionTransport.makeCityPlayerRulesTransport(context: context, revision: viewer,
+            approval: approval, currentRuntime: current,
+            currentRevision: { [weak self] in self?.compositionViewerRevision ?? UInt64.max },
+            currentApproval: { [weak self] in guard let live = current() else { return nil }; return self?.composition.cityPlayerRulesApproval(live) }) else {
+            return CityPlayerRulesFlow(client: nil)
+        }
+        return CityPlayerRulesFlow(client: CityPlayerRulesClient(approval: approval, transport: transport, read: read),
+            unauthorized: { [weak self] in
+                guard let self, current() != nil else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+    /// Original region-scoped recovery factory. No board or write grant is inferred.
+    func makeCityAcquisitionController() -> CityAcquisitionController {
+        guard let context = currentRuntimeDependencyContext,
+              let approval = composition.cityAcquisitionApproval(context), approval.matches(context) else {
+            return CityAcquisitionController(service: nil, journal: nil)
+        }
+        let viewer = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self, weak approval] in
+            guard let self, let approval, self.compositionViewerRevision == viewer,
+                  let live = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, live), context.session == live.session,
+                  self.composition.cityAcquisitionApproval(live) === approval, approval.matches(live) else { return nil }
+            return live
+        }
+        let currentRevision: () -> UInt64 = { [weak self] in self?.compositionViewerRevision ?? UInt64.max }
+        guard let transport = compositionTransport.makeCityAcquisitionTransport(context: context, revision: viewer,
+            approval: approval, currentRuntime: current, currentRevision: currentRevision,
+            currentApproval: { [weak self] in guard let live = current() else { return nil }; return self?.composition.cityAcquisitionApproval(live) }) else {
+            return CityAcquisitionController(service: nil, journal: nil)
+        }
+        let journal = CityAcquisitionIdentityJournal(defaults: composition.storage.defaults,
+            ownerKey: "city-acquisition:\(context.session.namespace):\(context.baseURL.absoluteString):\(context.session.accountID)", targetKey: approval.regionID)
+        return CityAcquisitionController(service: CityAcquisitionService(approval: approval, transport: transport), journal: journal,
+            unauthorized: { [weak self] in
+                guard let self, current() != nil else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+    private var retainedCityTaskHistoryOwner: CityTaskHistoryRuntimeOwner?
+    var cityTaskHistoryRuntimeRevision: UInt64 { compositionViewerRevision }
+    func makeCityTaskHistoryRuntimeOwner() -> CityTaskHistoryRuntimeOwner? {
+        guard let context = currentRuntimeDependencyContext,
+              let approval = composition.cityTaskHistoryApproval(context), approval.matches(context) else {
+            retainedCityTaskHistoryOwner?.retire(); retainedCityTaskHistoryOwner = nil; return nil
+        }
+        let regionID = approval.regionID
+        if let owner = retainedCityTaskHistoryOwner, owner.regionID == regionID, owner.approval === approval, owner.isCurrent { return owner }
+        retainedCityTaskHistoryOwner?.retire(); retainedCityTaskHistoryOwner = nil
+        let viewer = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self, weak approval] in
+            guard let self, let approval, self.compositionViewerRevision == viewer,
+                  let live = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, live), context.session == live.session,
+                  self.composition.cityTaskHistoryApproval(live) === approval, approval.matches(live) else { return nil }
+            return live
+        }
+        let currentRevision: () -> UInt64 = { [weak self] in self?.compositionViewerRevision ?? UInt64.max }
+        let selected: (RuntimeDependencyContext) -> CityTaskHistoryApproval? = { [weak self] context in
+            guard current() != nil else { return nil }; return self?.composition.cityTaskHistoryApproval(context)
+        }
+        guard let transport = compositionTransport.makeCityTaskHistoryTransport(context: context, revision: viewer,
+            approval: approval, currentRuntime: current, currentRevision: currentRevision,
+            currentApproval: { guard let live = current() else { return nil }; return selected(live) }),
+            let owner = try? CityTaskHistoryRuntimeOwner(context: context, revision: viewer, regionID: regionID,
+                approval: approval, underlying: transport,
+                current: current, currentRevision: currentRevision, selected: selected,
+                unauthorized: { [weak self] in
+                    guard let self, current() != nil else { return }
+                    self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+                }) else { return nil }
+        retainedCityTaskHistoryOwner = owner; return owner
+    }
+    private var retainedCityOnsiteTaskOwner: CityOnsiteTaskRuntimeOwner?
+    var cityOnsiteTaskRuntimeRevision: UInt64 { compositionViewerRevision }
+    func makeCityOnsiteTaskRuntimeOwner(board: CityReadBoard) -> CityOnsiteTaskRuntimeOwner? {
+        guard let context = currentRuntimeDependencyContext,
+              let approval = composition.cityOnsiteTaskApproval(context), approval.matches(context),
+              board.regionId == approval.regionID else {
+            retainedCityOnsiteTaskOwner?.retire(); retainedCityOnsiteTaskOwner = nil; return nil
+        }
+        if let owner = retainedCityOnsiteTaskOwner, owner.board == board, owner.approval === approval, owner.isCurrent { return owner }
+        retainedCityOnsiteTaskOwner?.retire(); retainedCityOnsiteTaskOwner = nil
+        let viewer = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self, weak approval] in
+            guard let self, let approval, self.compositionViewerRevision == viewer,
+                  let live = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, live), context.session == live.session,
+                  self.composition.cityOnsiteTaskApproval(live) === approval, approval.matches(live) else { return nil }
+            return live
+        }
+        let currentRevision: () -> UInt64 = { [weak self] in self?.compositionViewerRevision ?? UInt64.max }
+        let selected: (RuntimeDependencyContext) -> CityOnsiteTaskApproval? = { [weak self] context in
+            guard current() != nil else { return nil }; return self?.composition.cityOnsiteTaskApproval(context)
+        }
+        guard let transport = compositionTransport.makeCityOnsiteTaskTransport(context: context, revision: viewer,
+            approval: approval, currentRuntime: current, currentRevision: currentRevision,
+            currentApproval: { guard let live = current() else { return nil }; return selected(live) }),
+            let owner = try? CityOnsiteTaskRuntimeOwner(context: context, revision: viewer, board: board,
+                approval: approval, underlying: transport, journal: composition.storage.operationJournal(),
+                current: current, currentRevision: currentRevision, selected: selected,
+                unauthorized: { [weak self] in
+                    guard let self, current() != nil else { return }
+                    self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+                }) else { return nil }
+        retainedCityOnsiteTaskOwner = owner; return owner
+    }
+    private var retainedCityArrivalEvidenceOwner: CityArrivalEvidenceRuntimeOwner?
+    var cityArrivalEvidenceRuntimeRevision: UInt64 { compositionViewerRevision }
+    func makeCityArrivalEvidenceRuntimeOwner(audience: CityArrivalAudience, board: CityReadBoard?) -> CityArrivalEvidenceRuntimeOwner? {
+        guard let context = currentRuntimeDependencyContext,
+              let approval = composition.cityArrivalEvidenceApproval(context, audience), approval.matches(context), approval.audience == audience else {
+            retainedCityArrivalEvidenceOwner?.retire(); retainedCityArrivalEvidenceOwner = nil; return nil
+        }
+        if let owner = retainedCityArrivalEvidenceOwner, owner.board == board, owner.approval === approval, owner.isCurrent { return owner }
+        retainedCityArrivalEvidenceOwner?.retire(); retainedCityArrivalEvidenceOwner = nil
+        let viewer = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self, weak approval] in
+            guard let self, let approval, self.compositionViewerRevision == viewer,
+                  let live = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, live), context.session == live.session,
+                  self.composition.cityArrivalEvidenceApproval(live, audience) === approval, approval.matches(live) else { return nil }
+            return live
+        }
+        let currentRevision: () -> UInt64 = { [weak self] in self?.compositionViewerRevision ?? UInt64.max }
+        let selected: (RuntimeDependencyContext) -> CityArrivalEvidenceApproval? = { [weak self] context in
+            guard current() != nil else { return nil }; return self?.composition.cityArrivalEvidenceApproval(context, audience)
+        }
+        guard let transport = compositionTransport.makeCityArrivalEvidenceTransport(context: context, revision: viewer,
+            approval: approval, currentRuntime: current, currentRevision: currentRevision,
+            currentApproval: { guard let live = current() else { return nil }; return selected(live) }),
+            let owner = try? CityArrivalEvidenceRuntimeOwner(context: context, revision: viewer, board: board,
+                approval: approval, underlying: transport, journal: composition.storage.operationJournal(),
+                current: current, currentRevision: currentRevision, selected: selected,
+                unauthorized: { [weak self] in
+                    guard let self, current() != nil else { return }
+                    self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+                }) else { return nil }
+        retainedCityArrivalEvidenceOwner = owner; return owner
+    }
+    var cityMerchantIntentIdentity: String {
+        guard let context = currentRuntimeDependencyContext,
+              let approval = composition.cityMerchantOperationsApproval(context), approval.matches(context) else { return "disabled" }
+        return "\(compositionViewerRevision):\(approval.revision.uuidString)"
+    }
+    /// Independent CONFIG_ONLY merchant intent. No approval is issued by this factory.
+    func makeCityMerchantOperationsController() -> CityMerchantOperationsController {
+        let context = currentRuntimeDependencyContext, viewer = compositionViewerRevision
+        let approval = context.flatMap { composition.cityMerchantOperationsApproval($0) }
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, let context, let approval, self.compositionViewerRevision == viewer,
+                  let live = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, live), context.session == live.session,
+                  approval.matches(live), self.composition.cityMerchantOperationsApproval(live) === approval else { return nil }
+            return live
+        }
+        let service = approval.flatMap { approved in
+            guard let context else { return nil as CityMerchantOperationsService? }
+            return compositionTransport.makeCityMerchantIntentTransport(context: context, revision: viewer,
+                approval: approved, currentRuntime: current,
+                currentRevision: { [weak self] in self?.compositionViewerRevision ?? UInt64.max },
+                currentApproval: { [weak self] in guard let self, let live = current() else { return nil }; return self.composition.cityMerchantOperationsApproval(live) })
+                .map { CityMerchantOperationsService(approval: approved, transport: $0) }
+        }
+        return CityMerchantOperationsController(service: service, journal: composition.storage.operationJournal(), unauthorized: { [weak self] in
+            guard let self, let context, current() != nil else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+        })
+    }
     var cityPlayerReadIdentity: String {
         guard let context = currentRuntimeDependencyContext,
               let approval = composition.cityPlayerReadApproval(context), approval.matches(context) else { return "disabled-\(gate.currentStamp)-\(compositionViewerRevision)" }
@@ -1025,12 +2370,577 @@ final class AppSession: ObservableObject {
             self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
         })
     }
-    private var currentRuntimeDependencyContext: RuntimeDependencyContext? {
+    var currentRuntimeDependencyContext: RuntimeDependencyContext? {
         guard !committingAuthenticatedSession, let regionalConfiguration, let api = regionalConfiguration.apiConfiguration,
               let session = currentPlayRuntimeSession, let account else { return nil }
         return RuntimeDependencyContext(market: regionalConfiguration.market, baseURL: api.baseURL,
             role: account.effectiveRole, session: session)
     }
+    /// This concrete reviewed-composition factory owns UUID issuance and final dispatch.
+    private var nativeChannelAppealOwners: [String: NativeChannelAppealFlow] = [:]
+    func makeNativeChannelAppealFlow(notice: NativeChannelGovernanceNotice) -> NativeChannelAppealFlow? {
+        guard let context = currentRuntimeDependencyContext, let storageScope,
+              context.session.accountID == notice.recipientID else { return nil }
+        let viewer = compositionViewerRevision
+        let key = "\(notice.guildKind):\(notice.guildID):\(notice.actionID)"
+        if let existing = nativeChannelAppealOwners[key], existing.isCurrent, existing.notice == notice { return existing }
+        nativeChannelAppealOwners = nativeChannelAppealOwners.filter { $0.value.isCurrent }
+        let current: () -> Bool = { [weak self] in
+            guard let self else { return false }
+            return self.compositionViewerRevision == viewer && self.currentRuntimeDependencyContext == context
+        }
+        let flow = composition.makeNativeChannelAppealFlow(notice: notice, context: context,
+            storage: ProjectEditSecureStorage(scope: storageScope), locatorStorage: ProjectEditSecureStorage(scope: storageScope),
+            current: current, unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+        if let flow { nativeChannelAppealOwners[key] = flow }; return flow
+    }
+    private func nativeChannelAttachmentPreview(message:MessagingMessage,current: @escaping ()->Bool) -> NativeChannelAttachmentPreviewFlow? {
+        guard let context=currentRuntimeDependencyContext,let factory=businessRuntimeFactory,factory.captured==context,
+              let configuration=regionalConfiguration?.apiConfiguration,message.id>0,message.type==2 else{return nil}
+        let viewer=compositionViewerRevision
+        let active:()->Bool = { [weak self] in
+            guard let self else{return false}
+            return current() && self.currentRuntimeDependencyContext==context && self.compositionViewerRevision==viewer
+        }
+        guard let descriptor = compositionTransport.makeNativeChannelAttachmentDescriptorTransport(
+            messageID: message.id, context: context, issued: factory.configuration,
+            currentRuntime: { [weak self] in self?.currentRuntimeDependencyContext },
+            currentConfiguration: { [weak self] in self?.businessRuntimeFactory?.configuration },
+            stillCurrent: active),
+            let previewFactory = BusinessRuntimeFactory(configuration: factory.configuration, api: configuration,
+                transport: descriptor, current: { [weak self] in descriptor.isCurrent ? self?.currentRuntimeDependencyContext : nil }) else { return nil }
+        return NativeChannelAttachmentPreviewAssembly.make(message: message, configuration: configuration,
+            factory: previewFactory, currentFactory: { [weak self] in descriptor.isCurrent ? self?.businessRuntimeFactory : nil },
+            current: { descriptor.isCurrent && active() }, unauthorized: { [weak self] in
+                guard let self,active() else{return}
+                self.expireIfMatching(error:APIError.unauthorized,stamp:context.session.epoch,credential:context.session.token)
+            })
+    }
+
+    func nativeChannelMessageExpandedNavigation(for flow: NativeChannelMessageHostFlow,
+        contextMessageIsCurrent: ((MessagingMessage) -> Bool)? = nil) -> IMExpandedNavigationContext? {
+        guard flow.isCurrent, let context = currentRuntimeDependencyContext,
+              flow.reader.identity == MessagingReadIdentity(accountID: context.session.accountID, epoch: context.session.epoch) else { return nil }
+        let original = imExpandedNavigation
+        let conversationID = flow.history.conversation.id
+        let current: () -> Bool = { [weak self, weak flow] in
+            guard let self, let flow else { return false }
+            return flow.isCurrent && self.currentRuntimeDependencyContext == context
+        }
+        return .init(coordinator: { id in
+            guard current(), id == conversationID else { return nil }
+            return self.channelHostExpandedCoordinator(for: id)
+        }, uploadCoordinator: { id in
+            guard current(), id == conversationID else { return nil }
+            return self.channelHostImageUploadCoordinator(for: id)
+        }, starter: {
+            guard current() else { return nil }
+            return original.starter()
+        }, topicReader: original.topicReader, attachmentPreview: { [weak self,weak flow] message in
+            guard current(),message.conversationID==conversationID,
+                  contextMessageIsCurrent?(message) ?? true else{return nil}
+            return self?.nativeChannelAttachmentPreview(message:message,current:{
+                guard let flow,current() else{return false}
+                // An explicitly supplied original context row is an alternative current
+                // read provenance, never a media grant or fallback to an unloaded history row.
+                if let contextMessageIsCurrent { return flow.isCurrent && contextMessageIsCurrent(message) }
+                return flow.isCurrent && flow.history.visibleMessages.contains(message)
+            })
+        }, videoCoordinator: { id in
+            guard current(), id == conversationID else { return nil }
+            return self.imVideoCoordinator(for: id)
+        }, fileCoordinator: { id in
+            guard current(), id == conversationID else { return nil }
+            return self.imFileCoordinator(for: id)
+        }, voiceCoordinator: { id in
+            guard current(), id == conversationID else { return nil }
+            return self.imVoiceCoordinator(for: id)
+        }, pollCoordinator: { id, reference in
+            guard current(), id == conversationID else { return nil }
+            return self.channelHostPollCoordinator(for: flow, reference: reference)
+        }, chainCoordinator: { [weak self, weak flow] id, reference in
+            guard contextMessageIsCurrent == nil, current(), id == conversationID, let flow else { return nil }
+            return self?.makeNativeChannelChainFlow(for: flow, reference: reference)
+        }, checkinCoordinator: { [weak self, weak flow] id in
+            guard contextMessageIsCurrent == nil, current(), id == conversationID, let flow else { return nil }
+            return self?.makeNativeChannelCheckinFlow(for: flow)
+        }, channelGovernanceDestination: original.channelGovernanceDestination, safetyCoordinator: { id in
+            guard current(), id == conversationID else { return nil }
+            return original.safetyCoordinator?(id)
+        }, channelReadCoordinator: { id in
+            guard current(), id == conversationID else { return nil }
+            guard let scope = try? NativeChannelNotificationScope(type: 1, value: String(id)) else { return nil }
+            return self.makeNativeChannelNotificationFlow(scope: scope, sourceCurrent: current)
+        })
+    }
+
+    func makeNativeChannelMessageFlow(channels: any NativeChannelManagementIntegrationContextProviding,
+        channelID: NativeChannelManagementID, sourceCurrent: @escaping () -> Bool = { false }) async -> NativeChannelMessageHostFlow? {
+        guard sourceCurrent(), let context = currentRuntimeDependencyContext, let historyApproval = currentMessagingHistoryReadApproval,
+              storageScope != nil else { return nil }
+        let viewer = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, sourceCurrent(), self.compositionViewerRevision == viewer else { return nil }
+            return self.currentRuntimeDependencyContext
+        }
+        let historyCurrent: () -> Bool = { [weak self] in
+            guard let self else { return false }
+            return ContentDraftContextFence.matches(current(), context) && historyApproval.matches(context)
+                && self.currentMessagingHistoryReadApproval?.revision == historyApproval.revision
+        }
+        do {
+            let reader = messagingReader
+            let rows = try await reader.messagingConversations()
+            guard !Task.isCancelled, historyCurrent(),
+                  let conversation = rows.first(where: { String($0.id) == channelID.rawValue }) else { return nil }
+            let channel = try await channels.currentChannelContext(channelID: channelID)
+            guard !Task.isCancelled, historyCurrent(), channels.contextIsCurrent(channel),
+                  channel.identity.epoch == context.session.epoch, channel.identity.viewerRevision == viewer,
+                  channel.identity.owner == (try NativeChannelManagementOwner(accountID: context.session.accountID, namespace: context.session.namespace, baseURL: context.baseURL)) else { return nil }
+            let binding = try await NativeChannelMessageContextAdapter(source: channels).binding(channelID: channelID, conversation: conversation)
+            guard !Task.isCancelled, historyCurrent(), channels.contextIsCurrent(channel) else { return nil }
+            let selected: () -> NativeChannelMessageHostAuthority? = { [weak self] in
+                guard let self, historyCurrent() else { return nil }
+                return self.composition.nativeChannelMessageAuthorization(context, viewer, binding)
+            }
+            guard let source = selected(), source.binding == binding, source.viewerRevision == viewer,
+                  ContentDraftContextFence.matches(source.context, context), source.identity != nil else { return nil }
+            let available: () -> Bool = {
+                guard historyCurrent(), channels.contextIsCurrent(channel) else { return false }
+                guard selected() === source else { source.retireObservedSelection(); return false }
+                return source.identity != nil
+            }
+            let received401: () -> Void = { [weak self] in
+                guard let self, !Task.isCancelled, available() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            }
+            let read: () -> NativeChannelTextApproval? = { [weak self] in
+                guard let value = self?.composition.nativeChannelTextReceiptApproval(context),
+                      value.matches(context, operation: .receipt, conversationID: conversation.id) else { return nil }; return value
+            }
+            let write: () -> NativeChannelTextApproval? = { [weak self] in
+                guard let value = self?.composition.nativeChannelTextSendApproval(context),
+                      value.matches(context, operation: .send, conversationID: conversation.id) else { return nil }; return value
+            }
+            let flow = try NativeChannelMessageHostBinding.make(context: context, conversation: conversation, authority: source,
+                storage: ProjectEditSecureStorage(scope: storageScope), current: available, onUnauthorized: received401,
+                makeOriginal: { active, unauthorized in
+                    try self.compositionTransport.makeNativeChannelMessageOriginalAdapters(context: context, binding: binding,
+                        currentRuntime: current, stillCurrent: active, read: read, write: write, received401: unauthorized)
+                }, makeMutations: { journal, active, unauthorized in
+                    try self.compositionTransport.makeNativeChannelMessageDispatcher(authority: source, journal: journal,
+                        currentRuntime: current, stillCurrent: active, onUnauthorized: unauthorized)
+                })
+            if let targets = makeNativeChannelMentionTargets(channels: channels, captured: channel, flow: flow) { flow.attachMentionTargets(targets) }
+            return flow
+        } catch { return nil }
+    }
+
+    func makeNativeChannelMentionTargets(channels: any NativeChannelManagementIntegrationContextProviding,
+                                         captured: NativeChannelManagementIntegrationContext,flow: NativeChannelMessageHostFlow) -> NativeChannelMentionTargets? {
+        let features: Set<BusinessRuntimeFeature> = [.imChannelMentionMemberRead,.imChannelMentionRoleRead]
+        guard let context = currentRuntimeDependencyContext else { return nil }
+        let viewer=compositionViewerRevision
+        let current: () -> Bool = { [weak self,weak flow] in
+            guard let self,let flow else { return false }
+            return flow.isCurrent && self.compositionViewerRevision == viewer && self.currentRuntimeDependencyContext == context
+        }
+        guard let (factory, gate) = channelHostRuntimeFactory(features, current: current) else { return nil }
+        let issued = factory.routes(features)
+        return try? NativeChannelMentionTargets(binding:flow.coordinator.client.binding,captured:captured,channels:channels,
+            context:context,transport:factory.client(features),current:{ gate.isCurrent && current() },
+            permits:{ method,path in gate.isCurrent && current() && issued.contains(where:{$0.method == method && $0.path == path}) },
+            unauthorized:{ [weak self] in
+                guard let self,current() else { return }
+                self.expireIfMatching(error:APIError.unauthorized,stamp:context.session.epoch,credential:context.session.token)
+            })
+    }
+    private struct ChannelHostPollKey: Hashable {
+        let flow: ObjectIdentifier
+        let reference: GroupPollReference?
+    }
+    private var channelHostPollOwners: [ChannelHostPollKey: GroupPollCoordinator] = [:]
+    private func channelHostPollCoordinator(for flow: NativeChannelMessageHostFlow,
+        reference: GroupPollReference?) -> GroupPollCoordinator? {
+        let key = ChannelHostPollKey(flow: ObjectIdentifier(flow), reference: reference)
+        if let existing = channelHostPollOwners[key], existing.isCurrent { return existing }
+        channelHostPollOwners = channelHostPollOwners.filter { $0.value.isCurrent }
+        let features: Set<BusinessRuntimeFeature> = [.imPollResult, .imPollCreate, .imPollVote, .imPollClose, .imPollCreateReceipt]
+        guard flow.isCurrent, let storageScope, let api = regionalConfiguration?.apiConfiguration,
+              let (factory, gate) = channelHostRuntimeFactory(features, current: { [weak flow] in flow?.isCurrent == true }),
+              let identity = flow.reader.identity,
+              let scope = try? IMScope(identity: identity, conversationID: flow.history.conversation.id),
+              reference == nil || reference?.conversationID == scope.conversationID else { return nil }
+        let captured = factory.captured
+        let service = GroupPollService(configuration: api, transport: factory.client(features),
+            enabledPaths: Set(factory.routes(features).map(\.path)))
+        let client = GroupPollSessionClient(service: service, session: { [weak self] in
+            guard gate.isCurrent, let self, self.currentRuntimeDependencyContext == captured else { return nil }
+            return try? GroupPollSession(accountID: captured.session.accountID, epoch: captured.session.epoch, token: captured.session.token)
+        }, onUnauthorized: { [weak self] value in
+            guard gate.isCurrent, let self, self.currentRuntimeDependencyContext == captured else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: value.identity.epoch, credential: captured.session.token)
+        })
+        // Share the protected sidecar for both creator and detail owners. Only the
+        // nil-reference creator recovers it; a matching result alone cannot settle
+        // its durable create lock without the original request-hash receipt.
+        guard let recovery = try? GroupPollCreateRecoveryJournal(storage: ProjectEditSecureStorage(scope: storageScope),
+            namespace: storageScope.service, realm: api.baseURL, accountID: captured.session.accountID,
+            conversationID: scope.conversationID) else { return nil }
+        guard let owner = try? GroupPollCoordinator(scope: scope, reference: reference, client: client,
+            reader: flow.reader, journal: composition.storage.operationJournal(), namespace: storageScope.service,
+            realm: api.baseURL, creationRecovery: recovery) else { return nil }
+        channelHostPollOwners[key] = owner
+        return owner
+    }
+
+    private var channelHostCoordinators: [IMScope: IMExpandedCoordinator] = [:]
+    private var channelHostImages: [IMScope: IMImageUploadCoordinator] = [:]
+    private var imVideoCoordinators: [IMScope: IMVideoCoordinator] = [:]
+    private var imFileCoordinators: [IMScope: IMFileCoordinator] = [:]
+    private var imVoiceCoordinators: [IMScope: IMVoiceCoordinator] = [:]
+    private var channelHostWriter: (writer: IMExpandedWriter, gate: NativeChannelHostRuntimeTransport)?
+    private var nativeChannelReportOwners: [ObjectIdentifier: NativeChannelReportFlow] = [:]
+    private func channelHostRuntimeFactory(_ features: Set<BusinessRuntimeFeature>,
+        current: @escaping () -> Bool = { true }) -> (BusinessRuntimeFactory, NativeChannelHostRuntimeTransport)? {
+        guard let issued = businessRuntimeFactory, let api = regionalConfiguration?.apiConfiguration else { return nil }
+        let context = issued.captured, viewer = compositionViewerRevision
+        guard let gate = compositionTransport.makeNativeChannelHostRuntimeTransport(context: context,
+            issued: issued.configuration, features: features,
+            currentRuntime: { [weak self] in self?.currentRuntimeDependencyContext },
+            currentConfiguration: { [weak self] in self?.businessRuntimeFactory?.configuration },
+            stillCurrent: { [weak self] in self?.compositionViewerRevision == viewer && current() }),
+            let factory = BusinessRuntimeFactory(configuration: issued.configuration, api: api,
+                transport: gate, current: { gate.isCurrent ? context : nil }) else { return nil }
+        return (factory, gate)
+    }
+
+    private var originalChannelHostWriter: IMExpandedWriter {
+        // Observe and retire the old issuance before an absent/empty new configuration
+        // can short-circuit this getter. Regrant creates a different owner.
+        if let cached = channelHostWriter {
+            if cached.gate.isCurrent { return cached.writer }
+            channelHostWriter = nil
+        }
+        let features: Set<BusinessRuntimeFeature> = [.imStart, .imRead, .imOrdinaryReadReceipt, .imOrdinaryReadState, .imMute, .imOrdinaryMuteReceipt, .imOrdinaryMuteState, .imSend, .imUpload, .imOrdinarySendReceipt, .imImageUploadReceipt, .imStaticLocationSend, .imStaticLocationReceipt, .imRouteShareRead, .imRouteSend, .imRouteReceipt, .imVoiceSend, .imVoiceReceipt, .imFileSend, .imFileReceipt, .imVideoSend, .imVideoReceipt]
+        guard let (factory, gate) = channelHostRuntimeFactory(features), !factory.routes(features).isEmpty,
+              let configuration = regionalConfiguration?.apiConfiguration else { return disabledIMWriter }
+
+        let captured = factory.captured
+        let service = IMExpandedService(configuration: configuration, transport: factory.client(features),
+            approvedMediaOrigins: factory.configuration.imMediaOrigins, writesEnabled: true,
+            enabledPaths: Set(factory.routes(features).map(\.path)),
+            staticLocationEnabled: factory.permits(.imStaticLocationSend),
+            staticLocationReceiptEnabled: factory.permits(.imStaticLocationReceipt),
+            ordinarySendEnabled: factory.permits(.imSend),
+            ordinaryReceiptEnabled: factory.permits(.imOrdinarySendReceipt),
+            imageUploadReceiptEnabled: factory.permits(.imImageUploadReceipt),
+            routeShareReadEnabled: factory.permits(.imRouteShareRead),
+            routeSendEnabled: factory.permits(.imRouteSend),
+            routeReceiptEnabled: factory.permits(.imRouteReceipt),
+            voiceSendEnabled: factory.permits(.imVoiceSend), voiceReceiptEnabled: factory.permits(.imVoiceReceipt), fileSendEnabled: factory.permits(.imFileSend), fileReceiptEnabled: factory.permits(.imFileReceipt), videoSendEnabled: factory.permits(.imVideoSend), videoReceiptEnabled: factory.permits(.imVideoReceipt),
+            ordinaryMuteRequestEnabled: factory.permits(.imMute),
+            ordinaryMuteReceiptEnabled: factory.permits(.imOrdinaryMuteReceipt),
+            ordinaryMuteStateEnabled: factory.permits(.imOrdinaryMuteState),
+            ordinaryReadRequestEnabled: factory.permits(.imRead),
+            ordinaryReadReceiptEnabled: factory.permits(.imOrdinaryReadReceipt),
+            ordinaryReadStateEnabled: factory.permits(.imOrdinaryReadState))
+        let writer = IMExpandedWriter(service: service, session: { [weak self] in
+            guard let self, self.currentRuntimeDependencyContext == captured, gate.isCurrent else { return nil }; return self.currentIMExpandedSession
+        }, onUnauthorized: { [weak self] snapshot in
+            guard let self, self.currentRuntimeDependencyContext == captured, gate.isCurrent else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: snapshot.identity.epoch, credential: self.token)
+        })
+        channelHostWriter = (writer, gate); return writer
+    }
+    func channelHostExpandedCoordinator(for conversationID: Int) -> IMExpandedCoordinator? {
+        let writer = originalChannelHostWriter
+        guard let context = currentRuntimeDependencyContext, let storageScope,
+              let identity = writer.identity, let scope = try? IMScope(identity: identity, conversationID: conversationID),
+              let recoveryScope = try? NativeChannelTextScope(context: context, conversationID: conversationID) else { return nil }
+        if let existing = channelHostCoordinators[scope], existing.isCurrent, existing.writer === writer { return existing }
+        let viewer = compositionViewerRevision
+        let recovery = IMExpandedRecoveryJournal(storage: ProjectEditSecureStorage(scope: storageScope), scope: recoveryScope)
+        let owner = IMExpandedCoordinator(scope: scope, writer: writer, recovery: recovery, stillCurrent: { [weak self] in
+            guard let self, self.compositionViewerRevision == viewer,
+                  self.currentRuntimeDependencyContext == context else { return false }
+            return self.originalChannelHostWriter === writer
+        })
+        channelHostCoordinators[scope] = owner; return owner
+    }
+    func channelHostImageUploadCoordinator(for conversationID: Int) -> IMImageUploadCoordinator? {
+        guard let context = currentRuntimeDependencyContext, let storageScope,
+              let expanded = channelHostExpandedCoordinator(for: conversationID),
+              let durable = try? NativeChannelTextScope(context: context, conversationID: conversationID),
+              let target = try? ImageUploadTarget(accountID: expanded.scope.identity.accountID,
+                namespace: storageScope.service, realm: context.baseURL.absoluteString,
+                kind: "im", entityID: conversationID, field: "image") else { return nil }
+        let scope = expanded.scope
+        if let existing = channelHostImages[scope], existing.isCurrent { return existing }
+        let viewer = compositionViewerRevision, writer = expanded.writer
+        let current: () -> Bool = { [weak self] in
+            guard let self else { return false }
+            return self.currentRuntimeDependencyContext == context && self.compositionViewerRevision == viewer && expanded.isCurrent
+        }
+        let owner = IMImageUploadCoordinator(scope: scope, writer: writer,
+            picker: retainedImagePickerHost.imPicker(scope: scope, currentScope: { current() ? scope : nil }, selectionApproval: { [weak self] in
+                guard let self, current(), let factory = self.businessRuntimeFactory else { return false }
+                return factory.permits(.imUpload) && factory.permits(.imImageUploadReceipt) && factory.configuration.imImageSelection
+            }), journal: imageUploadJournal, target: target,
+            originalJournal: OrdinaryIMImageJournal(storage: ProjectEditSecureStorage(scope: storageScope), owner: durable),
+            expanded: expanded, reader: messagingReader, stillCurrent: current)
+        channelHostImages[scope] = owner; return owner
+    }
+    func imVoiceCoordinator(for conversationID: Int) -> IMVoiceCoordinator? {
+        guard let context = currentRuntimeDependencyContext, let storageScope,
+              let owner = channelHostExpandedCoordinator(for: conversationID),
+              let issuedFactory = businessRuntimeFactory, issuedFactory.captured == context,
+              let configuration = regionalConfiguration?.apiConfiguration,
+              let durableScope = try? NativeChannelTextScope(context: context, conversationID: conversationID) else { return nil }
+        if let existing = imVoiceCoordinators[owner.scope], existing.isCurrent, existing.expanded === owner { return existing }
+        let viewer = compositionViewerRevision
+        let features: Set<BusinessRuntimeFeature> = [.imVoiceUpload, .imVoiceUploadReceipt, .imVoicePlayback, .imVoicePlaybackStatus]
+        guard let (factory, mediaGate) = channelHostRuntimeFactory(features) else { return nil }
+        let current: () -> Bool = { [weak self] in
+            guard let self else { return false }
+            return self.currentRuntimeDependencyContext == context && self.compositionViewerRevision == viewer && owner.isCurrent && mediaGate.isCurrent
+        }
+        let service = IMVoiceService(configuration: configuration, transport: factory.client(features),
+            uploadEnabled: factory.permits(.imVoiceUpload), receiptEnabled: factory.permits(.imVoiceUploadReceipt),
+            playbackEnabled: factory.permits(.imVoicePlayback), playbackStatusEnabled: factory.permits(.imVoicePlaybackStatus), session: {
+                guard current() else { return nil }
+                return try? IMVoiceSession(accountID: context.session.accountID, epoch: context.session.epoch, token: context.session.token)
+            }, unauthorized: { [weak self] snapshot in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: snapshot.identity.epoch, credential: context.session.token)
+            })
+        let voice = IMVoiceCoordinator(scope: owner.scope, expanded: owner, service: service,
+            journal: IMVoiceJournal(storage: ProjectEditSecureStorage(scope: storageScope), owner: durableScope), stillCurrent: current)
+        imVoiceCoordinators[owner.scope] = voice; return voice
+    }
+    func imFileCoordinator(for conversationID: Int) -> IMFileCoordinator? {
+        guard let context = currentRuntimeDependencyContext, let storageScope,
+              let owner = channelHostExpandedCoordinator(for: conversationID),
+              let issuedFactory = businessRuntimeFactory, issuedFactory.captured == context,
+              let configuration = regionalConfiguration?.apiConfiguration,
+              let durableScope = try? NativeChannelTextScope(context: context, conversationID: conversationID) else { return nil }
+        if let existing = imFileCoordinators[owner.scope], existing.isCurrent, existing.expanded === owner { return existing }
+        let viewer = compositionViewerRevision
+        let features: Set<BusinessRuntimeFeature> = [.imFileUpload, .imFileUploadReceipt, .imFileScan, .imFilePreview, .imFilePreviewStatus]
+        guard let (factory, mediaGate) = channelHostRuntimeFactory(features) else { return nil }
+        let current: () -> Bool = { [weak self] in
+            guard let self else { return false }
+            return self.currentRuntimeDependencyContext == context && self.compositionViewerRevision == viewer && owner.isCurrent && mediaGate.isCurrent
+        }
+        let service = IMFileService(configuration: configuration, transport: factory.client(features),
+            mediaTransport: ResponseLimitedHTTPTransport(enabled: factory.permits(.imFilePreview), maximumResponseBytes: IMFileSelection.maximumBytes),
+            approvedMediaOrigins: factory.configuration.imMediaOrigins,
+            uploadEnabled: factory.permits(.imFileUpload), scanEnabled: factory.permits(.imFileScan), receiptEnabled: factory.permits(.imFileUploadReceipt),
+            previewEnabled: factory.permits(.imFilePreview), previewStatusEnabled: factory.permits(.imFilePreviewStatus), session: {
+                guard current() else { return nil }
+                return try? IMFileSession(accountID: context.session.accountID, epoch: context.session.epoch, token: context.session.token)
+            }, unauthorized: { [weak self] snapshot in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: snapshot.identity.epoch, credential: context.session.token)
+            })
+        let file = IMFileCoordinator(scope: owner.scope, expanded: owner, service: service,
+            journal: IMFileJournal(storage: ProjectEditSecureStorage(scope: storageScope), owner: durableScope, directory: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("im-file-drafts", isDirectory: true)), stillCurrent: current)
+        imFileCoordinators[owner.scope] = file; return file
+    }
+    func imVideoCoordinator(for conversationID: Int) -> IMVideoCoordinator? {
+        guard let context = currentRuntimeDependencyContext, let storageScope,
+              let owner = channelHostExpandedCoordinator(for: conversationID),
+              let issuedFactory = businessRuntimeFactory, issuedFactory.captured == context,
+              let configuration = regionalConfiguration?.apiConfiguration,
+              let durableScope = try? NativeChannelTextScope(context: context, conversationID: conversationID) else { return nil }
+        if let existing = imVideoCoordinators[owner.scope], existing.isCurrent, existing.expanded === owner { return existing }
+        let viewer = compositionViewerRevision
+        let features: Set<BusinessRuntimeFeature> = [.imVideoUpload, .imVideoUploadReceipt, .imVideoPolicy, .imVideoPreview, .imVideoPreviewStatus]
+        guard let (factory, mediaGate) = channelHostRuntimeFactory(features) else { return nil }
+        let current: () -> Bool = { [weak self] in
+            guard let self else { return false }
+            return self.currentRuntimeDependencyContext == context && self.compositionViewerRevision == viewer && owner.isCurrent && mediaGate.isCurrent
+        }
+        let service = IMVideoService(configuration: configuration, transport: factory.client(features),
+            mediaTransport: ResponseLimitedHTTPTransport(enabled: factory.permits(.imVideoPreview), maximumResponseBytes: IMVideoSelection.maximumBytes),
+            approvedMediaOrigins: factory.configuration.imMediaOrigins,
+            uploadEnabled: factory.permits(.imVideoUpload), policyEnabled: factory.permits(.imVideoPolicy), receiptEnabled: factory.permits(.imVideoUploadReceipt),
+            previewEnabled: factory.permits(.imVideoPreview), previewStatusEnabled: factory.permits(.imVideoPreviewStatus), session: {
+                guard current() else { return nil }
+                return try? IMVideoSession(accountID: context.session.accountID, epoch: context.session.epoch, token: context.session.token)
+            }, unauthorized: { [weak self] snapshot in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: snapshot.identity.epoch, credential: context.session.token)
+            })
+        let file = IMVideoCoordinator(scope: owner.scope, expanded: owner, service: service,
+            journal: IMVideoJournal(storage: ProjectEditSecureStorage(scope: storageScope), owner: durableScope, directory: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("im-video-drafts", isDirectory: true)), stillCurrent: current)
+        imVideoCoordinators[owner.scope] = file; return file
+    }
+    func nativeChannelReportFlow(for flow: NativeChannelMessageHostFlow) -> NativeChannelReportFlow? {
+        // Retire a cached report issuance before missing configuration can return early.
+        let key = ObjectIdentifier(flow)
+        if let existing = nativeChannelReportOwners[key] {
+            if existing.isCurrent { return existing }
+            nativeChannelReportOwners[key] = nil
+        }
+        guard flow.isCurrent, let sourceFactory = businessRuntimeFactory, let storageScope,
+              flow.reader.identity == MessagingReadIdentity(accountID: sourceFactory.captured.session.accountID,
+                                                            epoch: sourceFactory.captured.session.epoch) else { return nil }
+        let features: Set<BusinessRuntimeFeature> = [.imReport, .imChannelReportReceipt]
+        guard let (factory, reportGate) = channelHostRuntimeFactory(features, current: { [weak flow] in flow?.isCurrent == true }) else { return nil }
+        let issued = factory.routes(features)
+        guard !issued.isEmpty else { return nil }
+        nativeChannelReportOwners = nativeChannelReportOwners.filter { $0.value.isCurrent }
+        let context = factory.captured, viewer = compositionViewerRevision
+        let current: () -> Bool = { [weak self, weak flow] in
+            guard let self, let flow else { return false }
+            return reportGate.isCurrent && flow.isCurrent && self.compositionViewerRevision == viewer && self.currentRuntimeDependencyContext == context
+        }
+        let owner = try? NativeChannelReportFlow(context: context, conversationID: flow.history.conversation.id,
+            transport: factory.client(features), storage: ProjectEditSecureStorage(scope: storageScope), current: current,
+            permitsWrite: { current() && issued.contains(where: { $0.method == "POST" && $0.path == "api/im/report" }) },
+            permitsRead: { path in current() && issued.contains(where: { $0.method == "GET" && $0.path == path }) },
+            unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+        if let owner { nativeChannelReportOwners[key] = owner }; return owner
+    }
+    private func makeNativeChannelCheckinFlow(for flow: NativeChannelMessageHostFlow) -> NativeChannelCheckinFlow? {
+        guard flow.isCurrent, let sourceFactory = businessRuntimeFactory, let storageScope,
+              sourceFactory.captured == currentRuntimeDependencyContext,
+              flow.reader.identity == MessagingReadIdentity(accountID: sourceFactory.captured.session.accountID,
+                                                            epoch: sourceFactory.captured.session.epoch) else { return nil }
+        let features: Set<BusinessRuntimeFeature> = [.imCheckinStatus, .imCheckinWrite, .imCheckinRank, .imCheckinReceipt]
+        guard let (factory, gate) = channelHostRuntimeFactory(features, current: { [weak flow] in flow?.isCurrent == true }) else { return nil }
+        let issued = factory.routes(features)
+        guard !issued.isEmpty else { return nil }
+        let context = sourceFactory.captured, viewer = compositionViewerRevision
+        let current: () -> Bool = { [weak self, weak flow] in
+            guard let self, let flow else { return false }
+            return gate.isCurrent && flow.isCurrent && self.compositionViewerRevision == viewer && self.currentRuntimeDependencyContext == context
+                && self.businessRuntimeFactory?.routes(features) == issued
+        }
+        guard let service = try? NativeChannelCheckinService(context: context, channelID: String(flow.history.conversation.id),
+            transport: factory.client(features), permits: { method, path in
+                current() && issued.contains(where: { $0.method == method && $0.path == path })
+            }, current: current, unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            }) else { return nil }
+        return try? NativeChannelCheckinFlow(service: service, context: context, storage: ProjectEditSecureStorage(scope: storageScope))
+    }
+    private func makeNativeChannelChainFlow(for flow: NativeChannelMessageHostFlow,
+        reference: NativeChannelChainReference?) -> NativeChannelChainFlow? {
+        guard flow.isCurrent, let sourceFactory = businessRuntimeFactory, let storageScope,
+              sourceFactory.captured == currentRuntimeDependencyContext,
+              flow.reader.identity == MessagingReadIdentity(accountID: sourceFactory.captured.session.accountID,
+                                                            epoch: sourceFactory.captured.session.epoch),
+              reference == nil || reference?.conversationID == String(flow.history.conversation.id) else { return nil }
+        let features: Set<BusinessRuntimeFeature> = [.imChainRead, .imChainCreate, .imChainJoin, .imChainWithdraw, .imChainClose, .imChainReceipt]
+        guard let (factory, gate) = channelHostRuntimeFactory(features, current: { [weak flow] in flow?.isCurrent == true }) else { return nil }
+        let issued = factory.routes(features)
+        guard !issued.isEmpty else { return nil }
+        let context = sourceFactory.captured, viewer = compositionViewerRevision
+        let current: () -> Bool = { [weak self, weak flow] in
+            guard let self, let flow else { return false }
+            return gate.isCurrent && flow.isCurrent && self.compositionViewerRevision == viewer && self.currentRuntimeDependencyContext == context
+                && self.businessRuntimeFactory?.routes(features) == issued
+        }
+        guard let service = try? NativeChannelChainService(context: context, conversationID: String(flow.history.conversation.id),
+            transport: factory.client(features), permits: { method, path in
+                current() && issued.contains(where: { $0.method == method && $0.path == path })
+            }, current: current, unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            }) else { return nil }
+        return try? NativeChannelChainFlow(service: service, context: context,
+            storage: ProjectEditSecureStorage(scope: storageScope), reference: reference)
+    }
+    func makeNativeChannelNotificationFlow(scope: NativeChannelNotificationScope?, sharedClubDefault: Bool = false,
+        sourceCurrent: @escaping @MainActor () -> Bool = { true }) -> NativeChannelNotificationCoordinator? {
+        guard let context = currentRuntimeDependencyContext, storageScope != nil else { return nil }
+        let viewer = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewer, sourceCurrent() else { return nil }
+            return self.currentRuntimeDependencyContext
+        }
+        let selected: () -> (any NativeChannelNotificationAuthorizing)? = { [weak self] in
+            guard let self, ContentDraftContextFence.matches(current(), context) else { return nil }
+            return self.composition.nativeChannelNotificationAuthorization(context, viewer)
+        }
+        guard let source = selected() else { return nil }
+        let journal = NativeChannelNotificationJournal(
+            storage: NativeChannelNotificationProtectedStorage(existing: ProjectEditSecureStorage(scope: storageScope)),
+            owner: .init(context: context))
+        do {
+                guard let dispatcher = self.compositionTransport.makeNativeChannelNotificationDispatcher(
+                    context: context, viewerRevision: viewer, source: source, journal: journal,
+                    currentRuntime: current,
+                    currentViewer: { [weak self] in self?.compositionViewerRevision ?? UInt64.max },
+                    selectedSource: selected) else { throw NativeChannelNotificationError.accessClosed }
+                let authority = dispatcher.authority
+            guard ContentDraftContextFence.matches(authority.context, context),
+                  !sharedClubDefault || scope?.type == 2 else { return nil }
+            if !authority.allows(sharedClubDefault ? .clubDefaultRead : (scope == nil ? .directory : .preference), scope: scope) {
+                let ackAllowed = scope?.type == 1 && authority.allows(.ack, scope: scope)
+                let unreadAllowed = scope == nil && authority.allows(.unread, scope: nil)
+                if !ackAllowed && !unreadAllowed {
+                    guard let original = try journal.restore(), authority.allows(.receipt, scope: original.scope) else { return nil }
+                }
+            }
+            return try NativeChannelNotificationCoordinator(
+                client: NativeChannelNotificationService(authority: authority, transport: dispatcher),
+                journal: journal, scope: scope, sharedClubDefault: sharedClubDefault)
+        } catch { return nil }
+    }
+    func makeNativeNotificationDeliveryLogFlow() -> NativeNotificationDeliveryLogCoordinator? {
+        guard let context = currentRuntimeDependencyContext, storageScope != nil else { return nil }
+        let viewer = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewer else { return nil }
+            return self.currentRuntimeDependencyContext
+        }
+        let selected: () -> (any NativeChannelNotificationAuthorizing)? = { [weak self] in
+            guard let self, ContentDraftContextFence.matches(current(), context) else { return nil }
+            return self.composition.nativeChannelNotificationAuthorization(context, viewer)
+        }
+        guard let source = selected() else { return nil }
+        return try? NativeChannelNotificationBinding.makeDeliveryLog(context: context,
+            storage: ProjectEditSecureStorage(scope: storageScope), makeDispatcher: { journal in
+                guard let dispatcher = self.compositionTransport.makeNativeChannelNotificationDispatcher(
+                    context: context, viewerRevision: viewer, source: source, journal: journal,
+                    currentRuntime: current,
+                    currentViewer: { [weak self] in self?.compositionViewerRevision ?? UInt64.max },
+                    selectedSource: selected) else { throw NativeChannelNotificationError.accessClosed }
+                return dispatcher
+            })
+    }
+    /// Reporter-owned original receipts remain reachable after the channel host retires.
+    /// The local journal supplies only locators; independent exact GET issuance is required.
+    func makeNativeChannelReportRecoveryDirectory() -> NativeChannelReportRecoveryDirectory? {
+        guard let context = currentRuntimeDependencyContext, let storageScope,
+              storageScope.service.utf8.elementsEqual(context.session.namespace.utf8) else { return nil }
+        let viewer = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard let self else { return false }
+            return self.compositionViewerRevision == viewer && self.currentRuntimeDependencyContext == context
+        }
+        // Reuse the independently issued exact GET set through the live final-forward gate.
+        guard let (factory, gate) = channelHostRuntimeFactory([.imChannelReportReceipt], current: current) else { return nil }
+        return NativeChannelReportRecoveryAssembly.make(factory: factory,
+            currentFactory: { [weak self] in self?.businessRuntimeFactory },
+            storage: ProjectEditSecureStorage(scope: storageScope),
+            journalKeys: { try NativeChannelReportJournalKeys.read(scope: storageScope, context: context) },
+            current: { gate.isCurrent && current() }, unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+
     private var businessRuntimeFactory: BusinessRuntimeFactory? {
         guard let api = regionalConfiguration?.apiConfiguration, storageScope != nil,
               let configuration = runtimeDependencies.businessConfiguration, let context = currentRuntimeDependencyContext,
@@ -1047,7 +2957,7 @@ final class AppSession: ObservableObject {
     }
     private var currentPlayRuntimeSession: PlayExperienceSession? {
         guard let account, let token, let namespace = storageScope?.service else { return nil }
-        return try? PlayExperienceSession(accountID: account.id, epoch: gate.currentStamp, namespace: namespace, token: token)
+        return try? PlayExperienceSession(accountID: account.id, epoch: gate.currentStamp, namespace: namespace, token: token, role: account.effectiveRole)
     }
     private func dormantPlayRuntimeService() -> PlayExperienceService? {
         guard regionalConfiguration?.apiConfiguration != nil, storageScope != nil else { return nil }
@@ -1075,11 +2985,25 @@ final class AppSession: ObservableObject {
         retainedPlayPreferences[key] = model; return model
     }
     func playOperatingSummary(topicID: Int) -> PlayOperatingSummaryCoordinator? {
-        guard topicID > 0, let api = dormantPlayRuntimeService() else { return nil }
-        let key = playRuntimeKey(.topic(topicID), suffix: "summary")
+        guard !committingAuthenticatedSession, topicID > 0,
+              let regional = regionalConfiguration, let storageScope, let account, let token,
+              let role = PlayRecoveryAccountRole(rawValue: account.effectiveRole),
+              let captured = try? PlayExperienceSession(accountID: account.id, epoch: gate.currentStamp,
+                  namespace: storageScope.service, token: token, role: role.rawValue),
+              let api = dormantPlayRuntimeService() else { return nil }
+        let viewer = compositionViewerRevision
+        let key = playRuntimeKey(.topic(topicID), suffix: "summary:\(viewer)")
         if let retained = retainedPlaySummaries[key] { return retained }
-        let model = PlayOperatingSummaryCoordinator(topicID: topicID, service: api,
-            currentSession: { [weak self] in self?.currentPlayRuntimeSession })
+        let recovery: any PlayTagRevocationRecovery
+        do {
+            recovery = try composition.storage.playRecovery.make(session: captured, scope: .topic(topicID),
+                regionalConfiguration: regional, storageScope: storageScope)
+        } catch { recovery = PlayUnavailableTagRevocationRecovery() }
+        let model = PlayOperatingSummaryCoordinator(topicID: topicID, service: api, recovery: recovery,
+            currentSession: { [weak self] in
+                guard let self, self.matchesContinuationSession(captured, viewerRevision: viewer) else { return nil }
+                return captured
+            })
         retainedPlaySummaries[key] = model; return model
     }
     /// P056 reuses an already accepted read configuration. This creates no approval
@@ -1197,11 +3121,95 @@ final class AppSession: ObservableObject {
         return RuntimeMotionSampleProvider(provider: PlayKitNativeSensorProvider(grants: [.acceleration]),
             isCurrent: { [weak self] in self?.currentRuntimeDependencyContext == captured })
     }
+    func sharedPlanR5Host(flow: PlaySharedPlanLifecycle, ticket: PlaySharedPlanOperationTicket,
+            presentationCurrent: @escaping () -> Bool) -> PlaySharedPlanR5Host? {
+        guard !committingAuthenticatedSession, flow.operationIsCurrent(ticket),
+              let context = currentRuntimeDependencyContext, context.role == "player", context.session.accountID == ticket.memberID,
+              let regional = regionalConfiguration, let storageScope,
+              let reader = playExperience(for: .activity(ticket.activityID)), reader.hasCurrentMediaSnapshot,
+              let topicID = reader.snapshot?.result.topicID, topicID > 0,
+              let factory = runtimeDependencyFactory, let issued = factory.accepted,
+              issued.play.contains(.reads), issued.playReadApprovalID != nil,
+              issued.endpoints.paths.isSuperset(of: ["api/play/advanced/state", "api/game/session/view"]) else { return nil }
+        let viewer = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard let self, presentationCurrent(), self.compositionViewerRevision == viewer,
+                  self.currentRuntimeDependencyContext == context, flow.operationIsCurrent(ticket),
+                  reader.hasCurrentMediaSnapshot, reader.snapshot?.result.topicID == topicID,
+                  let live = self.runtimeDependencyFactory?.accepted,
+                  live.playReadApprovalID == issued.playReadApprovalID, live.play == issued.play,
+                  live.endpoints == issued.endpoints else { return false }
+            return true
+        }
+        #if canImport(Security) && canImport(Darwin)
+        guard let scope = try? PlayAdvancedRecoveryScope(activityID: ticket.activityID, topicID: topicID, nodeID: ticket.nodeID),
+              let journal = try? PlayAdvancedRecoverySystemFactory.make(session: context.session, scope: scope,
+                  regionalConfiguration: regional, storageScope: storageScope) else { return nil }
+        return PlaySharedPlanR5Host(owner: context.session, ticket: ticket, topicID: topicID,
+            service: factory.playService(), outcomeService: factory.playService(), journal: journal, current: current,
+            approvedWriteAndOriginalProof: { false }, // No backend proof acceptance is currently configured.
+            validateOperation: { try await flow.validateOperation(ticket) },
+            onUnauthorized: { [weak self] in
+                guard let self, self.currentRuntimeDependencyContext == context else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+        #else
+        return nil // No memory or plaintext fallback for the original advanced journal.
+        #endif
+    }
+
+    func playSharedPlanLifecycle(activityID: Int, presentationCurrent: @escaping () -> Bool) -> PlaySharedPlanLifecycle? {
+        let scope = PlaySessionScope.activity(activityID)
+        guard scope.isValid, let context = currentRuntimeDependencyContext, context.role == "player",
+              let factory = runtimeDependencyFactory, let issued = factory.accepted,
+              issued.play.contains(.reads), issued.playReadApprovalID != nil,
+              issued.endpoints.paths.isSuperset(of: ["api/game/session/view", "api/game/session/receipt"]) else { return nil }
+        let viewer = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard let self, presentationCurrent(), self.compositionViewerRevision == viewer,
+                  self.currentRuntimeDependencyContext == context,
+                  let live = self.runtimeDependencyFactory?.accepted,
+                  live.playReadApprovalID == issued.playReadApprovalID,
+                  live.endpoints == issued.endpoints, live.play == issued.play else { return false }
+            return true
+        }
+        guard let journal = try? PlayGameSessionJournalFactory.makeJournal(session: context.session,
+            scope: scope, regionalConfiguration: regionalConfiguration, storageScope: storageScope,
+            makeRecovery: { session, scope, regional, storage in
+                try composition.storage.playRecovery.make(session: session, scope: scope, regionalConfiguration: regional, storageScope: storage)
+            }) else { return nil }
+        return PlaySharedPlanLifecycle(activityID: activityID, session: context.session,
+            service: factory.playService(), journal: journal, current: current,
+            canWrite: { false }, // Read-only host until the complete write/operation integration is reviewed.
+            retireConfirmedJournal: false,
+            onUnauthorized: { [weak self] in
+                guard let self, self.currentRuntimeDependencyContext == context else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+
     func playPlayer(scope: PlaySessionScope) -> PlayPlayerGameCoordinator? {
-        guard case .activity(let id) = scope, id > 0, let api = dormantPlayRuntimeService() else { return nil }
-        let key = playRuntimeKey(scope, suffix: "player")
+        guard !committingAuthenticatedSession, case .activity(let id) = scope, id > 0,
+              let regional = regionalConfiguration, let storageScope, let account, let token,
+              let role = PlayRecoveryAccountRole(rawValue: account.effectiveRole),
+              let captured = try? PlayExperienceSession(accountID: account.id, epoch: gate.currentStamp,
+                  namespace: storageScope.service, token: token, role: role.rawValue),
+              let api = dormantPlayRuntimeService() else { return nil }
+        // One retained coordinator owns this viewer/activity. A returning role must not
+        // revive an old in-memory lease after another viewer has reconciled the journal.
+        let viewer = compositionViewerRevision
+        let key = playRuntimeKey(scope, suffix: "player:\(viewer)")
         if let retained = retainedPlayPlayers[key] { return retained }
-        let model = PlayPlayerGameCoordinator(activityID: id, service: api, currentSession: { [weak self] in self?.currentPlayRuntimeSession })
+        guard let model = PlayGameSessionJournalFactory.makeCoordinator(scope: scope, service: api,
+            session: captured, regionalConfiguration: regional, storageScope: storageScope,
+            currentSession: { [weak self] in
+                guard let self, self.matchesContinuationSession(captured, viewerRevision: viewer) else { return nil }
+                return captured
+            }, makeRecovery: { session, scope, regional, storageScope in
+                try composition.storage.playRecovery.make(session: session, scope: scope,
+                    regionalConfiguration: regional, storageScope: storageScope)
+            }) else { return nil }
+        // Storage construction grants no read or command capability. No memory fallback.
         retainedPlayPlayers[key] = model; return model
     }
     func playCircle(topicID: Int?) -> PlayCircleCoordinator? {
@@ -1271,7 +3279,9 @@ final class AppSession: ObservableObject {
     private func commitChannelLogin(_ result: LoginResult, expected: AuthChannelSessionSnapshot) throws -> Bool {
         guard self.authChannelSnapshot == expected, self.account == nil, !self.isWorking else { return false }
         try self.vault.write(result.token)
+        self.invalidateInvoiceLaunch()
         self.invalidateWorkshopReadBindings()
+        ownMediaAudioPreviewLifetime.retireAll(); ownMediaModelPreviewLifetime.retireAll(); memberIdentityAvatarLifetime.retireAll()
         self.gate.invalidate()
         sessionDefaults.set(false,forKey:self.restoreBlockedKey)
         self.commitAuthenticatedSession(token: result.token, account: result.account);self.errorKey=nil
@@ -1299,16 +3309,26 @@ final class AppSession: ObservableObject {
         return coordinator
     }
     private let officialEventService:OfficialEventService?
+    private var officialSourceObservation: OfficialReadInvalidationSubscription?
+    /// Match the selected public source again after service decode, not only at dispatch.
+    private var currentOfficialPublicSourceRevision: UUID? {
+        guard let reviewed = composition.reviewed, reviewed.regional.market == .china,
+              reviewed.reads.contains(.officialPublicEventCatalogAndDetail),
+              let api = reviewed.regional.apiConfiguration else { return nil }
+        return composition.officialPublicEventReadSelection.activeRevision(baseURL: api.baseURL, namespace: reviewed.storageScope.service)
+    }
     private var currentOfficialContext:OfficialReadContext {
         if let account,let token,
-           let context=try? OfficialReadContext(accountID:account.id,epoch:gate.currentStamp,token:token) {
+           let context=try? OfficialReadContext(accountID:account.id,epoch:gate.currentStamp,token:token,
+                role:account.effectiveRole,viewerRevision:compositionViewerRevision,publicSourceRevision:currentOfficialPublicSourceRevision) {
             return context
         }
-        return OfficialReadContext(guestEpoch:gate.currentStamp)
+        return OfficialReadContext(guestEpoch:gate.currentStamp,viewerRevision:compositionViewerRevision,
+            publicSourceRevision:currentOfficialPublicSourceRevision)
     }
     lazy var officialEventReader=OfficialSessionReader(service:officialEventService,currentContext:{ [weak self] in
         self?.currentOfficialContext ?? OfficialReadContext(guestEpoch:0)
-    },onUnauthorized:{ [weak self] captured in
+    },invalidationSignal:composition.officialPublicEventReadSelection.invalidations,onUnauthorized:{ [weak self] captured in
         guard let self,self.currentOfficialContext == captured else { return }
         self.expireIfMatching(error:APIError.unauthorized,stamp:captured.epoch,credential:self.token)
     })
@@ -1334,7 +3354,8 @@ final class AppSession: ObservableObject {
         let approval = currentRuntimeDependencyContext.flatMap { context in
             composition.memberRoleInfoReadApproval(context).flatMap { $0.matches(context) ? $0.revision : nil }
         }
-        return try? MemberHomeSession(accountID: account.id, epoch: gate.currentStamp, token: token, roleInfoApproval: approval)
+        return try? MemberHomeSession(accountID: account.id, epoch: gate.currentStamp, token: token, roleInfoApproval: approval,
+            role: account.effectiveRole, viewerRevision: compositionViewerRevision)
     }
     lazy var memberHomeReader = MemberHomeSessionReader(service: memberHomeService,
         currentSession: { [weak self] in self?.currentMemberHomeSession },
@@ -1342,13 +3363,223 @@ final class AppSession: ObservableObject {
             guard let self, self.currentMemberHomeSession == captured else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
         })
+    struct OwnMediaImagePreviewIdentity: Equatable {
+        let context: RuntimeDependencyContext?
+        let viewerRevision: UInt64
+        let listScope: UUID
+        let approval: UUID?
+        static func == (lhs: Self, rhs: Self) -> Bool {
+            guard lhs.viewerRevision == rhs.viewerRevision, lhs.listScope == rhs.listScope, lhs.approval == rhs.approval else { return false }
+            switch (lhs.context, rhs.context) {
+            case (nil, nil): return true
+            case let (left?, right?): return ContentDraftContextFence.matches(left, right) && left.session.role.utf8.elementsEqual(right.session.role.utf8)
+            default: return false
+            }
+        }
+    }
+    private func ownMediaImagePreviewApproval(_ asset: OwnMediaAsset) -> OwnMediaImagePreviewApproval? {
+        guard asset.id > 0, asset.mediaType == .image, ownMediaReader.isSignedIn, ownMediaReader.isAvailable,
+              let context = currentRuntimeDependencyContext,
+              let approval = composition.selectedOwnMediaImagePreviewApproval(assetID: asset.id, context: context),
+              approval.viewerRevision == compositionViewerRevision else { return nil }
+        return approval
+    }
+    func ownMediaImagePreviewIdentity(_ asset: OwnMediaAsset) -> OwnMediaImagePreviewIdentity {
+        .init(context: currentRuntimeDependencyContext, viewerRevision: compositionViewerRevision,
+              listScope: ownMediaReader.scope, approval: ownMediaImagePreviewApproval(asset)?.revision)
+    }
+    var ownMediaImagePreviewAccess: OwnMediaImagePreviewAccess {
+        .init(sourceRevision: { [weak self] asset in self?.ownMediaImagePreviewApproval(asset)?.revision },
+              makeReader: { [weak self] asset in self?.makeOwnMediaImagePreviewReader(asset) })
+    }
+    func makeOwnMediaImagePreviewReader(_ asset: OwnMediaAsset,
+                metadata: (any OwnMediaImagePreviewMetadataReading)? = nil,
+                imageReader: (any OwnMediaPrivateImageReading)? = nil) -> OwnMediaImagePreviewReader? {
+        let identity = ownMediaImagePreviewIdentity(asset)
+        guard let approval = ownMediaImagePreviewApproval(asset) else { return nil }
+        let reader = OwnMediaImagePreviewReader(approval: approval,
+            currentContext: { [weak self] in
+                guard let self, self.ownMediaImagePreviewIdentity(asset) == identity else { return nil }; return self.currentRuntimeDependencyContext
+            }, currentViewerRevision: { [weak self] in
+                guard let self, self.ownMediaImagePreviewIdentity(asset) == identity else { return nil }; return self.compositionViewerRevision
+            }, selected: { [weak self] in
+                guard let self, self.ownMediaImagePreviewIdentity(asset) == identity else { return nil }; return self.ownMediaImagePreviewApproval(asset)
+            }, listReader: ownMediaReader, metadata: metadata, imageReader: imageReader)
+        composition.ownMediaImagePreviewSelection.register(reader); return reader
+    }
+
+    struct OwnMediaApprovedLinkIdentity: Equatable {
+        let context: RuntimeDependencyContext?
+        let viewerRevision: UInt64
+        let listScope: UUID
+        let approval: UUID?
+        static func == (lhs: Self, rhs: Self) -> Bool {
+            guard lhs.viewerRevision == rhs.viewerRevision, lhs.listScope == rhs.listScope, lhs.approval == rhs.approval else { return false }
+            switch (lhs.context, rhs.context) {
+            case (nil, nil): return true
+            case let (left?, right?): return ContentDraftContextFence.matches(left, right) && left.session.role.utf8.elementsEqual(right.session.role.utf8)
+            default: return false
+            }
+        }
+    }
+    private func ownMediaApprovedLinkApproval(_ asset: OwnMediaAsset) -> OwnMediaApprovedLinkApproval? {
+        guard OwnMediaApprovedLinkReader.canCopy(asset), ownMediaReader.isSignedIn, ownMediaReader.isAvailable,
+              let context = currentRuntimeDependencyContext,
+              let approval = composition.selectedOwnMediaApprovedLinkApproval(assetID: asset.id, context: context),
+              approval.viewerRevision == compositionViewerRevision else { return nil }
+        return approval
+    }
+    func ownMediaApprovedLinkIdentity(_ asset: OwnMediaAsset) -> OwnMediaApprovedLinkIdentity {
+        .init(context: currentRuntimeDependencyContext, viewerRevision: compositionViewerRevision,
+              listScope: ownMediaReader.scope, approval: ownMediaApprovedLinkApproval(asset)?.revision)
+    }
+    var ownMediaApprovedLinkAccess: OwnMediaApprovedLinkAccess {
+        .init(sourceRevision: { [weak self] asset in self?.ownMediaApprovedLinkApproval(asset)?.revision },
+              makeReader: { [weak self] asset in self?.makeOwnMediaApprovedLinkReader(asset) })
+    }
+    func makeOwnMediaApprovedLinkReader(_ asset: OwnMediaAsset,
+                transport: (any OwnMediaApprovedLinkDispatching)? = nil) -> OwnMediaApprovedLinkReader? {
+        let identity = ownMediaApprovedLinkIdentity(asset)
+        guard let approval = ownMediaApprovedLinkApproval(asset) else { return nil }
+        let reader = OwnMediaApprovedLinkReader(approval: approval,
+            currentContext: { [weak self] in
+                guard let self, self.ownMediaApprovedLinkIdentity(asset) == identity else { return nil }; return self.currentRuntimeDependencyContext
+            }, currentViewerRevision: { [weak self] in
+                guard let self, self.ownMediaApprovedLinkIdentity(asset) == identity else { return nil }; return self.compositionViewerRevision
+            }, selected: { [weak self] in
+                guard let self, self.ownMediaApprovedLinkIdentity(asset) == identity else { return nil }; return self.ownMediaApprovedLinkApproval(asset)
+            }, listReader: ownMediaReader, transport: transport)
+        composition.ownMediaApprovedLinkSelection.register(reader); return reader
+    }
+
+    let ownMediaAudioPreviewLifetime = OwnMediaAudioPreviewLifetime()
+    struct OwnMediaAudioPreviewIdentity: Equatable {
+        let context: RuntimeDependencyContext?
+        let viewerRevision: UInt64
+        let listScope: UUID
+        let approval: UUID?
+        static func == (lhs: Self, rhs: Self) -> Bool {
+            guard lhs.viewerRevision == rhs.viewerRevision, lhs.listScope == rhs.listScope, lhs.approval == rhs.approval else { return false }
+            switch (lhs.context, rhs.context) {
+            case (nil, nil): return true
+            case let (left?, right?): return ContentDraftContextFence.matches(left, right) && left.session.role.utf8.elementsEqual(right.session.role.utf8)
+            default: return false
+            }
+        }
+    }
+    private func ownMediaAudioPreviewApproval(_ asset: OwnMediaAsset) -> OwnMediaAudioPreviewApproval? {
+        guard asset.id > 0, asset.mediaType == .audio, ownMediaReader.isSignedIn, ownMediaReader.isAvailable,
+              let context = currentRuntimeDependencyContext,
+              let approval = composition.selectedOwnMediaAudioPreviewApproval(assetID: asset.id, context: context),
+              approval.viewerRevision == compositionViewerRevision else { return nil }
+        return approval
+    }
+    func ownMediaAudioPreviewIdentity(_ asset: OwnMediaAsset) -> OwnMediaAudioPreviewIdentity {
+        .init(context: currentRuntimeDependencyContext, viewerRevision: compositionViewerRevision,
+              listScope: ownMediaReader.scope, approval: ownMediaAudioPreviewApproval(asset)?.revision)
+    }
+    var ownMediaAudioPreviewAccess: OwnMediaAudioPreviewAccess {
+        .init(sourceRevision: { [weak self] asset in self?.ownMediaAudioPreviewApproval(asset)?.revision },
+              makeReader: { [weak self] asset in self?.makeOwnMediaAudioPreviewReader(asset) })
+    }
+    func makeOwnMediaAudioPreviewReader(_ asset: OwnMediaAsset,
+                metadata: (any OwnMediaAudioPreviewMetadataReading)? = nil,
+                audioReader: (any OwnMediaPrivateAudioReading)? = nil) -> OwnMediaAudioPreviewReader? {
+        let identity = ownMediaAudioPreviewIdentity(asset)
+        guard let approval = ownMediaAudioPreviewApproval(asset) else { return nil }
+        let reader = OwnMediaAudioPreviewReader(approval: approval,
+            currentContext: { [weak self] in
+                guard let self, self.ownMediaAudioPreviewIdentity(asset) == identity else { return nil }; return self.currentRuntimeDependencyContext
+            }, currentViewerRevision: { [weak self] in
+                guard let self, self.ownMediaAudioPreviewIdentity(asset) == identity else { return nil }; return self.compositionViewerRevision
+            }, selected: { [weak self] in
+                guard let self, self.ownMediaAudioPreviewIdentity(asset) == identity else { return nil }; return self.ownMediaAudioPreviewApproval(asset)
+            }, listReader: ownMediaReader, metadata: metadata, audioReader: audioReader)
+        composition.ownMediaAudioPreviewSelection.register(reader); ownMediaAudioPreviewLifetime.register(reader); return reader
+    }
+
+    let memberIdentityAvatarLifetime = MemberIdentityAvatarLifetime()
+    private var currentMemberIdentityAvatarApproval: MemberIdentityAvatarApproval? {
+        guard memberHomeReader.isSignedIn, memberHomeReader.isConfigured,
+              let context = currentRuntimeDependencyContext,
+              let approval = composition.selectedMemberIdentityAvatarApproval(context),
+              approval.viewerRevision == compositionViewerRevision else { return nil }
+        return approval
+    }
+    var memberIdentityAvatarAccess: MemberIdentityAvatarAccess {
+        .init(sourceRevision: { [weak self] in self?.currentMemberIdentityAvatarApproval?.revision },
+              makeReader: { [weak self] in self?.makeMemberIdentityAvatarReader() })
+    }
+    func makeMemberIdentityAvatarReader(transport: (any MemberIdentityAvatarDispatching)? = nil) -> MemberIdentityAvatarReader? {
+        guard let context = currentRuntimeDependencyContext, let approval = currentMemberIdentityAvatarApproval else { return nil }
+        let viewer = compositionViewerRevision, scope = memberHomeReader.scope
+        let available: () -> Bool = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewer, self.memberHomeReader.scope == scope,
+                  ContentDraftContextFence.matches(self.currentRuntimeDependencyContext, context),
+                  self.currentRuntimeDependencyContext?.session.role.utf8.elementsEqual(context.session.role.utf8) == true,
+                  self.currentMemberIdentityAvatarApproval === approval else { return false }
+            return true
+        }
+        let reader = MemberIdentityAvatarReader(approval: approval,
+            currentContext: { available() ? context : nil }, currentViewer: { available() ? viewer : nil },
+            selected: { available() ? approval : nil }, member: memberHomeReader, transport: transport)
+        memberIdentityAvatarLifetime.register(reader); return reader
+    }
+
+    let ownMediaModelPreviewLifetime = OwnMediaModelPreviewLifetime()
+    struct OwnMediaModelPreviewIdentity: Equatable {
+        let context: RuntimeDependencyContext?
+        let viewerRevision: UInt64
+        let listScope: UUID
+        let approval: UUID?
+        static func == (lhs: Self, rhs: Self) -> Bool {
+            guard lhs.viewerRevision == rhs.viewerRevision, lhs.listScope == rhs.listScope, lhs.approval == rhs.approval else { return false }
+            switch (lhs.context, rhs.context) {
+            case (nil, nil): return true
+            case let (left?, right?): return ContentDraftContextFence.matches(left, right) && left.session.role.utf8.elementsEqual(right.session.role.utf8)
+            default: return false
+            }
+        }
+    }
+    private func ownMediaModelPreviewApproval(_ asset: OwnMediaAsset) -> OwnMediaModelPreviewApproval? {
+        guard asset.id > 0, asset.mediaType == .model3D, ownMediaReader.isSignedIn, ownMediaReader.isAvailable,
+              let context = currentRuntimeDependencyContext,
+              let approval = composition.selectedOwnMediaModelPreviewApproval(assetID: asset.id, context: context),
+              approval.viewerRevision == compositionViewerRevision else { return nil }
+        return approval
+    }
+    func ownMediaModelPreviewIdentity(_ asset: OwnMediaAsset) -> OwnMediaModelPreviewIdentity {
+        .init(context: currentRuntimeDependencyContext, viewerRevision: compositionViewerRevision,
+              listScope: ownMediaReader.scope, approval: ownMediaModelPreviewApproval(asset)?.revision)
+    }
+    var ownMediaModelPreviewAccess: OwnMediaModelPreviewAccess {
+        .init(sourceRevision: { [weak self] asset in self?.ownMediaModelPreviewApproval(asset)?.revision },
+              makeReader: { [weak self] asset in self?.makeOwnMediaModelPreviewReader(asset) })
+    }
+    func makeOwnMediaModelPreviewReader(_ asset: OwnMediaAsset,
+                metadata: (any OwnMediaModelPreviewMetadataReading)? = nil,
+                modelReader: (any OwnMediaPrivateModelReading)? = nil) -> OwnMediaModelPreviewReader? {
+        let identity = ownMediaModelPreviewIdentity(asset)
+        guard let approval = ownMediaModelPreviewApproval(asset) else { return nil }
+        let reader = OwnMediaModelPreviewReader(approval: approval,
+            currentContext: { [weak self] in
+                guard let self, self.ownMediaModelPreviewIdentity(asset) == identity else { return nil }; return self.currentRuntimeDependencyContext
+            }, currentViewerRevision: { [weak self] in
+                guard let self, self.ownMediaModelPreviewIdentity(asset) == identity else { return nil }; return self.compositionViewerRevision
+            }, selected: { [weak self] in
+                guard let self, self.ownMediaModelPreviewIdentity(asset) == identity else { return nil }; return self.ownMediaModelPreviewApproval(asset)
+            }, listReader: ownMediaReader, metadata: metadata, modelReader: modelReader)
+        composition.ownMediaModelPreviewSelection.register(reader); ownMediaModelPreviewLifetime.register(reader); return reader
+    }
+
     private var ownMediaService: OwnMediaService?
     private var currentOwnMediaSession: OwnMediaSession? {
         guard let account, let token else { return nil }
         let approval = currentRuntimeDependencyContext.flatMap { context in
-            composition.ownMediaReadApproval(context).flatMap { $0.matches(context) ? $0.revision : nil }
+            composition.ownMediaReadApproval(context).flatMap { $0.matches(context) ? $0 : nil }
         }
-        return try? OwnMediaSession(accountID: account.id, epoch: gate.currentStamp, token: token, approval: approval)
+        return try? OwnMediaSession(accountID: account.id, epoch: gate.currentStamp, token: token,
+            approval: approval?.revision, statusApproved: approval?.allowsStatus == true)
     }
     lazy var ownMediaReader = OwnMediaSessionReader(service: ownMediaService,
         currentSession: { [weak self] in self?.currentOwnMediaSession },
@@ -1359,7 +3590,11 @@ final class AppSession: ObservableObject {
     private let growthCenterService:GrowthCenterService?
     private var currentGrowthCenterSession:GrowthCenterReadSession? {
         guard let account,let token else { return nil }
-        return try? GrowthCenterReadSession(accountID:account.id,epoch:gate.currentStamp,token:token)
+        let approvalRevision = currentRuntimeDependencyContext.flatMap { context in
+            composition.growthNormalReadApproval(context).flatMap { $0.matches(context) ? $0.revision : nil }
+        }
+        return try? GrowthCenterReadSession(accountID:account.id,epoch:gate.currentStamp,token:token,
+            approvalRevision:approvalRevision,viewerRevision:compositionViewerRevision)
     }
     lazy var growthCenterReader=GrowthCenterSessionReader(service:growthCenterService,currentSession:{ [weak self] in self?.currentGrowthCenterSession },onUnauthorized:{ [weak self] captured in
         guard let self,self.currentGrowthCenterSession == captured else { return }
@@ -1604,7 +3839,7 @@ final class AppSession: ObservableObject {
         if let factory = projectRuntimeFactory, factory.permits(.projectRead), let configuration = regionalConfiguration?.apiConfiguration {
             let captured = factory.captured, viewerRevision = compositionViewerRevision, configurationRevision = projectConfigurationRevision
             service = ProjectEditHTTPService(configuration: configuration, transport: factory.client([.projectRead, .projectWrite]),
-                owner: owner, approval: factory.approval([.projectWrite]), store: projectDraftStore,
+                owner: owner, approval: factory.approval([.projectRead, .projectWrite]), store: projectDraftStore,
                 currentCredentials: { [weak self] in
                     guard let self, !self.projectConfigurationChanging, self.projectConfigurationRevision == configurationRevision, self.compositionViewerRevision == viewerRevision, self.currentRuntimeDependencyContext == captured,
                           self.projectRuntimeFactory?.permits(.projectRead) == true,
@@ -1612,7 +3847,21 @@ final class AppSession: ObservableObject {
                     return try? ProjectEditCredentials(session: session, token: token)
                 })
         } else { service = ProjectEditDisabledService() }
-        return service
+        // No dedicated source grant means the normal author reader remains unavailable.
+        guard owner == .personal, let factory = projectRuntimeFactory,
+              factory.permits(.projectRead), factory.permits(.projectAuthorInputRead),
+              let editorSession = currentProjectEditSession else { return service }
+        let captured = factory.captured, revision = projectConfigurationRevision, viewer = compositionViewerRevision
+        let routes = factory.routes([.projectAuthorInputRead])
+        let reader = try? ProjectAuthorInputReader(context: captured, session: editorSession,
+            routes: routes, transport: factory.client([.projectAuthorInputRead]), current: { [weak self] in
+                guard let self, !self.projectConfigurationChanging, self.projectConfigurationRevision == revision,
+                      self.compositionViewerRevision == viewer, self.currentRuntimeDependencyContext == captured,
+                      self.currentProjectEditSession == editorSession, let current = self.projectRuntimeFactory,
+                      current.permits(.projectRead), current.permits(.projectAuthorInputRead) else { return false }
+                return current.routes([.projectAuthorInputRead]) == routes
+            })
+        return ProjectAuthorInputService(original: service, reader: reader)
     }
     private var publishingEpochCache: (stamp: UInt64, accountID: Int, role: String, epoch: UUID)?
     var publishingSession: PublishingSession? {
@@ -1716,6 +3965,7 @@ final class AppSession: ObservableObject {
         let captured = factory.captured
         let service = PublishingService(configuration: configuration, transport: factory.client([.publishingRead, .publishingWrite]),
             approval: factory.approval([.publishingWrite]), journal: composition.storage.operationJournal(),
+            activityReceiptApproval: factory.approval([.publishingRead]), activityRequestStore: publishingDraftStore,
             credentials: { [weak self] in
                 guard let self, self.currentRuntimeDependencyContext == captured, let session = self.publishingSession,
                       let token = self.token else { return nil }
@@ -2015,7 +4265,7 @@ final class AppSession: ObservableObject {
             self.expireIfMatching(error: APIError.unauthorized, stamp: self.gate.currentStamp, credential: self.token)
         }, session: currentSession)
     }
-    private var retainedTemplateAuthors: [Int: TemplateAuthoringCoordinator] = [:]
+    private var retainedTemplateAuthors: [Int: (scope: String, coordinator: TemplateAuthoringCoordinator)] = [:]
     private var retainedTemplateShelf: (identity: String, coordinator: TemplateAuthoringCoordinator)?
     private var currentTemplateShelfReadApproval: TemplateShelfReadApproval? {
         guard let context = currentRuntimeDependencyContext,
@@ -2055,6 +4305,35 @@ final class AppSession: ObservableObject {
         return try? TemplateAuthoringSession(accountID: account.id, namespace: storageScope.service,
                                              epoch: gate.currentStamp, authorizationRevision: account.effectiveRole)
     }
+    private func makeTemplateAuthoringRequestService() -> TemplateAuthoringRequestHTTPService? {
+        guard let context = currentRuntimeDependencyContext,
+              let actor = currentTemplateAuthoringSession else { return nil }
+        let revision = compositionViewerRevision
+        let configurationRevision = projectConfigurationRevision
+        let read = composition.templateAuthoringOriginalReadApproval(context)
+        let submit = composition.templateAuthoringOriginalSubmitApproval(context)
+        return compositionTransport.makeTemplateAuthoringRequestService(context: context, session: actor,
+            readApproval: read, submitApproval: submit,
+            currentRuntime: { [weak self] in
+                guard let self, self.compositionViewerRevision == revision,
+                      !self.projectConfigurationChanging,
+                      self.projectConfigurationRevision == configurationRevision,
+                      let live = self.currentTemplateAuthoringSession,
+                      TemplateAuthoringSavedResult.exactSession(live, actor) else { return nil }
+                return self.currentRuntimeDependencyContext
+            },
+            currentReadApproval: { [weak self] in
+                guard let self, self.currentRuntimeDependencyContext == context else { return nil }
+                return self.composition.templateAuthoringOriginalReadApproval(context)
+            },
+            currentSubmitApproval: { [weak self] in
+                guard let self, self.currentRuntimeDependencyContext == context else { return nil }
+                return self.composition.templateAuthoringOriginalSubmitApproval(context)
+            })
+    }
+    private var templateOriginalRequestScope: String {
+        templateAuthoringViewIdentity + ":\(compositionViewerRevision):\(projectConfigurationRevision)"
+    }
     var templateShelfViewIdentity: String {
         templateAuthoringViewIdentity + ":\(compositionViewerRevision):" + (currentTemplateShelfReadApproval?.revision.uuidString ?? "disabled")
     }
@@ -2077,14 +4356,18 @@ final class AppSession: ObservableObject {
         currentTemplateAuthoringSession.map { $0.ownerKey + ":\($0.epoch):" + $0.authorizationRevision } ?? "signed-out"
     }
     func templateAuthoringEditor(adopting source: DiscoveryPlayTemplate? = nil) -> TemplateAuthoringCoordinator {
-        let key = source?.id ?? 0
+        let key = source?.id ?? 0, scope = templateOriginalRequestScope
         let coordinator: TemplateAuthoringCoordinator
-        if let retained = retainedTemplateAuthors[key] { coordinator = retained }
+        if let retained = retainedTemplateAuthors[key], retained.scope == scope { coordinator = retained.coordinator }
         else {
-            // Production stays hard-off; exact wire adapters are authored but not mounted.
+            retainedTemplateAuthors[key]?.coordinator.leaveScreen()
+            // Default-nil selectors preserve the existing disabled production configuration.
             coordinator = TemplateAuthoringCoordinator(adapter: TemplateAuthoringAdapter(), store: templateAuthoringDraftStore,
-                                                       currentSession: { [weak self] in self?.currentTemplateAuthoringSession })
-            retainedTemplateAuthors[key] = coordinator
+                requestService: makeTemplateAuthoringRequestService(), currentSession: { [weak self] in
+                    guard let self, self.templateOriginalRequestScope == scope else { return nil }
+                    return self.currentTemplateAuthoringSession
+                })
+            retainedTemplateAuthors[key] = (scope, coordinator)
         }
         coordinator.open(seed: source.flatMap { try? TemplateAuthoringDraft.adopt($0) })
         return coordinator
@@ -2230,12 +4513,12 @@ final class AppSession: ObservableObject {
                   ContentDraftContextFence.matches(captured, current) else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
         })
-    func makeProfilePublicInfoReader(memberID: Int) -> ProfilePublicInfoReader? {
+    func makeProfilePublicInfoReader(memberID: Int, isCurrent: @escaping () -> Bool = { true }) -> ProfilePublicInfoReader? {
         guard let context = currentRuntimeDependencyContext else { return nil }
         let viewer = compositionViewerRevision
         guard let target = try? ProfilePublicInfoTarget(memberID: memberID, context: context, viewerRevision: viewer,
             current: { [weak self] in
-                guard let self, let current = self.currentRuntimeDependencyContext else { return false }
+                guard isCurrent(), let self, let current = self.currentRuntimeDependencyContext else { return false }
                 return self.compositionViewerRevision == viewer && ContentDraftContextFence.matches(context, current)
             }) else { return nil }
         return ProfilePublicInfoReader(target: target, configuration: regionalConfiguration?.apiConfiguration,
@@ -2717,18 +5000,28 @@ final class AppSession: ObservableObject {
     private let publicTemplateDetails = PublicTemplateDetailOwner()
     private let discoveryService: DiscoveryService?
     private let profileService: ProfileService?
-    private let participantService: ParticipantService?
     @Published private(set) var participantRevision: UInt64=0
-    lazy var participantWriter=ParticipantSessionWriter(service:participantService,currentSession:{ [weak self] in
-        guard let self,let account=self.account,let token=self.token else { return nil }
-        return try? ParticipantWriteSession(accountID:account.id,epoch:self.gate.currentStamp,token:token)
-    },onUnauthorized:{ [weak self] snapshot in
-        guard let self else { return }
-        self.expireIfMatching(error:APIError.unauthorized,stamp:snapshot.identity.epoch,credential:self.token)
-    })
-    lazy var participantCoordinator=ParticipantMutationCoordinator(writer:participantWriter,reader:profileReader,onParticipantsChanged:{ [weak self] in
-        self?.participantRevision &+= 1
-    })
+    /// No capability is issued by a login, profile row, role or shipped configuration.
+    @Published var participantAccessSelector: (RuntimeDependencyContext) -> ProfileParticipantAccess? = { _ in nil } {
+        didSet { retainedParticipantHost.invalidateAccess() }
+    }
+    private lazy var retainedParticipantHost = ProfileParticipantHost(
+        current: { [weak self] in self?.currentRuntimeDependencyContext },
+        viewer: { [weak self] in self?.compositionViewerRevision ?? 0 },
+        access: { [weak self] context in self?.participantAccessSelector(context) },
+        makeTransport: { [weak self] context, access, current in
+            guard let self else { return nil }
+            return self.compositionTransport.makeProfileParticipantTransport(context: context, access: access,
+                currentRuntime: { [weak self] in self?.currentRuntimeDependencyContext }, stillCurrent: current)
+        }, changed: { [weak self] in self?.participantRevision &+= 1 },
+        unauthorized: { [weak self] context, viewer in
+            guard let self, self.compositionViewerRevision == viewer,
+                  ContentDraftContextFence.matches(self.currentRuntimeDependencyContext, context) else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+        })
+    var participantReader: any ProfileReading { retainedParticipantHost.reader }
+    var participantWriter: any ParticipantWriting { retainedParticipantHost.writer }
+    var participantCoordinator: ParticipantMutationCoordinator { retainedParticipantHost.coordinator }
     private var retainedMerchantOverview: (context: RuntimeDependencyContext, revision: UInt64, approval: UUID, reader: MerchantOverviewReader)?
     var merchantOverviewReader: MerchantOverviewReader? {
         guard let context = currentRuntimeDependencyContext, let api = regionalConfiguration?.apiConfiguration,
@@ -2907,6 +5200,98 @@ final class AppSession: ObservableObject {
     lazy var merchantBusinessJournal = MerchantBusinessFileIntentStore(
         url: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent((storageScope?.service ?? "unconfigured") + "/MerchantBusiness/intents-v1.json"))
+    private var clubBadgeConfiguration = UInt64(0)
+    private var clubBadgeConfigurationChanging = false
+    private lazy var clubBadgeOriginalJournal = ClubBadgeManagementJournal(directory:
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?
+            .appendingPathComponent("ClubBadgeOriginalRequests", isDirectory: true))
+    func withClubBadgeConfigurationChange(_ change: () -> Void) {
+        clubBadgeConfigurationChanging = true; clubBadgeConfiguration &+= 1
+        change(); clubBadgeConfigurationChanging = false; objectWillChange.send()
+    }
+    func clubBadgeHost(clubID: Int) -> ClubBadgeHost? {
+        guard !clubBadgeConfigurationChanging, let context = currentRuntimeDependencyContext,
+              let issued = composition.clubBadgeManagementApproval(context),
+              issued.permits(context, clubID: clubID, writing: false) else { return nil }
+        let configuration = clubBadgeConfiguration, viewer = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, !self.clubBadgeConfigurationChanging, self.clubBadgeConfiguration == configuration,
+                  self.compositionViewerRevision == viewer, self.currentRuntimeDependencyContext == context,
+                  self.composition.clubBadgeManagementApproval(context)?.revision == issued.revision else { return nil }
+            return context
+        }
+        return ClubBadgeHost(id: "\(sessionRevision):\(configuration):\(issued.revision)", make: { [weak self] in
+            guard let self, current() != nil,
+                  let service = self.composition.makeClubBadgeService(context: context, clubID: clubID, approval: issued,
+                    current: current, unauthorized: { [weak self] in
+                        guard let self, current() != nil else { return }
+                        self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+                    }) else { return nil }
+            return ClubBadgeManagementFlow(service: service, journal: self.clubBadgeOriginalJournal)
+        })
+    }
+    private var merchantReviewOriginalConfiguration = UInt64(0)
+    private var merchantReviewOriginalConfigurationChanging = false
+    /// Revoke old readers before changing the injected selector, including A -> nil -> A.
+    func withMerchantReviewOriginalReadConfigurationChange(_ change: () -> Void) {
+        merchantReviewOriginalConfigurationChanging = true
+        merchantReviewOriginalConfiguration &+= 1
+        change()
+        merchantReviewOriginalConfigurationChanging = false
+        objectWillChange.send()
+    }
+    var merchantReviewOriginalRecoveryRevision: String {
+        guard let context = currentRuntimeDependencyContext else { return "unavailable:\(merchantReviewOriginalConfiguration)" }
+        return "\(compositionViewerRevision):\(merchantReviewOriginalConfiguration):\(context.session.accountID):\(context.session.epoch):"
+            + (composition.merchantReviewOriginalReadApproval(context)?.revision.uuidString ?? "disabled")
+    }
+    func makeMerchantReviewOriginalReceiptReader() -> MerchantReviewOriginalReceiptReader? {
+        makeMerchantReviewOriginalRecoveryAccess(isCurrent: { true })?.reader
+    }
+    /// The visible recovery visit narrows the existing independent read grant. It never creates one.
+    func makeMerchantReviewOriginalRecoveryAccess(isCurrent: @escaping () -> Bool) -> MerchantReviewOriginalRecoveryAccess? {
+        guard isCurrent(), !merchantReviewOriginalConfigurationChanging,
+              let context = currentRuntimeDependencyContext,
+              let approval = composition.merchantReviewOriginalReadApproval(context),
+              approval.matches(context) else { return nil }
+        let configuration = merchantReviewOriginalConfiguration, viewer = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard isCurrent(), let self, !self.merchantReviewOriginalConfigurationChanging,
+                  self.merchantReviewOriginalConfiguration == configuration,
+                  self.compositionViewerRevision == viewer,
+                  let live = self.currentRuntimeDependencyContext, approval.matches(live),
+                  let latest = self.composition.merchantReviewOriginalReadApproval(live),
+                  latest.revision == approval.revision, latest.matches(live) else { return nil }
+            return live
+        }
+        guard let reader = composition.makeMerchantReviewOriginalReceiptReader(context: context, approval: approval,
+            reader: merchantBusinessReader, journal: merchantBusinessJournal, current: current,
+            currentSession: { [weak self] in current() == nil ? nil : self?.currentMerchantBusinessSession },
+            unauthorized: { [weak self] captured in
+                guard let self, current() != nil, self.currentMerchantBusinessSession == captured else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
+            }) else { return nil }
+        return .init(reader: reader, isCurrent: { current() != nil })
+    }
+    /// Constructs only a typed receipt reader; neither VERIFY nor a signed-in role issues its grant.
+    func makeCityNodeReceiptReader() -> CityNodeRedemptionReceiptReader? {
+        guard let context = currentRuntimeDependencyContext,
+              let approval = composition.cityNodeReceiptApproval(context), approval.matches(context) else { return nil }
+        let revision = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self, weak approval] in
+            guard let self, let approval, self.compositionViewerRevision == revision,
+                  let live = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, live), context.session == live.session,
+                  self.composition.cityNodeReceiptApproval(live) === approval, approval.matches(live) else { return nil }
+            return live
+        }
+        return compositionTransport.makeCityNodeReceiptReader(context: context, revision: revision,
+            approval: approval, currentRuntime: current,
+            currentRevision: { [weak self] in self?.compositionViewerRevision ?? UInt64.max },
+            currentApproval: { [weak self] in
+                guard let live = current() else { return nil }; return self?.composition.cityNodeReceiptApproval(live)
+            })
+    }
     private func makeMerchantVerificationService() -> MerchantBusinessService? {
         guard let factory = businessRuntimeFactory, factory.permits(.directVerification),
               factory.routes([.directVerification]).contains(where: { MerchantVerificationHTTPTransport.paths.contains($0.path) }),
@@ -2991,14 +5376,74 @@ final class AppSession: ObservableObject {
         })
     /// Real withdraw port behind `CoopFlowService.permitsDispatch`. The production
     /// service is built with the closed defaults, so the POST does not leave.
+    // Both protocols use the existing legacy file. Unknown historical roots and older
+    // processes have NOT been certified: new original writes remain closed.
+    lazy var offerWithdrawalOriginalComposition = MerchantOfferWithdrawalOriginalComposition(
+        legacyLockURL: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .resolvingSymlinksInPath()
+            .appendingPathComponent((storageScope?.service ?? "unconfigured") + "/CoopFlow/offer-withdraw-locks-v1.json"),
+        storageNamespace: storageScope?.service ?? "unconfigured",
+        // Source: 947fd52 AppSession factory, lines 303–304. This is only the
+        // proven original-v1 root; it does not certify every historical installation.
+        historicalRoots: [FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .resolvingSymlinksInPath().appendingPathComponent("MerchantOfferWithdrawal/original-v1")],
+        compatibilityApproved: { false })
+    private var offerWithdrawalReadGeneration = UInt64(0)
+    private var offerWithdrawalReadChanging = false
+    func withOfferWithdrawalOriginalReadConfigurationChange(_ change: () -> Void) {
+        offerWithdrawalReadChanging = true
+        offerWithdrawalReadGeneration &+= 1
+        change()
+        offerWithdrawalReadChanging = false
+        objectWillChange.send()
+    }
+    var offerWithdrawalRecoveryEntryRevision: String {
+        guard let c = currentRuntimeDependencyContext else { return "unavailable:\(offerWithdrawalReadGeneration)" }
+        return "\(compositionViewerRevision):\(offerWithdrawalReadGeneration):\(c.session.accountID):\(c.session.epoch):"
+            + (composition.merchantOfferWithdrawalOriginalReadApproval(c)?.revision.uuidString ?? "disabled")
+    }
+    func makeMerchantOfferWithdrawalRecoveryDestination() async -> AnyView? {
+        guard !offerWithdrawalReadChanging, let context = currentRuntimeDependencyContext,
+              let approval = composition.merchantOfferWithdrawalOriginalReadApproval(context), approval.matches(context),
+              storageScope?.service == context.session.namespace,
+              offerWithdrawalOriginalComposition.storageNamespace == context.session.namespace else { return nil }
+        let version = offerWithdrawalReadGeneration, viewer = compositionViewerRevision
+        let current: () -> Bool = { [weak self] in
+            guard let self, !self.offerWithdrawalReadChanging,
+                  self.offerWithdrawalReadGeneration == version, self.compositionViewerRevision == viewer,
+                  let live = self.currentRuntimeDependencyContext, approval.matches(live),
+                  self.storageScope?.service == context.session.namespace,
+                  let latest = self.composition.merchantOfferWithdrawalOriginalReadApproval(live),
+                  latest.revision == approval.revision, latest.matches(live) else { return false }
+            return true
+        }
+        guard let transport = composition.makeMerchantOfferWithdrawalOriginalReadTransport(approval: approval, current: current),
+              let api = try? APIConfiguration(baseURL: context.baseURL) else { return nil }
+        let reader = merchantOperationsReader
+        let authorize: () async throws -> Void = {
+            guard current() else { throw APIError.notConfigured }
+            let fresh = try await reader.access()
+            guard !Task.isCancelled, current(), approval.accepts(fresh.identity) else { throw APIError.notConfigured }
+        }
+        do { try await authorize() } catch { return nil }
+        guard current(), !Task.isCancelled else { return nil }
+        let identity = MerchantOfferWithdrawalOriginalComposition.Identity(actorID: context.session.accountID,
+            merchantID: approval.merchantID, ownerID: approval.ownerID, namespace: context.session.namespace, epoch: context.session.epoch)
+        return offerWithdrawalOriginalComposition.recovery(api: api, transport: transport, identity: identity,
+            token: { [weak self] in current() ? self?.token : nil },
+            current: { current() ? identity : nil }, readApproved: current, authorize: authorize,
+            unauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
     lazy var offerWithdrawalExecutor: any MerchantOfferWithdrawalExecuting = makeOfferWithdrawalExecutor()
     private func makeOfferWithdrawalExecutor() -> any MerchantOfferWithdrawalExecuting {
         guard let service = cooperationFlowService else { return MerchantOfferWithdrawalDormantExecutor() }
         let reader = cooperationFlowReader
         return MerchantOfferWithdrawalProtectedExecutor.gated(service: service, reader: reader,
             coopSession: { [weak self] in self?.currentCooperationFlowSession },
-            locks: CoopFlowFileLocks(url: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-                .appendingPathComponent((storageScope?.service ?? "unconfigured") + "/CoopFlow/offer-withdraw-locks-v1.json")),
+            locks: offerWithdrawalOriginalComposition.store,
             topic: { [weak self] topicID in
                 guard let self else { return nil }
                 let snapshot = try await self.merchantContentService.load(.chapters(topicID: topicID))
@@ -3043,7 +5488,19 @@ final class AppSession: ObservableObject {
         self?.currentClubGovernanceSession
     }, productionService: { [weak self] command in
         guard let self, let api = self.regionalConfiguration?.apiConfiguration else { return nil }
-        return ClubGovernanceProductionFactory(api: api, approval: self.runtimeDependencies.clubGovernanceApproval,
+        let selected: ClubGovernanceProductionApproval?
+        if command.operation == .assignRole {
+            guard let context = self.currentRuntimeDependencyContext,
+                  let issued = self.composition.clubRoleAssignmentApproval(context),
+                  issued.permits(context, scope: command.scope, writing: true) else { return nil }
+            selected = issued.productionApproval
+        } else if command.operation == .revokeRole {
+            guard let context = self.currentRuntimeDependencyContext,
+                  let issued = self.composition.clubRoleRevocationApproval(context),
+                  issued.permits(context, scope: command.scope, writing: true) else { return nil }
+            selected = issued.productionApproval
+        } else { selected = self.runtimeDependencies.clubGovernanceApproval }
+        return ClubGovernanceProductionFactory(api: api, approval: selected,
             transport: self.runtimeHTTPTransport, current: { [weak self] in self?.currentRuntimeDependencyContext }).service(for: command)
     }, runtimeContext: { [weak self] in self?.currentRuntimeDependencyContext }, viewerRevision: { [weak self] in self?.compositionViewerRevision ?? 0 }, onUnauthorized: { [weak self] identity in
         guard let self, self.currentClubGovernanceSession?.identity == identity else { return }
@@ -3052,7 +5509,32 @@ final class AppSession: ObservableObject {
     // Session-lived: unresolved operations cannot be replayed by reopening a sheet.
     lazy var clubGovernanceCoordinator = ClubGovernanceCoordinator(access: clubGovernanceAccess,
         journal: ClubGovernanceFileIntentStore(directory: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("ClubGovernanceIntents", isDirectory: true)))
+            .appendingPathComponent("ClubGovernanceIntents", isDirectory: true)),
+        roleAssignment: clubRoleAssignmentRecovery, roleRevocation: clubRoleRevocationRecovery)
+    private lazy var clubRoleAssignmentRecovery: ClubRoleAssignmentRecovery? = {
+        guard let directory = composition.clubRoleAssignmentJournalDirectory else { return nil }
+        return ClubRoleAssignmentRecovery(current: { [weak self] in self?.currentRuntimeDependencyContext },
+            approval: { [weak self] in self?.composition.clubRoleAssignmentApproval($0) },
+            client: ClubRoleAssignmentClient(transport: runtimeHTTPTransport,
+                current: { [weak self] in self?.currentRuntimeDependencyContext },
+                approval: { [weak self] in self?.composition.clubRoleAssignmentApproval($0) },
+                unauthorized: { [weak self] context in
+                    guard let self, self.currentRuntimeDependencyContext == context else { return }
+                    self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+                }), journal: ClubRoleAssignmentJournal(directory: directory))
+    }()
+    private lazy var clubRoleRevocationRecovery: ClubRoleRevocationRecovery? = {
+        guard let directory = composition.clubRoleRevocationJournalDirectory else { return nil }
+        return ClubRoleRevocationRecovery(current: { [weak self] in self?.currentRuntimeDependencyContext },
+            approval: { [weak self] in self?.composition.clubRoleRevocationApproval($0) },
+            client: ClubRoleRevocationClient(transport: runtimeHTTPTransport,
+                current: { [weak self] in self?.currentRuntimeDependencyContext },
+                approval: { [weak self] in self?.composition.clubRoleRevocationApproval($0) },
+                unauthorized: { [weak self] context in
+                    guard let self, self.currentRuntimeDependencyContext == context else { return }
+                    self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+                }), journal: ClubRoleRevocationJournal(directory: directory))
+    }()
     lazy var clubOwnerRefundCoordinator = ClubOwnerRefundCoordinator(
         access: ClubOwnerRefundConfiguredAccess(fallback: ClubOwnerRefundReadOnlyAccess(governance: clubGovernanceAccess),
             configuration: regionalConfiguration?.apiConfiguration, approval: runtimeDependencies.ownerRefundApproval,
@@ -3079,7 +5561,34 @@ final class AppSession: ObservableObject {
         guard let account, let token else { return nil }
         return try? ClubOperationsSession(accountID: account.id, epoch: gate.currentStamp, token: token, storageNamespace: storageScope?.service ?? "")
     }
-    lazy var clubOperationsAccess = ClubOperationsSessionAccess(service: clubOperationsService, currentSession: { [weak self] in self?.currentClubOperationsSession }, onUnauthorized: { [weak self] captured in
+    private lazy var clubWelcomeNoteService: ClubWelcomeNoteService? = {
+        guard let configuration = regionalConfiguration?.apiConfiguration,
+              let runtime = composition.makeClubWelcomeNoteRuntime(transport: compositionTransport,
+                current: { [weak self] in self?.currentRuntimeDependencyContext }) else { return nil }
+        return ClubWelcomeNoteService(configuration: configuration, runtime: runtime,
+            currentSession: { [weak self] in self?.currentClubOperationsSession },
+            revision: { [weak self] in self?.compositionViewerRevision ?? 0 })
+    }()
+    /// Optional local-content store only. No default Keychain construction or network permission.
+    var clubProfileLocalDraftStore: ClubProfileLocalDraftStore? = nil
+    private var clubProfileDraftContext: ClubProfileLocalDraftContext? {
+        guard let store = clubProfileLocalDraftStore, let session = currentClubOperationsSession,
+              let runtime = currentRuntimeDependencyContext, let namespace = storageScope?.service,
+              !namespace.isEmpty, session.storageNamespace == namespace,
+              runtime.session.accountID == session.identity.accountID,
+              runtime.session.epoch == session.identity.epoch else { return nil }
+        // Preserve the original local key namespace; role is a live fence, not a new persisted identity.
+        let localNamespace = runtime.baseURL.absoluteString + "|" + namespace
+        let revision = compositionViewerRevision
+        return .init(store: store, namespace: localNamespace, identity: session.identity, viewerRevision: revision,
+            current: { [weak self] in
+                guard let self else { return false }
+                return self.clubProfileLocalDraftStore === store && self.currentClubOperationsSession == session &&
+                    self.currentRuntimeDependencyContext == runtime && self.storageScope?.service == namespace &&
+                    self.compositionViewerRevision == revision
+            })
+    }
+    lazy var clubOperationsAccess = ClubOperationsSessionAccess(service: clubOperationsService, currentSession: { [weak self] in self?.currentClubOperationsSession }, welcomeNote: clubWelcomeNoteService, welcomeNoteRevision: { [weak self] in self?.compositionViewerRevision ?? 0 }, profileDrafts: { [weak self] in self?.clubProfileDraftContext }, onUnauthorized: { [weak self] captured in
         guard let self, self.currentClubOperationsSession == captured else { return }
         self.expireIfMatching(error: APIError.unauthorized, stamp: captured.identity.epoch, credential: self.token)
     })
@@ -3112,17 +5621,52 @@ final class AppSession: ObservableObject {
     lazy var profileEditCoordinator=ProfileEditCoordinator(service:profileEditService,currentSession:{ [weak self] in self?.currentProfileEditSession },onUnauthorized:{ [weak self] captured in
         guard let self,self.currentProfileEditSession == captured else { return }
         self.expireIfMatching(error:APIError.unauthorized,stamp:captured.identity.epoch,credential:self.token)
-    },onSaved:{ [weak self] in Task { await self?.refreshOwnAccount() } })
+    },onSaved:{ [weak self] in
+        // Capture the saved account before enqueueing; a later account cannot inherit this read.
+        guard let refresh = self?.prepareOwnAccountRefresh() else { return }
+        Task { await refresh() }
+    })
+    private var ownAccountRefreshRequestID = UUID()
     func refreshOwnAccount() async {
-        guard let accountSessionService, accountSessionService.storageScope == storageScope,
-              let credential=token,let accountID=account?.id else { return }
-        let stamp=gate.currentStamp
-        do {
-            let fresh=try await accountSessionService.currentAccount(token:credential)
-            guard !Task.isCancelled,gate.currentStamp == stamp,token == credential,account?.id == accountID,fresh.id == accountID else { return }
-            account=fresh
-        } catch { expireIfMatching(error:error,stamp:stamp,credential:credential) }
+        guard let refresh = prepareOwnAccountRefresh() else { return }
+        await refresh()
     }
+    /// One read of the account that initiated it. Newer requests retire older results,
+    /// even when their account/role/token are identical and no viewer revision changes.
+    func prepareOwnAccountRefresh() -> (@MainActor () async -> Void)? {
+        guard !Task.isCancelled,
+              let accountSessionService, accountSessionService.storageScope == storageScope,
+              let credential=token,let accountID=account?.id else { return nil }
+        let stamp=gate.currentStamp, viewerRevision=compositionViewerRevision
+        let requestID = UUID()
+        ownAccountRefreshRequestID = requestID
+        var started = false
+        return { [weak self] in
+            guard let self, !started else { return }
+            started = true
+            guard !Task.isCancelled, ownAccountRefreshRequestID == requestID,
+                  gate.currentStamp == stamp, token == credential, account?.id == accountID,
+                  compositionViewerRevision == viewerRevision else { return }
+            do {
+                let fresh=try await accountSessionService.currentAccount(token:credential)
+                guard !Task.isCancelled,gate.currentStamp == stamp,token == credential,account?.id == accountID,fresh.id == accountID,
+                      ownAccountRefreshRequestID == requestID, compositionViewerRevision == viewerRevision else { return }
+                account=fresh
+            } catch {
+                guard !Task.isCancelled, ownAccountRefreshRequestID == requestID,
+                      gate.currentStamp == stamp, token == credential, account?.id == accountID,
+                      compositionViewerRevision == viewerRevision else { return }
+                expireIfMatching(error:error,stamp:stamp,credential:credential)
+            }
+        }
+    }
+    func compositionClubOrdinaryAdmissionApproval(_ context: RuntimeDependencyContext) -> ClubOrdinaryAdmissionApproval? {
+        composition.clubOrdinaryAdmissionApproval(context)
+    }
+    private lazy var clubAdmissionJournal: (any ClubOrdinaryAdmissionJournaling)? = {
+        guard let scope = storageScope else { return nil }
+        return ClubOrdinaryAdmissionComposition.journal(namespace: scope.service)
+    }()
     private let clubActionService: ClubActionService?
     @Published private(set) var clubMembershipRevision: UInt64 = 0
     private var currentClubActionSession: ClubActionSession? {
@@ -3136,10 +5680,13 @@ final class AppSession: ObservableObject {
         // A late failure can never expire a replacement account or token.
         guard let self, self.currentClubActionSession == snapshot else { return }
         self.expireIfMatching(error: APIError.unauthorized, stamp: snapshot.identity.epoch, credential: self.token)
-    })
+    }, approval: { [weak self] in
+        guard let self, let context = self.currentRuntimeDependencyContext else { return nil }
+        return ClubOrdinaryAdmissionComposition.approval(context: context, select: self.compositionClubOrdinaryAdmissionApproval)
+    }, requiresOriginalReceipt: true)
     lazy var clubActionCoordinator = ClubActionCoordinator(writer: clubActionWriter, reader: clubReader, onMembershipChanged: { [weak self] _ in
         self?.clubMembershipRevision &+= 1
-    })
+    }, journal: clubAdmissionJournal)
     private let roamLiveDependencies: NativeRoamLiveDependencies
     private var retainedRoamLiveSession: RoamLiveSessionController?
     func makeRoamLiveSessionController() -> RoamLiveSessionController {
@@ -3176,6 +5723,34 @@ final class AppSession: ObservableObject {
         currentSession: { [weak self] in self?.currentRoamExperienceSession }, onUnauthorized: { [weak self] captured in
             guard let self, self.currentRoamExperienceSession == captured else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.identity.epoch, credential: self.token)
+        })
+    /// Original received-stamp metadata uses its own default-nil capability, never album or exchange authority.
+    lazy var roamReceivedStampReader = RoamReceivedStampReader(
+        service: regionalConfiguration?.apiConfiguration.map { RoamReceivedStampService(configuration: $0, transport: compositionTransport) },
+        current: { [weak self] in self?.currentRuntimeDependencyContext },
+        viewerRevision: { [weak self] in self?.compositionViewerRevision ?? 0 },
+        access: { [weak self] context in
+            guard let self, let fresh = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, fresh) else { return nil }
+            return self.composition.roamReceivedStampReadAccess(context)
+        }, onUnauthorized: { [weak self] captured in
+            guard let self, let fresh = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(captured, fresh) else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+        })
+    /// Original c6 passport reads have their own default-nil capability, never the tools grant.
+    lazy var roamPassportHistoryReader = RoamPassportHistoryReader(
+        service: regionalConfiguration?.apiConfiguration.map { RoamPassportHistoryService(configuration: $0, transport: compositionTransport) },
+        current: { [weak self] in self?.currentRuntimeDependencyContext },
+        viewerRevision: { [weak self] in self?.compositionViewerRevision ?? 0 },
+        access: { [weak self] context in
+            guard let self, let fresh = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, fresh) else { return nil }
+            return self.composition.roamPassportHistoryReadAccess(context)
+        }, onUnauthorized: { [weak self] captured in
+            guard let self, let fresh = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(captured, fresh) else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
         })
     lazy var roamAlbumMetadataReader = RoamAlbumMetadataReader(service: roamExperienceService,
         current: { [weak self] in self?.currentRuntimeDependencyContext },
@@ -3297,7 +5872,7 @@ final class AppSession: ObservableObject {
     func roamEntryTeams(area: RoamSearchArea) async -> [NearbyTeam]? {
         let reader = makeNearbyTeamCoordinator()
         reader.bind(nearbyTeamSession)
-        guard reader.configured, reader.authenticated else { return [] }
+        guard reader.configured, reader.authenticated else { return nil }
         await reader.loadNearby(.init(latitude: area.coordinate.latitude, longitude: area.coordinate.longitude, radius: RoamEntryNearbyRoute.radius))
         return reader.messageKey == nil ? reader.teams : nil
     }
@@ -3422,29 +5997,39 @@ final class AppSession: ObservableObject {
     private struct GroupPollOwnerKey: Hashable { let scope: IMScope; let reference: GroupPollReference? }
     private var groupPollOwners: [GroupPollOwnerKey: GroupPollCoordinator] = [:]
     func groupPollCoordinator(conversationID: Int, reference: GroupPollReference?) -> GroupPollCoordinator? {
-        guard let account, let token, let namespace = storageScope?.service,
+        guard let account, let token, let storageScope,
               let configuration = regionalConfiguration?.apiConfiguration,
               let snapshot = try? GroupPollSession(accountID: account.id, epoch: gate.currentStamp, token: token),
               let scope = try? IMScope(identity: snapshot.identity, conversationID: conversationID) else { return nil }
         let key = GroupPollOwnerKey(scope: scope, reference: reference)
-        if let owner = groupPollOwners[key] { return owner }
+        if let owner = groupPollOwners[key], owner.isCurrent { return owner }
+        groupPollOwners = groupPollOwners.filter { $0.value.isCurrent }
         let captured = currentRuntimeDependencyContext
-        let features: Set<BusinessRuntimeFeature> = [.imPollResult, .imPollCreate, .imPollVote, .imPollClose]
+        let features: Set<BusinessRuntimeFeature> = [.imPollResult, .imPollCreate, .imPollVote, .imPollClose, .imPollCreateReceipt]
+        let pollRuntime = channelHostRuntimeFactory(features)
         let service: GroupPollService?
-        if let factory = businessRuntimeFactory {
+        if let (factory, _) = pollRuntime {
             service = GroupPollService(configuration: configuration, transport: factory.client(features),
                 enabledPaths: Set(factory.routes(features).map(\.path)))
         } else { service = nil }
         let client = GroupPollSessionClient(service: service, session: { [weak self] in
-            guard let self, self.currentRuntimeDependencyContext == captured, let account = self.account, let token = self.token else { return nil }
+            guard pollRuntime?.1.isCurrent ?? true, let self, self.currentRuntimeDependencyContext == captured, let account = self.account, let token = self.token else { return nil }
             return try? GroupPollSession(accountID: account.id, epoch: self.gate.currentStamp, token: token)
         }, onUnauthorized: { [weak self] value in
-            guard let self, self.currentRuntimeDependencyContext == captured else { return }
+            guard pollRuntime?.1.isCurrent ?? true, let self, self.currentRuntimeDependencyContext == captured else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: value.identity.epoch, credential: self.token)
         })
-        guard let owner = try? GroupPollCoordinator(scope: scope, reference: reference, client: client,
-            reader: messagingReader, journal: composition.storage.operationJournal(), namespace: namespace, realm: configuration.baseURL) else { return nil }
-        groupPollOwners[key] = owner; return owner
+        // All real app entries share the same original create lock and protected
+        // payload. A normal message detail must not clear a host-created draft.
+        guard let recovery = try? GroupPollCreateRecoveryJournal(storage: ProjectEditSecureStorage(scope: storageScope),
+            namespace: storageScope.service, realm: configuration.baseURL, accountID: account.id,
+            conversationID: conversationID),
+              let owner = try? GroupPollCoordinator(scope: scope, reference: reference, client: client,
+            reader: messagingReader, journal: composition.storage.operationJournal(), namespace: storageScope.service,
+            realm: configuration.baseURL, creationRecovery: recovery) else { return nil }
+        // A disabled explanatory owner must not become a permanent nil-service
+        // cache entry if the separately issued configuration later changes.
+        if pollRuntime != nil { groupPollOwners[key] = owner }; return owner
     }
     private let messagingService: MessagingService?
     private let messageActionService: MessageActionService?
@@ -3505,6 +6090,66 @@ final class AppSession: ObservableObject {
         guard let self else { return }
         self.expireIfMatching(error:APIError.unauthorized,stamp:snapshot.identity.epoch,credential:self.token)
     })
+    private var currentClubPublicTopicsSession: ClubPublicTopicsSession? {
+        guard !committingAuthenticatedSession, let api = regionalConfiguration?.apiConfiguration,
+              let namespace = storageScope?.service else { return nil }
+        let context = ClubPublicTopicsContext(identity: .init(accountID: account?.id, epoch: gate.currentStamp),
+            viewerRevision: compositionViewerRevision, role: account?.effectiveRole,
+            baseURL: api.baseURL, namespace: namespace)
+        return try? ClubPublicTopicsSession(context: context, membershipRevision: clubMembershipRevision, token: token)
+    }
+    func clubPublicTopicsScope(clubID: Int) -> ClubPublicTopicsScope? {
+        guard clubID > 0, let captured = currentClubPublicTopicsSession,
+              let issued = composition.clubPublicTopicsApproval(captured.context, clubID),
+              issued.context == captured.context, issued.clubID == clubID else { return nil }
+        return .init(approval: issued, membershipRevision: captured.membershipRevision)
+    }
+    /// Retained readers cannot adopt a new account, membership revision or issuance.
+    func makeClubPublicTopicsReader(clubID: Int) -> ClubPublicTopicsReader? {
+        guard let api = regionalConfiguration?.apiConfiguration,
+              let captured = currentClubPublicTopicsSession,
+              let scope = clubPublicTopicsScope(clubID: clubID) else { return nil }
+        let available: () -> Bool = { [weak self] in
+            guard let self, self.currentClubPublicTopicsSession == captured,
+                  self.clubPublicTopicsScope(clubID: clubID) == scope else { return false }
+            return true
+        }
+        return ClubPublicTopicsReader(configuration: api, transport: compositionTransport,
+            currentSession: { available() ? captured : nil },
+            approval: { context, requestedClub in
+                guard available(), context == captured.context, requestedClub == clubID else { return nil }
+                return scope.approval
+            }, onUnauthorized: { [weak self] snapshot in
+                guard let self, available(), snapshot == captured else { return }
+                self.expireIfMatching(error: APIError.unauthorized,
+                    stamp: captured.context.identity.epoch, credential: self.token)
+            })
+    }
+    /// One reader retains one original issuance and viewer lifetime; never mints approval.
+    var clubPublicRosterReader: ClubPublicRosterReader? {
+        guard let api = regionalConfiguration?.apiConfiguration,
+              let context = currentRuntimeDependencyContext,
+              let issued = composition.clubPublicRosterApproval(context),
+              issued.identity == ClubReadIdentity(accountID: context.session.accountID, epoch: context.session.epoch),
+              issued.baseURL == api.baseURL,
+              let captured = try? ClubPublicRosterSession(accountID: context.session.accountID,
+                  epoch: context.session.epoch, token: context.session.token) else { return nil }
+        let viewer = compositionViewerRevision
+        let available: () -> Bool = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewer,
+                  ContentDraftContextFence.matches(self.currentRuntimeDependencyContext, context),
+                  self.composition.clubPublicRosterApproval(context) == issued else { return false }
+            return true
+        }
+        return ClubPublicRosterReader(configuration: api, transport: compositionTransport,
+            currentSession: { available() ? captured : nil },
+            approval: { available() ? issued : nil },
+            onUnauthorized: { [weak self] snapshot in
+                guard let self, available(), snapshot == captured else { return }
+                self.expireIfMatching(error: APIError.unauthorized,
+                    stamp: captured.identity.epoch, credential: context.session.token)
+            })
+    }
     lazy var clubReader=ClubSessionReader(service:clubService,currentSession:{ [weak self] in
         guard let self else { return ClubReadSession(guestEpoch:0) }
         if let account=self.account, let token=self.token,
@@ -3519,6 +6164,33 @@ final class AppSession: ObservableObject {
     var isSignedIn: Bool { account != nil && token != nil }
     var sessionRevision: UInt64 { gate.currentStamp }
     var contentDetailRevision: UInt64 { compositionViewerRevision }
+    // Fresh owned-order detail supplies only registration identity. The bundle service resolves topic.
+    var freeExploreBundleReadProvider: FreeExploreBundleReadProvider? {
+        guard let context = currentRuntimeDependencyContext, let scope = storageScope,
+              let originSession = currentOwnedOrderSession,
+              let approval = composition.freeExploreBundleReadApproval(context), approval.matches(context) else { return nil }
+        let viewer = compositionViewerRevision
+        let origin = ownedOrderReader
+        let identity = ObjectIdentifier(origin)
+        let available: () -> Bool = { [weak self] in
+            guard let self else { return false }
+            return self.currentRuntimeDependencyContext == context && self.compositionViewerRevision == viewer &&
+                self.currentOwnedOrderSession == originSession && ObjectIdentifier(self.ownedOrderReader) == identity &&
+                self.ownedOrderReader.isConfigured && self.ownedOrderReader.identity == originSession.identity &&
+                self.composition.freeExploreBundleReadApproval(context) === approval && approval.matches(context)
+        }
+        return FreeExploreBundleReadProvider(revision: approval.revision, available: available, make: { [weak self] order, requestedID, reader in
+            guard let self, available(), ObjectIdentifier(reader) == identity,
+                  requestedID > 0, order.id == requestedID, order.memberID == context.session.accountID,
+                  let registrationID = Int64(exactly: requestedID) else { return nil }
+            return self.composition.makeFreeExploreBundleReadHost(registrationID: registrationID, context: context,
+                scope: scope, currentContext: { [weak self] in available() ? self?.currentRuntimeDependencyContext : nil },
+                originCurrent: available, unauthorized: { [weak self] in
+                    guard let self, available() else { return }
+                    self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+                })
+        })
+    }
     private var currentOwnedOrderSession: OwnedOrderReadSession? {
         guard let context = currentRuntimeDependencyContext,
               let approval = composition.ownedOrderReadApproval(context), approval.matches(context) else { return nil }
@@ -3543,6 +6215,322 @@ final class AppSession: ObservableObject {
         guard let self else { return }
         self.expireIfMatching(error:APIError.unauthorized,stamp:snapshot.identity.epoch,credential:self.token)
     })
+    struct MemberReportProgressIdentity: Equatable {
+        let context: RuntimeDependencyContext?
+        let approvalRevision: UUID?
+        let sourceRevision: UUID
+        let viewerRevision: UInt64
+        static func == (lhs: Self, rhs: Self) -> Bool {
+            guard lhs.approvalRevision == rhs.approvalRevision, lhs.sourceRevision == rhs.sourceRevision,
+                  lhs.viewerRevision == rhs.viewerRevision else { return false }
+            switch (lhs.context, rhs.context) {
+            case (nil, nil): return true
+            case let (left?, right?): return ContentDraftContextFence.matches(left, right) && left.session.role.utf8.elementsEqual(right.session.role.utf8)
+            default: return false
+            }
+        }
+    }
+    var memberReportProgressIdentity: MemberReportProgressIdentity {
+        let context = currentRuntimeDependencyContext
+        return .init(context: context, approvalRevision: context.flatMap { composition.selectedMemberReportProgressApproval($0)?.revision },
+            sourceRevision: composition.memberReportProgressSelection.revision, viewerRevision: compositionViewerRevision)
+    }
+    func makeMemberReportProgressReader() -> MemberReportProgressReader? {
+        let identity = memberReportProgressIdentity
+        guard let context = identity.context, let approval = composition.selectedMemberReportProgressApproval(context) else { return nil }
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.memberReportProgressIdentity == identity else { return nil }; return self.currentRuntimeDependencyContext
+        }
+        let stillSelected: () -> Bool = { [weak self] in self?.memberReportProgressIdentity == identity }
+        guard let transport = compositionTransport.makeMemberReportProgressTransport(context: context, approval: approval,
+            currentRuntime: current, stillSelected: stillSelected) else { return nil }
+        let client = MemberReportProgressReader(approval: approval, transport: transport, current: current,
+            selected: { [weak self] in self?.composition.selectedMemberReportProgressApproval($0) })
+        composition.memberReportProgressSelection.register(client); return client
+    }
+
+    struct NPCChatDataReadIdentity: Equatable {
+        let context: RuntimeDependencyContext?
+        let approvalRevision: UUID?
+        let sourceRevision: UUID
+        let viewerRevision: UInt64
+        static func == (lhs: Self, rhs: Self) -> Bool {
+            guard lhs.approvalRevision == rhs.approvalRevision, lhs.sourceRevision == rhs.sourceRevision,
+                  lhs.viewerRevision == rhs.viewerRevision else { return false }
+            switch (lhs.context, rhs.context) {
+            case (nil, nil): return true
+            case let (left?, right?): return ContentDraftContextFence.matches(left, right) && left.session.role.utf8.elementsEqual(right.session.role.utf8)
+            default: return false
+            }
+        }
+    }
+    var npcChatDataReadIdentity: NPCChatDataReadIdentity {
+        let context = currentRuntimeDependencyContext
+        return .init(context: context, approvalRevision: context.flatMap { composition.selectedNPCChatDataReadApproval($0)?.revision },
+            sourceRevision: composition.npcChatDataReadSelection.revision, viewerRevision: compositionViewerRevision)
+    }
+    func makeNPCChatDataReader() -> NPCChatDataReader? {
+        let identity = npcChatDataReadIdentity
+        guard let context = identity.context, let approval = composition.selectedNPCChatDataReadApproval(context) else { return nil }
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.npcChatDataReadIdentity == identity else { return nil }; return self.currentRuntimeDependencyContext
+        }
+        let stillSelected: () -> Bool = { [weak self] in self?.npcChatDataReadIdentity == identity }
+        guard let transport = compositionTransport.makeNPCChatDataReadTransport(context: context, approval: approval,
+            currentRuntime: current, stillSelected: stillSelected) else { return nil }
+        let client = NPCChatDataReader(approval: approval, transport: transport, current: current,
+            selected: { [weak self] in self?.composition.selectedNPCChatDataReadApproval($0) })
+        composition.npcChatDataReadSelection.register(client); return client
+    }
+
+    /// Own stored text does not depend on a consent journal, SMS or a chat/model grant.
+    func makeNPCChatDataReadCoordinator() -> NPCChatDataCoordinator {
+        if let reader = makeNPCChatDataReader() { return reader.makeCoordinator() }
+        let identity = npcChatDataReadIdentity
+        return NPCChatDataCoordinator(current: { [weak self] in
+            guard let self, self.npcChatDataReadIdentity == identity else { return nil }; return self.complianceSession
+        }, available: { _ in false }, read: { _ in throw NPCChatDataFailure.unavailable })
+    }
+
+    struct SupportTicketReadIdentity: Equatable {
+        let context: RuntimeDependencyContext?
+        let approvalRevision: UUID?
+        let sourceRevision: UUID
+        let viewerRevision: UInt64
+        static func == (lhs: Self, rhs: Self) -> Bool {
+            guard lhs.approvalRevision == rhs.approvalRevision, lhs.sourceRevision == rhs.sourceRevision,
+                  lhs.viewerRevision == rhs.viewerRevision else { return false }
+            switch (lhs.context, rhs.context) {
+            case (nil, nil): return true
+            case let (left?, right?): return ContentDraftContextFence.matches(left, right) && left.session.role.utf8.elementsEqual(right.session.role.utf8)
+            default: return false
+            }
+        }
+    }
+    var supportTicketReadIdentity: SupportTicketReadIdentity {
+        let context = currentRuntimeDependencyContext
+        return .init(context: context, approvalRevision: context.flatMap { composition.selectedSupportTicketReadApproval($0)?.revision },
+            sourceRevision: composition.supportTicketReadSelection.revision, viewerRevision: compositionViewerRevision)
+    }
+    func makeSupportTicketReadReader() -> SupportTicketReadReader? {
+        let identity = supportTicketReadIdentity
+        guard let context = identity.context, let approval = composition.selectedSupportTicketReadApproval(context) else { return nil }
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.supportTicketReadIdentity == identity else { return nil }; return self.currentRuntimeDependencyContext
+        }
+        let stillSelected: () -> Bool = { [weak self] in self?.supportTicketReadIdentity == identity }
+        guard let transport = compositionTransport.makeSupportTicketReadTransport(context: context, approval: approval,
+            currentRuntime: current, stillSelected: stillSelected) else { return nil }
+        let client = SupportTicketReadReader(approval: approval, transport: transport, current: current,
+            selected: { [weak self] in self?.composition.selectedSupportTicketReadApproval($0) })
+        composition.supportTicketReadSelection.register(client); return client
+    }
+
+    struct ProfileSavedMediaIdentity: Equatable {
+        let context: RuntimeDependencyContext?
+        let approvalRevision: UUID?
+        let viewerRevision: UInt64
+        static func == (lhs: Self, rhs: Self) -> Bool {
+            guard lhs.approvalRevision == rhs.approvalRevision, lhs.viewerRevision == rhs.viewerRevision else { return false }
+            switch (lhs.context, rhs.context) {
+            case (nil, nil): return true
+            case let (left?, right?): return ContentDraftContextFence.matches(left, right) && left.session.role.utf8.elementsEqual(right.session.role.utf8)
+            default: return false
+            }
+        }
+    }
+    func profileSavedMediaIdentity(_ kind: ProfileCurrentMediaKind) -> ProfileSavedMediaIdentity {
+        let context = currentRuntimeDependencyContext
+        return .init(context: context, approvalRevision: context.flatMap { composition.selectedProfileSavedMediaApproval(kind, $0)?.revision },
+                     viewerRevision: compositionViewerRevision)
+    }
+    private var retainedProfileSavedMedia: [ProfileCurrentMediaKind: (identity: ProfileSavedMediaIdentity, reader: ProfileCurrentMediaReader)] = [:]
+    var profileSavedMediaReaders: ProfileSavedMediaReaders? {
+        let values = ProfileCurrentMediaKind.allCases.compactMap { kind -> ProfileCurrentMediaReader? in
+            let identity = profileSavedMediaIdentity(kind)
+            if let cached = retainedProfileSavedMedia[kind] {
+                if cached.identity == identity, cached.reader.isConfigured { return cached.reader }
+                cached.reader.retire(); retainedProfileSavedMedia.removeValue(forKey: kind)
+            }
+            guard let reader = makeProfileSavedMediaReader(kind) else { return nil }
+            retainedProfileSavedMedia[kind] = (identity, reader); return reader
+        }
+        return values.isEmpty ? nil : ProfileSavedMediaReaders(values)
+    }
+    func makeProfileSavedMediaReader(_ kind: ProfileCurrentMediaKind, transport: (any ProfileSavedMediaDispatching)? = nil) -> ProfileCurrentMediaReader? {
+        let identity = profileSavedMediaIdentity(kind)
+        guard let context = identity.context, let approval = composition.selectedProfileSavedMediaApproval(kind, context),
+              approval.viewerRevision == compositionViewerRevision else { return nil }
+        let reader = ProfileCurrentMediaReader(approval: approval,
+            currentContext: { [weak self] in
+                guard let self, self.profileSavedMediaIdentity(kind) == identity else { return nil }; return self.currentRuntimeDependencyContext
+            }, currentSession: { [weak self] in
+                guard let self, self.profileSavedMediaIdentity(kind) == identity else { return nil }; return self.currentProfileEditSession
+            }, selected: { [weak self] in
+                guard let self, self.profileSavedMediaIdentity(kind) == identity else { return nil }; return self.composition.selectedProfileSavedMediaApproval(kind, context)
+            }, transport: transport)
+        composition.profileSavedMediaSelection.register(reader); return reader
+    }
+
+    struct ProfileNicknameIdentity: Equatable {
+        let context: RuntimeDependencyContext?
+        let approvalRevision: UUID?
+        let sourceRevision: UUID
+        let viewerRevision: UInt64
+        static func == (lhs: Self, rhs: Self) -> Bool {
+            guard lhs.approvalRevision == rhs.approvalRevision, lhs.sourceRevision == rhs.sourceRevision,
+                  lhs.viewerRevision == rhs.viewerRevision else { return false }
+            switch (lhs.context, rhs.context) {
+            case (nil, nil): return true
+            case let (left?, right?): return ContentDraftContextFence.matches(left, right) && left.session.role.utf8.elementsEqual(right.session.role.utf8)
+            default: return false
+            }
+        }
+    }
+    var profileNicknameIdentity: ProfileNicknameIdentity {
+        let context = currentRuntimeDependencyContext
+        return .init(context: context, approvalRevision: context.flatMap { composition.selectedProfileNicknameApproval($0)?.revision },
+            sourceRevision: composition.profileNicknameSelection.revision, viewerRevision: compositionViewerRevision)
+    }
+    private var retainedProfileNickname: (identity: ProfileNicknameIdentity, reader: ProfileNicknameAvailabilityReader)?
+    var profileNicknameReader: ProfileNicknameAvailabilityReader? {
+        let identity = profileNicknameIdentity
+        if let retainedProfileNickname, retainedProfileNickname.identity == identity { return retainedProfileNickname.reader }
+        retainedProfileNickname?.reader.retire(); retainedProfileNickname = nil
+        guard let reader = makeProfileNicknameReader() else { return nil }
+        retainedProfileNickname = (identity, reader); return reader
+    }
+    func makeProfileNicknameReader(transport: (any ProfileNicknameDispatching)? = nil) -> ProfileNicknameAvailabilityReader? {
+        let identity = profileNicknameIdentity
+        guard let context = identity.context, let approval = composition.selectedProfileNicknameApproval(context),
+              approval.viewerRevision == compositionViewerRevision else { return nil }
+        let reader = ProfileNicknameAvailabilityReader(approval: approval,
+            currentContext: { [weak self] in
+                guard let self, self.profileNicknameIdentity == identity else { return nil }; return self.currentRuntimeDependencyContext
+            }, currentSession: { [weak self] in
+                guard let self, self.profileNicknameIdentity == identity else { return nil }; return self.currentProfileEditSession
+            }, selected: { [weak self] in
+                guard let self, self.profileNicknameIdentity == identity else { return nil }; return self.composition.selectedProfileNicknameApproval(context)
+            }, transport: transport)
+        composition.profileNicknameSelection.register(reader); return reader
+    }
+
+    struct ProfileCurrentReviewIdentity: Equatable {
+        let context: RuntimeDependencyContext?
+        let approvalRevision: UUID?
+        let sourceRevision: UUID
+        let viewerRevision: UInt64
+        static func == (lhs: Self, rhs: Self) -> Bool {
+            guard lhs.approvalRevision == rhs.approvalRevision, lhs.sourceRevision == rhs.sourceRevision,
+                  lhs.viewerRevision == rhs.viewerRevision else { return false }
+            switch (lhs.context, rhs.context) {
+            case (nil, nil): return true
+            case let (left?, right?): return ContentDraftContextFence.matches(left, right) && left.session.role.utf8.elementsEqual(right.session.role.utf8)
+            default: return false
+            }
+        }
+    }
+    var profileCurrentReviewIdentity: ProfileCurrentReviewIdentity {
+        let context = currentRuntimeDependencyContext
+        return .init(context: context, approvalRevision: context.flatMap { composition.selectedProfileCurrentReviewApproval($0)?.revision },
+            sourceRevision: composition.profileCurrentReviewSelection.revision, viewerRevision: compositionViewerRevision)
+    }
+    private var retainedProfileCurrentReview: (identity: ProfileCurrentReviewIdentity, reader: ProfileCurrentReviewReader)?
+    var profileCurrentReviewReader: ProfileCurrentReviewReader? {
+        let identity = profileCurrentReviewIdentity
+        if let retainedProfileCurrentReview, retainedProfileCurrentReview.identity == identity { return retainedProfileCurrentReview.reader }
+        retainedProfileCurrentReview?.reader.retire(); retainedProfileCurrentReview = nil
+        guard let reader = makeProfileCurrentReviewReader() else { return nil }
+        retainedProfileCurrentReview = (identity, reader); return reader
+    }
+    func makeProfileCurrentReviewReader(transport: (any ProfileCurrentReviewDispatching)? = nil) -> ProfileCurrentReviewReader? {
+        let identity = profileCurrentReviewIdentity
+        guard let context = identity.context, let approval = composition.selectedProfileCurrentReviewApproval(context),
+              approval.viewerRevision == compositionViewerRevision else { return nil }
+        let reader = ProfileCurrentReviewReader(baseURL: context.baseURL, namespace: context.session.namespace,
+            currentSession: { [weak self] in
+                guard let self, self.profileCurrentReviewIdentity == identity else { return nil }; return self.currentProfileEditSession
+            }, currentApproval: { [weak self] in
+                guard let self, self.profileCurrentReviewIdentity == identity else { return nil }; return self.composition.selectedProfileCurrentReviewApproval(context)
+            }, currentContext: { [weak self] in
+                guard let self, self.profileCurrentReviewIdentity == identity else { return nil }; return self.currentRuntimeDependencyContext
+            }, transport: transport)
+        composition.profileCurrentReviewSelection.register(reader); return reader
+    }
+
+    struct MemberScoreReadIdentity: Equatable {
+        let context: RuntimeDependencyContext?
+        let approvalRevision: UUID?
+        let sourceRevision: UUID
+        let viewerRevision: UInt64
+        static func == (lhs: Self, rhs: Self) -> Bool {
+            guard lhs.approvalRevision == rhs.approvalRevision, lhs.sourceRevision == rhs.sourceRevision,
+                  lhs.viewerRevision == rhs.viewerRevision else { return false }
+            switch (lhs.context, rhs.context) {
+            case (nil, nil): return true
+            case let (left?, right?): return ContentDraftContextFence.matches(left, right) && left.session.role.utf8.elementsEqual(right.session.role.utf8)
+            default: return false
+            }
+        }
+    }
+    var memberScoreReadIdentity: MemberScoreReadIdentity {
+        let context = currentRuntimeDependencyContext
+        return .init(context: context, approvalRevision: context.flatMap { composition.selectedMemberScoreReadApproval($0)?.revision },
+            sourceRevision: composition.memberScoreReadSelection.revision, viewerRevision: compositionViewerRevision)
+    }
+    func makeMemberScoreAppealListClient() -> MemberScoreAppealListClient? {
+        let identity = memberScoreReadIdentity
+        guard let context = identity.context, let approval = composition.selectedMemberScoreReadApproval(context) else { return nil }
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.memberScoreReadIdentity == identity else { return nil }; return self.currentRuntimeDependencyContext
+        }
+        let stillSelected: () -> Bool = { [weak self] in self?.memberScoreReadIdentity == identity }
+        guard let transport = compositionTransport.makeMemberScoreReadTransport(context: context, approval: approval,
+            currentRuntime: current, stillSelected: stillSelected) else { return nil }
+        let client = MemberScoreAppealListClient(approval: approval, transport: transport, current: current,
+            selected: { [weak self] in self?.composition.selectedMemberScoreReadApproval($0) })
+        composition.memberScoreReadSelection.register(client); return client
+    }
+
+    struct UsageConsentReadIdentity: Equatable {
+        let context: RuntimeDependencyContext?
+        let approval: UsageConsentReadApproval?
+        let viewerRevision: UInt64
+        let sourceRevision: UUID
+        static func == (lhs: Self, rhs: Self) -> Bool {
+            guard lhs.viewerRevision == rhs.viewerRevision, lhs.sourceRevision == rhs.sourceRevision,
+                  lhs.approval == rhs.approval else { return false }
+            switch (lhs.context, rhs.context) {
+            case (nil, nil): return true
+            case let (left?, right?):
+                return ContentDraftContextFence.matches(left, right) && left.session.role.utf8.elementsEqual(right.session.role.utf8)
+            default: return false
+            }
+        }
+    }
+    var usageConsentReadIdentity: UsageConsentReadIdentity {
+        let context = currentRuntimeDependencyContext
+        return .init(context: context, approval: context.flatMap { composition.selectedUsageConsentReadApproval($0) },
+            viewerRevision: compositionViewerRevision, sourceRevision: composition.usageConsentReadSelection.revision)
+    }
+    func makeUsageConsentReadCoordinator() -> UsageConsentReadCoordinator? {
+        let identity = usageConsentReadIdentity
+        guard let context = identity.context, let approval = identity.approval,
+              let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.usageConsentReadIdentity == identity else { return nil }
+            return self.currentRuntimeDependencyContext
+        }
+        let stillApproved: () -> Bool = { [weak self] in self?.usageConsentReadIdentity == identity }
+        guard let transport = compositionTransport.makeUsageConsentReadTransport(context: context, approval: approval,
+            currentRuntime: current, stillApproved: stillApproved) else { return nil }
+        let service = UsageConsentReadService(configuration: configuration, transport: transport, captured: context,
+            approval: approval, current: current, stillApproved: stillApproved)
+        let coordinator = UsageConsentReadCoordinator(service: service)
+        composition.usageConsentReadSelection.register(coordinator)
+        return coordinator
+    }
+
     // Default-off source adapters share the existing account/session/token owner.
     private var retainedCompliance: AccountComplianceCoordinator?
     private var retainedComplianceService: AccountComplianceService?
@@ -3570,6 +6558,50 @@ final class AppSession: ObservableObject {
         do { try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true); return directory }
         catch { return nil }
     }
+    private func merchantMarketingConsentOriginalClient() -> MerchantMarketingConsentOriginalClient? {
+        guard let context = currentRuntimeDependencyContext,
+              let approval = composition.selectedMerchantMarketingConsentApproval(context) else { return nil }
+        let viewerRevision = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewerRevision else { return nil }
+            return self.currentRuntimeDependencyContext
+        }
+        let stillApproved: () -> Bool = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewerRevision,
+                  ContentDraftContextFence.matches(self.currentRuntimeDependencyContext, context) else { return false }
+            return self.composition.selectedMerchantMarketingConsentApproval(context) == approval
+        }
+        guard let transport = compositionTransport.makeMerchantMarketingConsentOriginalTransport(context: context,
+            approval: approval, currentRuntime: current, stillApproved: stillApproved) else { return nil }
+        return MerchantMarketingConsentOriginalClient(context: context, approval: approval, transport: transport,
+            current: current, stillApproved: stillApproved, onUnauthorized: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      ContentDraftContextFence.matches(self.currentRuntimeDependencyContext, context), stillApproved() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+    private func accountDeregistrationOriginalClient() -> AccountDeregistrationOriginalClient? {
+        guard let context = currentRuntimeDependencyContext,
+              let approval = composition.selectedAccountDeregistrationOriginalApproval(context) else { return nil }
+        let viewerRevision = compositionViewerRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewerRevision else { return nil }
+            return self.currentRuntimeDependencyContext
+        }
+        let stillApproved: () -> Bool = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewerRevision,
+                  ContentDraftContextFence.matches(self.currentRuntimeDependencyContext, context) else { return false }
+            return self.composition.selectedAccountDeregistrationOriginalApproval(context) == approval
+        }
+        guard let transport = compositionTransport.makeAccountDeregistrationOriginalTransport(context: context,
+            approval: approval, currentRuntime: current, stillApproved: stillApproved) else { return nil }
+        return AccountDeregistrationOriginalClient(context: context, approval: approval, transport: transport,
+            current: current, stillApproved: stillApproved, onUnauthorized: { [weak self] in
+                guard let self, self.compositionViewerRevision == viewerRevision,
+                      ContentDraftContextFence.matches(self.currentRuntimeDependencyContext, context), stillApproved() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
     var accountComplianceCoordinator: AccountComplianceCoordinator? {
         if let retainedCompliance { return retainedCompliance }
         guard let configuration = regionalConfiguration?.apiConfiguration, let authChannelService,
@@ -3577,13 +6609,17 @@ final class AppSession: ObservableObject {
         let service = AccountComplianceService(configuration: configuration, transport: runtimeHTTPTransport,
             journal: ComplianceFileJournal(url: directory.appendingPathComponent("operations-v1.json")),
             current: { [weak self] in self?.complianceSession }, token: { [weak self] in self?.token },
-            readsEnabled: false, writesEnabled: false, legalApproved: { _, _ in false }, authoritativeMerchantID: { nil })
+            readsEnabled: false, writesEnabled: false, legalApproved: { _, _ in false }, authoritativeMerchantID: { nil },
+            marketingOriginal: { [weak self] in self?.merchantMarketingConsentOriginalClient() },
+            deregistrationOriginal: { [weak self] in self?.accountDeregistrationOriginalClient() })
         let coordinator = AccountComplianceCoordinator(service: service, auth: authChannelService,
             effects: DormantComplianceRoamEffects(), current: { [weak self] in self?.complianceSession },
             invalidateSession: { [weak self] captured in
                 guard let self, self.complianceSession == captured else { return }
                 self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
             })
+        composition.merchantMarketingConsentSelection.register(coordinator)
+        composition.reviewed?.accountDeregistrationOriginalSource?.register(coordinator)
         retainedComplianceService = service; retainedCompliance = coordinator; return coordinator
     }
     func complianceSignupContext() -> (AccountComplianceService, ComplianceSession)? {
@@ -3642,10 +6678,14 @@ final class AppSession: ObservableObject {
         synchronizeOwnerDraftBrowser()
         let identityChanged = entryObservedStamp != gate.currentStamp || entryObservedAccountID != account?.id || entryObservedToken != token || entryObservedRole != account?.effectiveRole
         if identityChanged {
+            invalidateInvoiceLaunch()
             publicTemplateDetails.invalidate()
             // Account refresh can change roles without advancing the login operation gate.
             // Preserve an ABA fence even when the same account/role/token later returns.
+            ownMediaAudioPreviewLifetime.retireAll(); ownMediaModelPreviewLifetime.retireAll(); memberIdentityAvatarLifetime.retireAll()
             compositionViewerRevision &+= 1
+            // Publish the existing reader scope even while a retained benefits destination is visible.
+            _ = memberHomeReader.scope
             socialAccountReader.invalidatePresentation()
             retainedNativeVerification?.flow.deactivate(); retainedNativeVerification = nil
             retainedPublishingService?.service.invalidateReviews(); retainedPublishingService = nil
@@ -3660,6 +6700,7 @@ final class AppSession: ObservableObject {
             retainedPlayPrefabs.values.forEach { $0.cancelDeviceWork() }; retainedPlayPrefabs.removeAll()
             playReaders.removeAll()
             playExperienceCoordinators.values.forEach { $0.invalidate() }; playExperienceCoordinators.removeAll()
+            cityOriginalRecoveryHosts.values.forEach { $0.invalidate() }; cityOriginalRecoveryHosts.removeAll()
             retainedNearbyMerchants?.coordinator.cancel(); retainedNearbyMerchants = nil
             publicMerchantReviewEpoch = UUID(); retainedPublicMerchantReviews?.invalidate(); retainedImageContextCache?.invalidate()
             retainedPublisherLifecycle?.context.invalidate(); retainedPublisherLifecycle = nil
@@ -3678,8 +6719,9 @@ final class AppSession: ObservableObject {
         retainedDoorCoordinator?.updateSession(doorReferralSession)
     }
 
-    private var token: String? { willSet { if token.map({ Data($0.utf8) }) != newValue.map({ Data($0.utf8) }) { invalidateWorkshopReadBindings() }; invalidateOwnerDraftBrowser(); if token != newValue { invalidateShopNPCConversations(); platformConsumers.invalidate() } } didSet { _ = runtimeDependencies; synchronizeAccountMarketingEntry() } }
+    private var token: String? { willSet { if token.map({ Data($0.utf8) }) != newValue.map({ Data($0.utf8) }) { ownMediaAudioPreviewLifetime.retireAll(); ownMediaModelPreviewLifetime.retireAll(); memberIdentityAvatarLifetime.retireAll() }; if token != newValue { invalidatePersonalLocationShare() }; if token.map({ Data($0.utf8) }) != newValue.map({ Data($0.utf8) }) { invalidateInvoiceLaunch(); invalidateWorkshopReadBindings() }; invalidateOwnerDraftBrowser(); if token != newValue { invalidateShopNPCConversations(); platformConsumers.invalidate() } } didSet { _ = runtimeDependencies; synchronizeAccountMarketingEntry() } }
     private var didBootstrap = false
+    @Published private(set) var sessionRestorationRetry = SessionRestorationRetry()
     private let restoreBlockedKey:String
     var isConfigured: Bool { storageScope != nil }
 
@@ -3727,7 +6769,10 @@ final class AppSession: ObservableObject {
             socialAccountService=SocialAccountService(configuration:configuration,transport:transport)
             officialEventService=OfficialEventService(configuration:configuration,transport:transport)
             profileWeeklyPointsService = ProfileWeeklyPointsService(configuration: configuration, transport: transport)
-            growthCenterService=GrowthCenterService(configuration:configuration,transport:transport)
+            do {
+                let transport = transport.growthNormalReadTransport(approval: composition.growthNormalReadApproval)
+                growthCenterService=GrowthCenterService(configuration:configuration,transport:transport)
+            }
             memberHomeService = MemberHomeService(configuration: configuration, transport: transport)
             ownMediaService = OwnMediaService(configuration: configuration, transport: transport)
             creatorContentService=CreatorContentService(configuration:configuration,transport:transport)
@@ -3736,7 +6781,6 @@ final class AppSession: ObservableObject {
             topicService=TopicService(configuration:configuration,transport:transport)
             discoveryService=DiscoveryService(configuration:configuration,transport:transport)
             profileService=ProfileService(configuration:configuration,transport:transport)
-            participantService=ParticipantService(configuration:configuration,transport:transport)
             merchantService=MerchantService(configuration:configuration,transport:transport)
             merchantEngagementService=MerchantEngagementService(configuration:configuration,readTransport:transport)
             merchantBusinessService=MerchantBusinessService(configuration:configuration,readTransport:transport)
@@ -3754,7 +6798,7 @@ final class AppSession: ObservableObject {
             roamExperienceService=RoamExperienceService(configuration:configuration,transport:transport)
             messagingService=MessagingService(configuration:configuration,transport:transport)
             messageActionService=MessageActionService(configuration:configuration,transport:transport)
-        } else { service=nil;accountSessionService=nil;authChannelService=nil;activityService=nil;searchMapService=nil;mapPublicLayerService=nil;registrationBackend=UnconfiguredRegistrationBackend();homeFeedService=nil;orderLifecycleService=nil;ticketWalletService=nil;squareService=nil;socialAccountService=nil;cooperationService=nil;accountCollectionService=nil;officialEventService=nil;growthCenterService=nil;profileWeeklyPointsService=nil;creatorContentService=nil;topicService=nil;discoveryService=nil;profileService=nil;participantService=nil;merchantService=nil;merchantOperationsService=nil;merchantBusinessService=nil;merchantEngagementService=nil;cooperationFlowService=nil;merchantOnboardingService=nil;clubService=nil;clubManagementService=nil;clubOperationsService=nil;clubGovernanceService=nil;profileEditService=nil;clubActionService=nil;roamService=nil;roamExperienceService=nil;messagingService=nil;messageActionService=nil }
+        } else { service=nil;accountSessionService=nil;authChannelService=nil;activityService=nil;searchMapService=nil;mapPublicLayerService=nil;registrationBackend=UnconfiguredRegistrationBackend();homeFeedService=nil;orderLifecycleService=nil;ticketWalletService=nil;squareService=nil;socialAccountService=nil;cooperationService=nil;accountCollectionService=nil;officialEventService=nil;growthCenterService=nil;profileWeeklyPointsService=nil;creatorContentService=nil;topicService=nil;discoveryService=nil;profileService=nil;merchantService=nil;merchantOperationsService=nil;merchantBusinessService=nil;merchantEngagementService=nil;cooperationFlowService=nil;merchantOnboardingService=nil;clubService=nil;clubManagementService=nil;clubOperationsService=nil;clubGovernanceService=nil;profileEditService=nil;clubActionService=nil;roamService=nil;roamExperienceService=nil;messagingService=nil;messageActionService=nil }
         coopFlowExecutionSlot.current = { [weak self] in
             guard let self, let context = self.currentRuntimeDependencyContext else { return nil }
             return self.coopFlowExecutionApproval(context)
@@ -3832,9 +6876,15 @@ final class AppSession: ObservableObject {
                          role: self.account?.effectiveRole, token: self.token,
                          viewerRevision: self.compositionViewerRevision)
         }
+        officialSourceObservation = composition.officialPublicEventReadSelection.invalidations.observe { [weak self] in
+            // Existing root scope guards close stale official presentations. This
+            // is not a login/session revision change and does not touch other grants.
+            self?.objectWillChange.send()
+        }
     }
 
     private func commitAuthenticatedSession(token: String, account: Account) {
+        sessionRestorationRetry.discard()
         // Never build account-bound clients with the old account and the new credential.
         committingAuthenticatedSession = true
         self.token = token; self.account = account
@@ -3851,23 +6901,32 @@ final class AppSession: ObservableObject {
             try? vault.clear()
             return
         }
+        invalidateInvoiceLaunch()
         invalidateWorkshopReadBindings()
+        ownMediaAudioPreviewLifetime.retireAll(); ownMediaModelPreviewLifetime.retireAll(); memberIdentityAvatarLifetime.retireAll()
         let operation=gate.begin(.bootstrap)
         clubActionCoordinator.synchronizeSession()
         clubManagementCoordinator.synchronizeSession();clubOperationsCoordinator.synchronizeSession();clubGovernanceCoordinator.cancelReview();profileEditCoordinator.synchronizeSession()
         merchantOnboardingCoordinator.synchronizeSession()
         isWorking=true
         defer { if gate.isCurrent(operation) { isWorking=false;gate.finish(operation) } }
+        var retryableRestoration = true
+        defer {
+            if gate.isCurrent(operation), account == nil, retryableRestoration,
+               !sessionDefaults.bool(forKey: restoreBlockedKey) { sessionRestorationRetry.offer() }
+        }
         do {
-            guard let saved=try vault.read() else { return }
+            guard let saved=try vault.read() else { retryableRestoration = false; return }
             let restored=try await accountSessionService.currentAccount(token:saved)
             guard !Task.isCancelled, gate.isCurrent(operation) else { return }
+            retryableRestoration = false
             commitAuthenticatedSession(token: saved, account: restored)
             participantCoordinator.synchronizeSession();synchronizeRegistration()
             clubActionCoordinator.synchronizeSession()
             clubManagementCoordinator.synchronizeSession();clubOperationsCoordinator.synchronizeSession();clubGovernanceCoordinator.cancelReview();profileEditCoordinator.synchronizeSession()
             merchantOnboardingCoordinator.synchronizeSession()
         } catch {
+            retryableRestoration = Task.isCancelled || SessionRestorationRetryPolicy.permits(error)
             guard !Task.isCancelled, !(error is CancellationError), gate.isCurrent(operation) else { return }
             if error as? APIError == .unauthorized {
                 sessionDefaults.set(true,forKey:restoreBlockedKey)
@@ -3881,7 +6940,9 @@ final class AppSession: ObservableObject {
     func login(username:String,password:String) async {
         guard !isWorking, !authChannels.state.isWorking, !weChatAuth.isWorking else { return }
         guard let service else { errorKey="auth.notConfigured";return }
+        invalidateInvoiceLaunch()
         invalidateWorkshopReadBindings()
+        ownMediaAudioPreviewLifetime.retireAll(); ownMediaModelPreviewLifetime.retireAll(); memberIdentityAvatarLifetime.retireAll()
         let operation=gate.begin(.login)
         clubActionCoordinator.synchronizeSession()
         clubManagementCoordinator.synchronizeSession();clubOperationsCoordinator.synchronizeSession();clubGovernanceCoordinator.cancelReview();profileEditCoordinator.synchronizeSession()
@@ -3904,23 +6965,118 @@ final class AppSession: ObservableObject {
         }
     }
 
+    var canRetrySessionRestoration: Bool {
+        didBootstrap && restorationFinished && sessionRestorationRetry.isAvailable &&
+        account == nil && token == nil && !isWorking &&
+        !authChannels.state.isWorking && !weChatAuth.isWorking &&
+        accountSessionService?.storageScope == storageScope && storageScope != nil &&
+        !sessionDefaults.bool(forKey: restoreBlockedKey)
+    }
+
+    /// Reserve synchronously before the button queues its Task. This is a user-started
+    /// sign-in read, so Close cancels it while untouched cold bootstrap stays independent.
+    func prepareSessionRestorationRetry() -> SessionRestorationRetryAttempt? {
+        guard canRetrySessionRestoration, !Task.isCancelled, let storageScope else { return nil }
+        authChannels.cancel(); weChatAuth.cancel()
+        invalidateInvoiceLaunch(); invalidateWorkshopReadBindings()
+        ownMediaAudioPreviewLifetime.retireAll(); ownMediaModelPreviewLifetime.retireAll(); memberIdentityAvatarLifetime.retireAll()
+        let operation = gate.begin(.login)
+        guard let attempt = sessionRestorationRetry.begin(epoch: operation, namespace: storageScope.service) else {
+            gate.finish(operation); return nil
+        }
+        isWorking = true; errorKey = nil
+        participantCoordinator.synchronizeSession(); synchronizeRegistration()
+        clubActionCoordinator.synchronizeSession()
+        clubManagementCoordinator.synchronizeSession(); clubOperationsCoordinator.synchronizeSession()
+        clubGovernanceCoordinator.cancelReview(); profileEditCoordinator.synchronizeSession()
+        merchantOnboardingCoordinator.synchronizeSession()
+        return attempt
+    }
+
+    func retrySessionRestoration(_ attempt: SessionRestorationRetryAttempt) async {
+        guard sessionRestorationRetry.owns(attempt), gate.isCurrent(attempt.epoch),
+              account == nil, token == nil, let storageScope,
+              attempt.namespace == storageScope.service,
+              let accountSessionService, accountSessionService.storageScope == storageScope else { return }
+        guard sessionRestorationRetry.start(attempt) else { return }
+        var retryable = false
+        defer {
+            if gate.isCurrent(attempt.epoch) {
+                sessionRestorationRetry.finish(attempt, retryable: retryable)
+                isWorking = false; gate.finish(attempt.epoch)
+            }
+        }
+        do {
+            try Task.checkCancellation()
+            guard !sessionDefaults.bool(forKey: restoreBlockedKey), let saved = try vault.read() else { return }
+            let restored = try await accountSessionService.currentAccount(token: saved)
+            try Task.checkCancellation()
+            guard sessionRestorationRetry.owns(attempt), gate.isCurrent(attempt.epoch),
+                  account == nil, token == nil,
+                  !sessionDefaults.bool(forKey: restoreBlockedKey) else { return }
+            commitAuthenticatedSession(token: saved, account: restored)
+            errorKey = nil
+            participantCoordinator.synchronizeSession(); synchronizeRegistration()
+            clubActionCoordinator.synchronizeSession()
+            clubManagementCoordinator.synchronizeSession(); clubOperationsCoordinator.synchronizeSession()
+            clubGovernanceCoordinator.cancelReview(); profileEditCoordinator.synchronizeSession()
+            merchantOnboardingCoordinator.synchronizeSession()
+        } catch {
+            guard sessionRestorationRetry.owns(attempt), gate.isCurrent(attempt.epoch) else { return }
+            retryable = Task.isCancelled || SessionRestorationRetryPolicy.permits(error)
+            guard !Task.isCancelled, !(error is CancellationError) else { return }
+            if error as? APIError == .unauthorized {
+                sessionDefaults.set(true, forKey: restoreBlockedKey)
+                try? vault.clear()
+            }
+            errorKey = Self.messageKey(for: error)
+        }
+    }
+
+    func cancelSessionRestorationRetry(_ attempt: SessionRestorationRetryAttempt) {
+        guard sessionRestorationRetry.owns(attempt), gate.isCurrent(attempt.epoch) else { return }
+        cancelPendingLogin()
+    }
+
     func cancelPendingLogin() {
+        sessionRestorationRetry.cancel()
         nativeWeChatPaymentAdapter.cancelPending()
         weChatAuth.cancel()
         // Close must invalidate SMS login immediately, before SwiftUI dismisses its sheet.
         // Transport cancellation is best-effort; the coordinator generation fences late replies.
         authChannels.cancel()
-        if gate.activeKind == .login { invalidateWorkshopReadBindings() }
+        if gate.activeKind == .login { invalidateInvoiceLaunch(); invalidateWorkshopReadBindings() }
         if gate.cancelLogin() { isWorking=false;errorKey=nil;clubActionCoordinator.synchronizeSession()
         clubManagementCoordinator.synchronizeSession();clubOperationsCoordinator.synchronizeSession();clubGovernanceCoordinator.cancelReview();profileEditCoordinator.synchronizeSession();merchantOnboardingCoordinator.synchronizeSession() }
     }
 
+    /// The confirmation belongs to the account rendered when the sign-out row was tapped.
+    /// This snapshot contains no credential and does not itself sign out or revoke anything.
+    func signOutConfirmation(accountID: Int) -> AuthChannelSessionSnapshot? {
+        guard accountID > 0, account?.id == accountID, !Task.isCancelled else { return nil }
+        return authChannelSnapshot
+    }
+
+    /// Return true only while the guest result of this exact sign-out remains current.
+    /// A newer sign-in may replace a completed local logout while remote revocation awaits;
+    /// in that case false suppresses the old presentation callback, not the new session.
+    func logout(matching expected: AuthChannelSessionSnapshot) async -> Bool {
+        guard expected.accountID != nil, authChannelSnapshot == expected, !Task.isCancelled else { return false }
+        let signedOutEpoch = expected.epoch &+ 1
+        await logout()
+        return gate.currentStamp == signedOutEpoch && account == nil && token == nil
+    }
+
     func logout() async {
+        sessionRestorationRetry.discard()
+        retainedPersonalLocationShareHost?.prepareLogout()
         nativeWeChatPaymentAdapter.cancelPending()
         weChatAuth.cancel()
         authChannels.cancel()
         let oldToken=token
+        invalidateInvoiceLaunch()
         invalidateWorkshopReadBindings()
+        ownMediaAudioPreviewLifetime.retireAll(); ownMediaModelPreviewLifetime.retireAll(); memberIdentityAvatarLifetime.retireAll()
         gate.invalidate()
         // Persist a non-secret tombstone before deletion. A Keychain failure cannot
         // silently restore a logged-out account at the next cold start.
@@ -3975,8 +7131,11 @@ final class AppSession: ObservableObject {
     private func expireIfMatching(error:Error,stamp:UInt64,credential:String?) {
         guard error as? APIError == .unauthorized, credential != nil,
               gate.isCurrent(stamp), credential == token else { return }
+        sessionRestorationRetry.discard()
         nativeWeChatPaymentAdapter.cancelPending()
+        invalidateInvoiceLaunch()
         invalidateWorkshopReadBindings()
+        ownMediaAudioPreviewLifetime.retireAll(); ownMediaModelPreviewLifetime.retireAll(); memberIdentityAvatarLifetime.retireAll()
         gate.invalidate()
         sessionDefaults.set(true,forKey:restoreBlockedKey)
         roamArea=nil;searchMapSelection.select(nil);token=nil;account=nil;isWorking=false;errorKey="auth.expired"
@@ -3995,6 +7154,7 @@ final class AppSession: ObservableObject {
         case .invalidRequest: return "auth.invalidInput"
         case .malformedResponse: return "auth.invalidResponse"
         case .businessCode: return "auth.loginRejected"
+        case .httpStatus(426): return "auth.channels.upgradeRequired"
         default: return "auth.networkError"
         }
     }

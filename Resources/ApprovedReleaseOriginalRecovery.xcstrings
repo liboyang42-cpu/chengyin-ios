@@ -1,0 +1,414 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "recovery.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved publication requests"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存的发布请求"
+          }
+        }
+      }
+    },
+    "recovery.open": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recover a saved publication request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看已保存的原发布请求"
+          }
+        }
+      }
+    },
+    "recovery.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original-request reading is unavailable for this account, editor target or current read permission. This does not mean the local record is empty."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前账号、编辑目标或读取权限不支持查看原请求。这不代表本机没有记录。"
+          }
+        }
+      }
+    },
+    "recovery.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading this device’s saved requests…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取本机保存的请求…"
+          }
+        }
+      }
+    },
+    "recovery.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No publication request is saved on this device for this account and topic."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机未保存此账号与主题的发布请求。"
+          }
+        }
+      }
+    },
+    "recovery.storageUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The local record could not be safely verified or has changed. Its saved bytes are retained. Read the local records again; this is not an empty history."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机记录无法安全核验，或已发生变化。已保存的原记录仍保留。请重新读取；这不是空历史。"
+          }
+        }
+      }
+    },
+    "recovery.scope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read the original saved requests and their captured summaries. A matching server receipt confirms only that immutable release. Current approval is stated at the last successful check; public listing and player access are not established here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里只读原请求和当时保存的摘要。匹配的服务端回执仅确认该不可变版本；审核状态以最后一次成功查询为准，不代表公开上架或玩家可进入。"
+          }
+        }
+      }
+    },
+    "recovery.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Result unconfirmed. The exact request remains saved. No result, NOT_FOUND or a failed check does not prove success or failure."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果尚未确认。原请求仍已保存；无结果、未找到或查询失败均不能确认发布成功或失败。"
+          }
+        }
+      }
+    },
+    "recovery.known": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved server receipt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存的服务端回执"
+          }
+        }
+      }
+    },
+    "recovery.approved": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approved at the last successful server check"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最后一次成功查询时已通过审核"
+          }
+        }
+      }
+    },
+    "recovery.changed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current approval was not confirmed at the last successful check"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最后一次成功查询未确认当前仍通过审核"
+          }
+        }
+      }
+    },
+    "recovery.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The latest status read failed. The saved receipt is retained; current approval was not refreshed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近一次状态读取失败。已保存回执仍保留，当前审核状态未刷新。"
+          }
+        }
+      }
+    },
+    "recovery.check": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check only the latest original request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅查询最新一条原请求的状态"
+          }
+        }
+      }
+    },
+    "recovery.checking": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking the original request…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在查询原请求…"
+          }
+        }
+      }
+    },
+    "recovery.inspect": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View this exact saved version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看这条请求当时保存的版本"
+          }
+        }
+      }
+    },
+    "recovery.latest": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest saved request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最新保存的原请求"
+          }
+        }
+      }
+    },
+    "recovery.history": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved versions · read only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存版本 · 只读"
+          }
+        }
+      }
+    },
+    "recovery.reload": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read local records again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取本机记录"
+          }
+        }
+      }
+    },
+    "recovery.close": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
+      }
+    },
+    "recovery.releaseID": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved immutable release ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存的不可变版本 ID"
+          }
+        }
+      }
+    },
+    "recovery.requestID": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original request ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求 ID"
+          }
+        }
+      }
+    },
+    "recovery.manifest": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved manifest SHA-256"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存的内容清单 SHA-256"
+          }
+        }
+      }
+    },
+    "recovery.storageUnreadable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The local record cannot be read. Device storage may be locked or unavailable. The saved bytes are retained; this is not an empty history."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法读取本机记录。设备存储可能已锁定或暂不可用。原记录仍保留，这不是空历史。"
+          }
+        }
+      }
+    },
+    "recovery.storageDamaged": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The local record is damaged or does not match this account and topic. It has not been erased or treated as an empty history."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机记录已损坏，或与当前账号和主题不符。记录未被清除，也不会视为空历史。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

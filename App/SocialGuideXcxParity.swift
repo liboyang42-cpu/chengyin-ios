@@ -10,7 +10,6 @@ struct SocialGuideXcxHero: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             (Text("guideXcx.heroLead").fontWeight(.light) + Text("guideXcx.heroEmphasis").bold()).font(.title2)
-            Text("guideXcx.heroDetail").font(.subheadline).foregroundStyle(.secondary)
         }.padding(.vertical, 4).accessibilityElement(children: .combine).accessibilityIdentifier("social.guide.hero")
     }
 }
@@ -27,7 +26,7 @@ struct SocialGuideXcxModeRow: View {
                     .background(Capsule().fill(Color.secondary.opacity(0.15)))
             }
             Text(mode.xcxDetailKey).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            if let onOpen { Button("guideXcx.go") { onOpen(mode.destination) }.buttonStyle(.borderedProminent).controlSize(.small).accessibilityIdentifier("social.guide.\(mode.rawValue)") }
+            if let onOpen { Button("guideXcx.go") { onOpen(mode.destination) }.buttonStyle(.questifyPrimary).controlSize(.small).accessibilityIdentifier("social.guide.\(mode.rawValue)") }
         }.padding(.vertical, 5)
     }
 }

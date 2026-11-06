@@ -19,7 +19,7 @@ final class SettingsPrivacyLocationFlowTests: XCTestCase {
         let off = app.buttons["member.privacy.presence.off"]
         XCTAssertTrue(off.waitForExistence(timeout: 10))
         XCTAssertFalse(off.isEnabled)
-        XCTAssertTrue(app.staticTexts["This build can't submit this change yet. Nothing has been changed."].exists)
+        XCTAssertTrue(app.staticTexts["This change can't be made right now. Nothing has been changed."].exists)
     }
     func testMediaListPagesOlderRowsWithStates() {
         launch("ready"); openMedia()
@@ -40,7 +40,7 @@ final class SettingsPrivacyLocationFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["member.media.refresh"].waitForExistence(timeout: 5))
         app.terminate()
         launch("dormant", language: "zh-Hans"); openMedia()
-        XCTAssertTrue(app.staticTexts["当前配置暂不能读取本人媒体。"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["媒体审核状态暂不可用。"].waitForExistence(timeout: 5))
     }
     func testEmptyAndDeniedStatesUseSourceCopy() {
         launch("empty"); openMedia()

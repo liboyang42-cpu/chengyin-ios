@@ -115,7 +115,8 @@ public struct ProfileSelfProjectsPreview: Equatable {
         catch {
             guard current() else { return }
             issue = CreatorContentIssue(error)
-            if issue == .login { page = nil }
+            if issue == .login || error as? APIError == .httpStatus(403) { page = nil }
+            if case CreatorContentReadFailure.rejected(code: 403, message: _) = error { page = nil }
         }
     }
     public func canOpen(_ row: CreatorContentProject, reader: ProfileSelfProjectsScopedReader, today: String) -> Bool {

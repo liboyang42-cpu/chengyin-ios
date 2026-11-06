@@ -27,7 +27,8 @@ import SwiftUI
             else if failure == .forbidden || (loadedKey == key && model?.permitted == false) { denied }
             else if let failure {
                 Section {
-                    Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("clubOpsEvent.error")
+                    Label(LocalizedStringKey(failure.localizationKey), systemImage: "exclamationmark.triangle")
+                        .accessibilityIdentifier("clubOpsEvent.error")
                     Button("action.retry") { Task { await load() } }.accessibilityIdentifier("clubOpsEvent.retry")
                 }
             } else if loadedKey == key, let model {
@@ -40,10 +41,11 @@ import SwiftUI
         .refreshable { await load() }
     }
     private var denied: some View {
-        Section {
-            Text("clubOpsEvent.denied.title", tableName: "ClubOpsEvent").font(.headline)
-            Text("clubOpsEvent.denied.body", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
-        }.accessibilityIdentifier("clubOpsEvent.denied")
+        ContentUnavailableView {
+            Label { Text("clubOpsEvent.denied.title", tableName: "ClubOpsEvent") } icon: { Image(systemName: "lock") }
+        } description: { Text("clubOpsEvent.denied.body", tableName: "ClubOpsEvent") }
+            .listRowBackground(Color.clear)
+            .accessibilityIdentifier("clubOpsEvent.denied")
     }
     @ViewBuilder private func section(_ section: ClubOpsEventSection, model: ClubOpsEventAccess) -> some View {
         switch section {
@@ -61,14 +63,13 @@ import SwiftUI
             } header: { Text("clubOpsEvent.section.occurrence", tableName: "ClubOpsEvent") }
         case .roster:
             Section {
-                push(.roster, eventScope) { Text("clubOpsEvent.section.roster", tableName: "ClubOpsEvent") }
-                Text("club.roster.privacy").font(.footnote).foregroundStyle(.secondary)
-            } header: { Text("clubOpsEvent.section.roster", tableName: "ClubOpsEvent") }
+                push(.roster, eventScope) { Label { Text("clubOpsEvent.section.roster", tableName: "ClubOpsEvent") } icon: { Image(systemName: "person.crop.rectangle.stack") } }
+            }
         case .series:
+            // Mini-program 日期清单 card: title row + its one-line rule 「仅可修改无报名的未来场次」.
             Section {
-                push(.series, .init(clubID: scope.clubID)) { Text("clubOpsEvent.section.series", tableName: "ClubOpsEvent") }
-                Text("clubOpsEvent.series.note", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
-            } header: { Text("clubOpsEvent.section.series", tableName: "ClubOpsEvent") }
+                push(.series, .init(clubID: scope.clubID)) { Label { Text("clubOpsEvent.section.series", tableName: "ClubOpsEvent") } icon: { Image(systemName: "calendar") } }
+            } footer: { Text("clubOpsEvent.series.note", tableName: "ClubOpsEvent") }
         case .recurrence:
             Section {
                 push(.eventTopics, .init(clubID: scope.clubID, topicID: scope.topicID)) {
@@ -77,15 +78,11 @@ import SwiftUI
                         Text("clubOpsEvent.recurrence.addHint", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
                     }
                 }
-                Text("clubOpsEvent.recurrence.note", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
-                Text("clubOpsEvent.refundAnchor", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
-            } header: { Text("clubOpsEvent.section.recurrence", tableName: "ClubOpsEvent") }
+            } header: { Text("clubOpsEvent.section.recurrence", tableName: "ClubOpsEvent") } footer: { Text("clubOpsEvent.recurrence.note", tableName: "ClubOpsEvent") }
         case .capacity:
-            Section {
-                Text("clubOpsEvent.capacity.note", tableName: "ClubOpsEvent").font(.footnote)
-                Text("clubOpsEvent.capacity.help", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
-                Text("clubOpsEvent.offer.help", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
-            } header: { Text("clubOpsEvent.section.capacity", tableName: "ClubOpsEvent") }
+            // Capacity and waitlist are set inside the series form (ClubOpsEventSeriesFields);
+            // the hub section held only explanations with no control, so it is not shown.
+            EmptyView()
         }
     }
     private func push<RowLabel: View>(_ read: ClubGovernanceRead, _ target: ClubGovernanceScope, @ViewBuilder label: () -> RowLabel) -> some View {

@@ -1,0 +1,1238 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "cityArrival.playerEntry": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "门店到场证据"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store arrival evidence"
+          }
+        }
+      }
+    },
+    "cityArrival.merchantEntry": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CITY 到场现场确认"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CITY in-person attestation"
+          }
+        }
+      }
+    },
+    "cityArrival.title": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CITY 到场证据源"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CITY arrival evidence source"
+          }
+        }
+      }
+    },
+    "cityArrival.boundary": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本流程记录服务端挑战、本人提交和本店员工确认。商户确认不等于传感器证明，不自动通过任务、占领、扣积分或发奖。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This flow records a server challenge, personal submission and store staff attestation. It is not sensor proof and does not pass tasks, grant ownership, charge points or award rewards."
+          }
+        }
+      }
+    },
+    "cityArrival.reload": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取当前事实"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read current facts"
+          }
+        }
+      }
+    },
+    "cityArrival.frozenBinding": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原冻结发布与轮次"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original frozen release and round"
+          }
+        }
+      }
+    },
+    "cityArrival.rulesRelease": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "规则版本"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rules release"
+          }
+        }
+      }
+    },
+    "cityArrival.round": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原轮次"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original round"
+          }
+        }
+      }
+    },
+    "cityArrival.merchant": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家记录"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant record"
+          }
+        }
+      }
+    },
+    "cityArrival.place": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已绑定门店地点"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bound store place"
+          }
+        }
+      }
+    },
+    "cityArrival.challengeWindow": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "挑战有效秒数"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Challenge validity in seconds"
+          }
+        }
+      }
+    },
+    "cityArrival.evidenceWindow": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "证据有效秒数"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evidence validity in seconds"
+          }
+        }
+      }
+    },
+    "cityArrival.attemptLimit": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本轮挑战上限"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Challenge limit this round"
+          }
+        }
+      }
+    },
+    "cityArrival.attempts": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已使用挑战次数"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Challenges issued"
+          }
+        }
+      }
+    },
+    "cityArrival.assuranceReason": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平台批准依据"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Platform approval rationale"
+          }
+        }
+      }
+    },
+    "cityArrival.singlePerson": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅针对本人和本次门店点位，不代表全队到场。已有证据后本轮不再签发，过期保留历史但不能当作当前任务资格。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applies only to you at this store point, not your entire team. No new challenge is issued after evidence is recorded this round. Expired evidence remains history, not current task eligibility."
+          }
+        }
+      }
+    },
+    "cityArrival.issue": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明确申请本次挑战"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request this challenge"
+          }
+        }
+      }
+    },
+    "cityArrival.challengeId": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "挑战标识"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Challenge ID"
+          }
+        }
+      }
+    },
+    "cityArrival.expires": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端有效期截止"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server expiry"
+          }
+        }
+      }
+    },
+    "cityArrival.displayCode": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次现场展示码"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In-person presentation code"
+          }
+        }
+      }
+    },
+    "cityArrival.showOnlyInPerson": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只在到达上述门店后向有权员工展示本次码。请勿远程转发；任何人拿到码也不能单独完成到场证明。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show this code only to authorized staff in person at the bound store. Do not forward it remotely. Possessing the code alone does not establish arrival."
+          }
+        }
+      }
+    },
+    "cityArrival.submitSelf": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本人明确提交到场核对请求"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personally submit for arrival review"
+          }
+        }
+      }
+    },
+    "cityArrival.readEvidence": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取原证据"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read original evidence"
+          }
+        }
+      }
+    },
+    "cityArrival.employeeRole": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前核验岗位"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current verification role"
+          }
+        }
+      }
+    },
+    "cityArrival.staffBoundary": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只处理本店原冻结点位和当前本人提交。核对现场当事人展示的本次码并填写实际理由；不能给自己或所在队伍作证，不能代玩家提交。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review only your store’s frozen points and personally submitted claims. Check the person’s presented code in person and record an actual reason. Do not attest for yourself or your own team, or submit for a player."
+          }
+        }
+      }
+    },
+    "cityArrival.noPending": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无当前可核验的本人提交。过期、缺映射、暂停或权限不足不会被当作成功。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No currently reviewable personal submission. Expiry, missing bindings, pauses or missing authority are not success."
+          }
+        }
+      }
+    },
+    "cityArrival.evidenceId": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原证据标识"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original evidence ID"
+          }
+        }
+      }
+    },
+    "cityArrival.requestId": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求标识"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original request ID"
+          }
+        }
+      }
+    },
+    "cityArrival.subject": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次本人账号"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submitting member account"
+          }
+        }
+      }
+    },
+    "cityArrival.point": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原点位"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original point"
+          }
+        }
+      }
+    },
+    "cityArrival.reviewer": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "实际确认员工"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Attesting staff member"
+          }
+        }
+      }
+    },
+    "cityArrival.reason": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "实际确认或拒绝理由"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actual confirmation or rejection reason"
+          }
+        }
+      }
+    },
+    "cityArrival.recordedAt": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录时间"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded at"
+          }
+        }
+      }
+    },
+    "cityArrival.evidenceBoundary": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此记录的置信来源为商户人工确认，仅适用原本人、地点、队伍、会话和轮次。当前任务资格尚未评估，没有经营、支付或奖励效果。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The assurance source is human merchant attestation, limited to the original person, place, team, session and round. Current task eligibility is not evaluated. No business, payment or reward effect occurred."
+          }
+        }
+      }
+    },
+    "cityArrival.originalEvidence": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原始权威证据记录"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original authoritative evidence record"
+          }
+        }
+      }
+    },
+    "cityArrival.unknownHint": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果未知时只查询原请求，不重新签发、提交或确认。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When the result is unknown, query the original request only. Do not reissue, resubmit or re-attest."
+          }
+        }
+      }
+    },
+    "cityArrival.recover": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查询原请求结果"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read original request result"
+          }
+        }
+      }
+    },
+    "cityArrival.receiptRecorded": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求已记录，不代表到场或任务已自动成功。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The request is recorded. This does not automatically mean arrival or task success."
+          }
+        }
+      }
+    },
+    "cityArrival.receiptRejected": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求明确拒绝，未执行该效果。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original request was rejected; its effect was not executed."
+          }
+        }
+      }
+    },
+    "cityArrival.confirmTitle": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明确确认本次意愿"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm this specific intent"
+          }
+        }
+      }
+    },
+    "cityArrival.confirmNow": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认并提交一次"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm and submit once"
+          }
+        }
+      }
+    },
+    "cityArrival.cancel": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        }
+      }
+    },
+    "cityArrival.noAutomaticEffects": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次操作不发积分、不扣资产、不通过任务或取得经营权。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action does not award points, charge assets, pass a task or grant operating rights."
+          }
+        }
+      }
+    },
+    "cityArrival.enterPresentedCode": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入当事人现场展示的本次码"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the code presented in person"
+          }
+        }
+      }
+    },
+    "cityArrival.enterReason": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "填写实际核对或拒绝理由"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the actual review or rejection reason"
+          }
+        }
+      }
+    },
+    "cityArrival.staffConfirm": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核对本人及展示码后确认"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm after checking person and code"
+          }
+        }
+      }
+    },
+    "cityArrival.staffReject": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "说明原因并拒绝"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reject with a reason"
+          }
+        }
+      }
+    },
+    "cityArrival.confirm.ISSUE": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按当前已批准窗口和次数，申请一个仅供本人在此门店使用的服务端挑战。此操作尚不证明到场。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request a server challenge for your own use at this store under the approved window and limit. This does not yet establish arrival."
+          }
+        }
+      }
+    },
+    "cityArrival.confirm.SUBMIT": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我本人请求在上述门店接受本次现场核对，随后仍须由本店有权员工独立确认。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I personally request this in-store review. Independent confirmation by authorized store staff is still required."
+          }
+        }
+      }
+    },
+    "cityArrival.confirm.CONFIRM": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我已在此已绑定门店现场核对当事人展示的本次码，并愿以当前核验岗位记录上述真实理由。这是人工确认，不是 GPS 或传感器证明。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I checked the person’s presented challenge at this bound store and attest under my current verification role with the stated actual reason. This is human attestation, not GPS or sensor proof."
+          }
+        }
+      }
+    },
+    "cityArrival.confirm.REJECT": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按上述真实理由拒绝本次提交，不产生到场证据。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reject this submission for the actual reason above. No arrival evidence will be created."
+          }
+        }
+      }
+    },
+    "cityArrival.state.JOIN_REQUIRED": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需先加入正式 CITY 队伍"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Join a formal CITY team first"
+          }
+        }
+      }
+    },
+    "cityArrival.state.NOT_CONFIGURED": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原发布未批准本组证据方法"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This release has not approved this evidence method"
+          }
+        }
+      }
+    },
+    "cityArrival.state.TEAM_NOT_READY": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原队伍或成员尚未就绪"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original team or members are not ready"
+          }
+        }
+      }
+    },
+    "cityArrival.state.READY": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原队伍资格可读取；是否可提交以当前门店事实为准"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original team qualification is readable; submission also depends on current store facts."
+          }
+        }
+      }
+    },
+    "cityArrival.challenge.ISSUED": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已签发，等待本人提交"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Issued; awaiting personal submission"
+          }
+        }
+      }
+    },
+    "cityArrival.challenge.SUBMITTED": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本人已提交，等待本店员工确认"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personally submitted; awaiting store staff attestation"
+          }
+        }
+      }
+    },
+    "cityArrival.challenge.CONFIRMED": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本店员工已确认此挑战"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store staff attested this challenge"
+          }
+        }
+      }
+    },
+    "cityArrival.challenge.REJECTED": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次提交已拒绝"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This submission was rejected"
+          }
+        }
+      }
+    },
+    "cityArrival.challenge.EXPIRED": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次挑战已过期"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This challenge expired"
+          }
+        }
+      }
+    },
+    "cityArrival.evidence.WITHIN_WINDOW": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "证据仍在其批准时间窗口内，但不自动授予任务资格。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evidence is within its approved time window, but does not automatically grant task eligibility."
+          }
+        }
+      }
+    },
+    "cityArrival.evidence.EXPIRED": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "证据已过期，仅保留原历史事实。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evidence expired and is retained only as historical fact."
+          }
+        }
+      }
+    },
+    "cityArrival.status.initial": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取后端原始事实后继续。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read the original server facts to continue."
+          }
+        }
+      }
+    },
+    "cityArrival.status.contextChanged": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号或批准上下文已变化，请重新读取。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account or approval context changed; read again."
+          }
+        }
+      }
+    },
+    "cityArrival.status.disabled": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本组独立批准默认关闭，当前不可操作。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Independent approval for this capability is disabled by default; it is unavailable now."
+          }
+        }
+      }
+    },
+    "cityArrival.status.ready": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已读取当前服务端状态。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current server state loaded."
+          }
+        }
+      }
+    },
+    "cityArrival.status.unknown": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求结果尚未知，禁止重发。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original result is unknown; do not resend."
+          }
+        }
+      }
+    },
+    "cityArrival.status.recoverFirst": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先读取尚未确认的原请求。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read the pending original request first."
+          }
+        }
+      }
+    },
+    "cityArrival.status.recorded": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已读取原请求回执和当前状态。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original receipt and current state loaded."
+          }
+        }
+      }
+    },
+    "cityArrival.status.rejected": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求被明确拒绝，请重新读取再决定。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The request was explicitly rejected; read again before deciding."
+          }
+        }
+      }
+    },
+    "cityArrival.status.signedOut": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录已失效。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your session expired."
+          }
+        }
+      }
+    },
+    "cityArrival.status.accessWithdrawn": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前权限已撤回，不能继续操作。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current authority was withdrawn; no further action is allowed."
+          }
+        }
+      }
+    },
+    "cityArrival.status.unavailable": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前事实或来源不可用，未按成功处理。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current facts or sources are unavailable; this was not treated as success."
+          }
+        }
+      }
+    },
+    "cityArrival.role.MERCHANT_OWNER": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store owner"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本店店主"
+          }
+        }
+      }
+    },
+    "cityArrival.role.MERCHANT_MANAGER": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store manager"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本店店长"
+          }
+        }
+      }
+    },
+    "cityArrival.role.MERCHANT_CHECKIN": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store verification employee"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本店核销员工"
+          }
+        }
+      }
+    },
+    "cityArrival.sourceUnavailableHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A new challenge is unavailable. Check participation, store availability, challenge expiry and limits. Existing evidence remains readable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新挑战当前不可提交。请检查队伍参与、门店可用性、挑战时限及次数，已有证据仍可回读。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

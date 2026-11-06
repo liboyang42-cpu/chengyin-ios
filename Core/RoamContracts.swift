@@ -59,13 +59,16 @@ public struct RoamPlace: Decodable, Equatable, Identifiable {
     public let description: String?
     /// A String-origin field for merchant display; legacy description decoding remains unchanged.
     public let merchantDescriptionText: String?
+    /// Original /roam/pois display fields; absent/malformed values do not invent categories/artwork.
+    public let tags: [String]
+    public let coverImage: String?
     public let xp: Int?
     public let couponTemplateId: Int?
     public let found: Bool?
     public let pendingRedeem: Bool?
     public var readStatus: RoamPlaceReadStatus { .init(found: found, pendingRedeem: pendingRedeem) }
     public var isSupported: Bool { id > 0 && (type == 1 || type == 2) }
-    enum CodingKeys: String, CodingKey { case id, name, lat, lng, type, radiusM, address, description, xp, couponTemplateId, found, pendingRedeem }
+    enum CodingKeys: String, CodingKey { case id, name, lat, lng, type, radiusM, address, description, xp, couponTemplateId, found, pendingRedeem, tags, coverImg }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decodeIfPresent(Int.self, forKey: .id) ?? 0
@@ -75,6 +78,10 @@ public struct RoamPlace: Decodable, Equatable, Identifiable {
         radiusM = try c.decodeIfPresent(Int.self, forKey: .radiusM)
         address = try c.roamText(.address); description = try c.roamText(.description)
         merchantDescriptionText = type == 2 ? (try? c.decode(String.self, forKey: .description)) : nil
+        let rawTags = (try? c.decode(String.self, forKey: .tags))?.trimmingCharacters(in: .whitespacesAndNewlines)
+        tags = rawTags == "null" ? [] : (rawTags ?? "").components(separatedBy: CharacterSet(charactersIn: ",，、;；|").union(.whitespacesAndNewlines)).filter { !$0.isEmpty }
+        let cover = (try? c.decode(String.self, forKey: .coverImg))?.trimmingCharacters(in: .whitespacesAndNewlines)
+        coverImage = cover?.isEmpty == false && cover != "null" ? cover : nil
         xp = try c.decodeIfPresent(Int.self, forKey: .xp)
         couponTemplateId = try c.decodeIfPresent(Int.self, forKey: .couponTemplateId)
         // Numeric/string truthiness is not part of this Boolean response contract.

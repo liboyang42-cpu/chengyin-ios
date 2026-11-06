@@ -2,26 +2,26 @@ import SwiftUI
 
 /// Rendered only inside the current authorized MerchantBusinessPage snapshot.
 /// No separate fetch, cached destination, evidence download or mutation is introduced.
+/// Order follows pages/merchant/aftercare/detail: hero, status card (平台处理, 商家意见, 款项结果,
+/// 退款单号, 申请时间, 已转平台客服, 可退截止, 退款政策), 申请原因, 客户, 处理记录.
 struct MerchantAftercareProgressView: View {
     let progress: MerchantAftercareProgress
     @State private var phoneTimeZone = TimeZone.current
     var body: some View {
-        Section("merchant.aftercareProgress.summary") {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(verbatim: progress.refundNumber ?? "#\(progress.refundID)").font(.headline)
+        Section {
+            VStack(spacing: Theme.Space.s1) {
                 if progress.amount.raw != nil {
-                    Text(verbatim: progress.amount.display).font(.title2).monospacedDigit()
+                    QuestifyHeroValue(value: Text(verbatim: progress.amount.display).monospacedDigit(),
+                                      caption: Text(verbatim: heroSubtitle))
                 } else {
-                    Text("merchant.aftercareProgress.amountUnknown").foregroundStyle(.secondary)
+                    QuestifyHeroValue(value: Text("merchant.aftercareProgress.amountUnknown").foregroundColor(.secondary),
+                                      caption: Text(verbatim: heroSubtitle))
                 }
-                if let activity = progress.activityTitle { Text(verbatim: activity) }
-            }.accessibilityIdentifier("merchant.business.row.refund.\(progress.refundID)")
-            if let type = progress.sourceType { LabeledContent("merchant.business.field.sourceType", value: type) }
-            if let id = progress.sourceID { LabeledContent("merchant.business.field.sourceId", value: String(id)) }
-            if let name = progress.customerNickname { LabeledContent("merchant.business.field.customerNickname", value: name) }
-            if let reason = progress.reason { LabeledContent("merchant.business.field.reason", value: reason) }
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("merchant.business.row.refund.\(progress.refundID)")
         }
-        Section("merchant.aftercareProgress.current") {
+        Section {
             LabeledContent("merchant.aftercareProgress.platform") {
                 Text(LocalizedStringKey("merchant.business.state." + progress.processing.rawValue))
             }.accessibilityIdentifier("merchant.aftercareProgress.platform")
@@ -31,10 +31,43 @@ struct MerchantAftercareProgressView: View {
             LabeledContent("merchant.aftercareProgress.funds") {
                 Text(LocalizedStringKey("merchant.aftercareProgress.funds." + progress.funds.rawValue))
             }.accessibilityIdentifier("merchant.aftercareProgress.funds")
-            Text("merchant.business.opinionOnly").font(.footnote).foregroundStyle(.secondary)
+            LabeledContent("merchant.aftercareProgress.refundNumber") {
+                Text(verbatim: progress.refundNumber ?? "#\(progress.refundID)").textSelection(.enabled).monospacedDigit()
+            }
+            if let created = progress.createdAt {
+                LabeledContent("merchant.aftercareProgress.requestedAt",
+                               value: MerchantAftercareTime.event(created, phoneTimeZone: phoneTimeZone))
+            }
+            if let takeover = progress.platformTakeoverAt {
+                LabeledContent("merchant.aftercareProgress.takeover",
+                               value: MerchantAftercareTime.event(takeover, phoneTimeZone: phoneTimeZone))
+            }
+            if let deadline = progress.refundDeadline {
+                LabeledContent("merchant.aftercareProgress.deadlineBeijing", value: MerchantAftercareTime.deadline(deadline))
+            }
+            if progress.policyCode != nil || progress.policyVersion != nil {
+                LabeledContent("merchant.aftercareProgress.policy") {
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(verbatim: MerchantOpsCopy.text(MerchantAftercareParity.policyKey(progress.policyCode)))
+                            .multilineTextAlignment(.trailing)
+                            .accessibilityIdentifier("merchantOps.aftercare.policyText")
+                        if let version = progress.policyVersion {
+                            Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.policyVersion %lld", version))
+                                .font(.footnote).foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+        }
+        if let reason = progress.reason {
+            Section("merchant.business.field.reason") { Text(verbatim: reason) }
+        }
+        if let name = progress.customerNickname {
+            Section("merchant.aftercareProgress.customer") {
+                LabeledContent("merchant.business.field.customerNickname", value: name)
+            }
         }
         Section("merchant.aftercareProgress.history") {
-            Text("merchant.aftercareProgress.historyHint").font(.footnote).foregroundStyle(.secondary)
             ForEach(progress.events) { event in
                 VStack(alignment: .leading, spacing: 6) {
                     switch event.kind {
@@ -52,25 +85,28 @@ struct MerchantAftercareProgressView: View {
                         }
                     }
                     if let time = event.occurredAt { Text(verbatim: MerchantAftercareTime.event(time, phoneTimeZone: phoneTimeZone)).font(.caption).foregroundStyle(.secondary) }
-                    else { Text("merchant.aftercareProgress.timeUnknown").font(.caption).foregroundStyle(.secondary) }
                 }
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("merchant.aftercareProgress.event." + event.id)
+            }
+            ForEach(Array(MerchantAftercareParity.platformSteps(progress.processing).enumerated()), id: \.offset) { index, step in
+                LabeledContent {
+                    Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.stepState." + step.state.rawValue))
+                } label: {
+                    Text(verbatim: MerchantOpsCopy.text(step.titleKey))
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("merchantOps.aftercare.step.\(index)")
             }
         }
         .onAppear { phoneTimeZone = .current }
         .onReceive(NotificationCenter.default.publisher(for: .NSSystemTimeZoneDidChange)) { _ in
             phoneTimeZone = .current
         }
-        MerchantAftercareDetailParitySections(progress: progress)
-        if progress.policyCode != nil || progress.policyVersion != nil || progress.refundDeadline != nil {
-            Section("merchant.aftercareProgress.policy") {
-                if let code = progress.policyCode { LabeledContent("merchant.business.field.refundPolicyCode", value: code) }
-                if let version = progress.policyVersion { LabeledContent("merchant.business.field.refundPolicyVersion", value: String(version)) }
-                if let deadline = progress.refundDeadline { LabeledContent("merchant.aftercareProgress.deadlineBeijing", value: MerchantAftercareTime.deadline(deadline)) }
-                Text("merchant.aftercareProgress.policyHint").font(.footnote).foregroundStyle(.secondary)
-            }
-        }
+    }
+    private var heroSubtitle: String {
+        let source = MerchantOpsCopy.text(MerchantAftercareParity.sourceKey(progress.sourceType))
+        return progress.activityTitle.map { source + " · " + $0 } ?? source
     }
 }

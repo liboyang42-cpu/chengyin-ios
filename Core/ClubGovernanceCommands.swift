@@ -128,6 +128,12 @@ public struct ClubGovernanceCommand: Equatable {
         if [.chapterRecruit, .chapterFinish].contains(operation) { guard (result["scope"] ?? .string("")) == .string("") else { throw ClubGovernanceFailure.invalidRequest }; result["scope"] = .string("") }
         if operation == .dissolve { result["id"] = .integer(scope.clubID ?? 0); guard result["dissolveConfirmed"] == .bool(true), result["memberConsequencesConfirmed"]?.bool != nil else { throw ClubGovernanceFailure.invalidRequest } }
         if let request = result["requestId"] { guard let id = request.string, !id.isEmpty, id.count <= 200 else { throw ClubGovernanceFailure.invalidRequest } }
+        if operation == .createSeries, let id = result["requestId"]?.string {
+            // Match Java String.trim() and String.length(), not Unicode whitespace or
+            // Swift grapheme count. Keep original wire bytes; server owns canonical identity.
+            let trimmed = id.utf16.drop(while: { $0 <= 0x20 }).reversed().drop(while: { $0 <= 0x20 })
+            guard !trimmed.isEmpty, trimmed.count <= 64 else { throw ClubGovernanceFailure.invalidRequest }
+        }
         // createSeries alone may send an explicit null lead: the server resolves it to the club owner.
         for key in ["targetMemberId", "banId", "assignmentId", "targetId", "defaultLeadMemberId"] where result[key] != nil && !(operation == .createSeries && key == "defaultLeadMemberId" && result[key] == .null) { guard (result[key]?.int ?? 0) > 0 else { throw ClubGovernanceFailure.invalidRequest } }
         for key in ["version", "expectedVersion"] where result[key] != nil { guard let raw = result[key], case .integer(let version) = raw, version >= 0 else { throw ClubGovernanceFailure.invalidRequest } }

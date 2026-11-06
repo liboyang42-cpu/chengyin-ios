@@ -8,15 +8,19 @@ enum TopicXcxTab: Int, CaseIterable, Identifiable {
     var anchor: String { "topicXcx.anchor.\(rawValue)" }
 }
 
-/// Source in-page tabs; here they scroll to the matching section so every existing row stays reachable.
+/// Mini-program 详情 / 故事 / 路线 tabs as a native segmented control; it jumps to that part of the page
+/// so every existing row stays reachable.
 struct TopicXcxTabs: View {
     let proxy: ScrollViewProxy
     @State private var selection: TopicXcxTab = .details
     var body: some View {
         Picker("topicXcx.tabs", selection: $selection) {
             ForEach(TopicXcxTab.allCases) { tab in Text(tab.titleKey).tag(tab) }
-        }.pickerStyle(.segmented).accessibilityIdentifier("topic.tabs")
-            .onChange(of: selection) { _, tab in withAnimation { proxy.scrollTo(tab.anchor, anchor: .top) } }
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .accessibilityIdentifier("topic.tabs")
+        .onChange(of: selection) { _, tab in withAnimation { proxy.scrollTo(tab.anchor, anchor: .top) } }
     }
 }
 
@@ -126,7 +130,7 @@ struct TopicXcxActionBar: View {
                     Label("topicXcx.cta.ticketWallet", systemImage: "ticket").frame(maxWidth: .infinity)
                 case .locked(let lifecycle):
                     if TopicXcxFacts.opensPricing(topic), let openPricing {
-                        Button(action: openPricing) { Text("topicXcx.cta.confirmPrice").frame(maxWidth: .infinity) }.buttonStyle(.borderedProminent)
+                        Button(action: openPricing) { Text("topicXcx.cta.confirmPrice").frame(maxWidth: .infinity) }.buttonStyle(.questifyPrimary)
                             .accessibilityIdentifier("topic.cta.pricing")
                     } else {
                         Text(LocalizedStringKey("topicXcx.cta.locked." + String(lifecycle))).frame(maxWidth: .infinity).foregroundStyle(.secondary)
@@ -136,13 +140,19 @@ struct TopicXcxActionBar: View {
                     Button(action: openSelfPlay) {
                         if let price { Text("topicXcx.cta.selfPlay \(NSDecimalNumber(decimal: price).stringValue)").frame(maxWidth: .infinity) }
                         else { Text("topicXcx.cta.selfPlayNoPrice").frame(maxWidth: .infinity) }
-                    }.buttonStyle(.borderedProminent).disabled(!topic.canOfferPurchase)
+                    }.buttonStyle(.questifyPrimary).disabled(!topic.canOfferPurchase)
                 case .signUp:
-                    Button(action: openSessions) { Text("topicXcx.cta.signUp").frame(maxWidth: .infinity) }.buttonStyle(.borderedProminent)
+                    Button(action: openSessions) { Text("topicXcx.cta.signUp").frame(maxWidth: .infinity) }.buttonStyle(.questifyPrimary)
                         .disabled(topic.merchantClosed)
                 }
-            }.accessibilityIdentifier("topic.actionBar")
-        }.padding(.horizontal).padding(.vertical, 8).background(.bar)
+            }
+            .controlSize(.large)
+            .accessibilityIdentifier("topic.actionBar")
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, Theme.Space.pageX)
+        .padding(.vertical, Theme.Space.s2)
+        .background(Color(uiColor: .systemBackground))
     }
 }
 
@@ -162,8 +172,7 @@ struct TopicXcxRouteSection: View {
         Section("topicXcx.tab.route") {
             if topic.chapters.allSatisfy({ $0.nodes.isEmpty }) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("topicXcx.route.emptyTitle").font(.headline)
-                    Text("topicXcx.route.emptyDetail").font(.footnote).foregroundStyle(.secondary)
+                    Text("topicXcx.route.emptyTitle").foregroundStyle(.secondary)
                 }.accessibilityIdentifier("topic.route.empty")
             }
             ForEach(Array(topic.chapters.enumerated()), id: \.offset) { _, chapter in

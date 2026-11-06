@@ -48,25 +48,42 @@ import SwiftUI
         _draft = State(initialValue: initial)
     }
     var body: some View {
-        let hostMaterialAttachment = hostMaterials.attachment
         let _ = bindRolePicker()
         let _ = bindSeriesLeadPicker()
         let _ = bindNotificationAudience()
         Form {
-            Section { Text("club.gov.localDraft"); Text(LocalizedStringKey(gateKey)) }
+            // The internal draft/gate notes and the raw target IDs are no longer shown: users never chose them.
             if ClubOpsGovernanceFormNotes.applies(route.operation) { Section { ClubOpsGovernanceFormNotes(operation: route.operation, seed: route.seed) } }
-            Section("club.gov.target") { ClubGovernanceFactRows(value: .object(route.scope.ids), fields: ["clubId", "topicId", "activityId", "seriesId", "memberId", "registrationId", "campaignId", "chapterId"]); ClubGovernanceFactRows(value: .object(draft.anchors), fields: Array(draft.anchors.keys).sorted()) }
-            Section {
-                if route.operation == .hostApply {
-                    ClubHostApplicationMaterialsRows(model: hostMaterials, context: hostMaterialsContext,
-                        allowed: { hostMaterialAttachment != nil && hostMaterials.attachment == hostMaterialAttachment && hostMaterialsAllowed }, changed: { dirty = true })
-                }
-                if route.operation == .sendNotification {
+            if route.operation == .hostApply {
+                // Mini-program club/apply four steps, shown as four sections of one form.
+                Section {
+                    ForEach(["leaderName", "phone", "identity", "coFounders"], id: \.self) { fieldRow($0) }
+                } header: { Text("club.host.step.profile") } footer: { Text("club.host.contactPrivate") }
+                    .disabled(busy || locked || review != nil)
+                Section("club.host.step.experience") {
+                    ForEach(["experience", "maxEventSize", "avgEventSize"], id: \.self) { fieldRow($0) }
+                }.disabled(busy || locked || review != nil)
+                Section("club.host.step.skills") {
+                    ForEach(["canDesignRoute", "canDesignTask", "canNpc", "canMerchantCoop"], id: \.self) { flagRow($0) }
+                }.disabled(busy || locked || review != nil)
+                Section("club.host.step.credentials") {
+                    // 资质 / 案例图 upload has no working upload path yet, and picked images block submission,
+                    // so the picker stays hidden until uploads exist (ClubHostApplicationMaterialsRows).
+                    flagRow("hasGuideCert")
+                }.disabled(busy || locked || review != nil)
+            } else if route.operation == .sendNotification {
+                // Mini-program club/notify: 选择受众 list, then 内容.
+                Section("club.gov.field.audienceType") {
                     ClubNotificationAudienceView(context: audienceContext, access: access, model: notificationAudience,
                         selection: textBinding("audienceType"), canEdit: { audienceIsCurrent && !busy && !locked && review == nil },
                         isCurrent: { audienceIsCurrent })
+                }.disabled(busy || locked || review != nil)
+                Section {
                     ClubOpsNotifyContentFields(title: textBinding("title"), content: textBinding("content"))
-                }
+                } header: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.content.section") }
+                    .disabled(busy || locked || review != nil)
+            } else {
+            Section {
                 if route.operation == .assignRole {
                     ClubRoleAssignmentPicker(scope: route.scope, identity: identity, access: access, model: rolePicker,
                         memberID: textBinding("targetMemberId"), roleCode: textBinding("roleCode"),
@@ -118,26 +135,17 @@ import SwiftUI
                     (route.operation != .sendNotification || key != "audienceType") &&
                     (route.operation != .sendNotification || !["title", "content"].contains(key)) &&
                     (route.operation != .saveCustomer || !["tags", "remark"].contains(key))
-                }, id: \.self) { key in
-                    if let choices = draft.choices(key) {
-                        Picker(LocalizedStringKey("club.gov.field." + key), selection: textBinding(key)) {
-                            ForEach(choices, id: \.self) { Text(LocalizedStringKey("club.gov.choice." + $0)).tag($0) }
-                        }.accessibilityIdentifier("club.gov.input." + key)
-                    } else {
-                        TextField(LocalizedStringKey("club.gov.field." + key), text: textBinding(key), axis: ["content", "reason", "remark"].contains(key) ? .vertical : .horizontal)
-                            .textInputAutocapitalization(.never).autocorrectionDisabled()
-                            .accessibilityIdentifier("club.gov.input." + key)
-                    }
-                }
+                }, id: \.self) { key in fieldRow(key) }
                 ForEach(Array(draft.flags.keys).sorted().filter { !isSeries || $0 != "waitlistEnabled" }, id: \.self) { key in
-                    Toggle(LocalizedStringKey("club.gov.field." + key), isOn: flagBinding(key)).accessibilityIdentifier("club.gov.input." + key)
+                    flagRow(key)
                 }
             }.disabled(busy || locked || review != nil)
+            }
             if let failure { Section { Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.gov.formError"); if let message = failure.message { Text(verbatim: message) } } }
             if busy { ProgressView() }
             if let review {
-                Section("club.gov.review") {
-                    ClubGovernanceFactRows(value: .object(review.command.fields), fields: Array(review.command.fields.keys).sorted().filter { $0 != "expiresAtEpochMs" && !(route.operation == .createSeries && $0 == "defaultLeadMemberId" && review.command.fields[$0] == .null) }, showUnknown: true)
+                Section {
+                    ClubGovernanceFactRows(value: .object(review.command.fields), fields: Array(review.command.fields.keys).sorted().filter { $0 != "expiresAtEpochMs" && $0 != "id" && !$0.hasSuffix("Id") && !$0.hasSuffix("Ids") && !$0.hasSuffix("ID") }, showUnknown: true)
                     if route.operation == .createSeries, review.command.fields["defaultLeadMemberId"] == .null {
                         LabeledContent("club.gov.field.defaultLeadMemberId") { Text("clubOpsEvent.lead.ownerDefault", tableName: "ClubOpsEvent") }
                             .accessibilityIdentifier("clubOpsEvent.review.ownerDefault")
@@ -152,22 +160,27 @@ import SwiftUI
                     Button(access.allowsOfflineWrites ? "club.gov.confirmOffline" : "club.gov.confirmProduction") {
                         if route.operation == .cancelOccurrence { cancelConfirmReview = review } else { Task { await confirm(review) } }
                     }
-                        .disabled(!access.canDispatch(review.command) || busy || locked).accessibilityIdentifier("club.gov.confirm")
+                        .buttonStyle(.questifyPrimary)
+                        .frame(maxWidth: .infinity)
+                        .listRowBackground(Color.clear)
+                        .disabled(!coordinator.canDispatch(review.command) || busy || locked).accessibilityIdentifier("club.gov.confirm")
                     Button("club.gov.cancelReview") { self.review = nil; coordinator.cancelReview() }.disabled(busy)
                 }
             } else if receipt == nil {
                 Button("club.gov.review") { Task { await prepare() } }.disabled(busy || locked || identity == nil || !roleAssignmentReady || !seriesScheduleReady || !seriesLeadReady || !hostMaterialsReady || !notificationAudienceReady).accessibilityIdentifier("club.gov.prepare")
             }
+            if route.operation == .createSeries {
+                ClubSeriesOriginalResultSection(scope: route.scope, identity: identity, access: access,
+                    coordinator: coordinator, formID: route.id)
+            }
             if let groupCode {
-                TimelineView(.periodic(from: groupCode.receivedAt, by: 1)) { context in
-                    Section {
-                        if groupCode.isActive(at: context.date) { Text("club.gov.codeAvailable"); Text(verbatim: groupCode.code).privacySensitive().accessibilityIdentifier("club.gov.groupCode") }
-                        else { Text("club.gov.expiredCode").accessibilityIdentifier("club.gov.expiredCode") }
-                    }
+                Section {
+                    ClubGroupCodePresentation(value: groupCode,
+                        current: identity == access.identity && scenePhase == .active)
                 }
             }
             if let receipt {
-                Section("club.gov.acknowledged") { Text("club.gov.acknowledgedBody")
+                Section("club.gov.acknowledged") {
                     ClubOpsGovernanceSuccess(operation: route.operation)
                     if route.operation == .correctAttendance { Text("clubOpsEvent.correct.success", tableName: "ClubOpsEvent").accessibilityIdentifier("clubOpsEvent.correct.success") }
                     // Campaign counts render once, in the notify card, when the receipt parses as a campaign.
@@ -245,7 +258,17 @@ import SwiftUI
             let expected = audienceContext
             await notificationAudience.load(permit, access: access, isCurrent: { audienceIsCurrent && audienceContext == expected })
         }
-        .onDisappear { audienceVisible = false; notificationAudience.leave(audienceContext); seriesLeadPicker.leave(seriesLeadContext); scheduleSession = nil; generation &+= 1; coordinator.cancelReview(); rolePicker.leave(rolePickerContext) }
+        .onChange(of: access.authorizationGeneration) { _, _ in
+            groupCode = nil
+            if route.operation == .issueGroupCode { receipt = nil }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active {
+                groupCode = nil
+                if route.operation == .issueGroupCode { receipt = nil }
+            }
+        }
+        .onDisappear { groupCode = nil; if route.operation == .issueGroupCode { receipt = nil }; audienceVisible = false; notificationAudience.leave(audienceContext); seriesLeadPicker.leave(seriesLeadContext); scheduleSession = nil; generation &+= 1; coordinator.cancelReview(); rolePicker.leave(rolePickerContext) }
     }
     private var hostMaterialsContext: ClubHostApplicationMaterials.Context {
         ClubHostApplicationMaterials.context(formID: route.id, scope: route.scope, identity: identity, access: access)
@@ -312,6 +335,21 @@ import SwiftUI
     private var gateKey: String {
         switch route.operation.risk { case .administrative: return "club.gov.writeGate"; case .financial: return "club.gov.financialGate"; case .identity: return "club.gov.identityGate"; case .provider: return "club.gov.providerGate" }
     }
+    @ViewBuilder private func fieldRow(_ key: String) -> some View {
+        if let choices = draft.choices(key) {
+            Picker(LocalizedStringKey("club.gov.field." + key), selection: textBinding(key)) {
+                ForEach(choices, id: \.self) { Text(LocalizedStringKey("club.gov.choice." + $0)).tag($0) }
+            }.accessibilityIdentifier("club.gov.input." + key)
+        } else {
+            TextField(LocalizedStringKey("club.gov.field." + key), text: textBinding(key), axis: ["content", "reason", "remark"].contains(key) ? .vertical : .horizontal)
+                .keyboardType(["maxEventSize", "avgEventSize", "actualHours"].contains(key) ? .numberPad : .default)
+                .textInputAutocapitalization(.never).autocorrectionDisabled()
+                .accessibilityIdentifier("club.gov.input." + key)
+        }
+    }
+    private func flagRow(_ key: String) -> some View {
+        Toggle(LocalizedStringKey("club.gov.field." + key), isOn: flagBinding(key)).accessibilityIdentifier("club.gov.input." + key)
+    }
     private func textBinding(_ key: String) -> Binding<String> { Binding(get: { draft.text[key] ?? "" }, set: { draft.text[key] = $0; dirty = true; review = nil; coordinator.cancelReview() }) }
     private func flagBinding(_ key: String) -> Binding<Bool> { Binding(get: { draft.flags[key] ?? false }, set: { draft.flags[key] = $0; dirty = true; review = nil; coordinator.cancelReview() }) }
     private func prepare() async {
@@ -371,9 +409,17 @@ import SwiftUI
             if route.operation == .cancelOccurrence, submittedRequestID == draft.requestID, !Task.isCancelled {
                 occurrenceCancellationReturn?.acknowledged(review, value)
             }
-            if route.operation == .issueGroupCode { groupCode = try ClubGovernanceGroupCode(receipt: value, receivedAt: Date()) }
+            if route.operation == .issueGroupCode {
+                guard let clubID = review.command.scope.clubID, let activityID = review.command.scope.activityID,
+                      scenePhase == .active, !Task.isCancelled else { throw ClubGovernanceFailure.staleReview }
+                groupCode = try ClubGovernanceGroupCode(receipt: value, receivedAt: Date(),
+                    expectedClubID: clubID, expectedActivityID: activityID)
+            }
         } catch {
             if revision == generation && expected == identity {
+                // Invalid original QR cannot render an acknowledged success card.
+                // This clears ephemeral presentation only, never the durable original request.
+                if route.operation == .issueGroupCode { groupCode = nil; receipt = nil }
                 failure = error as? ClubGovernanceFailure ?? .unknown(message: nil)
                 self.review = nil; locked = coordinator.isLocked(review.command, identity: review.identity)
                 if route.operation == .updateSeries, submittedRequestID == draft.requestID, !locked, let definite = failure {

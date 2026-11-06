@@ -35,6 +35,13 @@ public final class ProfileEditCoordinator {
     }
     private var pending: [Int: PendingWrite] = [:]
     public private(set) var snapshot: ProfileEditSnapshot?
+    /// Display-only snapshot, never a write receipt or an avatar moderation join.
+    public var currentAvatarReadSnapshot: ProfileEditSnapshot? {
+        guard let session, let current = currentSession(), current == session,
+              current.token.utf8.elementsEqual(session.token.utf8),
+              let snapshot, snapshot.id == session.identity.accountID else { return nil }
+        return snapshot
+    }
     public private(set) var confirmation: ProfileEditConfirmation?
     public private(set) var isBusy = false
     public private(set) var messageKey: String?

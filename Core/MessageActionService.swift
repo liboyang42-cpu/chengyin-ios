@@ -7,11 +7,18 @@ public struct MessageTextIntent: Equatable {
     public let conversationID: Int
     public let content: String
     public let clientMessageID: String
-    public init(conversationID:Int,content:String,clientMessageID:String=UUID().uuidString.replacingOccurrences(of:"-",with:"").lowercased()) throws {
+    public let channelReference: NativeChannelMessageTextReference?
+    public init(conversationID:Int,content:String,clientMessageID:String=UUID().uuidString.replacingOccurrences(of:"-",with:"").lowercased(),
+                channelReference: NativeChannelMessageTextReference? = nil) throws {
         let text=content.trimmingCharacters(in:.whitespacesAndNewlines)
         guard conversationID>0,!text.isEmpty,clientMessageID.count==32,
               clientMessageID.utf8.allSatisfy({ (48...57).contains($0) || (97...102).contains($0) }) else { throw APIError.invalidRequest }
+        if let channelReference {
+            try channelReference.validate()
+            guard channelReference.matchesConversation(conversationID) else { throw APIError.invalidRequest }
+        }
         self.conversationID=conversationID;self.content=text;self.clientMessageID=clientMessageID
+        self.channelReference = channelReference
     }
 }
 
@@ -21,6 +28,7 @@ public struct MessageActionService {
     private let transport:any HTTPTransport
     public init(configuration:APIConfiguration,transport:any HTTPTransport) { self.configuration=configuration;self.transport=transport }
     public func send(_ intent:MessageTextIntent,token:String) async throws -> MessagingMessage {
+        guard intent.channelReference == nil else { throw APIError.notConfigured }
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         try Task.checkCancellation()
         let request=try AuthRequestBuilder.makeFormRequest(url:configuration.baseURL.appendingPathComponent("api/im/send"),fields:[
@@ -46,6 +54,7 @@ public struct MessageActionService {
     /// Ordinary read of the same client message id. `found` plus the message is not a nine-field send proof.
     /// A missing row returns nil and does not send.
     public func readSent(_ intent:MessageTextIntent,token:String) async throws -> MessagingMessage? {
+        guard intent.channelReference == nil else { throw APIError.notConfigured }
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         try Task.checkCancellation()
         let request=try AuthRequestBuilder.makeFormRequest(url:configuration.baseURL.appendingPathComponent("api/im/send-receipt"),fields:[

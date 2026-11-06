@@ -66,10 +66,12 @@ import UIKit
                 Text("merchant.settlementProgress.title").font(.headline)
                 ForEach(progress.steps) { step in
                     HStack(alignment: .top, spacing: 10) {
-                        Image(systemName: symbol(step.state)).accessibilityHidden(true)
+                        Image(systemName: symbol(step.state))
+                            .foregroundStyle(step.state == .done ? Theme.Color.success(in: .merchant) : Theme.Color.textSecondary(in: .merchant))
+                            .accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: 4) {
                             Text(LocalizedStringKey("merchant.settlementProgress.step." + step.id))
-                            Text(LocalizedStringKey("merchant.settlementProgress.stepState." + step.state.rawValue)).font(.caption)
+                            Text(LocalizedStringKey("merchant.settlementProgress.stepState." + step.state.rawValue)).font(.caption).foregroundStyle(.secondary)
                             if let time = step.timestamp { MerchantSettlementTimestampText(raw: time).font(.caption).foregroundStyle(.secondary) }
                         }
                     }.fixedSize(horizontal: false, vertical: true)

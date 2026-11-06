@@ -37,6 +37,7 @@ final class MerchantTemplatePreparationFlowTests: XCTestCase {
         XCTAssertTrue(revealFixtureElement(confirm, in: app)); confirm.tap()
         let saved = app.staticTexts["merchant.operations.exampleSaved"]
         XCTAssertTrue(revealFixtureElement(saved, in: app, requiresHittable: false))
+        XCTAssertFalse(app.keyboards.firstMatch.exists)
         XCTAssertTrue(revealFixtureElement(field, in: app, towardTop: true)); XCTAssertEqual(field.value as? String, "Map and pen")
         app.buttons["merchant.operations.reload"].tap()
         XCTAssertTrue(revealFixtureElement(field, in: app, towardTop: true)); XCTAssertEqual(field.value as? String, "Map and pen")

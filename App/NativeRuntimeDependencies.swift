@@ -8,6 +8,7 @@ import Foundation
     let socialMemberActionApprovals: [SocialMemberActionApproval]
     let nativePlatform: NativePlatformAcceptance?
     let orderLifecycleConfiguration: OrderLifecycleProductionConfiguration?
+    let nativeWebhookConfiguration: NativeWebhookRuntimeConfiguration?
     let businessConfiguration: BusinessRuntimeConfiguration?
     let weChatPaymentConfiguration: WeChatSDKPaymentConfiguration?
     let signupDocument: (any TopicSelfPlayDocumentProviding)?
@@ -49,7 +50,7 @@ import Foundation
     let nonCashRewardStatsApproved: Bool
     let nonCashRewardCatalogApproved: Bool
     let nonCashRewardManageApproved: Bool
-    init(officialActionApproval: OfficialActionProductionApproval? = nil, socialMemberActionApprovals: [SocialMemberActionApproval] = [], configuration: RuntimeDependencyConfiguration? = nil, walkingNavigation: NativeWalkingNavigationDependencies? = nil, businessConfiguration: BusinessRuntimeConfiguration? = nil, bankDocument: (any BankWithdrawalCurrentDocumentProviding)? = nil, signupDocument: (any TopicSelfPlayDocumentProviding)? = nil, selfPlayPayment: (any TopicSelfPlayPaymentProviding)? = nil, weChatPaymentConfiguration: WeChatSDKPaymentConfiguration? = nil, transport: (any HTTPTransport)? = nil,
+    init(officialActionApproval: OfficialActionProductionApproval? = nil, socialMemberActionApprovals: [SocialMemberActionApproval] = [], configuration: RuntimeDependencyConfiguration? = nil, walkingNavigation: NativeWalkingNavigationDependencies? = nil, businessConfiguration: BusinessRuntimeConfiguration? = nil, nativeWebhookConfiguration: NativeWebhookRuntimeConfiguration? = nil, bankDocument: (any BankWithdrawalCurrentDocumentProviding)? = nil, signupDocument: (any TopicSelfPlayDocumentProviding)? = nil, selfPlayPayment: (any TopicSelfPlayPaymentProviding)? = nil, weChatPaymentConfiguration: WeChatSDKPaymentConfiguration? = nil, transport: (any HTTPTransport)? = nil,
          location: (any RoamDeviceLocationProviding)? = nil, shopNPCGrants: ShopNPCGrants = .init(), motion: (any PlayMotionSampleProviding)? = nil,
          verificationCodeApproval: VerificationCodeApproval? = nil, couponCodeApproval: CouponCodeApproval? = nil, socialReaderApproval: SocialReaderProductionApproval? = nil,
          clubOpsTimeApproval: ClubOpsTimeApproval? = nil, contextualReviewApproval: ContextualReviewApproval? = nil,
@@ -77,6 +78,7 @@ import Foundation
         self.merchantBusinessApproval = merchantBusinessApproval
         self.clubGovernanceApproval = clubGovernanceApproval
         self.orderLifecycleConfiguration = orderLifecycleConfiguration
+        self.nativeWebhookConfiguration = nativeWebhookConfiguration
         self.businessConfiguration = businessConfiguration; self.bankDocument = bankDocument
         self.verificationCodeApproval = verificationCodeApproval; self.couponCodeApproval = couponCodeApproval; self.ownerRefundApproval = ownerRefundApproval
         self.configuration = configuration; self.transport = transport; self.location = location; self.shopNPCGrants = shopNPCGrants; self.motion = motion
@@ -97,11 +99,13 @@ import Foundation
     }
     func makeMerchantPublicFactory(api: APIConfiguration, journal: any OperationPendingJournal,
                                    transportOverride: (any HTTPTransport)? = nil,
+                                   chatTransportOverride: (any HTTPTransport)? = nil,
                                    current: @escaping () -> MerchantPublicHostContext?) -> MerchantPublicProductionFactory? {
         guard let context = current(), merchantPublicApproval?.matches(context) == true else { return nil }
         let acceptedGrants = merchantNPCGrants
         return MerchantPublicProductionFactory(api: api, approval: merchantPublicApproval,
-            transport: transportOverride ?? transport ?? ResponseLimitedHTTPTransport(enabled: true), journal: journal,
+            transport: transportOverride ?? transport ?? ResponseLimitedHTTPTransport(enabled: true),
+            chatTransport: chatTransportOverride, journal: journal,
             current: current, grants: { acceptedGrants })
     }
     static var dormant: Self { .init() }

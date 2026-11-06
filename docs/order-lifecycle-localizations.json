@@ -151,8 +151,8 @@
   },
   {
     "key": "orderLifecycle.refund.reason",
-    "en": "Server policy",
-    "zh-Hans": "服务端退款规则"
+    "en": "Refund policy",
+    "zh-Hans": "退款规则"
   },
   {
     "key": "orderLifecycle.refund.deadline",
@@ -161,13 +161,13 @@
   },
   {
     "key": "orderLifecycle.refund.amount",
-    "en": "Reported refund amount",
-    "zh-Hans": "服务端退款金额"
+    "en": "Refund amount",
+    "zh-Hans": "退款金额"
   },
   {
     "key": "orderLifecycle.refund.caution",
-    "en": "Cancellation is not proof of a cash or points refund. Amounts, eligibility and payout timing require a current server decision.",
-    "zh-Hans": "取消订单不代表现金或积分已退回。金额、资格及到账时间须以服务端最新结果为准。"
+    "en": "Cancelling doesn't mean cash or points have been refunded. Amounts, eligibility and payout timing depend on the latest refund decision.",
+    "zh-Hans": "取消订单不代表现金或积分已退回。金额、资格及到账时间以最新退款结果为准。"
   },
   {
     "key": "orderLifecycle.review.payment",
@@ -191,8 +191,8 @@
   },
   {
     "key": "orderLifecycle.review.snapshot",
-    "en": "This is the unchanged order snapshot you reviewed. Refreshing, signing out or changing accounts invalidates this review.",
-    "zh-Hans": "此处为核对时的原始订单快照。刷新、退出登录或切换账号后须重新核对。"
+    "en": "These are the order details you reviewed. Refreshing, signing out or switching accounts means you'll need to review again.",
+    "zh-Hans": "此处为你核对时的订单信息。刷新、退出登录或切换账号后须重新核对。"
   },
   {
     "key": "orderLifecycle.review.simulate",
@@ -336,8 +336,8 @@
   },
   {
     "key": "orderLifecycle.verification.role",
-    "en": "Merchant entry, code appearance and location do not grant verification rights. The server must authorize the current account and selected entitlement.",
-    "zh-Hans": "商家入口、码的外观及位置不能授予核销权限。服务端须校验当前账号及所选权益。"
+    "en": "Having merchant access or seeing a code doesn't mean you can redeem it. Your account must be authorized for the selected item.",
+    "zh-Hans": "拥有商家入口或看到码并不代表可以核销，需当前账号获得所选权益的核销权限。"
   },
   {
     "key": "orderLifecycle.verification.disabled",

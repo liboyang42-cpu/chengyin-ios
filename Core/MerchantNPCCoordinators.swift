@@ -46,6 +46,7 @@ public struct MerchantNPCMessageDraft: Equatable {
     public var onChange: (() -> Void)?
     public private(set) var reply: MerchantNPCReply?
     public private(set) var message: String?
+    public private(set) var gameDispatchDenial: MerchantNPCGameDispatchDenial?
     public private(set) var failure: MerchantNPCFailure?
     public private(set) var sending = false
     public private(set) var requestID: UUID?
@@ -83,7 +84,7 @@ public struct MerchantNPCMessageDraft: Equatable {
     public var isCurrent: Bool { lifecycle == .active && currentScope() == scope }
     public var isInterrupted: Bool { lifecycle == .interrupted }
     public var canResumeAfterInterruption: Bool {
-        isInterrupted && scope.accountID > 0 && !scope.namespace.isEmpty && currentScope() == scope && grants().chatAllowed
+        isInterrupted && gameDispatchDenial == nil && scope.accountID > 0 && !scope.namespace.isEmpty && currentScope() == scope && grants().chatAllowed
     }
     /// Backgrounding clears local content immediately. It never retries a dispatched request.
     /// A permanently invalidated owner must never become resumable through another scene event.
@@ -102,7 +103,7 @@ public struct MerchantNPCMessageDraft: Equatable {
         guard canResumeAfterInterruption else { return }
         lifecycle = .active; onChange?()
     }
-    public var canSend: Bool { isCurrent && grants().chatAllowed && !sending && requestID == nil && transmission == nil }
+    public var canSend: Bool { gameDispatchDenial == nil && isCurrent && grants().chatAllowed && !sending && requestID == nil && transmission == nil }
     @discardableResult public func send(_ text: String) async -> CompletedRequest? {
         guard canSend else { return nil }
         let draft = MerchantNPCMessageDraft(text)
@@ -123,7 +124,7 @@ public struct MerchantNPCMessageDraft: Equatable {
         completedOperation = nil; reply = nil; failure = .unknownOutcome; onChange?()
     }
     public var isStoppingLocalWait: Bool { isCurrent && !sending && transmission != nil }
-    public var canAbandon: Bool { isCurrent && !sending && transmission == nil }
+    public var canAbandon: Bool { gameDispatchDenial == nil && isCurrent && !sending && transmission == nil }
     /// A decoded server denial wins over the local transport-unknown fallback.
     /// Only an absent response uses the existing exact-request retry contract.
     private var outcomeAllowsRetry: Bool {
@@ -131,7 +132,7 @@ public struct MerchantNPCMessageDraft: Equatable {
         return failure == .unknownOutcome
     }
     public var canRetry: Bool {
-        isCurrent && grants().chatAllowed && !sending && transmission == nil && requestID != nil && attempts < 3 && (retryAt ?? .distantPast) <= Date() && outcomeAllowsRetry
+        gameDispatchDenial == nil && isCurrent && grants().chatAllowed && !sending && transmission == nil && requestID != nil && attempts < 3 && (retryAt ?? .distantPast) <= Date() && outcomeAllowsRetry
     }
     /// Read-only explanation of the existing retry gates. It never grants a send,
     /// changes the deadline or replaces the original request/body.
@@ -148,7 +149,7 @@ public struct MerchantNPCMessageDraft: Equatable {
         public let canAbandon: Bool
     }
     public func retryRecovery(at now: Date = Date()) -> RetryRecovery? {
-        guard isCurrent, grants().chatAllowed, let requestID else { return nil }
+        guard gameDispatchDenial == nil, isCurrent, grants().chatAllowed, let requestID else { return nil }
         let state: RetryRecovery.State
         if sending { state = .waitingForReply }
         else if transmission != nil { state = .stoppingLocalWait }
@@ -196,7 +197,7 @@ public struct MerchantNPCMessageDraft: Equatable {
         reply = nil; message = nil; requestID = nil; retryAt = nil; failure = nil; sending = false; attempts = 0
     }
     private func run() async {
-        guard isCurrent, grants().chatAllowed, transmission == nil, let message, let requestID else { return }
+        guard gameDispatchDenial == nil, isCurrent, grants().chatAllowed, transmission == nil, let message, let requestID else { return }
         sending = true; attempts += 1; failure = nil; completedOperation = nil; let stamp = generation
         let operation = UUID(), client = self.client, scope = self.scope
         let task = Task<MerchantNPCReply, Error> {
@@ -229,7 +230,12 @@ public struct MerchantNPCMessageDraft: Equatable {
         } catch {
             guard generation == stamp else { return }
             guard isCurrent, grants().chatAllowed, !Task.isCancelled else { invalidate(); return }
-            failure = error as? MerchantNPCFailure ?? .unknownOutcome
+            if let denial = error as? MerchantNPCGameDispatchDenial {
+                gameDispatchDenial = denial
+                storedHistory.clear(); displayedRequestID = nil; completedOperation = nil
+                reply = nil; self.message = nil
+                failure = .unknownOutcome
+            } else { failure = error as? MerchantNPCFailure ?? .unknownOutcome }
             if failure == .malformed { failure = .unknownOutcome }
             if failure != .unknownOutcome { self.requestID = nil }
         }

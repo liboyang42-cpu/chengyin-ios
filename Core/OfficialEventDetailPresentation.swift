@@ -187,7 +187,7 @@ public struct OfficialEventDetailPresentation: Equatable {
     public let pausedReason: String?
     public let cta: OfficialDetailCTA
     public let collectiveTipKey: String
-    public init(event: OfficialEvent, now: Date) {
+    public init(event: OfficialEvent, now: Date, displayTimeZone: TimeZone = .current) {
         func present(_ value: String?) -> String? {
             guard let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
             return value
@@ -219,7 +219,7 @@ public struct OfficialEventDetailPresentation: Equatable {
                                         value: Self.duration(start: event.activityStart, end: event.activityEnd),
                                         sub: .key("official.detailParity.fact.durationSub")))
         facts.append(OfficialDetailFact(id: "dates", labelKey: "official.detailParity.fact.dates",
-                                        value: Self.dateRange(start: event.activityStart, end: event.activityEnd),
+                                        value: Self.dateRange(start: event.activityStart, end: event.activityEnd, displayTimeZone: displayTimeZone),
                                         sub: .key("official.detailParity.fact.datesSub")))
         let countdown: OfficialDetailFactSub
         switch event.countdown(now: now) {
@@ -239,27 +239,28 @@ public struct OfficialEventDetailPresentation: Equatable {
     }
     /// Ceil days from 24 h, else ceil hours (at least one); numeric timestamps only.
     public static func duration(start: OfficialEventTime?, end: OfficialEventTime?) -> OfficialDetailFactValue {
-        guard case .milliseconds(let from)? = start, case .milliseconds(let to)? = end else { return .key("official.notAnnounced") }
+        guard let from = start?.displayMilliseconds, let to = end?.displayMilliseconds else { return .key("official.notAnnounced") }
         let span = to - from
         guard span > 0, span < 1e15 else { return .key("official.notAnnounced") }
         if span >= 86_400_000 { return .days(max(1, Int((span / 86_400_000).rounded(.up)))) }
         return .hours(max(1, Int((span / 3_600_000).rounded(.up))))
     }
-    /// "M.D–M.D" in Beijing time (source chinaParts); one known end shows alone.
-    public static func dateRange(start: OfficialEventTime?, end: OfficialEventTime?) -> OfficialDetailFactValue {
-        switch (monthDay(start), monthDay(end)) {
+    /// Absolute server timestamps displayed on the phone's calendar. This never
+    /// changes the server's event window, countdown, status or participation rules.
+    /// Zone-free text remains unknown: it cannot establish an absolute instant.
+    public static func dateRange(start: OfficialEventTime?, end: OfficialEventTime?, displayTimeZone: TimeZone = .current) -> OfficialDetailFactValue {
+        switch (monthDay(start, displayTimeZone: displayTimeZone), monthDay(end, displayTimeZone: displayTimeZone)) {
         case let (from?, to?): return .verbatim(from + "\u{2013}" + to)
         case let (from?, nil): return .verbatim(from)
         case let (nil, to?): return .verbatim(to)
         case (nil, nil): return .key("official.notAnnounced")
         }
     }
-    static func monthDay(_ time: OfficialEventTime?) -> String? {
-        guard case .milliseconds(let ms)? = time, ms > 0, ms < 1e15,
-              let zone = TimeZone(identifier: "Asia/Shanghai") else { return nil }
+    static func monthDay(_ time: OfficialEventTime?, displayTimeZone: TimeZone = .current) -> String? {
+        guard let date = time?.displayDate else { return nil }
         var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = zone
-        let parts = calendar.dateComponents([.month, .day], from: Date(timeIntervalSince1970: ms / 1000))
+        calendar.timeZone = displayTimeZone
+        let parts = calendar.dateComponents([.month, .day], from: date)
         guard let month = parts.month, let day = parts.day else { return nil }
         return "\(month).\(day)"
     }

@@ -10,13 +10,48 @@ struct ClubOperationsEntryButton: View {
     /// Mini-program club/create redirects non-hosts to club/apply; the host supplies the
     /// existing host-status/become-leader governance read when it has one.
     var hostApplication: ClubGovernanceContext? = nil
-    @State private var presented = false
+    var onConfirmedReturn: ((ClubProfileConfirmedReturn) -> Void)? = nil
+    var onWelcomeConfirmedReturn: ((ClubWelcomeNoteConfirmedReturn) -> Void)? = nil
+    @State private var visit: ClubProfileDraftVisit?
+    @State private var lastVisit: ClubProfileDraftVisit?
+    @State private var pendingReturn: ClubProfileConfirmedReturn?
+    @State private var pendingWelcomeReturn: ClubWelcomeNoteConfirmedReturn?
+    @Environment(\.scenePhase) private var scenePhase
     var body: some View {
-        Button { presented = true } label: { Label(target == .create ? "club.ops.create" : "club.ops.manage", systemImage: target == .create ? "plus.circle" : "slider.horizontal.3") }
+        Button {
+            guard visit == nil else { return }
+            let next = ClubProfileDraftVisit(); next.bind(target: target, identity: identity, access: access)
+            pendingReturn = nil; pendingWelcomeReturn = nil; lastVisit = next; visit = next
+        } label: { Label(target == .create ? "club.ops.create" : "club.ops.manage", systemImage: target == .create ? "plus.circle" : "slider.horizontal.3") }
             .accessibilityIdentifier("club.ops." + (target == .create ? "openCreate" : "openManage"))
-            .sheet(isPresented: $presented) {
-                NavigationStack { ClubOperationsWorkspaceView(target: target, identity: identity, access: access, coordinator: coordinator, hostApplication: hostApplication) }
+            .sheet(item: $visit, onDismiss: {
+                guard visit == nil else { return }
+                defer { pendingReturn = nil; pendingWelcomeReturn = nil; lastVisit = nil }
+                guard let lastVisit, scenePhase == .active,
+                      lastVisit.matches(target: target, identity: identity, access: access) else { return }
+                if let result = pendingReturn, result.identity == identity, target == .club(result.clubID) {
+                    onConfirmedReturn?(result)
+                }
+                if let result = pendingWelcomeReturn, result.matches(target: target, identity: identity, access: access) {
+                    onWelcomeConfirmedReturn?(result)
+                }
+            }) { opened in
+                NavigationStack {
+                    ClubOperationsWorkspaceView(target: target, identity: identity, access: access, coordinator: coordinator,
+                        hostApplication: hostApplication, onConfirmedChange: { result in
+                            guard visit?.id == opened.id, lastVisit?.id == opened.id,
+                                  opened.matches(target: target, identity: identity, access: access), result.identity == identity else { return }
+                            pendingReturn = result
+                        }, onWelcomeConfirmedChange: { result in
+                            guard visit?.id == opened.id, lastVisit?.id == opened.id,
+                                  opened.matches(target: target, identity: identity, access: access),
+                                  result.matches(target: target, identity: identity, access: access) else { return }
+                            pendingWelcomeReturn = result
+                        })
+                }.id(opened.id)
             }
+            .onChange(of: identity) { _, _ in visit?.retire(); lastVisit?.retire(); pendingReturn = nil; pendingWelcomeReturn = nil; visit = nil }
+            .onChange(of: ObjectIdentifier(access)) { _, _ in visit?.retire(); lastVisit?.retire(); pendingReturn = nil; pendingWelcomeReturn = nil; visit = nil }
     }
 }
 
@@ -27,10 +62,15 @@ struct ClubOperationsWorkspaceView: View {
     let coordinator: ClubOperationsCoordinator
     var hostApplication: ClubGovernanceContext? = nil
     var requestedTab: String? = ClubWorkspaceTab.manage.rawValue
+    var onConfirmedChange: ((ClubProfileConfirmedReturn) -> Void)? = nil
+    var onWelcomeConfirmedChange: ((ClubWelcomeNoteConfirmedReturn) -> Void)? = nil
     var onEnterClubManagement: ((ClubCreateToManageDestination) -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @StateObject private var profileChoice = ClubProfileChoiceController()
+    @StateObject private var profileMedia = ClubProfileMediaFlow()
+    @StateObject private var profileDraft = ClubProfileLocalDraftFlow()
+    @StateObject private var draftVisit = ClubProfileDraftVisit()
     @Environment(\.scenePhase) private var scenePhase
     @State private var snapshot: ClubOperationsSnapshot?
     @State private var draft = ClubOperationsDraft()
@@ -41,6 +81,7 @@ struct ClubOperationsWorkspaceView: View {
     @State private var errorKey: String?
     @State private var serverMessage: String?
     @State private var generation: UInt64 = 0
+    @State private var welcomeReadGeneration: UInt64 = 0
     @State private var screenIdentity: ClubReadIdentity?
     @State private var showDiscard = false
     @State private var readbackUnavailable = false
@@ -50,7 +91,33 @@ struct ClubOperationsWorkspaceView: View {
     @State private var createReceiptClubID: Int?
     @State private var readbackIdentity: ClubReadIdentity?
     @State private var enteredManageDestination: ClubCreateToManageDestination?
-    private var dirty: Bool { draft != baseline }
+    @State private var lastSubmittedReview: ClubOperationsReview?
+    @State private var lastReportedReturn: UUID?
+    private struct WorkspaceKey: Equatable {
+        let target: ClubOperationsTarget
+        let identity: ClubReadIdentity?
+        let accessID: ObjectIdentifier
+        let namespace: String?
+        let viewerRevision: UInt64?
+    }
+    private var workspaceKey: WorkspaceKey {
+        let context = draftVisit.enabled ? access.profileDrafts : nil
+        return .init(target: target, identity: identity, accessID: ObjectIdentifier(access), namespace: context?.namespace, viewerRevision: context?.viewerRevision)
+    }
+    private struct DraftObservation: Equatable {
+        let bytes: Data?
+        let logoReceipt: UUID?
+        let coverReceipt: UUID?
+    }
+    private var draftObservation: DraftObservation {
+        .init(bytes: ClubProfileLocalDraftForm(draft).contentIdentity, logoReceipt: draft.logoUpload?.id, coverReceipt: draft.coverUpload?.id)
+    }
+    private var dirty: Bool { !ClubProfileLocalDraftForm(draft).exactlyMatches(.init(baseline)) || draft != baseline }
+    private var profileDraftEnabled: Bool { target != .create && draftVisit.enabled }
+    private var profileDraftBlocked: Bool { profileDraftEnabled && (!draftVisit.matches(target: target, identity: identity, access: access) || profileDraft.blocksEditing) }
+    private var originalBusy: Bool {
+        switch state { case .preparing, .reviewing, .preflighting, .submitting: return true; default: return false }
+    }
     private var title: LocalizedStringKey { target == .create ? "club.ops.create" : "club.ops.manage" }
     static func makeCreateToManageFlow(
         access: any ClubOperationsAccess,
@@ -102,7 +169,12 @@ struct ClubOperationsWorkspaceView: View {
             else if !access.isConfigured { Text("club.ops.unavailable") }
             if let errorKey { Text(LocalizedStringKey(errorKey)).accessibilityIdentifier("club.ops.error") }
             if let serverMessage { Text(verbatim: serverMessage).textSelection(.enabled) }
-            if let snapshot { content(snapshot) }
+            if let snapshot, !(target == .create && isCreateOutcomeUnknown) { content(snapshot) }
+            if let count = Self.unknownCreateCurrentCount(target: target, state: state,
+                identity: identity, access: access, coordinator: coordinator,
+                loading: loading, active: scenePhase == .active) {
+                ClubCreateCurrentRecordSection(count: count)
+            }
             status
         }
         .navigationTitle(title)
@@ -116,9 +188,19 @@ struct ClubOperationsWorkspaceView: View {
         }
         .interactiveDismissDisabled(dirty || state.locksForm)
         .confirmationDialog("club.ops.discardTitle", isPresented: $showDiscard, titleVisibility: .visible) {
-            Button("club.ops.discard", role: .destructive) { dismiss() }
+            if !profileDraftEnabled {
+                Button("club.ops.discard", role: .destructive) { dismiss() }
+            } else {
+                Button { if !draftVisit.matches(target: target, identity: identity, access: access) || preserveDraftBeforeLeaving() { dismiss() } } label: { Text("localDraft.keepAndClose", tableName: "ClubProfileLocalDraft") }
+                if profileDraft.canDiscard && !originalBusy {
+                    Button(role: .destructive) { if profileDraft.discard() { dismiss() } } label: { Text("localDraft.discardAndClose", tableName: "ClubProfileLocalDraft") }
+                }
+            }
             Button("club.ops.keepEditing", role: .cancel) {}
-        } message: { Text("club.ops.discardMessage") }
+        } message: {
+            if !profileDraftEnabled { Text("club.ops.discardMessage") }
+            else { Text("localDraft.closeMessage", tableName: "ClubProfileLocalDraft") }
+        }
         .sheet(item: $review, onDismiss: cancelReview) { pending in
             NavigationStack {
                 ClubOperationsReviewView(review: pending, canSubmit: coordinator.writeAvailability != .unverified, isExample: coordinator.writeAvailability == .syntheticOnly, onCancel: cancelReview) {
@@ -134,9 +216,24 @@ struct ClubOperationsWorkspaceView: View {
                     .id(session.id)
             }
         }
+        .background(ClubProfileMediaOwnerAnchor(flow: profileMedia).frame(width: 0, height: 0))
+        .onChange(of: artworkRevision) { _, _ in profileMedia.retire() }
+        .onChange(of: identity) { _, _ in profileMedia.retire() }
         .onChange(of: profileChoiceContext) { _, _ in profileChoice.close() }
-        .onChange(of: scenePhase) { _, phase in if phase != .active { profileChoice.close() } }
-        .task(id: identity) {
+        .onChange(of: scenePhase) { _, phase in if phase != .active { _ = preserveDraftBeforeLeaving(); if draftVisit.enabled { draftVisit.retire(); profileDraft.retire(); snapshot = nil }; profileChoice.close(); profileMedia.retire() } }
+        .onChange(of: draftObservation) { _, _ in
+            guard profileDraftEnabled, draftVisit.matches(target: target, identity: identity, access: access),
+                  screenIdentity == identity, access.identity == identity else { return }
+            _ = profileDraft.persist(draft)
+        }
+        .task(id: workspaceKey) {
+            if draftVisit.enabled {
+                guard draftVisit.matches(target: target, identity: identity, access: access) else {
+                    draftVisit.retire(); profileDraft.retire(); snapshot = nil; draft = .init(); baseline = .init()
+                    generation &+= 1; cancelReview(); return
+                }
+            } else { draftVisit.bind(target: target, identity: identity, access: access) }
+            profileDraft.retire(); lastSubmittedReview = nil; lastReportedReturn = nil
             generation &+= 1; cancelReview(); snapshot = nil; draft = .init(); baseline = .init()
             screenIdentity = identity; errorKey = nil; serverMessage = nil; readbackUnavailable = false
             readbackIdentity = nil; enteredManageDestination = nil
@@ -148,6 +245,7 @@ struct ClubOperationsWorkspaceView: View {
             await load()
         }
         .onDisappear {
+            _ = preserveDraftBeforeLeaving()
             profileChoice.close()
             generation &+= 1
             if let screenIdentity { coordinator.leaveScreen(target: target, expectedIdentity: screenIdentity, ownerID: ownerID) }
@@ -157,7 +255,7 @@ struct ClubOperationsWorkspaceView: View {
         ClubProfileChoiceContext(target: target, identity: identity, access: access, profile: snapshot?.profile, sourceRevision: artworkRevision)
     }
     private func profileChoiceIsCurrent(_ expected: ClubProfileChoiceContext) -> Bool {
-        scenePhase == .active && screenIdentity == identity && !loading && !state.locksForm && review == nil &&
+        scenePhase == .active && screenIdentity == identity && !loading && !state.locksForm && !profileDraftBlocked && review == nil &&
             expected.matches(target: target, identity: identity, access: access, profile: snapshot?.profile, sourceRevision: artworkRevision)
     }
     @ViewBuilder private func content(_ value: ClubOperationsSnapshot) -> some View {
@@ -171,31 +269,58 @@ struct ClubOperationsWorkspaceView: View {
             }
         }
         if target == .create && !value.canCreate {
+            // Mini-program club/create no-permission and limit states.
             Section {
+                ContentUnavailableView {
+                    Label(value.accountRole != "club" ? "club.ops.leaderRequired.title" : "club.ops.clubLimit.title",
+                          systemImage: value.accountRole != "club" ? "person.badge.plus" : "person.3")
+                } description: {
+                    Text(value.accountRole != "club" ? "club.ops.leaderRequired.apply" : "club.ops.clubLimit")
+                }
                 if value.accountRole != "club", let hostApplication {
-                    Text("club.ops.leaderRequired.apply")
                     ClubCreateHostApplicationLink(identity: identity, governance: hostApplication)
-                } else {
-                    Text(value.accountRole != "club" ? "club.ops.leaderRequired" : "club.ops.clubLimit")
                 }
             }
         } else {
+            if profileDraftEnabled {
+                ClubProfileDraftRecoverySection(flow: profileDraft, busy: loading || originalBusy || !draftVisit.matches(target: target, identity: identity, access: access), restore: {
+                    guard draftVisit.matches(target: target, identity: identity, access: access) else { return }
+                    if let restored = profileDraft.restore() { draft = restored }
+                }, discard: {
+                    guard draftVisit.matches(target: target, identity: identity, access: access) else { return }
+                    if profileDraft.discard() { draft = baseline; snapshot = nil; Task { await load(discardingLocalInput: true) } }
+                }, readFresh: { Task { await load() } }, useCurrentImages: {
+                    guard draftVisit.matches(target: target, identity: identity, access: access) else { return }
+                    draft.discardMedia(.logo, original: value.profile); draft.discardMedia(.cover, original: value.profile)
+                })
+            }
+            ClubProfileMediaSection(draft: $draft, snapshot: value, identity: identity, service: access.profileMedia,
+                flow: profileMedia, enabled: scenePhase == .active && !loading && !state.locksForm && !profileDraftBlocked && access.identity == identity)
             ClubOperationsProfileForm(draft: $draft, isCreate: target == .create, isOwner: value.profile?.club.isOwner == true, joinPolicySupported: value.profile?.club.joinPolicySupported == true,
                 choiceContext: profileChoiceContext, choiceIsCurrent: profileChoiceIsCurrent, choiceController: profileChoice)
-                .disabled(loading || state.locksForm)
+                .disabled(loading || state.locksForm || profileDraftBlocked)
             Section {
-                Button("club.ops.reviewProfile") {
+                Button {
                     let command: ClubOperationsCommand
                     if let original = value.profile { command = .update(draft, original: original) }
                     else { command = .create(draft) }
                     Task { await prepare(command) }
+                } label: {
+                    Text(target == .create ? "club.ops.create" : "club.ops.reviewProfile").frame(maxWidth: .infinity)
                 }
-                .disabled(loading || state.locksForm || (target != .create && !dirty))
+                .buttonStyle(.questifyPrimary)
+                .disabled(loading || state.locksForm || profileDraftBlocked || (target != .create && !dirty))
                 .accessibilityIdentifier("club.ops.reviewProfile")
-                Text("club.ops.mediaUnavailable").font(.footnote).foregroundStyle(.secondary)
-            }
+            }.listRowBackground(Color.clear)
         }
         if let profile = value.profile, profile.club.isOwner {
+            ClubWelcomeNoteEntry(club: profile.club, identity: identity, access: access,
+                enabled: scenePhase == .active && !loading && !state.locksForm, onConfirmed: { result in
+                    guard scenePhase == .active, screenIdentity == identity,
+                          result.matches(target: target, identity: identity, access: access) else { return }
+                    onWelcomeConfirmedChange?(result)
+                    Task { await refreshAfterWelcome(result) }
+                })
             Section("club.ops.openSettings") {
                 ForEach(ClubOpenSetting.allCases, id: \.rawValue) { setting in
                     if let enabled = profile.value(setting) {
@@ -208,27 +333,24 @@ struct ClubOperationsWorkspaceView: View {
                         .accessibilityIdentifier("club.ops.setting." + setting.rawValue)
                     } else { LabeledContent(LocalizedStringKey("club.ops." + setting.rawValue)) { Text("club.ops.unknownValue") } }
                 }
-                Text("club.ops.settingsHint").font(.footnote).foregroundStyle(.secondary)
             }
             Section("club.ops.memberRoles") {
-                if value.members.isEmpty { Text("club.ops.membersUnavailable") }
+                if value.members.isEmpty { Text("club.ops.membersUnavailable").foregroundStyle(.secondary) }
                 ForEach(value.members) { member in
                     if !member.isOwner, member.memberId != identity?.accountID, [0, 1].contains(member.role) {
                         Button {
                             Task { await prepare(.memberRole(memberID: member.id, admin: !member.isAdmin, previousRole: member.role)) }
                         } label: {
-                            VStack(alignment: .leading) {
-                                Text(verbatim: member.trimmedNickname ?? "#\(member.id)")
-                                Text(member.isAdmin ? "club.ops.removeAdmin" : "club.ops.makeAdmin").font(.caption)
-                            }
+                            LabeledContent {
+                                Text(member.isAdmin ? "club.ops.removeAdmin" : "club.ops.makeAdmin")
+                            } label: { Text(verbatim: member.trimmedNickname ?? "—") }
                         }
                         .disabled(loading || state.locksForm)
                         .accessibilityIdentifier("club.ops.member.\(member.id)")
                     } else {
-                        LabeledContent { Text(member.isOwner ? "club.ops.owner" : "club.ops.unknownRole") } label: { Text(verbatim: member.trimmedNickname ?? "#\(member.id)") }
+                        LabeledContent { Text(member.isOwner ? "club.ops.owner" : "club.ops.unknownRole") } label: { Text(verbatim: member.trimmedNickname ?? "—") }
                     }
                 }
-                Text("club.ops.adminHint").font(.footnote).foregroundStyle(.secondary)
             }
         }
         if access.writeAvailability == .unverified { Section { Text("club.ops.writeGated").accessibilityIdentifier("club.ops.writeGated") } }
@@ -241,7 +363,6 @@ struct ClubOperationsWorkspaceView: View {
             case .acknowledged(let receipt):
                 Text("club.ops.acknowledged").accessibilityIdentifier("club.ops.acknowledged")
                 if let message = receipt.message { Text(verbatim: message) }
-                if let id = receipt.clubID { LabeledContent("club.ops.clubID") { Text(id, format: .number) } }
             case .rejected(let failure):
                 Text("club.ops.rejected")
                 if let message = failure.message { Text(verbatim: message) }
@@ -256,7 +377,11 @@ struct ClubOperationsWorkspaceView: View {
             if snapshot == nil, identity != nil, access.isConfigured, !loading {
                 Button("club.ops.retryRead") {
                     Task {
-                        if createToManageFlow.requiresReadbackRecovery(state: state, hasSnapshot: snapshot != nil) {
+                        if profileDraftEnabled && lastSubmittedReview == nil {
+                            // Restarted UNKNOWN may have only the original durable journal,
+                            // not an in-memory coordinator record. This read never unlocks it.
+                            await load()
+                        } else if createToManageFlow.requiresReadbackRecovery(state: state, hasSnapshot: snapshot != nil) {
                             await readBack()
                         } else {
                             await load()
@@ -276,8 +401,8 @@ struct ClubOperationsWorkspaceView: View {
     }
     @ViewBuilder private var postCreateManagementClosure: some View {
         let flow = createToManageFlow
-        Text(verbatim: flow.bilingualStatusCopy)
-            .font(.footnote)
+        Text(LocalizedStringKey(Self.createStatusKey(flow.blockReason)))
+            .font(flow.canEnterManagement ? .headline : .body)
             .foregroundStyle(flow.canEnterManagement ? .primary : .secondary)
             .accessibilityIdentifier("clubCreateManage.status")
         Button {
@@ -295,8 +420,10 @@ struct ClubOperationsWorkspaceView: View {
                 onEnterClubManagement?(destination)
             }
         } label: {
-            Text(verbatim: flow.actionButtonTitle)
+            Text(flow.validatedTab == .manage || !flow.canEnterManagement ? "club.ops.enterManagement" : "club.ops.enterDetail")
+                .frame(maxWidth: .infinity)
         }
+        .buttonStyle(.questifyPrimary)
         .disabled(loading || !flow.canEnterManagement)
         .accessibilityIdentifier("clubCreateManage.enterManagement")
         if let destination = enteredManageDestination,
@@ -312,37 +439,91 @@ struct ClubOperationsWorkspaceView: View {
                         hostApplication: hostApplication
                     )
                 } label: {
-                    Text(verbatim: destination.bilingualDestinationLabel)
-                        .font(.footnote)
+                    Text("club.ops.openManagement")
                 }
                 .accessibilityIdentifier("clubCreateManage.destination")
             } else {
-                Text(verbatim: destination.bilingualDestinationLabel)
-                    .font(.footnote)
+                Text("club.ops.destinationDetail")
                     .accessibilityIdentifier("clubCreateManage.fallbackDestination")
             }
         }
     }
-    @MainActor private func load() async {
+    /// Core's flow copy is bilingual engineering text; the screen shows one localized line per state.
+    static func createStatusKey(_ reason: ClubCreateToManageBlockReason?) -> String {
+        switch reason {
+        case nil: return "club.ops.createdStatus.ready"
+        case .gateBlocked: return "club.ops.createdStatus.closed"
+        case .awaitingConfirmedReceipt: return "club.ops.createdStatus.confirming"
+        case .accountMismatch: return "club.ops.createdStatus.accountChanged"
+        case .readbackFailed, .clubIdMismatch: return "club.ops.createdStatus.unread"
+        }
+    }
+    @MainActor private func refreshAfterWelcome(_ result: ClubWelcomeNoteConfirmedReturn) async {
+        guard scenePhase == .active, screenIdentity == identity,
+              result.matches(target: target, identity: identity, access: access) else { return }
+        let run = generation
+        welcomeReadGeneration &+= 1; let welcomeRun = welcomeReadGeneration
+        do {
+            let fresh = try await ClubWelcomeNoteCurrentReadback.read(result, access: access,
+                current: { scenePhase == .active && generation == run && welcomeReadGeneration == welcomeRun && screenIdentity == identity })
+            guard !Task.isCancelled, scenePhase == .active, generation == run, welcomeReadGeneration == welcomeRun,
+                  result.matches(target: target, identity: identity, access: access), fresh.target == target else { return }
+            readbackUnavailable = false
+            // Update actual current facts without resetting an unrelated, unsaved profile draft.
+            snapshot = fresh
+            if profileDraftEnabled, let profile = fresh.profile { profileDraft.compareFresh(profile) }
+        } catch {
+            guard scenePhase == .active, generation == run, welcomeReadGeneration == welcomeRun,
+                  result.matches(target: target, identity: identity, access: access) else { return }
+            readbackUnavailable = true
+        }
+    }
+    @MainActor private func load(discardingLocalInput: Bool = false) async {
         guard let identity, access.isConfigured, !loading else { return }
+        if profileDraftEnabled {
+            guard draftVisit.matches(target: target, identity: identity, access: access) else { return }
+            if let lastSubmittedReview { profileDraft.receiveOriginalResult(coordinator.state(target: target), review: lastSubmittedReview) }
+            if !discardingLocalInput, dirty, !profileDraft.hasPersisted(draft) {
+                guard profileDraft.retryPersistence(draft) else { return }
+            }
+        }
         generation &+= 1; let run = generation
         loading = true; errorKey = nil; serverMessage = nil
         do {
             let result = try await access.snapshot(target: target)
-            guard generation == run, access.identity == identity, !Task.isCancelled else { return }
+            guard generation == run, access.identity == identity, !Task.isCancelled,
+                  !profileDraftEnabled || draftVisit.matches(target: target, identity: identity, access: access) else { return }
             guard result.target == target else { throw ClubOperationsBlock.changed }
             artworkRevision = UUID(); snapshot = result; draft = result.profile.map(ClubOperationsDraft.init(profile:)) ?? .init(); baseline = draft
             loading = false; state = coordinator.state(target: target)
+            if let profile = result.profile, profileDraftEnabled {
+                let reconciled = profileDraft.begin(profile: profile, context: draftVisit.context)
+                if reconciled, let receiptID = profileDraft.reconciledReviewID { reportConfirmedReturn(identity: identity, clubID: profile.club.id, receiptID: receiptID) }
+            }
         } catch {
-            guard generation == run, access.identity == identity, !Task.isCancelled else { return }
+            guard generation == run, access.identity == identity, !Task.isCancelled,
+                  !profileDraftEnabled || draftVisit.matches(target: target, identity: identity, access: access) else { return }
             loading = false; show(error)
         }
     }
     @MainActor private func prepare(_ command: ClubOperationsCommand) async {
-        guard let identity, !state.locksForm, !loading else { return }
+        guard let identity, !state.locksForm, !loading, access.identity == identity,
+              !profileDraftEnabled || draftVisit.matches(target: target, identity: identity, access: access) else { return }
+        if case .update(let value, let original) = command, profileDraftEnabled {
+            guard profileDraft.persist(value) else { return }
+            do { try profileDraft.verifyForReview(value, original: original) }
+            catch { show(error); return }
+        }
         generation &+= 1; let run = generation
         state = .preparing; errorKey = nil; serverMessage = nil
         do {
+            if case .update(_, let original) = command, profileDraftEnabled {
+                let fresh = try await access.snapshot(target: target)
+                guard run == generation, access.identity == identity, profileDraft.isCurrent, !Task.isCancelled else { return }
+                guard fresh.target == target, let profile = fresh.profile else { throw ClubOperationsBlock.changed }
+                profileDraft.compareFresh(profile)
+                guard ClubProfileLocalDraftBaseline(original).matches(profile), !profileDraft.blocksEditing else { throw ClubOperationsBlock.changed }
+            }
             let pending = try await coordinator.prepare(command, target: target, expectedIdentity: identity, ownerID: ownerID)
             guard run == generation, access.identity == identity, !Task.isCancelled else { coordinator.cancel(pending); return }
             review = pending; state = coordinator.state(target: target)
@@ -356,6 +537,12 @@ struct ClubOperationsWorkspaceView: View {
         state = coordinator.state(target: target)
     }
     @MainActor private func confirm(_ pending: ClubOperationsReview) async {
+        if case .update = pending.command, profileDraftEnabled,
+           (!draftVisit.matches(target: target, identity: identity, access: access) || !profileDraft.beginSubmission(pending)) {
+            coordinator.cancel(pending); state = coordinator.state(target: target); return
+        }
+        lastSubmittedReview = pending
+        let preservedDraft = draft, preservedBaseline = baseline
         generation &+= 1; let run = generation
         Self.performBeginConfirm(
             pending,
@@ -367,8 +554,11 @@ struct ClubOperationsWorkspaceView: View {
             readbackIdentity: &readbackIdentity,
             enteredManageDestination: &enteredManageDestination
         )
-        await coordinator.confirm(pending)
-        guard run == generation, !Task.isCancelled else { return }
+        await coordinator.confirm(pending, onOriginalResult: { result in
+            if profileDraftEnabled { profileDraft.receiveOriginalResult(result, review: pending) }
+        })
+        guard run == generation, !Task.isCancelled,
+              !profileDraftEnabled || draftVisit.matches(target: target, identity: identity, access: access) else { return }
         Self.performFinishConfirm(
             pending,
             target: target,
@@ -385,12 +575,33 @@ struct ClubOperationsWorkspaceView: View {
             createReceiptClubID: &createReceiptClubID,
             readbackIdentity: &readbackIdentity
         )
+        if profileDraftEnabled { finishProfileReadback(pending, preservedDraft: preservedDraft, preservedBaseline: preservedBaseline) }
     }
+    private var isCreateOutcomeUnknown: Bool {
+        if case .outcomeUnknown = state { return true }
+        return false
+    }
+    @MainActor static func unknownCreateCurrentCount(target: ClubOperationsTarget, state: ClubOperationsState,
+        identity: ClubReadIdentity?, access: any ClubOperationsAccess, coordinator: ClubOperationsCoordinator,
+        loading: Bool, active: Bool) -> Int? {
+        coordinator.synchronizeSession()
+        guard target == .create, case .outcomeUnknown = state, !loading, active,
+              let identity, access.identity == identity, access.isConfigured,
+              case .outcomeUnknown = coordinator.state(target: target),
+              case .received(let current) = coordinator.readback(target: target), current.target == target,
+              current.ownedClubIDs.allSatisfy({ $0 > 0 }),
+              Set(current.ownedClubIDs).count == current.ownedClubIDs.count else { return nil }
+        return current.ownedClubIDs.count
+    }
+
     @MainActor private func readBack() async {
         guard let identity, !loading else { return }
+        guard !profileDraftEnabled || draftVisit.matches(target: target, identity: identity, access: access) else { return }
+        let preservedDraft = draft, preservedBaseline = baseline
         generation &+= 1; let run = generation; loading = true
         await coordinator.readBack(target: target, ownerID: ownerID)
-        guard run == generation, !Task.isCancelled else { return }
+        guard run == generation, !Task.isCancelled,
+              !profileDraftEnabled || draftVisit.matches(target: target, identity: identity, access: access) else { return }
         Self.performFinishReadBack(
             target: target,
             identity: identity,
@@ -407,6 +618,48 @@ struct ClubOperationsWorkspaceView: View {
             createReceiptClubID: &createReceiptClubID,
             readbackIdentity: &readbackIdentity
         )
+        if profileDraftEnabled, let lastSubmittedReview { finishProfileReadback(lastSubmittedReview, preservedDraft: preservedDraft, preservedBaseline: preservedBaseline) }
+    }
+    private func preserveDraftBeforeLeaving() -> Bool {
+        guard profileDraftEnabled, dirty else { return true }
+        // A submission/UNKNOWN marker is already durable and must not be rewritten.
+        if originalBusy || state.locksForm || profileDraft.blocksEditing { return profileDraft.hasPersisted(draft) }
+        return profileDraft.persist(draft)
+    }
+    private func finishProfileReadback(_ pending: ClubOperationsReview, preservedDraft: ClubOperationsDraft, preservedBaseline: ClubOperationsDraft) {
+        guard profileDraftEnabled, draftVisit.matches(target: target, identity: identity, access: access), pending.identity == identity, access.identity == identity, screenIdentity == identity,
+              pending.target == target else { return }
+        guard case .acknowledged = coordinator.state(target: target),
+              case .received(let value) = coordinator.readback(target: target),
+              value.target == target, let profile = value.profile else {
+            // Rejection/UNKNOWN/no readback must never erase the user's input.
+            if case .received(let value) = coordinator.readback(target: target), let profile = value.profile {
+                profileDraft.observeUnconfirmedReadback(profile)
+            }
+            draft = preservedDraft; baseline = preservedBaseline; return
+        }
+        switch pending.command {
+        case .update(let submitted, let original):
+            let matches = ClubProfileLocalDraftBaseline(original).sameRole(profile) &&
+                ClubProfileLocalDraftForm(submitted).submitted(against: original).matchesReadback(profile)
+            profileDraft.receiveOriginalResult(coordinator.state(target: target), review: pending)
+            let cleared = profileDraft.reconcile(profile)
+            if !cleared { draft = preservedDraft; baseline = preservedBaseline }
+            if matches { reportConfirmedReturn(identity: pending.identity, clubID: profile.club.id, receiptID: pending.id) }
+        case .openSetting(let setting, let enabled, _):
+            draft = preservedDraft; baseline = preservedBaseline
+            profileDraft.compareFresh(profile)
+            if profile.value(setting) == enabled { reportConfirmedReturn(identity: pending.identity, clubID: profile.club.id, receiptID: pending.id) }
+        case .memberRole:
+            draft = preservedDraft; baseline = preservedBaseline; profileDraft.compareFresh(profile)
+        case .create: break
+        }
+    }
+    private func reportConfirmedReturn(identity: ClubReadIdentity, clubID: Int, receiptID: UUID) {
+        guard target == .club(clubID), self.identity == identity, access.identity == identity,
+              screenIdentity == identity, lastReportedReturn != receiptID else { return }
+        lastReportedReturn = receiptID
+        onConfirmedChange?(.init(identity: identity, clubID: clubID, receiptID: receiptID))
     }
     @MainActor static func performBeginConfirm(
         _ pending: ClubOperationsReview,
@@ -566,63 +819,78 @@ private struct ClubOperationsProfileForm: View {
     var choiceIsCurrent: (ClubProfileChoiceContext) -> Bool = { _ in false }
     let choiceController: ClubProfileChoiceController
     var body: some View {
-        Section("club.ops.profile") {
-            // cy-scene-club-edit admin-note: administrators may only edit display information.
-            if !isCreate && !isOwner { Text("club.ops.adminNote").font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("club.ops.adminNote") }
-            field("name", text: $draft.name)
-            field("city", text: $draft.city)
-            if isCreate {
+        if isCreate { createSections } else { editSections }
+    }
+    /// Mini-program club/create steps, in order: 类型 → 活动方向 → 资料 → 城市.
+    @ViewBuilder private var createSections: some View {
+        Section("club.ops.clubType") {
             Picker("club.ops.clubType", selection: $draft.clubType) {
-                Text("club.ops.chooseType").tag("")
                 ForEach(ClubOperationsCatalog.types, id: \.self) { Text(LocalizedStringKey("club.ops.value." + $0)).tag($0) }
                 if !draft.clubType.isEmpty, !ClubOperationsCatalog.types.contains(draft.clubType) { Text(verbatim: draft.clubType).tag(draft.clubType) }
-            }.accessibilityIdentifier("club.ops.clubType")
-            } else {
-                ClubProfileChoiceControl(kind: .type, draft: $draft, context: choiceContext, isCurrent: choiceIsCurrent, controller: choiceController)
-            }
+            }.pickerStyle(.inline).labelsHidden().accessibilityIdentifier("club.ops.clubType")
+        }
+        Section {
+            directionToggles
+        } header: { Text("club.ops.directions") } footer: { Text("club.ops.directionsCount \(draft.activityPrefs.count)") }
+        Section("club.ops.profile") {
+            field("name", text: $draft.name)
             field("description", text: $draft.description, axis: .vertical)
+        }
+        Section("club.ops.city") {
+            field("city", text: $draft.city)
             field("keywords", text: $draft.keywords)
             field("style", text: $draft.style)
         }
-        Section("club.ops.directions") {
-            if isCreate {
-            ForEach(ClubOperationsCatalog.directions, id: \.self) { value in
-                Toggle(isOn: Binding(get: { draft.activityPrefs.contains(value) }, set: { enabled in
-                    if enabled { if draft.activityPrefs.count < 3 { draft.activityPrefs.append(value) } }
-                    else { draft.activityPrefs.removeAll { $0 == value } }
-                })) { Text(LocalizedStringKey("club.ops.value." + value)) }
-                .disabled(!draft.activityPrefs.contains(value) && draft.activityPrefs.count >= 3)
-            }
-            if draft.activityPrefs.contains(where: { !ClubOperationsCatalog.directions.contains($0) }) {
-                Text(verbatim: draft.activityPrefs.filter { !ClubOperationsCatalog.directions.contains($0) }.joined(separator: ", "))
-            }
-            Text("club.ops.directionsHint").font(.footnote).foregroundStyle(.secondary)
-            } else {
-                ClubProfileChoiceControl(kind: .directions, draft: $draft, context: choiceContext, isCurrent: choiceIsCurrent, controller: choiceController)
-            }
+    }
+    /// Mini-program cy-scene-club-edit order: 基础信息 → 俱乐部介绍 → 定位 → 会员经营配置.
+    @ViewBuilder private var editSections: some View {
+        Section("club.ops.basics") {
+            // cy-scene-club-edit admin-note: administrators may only edit display information.
+            if !isOwner { Text("club.ops.adminNote").font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("club.ops.adminNote") }
+            field("name", text: $draft.name)
+            field("city", text: $draft.city)
+            field("keywords", text: $draft.keywords)
+            field("style", text: $draft.style)
         }
-        if !isCreate && !isOwner {
+        Section("club.ops.introduction") {
+            field("description", text: $draft.description, axis: .vertical)
+        }
+        Section("club.ops.positioning") {
+            ClubProfileChoiceControl(kind: .type, draft: $draft, context: choiceContext, isCurrent: choiceIsCurrent, controller: choiceController)
+            ClubProfileChoiceControl(kind: .directions, draft: $draft, context: choiceContext, isCurrent: choiceIsCurrent, controller: choiceController)
+        }
+        if !isOwner {
             // Locked card instead of disabled toggles, echoing the current owner-only values.
             Section("club.ops.signupSettings") {
                 Text("club.ops.locked.title").font(.subheadline.bold())
-                Text("club.ops.locked.body").font(.footnote).foregroundStyle(.secondary)
                 lockedCurrent.font(.footnote).accessibilityIdentifier("club.ops.locked.current")
             }
-        }
-        if !isCreate && isOwner {
+        } else {
             Section("club.ops.signupSettings") {
                 Toggle("club.ops.prioritySignup", isOn: $draft.prioritySignupEnabled).accessibilityIdentifier("club.ops.prioritySignup")
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("club.ops.quota").font(.subheadline)
-                        .accessibilityIdentifier("clubQuota.visibleLabel")
-                    field("quota", text: $draft.memberReservedQuota).keyboardType(.numberPad)
-                }
                 if joinPolicySupported {
-                    Picker("club.ops.joinPolicy", selection: $draft.joinPolicy) {
-                        Text("club.ops.joinDirect").tag(0); Text("club.ops.joinReview").tag(1)
-                    }.accessibilityIdentifier("club.ops.joinPolicy")
-                } else { Text("club.ops.joinPolicyUnavailable").font(.footnote) }
+                    Toggle("club.ops.joinReview", isOn: Binding(get: { draft.joinPolicy == 1 }, set: { draft.joinPolicy = $0 ? 1 : 0 }))
+                        .accessibilityIdentifier("club.ops.joinPolicy")
+                }
+                LabeledContent {
+                    field("quota", text: $draft.memberReservedQuota).keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing).frame(maxWidth: 96)
+                } label: {
+                    Text("club.ops.quota").accessibilityIdentifier("clubQuota.visibleLabel")
+                }
             }
+        }
+    }
+    @ViewBuilder private var directionToggles: some View {
+        ForEach(ClubOperationsCatalog.directions, id: \.self) { value in
+            Toggle(isOn: Binding(get: { draft.activityPrefs.contains(value) }, set: { enabled in
+                if enabled { if draft.activityPrefs.count < 3 { draft.activityPrefs.append(value) } }
+                else { draft.activityPrefs.removeAll { $0 == value } }
+            })) { Text(LocalizedStringKey("club.ops.value." + value)) }
+            .disabled(!draft.activityPrefs.contains(value) && draft.activityPrefs.count >= 3)
+        }
+        if draft.activityPrefs.contains(where: { !ClubOperationsCatalog.directions.contains($0) }) {
+            Text(verbatim: draft.activityPrefs.filter { !ClubOperationsCatalog.directions.contains($0) }.joined(separator: ", "))
         }
     }
     private var lockedCurrent: Text {

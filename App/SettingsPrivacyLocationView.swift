@@ -10,7 +10,7 @@ import SwiftUI
             Section {
                 NavigationLink {
                     SettingsPrivacyLocationView(mediaReader: session.ownMediaReader,
-                        compliance: session.accountComplianceCoordinator, market: session.operationalMarket)
+                        compliance: session.accountComplianceCoordinator, market: session.operationalMarket, imagePreview: session.ownMediaImagePreviewAccess, approvedLink: session.ownMediaApprovedLinkAccess, audioPreview: session.ownMediaAudioPreviewAccess, modelPreview: session.ownMediaModelPreviewAccess)
                 } label: {
                     Label { Text("member.privacy.title", tableName: "MemberProfile") } icon: { Image(systemName: "hand.raised") }
                 }.accessibilityIdentifier("settings.privacyLocation")
@@ -23,16 +23,21 @@ import SwiftUI
     let mediaReader: any OwnMediaReading
     var compliance: AccountComplianceCoordinator? = nil
     var market: RegionalMarket? = nil
+    var imagePreview: OwnMediaImagePreviewAccess? = nil
+    var approvedLink: OwnMediaApprovedLinkAccess? = nil
+    var audioPreview: OwnMediaAudioPreviewAccess? = nil
+    var modelPreview: OwnMediaModelPreviewAccess? = nil
     var legalReader: any SettingsLegalReading = SettingsBundledLegalReader()
     @State private var showsRoam = false
 
     var body: some View {
         Form {
+            // Mini-program privacy sheet opens with the privacy guide link, then presence, roam and own media.
             Section {
-                NavigationLink { OwnMediaReviewView(reader: mediaReader) } label: {
-                    Text("member.privacy.media.open", tableName: "MemberProfile")
-                }.accessibilityIdentifier("member.privacy.media")
-            } header: { Text("member.privacy.media.title", tableName: "MemberProfile") }
+                NavigationLink {
+                    SettingsLegalDocumentView(type: .privacyPolicy, market: market, reader: legalReader)
+                } label: { Text(LocalizedStringKey(SettingsLegalType.privacyPolicy.titleKey)) }
+            }
             Section {
                 Text("member.privacy.presence.detail", tableName: "MemberProfile").font(.footnote).foregroundStyle(.secondary)
                 Button {} label: { Text("member.privacy.presence.off", tableName: "MemberProfile") }
@@ -45,6 +50,11 @@ import SwiftUI
                         .accessibilityIdentifier("member.privacy.roam.withdraw")
                 }
             } header: { Text("member.privacy.roam.title", tableName: "MemberProfile") }
+            Section {
+                NavigationLink { OwnMediaReviewView(reader: mediaReader, imagePreview: imagePreview, approvedLink: approvedLink, audioPreview: audioPreview, modelPreview: modelPreview) } label: {
+                    Text("member.privacy.media.open", tableName: "MemberProfile")
+                }.accessibilityIdentifier("member.privacy.media")
+            } header: { Text("member.privacy.media.title", tableName: "MemberProfile") }
         }
         .navigationTitle(Text("member.privacy.title", tableName: "MemberProfile"))
         .sheet(isPresented: $showsRoam) {
@@ -58,19 +68,27 @@ import SwiftUI
 }
 
 /// 我的待审媒体: newest first, 50 per page, older pages by `beforeId`.
+/// The controller, not unstructured button tasks, owns each visible read lifetime.
 @MainActor struct OwnMediaReviewView: View {
-    let reader: any OwnMediaReading
-    enum Phase: Equatable { case loading, signedOut, unavailable, denied, failed, ready }
-    @State private var phase: Phase = .loading
-    @State private var rows: [OwnMediaAsset] = []
-    @State private var cursor: Int64?
-    @State private var loadingMore = false
-    @State private var moreFailed = false
-
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var controller: OwnMediaReviewController
+    private let statusReader: (any OwnMediaStatusReading)?
+    private let imagePreview: OwnMediaImagePreviewAccess?
+    private let approvedLink: OwnMediaApprovedLinkAccess?
+    private let audioPreview: OwnMediaAudioPreviewAccess?
+    private let modelPreview: OwnMediaModelPreviewAccess?
+    init(reader: any OwnMediaReading, imagePreview: OwnMediaImagePreviewAccess? = nil, approvedLink: OwnMediaApprovedLinkAccess? = nil, audioPreview: OwnMediaAudioPreviewAccess? = nil, modelPreview: OwnMediaModelPreviewAccess? = nil) {
+        self.modelPreview = modelPreview
+        self.audioPreview = audioPreview
+        self.approvedLink = approvedLink
+        self.imagePreview = imagePreview
+        _controller = State(initialValue: OwnMediaReviewController(reader: reader))
+        statusReader = reader as? any OwnMediaStatusReading
+    }
     var body: some View {
         List {
-            switch phase {
-            case .loading: ProgressView().accessibilityIdentifier("member.media.loading")
+            switch controller.phase {
+            case .idle, .loading: ProgressView().accessibilityIdentifier("member.media.loading")
             case .signedOut: Text("member.media.signedOut", tableName: "MemberProfile").accessibilityIdentifier("member.media.signedOut")
             case .unavailable: Text("member.media.unavailable", tableName: "MemberProfile").foregroundStyle(.secondary)
                     .accessibilityIdentifier("member.media.unavailable")
@@ -78,66 +96,56 @@ import SwiftUI
             case .failed:
                 VStack(alignment: .leading, spacing: 6) {
                     Text("member.media.failed", tableName: "MemberProfile")
-                    Button { Task { await reload() } } label: { Text("member.media.refresh", tableName: "MemberProfile") }
-                        .accessibilityIdentifier("member.media.retry")
-                }.accessibilityIdentifier("member.media.failed")
+                    Button { controller.retry() } label: { Text("member.media.refresh", tableName: "MemberProfile") }
+                        .disabled(!controller.canRetry).accessibilityIdentifier("member.media.retry")
+                }.accessibilityElement(children: .contain)
+                    .accessibilityIdentifier("member.media.failed")
             case .ready:
-                if rows.isEmpty {
+                if controller.rows.isEmpty {
                     Text("member.media.empty", tableName: "MemberProfile").foregroundStyle(.secondary)
                         .accessibilityIdentifier("member.media.empty")
                 }
-                ForEach(rows) { row in OwnMediaRow(asset: row).accessibilityIdentifier("member.media.row.\(row.id)") }
-                if cursor != nil {
-                    Button { Task { await loadMore() } } label: {
-                        if loadingMore { ProgressView() } else { Text("member.media.older", tableName: "MemberProfile") }
-                    }.disabled(loadingMore).accessibilityIdentifier("member.media.older")
+                ForEach(controller.rows) { row in
+                    OwnMediaRow(asset: row).accessibilityIdentifier("member.media.row.\(row.id)")
+                    OwnMediaImagePreviewButton(asset: row, access: imagePreview,
+                        currentAsset: { controller.rows.first { $0.id == row.id } })
+                    OwnMediaApprovedLinkCopyButton(asset: row, access: approvedLink,
+                        currentAsset: { controller.rows.first { $0.id == row.id } })
+                    OwnMediaAudioPreviewButton(asset: row, access: audioPreview,
+                        currentAsset: { controller.rows.first { $0.id == row.id } })
+                    OwnMediaModelPreviewButton(asset: row, access: modelPreview,
+                        currentAsset: { controller.rows.first { $0.id == row.id } })
+                    if let statusReader, statusReader.isStatusAvailable {
+                        OwnMediaStatusButton(reader: statusReader, assetID: row.id) { _ = controller.refresh() }
+                    }
                 }
-                if moreFailed { Text("member.media.failed", tableName: "MemberProfile").foregroundStyle(.secondary) }
+                if controller.moreFailed {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("member.media.failed", tableName: "MemberProfile").foregroundStyle(.secondary)
+                        Button { controller.retry() } label: { Text("member.media.older", tableName: "MemberProfile") }
+                            .disabled(!controller.canRetry).accessibilityIdentifier("member.media.retryOlder")
+                    }.accessibilityElement(children: .contain)
+                        .accessibilityIdentifier("member.media.moreFailed")
+                } else if controller.nextCursor != nil {
+                    Button { controller.more() } label: {
+                        if controller.loadingMore { ProgressView() } else { Text("member.media.older", tableName: "MemberProfile") }
+                    }.disabled(!controller.canLoadMore).accessibilityIdentifier("member.media.older")
+                }
             }
         }
         .navigationTitle(Text("member.privacy.media.title", tableName: "MemberProfile"))
+        .privacySensitive()
         .toolbar {
-            if phase == .ready || phase == .failed {
-                Button { Task { await reload() } } label: { Text("member.media.refresh", tableName: "MemberProfile") }
+            if controller.phase == .ready || controller.phase == .failed || controller.phase == .denied {
+                Button { _ = controller.refresh() } label: { Text("member.media.refresh", tableName: "MemberProfile") }
+                    .disabled(controller.isLoading && !controller.loadingMore)
                     .accessibilityIdentifier("member.media.refresh")
             }
         }
-        .task(id: reader.scope) { await reload() }
-    }
-
-    private func reload() async {
-        let scope = reader.scope
-        rows = []; cursor = nil; moreFailed = false
-        guard reader.isSignedIn else { phase = .signedOut; return }
-        guard reader.isAvailable else { phase = .unavailable; return }
-        phase = .loading
-        do {
-            let page = try await reader.page(before: nil)
-            guard scope == reader.scope else { return }
-            rows = page.rows; cursor = page.nextCursor; phase = .ready
-        } catch is CancellationError {
-        } catch { if scope == reader.scope { phase = Self.phase(for: error) } }
-    }
-    private func loadMore() async {
-        guard let before = cursor, !loadingMore else { return }
-        let scope = reader.scope
-        loadingMore = true; moreFailed = false
-        defer { loadingMore = false }
-        do {
-            let page = try await reader.page(before: before)
-            guard scope == reader.scope, cursor == before else { return }
-            rows += page.rows; cursor = page.nextCursor
-        } catch is CancellationError {
-        } catch {
-            guard scope == reader.scope else { return }
-            if case .failed = Self.phase(for: error) { moreFailed = true } else { rows = []; cursor = nil; phase = Self.phase(for: error) }
-        }
-    }
-    static func phase(for error: Error) -> Phase {
-        if error as? APIError == .unauthorized { return .signedOut }
-        if error as? APIError == .notConfigured { return .unavailable }
-        if error as? OwnMediaReadFailure == .rejected(code: 403) { return .denied }
-        return .failed
+        .onAppear { controller.appear(foreground: scenePhase == .active) }
+        .onDisappear { controller.disappear() }
+        .onChange(of: scenePhase) { _, phase in controller.setForeground(phase == .active) }
+        .onChange(of: controller.access) { _, _ in controller.synchronizeAccess() }
     }
 }
 

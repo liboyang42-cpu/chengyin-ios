@@ -83,7 +83,6 @@ import SwiftUI
                     }
                 }
             }
-            Text("projectNodePhotos.scope", tableName: "ProjectNodePhotoRemoval").font(.caption)
         } header: { Text("projectNodePhotos.title", tableName: "ProjectNodePhotoRemoval") }
         .confirmationDialog(Text("projectNodePhotos.confirmTitle", tableName: "ProjectNodePhotoRemoval"),
             isPresented: controller.binding(original), titleVisibility: .visible) {

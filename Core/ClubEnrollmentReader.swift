@@ -70,6 +70,8 @@ import Observation
         if !hasLoaded && !loading { await refresh() }
     }
     public func suspend() { generation &+= 1; detailGenerations.removeAll(); detailLoading.removeAll(); loading = false }
+    /// End private presentation without deleting any operation journal.
+    public func invalidatePresentation() { clear() }
     private func clear() {
         presentationRevision &+= 1
         suspend(); teams = []; rosters = [:]; expanded = []; detailFailures = [:]
@@ -78,12 +80,21 @@ import Observation
     private func current(_ expected: ClubReadIdentity?, _ revision: UInt64) -> Bool {
         isCurrentAccess && generation == revision && identity == expected && access.identity == expected && !Task.isCancelled
     }
+    private func retireChangedOwner(_ expected: ClubReadIdentity?, _ revision: UInt64) {
+        // A late callback cannot clear a newer accepted generation or owner.
+        guard generation == revision, identity == expected,
+              !isCurrentAccess || access.identity != expected else { return }
+        clear(); failure = access.identity?.isSignedIn == true ? .staleReview : .signedOut
+    }
     private func check(_ snapshot: ClubGovernanceSnapshot, operation: ClubGovernanceRead, scope: ClubGovernanceScope) throws {
         guard snapshot.operation == operation, snapshot.scope == scope else { throw ClubGovernanceFailure.targetChanged }
         guard snapshot.permissions?.allows("club:member:list:read", scope: scope) == true else { throw ClubGovernanceFailure.forbidden }
     }
     private func error(_ error: Error) -> ClubGovernanceFailure { error as? ClubGovernanceFailure ?? .rejected(code: nil, message: nil) }
-    private func clearsSnapshot(_ error: ClubGovernanceFailure) -> Bool { [.signedOut, .forbidden, .targetChanged].contains(error) }
+    private func clearsSnapshot(_ error: ClubGovernanceFailure) -> Bool {
+        if case .rejected(let code, _) = error, code == 401 || code == 403 { return true }
+        return [.signedOut, .forbidden, .targetChanged].contains(error)
+    }
     public func refresh() async {
         guard identity?.isSignedIn == true, identity == access.identity else { clear(); failure = .signedOut; return }
         guard access.isConfigured else { clear(); failure = .notConfigured; return }
@@ -96,7 +107,7 @@ import Observation
             let snapshot = try await access.read(.topics, scope: scope, options: [:], check: {
                 guard self.current(expected, revision) else { throw ClubGovernanceFailure.staleReview }
             })
-            guard current(expected, revision) else { return }
+            guard current(expected, revision) else { retireChangedOwner(expected, revision); return }
             try check(snapshot, operation: .topics, scope: scope)
             let accepted = try ClubEnrollmentTeam.list(snapshot.value, clubID: clubID)
             teams = accepted; hasLoaded = true; loading = false
@@ -105,24 +116,26 @@ import Observation
             if !didFocus, let focusTopicID, ids.contains(focusTopicID) { expanded.insert(focusTopicID); didFocus = true }
             // Refresh expanded details too: a changed count must not retain pre-checkin rows.
             for id in expanded.sorted() {
-                guard current(expected, revision) else { return }
+                guard current(expected, revision) else { retireChangedOwner(expected, revision); return }
                 await loadDetail(topicID: id)
             }
             guard current(expected, revision), detailFailures.isEmpty else { return }
             completedRefreshRevision &+= 1
         } catch {
-            guard current(expected, revision) else { return }
+            guard current(expected, revision) else { retireChangedOwner(expected, revision); return }
             let issue = self.error(error)
             if clearsSnapshot(issue) { clear() }
             failure = issue; loading = false
         }
     }
     public func toggle(topicID: Int) async {
+        retireChangedOwner(identity, generation)
         guard isCurrentAccess, teams.contains(where: { $0.id == topicID }), !loading else { return }
         if expanded.contains(topicID) { expanded.remove(topicID) }
         else { expanded.insert(topicID); if rosters[topicID] == nil { await loadDetail(topicID: topicID) } }
     }
     public func loadDetail(topicID: Int) async {
+        retireChangedOwner(identity, generation)
         guard isCurrentAccess, identity?.isSignedIn == true, identity == access.identity, teams.contains(where: { $0.id == topicID }), !detailLoading.contains(topicID) else { return }
         presentationRevision &+= 1
         let expected = identity, revision = generation
@@ -135,11 +148,11 @@ import Observation
                     throw ClubGovernanceFailure.staleReview
                 }
             })
-            guard current(expected, revision), detailGenerations[topicID] == detailRevision else { return }
+            guard current(expected, revision), detailGenerations[topicID] == detailRevision else { retireChangedOwner(expected, revision); return }
             try check(snapshot, operation: .registrations, scope: scope)
             rosters[topicID] = try ClubEnrollmentRoster(value: snapshot.value, scope: scope)
         } catch {
-            guard current(expected, revision), detailGenerations[topicID] == detailRevision else { return }
+            guard current(expected, revision), detailGenerations[topicID] == detailRevision else { retireChangedOwner(expected, revision); return }
             let issue = self.error(error)
             if clearsSnapshot(issue) { clear(); failure = issue; return }
             detailFailures[topicID] = issue

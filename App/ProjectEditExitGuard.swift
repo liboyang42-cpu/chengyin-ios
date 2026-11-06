@@ -139,14 +139,22 @@ import Combine
 /// An in-page confirmation keeps repeated failed retries visible without modal re-presentation races.
 @MainActor private struct ProjectEditExitReviewBar: View {
     @ObservedObject var owner: ProjectEditExitController
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let original: ProjectEditExitController.Review
     let leave: () -> Void
+    private var actionLayout: AnyLayout {
+        dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
+            : AnyLayout(HStackLayout())
+    }
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("title", tableName: "ProjectEditExitGuard").font(.headline)
+                .fixedSize(horizontal: false, vertical: true)
             Text(LocalizedStringKey(original.reason.rawValue), tableName: "ProjectEditExitGuard")
+                .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("projectEditExit.reason")
-            HStack {
+            actionLayout {
                 Button(action: owner.continueAction(original)) { Text("continue", tableName: "ProjectEditExitGuard") }
                     .accessibilityIdentifier("projectEditExit.continue")
                 if original.reason == .saveFailed {

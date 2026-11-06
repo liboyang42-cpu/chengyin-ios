@@ -30,7 +30,7 @@ final class ObjectCardFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["2 / 2"].exists)
         app.buttons["objects.frame.previous"].tap()
         XCTAssertTrue(app.staticTexts["1 / 2"].exists)
-        XCTAssertTrue(app.staticTexts["Image loading is not enabled"].exists)
+        XCTAssertTrue(app.staticTexts["Images aren't available right now"].exists)
     }
     func testFilterFailureDoesNotReplaceLoadedCards() {
         XCTAssertTrue(app.buttons["objects.card.901"].waitForExistence(timeout: 5))

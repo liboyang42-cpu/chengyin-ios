@@ -16,7 +16,7 @@ values = {
     'withdrawal.history.denied.detail': ("Check this account's viewing permission.", '请确认当前账号的查看权限'),
     'withdrawal.history.failed.title': ("Withdrawal history didn't load", '提现记录没加载出来'),
     'withdrawal.history.failed.detail': ('Reading is temporarily unavailable.', '读取暂不可用'),
-    'withdrawal.history.unavailable.detail': ('Withdrawal history is not available in this build.', '此版本暂未开放提现记录读取'),
+    'withdrawal.history.unavailable.detail': ('Withdrawal history isn\'t available right now.', '提现记录暂不可用'),
     # subpackageMember/tixian
     'withdrawal.apply.title': ('Withdrawal application', '提现申请'),
     'withdrawal.apply.method': ('Withdrawal method', '提现方式'),

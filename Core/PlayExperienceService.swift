@@ -287,3 +287,25 @@ public struct PlayExperienceService {
         return envelope?["data"] ?? .null
     }
 }
+
+extension PlayExperienceService {
+    @MainActor func sharedPlanRequest(activityID: Int, token: String, command: PlaySharedPlanCommand? = nil,
+        receipt: Bool = false, finalCheck: () throws -> Void) async throws -> PlayWireValue {
+        guard activityID > 0, !receipt || command != nil else { throw APIError.invalidRequest }
+        let kind = receipt ? "receipt" : command == nil ? "view" : "command"
+        var parts = URLComponents(url: configuration.baseURL.appendingPathComponent("api/game/session/" + kind), resolvingAgainstBaseURL: false)!
+        if let command { try command.validate(); guard command.activityID == activityID else { throw APIError.invalidRequest } }
+        if kind != "command" {
+            parts.queryItems = [.init(name: "activityId", value: String(activityID)), .init(name: "perspective", value: "PLAYER")]
+            if let command { parts.queryItems?.append(.init(name: "requestId", value: command.requestID)) }
+        }
+        var request = URLRequest(url: parts.url!); request.httpMethod = kind == "command" ? "POST" : "GET"
+        request.cachePolicy = .reloadIgnoringLocalCacheData; request.timeoutInterval = 20
+        request.setValue(token, forHTTPHeaderField: "Authorization"); request.setValue("application/json", forHTTPHeaderField: "Accept")
+        if kind == "command", let command {
+            let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]; request.httpBody = try encoder.encode(command.wire)
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
+        return try await send(request, capability: kind == "command" ? .playerCommands : .reads, beforeTransport: finalCheck)
+    }
+}

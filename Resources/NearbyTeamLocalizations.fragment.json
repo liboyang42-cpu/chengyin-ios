@@ -118,13 +118,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Synthetic preview. No real application or membership change is sent."
+            "value": "Example content. No real application or team change is sent."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "合成数据预览，不会发送真实申请或更改成员。"
+            "value": "示例内容，不会实际发送申请或更改队伍成员。"
           }
         }
       }
@@ -134,13 +134,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Live applications and decisions are disabled."
+            "value": "Applying and responding to applications isn't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "真实申请与处理功能未启用。"
+            "value": "申请与处理申请暂不可用。"
           }
         }
       }
@@ -422,13 +422,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approvals can fill the team. The server then removes it from the map and expires remaining applications."
+            "value": "Approving applicants can fill the team. Once it's full, the team is removed from the map and remaining applications expire."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "同意后可能满员，由服务端从地图移除队伍并使其余申请失效。"
+            "value": "同意申请后队伍可能满员，满员后队伍将从地图移除，其余申请自动失效。"
           }
         }
       }
@@ -662,13 +662,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unprocessed applications expire automatically or when the activity starts. The server determines the deadline."
+            "value": "Unprocessed applications expire automatically or when the activity starts."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未处理申请会自动失效或在活动开始时失效，期限以服务端为准。"
+            "value": "未处理的申请会自动失效或在活动开始时失效。"
           }
         }
       }
@@ -710,13 +710,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review the exact team and applicant. Applying requests membership; approval adds the applicant; rejection prevents reapplication; withdrawal removes your pending request. This screen only simulates these actions."
+            "value": "Check the team and applicant. Applying requests membership; approval adds the applicant; rejection prevents reapplying; withdrawing removes your pending request. This is an example; nothing is actually sent."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请核对队伍与申请人。申请请求加入；同意会添加成员；拒绝后无法再次申请；撤回会移除待处理请求。本页面仅模拟这些操作。"
+            "value": "请核对队伍与申请人。申请即请求加入；同意会添加成员；拒绝后无法再次申请；撤回会移除待处理的申请。本页为示例，不会实际操作。"
           }
         }
       }
@@ -918,13 +918,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nearby-team reads are not configured for this environment."
+            "value": "Nearby teams aren't available right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前环境尚未配置附近队伍读取。"
+            "value": "附近队伍暂不可用。"
           }
         }
       }
@@ -1318,13 +1318,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server acknowledged this action. Updated membership still comes from server reads."
+            "value": "Done. Refresh to see the latest membership."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已确认本次操作，成员状态仍以服务端读取为准。"
+            "value": "操作已提交，刷新后可查看最新成员状态。"
           }
         }
       }

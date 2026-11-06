@@ -10,22 +10,25 @@ struct ClubOperationsReviewView: View {
     var body: some View {
         Form {
             Section {
-                Text("club.ops.reviewTarget").font(.headline).accessibilityIdentifier("club.ops.reviewSheet")
                 if let club = review.snapshot.profile?.club {
-                    LabeledContent("club.ops.club") { Text(verbatim: "\(club.name) (#\(club.id))") }
-                } else { Text("club.ops.newClub") }
-                if let account = review.identity.accountID {
-                    LabeledContent("club.ops.account") { Text(verbatim: "#\(account)") }
-                }
+                    LabeledContent("club.ops.club") { ClubName(value: club.name) }
+                        .accessibilityIdentifier("club.ops.reviewSheet")
+                } else { Text("club.ops.newClub").font(.headline).accessibilityIdentifier("club.ops.reviewSheet") }
             }
             details
             Section {
-                Text(LocalizedStringKey(canSubmit ? (isExample ? "club.ops.fixtureOnly" : "club.ops.confirmLiveHint") : "club.ops.writeGated"))
                 if canSubmit {
-                    Button(LocalizedStringKey(isExample ? "club.ops.confirmFixture" : "club.ops.confirmLive")) { submitted = true; onConfirm() }
+                    if isExample { Text("club.ops.fixtureOnly").foregroundStyle(.secondary) }
+                    Button { submitted = true; onConfirm() } label: {
+                        Text(LocalizedStringKey(isExample ? "club.ops.confirmFixture" : "club.ops.confirmLive"))
+                            .frame(maxWidth: .infinity)
+                    }
+                        .buttonStyle(.questifyPrimary)
                         .disabled(submitted).accessibilityIdentifier("club.ops.confirm")
+                } else {
+                    Text("club.ops.writeGated").foregroundStyle(.secondary)
                 }
-            }
+            }.listRowBackground(canSubmit && !isExample ? Color.clear : nil)
         }
         .navigationTitle("club.ops.review")
         .toolbar {
@@ -46,8 +49,8 @@ struct ClubOperationsReviewView: View {
             }
         case .memberRole(let id, let admin, _):
             Section("club.ops.memberRoles") {
-                let name = review.snapshot.members.first { $0.id == id }?.trimmedNickname ?? "#\(id)"
-                LabeledContent("club.ops.member") { Text(verbatim: "\(name) (#\(id))") }
+                let name = review.snapshot.members.first { $0.id == id }?.trimmedNickname ?? "—"
+                LabeledContent("club.ops.member") { Text(verbatim: name) }
                 Text(admin ? "club.ops.makeAdmin" : "club.ops.removeAdmin")
                 Text("club.ops.roleConsequences")
             }
@@ -58,7 +61,9 @@ struct ClubOperationsReviewView: View {
             row("name", draft.name); row("city", draft.city)
             LabeledContent("club.ops.clubType") { canonical(draft.clubType) }
             row("description", draft.description); row("keywords", draft.keywords); row("style", draft.style)
-            ForEach(draft.activityPrefs, id: \.self) { canonical($0) }
+            LabeledContent("club.ops.directions") {
+                VStack(alignment: .trailing) { ForEach(draft.activityPrefs, id: \.self) { canonical($0) } }
+            }
             if let original, original.club.isOwner {
                 LabeledContent("club.ops.prioritySignup") { Text(draft.prioritySignupEnabled ? "club.ops.enabled" : "club.ops.disabled") }
                     .accessibilityIdentifier("club.ops.reviewSheet.prioritySignup")
@@ -69,7 +74,6 @@ struct ClubOperationsReviewView: View {
                         .accessibilityIdentifier("club.ops.reviewSheet.joinPolicy")
                 }
             }
-            Text("club.ops.mediaPreserved").font(.footnote)
         }
     }
     @ViewBuilder private func canonical(_ value: String) -> some View {

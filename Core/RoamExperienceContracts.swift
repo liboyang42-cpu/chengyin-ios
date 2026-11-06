@@ -96,17 +96,20 @@ public struct RoamAlbumStamp: Decodable, Equatable, Identifiable {
     public let id: Int
     public let picUrl: String
     public let caption: String?
+    /// Original anonymous VO: 0 free photo, 1 cancelled stamp; unknown values stay unlabeled.
+    public let kind: Int?
     public let checkState: Int
     public let createTime: String?
     /// 0 means not submitted to automated review, not rejected. Unknown moderation states are retained
     /// in the contract but withheld from display until their meaning is reviewed.
     public var isVisible: Bool { id > 0 && (checkState == 0 || checkState == 1) }
-    enum CodingKeys: String, CodingKey { case id, picUrl, caption, checkState, createTime }
+    enum CodingKeys: String, CodingKey { case id, picUrl, caption, kind, checkState, createTime }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decode(Int.self, forKey: .id)
         picUrl = try c.decodeIfPresent(String.self, forKey: .picUrl) ?? ""
         caption = try c.decodeIfPresent(String.self, forKey: .caption)
+        kind = try c.decodeIfPresent(Int.self, forKey: .kind)
         checkState = try c.decodeIfPresent(Int.self, forKey: .checkState) ?? 0
         createTime = try c.decodeIfPresent(String.self, forKey: .createTime)
     }

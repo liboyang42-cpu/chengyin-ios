@@ -32,8 +32,7 @@ extension PlayKitScreen {
                 }
             }
             if let cap = segment["maxAttempts"].integer, cap > 0 { LabeledContent("playkit.attemptLimit") { Text(verbatim: String(cap)) } }
-            Text("playkit.reasoning.serverOnly").font(.footnote)
-            Button("playkit.review") { requestReview(action, payload, {}) }.buttonStyle(.borderedProminent).disabled(!enabled || !valid)
+            Button("playkit.review") { requestReview(action, payload, {}) }.buttonStyle(.questifyPrimary).disabled(!enabled || !valid)
         }.onAppear { if order.isEmpty { order = items.map(\.id) } }
             .onChange(of: items.map(\.id)) { _, ids in order = ids; placement = [:] }
             .onChange(of: left.map(\.id)) { _, _ in placement = [:] }

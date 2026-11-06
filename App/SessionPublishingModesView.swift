@@ -24,10 +24,20 @@ import SwiftUI
                             makeIdentityRegistration: { session.makePublisherIdentityRegistrationService() },
                             makeActivityTemplate: { activityTemplateCreator() }, makeActivityCover: { session.makeActivityCoverService() },
                             placeSearch: PublishingMapKitAdapter(), draftStore: session.publishingDraftStore, openProfessional: { seed = $0; showEditor = true },
-                            openResource: { resource = $0 })
+                            openResource: { resource = $0 },
+                            makeProfessional: { product in
+                                AnyView(ProjectEditView(coordinator: session.projectEditor(product: product), sessionRevision: session.sessionRevision, publisherClient: session.publisherLifecycleContext?.client, publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) }, cloudDraftProjectsHost: { AnyView(SessionCreatorProjectsView(session: session)) }).id(session.projectEditorContextID))
+                            },
+                            makeTemplateAuthoring: {
+                                AnyView(TemplateAuthoringEntryDestination(factory: { session.templateAuthoringEditor() },
+                                    completion: session.templateAuthoringCompletionContext,
+                                    sessionRevision: session.sessionRevision, metadataReader: session,
+                                    imageSelectionApproved: { session.retainedImagePickerHost.nativeSelectionEnabled })
+                                    .id(session.templateAuthoringViewIdentity))
+                            })
             .navigationDestination(isPresented: $showEditor) {
                 if let seed {
-                    ProjectEditView(coordinator: session.projectEditor(product: seed.product, owner: seed.owner), sessionRevision: session.sessionRevision, seed: seed, publisherClient: session.publisherLifecycleContext?.client, publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) })
+                    ProjectEditView(coordinator: session.projectEditor(product: seed.product, owner: seed.owner), sessionRevision: session.sessionRevision, seed: seed, publisherClient: session.publisherLifecycleContext?.client, publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) }, cloudDraftProjectsHost: { AnyView(SessionCreatorProjectsView(session: session)) })
                         .id(session.projectEditorContextID)
                 }
             }

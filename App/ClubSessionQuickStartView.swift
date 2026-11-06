@@ -72,6 +72,13 @@ import SwiftUI
         if scope.canRead {
             NavigationLink {
                 ClubSessionQuickStartView(club: club, reader: reader, governance: governance)
+                    .environment(\.clubEnrollmentProfile, governance.enrollmentProfile)
+                    .environment(\.clubOwnerRefundCoordinator, governance.ownerRefund)
+                    .environment(\.clubOpsTimeFactory, governance.opsTimeFactory)
+                    .environment(\.clubCustomerTopics, governance.customerTopics)
+                    .environment(\.clubStoryTemplates, governance.storyTemplates)
+                    .environment(\.clubTerminalSessions, governance.terminalSessions)
+                    .environment(\.clubOwnerFunds, governance.ownerFunds)
             } label: { Label("club.sessionStart.title", systemImage: "calendar.badge.plus") }
                 .accessibilityIdentifier("club.sessionStart.entry")
         }

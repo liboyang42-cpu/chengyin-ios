@@ -86,7 +86,7 @@ struct ProjectAlbumPhotoRemovalIdentity: Hashable {
                 } label: { Text("projectAlbumRemoval.confirm", tableName: "ProjectAlbumPhotoRemoval") }
                     .disabled(!controller.isCurrent(original)).accessibilityIdentifier("projectAlbumRemoval.confirm")
             }.privacySensitive()
-                .navigationTitle(Text("projectAlbumRemoval.title", tableName: "ProjectAlbumPhotoRemoval"))
+                .navigationBarTitleDisplayMode(.inline).navigationTitle(Text("projectAlbumRemoval.title", tableName: "ProjectAlbumPhotoRemoval"))
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { controller.close(original) } } }
         }
     }

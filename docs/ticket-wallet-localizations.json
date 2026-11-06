@@ -36,18 +36,18 @@
   },
   {
     "key": "ticketWallet.partialEmpty",
-    "en": "No tickets were returned by the available source. The wallet may be incomplete.",
-    "zh-Hans": "可用来源暂未返回票券，票夹内容可能不完整。"
+    "en": "No tickets found right now. Your ticket wallet may not show everything.",
+    "zh-Hans": "暂未找到票券，票夹可能未显示全部内容。"
   },
   {
     "key": "ticketWallet.offlineExample",
-    "en": "Offline synthetic example",
-    "zh-Hans": "离线合成示例"
+    "en": "Example content",
+    "zh-Hans": "示例内容"
   },
   {
     "key": "ticketWallet.readOnly",
-    "en": "Read-only ticket wallet. Payment, refunds and completion rewards are not available here; the team entry is view-only.",
-    "zh-Hans": "只读票夹。此处不提供支付、退款和完局奖励；队伍入口只用于查看。"
+    "en": "Payment, refunds and completion rewards aren't available here. You can view your team but not make changes.",
+    "zh-Hans": "此处暂不支持支付、退款和完赛奖励；队伍信息仅供查看。"
   },
   {
     "key": "ticketWallet.untitled",
@@ -136,8 +136,8 @@
   },
   {
     "key": "ticketWallet.issue.notConfigured",
-    "en": "Ticket service is not configured",
-    "zh-Hans": "票券服务尚未配置"
+    "en": "Tickets aren't available right now.",
+    "zh-Hans": "票券暂不可用"
   },
   {
     "key": "ticketWallet.issue.unavailable",

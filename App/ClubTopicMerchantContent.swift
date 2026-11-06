@@ -25,23 +25,20 @@ import SwiftUI
                                                snapshotGeneration: snapshotGeneration, readGeneration: readGeneration, access: access) {
         case .stale: EmptyView()
         case .failed(let failure):
-            Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.topicMerchants.invalid")
+            Text(LocalizedStringKey(failure.localizationKey)).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("club.topicMerchants.invalid")
         case .ready(let list):
             Section("club.topicMerchants.title") {
-                Text("club.topicMerchants.contactBoundary").font(.footnote).foregroundStyle(.secondary)
                 if list.rows.isEmpty {
-                    Text("club.topicMerchants.empty").accessibilityIdentifier("club.topicMerchants.empty")
+                    Text("club.topicMerchants.empty").fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("club.topicMerchants.empty")
                 }
                 ForEach(list.rows) { row in
                     HStack(alignment: .top, spacing: 12) {
-                        Text(verbatim: row.initial ?? "?").font(.title2).accessibilityHidden(true)
+                        Image(systemName: "storefront").font(.title3).foregroundStyle(.secondary).frame(width: 28).accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: 6) {
                             if let name = row.merchantName { Text(verbatim: name).font(.headline) }
                             else { Text("club.topicMerchants.unnamedMerchant").font(.headline) }
-                            if let station = row.stationName { Text(verbatim: station) }
-                            else { Text("club.topicMerchants.unnamedStation") }
-                            if let state = row.state { LabeledContent("club.topicMerchants.returnedState", value: state) }
-                            else { Text("club.topicMerchants.unknownState").foregroundStyle(.secondary) }
+                            if let station = row.stationName { Text(verbatim: station).font(.subheadline).foregroundStyle(.secondary) }
+                            if let state = row.state { Text(verbatim: state).font(.subheadline).foregroundStyle(.secondary) }
                         }
                     }.fixedSize(horizontal: false, vertical: true).accessibilityElement(children: .combine)
                         .accessibilityIdentifier("club.topicMerchants.node.\(row.id)")

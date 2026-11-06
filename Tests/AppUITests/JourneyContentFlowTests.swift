@@ -24,7 +24,7 @@ final class JourneyContentFlowTests: XCTestCase {
     }
     func testRollRerollSettlementAndServerNarrative() {
         let app = launch(); tap("journey.check.roll", app: app); tap("journey.check.confirm", app: app)
-        tap("journey.check.reroll", app: app); XCTAssertTrue(app.staticTexts["Reroll spends one luck. The server determines the outcome."].exists)
+        tap("journey.check.reroll", app: app); XCTAssertTrue(app.staticTexts["Rerolling uses one luck point.."].exists)
         tap("journey.check.cancelReview", app: app); tap("journey.check.settle", app: app); tap("journey.check.confirm", app: app)
         let narrative = app.staticTexts["Synthetic server narrative"]
         XCTAssertTrue(revealFixtureElement(narrative, in: app, towardTop: true, requiresHittable: false))

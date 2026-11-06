@@ -6,7 +6,7 @@ import Foundation
 public enum ProjectEditStoryContract {
     public static let createPath = "api/topic/v2/create"
     public static let updatePath = "api/topic/v2/update"
-    static let topicFields = ["configVersion", "routeMode", "routeGraphJson", "journeyRules", "journeyStory"]
+    static let topicFields = ["configVersion", "routeMode", "routeGraphJson", "journeyRules", "journeyStory", "themeRuntimeConfig"]
     static let nodeFields = ["id", "clientNodeKey", "businessTime", "hookText", "cardHookLong", "fragmentText"]
     static let metadataFields: Set<String> = Set(["locationRequired", "who", "level", "when"]).union(ProjectEditRichStoryContract.extraFields)
     static let blockFields: Set<String> = Set(["type", "key", "content", "nodeIndex", "nodeId", "nodeKey", "url", "locationRequired", "who", "level", "when"]).union(ProjectEditRichStoryContract.extraFields)
@@ -29,6 +29,7 @@ public enum ProjectEditStoryContract {
             let materialized = baseline.draft.chapters.contains { $0.blocks != nil }
             return usesV2(baseline.draft) || materialized ? updatePath : "api/topic/update"
         }
+        if editing && (payload["saveDraft"] == .number(1) || payload["saveDraft"] == .number(0)) { return updatePath }
         let chapters = payload["chapters"]?.array ?? []
         let story = payload["publishMode"] == .string("pro") && (payload["productType"]?.integer == 1 || chapters.contains {
             $0.object?["opening"] == .bool(true) || ($0.object?["ending"] != nil && $0.object?["ending"] != .null) || ($0.object?["schemaVersion"]?.integer == 1 && $0.object?["blocks"]?.array != nil)
@@ -87,11 +88,15 @@ public enum ProjectEditStoryContract {
     /// Validates the supported V2 subset with server limits before the durable dispatch marker.
     /// Server authority, content checks, ownership and publish readiness remain server-owned.
     public static func validatePayload(_ payload: [String: ProjectEditJSON], baseline: ProjectEditSnapshot? = nil) throws {
+        if let value = payload["saveDraft"] {
+            guard value == .number(1) || value == .number(0), payload["publishToCreative"] == .number(0) else { throw ProjectEditError.invalidDraft }
+            if value == .number(0) { guard (payload["id"]?.integer ?? 0) > 0 else { throw ProjectEditError.invalidDraft } }
+        }
         let selected = try path(payload: payload, baseline: baseline)
         try ProjectChapterRecruitmentCarryOver.validatePayload(payload, baseline: baseline)
         guard selected == createPath || selected == updatePath else { return }
         if baseline?.scope == .whitelist { return }
-        guard let chapters = payload["chapters"]?.array, !chapters.isEmpty else { throw ProjectEditError.invalidDraft }
+        guard let chapters = payload["chapters"]?.array, !chapters.isEmpty || payload["saveDraft"] == .number(1) else { throw ProjectEditError.invalidDraft }
         if let version = payload["configVersion"], version != .null {
             guard (version.integer ?? 0) > 0 else { throw ProjectEditError.invalidDraft }
         }
@@ -191,9 +196,20 @@ public enum ProjectEditStoryContract {
 
     /// Uses the existing edit-detail response, never a guessed v2 detail endpoint.
     static func restoreMetadata(_ draft: inout ProjectEditDraft, body: [String: ProjectEditJSON], topic: [String: ProjectEditJSON]) throws {
-        for key in topicFields { if let value = topic[key], value != .null { draft.preserved[key] = value } }
+        for key in topicFields where key != "themeRuntimeConfig" {
+            if let value = topic[key], value != .null { draft.preserved[key] = value }
+        }
         for key in ["journeyRules", "journeyStory"] {
             if let value = body[key] ?? topic[key + "Json"], value != .null { draft.preserved[key] = value }
+        }
+        // Choose the original authoritative source once; no unvalidated topic-field shortcut.
+        // Keep the complete author JSON unchanged, not just the module visible in this editor.
+        if let theme = body["themeRuntimeConfig"] ?? topic["themeRuntimeConfigJson"] ?? topic["themeRuntimeConfig"] {
+            if theme == .null { draft.preserved["themeRuntimeConfig"] = nil }
+            else {
+                guard theme.text != nil else { throw ProjectEditError.invalidContract }
+                draft.preserved["themeRuntimeConfig"] = theme
+            }
         }
         if let version = draft.preserved["configVersion"], version != .null, (version.integer ?? 0) <= 0 { throw ProjectEditError.invalidContract }
         if let collaborators = body["collaboratorIds"] {

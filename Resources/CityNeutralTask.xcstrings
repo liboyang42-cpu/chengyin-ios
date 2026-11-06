@@ -1,0 +1,788 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "cityNeutral.entry": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无费用中立答题"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free neutral quiz"
+          }
+        }
+      }
+    },
+    "cityNeutral.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CITY 中立答题"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CITY neutral quiz"
+          }
+        }
+      }
+    },
+    "cityNeutral.boundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无费用中立答题，不证明到场、不产生经营权或积分。只执行平台明确批准的远程任务，不替代点位到场或经营任务。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free neutral quiz. It does not prove arrival or grant operating rights or points. Only explicitly approved remote tasks are supported; on-site and operating tasks are not replaced."
+          }
+        }
+      }
+    },
+    "cityNeutral.reload": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload"
+          }
+        }
+      }
+    },
+    "cityNeutral.joinRequired": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请返回板块的 CITY 队伍参与入口，创建或加入队伍并完成所有成员确认。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return to CITY team participation on this board, create or join a team, and complete every member’s confirmation."
+          }
+        }
+      }
+    },
+    "cityNeutral.teamNotReady": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原队伍尚未准备就绪，或有成员已退出或失去资格。请先返回队伍参与入口处理。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original team is not ready, or a member has exited or is no longer eligible. Return to team participation first."
+          }
+        }
+      }
+    },
+    "cityNeutral.release": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冻结规则版本"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen rules release"
+          }
+        }
+      }
+    },
+    "cityNeutral.round": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原轮次"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original round"
+          }
+        }
+      }
+    },
+    "cityNeutral.team": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原队伍"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original team"
+          }
+        }
+      }
+    },
+    "cityNeutral.session": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原会话"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original session"
+          }
+        }
+      }
+    },
+    "cityNeutral.frozen": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冻结资格与配置"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen eligibility and configuration"
+          }
+        }
+      }
+    },
+    "cityNeutral.sharedAttempts": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本队所有成员共享尝试上限。退出、重进、换设备或请求重试均不会重新获得次数。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All team members share the attempt limit. Exiting, returning, changing devices or retrying requests does not reset it."
+          }
+        }
+      }
+    },
+    "cityNeutral.noTasks": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该冻结版本未配置受支持的无费用远程中立任务。原点位任务不会自动转换。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This frozen release has no supported free remote neutral tasks. On-site tasks are never converted automatically."
+          }
+        }
+      }
+    },
+    "cityNeutral.task": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任务标识"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Task ID"
+          }
+        }
+      }
+    },
+    "cityNeutral.attempts": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已用 / 总尝试上限"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Used / total attempts"
+          }
+        }
+      }
+    },
+    "cityNeutral.accept": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接受此无费用任务"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accept this free task"
+          }
+        }
+      }
+    },
+    "cityNeutral.chooseOption": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择一个答案"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose one answer"
+          }
+        }
+      }
+    },
+    "cityNeutral.answer": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次答案"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Answer for this attempt"
+          }
+        }
+      }
+    },
+    "cityNeutral.submit": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交一次团队答题"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit one team attempt"
+          }
+        }
+      }
+    },
+    "cityNeutral.result": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "唯一结果标识"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unique result ID"
+          }
+        }
+      }
+    },
+    "cityNeutral.request": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求标识"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original request ID"
+          }
+        }
+      }
+    },
+    "cityNeutral.completedAt": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果记录时间"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Result recorded at"
+          }
+        }
+      }
+    },
+    "cityNeutral.resultBoundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此结果仅代表答题判定，不证明到场，不自动占领、扣分、发奖或推进经营任务。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This result records the quiz verdict only. It does not prove arrival, claim ownership, charge points, award rewards or advance operating tasks."
+          }
+        }
+      }
+    },
+    "cityNeutral.pendingHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求结果尚未确认。只能查询同一原请求，不自动重发或创建新的尝试。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The request outcome is not yet confirmed. Read the same original receipt; do not resend or create another attempt."
+          }
+        }
+      }
+    },
+    "cityNeutral.recover": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查询原请求回执"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read original receipt"
+          }
+        }
+      }
+    },
+    "cityNeutral.receiptRecorded": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求已记录。答题是否通过以任务结果为准。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The request was recorded. Check the task result for the quiz verdict."
+          }
+        }
+      }
+    },
+    "cityNeutral.receiptRejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求已明确拒绝，未执行此次变更。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original request was rejected. This change was not executed."
+          }
+        }
+      }
+    },
+    "cityNeutral.confirmHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "费用 0，积分奖励 0，行动消耗 0。接受不消耗答题次数；提交答案消耗本队一次共享尝试。完成也不产生经营权或到场证据。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cost 0, point reward 0, action consumption 0. Accepting uses no quiz attempts; submitting consumes one shared team attempt. Completion grants no operating rights or arrival evidence."
+          }
+        }
+      }
+    },
+    "cityNeutral.confirmNow": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认这一次请求"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm this request"
+          }
+        }
+      }
+    },
+    "cityNeutral.cancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        }
+      }
+    },
+    "cityNeutral.confirmTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认无费用任务操作"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm free task operation"
+          }
+        }
+      }
+    },
+    "cityNeutral.taskStatus.NOT_ACCEPTED": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未接受"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not accepted"
+          }
+        }
+      }
+    },
+    "cityNeutral.taskStatus.ACTIVE": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待答题"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awaiting answer"
+          }
+        }
+      }
+    },
+    "cityNeutral.taskStatus.PASSED": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "答题通过"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiz passed"
+          }
+        }
+      }
+    },
+    "cityNeutral.taskStatus.EXHAUSTED": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "团队尝试次数已用尽"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team attempts exhausted"
+          }
+        }
+      }
+    },
+    "cityNeutral.status.initial": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未读取任务。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tasks have not been read."
+          }
+        }
+      }
+    },
+    "cityNeutral.status.contextChanged": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号或批准上下文已改变，旧内容已清除。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account or approval context changed. Previous content was cleared."
+          }
+        }
+      }
+    },
+    "cityNeutral.status.disabled": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此入口尚未获得独立部署批准，当前不可操作。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This entry has no independent deployment approval and is unavailable."
+          }
+        }
+      }
+    },
+    "cityNeutral.status.ready": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已读取真实冻结任务与团队状态。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen tasks and actual team state were read."
+          }
+        }
+      }
+    },
+    "cityNeutral.status.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果未知，保留原请求并仅查询回执。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outcome unknown. Keep the original request and read its receipt only."
+          }
+        }
+      }
+    },
+    "cityNeutral.status.recoverFirst": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先处理尚未确认的原请求。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resolve the pending original request first."
+          }
+        }
+      }
+    },
+    "cityNeutral.status.applied": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求已记录，已重新读取任务状态。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The request was recorded and task state was read again."
+          }
+        }
+      }
+    },
+    "cityNeutral.status.rejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求被拒绝，已重新读取状态。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The request was rejected and state was read again."
+          }
+        }
+      }
+    },
+    "cityNeutral.status.signedOut": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录已失效，请重新登录。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your sign-in expired. Sign in again."
+          }
+        }
+      }
+    },
+    "cityNeutral.status.accessWithdrawn": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取权限已撤回，旧内容已清除。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read access was withdrawn. Previous content was cleared."
+          }
+        }
+      }
+    },
+    "cityNeutral.status.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "真实任务状态暂不可用，未推断成功。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actual task state is unavailable. Success has not been assumed."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

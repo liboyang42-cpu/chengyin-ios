@@ -438,13 +438,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This cannot be undone. The play configuration cannot be recovered."
+            "value": "This cannot be undone."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此操作不可撤销,玩法配置无法找回"
+            "value": "此操作不可撤销。"
           }
         }
       }

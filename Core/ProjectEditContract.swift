@@ -10,9 +10,13 @@ public enum ProjectEditContract {
     public static let topicCarryOver = ProjectEditStoryContract.topicFields + ProjectTeamConfiguration.fields + ProjectTopicBudgetCarryOver.fields + ["completeRuleJson", "publishMode", "audioUrl", "audioDuration", "selfPlay", "selfPlayPrice", "selfPlayQuota", "finishMedalName", "finishMedalImg", "completeRewardCouponId"]
     public static let whitelist = ["name", "subtitle", "description", "imgUrl", "imgArr", "categoryIds", "scope"]
 
-    public static func payload(_ draft: ProjectEditDraft, topicID: Int?, scope: ProjectEditScope, baseline: ProjectEditSnapshot? = nil) throws -> [String: ProjectEditJSON] {
+    public static func payload(_ draft: ProjectEditDraft, topicID: Int?, scope: ProjectEditScope, baseline: ProjectEditSnapshot? = nil, intent: ProjectEditSubmissionIntent = .ordinary) throws -> [String: ProjectEditJSON] {
         guard scope.allowsEditing, baseline?.scope.allowsEditing != false else { throw ProjectEditError.invalidDraft }
-        guard ProjectEditValidation.issues(draft, scope: scope, baseline: baseline).isEmpty else { throw ProjectEditError.invalidDraft }
+        guard intent.issues(draft, scope: scope, baseline: baseline).isEmpty else { throw ProjectEditError.invalidDraft }
+        if intent != .ordinary {
+            guard scope == .full, topicID == nil || baseline?.isServerDraft == true else { throw ProjectEditError.invalidDraft }
+            if intent == .submitServerDraft { guard topicID != nil, baseline?.isServerDraft == true else { throw ProjectEditError.invalidDraft } }
+        }
         var payload: [String: ProjectEditJSON] = [
             "name": .string(draft.name), "subtitle": .string(draft.subtitle), "description": .string(draft.description),
             "imgUrl": .string(draft.imgUrl), "imgArr": .string(draft.imgArr),
@@ -22,23 +26,26 @@ public enum ProjectEditContract {
         if scope == .whitelist { guard topicID != nil else { throw ProjectEditError.invalidContract }; return payload }
         guard ProjectTopicBudgetCarryOver.allows(draft, topicID: topicID, baseline: baseline) else { throw ProjectEditError.invalidDraft }
         guard ProjectTeamConfiguration.canSubmit(draft, baseline: baseline) else { throw ProjectEditError.invalidDraft }
-        payload["startDate"] = .string(ProjectEditValidation.dateTime(draft.startDate)!)
-        payload["endDate"] = .string(ProjectEditValidation.dateTime(draft.endDate, endOfDay: true)!)
+        try NativeZeroHPAuthorDraft.validateOriginalSubmission(draft)
+        if let start = ProjectEditValidation.dateTime(draft.startDate) { payload["startDate"] = .string(start) }
+        if let end = ProjectEditValidation.dateTime(draft.endDate, endOfDay: true) { payload["endDate"] = .string(end) }
         payload["productType"] = .number(Decimal(draft.product.rawValue))
         payload["collaboratorIds"] = .array(draft.collaboratorIDs.map { .number(Decimal($0)) })
         payload["openMerchantPool"] = .number(draft.openMerchantPool ? 1 : 0)
         payload["openClubPool"] = try ProjectClubLead.wireValue(draft)
         // Editing never republishes to Creative Square, even after local restore.
-        payload["publishToCreative"] = .number(topicID == nil && draft.publishToCreative ? 1 : 0)
+        payload["publishToCreative"] = .number(intent != .saveCloudDraft && topicID == nil && draft.publishToCreative ? 1 : 0)
+        if intent == .saveCloudDraft { payload["saveDraft"] = .number(1) }
+        if intent == .submitServerDraft { payload["saveDraft"] = .number(0) }
         if let clubID = draft.clubID { payload["clubId"] = .number(Decimal(clubID)) }
-        if draft.product == .freeExplore { payload["recruitDeadline"] = .string(ProjectEditValidation.dateTime(draft.recruitDeadline, endOfDay: true)!) }
+        if draft.product == .freeExplore, let deadline = ProjectEditValidation.dateTime(draft.recruitDeadline, endOfDay: true) { payload["recruitDeadline"] = .string(deadline) }
         for key in topicCarryOver { if let value = draft.preserved[key] { payload[key] = value } }
         if topicID == nil { payload["xpBudget"] = nil } // Preserve the existing create-body shape.
         if draft.completionRules != nil || draft.preserved["completeRuleJson"] != nil {
             let rules = (draft.completionRules ?? .init(raw: draft.preserved["completeRuleJson"])).forProduct(draft.product)
             payload["completeRuleJson"] = try rules.serialized(matching: draft.preserved["completeRuleJson"])
         }
-        let storyFlow = ProjectEditStoryContract.usesV2(draft)
+        let storyFlow = intent == .submitServerDraft || (intent == .saveCloudDraft && topicID != nil) || ProjectEditStoryContract.usesV2(draft)
         if storyFlow, let story = payload["journeyStory"] { payload["journeyStory"] = try ProjectEditRichStoryContract.journeyStoryWithoutStandaloneEndingList(story) }
         guard storyFlow || !draft.chapters.contains(where: { $0.blocks != nil && !ProjectEditStoryContract.isLegacyProjection($0) }) else { throw ProjectEditError.invalidDraft }
         payload["chapters"] = .array(try draft.chapters.map { .object(try chapterPayload($0, product: draft.product, storyFlow: storyFlow, editing: topicID != nil)) })
@@ -189,14 +196,20 @@ public enum ProjectEditContract {
             return t
         }
         try ProjectEditStoryContract.restoreMetadata(&d, body: body, topic: topic)
-        return .init(topicID: expectedTopicID, scope: editScope, draft: d)
+        let serverDraft: Bool?
+        if case .bool(let value)? = body["isDraft"] { serverDraft = value }
+        else if body["isDraft"] == nil || body["isDraft"] == .null { serverDraft = nil }
+        else { throw ProjectEditError.invalidContract }
+        return .init(topicID: expectedTopicID, scope: editScope, draft: d, isServerDraft: serverDraft)
     }
 }
 public struct ProjectEditSnapshot: Codable, Equatable {
     public let topicID: Int?
     public let scope: ProjectEditScope
     public var draft: ProjectEditDraft
-    public init(topicID: Int? = nil, scope: ProjectEditScope = .full, draft: ProjectEditDraft) {
-        self.topicID = topicID; self.scope = scope; self.draft = draft
+    /// Original edit-detail fact; missing local/historical values never establish cloud-draft authority.
+    public var isServerDraft: Bool?
+    public init(topicID: Int? = nil, scope: ProjectEditScope = .full, draft: ProjectEditDraft, isServerDraft: Bool? = nil) {
+        self.topicID = topicID; self.scope = scope; self.draft = draft; self.isServerDraft = isServerDraft
     }
 }

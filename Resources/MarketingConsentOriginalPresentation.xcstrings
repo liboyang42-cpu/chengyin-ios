@@ -1,0 +1,390 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "marketingOriginal.scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marketing is optional. Choose one merchant and one channel at a time. This setting does not send messages or claim or issue coupons."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "营销消息由你自愿选择，每次只确认一个商家和一个渠道。此设置不会发送消息，也不会领取或发放优惠券。"
+          }
+        }
+      }
+    },
+    "marketingOriginal.receipt.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original request result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求结果"
+          }
+        }
+      }
+    },
+    "marketingOriginal.outcome.recorded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original event recorded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求事件已记载"
+          }
+        }
+      }
+    },
+    "marketingOriginal.outcome.notObserved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original request not yet found"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未查到原请求记录"
+          }
+        }
+      }
+    },
+    "marketingOriginal.outcome.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original result awaiting verification"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求结果待核实"
+          }
+        }
+      }
+    },
+    "marketingOriginal.event.optIn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historical choice: opt in"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原记录中的选择：同意"
+          }
+        }
+      }
+    },
+    "marketingOriginal.event.optOut": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historical choice: opt out"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原记录中的选择：退订"
+          }
+        }
+      }
+    },
+    "marketingOriginal.event.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historical choice awaiting verification"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原记录中的选择待核实"
+          }
+        }
+      }
+    },
+    "marketingOriginal.channel.inApp": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In-app marketing messages"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用内营销消息"
+          }
+        }
+      }
+    },
+    "marketingOriginal.channel.coupon": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coupon marketing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "优惠券营销"
+          }
+        }
+      }
+    },
+    "marketingOriginal.channel.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Channel awaiting verification"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "渠道待核实"
+          }
+        }
+      }
+    },
+    "marketingOriginal.receipt.unconfirmed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The outcome is still unknown, not a confirmed rejection. Check the original request without submitting it again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果仍然未知，不代表已被拒绝。请查询原请求，不要重复提交。"
+          }
+        }
+      }
+    },
+    "marketingOriginal.receipt.historyOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This receipt describes the original request, not your current preferences. It does not prove that a message or coupon was sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条回执描述原请求，不代表当前同意状态，也不证明已发送消息或优惠券。"
+          }
+        }
+      }
+    },
+    "marketingOriginal.current.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current preferences"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前同意状态"
+          }
+        }
+      }
+    },
+    "marketingOriginal.current.unconfirmed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current merchant preferences could not be confirmed. Original receipts are separate; do not use them to change a preference."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未确认商家当前同意状态。原请求回执是独立信息，不能据此更改当前设置。"
+          }
+        }
+      }
+    },
+    "marketingOriginal.reference.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reference details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参考信息"
+          }
+        }
+      }
+    },
+    "marketingOriginal.reference.request": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original request ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求编号"
+          }
+        }
+      }
+    },
+    "marketingOriginal.reference.merchant": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家编号"
+          }
+        }
+      }
+    },
+    "marketingOriginal.reference.record": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original event record ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原事件记录编号"
+          }
+        }
+      }
+    },
+    "compliance.marketing.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No eligible merchants are currently available. Refresh to check again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目前没有可管理触达授权的商户，可刷新重新查询。"
+          }
+        }
+      }
+    },
+    "compliance.marketing.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An earlier change is still unconfirmed. Its channel stays locked. Refresh checks the original request and the separate current state without resending the change."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先前更改的结果仍未确认，对应渠道暂不可再次更改。刷新只读核对原请求和独立当前状态，不会重发更改。"
+          }
+        }
+      }
+    },
+    "compliance.marketing.review": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm this marketing choice?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认这项商户触达选择？"
+          }
+        }
+      }
+    },
+    "compliance.marketing.confirmOptIn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow this channel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同意此渠道触达"
+          }
+        }
+      }
+    },
+    "compliance.marketing.confirmOptOut": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opt out of this channel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退订此渠道触达"
+          }
+        }
+      }
+    }
+  }
+}

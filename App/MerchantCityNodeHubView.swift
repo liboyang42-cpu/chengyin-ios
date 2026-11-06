@@ -71,7 +71,9 @@ struct MerchantCityNodeInlineError: View {
     @State private var claimTarget: String?
     @State private var toast: String?
     @State private var poster: Poster?
-    @State private var posterTicket = 0
+    @State private var posterReads = MerchantCityPosterReadLifetime<MerchantContentSnapshot>()
+    @State private var posterVisible = false
+    @Environment(\.scenePhase) private var posterScene
     @State private var everLoaded = false
     @State private var listEverLoaded = false
 
@@ -93,8 +95,14 @@ struct MerchantCityNodeInlineError: View {
         .navigationTitle(MerchantCityNodeCopy.string("merchantCityNode.title"))
         .task(id: service.scope) { await reload(); everLoaded = true }
         .refreshable { if idle { await reload() } }
-        .onAppear { if everLoaded, idle { Task { await reload() } } }
-        .onDisappear { model.suspend() }
+        .onAppear { posterVisible = true; if everLoaded, idle { Task { await reload() } } }
+        .onDisappear { posterVisible = false; retirePoster(); model.suspend() }
+        .onChange(of: posterScene) { _, phase in if phase != .active { retirePoster() } }
+        .onChange(of: service.scope) { _, _ in retirePoster() }
+        .onChange(of: ObjectIdentifier(service)) { _, _ in retirePoster() }
+        .onChange(of: c.snapshot) { _, _ in retirePoster() }
+        .onChange(of: c.isCurrent) { _, current in if !current { retirePoster() } }
+        .onChange(of: canVerify) { _, allowed in if !allowed { retirePoster() } }
         .overlay(alignment: .bottom) { toastView }
         .task(id: toast) { if toast != nil { try? await Task.sleep(nanoseconds: 4_000_000_000); toast = nil } }
         .alert(MerchantCityNodeCopy.string("merchantCityNode.info.title"), isPresented: $showsInfo) {
@@ -110,7 +118,9 @@ struct MerchantCityNodeInlineError: View {
             }
         } message: { dialogMessage(c.review?.command) }
         .sheet(isPresented: $showsClaim, onDismiss: { claimModel.cancel() }) { claimSheet }
-        .sheet(item: $poster, onDismiss: { posterTicket += 1 }) { shown in posterSheet(shown) }
+        .sheet(item: $poster, onDismiss: { posterReads.retire() }) { shown in
+            if posterReadAllowed(poiID: shown.poiID) { posterSheet(shown) }
+        }
         .navigationDestination(isPresented: $showsCreate) {
             MerchantCityNodeCreateView(service: service, placeSearch: placeSearch, isOfflineFixture: isOfflineFixture, templateSeed: templateSeed)
         }
@@ -137,7 +147,7 @@ struct MerchantCityNodeInlineError: View {
             Text(verbatim: sub).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
             if retry {
                 Button { Task { await reload() } } label: { MerchantCityNodeCopy.text("merchantCityNode.action.retry") }
-                    .buttonStyle(.borderedProminent).accessibilityIdentifier("cityNodeHub.retry")
+                    .buttonStyle(.questifyPrimary).accessibilityIdentifier("cityNodeHub.retry")
             }
         }.frame(maxWidth: .infinity).padding(.vertical, 40).accessibilityElement(children: .contain).accessibilityIdentifier(identifier)
     }
@@ -145,12 +155,13 @@ struct MerchantCityNodeInlineError: View {
     @ViewBuilder private func ready(_ s: MerchantContentSnapshot) -> some View {
         let p = MerchantCityNodeHubProjection(list: s.value)
         intro(p.quota)
+        // Source 投放节点: the screen's one primary action. A full or empty quota is explained on tap.
         Button { goCreate(p.quota) } label: {
-            HStack { MerchantCityNodeCopy.text("merchantCityNode.place.action"); Spacer(); Image(systemName: "arrow.right") }
-                .font(.headline).padding().frame(maxWidth: .infinity)
-                .background(p.quota.state == .full || p.quota.state == .none ? Color.secondary.opacity(0.25) : Color.accentColor, in: RoundedRectangle(cornerRadius: 14))
-                .foregroundStyle(p.quota.state == .full || p.quota.state == .none ? Color.secondary : Color.white)
-        }.buttonStyle(.plain).accessibilityIdentifier("cityNodeHub.place")
+            MerchantCityNodeCopy.text("merchantCityNode.place.action").frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.questifyPrimary).controlSize(.large)
+        .opacity(p.quota.state == .full || p.quota.state == .none ? 0.5 : 1)
+        .accessibilityIdentifier("cityNodeHub.place")
         HStack(spacing: 12) {
             Button { openClaim() } label: { Label { MerchantCityNodeCopy.text("merchantCityNode.claim.open") } icon: { Image(systemName: "plus") } }
                 .buttonStyle(.bordered).accessibilityIdentifier("cityNodeHub.claim")
@@ -182,15 +193,11 @@ struct MerchantCityNodeInlineError: View {
                 MerchantCityNodeCopy.text("merchantCityNode.empty.sub").font(.subheadline).foregroundStyle(.secondary)
                 if p.showsEmptyPlacementAction {
                     Button { goCreate(p.quota) } label: { MerchantCityNodeCopy.text("merchantCityNode.place.action") }
-                        .buttonStyle(.borderedProminent).accessibilityIdentifier("cityNodeHub.empty.place")
+                        .buttonStyle(.questifyPrimary).accessibilityIdentifier("cityNodeHub.empty.place")
                 }
             }.frame(maxWidth: .infinity).padding(.vertical, 28).accessibilityElement(children: .contain).accessibilityIdentifier("cityNodeHub.empty")
         }
         ForEach(p.nodes) { nodeRow($0) }
-        if !service.permitsWrites || !isOfflineFixture {
-            MerchantCityNodeCopy.text("merchantCityNode.write.disabled").font(.footnote).foregroundStyle(.secondary)
-                .accessibilityIdentifier("cityNodeHub.writesDisabled")
-        }
     }
 
     @ViewBuilder private func intro(_ quota: MerchantCityQuota) -> some View {
@@ -395,7 +402,7 @@ struct MerchantCityNodeInlineError: View {
             MerchantCityNodeCopy.text("merchantCityNode.claim.loadFailed").font(.headline)
             Text(verbatim: message).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
             Button { Task { await claimModel.load() } } label: { MerchantCityNodeCopy.text("merchantCityNode.action.retry") }
-                .buttonStyle(.borderedProminent).disabled(claimModel.coordinator.busy).accessibilityIdentifier("cityNodeHub.claim.retry")
+                .buttonStyle(.questifyPrimary).disabled(claimModel.coordinator.busy).accessibilityIdentifier("cityNodeHub.claim.retry")
         }.frame(maxWidth: .infinity).padding(.vertical, 28).accessibilityElement(children: .contain).accessibilityIdentifier("cityNodeHub.claim.error")
     }
     @ViewBuilder private func claimRow(_ row: MerchantCityClaimableRow) -> some View {
@@ -440,17 +447,26 @@ struct MerchantCityNodeInlineError: View {
     private func loadPoster(_ poiID: Int) {
         guard canVerify else { toast = MerchantCityNodeCopy.string("merchantCityNode.permission.verify"); return }
         guard let reader = service as? any MerchantCityNodePosterReading else { return }
-        posterTicket += 1
-        let ticket = posterTicket, scope = service.scope
+        guard let source = c.snapshot, let ticket = posterReads.begin(owner: ObjectIdentifier(service),
+            scope: service.scope, source: source, poiID: poiID,
+            active: posterVisible && posterScene == .active, authorized: canVerify && c.isCurrent) else { return }
         if poster?.poiID == poiID { poster?.phase = .loading } else { poster = Poster(poiID: poiID, phase: .loading) }
         Task {
+            guard !Task.isCancelled, posterReadAllowed(poiID: poiID, ticket: ticket) else { return }
             let phase: Poster.Phase
             do { phase = .ready(try MerchantCityNodePosterCode(try await reader.cityPosterCode(poiID: poiID))) }
             catch is URLError { phase = .failed(MerchantCityNodeCopy.string("merchantCityNode.poster.network")) }
             catch { phase = .failed(MerchantCityNodeCopy.string("merchantCityNode.poster.failedSub")) }
-            guard ticket == posterTicket, scope == service.scope, poster?.poiID == poiID else { return }
+            guard !Task.isCancelled, poster?.poiID == poiID, posterReadAllowed(poiID: poiID, ticket: ticket) else { return }
             poster?.phase = phase
         }
+    }
+    private func retirePoster() { posterReads.retire(); poster = nil }
+    private func posterReadAllowed(poiID: Int, ticket: UUID? = nil) -> Bool {
+        guard let source = c.snapshot else { return false }
+        return posterReads.allows(ticket ?? posterReads.ticket, owner: ObjectIdentifier(service),
+            scope: service.scope, source: source, poiID: poiID,
+            active: posterVisible && posterScene == .active, authorized: canVerify && c.isCurrent)
     }
     private func posterSheet(_ shown: Poster) -> some View {
         NavigationStack {
@@ -468,13 +484,12 @@ struct MerchantCityNodeInlineError: View {
                             .accessibilityIdentifier("cityNodeHub.poster.image")
                         if let name = code.nodeName { Text(verbatim: name).font(.headline).accessibilityIdentifier("cityNodeHub.poster.name") }
                         MerchantCityNodeCopy.text("merchantCityNode.poster.hintPrint").font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
-                        MerchantCityNodeCopy.text("merchantCityNode.poster.hintKeep").font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
                     case .failed(let message):
                         VStack(spacing: 10) {
                             MerchantCityNodeCopy.text("merchantCityNode.poster.failedTitle").font(.headline)
                             Text(verbatim: message).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
                             Button { loadPoster(shown.poiID) } label: { MerchantCityNodeCopy.text("merchantCityNode.poster.retry") }
-                                .buttonStyle(.borderedProminent).accessibilityIdentifier("cityNodeHub.poster.retry")
+                                .buttonStyle(.questifyPrimary).accessibilityIdentifier("cityNodeHub.poster.retry")
                         }.padding(.vertical, 28).accessibilityElement(children: .contain).accessibilityIdentifier("cityNodeHub.poster.error")
                     }
                 }.padding()
@@ -482,7 +497,7 @@ struct MerchantCityNodeInlineError: View {
             .navigationTitle(MerchantCityNodeCopy.string("merchantCityNode.poster.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) {
-                Button { posterTicket += 1; poster = nil } label: { MerchantCityNodeCopy.text("merchantCityNode.action.close") }.accessibilityIdentifier("cityNodeHub.poster.close")
+                Button { retirePoster() } label: { MerchantCityNodeCopy.text("merchantCityNode.action.close") }.accessibilityIdentifier("cityNodeHub.poster.close")
             } }
         }
     }

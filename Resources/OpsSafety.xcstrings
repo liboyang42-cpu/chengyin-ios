@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Service status could not be confirmed. The server will decide when you continue."
+            "value": "Service status couldn't be confirmed. It will be checked when you continue."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂时无法确认服务状态；继续操作时以服务端结果为准。"
+            "value": "暂时无法确认服务状态，继续操作时会再次核验。"
           }
         }
       }
@@ -774,13 +774,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arrival confirmed by the server."
+            "value": "Arrival confirmed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务端已确认到场。"
+            "value": "已确认到场。"
           }
         }
       }

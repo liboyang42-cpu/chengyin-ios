@@ -40,6 +40,8 @@ import Observation
     }
     private func normalize(_ error: Error) -> MerchantMarketingFailure { (error as? MerchantMarketingFailure) ?? .malformed }
     public func load(_ next: Surface) async {
+        // A cancelled queued view load must not retire a newer read or clear its results.
+        guard !Task.isCancelled else { return }
         if observedScope != service.scope { sessionChanged() }
         generation = UUID(); let ticket = generation, scope = service.scope
         surface = next; busy = true; failure = nil; commerceFailure = nil; acknowledgement = nil; review = nil

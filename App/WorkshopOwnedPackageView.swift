@@ -18,7 +18,6 @@ import SwiftUI
         let presentation = displayed.permit
         Form {
           if navigation.isCurrentPackageVisit(route) {
-            Section { packageText("scope").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
             switch browser.phase {
             case .idle, .loading: ProgressView { packageText("loading") }.accessibilityIdentifier("workshopOwned.package.loading")
             case .unavailable: packageText("unavailable").fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("workshopOwned.package.unavailable")
@@ -29,10 +28,7 @@ import SwiftUI
                 if let value = browser.value, value.claimId == claimId, let info = value.packageInfo {
                     Section {
                         PackageValueRow(key: "version", value: info.versionLabel)
-                        PackageValueRow(key: "schema", value: String(info.schemaVersion))
-                        PackageValueRow(key: "contentHash", value: info.contentHash)
                         PackageValueRow(key: "termsVersion", value: info.termsVersion)
-                        PackageValueRow(key: "termsHash", value: info.termsHash)
                         PackageValueRow(key: "validUntil", value: info.validUntil)
                         PackageValueRow(key: "checkedAt", value: value.checkedAt)
                     } header: { packageText("snapshot") }
@@ -52,14 +48,15 @@ import SwiftUI
                     } header: { packageText("limits") }
                     Section {
                         PackageValueRow(key: "bindingCount", value: String(info.requiredBindingCount))
-                        packageText("manifestUnavailable").fixedSize(horizontal: false, vertical: true)
-                        packageText("editorUnavailable").fixedSize(horizontal: false, vertical: true)
+                        WorkshopLibraryNotice(text: packageText("manifestUnavailable"), systemImage: "doc")
+                        WorkshopLibraryNotice(text: packageText("editorUnavailable"), systemImage: "lock")
                     } header: { packageText("nextSteps") }
                 }
             }
         }
         }
         .modifier(PackageNavigationTitle())
+        .privacySensitive()
         // Package item identity changes only on a real new navigation occurrence.
         .onAppear {
             guard navigation.isCurrentPackageVisit(route) else { return }
@@ -85,8 +82,16 @@ private struct PackageValueRow: View {
     let value: String
     @Environment(\.locale) private var locale
     var body: some View {
-        RevolutInsetRow(title: packageLabel(key, locale: locale), value: value)
-            .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
+            Text(verbatim: packageLabel(key, locale: locale))
+                .font(RevolutContentStyle.quiet).foregroundStyle(RevolutContentStyle.secondary)
+            Text(verbatim: value)
+                .font(RevolutContentStyle.row).foregroundStyle(RevolutContentStyle.primary)
+                .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, RevolutContentStyle.spacing)
+        .accessibilityElement(children: .combine)
     }
 }
 private struct PackagePolicyRow: View {
@@ -94,8 +99,16 @@ private struct PackagePolicyRow: View {
     let value: String
     @Environment(\.locale) private var locale
     var body: some View {
-        RevolutInsetRow(title: packageLabel(key, locale: locale), value: packageLabel("policy." + value, locale: locale))
-            .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
+            Text(verbatim: packageLabel(key, locale: locale))
+                .font(RevolutContentStyle.quiet).foregroundStyle(RevolutContentStyle.secondary)
+            Text(verbatim: packageLabel("policy." + value, locale: locale))
+                .font(RevolutContentStyle.row).foregroundStyle(RevolutContentStyle.primary)
+                .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, RevolutContentStyle.spacing)
+        .accessibilityElement(children: .combine)
     }
 }
 private struct PackageLimitRow: View {
@@ -103,8 +116,16 @@ private struct PackageLimitRow: View {
     let limit: WorkshopOwnedPackage.Limit
     @Environment(\.locale) private var locale
     var body: some View {
-        RevolutInsetRow(title: packageLabel(key, locale: locale), value: limit.unlimited ? packageLabel("unlimited", locale: locale) : String(limit.maximum))
-            .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
+            Text(verbatim: packageLabel(key, locale: locale))
+                .font(RevolutContentStyle.quiet).foregroundStyle(RevolutContentStyle.secondary)
+            Text(verbatim: limit.unlimited ? packageLabel("unlimited", locale: locale) : String(limit.maximum))
+                .font(RevolutContentStyle.row).foregroundStyle(RevolutContentStyle.primary)
+                .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, RevolutContentStyle.spacing)
+        .accessibilityElement(children: .combine)
     }
 }
 private func packageLabel(_ key: String, locale: Locale) -> String {

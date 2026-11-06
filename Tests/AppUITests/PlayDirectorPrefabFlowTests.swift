@@ -29,7 +29,7 @@ final class PlayDirectorPrefabFlowTests: XCTestCase {
         let app = launch("playPrefab")
         XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "playx.prefab.runtime").firstMatch.waitForExistence(timeout: 5))
         XCTAssertTrue(revealFixtureElement(app.buttons["Continue story"], in: app), app.debugDescription)
-        XCTAssertFalse(app.staticTexts["On-site record confirmed by readback"].exists)
+        XCTAssertFalse(app.staticTexts["On-site record confirmed"].exists)
     }
     func testPrefabBootAcceptsExactSourcePhrase() {
         let app = launch("playPrefabBoot")

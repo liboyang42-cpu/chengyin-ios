@@ -23,13 +23,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read-only feedback for this club. Opening a record does not send, accept, reject or cancel an invitation."
+            "value": "Invitation feedback for this club. Opening a record doesn't send, accept, decline or cancel an invitation."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看本俱乐部的邀约反馈；打开记录不会发送、接受、拒绝或取消邀请。"
+            "value": "本俱乐部的邀约反馈。打开记录不会发送、接受、拒绝或取消邀请。"
           }
         }
       }

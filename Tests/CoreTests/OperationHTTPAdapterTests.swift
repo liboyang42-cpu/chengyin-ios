@@ -11,7 +11,7 @@ private final class OperationFakeTransport: HTTPTransport {
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         requests.append(request); onSend?(request, requests.count)
         guard !replies.isEmpty else { throw URLError(.badServerResponse) }
-        switch replies.removeFirst() { case .json(let json, let status): return (Data(json.utf8), status); case .lost: throw URLError(.networkConnectionLost) }
+        switch replies.removeFirst() { case .json(let json, let status): return (try projectOriginalTestReceipt(request, legacy: Data(json.utf8)), status); case .lost: throw URLError(.networkConnectionLost) }
     }
 }
 @MainActor private final class OperationMemoryJournal: OperationPendingJournal {
@@ -53,30 +53,30 @@ private let accessJSON = #"{"code":200,"data":{"active":true,"merchant":{"id":31
         let s = try projectSession(), c = try ProjectEditCredentials(session: s, token: "token"), store = ProjectEditLocalStore(storage: ProjectEditMemoryStorage()), op = try projectOperation(s)
         try store.savePending(op, session: s)
         let t = OperationFakeTransport([.json(capabilityJSON), .json(#"{"code":200,"data":{"topicId":711,"auditTaskId":91,"reviewState":"PENDING","published":true,"bundledTemplateIds":[41]}}"#)])
-        t.onSend = { r, _ in if r.url?.path == "/api/topic/v2/create" { XCTAssertEqual(try? store.pending(session: s, identity: op.identity)?.dispatchStarted, true) } }
-        let service = try ProjectEditHTTPService(configuration: config(), transport: t, owner: .personal, approval: grant(["api/topic/v2/create"]), store: store, currentCredentials: { c })
+        t.onSend = { r, _ in if r.url?.path == "/api/topic/edit-requests/submit" { XCTAssertEqual(try? store.pending(session: s, identity: op.identity)?.dispatchStarted, true) } }
+        let service = try ProjectEditHTTPService(configuration: config(), transport: t, owner: .personal, approval: grant(["api/topic/v2/create", ProjectEditRequestContract.submitPath]), store: store, currentCredentials: { c })
         let result = await service.submit(op, session: s)
-        guard case .bundleAcknowledged(let operationID, let acknowledgment) = result else { return XCTFail("V2 acknowledgment metadata was dropped") }
+        guard case .committedReceipt(let operationID, _, let acknowledgment?) = result else { return XCTFail("V2 acknowledgment metadata was dropped") }
         XCTAssertEqual(operationID, op.operationID); XCTAssertEqual(acknowledgment.topicID, 711)
         XCTAssertEqual(acknowledgment.auditTaskID, 91); XCTAssertEqual(acknowledgment.reviewState, "PENDING")
         XCTAssertTrue(acknowledgment.published); XCTAssertEqual(acknowledgment.bundledTemplateIDs, [41])
-        XCTAssertEqual(t.requests.map { $0.url!.path }, ["/api/publish/home", "/api/topic/v2/create"])
+        XCTAssertEqual(t.requests.map { $0.url!.path }, ["/api/publish/home", "/api/topic/edit-requests/submit"])
         let r = try XCTUnwrap(t.requests.last); XCTAssertEqual(r.httpMethod, "POST"); XCTAssertEqual(r.value(forHTTPHeaderField: "Content-Type"), "application/json")
-        XCTAssertEqual(r.value(forHTTPHeaderField: "Authorization"), "token"); XCTAssertNil(r.value(forHTTPHeaderField: "Idempotency-Key")); XCTAssertNil(try body(r)["id"])
+        XCTAssertEqual(r.value(forHTTPHeaderField: "Authorization"), "token"); XCTAssertNil(r.value(forHTTPHeaderField: "Idempotency-Key")); XCTAssertNil(try projectOriginalTestPayload(r)["id"])
     }
     func testProjectMerchantDetailMultipartAndUpdateAcknowledgment() async throws {
         let s = try projectSession(), c = try ProjectEditCredentials(session: s, token: "token"), store = ProjectEditLocalStore(storage: ProjectEditMemoryStorage())
         let baseline = try ProjectEditContract.decodeEditDetail(Data(editJSON.utf8), expectedTopicID: 71, owner: .merchant), op = try projectOperation(s, baseline: baseline)
         try store.savePending(op, session: s)
         let t = OperationFakeTransport([.json(editJSON), .json(#"{"code":200,"data":{"topicId":71,"auditTaskId":null,"reviewState":"NOT_REQUIRED","published":true,"bundledTemplateIds":[]}}"#)])
-        let service = try ProjectEditHTTPService(configuration: config(), transport: t, owner: .merchant, approval: grant(["api/topic/v2/update"]), store: store, currentCredentials: { c })
-        let result = await service.submit(op, session: s); guard case .bundleAcknowledged(let operationID, let acknowledgment) = result else { return XCTFail("V2 acknowledgment metadata was dropped") }
+        let service = try ProjectEditHTTPService(configuration: config(), transport: t, owner: .merchant, approval: grant(["api/topic/v2/update", ProjectEditRequestContract.submitPath]), store: store, currentCredentials: { c })
+        let result = await service.submit(op, session: s); guard case .committedReceipt(let operationID, _, let acknowledgment?) = result else { return XCTFail("V2 acknowledgment metadata was dropped") }
         XCTAssertEqual(operationID, op.operationID); XCTAssertEqual(acknowledgment.topicID, 71)
         XCTAssertNil(acknowledgment.auditTaskID); XCTAssertEqual(acknowledgment.reviewState, "NOT_REQUIRED")
         XCTAssertTrue(acknowledgment.published); XCTAssertEqual(acknowledgment.bundledTemplateIDs, [])
         XCTAssertTrue(t.requests[0].value(forHTTPHeaderField: "Content-Type")!.hasPrefix("multipart/form-data"))
         let text = String(data: t.requests[0].httpBody!, encoding: .utf8)!; XCTAssertTrue(text.contains("name=\"scope\"\r\n\r\nMERCHANT")); XCTAssertTrue(text.contains("name=\"id\"\r\n\r\n71"))
-        XCTAssertEqual(t.requests[1].url?.path, "/api/topic/v2/update"); XCTAssertEqual(try body(t.requests[1])["id"] as? Int, 71)
+        XCTAssertEqual(t.requests[1].url?.path, "/api/topic/edit-requests/submit"); XCTAssertEqual(try projectOriginalTestPayload(t.requests[1])["id"]?.integer, 71)
         let receipt = try await service.terminalReceipt(operationID: op.operationID, session: s); XCTAssertNil(receipt); XCTAssertEqual(t.requests.count, 2)
     }
     func testProjectLegacyCreateAndUpdateKeepScalarAcknowledgment() throws {
@@ -99,7 +99,7 @@ private let accessJSON = #"{"code":200,"data":{"active":true,"merchant":{"id":31
             let op = try projectOperation(s, baseline: existing ? baseline : nil), store = ProjectEditLocalStore(storage: ProjectEditMemoryStorage())
             try store.savePending(op, session: s)
             let t = OperationFakeTransport([.json(existing ? editJSON.replacingOccurrences(of: "r1", with: "r2") : capabilityJSON.replacingOccurrences(of: "\"themesRemaining\":2", with: "\"themesRemaining\":0"))])
-            let service = try ProjectEditHTTPService(configuration: config(), transport: t, owner: .personal, approval: grant(["api/topic/v2/create", "api/topic/v2/update"]), store: store, currentCredentials: { c })
+            let service = try ProjectEditHTTPService(configuration: config(), transport: t, owner: .personal, approval: grant(["api/topic/v2/create", "api/topic/v2/update", ProjectEditRequestContract.submitPath]), store: store, currentCredentials: { c })
             let result = await service.submit(op, session: s); XCTAssertEqual(result, .notSent); XCTAssertEqual(t.requests.count, 1)
         }
     }
@@ -107,7 +107,7 @@ private let accessJSON = #"{"code":200,"data":{"active":true,"merchant":{"id":31
         let s = try projectSession(), c = try ProjectEditCredentials(session: s, token: "token"), store = ProjectEditLocalStore(storage: ProjectEditMemoryStorage()), op = try projectOperation(s)
         try store.savePending(op, session: s); let t = OperationFakeTransport([.json(capabilityJSON), .lost])
         for _ in 0..<2 {
-            let service = try ProjectEditHTTPService(configuration: config(), transport: t, owner: .personal, approval: grant(["api/topic/v2/create"]), store: store, currentCredentials: { c })
+            let service = try ProjectEditHTTPService(configuration: config(), transport: t, owner: .personal, approval: grant(["api/topic/v2/create", ProjectEditRequestContract.submitPath]), store: store, currentCredentials: { c })
             let result = await service.submit(op, session: s); XCTAssertEqual(result, .unknown)
         }
         XCTAssertEqual(t.requests.count, 2)
@@ -122,8 +122,8 @@ private let accessJSON = #"{"code":200,"data":{"active":true,"merchant":{"id":31
         let s = try projectSession(), store = ProjectEditLocalStore(storage: ProjectEditMemoryStorage()), op = try projectOperation(s)
         var c = try ProjectEditCredentials(session: s, token: "old"); try store.savePending(op, session: s)
         let t = OperationFakeTransport([.json(capabilityJSON), .json(#"{"code":200,"data":71}"#)])
-        t.onSend = { r, _ in if r.url?.path == "/api/topic/v2/create" { c = try! .init(session: s, token: "new") } }
-        let service = try ProjectEditHTTPService(configuration: config(), transport: t, owner: .personal, approval: grant(["api/topic/v2/create"]), store: store, currentCredentials: { c })
+        t.onSend = { r, _ in if r.url?.path == "/api/topic/edit-requests/submit" { c = try! .init(session: s, token: "new") } }
+        let service = try ProjectEditHTTPService(configuration: config(), transport: t, owner: .personal, approval: grant(["api/topic/v2/create", ProjectEditRequestContract.submitPath]), store: store, currentCredentials: { c })
         let result = await service.submit(op, session: s); XCTAssertEqual(result, .unknown)
     }
     private func clubSession(_ epoch: UInt64 = 1) throws -> ClubOperationsSession { try .init(accountID: 701, epoch: epoch, token: "token", storageNamespace: "test-cn") }
@@ -267,12 +267,12 @@ private let accessJSON = #"{"code":200,"data":{"active":true,"merchant":{"id":31
         let session = try projectSession(), credentials = try ProjectEditCredentials(session: session, token: "token")
         let store = ProjectEditLocalStore(storage: ProjectEditMemoryStorage()), draft = ProjectEditSyntheticFixtures.draft()
         let transport = OperationFakeTransport([.json(capabilityJSON), .json(capabilityJSON), .json(#"{"code":200,"data":{"topicId":711,"auditTaskId":91,"reviewState":"PENDING","published":true,"bundledTemplateIds":[41]}}"#)])
-        let service = try ProjectEditHTTPService(configuration: config(), transport: transport, owner: .personal, approval: grant(["api/topic/v2/create"]), store: store, currentCredentials: { credentials })
+        let service = try ProjectEditHTTPService(configuration: config(), transport: transport, owner: .personal, approval: grant(["api/topic/v2/create", ProjectEditRequestContract.submitPath]), store: store, currentCredentials: { credentials })
         let coordinator = ProjectEditCoordinator(initial: .init(draft: draft), service: service, store: store, currentSession: { session })
         await coordinator.load(); coordinator.prepare(draft); await coordinator.confirm(try XCTUnwrap(coordinator.confirmation))
         XCTAssertEqual(coordinator.state, .acknowledged); XCTAssertEqual(coordinator.pending?.serverAcknowledged, true)
         XCTAssertEqual(coordinator.pending?.completedTopicID, 711); XCTAssertFalse(coordinator.canSimulate)
-        XCTAssertEqual(transport.requests.map { $0.url!.path }, ["/api/publish/home", "/api/publish/home", "/api/topic/v2/create"])
+        XCTAssertEqual(transport.requests.map { $0.url!.path }, ["/api/publish/home", "/api/publish/home", "/api/topic/edit-requests/submit"])
     }
 
 }

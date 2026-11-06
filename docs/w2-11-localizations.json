@@ -156,8 +156,8 @@
     "请先完成开局玩法"
   ],
   "playx.opening.review": [
-    "Setting off records the opening as finished on the server. Continue?",
-    "出发后服务端会记录开局已完成，确定出发吗？"
+    "Setting off marks the opening as finished. Continue?",
+    "出发后开局将记为已完成，确定出发吗？"
   ],
   "playx.opening.confirm": [
     "Confirm and set off",
@@ -248,8 +248,8 @@
     "返回首页"
   ],
   "playx.circleLink.fixtureHome": [
-    "Home (synthetic)",
-    "首页（合成数据）"
+    "Home (example)",
+    "首页（示例）"
   ],
   "playx.themeRecords.title": [
     "My play records",
@@ -360,8 +360,8 @@
     "先不去"
   ],
   "playx.entryCode.fixtureWallet": [
-    "Ticket wallet (synthetic)",
-    "票夹（合成数据）"
+    "Ticket wallet (example)",
+    "票夹（示例）"
   ],
   "playx.backpack.title": [
     "Backpack",

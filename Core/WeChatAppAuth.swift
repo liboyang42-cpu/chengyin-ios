@@ -3,8 +3,10 @@ import Foundation
 public enum WeChatAppAuthError: Error, Equatable {
     case notConfigured, unavailable, cancelled, denied, launchFailed, timedOut
     case invalidCode, invalidState, staleSession, invalidResponse, rateLimited
-    case unauthorized, rejected, network, storage
-    public var localizationKey: String { "auth.wechat.\(String(describing: self))" }
+    case unauthorized, rejected, network, storage, upgradeRequired
+    public var localizationKey: String {
+        self == .upgradeRequired ? "auth.channels.upgradeRequired" : "auth.wechat.\(String(describing: self))"
+    }
 }
 
 /// Independent release evidence. Defaults never permit SDK authorization or HTTP.
@@ -81,6 +83,7 @@ public struct WeChatAppAuthService: WeChatAppExchanging {
         try Task.checkCancellation()
         if status == 401 { throw WeChatAppAuthError.unauthorized }
         if status == 429 { throw WeChatAppAuthError.rateLimited }
+        if status == 426 { throw WeChatAppAuthError.upgradeRequired }
         guard (200..<300).contains(status) else { throw WeChatAppAuthError.network }
         guard let body = try? JSONDecoder().decode(Envelope.self, from: data) else { throw WeChatAppAuthError.invalidResponse }
         if body.code == 401 { throw WeChatAppAuthError.unauthorized }
@@ -187,6 +190,7 @@ public final class WeChatAppAuthCoordinator {
                 case .malformedResponse: stop(issue: .invalidResponse)
                 case .notConfigured, .invalidConfiguration: stop(issue: .notConfigured)
                 case .businessCode: stop(issue: .rejected)
+                case .httpStatus(426): stop(issue: .upgradeRequired)
                 default: stop(issue: .network)
                 }
             } else { stop(issue: error as? WeChatAppAuthError ?? .network) }

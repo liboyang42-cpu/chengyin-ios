@@ -12,20 +12,23 @@ enum ActivityPresentation {
     }
 }
 
+/// Same card rules as home: cover, title, one date · place line, starting price. Missing values are left out.
 struct ActivityListCard: View {
     let item: ActivitySummary
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.locale) private var locale
+    @Environment(\.timeZone) private var timeZone
 
     var body: some View {
-        VStack(alignment:.leading,spacing:14) {
+        VStack(alignment:.leading,spacing:10) {
             if let url=QuestifyCardArtwork.safeURL(item.imageURL) {
                 QuestifyCardArtwork(url:url,height:dynamicTypeSize.isAccessibilitySize ? 132 : 164)
             }
             ActivityName(name:item.name)
                 .font(.title3.weight(.semibold))
-            ActivitySummaryMetadata(summary:item)
-            Divider()
-            AmountLabel(amount:item.minimumAmount, captionKey: "activity.startingPrice")
+            QuestifyCardSummary(meta: QuestifyCardText.metaLine(date: QuestifyCardText.date(item.startDate, locale: locale, displayTimeZone: timeZone),
+                                                                place: ActivityPresentation.place(item)),
+                                price: QuestifyCardText.amount(item.minimumAmount, locale: locale))
         }
         .foregroundStyle(.primary)
         .fixedSize(horizontal:false,vertical:true)
@@ -41,6 +44,12 @@ struct ActivityDetailHeader: View {
         VStack(alignment:.leading,spacing:16) {
             if let url=QuestifyCardArtwork.safeURL(summary.imageURL) {
                 QuestifyCardArtwork(url:url,height:dynamicTypeSize.isAccessibilitySize ? 180 : 240)
+            } else {
+                // No cover: a clean surface with no text.
+                RoundedRectangle(cornerRadius:14,style:.continuous)
+                    .fill(Color(uiColor:.tertiarySystemFill))
+                    .frame(height:160)
+                    .accessibilityHidden(true)
             }
             ActivityName(name:summary.name)
                 .font(.title.weight(.bold))
@@ -53,17 +62,20 @@ struct ActivityDetailHeader: View {
             }
         }
         .questifyCardSurface()
+        // Keep the title's focus frame on its text, not the entire cover/list cell.
+        // The decorative cover is hidden; a containing boundary preserves that distinction.
+        .accessibilityElement(children: .contain)
     }
 }
 
 private struct ActivityName: View {
     let name: String
+    private var text: Text {
+        if ActivityPresentation.nonempty(name) != nil { return Text(verbatim:name) }
+        return Text("activity.untitled")
+    }
     var body: some View {
-        Group {
-            if ActivityPresentation.nonempty(name) != nil { Text(verbatim:name) }
-            else { Text("activity.untitled") }
-        }
-        .fixedSize(horizontal:false,vertical:true)
+        text.fixedSize(horizontal:false,vertical:true)
     }
 }
 

@@ -82,8 +82,8 @@ import SwiftUI
                     if let selected, !options.contains(where: { $0.id == selected }) {
                         Text(verbatim: "#" + String(selected)).tag(selected)
                     }
-                }.accessibilityIdentifier("cooperation.topicFilter.choose")
-                Text("cooperation.topicFilter.loadedOnly").font(.footnote).foregroundStyle(.secondary)
+                }.pickerStyle(.menu).accessibilityIdentifier("cooperation.topicFilter.choose")
+                    .fixedSize(horizontal: false, vertical: true)
                 if selected != nil {
                     Button("cooperation.topicFilter.clear") {
                         guard ObjectIdentifier(reader) == owner, reader.scope == scope else { return }

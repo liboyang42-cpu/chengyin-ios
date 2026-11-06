@@ -52,16 +52,16 @@
     },
     "templateProfileOverride.saveScope": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本地保存会先应用有效表单，再保存当前账号的整份草稿；保存失败可重试。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Local save applies the valid form, then saves the whole draft for this account. You can retry a failed save."
+            "value": "Saves the whole draft to this device."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将整份草稿保存到本机。"
           }
         }
       }
@@ -103,13 +103,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "建档模块尚未启用。此表单不会自动启用它。"
+            "value": "建档功能未开启，此表单不会自动开启。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Profile is disabled. This form will not enable it automatically."
+            "value": "Profile is turned off. This form won't turn it on."
           }
         }
       }
@@ -167,13 +167,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前原生条件支持 -99 到 99 的整数；空输入按小程序规则记为 0。"
+            "value": "请输入 -99 到 99 的整数，留空记为 0。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current native condition supports integers from -99 to 99. Blank input becomes 0, as in Mini."
+            "value": "Enter a whole number from -99 to 99. Leaving it blank counts as 0."
           }
         }
       }
@@ -212,16 +212,16 @@
     },
     "templateProfileOverride.voiceHint": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "最多 120 个 UTF-16 字符单位。可原样使用 {picked} 和 {assigned}。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Up to 120 UTF-16 code units. You may use literal {picked} and {assigned} placeholders."
+            "value": "Up to 120 characters. You can use {picked} and {assigned}."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多 120 字，可使用 {picked} 和 {assigned}。"
           }
         }
       }
@@ -260,16 +260,16 @@
     },
     "templateProfileOverride.save": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "应用并本地保存"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apply and save locally"
+            "value": "Apply and save"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用并保存"
           }
         }
       }
@@ -324,16 +324,16 @@
     },
     "templateProfileOverride.applied": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已应用到当前草稿，尚未执行本地保存。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Applied to the current draft. Local save has not been performed."
+            "value": "Applied to the draft. Not saved yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已应用到草稿，尚未保存。"
           }
         }
       }
@@ -388,16 +388,16 @@
     },
     "templateProfileOverride.voiceInvalid": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "改写文案去掉首尾空白后不能超过 120 个 UTF-16 字符单位。"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The trimmed override line must not exceed 120 UTF-16 code units."
+            "value": "Keep this line within 120 characters."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此句最多 120 字。"
           }
         }
       }

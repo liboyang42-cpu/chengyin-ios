@@ -47,6 +47,8 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
     var makeText: WorkshopPaidInstalledTextControllerFactory = { _ in nil }
     let onClose: () -> Void
     @State private var ownedTask: Task<Void, Never>?
+    @State private var isVisible = false
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     var body: some View {
         let displayed = appearance
@@ -136,8 +138,19 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                     .accessibilityIdentifier("workshopPaidInstall.close")
             } }
         }
-        .onAppear { schedule(controller.appear(displayed)) }
-        .onDisappear { controller.close(displayed); ownedTask?.cancel() }
+        .disabled(scenePhase != .active)
+        .onAppear {
+            isVisible = true
+            let action = controller.appear(displayed)
+            if scenePhase == .active { schedule(action) }
+            else { controller.suspend(displayed) }
+        }
+        .onDisappear { isVisible = false; controller.close(displayed); ownedTask?.cancel(); ownedTask = nil }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active {
+                controller.suspend(displayed); ownedTask?.cancel(); ownedTask = nil
+            } else if isVisible { schedule(controller.resume(displayed)) }
+        }
     }
     @ViewBuilder private func targetSelection(_ displayed: WorkshopPaidInstallAppearance) -> some View {
         Section {
@@ -158,13 +171,11 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                     }
                 } label: { installText("target") }
                 if let target = controller.target {
-                    InstallFact("targetHash", target.targetPayloadHash)
                     installText("unresolvedMode").fixedSize(horizontal: false, vertical: true)
                     Picker(selection: Binding<String?>(get: { controller.region }, set: { controller.chooseRegion($0, appearance: displayed) })) {
                         installText("chooseRegion").tag(String?.none)
                         ForEach(controller.item.allowedRegions, id: \.self) { region in Text(verbatim: region).tag(Optional(region)) }
                     } label: { installText("region") }
-                    installText("regionPlanningOnly").font(.footnote)
                     Toggle(isOn: Binding(get: { controller.commercialUse }, set: { controller.chooseCommercialUse($0, appearance: displayed) })) { installText("commercial") }
                         .disabled(controller.item.commercialUse != .allowed)
                     Button { controller.review(appearance: displayed) } label: { installText("review") }
@@ -181,16 +192,16 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
     @ViewBuilder private func commandFacts(_ command: WorkshopPaidInstallCommand) -> some View {
         Section {
             InstallFact("request", command.requestId); InstallFact("license", command.licenseId)
-            InstallFact("version", command.purchasedVersionId); InstallFact("sourceHash", command.contentHash)
-            InstallFact("termsHash", command.termsHash); InstallFact("target", String(command.targetDraftId))
+            InstallFact("version", command.purchasedVersionId)
+            InstallFact("target", String(command.targetDraftId))
             InstallFact("targetRevision", String(command.targetRevision)); InstallFact("businessType", command.businessType)
-            InstallFact("targetHash", command.targetPayloadHash); InstallFact("region", command.planningRegion)
+            InstallFact("region", command.planningRegion)
             installText(command.commercialUse ? "commercialYes" : "commercialNo")
             installText("unresolvedMode").fixedSize(horizontal: false, vertical: true)
         } header: { installText("confirmation") }
     }
     private func schedule(_ action: WorkshopPaidInstallController.Action?) {
-        guard let action else { return }; ownedTask?.cancel(); ownedTask = Task { await action() }
+        guard isVisible, scenePhase == .active, let action else { return }; ownedTask?.cancel(); ownedTask = Task { await action() }
     }
 }
 private struct InstallFact: View {

@@ -41,7 +41,6 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                             if let name = identity.merchantName, !name.isEmpty { Text(name).font(.headline) }
                             Text(LocalizedStringKey(identity.application?.titleKey ?? "merchant.access.inactive"))
                                 .accessibilityIdentifier("merchant.access.inactive")
-                            Text("merchant.access.inactiveHint").foregroundStyle(.secondary)
                         }
                         if let openApplication {
                             Button("merchant.onboarding.openApplication", action: openApplication)
@@ -172,111 +171,57 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                 journal: journal, exports: exportRecovery, selection: selection, revision: revision, merchantID: merchant))
         }
     }
+    @Environment(\.nativeVerificationDestination) private var nativeVerificationDestination
+    @State private var quickRoute: MerchantWorkbenchBusinessRoute?
+    @State private var showsScan = false
+
+    private var quickShortcuts: [MerchantWorkbenchBusinessShortcut] {
+        guard let businessReader, let businessJournal else { return [] }
+        return [.customers, .finance].filter {
+            $0.isVisible(for: access) && MerchantWorkbenchBusinessRoute(shortcut: $0, reader: businessReader, journal: businessJournal) != nil
+        }
+    }
+    private var showsScanAction: Bool { access.allows(.verify) && nativeVerificationDestination != nil }
+
     var body: some View {
+        // Source pages/merchant/index order: hero (name, revenue), quick actions (scan, customers,
+        // finance), due reminders, projects, then the remaining tools ("更多") and recent activity.
         List {
             Section {
                 Text(access.merchantName.flatMap { $0.isEmpty ? nil : $0 } ?? appLocalized("merchant.store",locale:locale))
-                    .font(.headline).accessibilityIdentifier("merchant.store.name")
-                if let role = access.role { Text(LocalizedStringKey(role.titleKey)).foregroundStyle(.secondary) }
-                Text("merchant.readOnly").font(.footnote).foregroundStyle(.secondary)
+                    .font(.title3.weight(.semibold))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier("merchant.store.name")
+                if access.canReadDashboard {
+                    MerchantSectionState(model: dashboard, retry: { Task { await loadDashboard() } }) { value in
+                        QuestifyHeroValue(value: Text(MerchantMoney.display(value.revenue)).monospacedDigit(), caption: Text("merchant.revenue"))
+                            .accessibilityElement(children: .combine)
+                            .accessibilityIdentifier("merchant.dashboard.revenue")
+                    }
+                }
+            }
+            if showsScanAction || !quickShortcuts.isEmpty {
+                Section {
+                    HStack(alignment: .top, spacing: Theme.Space.s2) {
+                        if showsScanAction {
+                            QuestifyRoundAction(title: "merchant.workbench.scan", systemImage: "qrcode.viewfinder") { showsScan = true }
+                                .accessibilityIdentifier("merchant.workbench.scan")
+                        }
+                        ForEach(quickShortcuts) { shortcut in
+                            QuestifyRoundAction(title: LocalizedStringKey(shortcut.shortTitleKey), systemImage: shortcut.symbol) {
+                                if let businessReader, let businessJournal {
+                                    quickRoute = MerchantWorkbenchBusinessRoute(shortcut: shortcut, reader: businessReader, journal: businessJournal)
+                                }
+                            }
+                            .accessibilityIdentifier("merchant.workbench.direct." + shortcut.rawValue)
+                        }
+                    }
+                    .padding(.vertical, Theme.Space.s1)
+                }
             }
             MerchantWorkbenchReminders(todo: todo, access: access,
                 aftercareRoute: aftercareRoute,
                 predictionReader: predictionReader)
-            if let marketingModel {
-                // Source merchant tools expose this entry. Visibility is separate from service/AI/settlement grants.
-                Section { MerchantMarketingEntry(model: marketingModel, isSourceVisible: true, suggestionDestination: marketingDestination,
-                    recommendationOrigin: .init(merchantID: access.merchantID, readerScope: operationsReader?.scope)) }
-            }
-            if let operationsReader {
-                Section {
-                    NavigationLink {
-                        MerchantOperationsHomeView(reader: operationsReader, destinationFactory: operationsDestinationFactory)
-                            .id(operationsReader.scope)
-                            .onDisappear(perform: onChildReturn)
-                    } label: { Label("merchant.operations.title", systemImage: "slider.horizontal.3") }
-                    .accessibilityIdentifier("merchant.operations.open")
-                }
-            }
-            if let businessReader, let businessJournal {
-                Section {
-                    NavigationLink {
-                        MerchantBusinessHomeView(reader: businessReader, journal: businessJournal)
-                            .environment(\.merchantAftercareEvidenceDependencies, aftercareEvidenceDependencies(journal: businessJournal))
-                            .environment(\.merchantCustomerQueryDestination, customerQueryDestination(source: businessReader, journal: businessJournal))
-                            .id(businessReader.scope)
-                            .onDisappear(perform: onChildReturn)
-                    } label: { Label("merchant.business.title", systemImage: "building.2.crop.circle") }
-                        .accessibilityIdentifier("merchant.business.open")
-                    ForEach(MerchantWorkbenchBusinessShortcut.allCases) { shortcut in
-                        if shortcut.isVisible(for: access), let route = MerchantWorkbenchBusinessRoute(shortcut: shortcut, reader: businessReader, journal: businessJournal) {
-                            NavigationLink(value: route) {
-                                Label(LocalizedStringKey(shortcut.query.titleKey), systemImage: shortcut.symbol)
-                            }.accessibilityIdentifier("merchant.workbench.direct." + shortcut.rawValue)
-                        }
-                    }
-                }
-            }
-            if let engagementReader, let businessJournal, let exportRecovery {
-                Section {
-                    NavigationLink {
-                        MerchantEngagementHomeView(reader: engagementReader, journal: businessJournal,
-                            exportRecovery: exportRecovery, businessReader: businessReader)
-                            .id(engagementReader.scope)
-                            .onDisappear(perform: onChildReturn)
-                    } label: { Label("merchant.engagement.title", systemImage: "person.2.crop.square.stack") }
-                    .accessibilityIdentifier("merchant.engagement.open")
-                }
-            }
-            if let contentService {
-                Section {
-                    NavigationLink { MerchantContentHomeView(service: contentService)
-                        .environment(\.merchantContentSupplyDestination, cooperationFlowReader.map { flowReader in
-                            { source in AnyView(MerchantCooperationSupplyView(source: source, reader: flowReader)) }
-                        })
-                        .environment(\.merchantOfferWithdrawalDestination, cooperationFlowReader.map { flowReader in
-                            let executor = (reader as? AppSession)?.offerWithdrawalExecutor
-                            return { source in AnyView(MerchantOfferWithdrawalHostView(source: source, reader: flowReader, contentService: contentService, executor: executor)) }
-                        })
-                        .environment(\.merchantChapterReplacementContext, chapterReplacementContext(access: access))
-                        .id(contentService.scope)
-                        .onDisappear(perform: onChildReturn)
-                    } label: { Label("merchant.content.title", systemImage: "map") }
-                        .accessibilityIdentifier("merchant.content.open")
-                }
-            }
-            if let coopCenterDestination {
-                Section {
-                    NavigationLink {
-                        coopCenterDestination(.plaza, nil)
-                            .onDisappear(perform: onChildReturn)
-                    } label: { Label(mcc("merchantCoopCenter.title", locale), systemImage: "person.2.wave.2") }
-                        .accessibilityIdentifier("merchant.coopCenter.open")
-                }
-            }
-            if let cooperationFlowReader {
-                Section {
-                    NavigationLink {
-                        CooperationFlowWorkbench(reader: cooperationFlowReader, operationScope: "MERCHANT")
-                            .onDisappear(perform: onChildReturn)
-                    } label: { Label("coopflow.title", systemImage: "person.2") }
-                        .accessibilityIdentifier("merchant.cooperationFlows.open")
-                }
-            }
-            if access.canReadDashboard {
-                Section("merchant.revenue") {
-                    MerchantSectionState(model: dashboard, retry: { Task { await loadDashboard() } }) { value in
-                        Text(MerchantMoney.display(value.revenue)).font(.largeTitle).monospacedDigit()
-                            .accessibilityIdentifier("merchant.dashboard.revenue")
-                        if !value.revenue7d.isEmpty {
-                            Text("merchant.revenue7d").font(.headline)
-                            ForEach(Array(value.revenue7d.enumerated()), id: \.offset) { _, point in
-                                LabeledContent(point.date, value: MerchantMoney.display(point.amount))
-                            }
-                        }
-                    }
-                }
-            }
             if access.isOwner || access.canReadAftercare {
                 Section("merchant.todo") {
                     MerchantSectionState(model: todo, retry: { Task { await loadTodo() } }) { value in
@@ -295,19 +240,6 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                         }
                         if access.isOwner, access.allows(.projects), value.pendingPredict > 0 { MerchantPredictionWorkbenchAlert(pending: value.pendingPredict) }
                         if access.isOwner, value.verifiedCount > 0 { MerchantCountRow("merchant.todo.verified", value: value.verifiedCount) }
-                    }
-                }
-            }
-            if access.isOwner {
-                Section("merchant.events") {
-                    MerchantSectionState(model: events, retry: { Task { await loadEvents() } }) { values in
-                        if values.isEmpty { Text("merchant.events.empty").foregroundStyle(.secondary) }
-                        ForEach(Array(values.enumerated()), id: \.offset) { _, event in
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(event.content)
-                                Text(event.time).font(.caption).foregroundStyle(.secondary)
-                            }
-                        }
                     }
                 }
             }
@@ -331,7 +263,121 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
             } else if !access.isOwner && !access.canReadAftercare {
                 Text("merchant.access.noReadSurfaces").foregroundStyle(.secondary)
             }
-            Button("merchant.refreshAccess") { Task { await refreshAccess() } }
+            // Source "更多" sheet plus the remaining tools, as one native group. A section with no visible rows renders nothing.
+            Section("merchant.workbench.more") {
+                if let aftercareRoute {
+                    NavigationLink(value: aftercareRoute) {
+                        Label(LocalizedStringKey(MerchantWorkbenchBusinessShortcut.aftercare.query.titleKey), systemImage: MerchantWorkbenchBusinessShortcut.aftercare.symbol)
+                    }.accessibilityIdentifier("merchant.workbench.direct.aftercare")
+                }
+                if let businessReader, let businessJournal {
+                    NavigationLink {
+                        MerchantBusinessHomeView(reader: businessReader, journal: businessJournal)
+                            .environment(\.merchantAftercareEvidenceDependencies, aftercareEvidenceDependencies(journal: businessJournal))
+                            .environment(\.merchantCustomerQueryDestination, customerQueryDestination(source: businessReader, journal: businessJournal))
+                            .id(businessReader.scope)
+                            .onDisappear(perform: onChildReturn)
+                    } label: { Label("merchant.business.title", systemImage: "building.2.crop.circle") }
+                        .accessibilityIdentifier("merchant.business.open")
+                }
+                if let marketingModel {
+                    // Source merchant tools expose this entry. Visibility is separate from service/AI/settlement grants.
+                    MerchantMarketingEntry(model: marketingModel, isSourceVisible: true, suggestionDestination: marketingDestination,
+                        recommendationOrigin: .init(merchantID: access.merchantID, readerScope: operationsReader?.scope))
+                }
+                if let operationsReader {
+                    NavigationLink {
+                        MerchantOperationsHomeView(reader: operationsReader, destinationFactory: operationsDestinationFactory)
+                            .id(operationsReader.scope)
+                            .onDisappear(perform: onChildReturn)
+                    } label: { Label("merchant.operations.title", systemImage: "slider.horizontal.3") }
+                    .accessibilityIdentifier("merchant.operations.open")
+                }
+                if let engagementReader, let businessJournal, let exportRecovery {
+                    NavigationLink {
+                        MerchantEngagementHomeView(reader: engagementReader, journal: businessJournal,
+                            exportRecovery: exportRecovery, businessReader: businessReader)
+                            .id(engagementReader.scope)
+                            .onDisappear(perform: onChildReturn)
+                    } label: { Label("merchant.engagement.title", systemImage: "person.2.crop.square.stack") }
+                    .accessibilityIdentifier("merchant.engagement.open")
+                }
+                if let contentService {
+                    NavigationLink { MerchantContentHomeView(service: contentService)
+                        .environment(\.merchantContentSupplyDestination, cooperationFlowReader.map { flowReader in
+                            { source in AnyView(MerchantCooperationSupplyView(source: source, reader: flowReader)) }
+                        })
+                        .environment(\.merchantOfferWithdrawalDestination, cooperationFlowReader.map { flowReader in
+                            let executor = (reader as? AppSession)?.offerWithdrawalExecutor
+                            return { source in AnyView(MerchantOfferWithdrawalHostView(source: source, reader: flowReader, contentService: contentService, executor: executor)) }
+                        })
+                        .environment(\.merchantChapterReplacementContext, chapterReplacementContext(access: access))
+                        .id(contentService.scope)
+                        .onDisappear(perform: onChildReturn)
+                    } label: { Label("merchant.content.title", systemImage: "map") }
+                        .accessibilityIdentifier("merchant.content.open")
+                }
+                if let coopCenterDestination {
+                    NavigationLink {
+                        coopCenterDestination(.plaza, nil)
+                            .onDisappear(perform: onChildReturn)
+                    } label: { Label(mcc("merchantCoopCenter.title", locale), systemImage: "person.2.wave.2") }
+                        .accessibilityIdentifier("merchant.coopCenter.open")
+                }
+                if let cooperationFlowReader {
+                    NavigationLink {
+                        CooperationFlowWorkbench(reader: cooperationFlowReader, operationScope: "MERCHANT")
+                            .onDisappear(perform: onChildReturn)
+                    } label: { Label("merchant.workbench.coopInvites", systemImage: "envelope.badge.person.crop") }
+                        .accessibilityIdentifier("merchant.cooperationFlows.open")
+                }
+            }
+            if access.canReadDashboard, let value = dashboard.value, !value.revenue7d.isEmpty {
+                Section("merchant.revenue7d") {
+                    ForEach(Array(value.revenue7d.enumerated()), id: \.offset) { _, point in
+                        LabeledContent(point.date, value: MerchantMoney.display(point.amount))
+                    }
+                }
+            }
+            if access.isOwner {
+                Section("merchant.events") {
+                    MerchantSectionState(model: events, retry: { Task { await loadEvents() } }) { values in
+                        if values.isEmpty { Text("merchant.events.empty").foregroundStyle(.secondary) }
+                        ForEach(Array(values.enumerated()), id: \.offset) { _, event in
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(event.content)
+                                Text(event.time).font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+            }
+            Section {
+                Button("merchant.refreshAccess") { Task { await refreshAccess() } }
+            }
+        }
+        .navigationDestination(item: $quickRoute) { route in
+            if let businessReader, let businessJournal,
+               route.isCurrent(reader: businessReader, journal: businessJournal) {
+                // Source 财务 opens the settlement ledger (pages/merchant/ledger), as the business workspace does.
+                if route.shortcut == .finance {
+                    MerchantLedgerSettlementOverview(reader: route.reader)
+                        .onDisappear(perform: onChildReturn)
+                } else {
+                    MerchantBusinessPage(reader: route.reader, journal: route.journal, query: route.shortcut.query)
+                    .environment(\.merchantAftercareEvidenceDependencies, aftercareEvidenceDependencies(journal: route.journal))
+                    .environment(\.merchantCustomerQueryDestination, customerQueryDestination(source: route.reader, journal: route.journal))
+                    .id(route)
+                    .onDisappear(perform: onChildReturn)
+                }
+            } else {
+                Text("merchant.business.stale")
+            }
+        }
+        .navigationDestination(isPresented: $showsScan) {
+            if let nativeVerificationDestination {
+                nativeVerificationDestination().onDisappear(perform: onChildReturn)
+            }
         }
         .navigationDestination(for: MerchantWorkbenchBusinessRoute.self) { route in
             if let businessReader, let businessJournal,
@@ -468,6 +514,14 @@ enum MerchantWorkbenchBusinessShortcut: String, CaseIterable, Identifiable {
         case .customers: return .customers(.init())
         case .finance: return .overview
         case .aftercare: return .aftercare(.pending, page: 1)
+        }
+    }
+    /// Source quick-action labels: 客户, 财务, 退款售后.
+    var shortTitleKey: String {
+        switch self {
+        case .customers: return "merchant.workbench.customers"
+        case .finance: return "merchant.workbench.finance"
+        case .aftercare: return query.titleKey
         }
     }
     var symbol: String {

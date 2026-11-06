@@ -26,7 +26,6 @@ struct MerchantEngagementEditorContext: Identifiable {
     var body: some View {
         NavigationStack {
             Form {
-                Text("merchant.engagement.localDraft").font(.footnote)
                 switch context.kind {
                 case .segment:
                     TextField("merchant.engagement.segmentName", text: $name).accessibilityIdentifier("merchant.engagement.editor.name")
@@ -103,54 +102,52 @@ struct MerchantCRMFilterSummary: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("merchant.engagement.frozenReview") {
+                Section {
                     Text(LocalizedStringKey("merchant.engagement.command." + (review.command.key))).font(.headline)
-                    LabeledContent("merchant.engagement.accountID", value: String(review.scope.accountID))
-                    if let merchant = review.proof.access.merchantID { LabeledContent("merchant.business.storeID", value: String(merchant)) }
                     details
                 }
                 if let audience = review.proof.audience {
                     Section("merchant.engagement.serverAudience") {
                         MerchantEngagementCounts(counts: audience.counts)
-                        Text("merchant.engagement.audienceBoundary").font(.footnote)
                     }.accessibilityIdentifier("merchant.engagement.audience")
                 }
                 if let task = review.proof.campaign { Section("merchant.engagement.taskDetails") { MerchantCampaignTaskFields(task: task) } }
-                Text("merchant.engagement.reviewRefresh").font(.footnote)
                 if enabled && (synthetic || (try? review.command.validateProductionProof(review.proof)) != nil) {
-                    Text(LocalizedStringKey(synthetic ? "merchant.engagement.synthetic" : "merchant.engagement.productionReview"))
-                    Button(LocalizedStringKey(synthetic ? "merchant.engagement.confirmSynthetic" : "merchant.engagement.confirmProduction"), action: confirm).disabled(busy).accessibilityIdentifier("merchant.engagement.confirm")
+                    if synthetic { Text("merchant.engagement.synthetic") }
+                    Button(LocalizedStringKey(synthetic ? "merchant.engagement.confirmSynthetic" : "merchant.engagement.confirmProduction"), action: confirm)
+                        .buttonStyle(.questifyPrimary)
+                        .frame(maxWidth: .infinity)
+                        .listRowBackground(Color.clear)
+                        .disabled(busy).accessibilityIdentifier("merchant.engagement.confirm")
                 } else {
                     Text("merchant.engagement.actionUnavailable").accessibilityIdentifier("merchant.engagement.liveDisabled")
                     if !synthetic, let task = review.proof.campaign, !task.hasReviewableMessage { Text("merchant.engagement.messageUnavailable").font(.footnote) }
                 }
                 Button("action.cancel", action: cancel).disabled(busy).accessibilityIdentifier("merchant.engagement.cancelReview")
-            }.navigationTitle("merchant.engagement.previewReview").interactiveDismissDisabled(busy)
+            }.navigationBarTitleDisplayMode(.inline).interactiveDismissDisabled(busy)
         }
     }
     @ViewBuilder private var details: some View {
         switch review.command {
         case .saveSegment(let name, let filter): Text(name); MerchantCRMFilterSummary(filter: filter, export: false)
         case .createCampaign(let draft):
-            LabeledContent("merchant.engagement.selectedSegment", value: review.proof.selectedSegment?.name ?? "#\(draft.segmentID)")
+            LabeledContent("merchant.engagement.selectedSegment", value: review.proof.selectedSegment?.name ?? "—")
             Text(LocalizedStringKey("merchant.engagement.channel." + (draft.channel.rawValue)))
-            if let coupon = review.proof.selectedCoupon { LabeledContent("merchant.engagement.selectedCoupon", value: coupon.name ?? "#\(coupon.id)") }
-            Text(draft.title).font(.headline); Text(draft.content); Text("merchant.engagement.createStepBoundary").font(.footnote)
-        case .dispatchCampaign, .retryCampaign: Text("merchant.engagement.dispatchBoundary").font(.footnote)
+            if let coupon = review.proof.selectedCoupon { LabeledContent("merchant.engagement.selectedCoupon", value: coupon.name ?? "—") }
+            Text(draft.title).font(.headline); Text(draft.content)
+        case .dispatchCampaign, .retryCampaign: EmptyView()
         case .broadcast(let draft):
             MerchantCRMFilterSummary(filter: draft.audience.filter, export: false)
             Text(LocalizedStringKey("merchant.engagement.scope." + (draft.audience.scope.rawValue)))
             ForEach(draft.audience.groups, id: \.self) { Text($0) }; Text(draft.content)
-        case .createExport(let filter): MerchantCRMFilterSummary(filter: filter, export: true); Text("merchant.engagement.exportPrivacy").font(.footnote)
-        case .downloadExport(let ticket, _, _): LabeledContent("merchant.engagement.taskID", value: String(ticket.task.id)); Text("merchant.engagement.noAutomaticSharing").font(.footnote)
-        case .contact(let customer, let purpose):
-            LabeledContent("merchant.engagement.customerID", value: String(customer.rawValue))
+        case .createExport(let filter): MerchantCRMFilterSummary(filter: filter, export: true)
+        case .downloadExport: EmptyView()
+        case .contact(_, let purpose):
             if let name = review.proof.customer?.rows.first?.title { Text(name) }
-            Text(LocalizedStringKey("merchant.engagement.contact." + (purpose.rawValue))); Text("merchant.engagement.contactPrivacy").font(.footnote)
+            Text(LocalizedStringKey("merchant.engagement.contact." + (purpose.rawValue)))
         case .acceptInvitation: Text("merchant.engagement.invitationUnknownTarget"); Text("merchant.engagement.invitationConsequence").font(.footnote)
-        case .uploadEvidence(let refund, let selection, _, _):
-            LabeledContent("merchant.engagement.refundID", value: String(refund.rawValue)); Text(selection.filename)
-            LabeledContent("merchant.engagement.byteCount", value: String(selection.bytes.count)); Text("merchant.engagement.evidenceNotSubmitted").font(.footnote)
+        case .uploadEvidence(_, let selection, _, _):
+            Text(selection.filename)
         }
     }
 }

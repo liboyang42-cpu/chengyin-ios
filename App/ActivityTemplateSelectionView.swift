@@ -108,28 +108,48 @@ import UIKit
     var body: some View {
         let stamp = owner.actionID
         Section {
-            TextField(text: owner.keywordBinding()) { Text("search", tableName: "ActivityTemplateSelection") }
-                .onSubmit { owner.requestRead(expected: stamp) }.accessibilityIdentifier("activityTemplate.search")
-            Button { owner.requestRead(expected: stamp) } label: { Text("search", tableName: "ActivityTemplateSelection") }
-            Text(LocalizedStringKey("status." + owner.status.rawValue), tableName: "ActivityTemplateSelection")
+            PublishingField(title: Text("search", tableName: "ActivityTemplateSelection")) {
+                TextField(text: owner.keywordBinding()) { Text("search", tableName: "ActivityTemplateSelection") }
+                    .submitLabel(.search)
+                    .onSubmit { owner.requestRead(expected: stamp) }.accessibilityIdentifier("activityTemplate.search")
+            }
+            Button { owner.requestRead(expected: stamp) } label: {
+                Label { Text("search", tableName: "ActivityTemplateSelection") } icon: { Image(systemName: "magnifyingglass") }
+                    .frame(minHeight: 44)
+            }
+            PublishingStatusRow(title: Text(LocalizedStringKey("status." + owner.status.rawValue), tableName: "ActivityTemplateSelection"),
+                symbol: owner.status == .empty ? "tray" : owner.status == .failed ? "exclamationmark.triangle" : "info.circle",
+                isError: owner.status == .failed)
                 .accessibilityIdentifier("activityTemplate.status")
             if owner.status == .loading { ProgressView() }
             ForEach(owner.rows) { row in
                 Button { owner.select(row, expected: stamp) } label: {
-                    VStack(alignment: .leading) {
-                        Text(row.title)
-                        if row.availability != .available { Text(LocalizedStringKey(row.availability.rawValue), tableName: "ActivityTemplateSelection") }
-                    }
+                    HStack(spacing: Theme.Space.s3) {
+                        VStack(alignment: .leading, spacing: Theme.Space.s1) {
+                            Text(row.title).font(.headline).fixedSize(horizontal: false, vertical: true)
+                            if row.availability != .available {
+                                Text(LocalizedStringKey(row.availability.rawValue), tableName: "ActivityTemplateSelection")
+                                    .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                        Spacer(minLength: Theme.Space.s2)
+                        Image(systemName: owner.selected == row ? "checkmark.circle.fill" : "circle")
+                            .accessibilityHidden(true)
+                    }.frame(minHeight: 44)
                 }.disabled(owner.status != .ready || row.availability != .available)
                     .accessibilityIdentifier("activityTemplate.row.\(row.id.rawValue)")
                     .accessibilityValue(owner.selected == row ? Text("publishModes.selected") : Text("publishModes.notSelected"))
+                    .accessibilityAddTraits(owner.selected == row ? .isSelected : [])
             }
             Button { _ = apply(stamp) } label: { Text("apply", tableName: "ActivityTemplateSelection") }
+                .buttonStyle(.questifyPrimary).frame(minHeight: 44)
                 .disabled(!owner.canApply).accessibilityIdentifier("activityTemplate.apply")
             Button { owner.create(expected: stamp, available: createAvailable) } label: { Text("create", tableName: "ActivityTemplateSelection") }
+                .frame(minHeight: 44)
                 .disabled(!createAvailable).accessibilityIdentifier("activityTemplate.create")
-            Text("creationNotice", tableName: "ActivityTemplateSelection")
+            PublishingStatusRow(title: Text("creationNotice", tableName: "ActivityTemplateSelection"))
             Button { owner.close(stamp) } label: { Text("cancel", tableName: "ActivityTemplateSelection") }
+                .frame(minHeight: 44)
                 .accessibilityIdentifier("activityTemplate.cancel")
         } header: { Text("title", tableName: "ActivityTemplateSelection") }
     }

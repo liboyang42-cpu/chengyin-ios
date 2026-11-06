@@ -128,6 +128,8 @@ import UIKit
     func testNormalFullDetailAndChapterCoverReturnUseSameReaderUntilRootLeaves() async throws {
         let h=try Harness();await h.login();let selected=try await h.selection(), reader=h.session.makeProfileFavoriteTopicReader(selected)
         let owner=ProfileFavoriteTopicNavigationOwner(),probe=Probe(),scope=h.session.profileFavoritesReader.scope
+        defer { probe.trace.emit() }
+        probe.trace.record("test.begin")
         let detail=try await reader.topicDetail(id:201);let chapter=try XCTUnwrap(detail.chapters.first);h.wire.requests=[]
         let host=UIHostingController(rootView:AnyView(NormalHost(owner:owner,scope:scope,reader:reader,session:h.session,chapter:chapter,probe:probe)))
         let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window;window.rootViewController=host;window.makeKeyAndVisible()
@@ -138,14 +140,17 @@ import UIKit
         XCTAssertTrue(owner.open(selected,scope:scope))
         for _ in 0..<100 where !h.wire.paths.contains("info-to-user") {try await Task.sleep(for:.milliseconds(20))}
         XCTAssertTrue(h.wire.paths.contains("info-to-user"));XCTAssertEqual(probe.readerCreations,1)
+        probe.trace.record("test.cover.request")
         probe.covered=true
         for _ in 0..<100 where probe.childAppearances==0 {try await Task.sleep(for:.milliseconds(20))}
         XCTAssertGreaterThan(probe.childAppearances,0);XCTAssertGreaterThan(probe.detailDisappearances,0)
         XCTAssertTrue(selected.isCurrent);XCTAssertEqual(owner.selection?.id,selected.id)
+        probe.trace.record("test.return.request")
         probe.covered=false
         for _ in 0..<100 where probe.detailAppearances<2 {try await Task.sleep(for:.milliseconds(20))}
         XCTAssertGreaterThanOrEqual(probe.detailAppearances,2);XCTAssertEqual(probe.readerCreations,1);XCTAssertTrue(reader.isConfigured)
         XCTAssertTrue(h.wire.paths.allSatisfy{$0=="info-to-user"})
+        probe.trace.record("test.root.remove")
         host.rootView=AnyView(Text("Root left"));host.view.layoutIfNeeded()
         for _ in 0..<100 where selected.isCurrent {try await Task.sleep(for:.milliseconds(20))}
         XCTAssertFalse(selected.isCurrent);XCTAssertNil(owner.selection)
@@ -160,7 +165,15 @@ import UIKit
         for _ in 0..<30 {await Task.yield()}
         XCTAssertFalse(reader.isConfigured);XCTAssertTrue(h.wire.requests.isEmpty)
     }
+
+    @MainActor private final class DiagnosticTrace {
+        private var events: [String] = []
+        func record(_ event: String) { events.append("\(events.count + 1):\(event)") }
+        func emit() { print("PROFILE_CI_TRACE topic " + events.joined(separator: " | ")) }
+    }
+
     @MainActor private final class Probe:ObservableObject {
+        let trace = DiagnosticTrace()
         @Published var covered=false
         var rootAppearances=0,readerCreations=0,detailAppearances=0,detailDisappearances=0,childAppearances=0
     }
@@ -176,16 +189,16 @@ import UIKit
                 Text("Saved topics").background {
                     ProfileFavoriteTopicNavigationLayer(owner:owner) { selected in
                         ZStack {
-                            ProfileFavoriteTopicDestination(selection:selected,session:session,makeReader:{probe.readerCreations += 1;return reader})
+                            ProfileFavoriteTopicDestination(selection:selected,session:session,makeReader:{probe.trace.record("detail.reader.create");probe.readerCreations += 1;return reader})
                             // The original chapter is a child link, not a replacement root destination.
                             NavigationLink(isActive:$probe.covered) {
-                                TopicChapterView(chapter:chapter,reader:reader,scope:reader.scope).onAppear{probe.childAppearances += 1}
+                                TopicChapterView(chapter:chapter,reader:reader,scope:reader.scope).onAppear{probe.trace.record("chapter.appear");probe.childAppearances += 1}.onDisappear{probe.trace.record("chapter.disappear")}
                             } label: { EmptyView() }
                         }
-                        .onAppear{probe.detailAppearances += 1}.onDisappear{probe.detailDisappearances += 1}
+                        .onAppear{probe.trace.record("detail.appear");probe.detailAppearances += 1}.onDisappear{probe.trace.record("detail.disappear");probe.detailDisappearances += 1}
                     }
                 }
-            }.onAppear{owner.appear(scope:scope,foreground:true);probe.rootAppearances += 1}.onDisappear{owner.disappear()}
+            }.onAppear{probe.trace.record("root.appear");owner.appear(scope:scope,foreground:true);probe.rootAppearances += 1}.onDisappear{probe.trace.record("root.disappear");owner.disappear()}
         }
     }
     @MainActor private final class Harness {

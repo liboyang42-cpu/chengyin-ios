@@ -81,7 +81,6 @@ import Combine
         VStack(alignment: .leading, spacing: 14) {
             Text("templateBlindOptions.title").font(.headline)
             if editor.isSupported {
-                Text("templateBlindOptions.hint").font(.caption).foregroundStyle(.secondary)
                 ForEach(editor.rows) { row in
                     VStack(alignment: .leading, spacing: 8) {
                         Text("templateBlindOptions.optionNumber \(row.id + 1)").font(.subheadline)

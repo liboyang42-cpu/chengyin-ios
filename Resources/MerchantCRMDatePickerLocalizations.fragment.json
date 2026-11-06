@@ -5,13 +5,13 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "选择来源日期"
+          "value": "选择日期"
         }
       },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Choose source dates"
+          "value": "Choose dates"
         }
       }
     }

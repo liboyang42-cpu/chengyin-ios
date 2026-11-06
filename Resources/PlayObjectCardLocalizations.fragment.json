@@ -39,13 +39,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Photo review and card creation are confirmed by the server."
+          "value": "Photo review and card results are final once confirmed."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "审核和成卡结果以服务器回执为准。"
+          "value": "审核和成卡以确认结果为准。"
         }
       }
     }
@@ -141,13 +141,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This card came from the server receipt. You can also find it in My Collection."
+          "value": "You got this card. You can also find it in My Collection."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "这张卡来自本次服务器回执，也可在“我的藏品”查看。"
+          "value": "你获得了这张卡，也可在“我的藏品”查看。"
         }
       }
     }

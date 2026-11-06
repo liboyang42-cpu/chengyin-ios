@@ -22,13 +22,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "View the current host or participation information. The server checks access again."
+          "value": "View the current host or participation details. Access is checked again."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "查看当前主办或承接信息，服务器将重新检查权限。"
+          "value": "查看当前主办或承接信息，将重新核对权限。"
         }
       }
     }

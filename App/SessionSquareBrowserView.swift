@@ -11,6 +11,7 @@ import SwiftUI
             governance: session.squareGovernance(), governanceAccess: { session.squareGovernanceAccess(postID: $0) },
             onSignIn: onSignIn, upcomingReader: session.officialEventReader,
             upcomingDestination: { AnyView(OfficialEventDetailView(id: $0, reader: session.officialEventReader, actions: session.officialActionCoordinator)) },
+            reportProgressDestination: { AnyView(SquareReportProgressView(session: session)) },
             onClose: onClose)
             .environment(\.squareReportContext, session.squareReportContext())
             .id(session.sessionRevision).privacySensitive()

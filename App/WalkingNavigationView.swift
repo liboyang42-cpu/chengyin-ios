@@ -61,6 +61,7 @@ import Observation
                 }
         }
         .appNavigationTitle("walking.title")
+        .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showsSteps, onDismiss: { stepsFocused = model?.route != nil }) {
             NavigationStack {
                 if let model { WalkingStepsDetail(model: model) }
@@ -123,7 +124,7 @@ import Observation
                     .accessibilityValue(Text(verbatim: "cameraAction=\(cameraAction)"))
                     #endif
             } else {
-                ContentUnavailableView("walking.mapPending", systemImage: "map", description: Text("walking.safety"))
+                ContentUnavailableView("walking.mapPending", systemImage: "map")
             }
         } else if let model, isCameraScopeCurrent(model) {
             // A map first appears only after an already-authorized route is supplied.
@@ -149,7 +150,7 @@ import Observation
                 .id(retainedCameraScope?.id)
                 .accessibilityIdentifier("walkingCamera.map")
         } else {
-            ContentUnavailableView("walking.mapPending", systemImage: "map", description: Text("walking.safety"))
+            ContentUnavailableView("walking.mapPending", systemImage: "map")
         }
     }
 
@@ -202,10 +203,6 @@ import Observation
                 .disabled(request == nil)
                 .accessibilityHint(Text("walkingCamera.focusHint"))
                 .accessibilityIdentifier(key)
-            if request == nil {
-                Text("walkingCamera.unavailable").font(.footnote)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
         }
     }
 
@@ -222,7 +219,7 @@ import Observation
         }
         if model.phase == .nearDestination, let onOpenVerification {
             Button("walking.openVerification", action: onOpenVerification)
-                .buttonStyle(.borderedProminent).frame(minHeight: 44)
+                .buttonStyle(.questifyPrimary).frame(minHeight: 44)
         }
         if model.phase.mayStart {
             Button {
@@ -234,7 +231,7 @@ import Observation
                 }
             } label: {
                 Text(LocalizedStringKey(model.phase == .ready ? "walking.start" : "walking.resume"))
-            }.buttonStyle(.borderedProminent).frame(minHeight: 44).accessibilityIdentifier("walking.start")
+            }.buttonStyle(.questifyPrimary).frame(minHeight: 44).accessibilityIdentifier("walking.start")
         }
         if model.phase.mayPause {
             Button("walking.pause") { model.pause() }
@@ -294,17 +291,18 @@ import Observation
                         ForEach(Array(provider.advisoryNotices.enumerated()), id: \.offset) { _, notice in Text(verbatim: notice) }
                     }
                 }
+            } else {
+                ContentUnavailableView("walking.error.unavailable", systemImage: "figure.walk")
+                    .accessibilityIdentifier("walking.steps.unavailable")
             }
-            Section {
-                Text("walking.safety")
-                Text("walking.arrivalBoundary")
-                Text("walking.foregroundOnly")
-            }.font(.footnote)
+            // One safety line; arrival and foreground rules are not repeated here.
+            Section { Label("walking.safety", systemImage: "exclamationmark.triangle") }.font(.footnote)
         }.accessibilityIdentifier("walking.steps.list")
             #if DEBUG
             .accessibilityValue(Text(verbatim: typeSize == .accessibility5 ? "dynamicTypeSize=accessibility5" : "dynamicTypeSize=other"))
             #endif
             .appNavigationTitle("walking.steps")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("walking.closeSteps") { dismiss() }.accessibilityIdentifier("walking.steps.close")

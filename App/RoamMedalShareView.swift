@@ -8,19 +8,22 @@ import UIKit
     private let authority: RoamMedalShareAuthority?
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
-    @StateObject private var photoSave = RoamSharePhotoSaveModel()
+    @StateObject private var photoSave: RoamSharePhotoSaveModel
+    @StateObject private var presentation: RoamSharePresentationLifetime
     @State private var image: UIImage?
     @State private var visible = false
     @State private var sourceChanged = false
     @State private var renderFailed = false
-    @State private var systemShare: ShareImage?
-    private struct ShareImage: Identifiable { let id = UUID(); let image: UIImage }
-    init(selection: RoamMedalShareSelection, reader: any RoamExperienceReading) {
+    @State private var systemShare: RoamHistorySystemShareRequest?
+    init(selection: RoamMedalShareSelection, reader: any RoamExperienceReading, photoSaveModel: RoamSharePhotoSaveModel? = nil) {
+        let model = photoSaveModel ?? RoamSharePhotoSaveModel()
+        _photoSave = StateObject(wrappedValue: model)
+        _presentation = StateObject(wrappedValue: .init(photoSave: model))
         self.selection = selection; self.reader = reader
         authority = RoamMedalShareAuthority(selection: selection, reader: reader)
     }
     private var ownerMatches: Bool { authority?.matchesOwner(reader) == true }
-    private var sourceIsCurrent: Bool { visible && authority?.isCurrent(reader) == true }
+    private var sourceIsCurrent: Bool { presentation.isActive && visible && authority?.isCurrent(reader) == true }
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -33,38 +36,46 @@ import UIKit
                             .accessibilityIdentifier("roam.medalShare.preview")
                         saveControls(image)
                         Button {
-                            guard sourceIsCurrent else { invalidate(); sourceChanged = true; return }
-                            systemShare = ShareImage(image: image)
+                            guard systemShare == nil, !photoSave.inFlight else { return }
+                            guard sourceIsCurrent, self.image === image,
+                                  let request = RoamHistorySystemShareRequest(image: image,
+                                      selection: .init(record: selection.record, includeRoute: false),
+                                      owner: .init(reader: reader), reader: reader, presentation: presentation) else {
+                                invalidate(); sourceChanged = true; return
+                            }
+                            systemShare = request
                         } label: {
                             Label("roam.share.system", systemImage: "square.and.arrow.up")
                         }.buttonStyle(.bordered)
-                            .disabled(photoSave.inFlight || photoSave.state.phase == .sourceChanged)
+                            .disabled(photoSave.inFlight || systemShare != nil || photoSave.state.phase == .sourceChanged)
                             .accessibilityIdentifier("roam.medalShare.system")
                     } else {
                         if renderFailed { Text("roam.share.renderFailed") }
                         Button("roam.medalShare.prepare", systemImage: "medal") { prepare() }
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(.questifyPrimary)
                             .accessibilityIdentifier("roam.medalShare.prepare")
                     }
                 } else {
                     Text("roam.share.photoSaveSourceChanged").foregroundStyle(.secondary)
                         .accessibilityIdentifier("roam.medalShare.sourceChanged")
                 }
-                Text("roam.share.saveHint").font(.caption).foregroundStyle(.secondary)
             }.padding()
         }.navigationTitle("roam.medalShare.title")
             .toolbar { ToolbarItem(placement: .confirmationAction) {
-                Button("action.done") { dismiss() }.accessibilityIdentifier("roam.medalShare.done")
+                Button("action.done") { presentation.retire(); visible = false; invalidate(); dismiss() }.accessibilityIdentifier("roam.medalShare.done")
             } }
-            .onAppear { visible = true; sourceChanged = !sourceIsCurrent }
+            .background(RoamShareNativeLifetime(presentation: presentation).frame(width: 0, height: 0))
+            .onAppear { presentation.appear(); visible = true; sourceChanged = !sourceIsCurrent }
             .onChange(of: RoamHistoryLiveOwner(reader: reader)) { _, _ in invalidate(); sourceChanged = true }
-            .onDisappear {
-                // A full-screen system share presentation may cover its presenting view.
-                // Keep that one user-requested export alive; owner changes still retire it.
-                if systemShare == nil { visible = false; invalidate() }
-            }
+            // Native true-departure ownership also handles removal while a share sheet covers us.
             .sheet(item: $systemShare) { item in
-                if sourceIsCurrent { RoamMedalSystemShare(image: item.image) }
+                if sourceIsCurrent, image === item.image,
+                   item.selection == .init(record: selection.record, includeRoute: false),
+                   item.isCurrent(reader: reader) {
+                    RoamMedalSystemShare(request: item, reader: reader)
+                } else {
+                    Text("roam.share.photoSaveSourceChanged").foregroundStyle(.secondary)
+                }
             }
     }
     private func prepare() {
@@ -80,7 +91,7 @@ import UIKit
             photoSave.save(image, selection: .init(record: selection.record, includeRoute: false)) { sourceIsCurrent }
         } label: {
             Label(LocalizedStringKey(saveButtonKey), systemImage: "square.and.arrow.down")
-        }.buttonStyle(.borderedProminent)
+        }.buttonStyle(.questifyPrimary)
             .disabled(photoSave.inFlight || phase == .saved || phase == .sourceChanged)
             .accessibilityIdentifier("roam.medalShare.savePhotos")
         if photoSave.inFlight { ProgressView("roam.share.savingPhotos") }
@@ -114,12 +125,17 @@ import UIKit
     }
 }
 
-@MainActor private struct RoamMedalSystemShare: UIViewControllerRepresentable {
-    let image: UIImage
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: [image], applicationActivities: nil)
+@MainActor struct RoamMedalSystemShare: UIViewControllerRepresentable {
+    let request: RoamHistorySystemShareRequest
+    let reader: any RoamExperienceReading
+    func makeUIViewController(context: Context) -> UIViewController { makeController() }
+    func makeController() -> UIViewController {
+        // The local record/owner can change after SwiftUI evaluated the sheet body.
+        // Reuse the history export's existing last creation gate, not a second authority.
+        if let controller = request.makeActivityController(reader: reader) { return controller }
+        return UIViewController()
     }
-    func updateUIViewController(_ controller: UIActivityViewController, context: Context) {}
+    func updateUIViewController(_ controller: UIViewController, context: Context) {}
 }
 
 /// Preview and both export actions use this same image. No asset URL or mutable live result.

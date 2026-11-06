@@ -20,7 +20,6 @@ struct ProfileInviteHistoryEmptyView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("profile.inviteHistory.empty").font(.subheadline.weight(.semibold))
-            Text("profile.inviteHistory.emptyHint").font(.footnote).foregroundStyle(.secondary)
         }.accessibilityElement(children: .combine).accessibilityIdentifier("profile.inviteHistory.empty")
     }
 }

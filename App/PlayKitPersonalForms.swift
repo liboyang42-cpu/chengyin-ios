@@ -32,7 +32,7 @@ extension PlayKitScreen {
         submitButton("SUBMIT_PROFILE", payload: payload, valid: valid("SUBMIT_PROFILE", payload))
     }
     @ViewBuilder var noteForm: some View {
-        let limit = max(1, raw["maxLength"].integer ?? 40)
+        let limit = PlayKitShortMessageLimit.resolve(raw["maxLength"])
         ForEach(Array((raw["previous"].array ?? []).enumerated()), id: \.offset) { _, note in
             if let value = note["text"].text, !value.isEmpty {
                 VStack(alignment: .leading) {
@@ -55,7 +55,7 @@ extension PlayKitScreen {
     }
     @ViewBuilder var ordinaryPhotoCheckForm: some View {
         if let note = raw["shotNote"].text, !note.isEmpty { Text(verbatim: note).font(.title3) }
-        if let frame = raw["frameUrl"].text, !frame.isEmpty { artwork(frame); Text("playkitCamera.frameGuide").font(.footnote) }
+        if let frame = raw["frameUrl"].text, !frame.isEmpty { artwork(frame) }
         if let prior = raw["lastUrl"].text, !prior.isEmpty { artwork(prior) }
         if raw["degraded"].bool != true, raw["passed"].bool != true, raw["flagged"].bool != true, (raw["tries"].integer ?? 0) > 0, let reason = raw["lastReason"].text, !reason.isEmpty { Text(verbatim: reason) }
         if let used = raw["tries"].integer, let cap = raw["maxTries"].integer, cap > 0 {
@@ -63,7 +63,6 @@ extension PlayKitScreen {
         }
         if raw["flagged"].bool == true { Text("playkit.photo.fallbackRecorded") }
         photoInput(frame: PlayKitPhotoFrame(source: raw["frameUrl"].text, opacityPercent: raw["frameOpacity"].double, approvedHosts: approvedArtworkHosts)) { url in prepare("SUBMIT_PHOTO_CHECK", ["imageUrl": .string(url)]) }
-        Text("playkit.photo.serverOnly").font(.footnote)
     }
     @ViewBuilder var scanForm: some View {
         if projection.complete {
@@ -76,7 +75,6 @@ extension PlayKitScreen {
                         cameraEnabled: device?.supports(.scan) == true, active: model.isCurrent)
                 }
                 artwork(raw["overlayUrl"].text)
-                Text("playkitLegacy.scan.staticFallback").font(.footnote)
                 if ["PLANE", "MARKER"].contains(raw["arMode"].text ?? "") {
                     PlayKitSpatialRevealButton(segment: raw, approval: spatialApproval, identity: runtimeIdentity, active: model.isCurrent)
                 }

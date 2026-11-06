@@ -11,8 +11,8 @@
   },
   {
     "key": "club.management.unconfigured",
-    "en": "Club management is not configured",
-    "zh-Hans": "俱乐部管理尚未配置"
+    "en": "Club management isn't available right now",
+    "zh-Hans": "俱乐部管理暂不可用"
   },
   {
     "key": "club.management.loading",
@@ -66,8 +66,8 @@
   },
   {
     "key": "club.management.deferred",
-    "en": "Role changes, temporary bans, club dissolution and financial actions are not available in this native slice.",
-    "zh-Hans": "此原生模块暂不支持角色变更、临时封禁、解散俱乐部或资金操作。"
+    "en": "Role changes, temporary bans, dissolving the club and financial actions aren't available in the app right now.",
+    "zh-Hans": "App 暂不支持角色变更、临时封禁、解散俱乐部或资金操作。"
   },
   {
     "key": "club.management.club",

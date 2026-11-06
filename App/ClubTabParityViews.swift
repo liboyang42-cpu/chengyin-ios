@@ -21,10 +21,9 @@ struct ClubTabTagLine: View {
 struct ClubTabEmptyState: View {
     let merchant: Bool
     var body: some View {
+        // Mini-program cy-empty shows only the title here; the create action sits in the row above.
         let keys = ClubTabPresentation.emptyKeys(merchant: merchant)
-        VStack(alignment: .leading, spacing: 6) {
-            Text(LocalizedStringKey(keys.title)).font(.headline)
-            Text(LocalizedStringKey(keys.detail)).font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-        }.accessibilityElement(children: .combine).accessibilityIdentifier("clubTab.empty")
+        ContentUnavailableView(LocalizedStringKey(keys.title), systemImage: "person.3")
+            .accessibilityIdentifier("clubTab.empty")
     }
 }

@@ -6,22 +6,31 @@ enum NearbyTeamViewMode: Hashable { case map, list }
 struct NearbyMineLoad { var loading = false; var failed = false; var loaded = false }
 enum NearbyRecruitingLoad: Equatable { case idle, loading, loaded, failed, noArea }
 
-/// Dark count bar 附近的队伍 · N 支在招募 with the 地图 / 列表 switch.
-struct NearbyTeamHeaderBar: View {
+/// Count line 附近的队伍 · N 支在招募. The 地图 / 列表 switch lives in the navigation bar (`NearbyTeamViewModePicker`).
+struct NearbyTeamCountLine: View {
     let loaded: Bool
     let count: Int
+    var body: some View {
+        Label {
+            Group {
+                if loaded { Text("nearby.w208.header \(count)") } else { Text("nearby.w208.header.loading") }
+            }.accessibilityIdentifier("nearby.w208.header")
+        } icon: {
+            Image(systemName: "circle.fill").font(.caption2).foregroundStyle(.tint)
+                .accessibilityHidden(true)
+        }
+        .font(Theme.Font.sectionTitle)
+    }
+}
+
+/// Native segmented 地图 / 列表 switch for the toolbar.
+struct NearbyTeamViewModePicker: View {
     @Binding var mode: NearbyTeamViewMode
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label {
-                if loaded { Text("nearby.w208.header \(count)") } else { Text("nearby.w208.header.loading") }
-            } icon: { Image(systemName: "circle.fill").font(.caption2).foregroundStyle(.tint) }
-            .font(.subheadline.weight(.semibold)).accessibilityIdentifier("nearby.w208.header")
-            Picker("nearby.w208.viewMode", selection: $mode) {
-                Text("nearby.w208.mode.map").tag(NearbyTeamViewMode.map)
-                Text("nearby.w208.mode.list").tag(NearbyTeamViewMode.list)
-            }.pickerStyle(.segmented).accessibilityIdentifier("nearby.w208.viewMode")
-        }
+        Picker("nearby.w208.viewMode", selection: $mode) {
+            Text("nearby.w208.mode.map").tag(NearbyTeamViewMode.map)
+            Text("nearby.w208.mode.list").tag(NearbyTeamViewMode.list)
+        }.pickerStyle(.segmented).fixedSize().accessibilityIdentifier("nearby.w208.viewMode")
     }
 }
 
@@ -45,27 +54,47 @@ struct NearbyLoadIssueCard: View {
     }
 }
 
-/// Team markers only. Hangout/activity markers need the separately approved roam events reader and are not mixed in here.
+/// Original team pins plus explicitly supplied, separately approved typed read layers. No location acquisition.
 struct NearbyTeamMapSection: View {
     let center: RoamSearchArea
     let teams: [NearbyTeam]
     let focusedID: NearbyTeamID?
     let onFocus: (NearbyTeamID) -> Void
+    let items: [RoamMapItem]
+    let selectedExtraID: String?
+    let onSelectExtra: ((RoamMapItem) -> Void)?
+    init(center: RoamSearchArea, teams: [NearbyTeam], focusedID: NearbyTeamID?, items: [RoamMapItem] = [],
+         selectedExtraID: String? = nil, onSelectExtra: ((RoamMapItem) -> Void)? = nil,
+         onFocus: @escaping (NearbyTeamID) -> Void) {
+        self.center = center; self.teams = teams; self.focusedID = focusedID; self.items = items
+        self.selectedExtraID = selectedExtraID; self.onSelectExtra = onSelectExtra; self.onFocus = onFocus
+    }
     private var markers: [NearbyTeamMarker] { NearbyTeamBridge.markers(teams) }
     private var pins: [SearchMapPin] {
-        markers.compactMap { marker in
+        let teamPins = markers.compactMap { marker -> SearchMapPin? in
             guard let coordinate = RoamCoordinate(latitude: marker.latitude, longitude: marker.longitude) else { return nil }
             return SearchMapPin(id: marker.id, title: marker.title, coordinate: coordinate, symbol: marker.active ? "person.3.fill" : "person.3")
         }
+        let extraPins = items.compactMap { item -> SearchMapPin? in
+            guard let coordinate = item.coordinate else { return nil }
+            return SearchMapPin(id: "discovery-" + item.id, title: item.title, coordinate: coordinate, symbol: item.symbol)
+        }
+        return teamPins + extraPins
     }
     var body: some View {
-        QuestifyDensityMap(area: center, pins: pins, selectedID: markers.first { $0.teamID == focusedID }?.id,
+        QuestifyDensityMap(area: center, pins: pins, selectedID: selectedExtraID.map { "discovery-" + $0 } ?? markers.first { $0.teamID == focusedID }?.id,
             mapHeight: 270, initialSpan: 0.045, pinIdentifierPrefix: "nearby.pin.",
             pinHint: { id in
+                if let item = items.first(where: { "discovery-" + $0.id == id }) { return Text(item.kindLabel) }
                 guard let marker = markers.first(where: { $0.id == id }) else { return Text("") }
                 return marker.active ? Text("nearby.w208.badge.joined") : Text("nearby.title")
             }, onSelect: { id in
-                if case .team(let teamID)? = NearbyTeamBridge.markerDestination(id) { onFocus(teamID) }
+                if case .team(let teamID)? = NearbyTeamBridge.markerDestination(id), teams.contains(where: { $0.id == teamID }) {
+                    onFocus(teamID)
+                } else {
+                    let rows = items.filter { "discovery-" + $0.id == id && $0.coordinate != nil }
+                    if rows.count == 1, let item = rows.first { onSelectExtra?(item) }
+                }
             })
             .accessibilityIdentifier("nearby.w208.map")
     }

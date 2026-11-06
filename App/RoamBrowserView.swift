@@ -19,6 +19,7 @@ struct RoamBrowserView: View {
     var liveDestination: (() -> AnyView)? = nil
     var posterDestination: ((RoamNodeDetail) -> AnyView)? = nil
     var eventDestination: ((RoamEventDestination) -> AnyView)? = nil
+    var nearbyEventDestination: ((RoamEventDestination) -> AnyView)? = nil
     var playerProfileDestination: ((Int) -> AnyView)? = nil
     var couponWalletDestination: (() -> AnyView)? = nil
     var mediaScope: UUID = UUID()
@@ -32,9 +33,14 @@ struct RoamBrowserView: View {
     var toolsReader: (any RoamPassportToolsReading)? = nil
     var passportToolsReader: (any RoamPassportToolsReading)? = nil
     var privateToolsReader: (any RoamPrivateToolsServing)? = nil
+    /// Existing account-scoped topic detail; nil keeps unconfigured hosts unavailable.
+    var anniversaryRouteDestination: ((String) -> AnyView)? = nil
     @State private var homeTab: RoamHomeTab = .start
-    @State private var entryCard: RoamEntryActivityCard?
-    @State private var recoveryBanner: RoamHomeRecoveryBanner?
+    @State private var entryCard: RoamNearbyEventsEntrySelection?
+    @State private var recoveryEntry = RoamHomeRecoveryEntry()
+    @Environment(\.scenePhase) private var recoveryScenePhase
+    private var recoveryReadOwner: RoamHomeRecoveryOwner? { experienceReader.map { RoamHomeRecoveryOwner(reader: $0) } }
+    private var recoveryBanner: RoamHomeRecoveryBanner? { recoveryEntry.banner(reader: experienceReader) }
     @State private var layer: RoamLayer = .places
     @State private var radiusM = 3000
     @State private var placeFilter: RoamPlaceFilter = .all
@@ -49,11 +55,19 @@ struct RoamBrowserView: View {
     @State private var issue: RoamScreenIssue?
     @State private var generation = 0
     @State private var retainedRead = RoamRetainedRead()
+    @State private var toolbarRoute: RoamBrowserToolbarRoute?
 
     private var effectiveReader: any RoamReading {
         if layer == .events, let nearbyEventsReader { return nearbyEventsReader }
         if layer == .players, let nearbyPlayersReader { return nearbyPlayersReader }
         return reader
+    }
+    private var entryScope: RoamNearbyEventsEntryScope? {
+        entryReader.flatMap { RoamNearbyEventsEntryScope(reader: $0) }
+    }
+    private func eventDetailDestination(for item: RoamMapItem) -> ((RoamEventDestination) -> AnyView)? {
+        if case .event = item { return nearbyEventDestination ?? eventDestination }
+        return eventDestination
     }
     private var radiusOptions: [Int] {
         nearbyPlayersReader != nil && layer == .players ? [1000, 3000] : [1000, 3000, 5000, 10000, 20000]
@@ -126,9 +140,10 @@ struct RoamBrowserView: View {
                 if homeTab == .passport {
                     RoamHomePassportView(reader: experienceReader, albumMetadataReader: albumMetadataReader,
                         stampDestination: stampDestination, liveDestination: liveDestination,
-                        toolsReader: passportToolsReader ?? toolsReader, discoverDestination: nearbyTeamsDestination)
+                        toolsReader: passportToolsReader ?? toolsReader, discoverDestination: nearbyTeamsDestination,
+                        anniversaryRouteDestination: anniversaryRouteDestination,
+                        privateToolsReader: privateToolsReader)
                 } else {
-                    controls
                     ZStack {
                         if !reader.isConfigured {
                             statusWithStartHeader(.notConfigured)
@@ -143,42 +158,54 @@ struct RoamBrowserView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
-            .sheet(item: $entryCard) { card in
-                RoamEntryActivitySheet(card: card, eventDestination: eventDestination, teamDestination: nearbyTeamDestination)
+            .sheet(item: $entryCard) { selection in
+                RoamEntryActivitySheet(card: selection.card, eventDestination: nearbyEventDestination ?? eventDestination,
+                    teamDestination: nearbyTeamDestination, readOnly: nearbyEventDestination != nil,
+                    isCurrent: { selection.mayRemainOpen(in: entryScope) })
             }
-            .task { recoveryBanner = (try? experienceReader?.localWalkStatus()).flatMap { RoamHomeRecoveryBanner(status: $0) } }
+            .onChange(of: entryScope) { _, _ in entryCard = nil }
+            .onChange(of: recoveryReadOwner) { _, _ in
+                recoveryEntry.reload(reader: experienceReader, hasDestination: liveDestination != nil)
+            }
+            .onChange(of: liveDestination != nil) { _, _ in
+                recoveryEntry.reload(reader: experienceReader, hasDestination: liveDestination != nil)
+            }
+            .onChange(of: homeTab) { _, tab in
+                if tab == .start { recoveryEntry.reload(reader: experienceReader, hasDestination: liveDestination != nil) }
+            }
+            .onChange(of: recoveryScenePhase) { _, phase in
+                recoveryEntry.setForeground(phase == .active, reader: experienceReader, hasDestination: liveDestination != nil)
+            }
+            .navigationDestination(item: $recoveryEntry.target) { target in
+                if recoveryEntry.matches(target, reader: experienceReader, hasDestination: liveDestination != nil), let liveDestination {
+                    liveDestination()
+                } else {
+                    ContentUnavailableView("roamEvent.changed", systemImage: "arrow.clockwise")
+                }
+            }
             .appNavigationTitle("roam.title")
             .searchable(text: $query, prompt: "roam.search")
             .task(id: requestKey) {
                 guard !Task.isCancelled else { return }
                 readOwner.activate(); await load()
             }
-            .onAppear { readOwner.activate() }
-            .onDisappear { retainedRead.clear(); selected = nil; readOwner.deactivate(); generation += 1; loading = false }
+            .onAppear {
+                readOwner.activate()
+                recoveryEntry.appear(reader: experienceReader, foreground: recoveryScenePhase == .active, hasDestination: liveDestination != nil)
+            }
+            .onDisappear {
+                recoveryEntry.disappear()
+                retainedRead.clear(); selected = nil; readOwner.deactivate(); generation += 1; loading = false
+            }
             .onChange(of: requestKey) { _, _ in selected = nil }
             .onChange(of: query) { _, _ in selected = nil }
             .onChange(of: placeFilter) { _, _ in selected = nil }
             .onChange(of: eventFilter) { _, _ in selected = nil }
             .onChange(of: retentionScope) { _, scope in retainedRead.retainOnly(scope: scope) }
             .sheet(item: $selected) { item in
-                RoamItemDetailView(item: item, reader: reader, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, stampDestination: stampDestination, posterDestination: posterDestination, eventDestination: eventDestination, playerProfileDestination: playerProfileDestination, couponWalletDestination: couponWalletDestination)
+                RoamItemDetailView(item: item, reader: reader, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, stampDestination: stampDestination, posterDestination: posterDestination, eventDestination: eventDetailDestination(for: item), playerProfileDestination: playerProfileDestination, couponWalletDestination: couponWalletDestination)
             }
             .toolbar {
-                if let onOpenAccount {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button("account.title", systemImage: "person.crop.circle", action: onOpenAccount)
-                            .accessibilityIdentifier("roam.account.open")
-                    }
-                }
-                if let cityDestination { ToolbarItem(placement: .topBarTrailing) { NavigationLink("city.read.title", destination: cityDestination) } }
-                if let nearbyTeamsDestination { ToolbarItem(placement: .topBarTrailing) { NavigationLink("nearby.title", destination: nearbyTeamsDestination) } }
-                if let experienceReader {
-                    ToolbarItem(placement: .topBarLeading) {
-                        NavigationLink { RoamExperienceHubView(reader: experienceReader, albumMetadataReader: albumMetadataReader, tileMemoryReader: tileMemoryReader, sessionFactReader: sessionFactReader, stampDestination: stampDestination, liveDestination: liveDestination, toolsReader: passportToolsReader ?? toolsReader, privateToolsReader: privateToolsReader) } label: {
-                            Label("roam.experience.title", systemImage: "book.closed")
-                        }.accessibilityIdentifier("roam.experience.open")
-                    }
-                }
                 if let onChooseArea {
                     ToolbarItem(placement:.topBarLeading) {
                         Button("roam.area.title",systemImage:"mappin.and.ellipse",action:onChooseArea)
@@ -191,10 +218,40 @@ struct RoamBrowserView: View {
                     }
                     .accessibilityIdentifier("roam.display.toggle")
                 }
+                // More than two actions go in one menu; every destination stays reachable.
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { startLoad() } label: { Label("action.retry", systemImage: "arrow.clockwise") }
-                        .disabled(loading || !reader.isConfigured || reader.identity == nil || reader.searchArea == nil)
-                        .accessibilityIdentifier("roam.refresh")
+                    Menu {
+                        if let onOpenAccount {
+                            Button("account.title", systemImage: "person.crop.circle", action: onOpenAccount)
+                                .accessibilityIdentifier("roam.account.open")
+                        }
+                        if experienceReader != nil {
+                            Button { toolbarRoute = .experience } label: {
+                                Label("roam.experience.title", systemImage: "book.closed")
+                            }.accessibilityIdentifier("roam.experience.open")
+                        }
+                        if cityDestination != nil {
+                            Button { toolbarRoute = .city } label: { Label("city.read.title", systemImage: "building.2") }
+                        }
+                        if nearbyTeamsDestination != nil {
+                            Button { toolbarRoute = .nearbyTeams } label: { Label("nearby.title", systemImage: "person.3") }
+                        }
+                        Button { startLoad() } label: { Label("action.retry", systemImage: "arrow.clockwise") }
+                            .disabled(loading || !reader.isConfigured || reader.identity == nil || reader.searchArea == nil)
+                            .accessibilityIdentifier("roam.refresh")
+                    } label: {
+                        Label("roam.toolbar.more", systemImage: "ellipsis.circle")
+                    }
+                }
+            }
+            .navigationDestination(item: $toolbarRoute) { route in
+                switch route {
+                case .experience:
+                    if let experienceReader {
+                        RoamExperienceHubView(reader: experienceReader, albumMetadataReader: albumMetadataReader, tileMemoryReader: tileMemoryReader, sessionFactReader: sessionFactReader, stampDestination: stampDestination, liveDestination: liveDestination, toolsReader: passportToolsReader ?? toolsReader, privateToolsReader: privateToolsReader, anniversaryRouteDestination: anniversaryRouteDestination)
+                    }
+                case .city: cityDestination?()
+                case .nearbyTeams: nearbyTeamsDestination?()
                 }
             }
         }
@@ -206,13 +263,17 @@ struct RoamBrowserView: View {
             RoamHomeIntroCards(start: startDestination, nearby: nearbyTeamsDestination, myTeams: myTeamsDestination ?? nearbyTeamsDestination)
         }
         if let recoveryBanner, let experienceReader {
-            RoamHomeRecoveryBannerView(banner: recoveryBanner) {
+            let rendered = recoveryEntry.revision
+            RoamHomeRecoveryBannerView(banner: recoveryBanner, onContinue: liveDestination == nil ? nil : {
+                recoveryEntry.continueToExistingDestination(reader: experienceReader, hasDestination: liveDestination != nil, rendered: rendered)
+            }) {
                 if let sessionFactReader { return AnyView(RoamRecoveryView(reader: sessionFactReader).id(sessionFactReader.scope)) }
                 return AnyView(RoamRecoveryView(reader: experienceReader))
             }
         }
         if let entryReader {
-            RoamEntryPeekView(reader: entryReader, teams: entryTeams, onSignIn: onOpenAccount, onOpenMap: nearbyTeamsDestination) { entryCard = $0 }
+            RoamEntryPeekView(reader: entryReader, teams: entryTeams, onSignIn: onOpenAccount, onOpenMap: nearbyTeamsDestination,
+                onChooseArea: onChooseArea, onBeginRead: { entryCard = nil }, onOpenSelection: { entryCard = $0 }, onOpen: { _ in })
         }
     }
     private func startDestination() -> AnyView {
@@ -231,60 +292,51 @@ struct RoamBrowserView: View {
             RoamStatusView(issue: issue)
         }
     }
-    private var controls: some View {
+    /// Browser controls as list rows under the 附近 section: area, layer, radius and the layer's filter.
+    @ViewBuilder private var controls: some View {
         let reader = effectiveReader
-        return VStack(alignment: .leading, spacing: 10) {
-            if reader.isOfflineExample {
-                Label("roam.offlineExample", systemImage: "testtube.2")
-                    .font(.caption).accessibilityIdentifier("roam.fixture.notice")
-            }
-            if let area = reader.searchArea {
-                Label {
-                    if area.label.isEmpty { Text("roam.suppliedArea") } else { Text(verbatim: area.label) }
-                } icon: { Image(systemName: "mappin.and.ellipse") }
-                .font(.subheadline)
-            }
-            Text("roam.locationNotice").font(.caption).foregroundStyle(.secondary)
-            if nearbyPlayersReader != nil && layer == .players {
-                Text("roam.players.readScope").font(.caption).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            HStack {
-                Picker("roam.layer", selection: $layer) {
-                    ForEach(RoamLayer.allCases, id: \.self) { value in
-                        Text(LocalizedStringKey("roam.layer." + String(value.rawValue))).tag(value)
-                    }
-                }
-                .accessibilityIdentifier("roam.layer")
-                Spacer()
-                Picker("roam.radius", selection: Binding(get: { effectiveRadiusM }, set: { radiusM = $0 })) {
-                    ForEach(radiusOptions, id: \.self) { radius in
-                        Text(verbatim: "\(radius / 1000) km").tag(radius)
-                    }
-                }
-                .accessibilityIdentifier("roam.radius")
-            }
-            if layer == .places {
-                Picker("roam.placeFilter", selection: $placeFilter) {
-                    ForEach(RoamPlaceFilter.allCases, id: \.self) { value in
-                        Text(LocalizedStringKey("roam.filter." + String(value.rawValue))).tag(value)
-                    }
-                }.pickerStyle(.segmented)
-            } else if layer == .events {
-                Picker("roam.eventFilter", selection: $eventFilter) {
-                    ForEach(RoamEventFilter.allCases, id: \.self) { value in
-                        Text(LocalizedStringKey("roam.filter." + String(value.rawValue))).tag(value)
-                    }
-                }.pickerStyle(.segmented)
-            }
-            if layer == .players { Text("roam.playerPrivacy").font(.caption).foregroundStyle(.secondary) }
+        if reader.isOfflineExample {
+            Label("roam.offlineExample", systemImage: "testtube.2")
+                .font(.caption).accessibilityIdentifier("roam.fixture.notice")
         }
-        .padding(.horizontal).padding(.vertical, 10)
+        if let area = reader.searchArea {
+            Label {
+                if area.label.isEmpty { Text("roam.suppliedArea") } else { Text(verbatim: area.label) }
+            } icon: { Image(systemName: "mappin.and.ellipse") }
+        }
+        Picker("roam.layer", selection: $layer) {
+            ForEach(RoamLayer.allCases, id: \.self) { value in
+                Text(LocalizedStringKey("roam.layer." + String(value.rawValue))).tag(value)
+            }
+        }
+        .accessibilityIdentifier("roam.layer")
+        Picker("roam.radius", selection: Binding(get: { effectiveRadiusM }, set: { radiusM = $0 })) {
+            ForEach(radiusOptions, id: \.self) { radius in
+                Text(verbatim: "\(radius / 1000) km").tag(radius)
+            }
+        }
+        .accessibilityIdentifier("roam.radius")
+        if layer == .places {
+            Picker("roam.placeFilter", selection: $placeFilter) {
+                ForEach(RoamPlaceFilter.allCases, id: \.self) { value in
+                    Text(LocalizedStringKey("roam.filter." + String(value.rawValue))).tag(value)
+                }
+            }.pickerStyle(.segmented).labelsHidden()
+        } else if layer == .events {
+            Picker("roam.eventFilter", selection: $eventFilter) {
+                ForEach(RoamEventFilter.allCases, id: \.self) { value in
+                    Text(LocalizedStringKey("roam.filter." + String(value.rawValue))).tag(value)
+                }
+            }.pickerStyle(.segmented).labelsHidden()
+        }
     }
     private var results: some View {
         let renderedKey = presentationKey
         let renderedItems = visibleItems
         return List {
+            // Mini-program order: intro tickets and 附近活动 first, then the nearby map browser.
+            if hasStartHeader { Section { startHeader } }
+            Section { controls } header: { Text("roam.browse.header") }
             // Keep this row alive through same-scope loading, errors and empty filters.
             // Only camera state survives; visibleItems removes old pins immediately.
             if showsMap, let scope = cameraScope {
@@ -295,7 +347,6 @@ struct RoamBrowserView: View {
                     .listRowInsets(EdgeInsets())
                     .id(scope)
             }
-            if hasStartHeader { Section { startHeader } }
             if loading || loadedKey != requestKey {
                 ProgressView("roam.loading").accessibilityIdentifier("roam.loading")
             } else if let issue {
@@ -322,7 +373,7 @@ struct RoamBrowserView: View {
                     if snapshot.isRetained {
                         Label("roamRetained.previous", systemImage: "clock.arrow.circlepath")
                             .fixedSize(horizontal: false, vertical: true)
-                        Text("roamRetained.readOnly").font(.footnote).foregroundStyle(.secondary)
+                        Text("roamRetained.readOnly").font(.subheadline).foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("roamRetained.notice")
                         ForEach(retainedRows) { item in
@@ -341,9 +392,6 @@ struct RoamBrowserView: View {
                 } label: { RoamItemRow(item: item, showsCurrentReadStatus: true) }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("roam.row.\(item.id)")
-            }
-            Section {
-                Text("roam.readOnlyNotice").font(.footnote).foregroundStyle(.secondary)
             }
         }
         .refreshable { await load() }
@@ -427,4 +475,10 @@ struct RoamItemRow: View {
         .padding(.vertical, 8).contentShape(Rectangle())
         .accessibilityElement(children: .combine)
     }
+}
+
+/// Toolbar menu destinations; the menu cannot host NavigationLinks directly.
+private enum RoamBrowserToolbarRoute: Hashable, Identifiable {
+    case experience, city, nearbyTeams
+    var id: Self { self }
 }

@@ -79,6 +79,8 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
         }
     }
     private func reload() async {
+        // A cancelled refresh must not retire a newer read or clear its accepted state.
+        guard !Task.isCancelled else { return }
         generation &+= 1
         let request = generation, identity = reader.clubIdentity
         if loadedIdentity != identity { value = nil; loadedIdentity = nil }

@@ -23,11 +23,10 @@ import UIKit
         let _ = revision
         Form {
             Section {
-                Text("media.stamp.purpose")
                 if !cameraEnabled { Label("media.stamp.disabled", systemImage: "camera.fill") }
-                if cameraIssue { Text("media.stamp.cameraIssue") }
+                if cameraIssue { Label("media.stamp.cameraIssue", systemImage: "exclamationmark.triangle").foregroundStyle(.orange) }
                 Toggle("media.stamp.consent", isOn: $purposeAccepted).disabled(isBusy || showingCamera)
-            }
+            } footer: { Text("media.stamp.purpose") }
             captionSection
             if let coordinator {
                 Section {
@@ -40,12 +39,13 @@ import UIKit
                         else { Text(LocalizedStringKey("media.stamp.phase." + phaseKey(coordinator.phase))) }
                     }.accessibilityFocused($focusedControl, equals: .status)
                     if coordinator.phase == .review {
+                        Button("media.stamp.upload") { run { await coordinator.upload() } }
+                            .buttonStyle(.questifyPrimary).disabled(!coordinator.canUpload)
                         Button("media.stamp.retake") { coordinator.retake(); revision += 1 }.disabled(!coordinator.canCapture)
-                        Button("media.stamp.upload") { run { await coordinator.upload() } }.disabled(!coordinator.canUpload)
                     }
                     if coordinator.pending != nil {
-                        Text("media.stamp.exactRetry")
-                        Button("media.stamp.create") { run { await coordinator.create() } }.disabled(!coordinator.canCreate)
+                        Button("media.stamp.create") { run { await coordinator.create() } }
+                            .buttonStyle(.questifyPrimary).disabled(!coordinator.canCreate)
                     }
                     if case .created = coordinator.phase, let album {
                         Button("roam.createdStamp.open", systemImage: "rectangle.stack") {
@@ -57,11 +57,28 @@ import UIKit
                     }
                 }
             }
-            Button("media.stamp.capture") { requestCamera() }
-                .disabled(!cameraEnabled || !purposeAccepted || coordinator?.canCapture != true)
+        }
+        // Mini-program viewfinder shutter: one round capture button pinned at the bottom.
+        .safeAreaInset(edge: .bottom) {
+            if cameraEnabled, coordinator?.canCapture == true {
+                Button { requestCamera() } label: {
+                    ZStack {
+                        Circle().strokeBorder(Color.primary.opacity(0.85), lineWidth: 4).frame(width: 76, height: 76)
+                        Circle().fill(purposeAccepted ? Color.accentColor : Color.secondary.opacity(0.4)).frame(width: 62, height: 62)
+                        Image(systemName: "camera.fill").font(.title2).foregroundStyle(.white)
+                    }
+                    .frame(maxWidth: .infinity).padding(.vertical, 10)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .background(.bar)
+                .disabled(!purposeAccepted)
+                .accessibilityLabel(Text("media.stamp.capture"))
                 .accessibilityIdentifier("media.stamp.capture")
                 .accessibilityFocused($focusedControl, equals: .capture)
-        }.navigationTitle("media.stamp.title")
+            }
+        }
+        .navigationTitle("media.stamp.title")
             .navigationDestination(item: $createdStampTarget) { target in
                 if let album, target.isCurrent(reader: album.reader) {
                     RoamCreatedStampView(target: target, album: album)
@@ -100,20 +117,15 @@ import UIKit
                 .lineLimit(2...5)
                 .disabled(showingCamera || !(coordinator?.canEditCaption ?? true))
                 .accessibilityIdentifier("media.stamp.caption")
-            LabeledContent("roam.experience.remaining", value: String(30 - captionText.utf16.count))
-                .font(.caption).monospacedDigit()
-                .accessibilityIdentifier("media.stamp.caption.remaining")
-            if !RoamExperienceMath.validCaption(captionText) {
-                Label("roam.experience.captionLimit", systemImage: "exclamationmark.circle")
-                    .foregroundStyle(.red).accessibilityIdentifier("media.stamp.caption.limit")
+            HStack {
+                if !RoamExperienceMath.validCaption(captionText) {
+                    Label("roam.experience.captionLimit", systemImage: "exclamationmark.circle")
+                        .font(.caption).foregroundStyle(.red).accessibilityIdentifier("media.stamp.caption.limit")
+                }
+                Spacer(minLength: 8)
+                Text(verbatim: "\(captionText.utf16.count)/30").font(.caption).monospacedDigit().foregroundStyle(.secondary)
+                    .accessibilityIdentifier("media.stamp.caption.remaining")
             }
-            Text("media.stamp.caption.preview").font(.caption).foregroundStyle(.secondary)
-            if captionText.isEmpty { Text("roam.experience.captionEmpty").foregroundStyle(.secondary) }
-            else { Text(verbatim: captionText).fixedSize(horizontal: false, vertical: true) }
-            if coordinator?.pending != nil || isBusy {
-                Text("media.stamp.caption.locked").font(.caption).foregroundStyle(.secondary)
-            }
-            if coordinator == nil { Text("roam.experience.draftOnly").font(.caption).foregroundStyle(.secondary) }
         }.accessibilityIdentifier("media.stamp.caption.section")
     }
     private var isBusy: Bool { coordinator?.phase == .uploading || coordinator?.phase == .creating }

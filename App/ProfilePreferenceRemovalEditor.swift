@@ -22,8 +22,11 @@ import SwiftUI
                             HStack {
                                 VStack(alignment: .leading) {
                                     if let name = edit.snapshot.preferenceNames[id] { Text(verbatim: name) }
-                                    else { Text("profile.preferenceRemoval.unknownName") }
-                                    Text(verbatim: "#\(id)").font(.caption).foregroundStyle(.secondary)
+                                    else {
+                                        // Number only distinguishes rows whose name is missing.
+                                        Text("profile.preferenceRemoval.unknownName")
+                                        Text(verbatim: "#\(id)").font(.caption).foregroundStyle(.secondary)
+                                    }
                                 }
                                 Spacer()
                                 if selection.contains(id) {

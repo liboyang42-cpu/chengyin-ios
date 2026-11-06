@@ -20,17 +20,21 @@ public enum ClubCommunityReadRoute: Equatable, Sendable {
         historyPath
     ]
 
-    case posts(clubID: Int, page: Int)
-    case feed(page: Int)
+    case posts(clubID: Int, beforeID: Int?, limit: Int)
+    public static func posts(clubID: Int, page: Int) -> Self {
+        .posts(clubID: clubID, beforeID: nil, limit: page == 1 ? 20 : 0)
+    }
+    case feed(limit: Int)
+    public static func feed(page: Int) -> Self { .feed(limit: page == 1 ? 20 : 0) }
     case comments(postID: Int, page: Int)
     case history(postID: Int)
 
     public var operation: ClubCommunityRead {
         switch self {
-        case let .posts(clubID, page):
-            return .posts(clubID: clubID, page: page)
-        case let .feed(page):
-            return .feed(page: page)
+        case let .posts(clubID, beforeID, limit):
+            return .posts(clubID: clubID, beforeID: beforeID, limit: limit)
+        case let .feed(limit):
+            return .feed(limit: limit)
         case let .comments(postID, page):
             return .comments(postID: postID, page: page)
         case let .history(postID):
@@ -71,31 +75,26 @@ public enum ClubCommunityReadRoute: Equatable, Sendable {
         let parsed: Self
 
         if url.absoluteString == baseURL.appendingPathComponent(Self.postsPath).absoluteString {
-            guard fields.count == 3,
-                  let clubID = fields["clubId"] as? Int, clubID > 0,
-                  let page = fields["pageNum"] as? Int, page > 0,
-                  let pageSize = fields["pageSize"] as? Int, pageSize == 20 else {
-                return nil
-            }
-            canonicalFields = ["clubId": clubID, "pageNum": page, "pageSize": 20]
-            parsed = .posts(clubID: clubID, page: page)
+            guard let clubID = fields["clubId"] as? Int, clubID > 0,
+                  let limit = fields["limit"] as? Int, (1...50).contains(limit),
+                  fields.count == (fields["beforeId"] == nil ? 2 : 3) else { return nil }
+            let beforeID: Int?
+            if fields["beforeId"] != nil {
+                guard let cursor = fields["beforeId"] as? Int, cursor > 0 else { return nil }
+                beforeID = cursor
+            } else { beforeID = nil }
+            var canonical: [String: Any] = ["clubId": clubID, "limit": limit]
+            if let beforeID { canonical["beforeId"] = beforeID }
+            canonicalFields = canonical
+            parsed = .posts(clubID: clubID, beforeID: beforeID, limit: limit)
         } else if url.absoluteString == baseURL.appendingPathComponent(Self.feedPath).absoluteString {
-            guard fields.count == 2,
-                  let page = fields["pageNum"] as? Int, page > 0,
-                  let pageSize = fields["pageSize"] as? Int, pageSize == 20 else {
-                return nil
-            }
-            canonicalFields = ["pageNum": page, "pageSize": 20]
-            parsed = .feed(page: page)
+            guard fields.count == 1, let limit = fields["limit"] as? Int, (1...50).contains(limit) else { return nil }
+            canonicalFields = ["limit": limit]
+            parsed = .feed(limit: limit)
         } else if url.absoluteString == baseURL.appendingPathComponent(Self.commentsPath).absoluteString {
-            guard fields.count == 3,
-                  let postID = fields["postId"] as? Int, postID > 0,
-                  let page = fields["pageNum"] as? Int, page > 0,
-                  let pageSize = fields["pageSize"] as? Int, pageSize == 50 else {
-                return nil
-            }
-            canonicalFields = ["postId": postID, "pageNum": page, "pageSize": 50]
-            parsed = .comments(postID: postID, page: page)
+            guard fields.count == 1, let postID = fields["postId"] as? Int, postID > 0 else { return nil }
+            canonicalFields = ["postId": postID]
+            parsed = .comments(postID: postID, page: 1)
         } else if url.absoluteString == baseURL.appendingPathComponent(Self.historyPath).absoluteString {
             guard fields.count == 1,
                   let postID = fields["id"] as? Int, postID > 0 else {
@@ -282,6 +281,7 @@ public final class ClubCommunityReadRuntime {
     public private(set) var errorKey: String?
     public private(set) var activeFingerprint: ScopeFingerprint?
     private var generation: UInt64 = 0
+    private var postCursor = ClubCommunityReadCursor()
 
     public init(
         makeService: @escaping () -> ClubCommunityService,
@@ -322,6 +322,7 @@ public final class ClubCommunityReadRuntime {
 
     public func invalidate() {
         generation &+= 1
+        postCursor.reset()
         postsSnapshot = nil
         commentsSnapshot = nil
         historySnapshot = nil
@@ -352,6 +353,7 @@ public final class ClubCommunityReadRuntime {
         }
 
         if activeFingerprint != nil && activeFingerprint != fingerprint {
+            postCursor.reset()
             postsSnapshot = nil
             commentsSnapshot = nil
             historySnapshot = nil
@@ -370,7 +372,7 @@ public final class ClubCommunityReadRuntime {
 
         let service = makeService()
         do {
-            let result = try await service.read(operation, session: session) {
+            var result = try await service.read(operation, session: session) {
                 guard self.currentScopeFingerprint() == fingerprint,
                       (try? self.currentSession()) == session else {
                     throw ClubCommunityFailure.stale
@@ -389,16 +391,17 @@ public final class ClubCommunityReadRuntime {
             lastFailedOperation = nil
             errorKey = nil
             switch operation {
-            case let .posts(clubID, page):
+            case let .posts(clubID, beforeID, _):
+                result = try postCursor.accept(result, identity: session.identity)
                 activeClubID = clubID
-                postsPage = page
+                postsPage = beforeID == nil ? 1 : postsPage + 1
                 postsSnapshot = result
                 if let currentSelected = selectedPost {
                     selectedPost = result.posts.first(where: { $0.id == currentSelected.id })
                 }
-            case let .feed(page):
+            case .feed:
                 activeClubID = nil
-                postsPage = page
+                postsPage = 1
                 postsSnapshot = result
                 if let currentSelected = selectedPost {
                     selectedPost = result.posts.first(where: { $0.id == currentSelected.id })
@@ -445,22 +448,24 @@ public final class ClubCommunityReadRuntime {
 
     @discardableResult
     public func nextPostsPage() async -> ClubCommunitySnapshot? {
-        guard let current = postsSnapshot, current.posts.count >= 20 else { return postsSnapshot }
-        let nextPage = postsPage + 1
+        guard let fingerprint = currentScopeFingerprint(), fingerprint == activeFingerprint else { invalidate(); return nil }
+        guard !isLoading else { return postsSnapshot }
         if let clubID = activeClubID {
-            return await load(.posts(clubID: clubID, page: nextPage))
+            guard postCursor.hasMore, let beforeID = postCursor.beforeID else { return postsSnapshot }
+            return await load(.posts(clubID: clubID, beforeID: beforeID, limit: 20))
         }
-        return await load(.feed(page: nextPage))
+        // No continuation exists for the original aggregate scope.
+        return postsSnapshot
     }
 
     @discardableResult
     public func previousPostsPage() async -> ClubCommunitySnapshot? {
+        guard let fingerprint = currentScopeFingerprint(), fingerprint == activeFingerprint else { invalidate(); return nil }
         guard postsPage > 1 else { return postsSnapshot }
-        let prevPage = postsPage - 1
         if let clubID = activeClubID {
-            return await load(.posts(clubID: clubID, page: prevPage))
+            return await load(.posts(clubID: clubID, beforeID: nil, limit: 20))
         }
-        return await load(.feed(page: prevPage))
+        return await load(.feed(limit: 20))
     }
 
     @discardableResult
@@ -470,16 +475,15 @@ public final class ClubCommunityReadRuntime {
 
     @discardableResult
     public func nextCommentsPage() async -> ClubCommunitySnapshot? {
-        guard let postID = activePostID,
-              let current = commentsSnapshot,
-              current.comments.count >= 50 else { return commentsSnapshot }
-        return await load(.comments(postID: postID, page: commentsPage + 1))
+        guard let fingerprint = currentScopeFingerprint(), fingerprint == activeFingerprint else { invalidate(); return nil }
+        // The accepted snapshot already contains the complete original response.
+        return commentsSnapshot
     }
 
     @discardableResult
     public func previousCommentsPage() async -> ClubCommunitySnapshot? {
-        guard let postID = activePostID, commentsPage > 1 else { return commentsSnapshot }
-        return await load(.comments(postID: postID, page: commentsPage - 1))
+        guard let fingerprint = currentScopeFingerprint(), fingerprint == activeFingerprint else { invalidate(); return nil }
+        return commentsSnapshot
     }
 
     @discardableResult
@@ -515,6 +519,7 @@ public final class ClubCommunityReadRuntime {
         commentsSnapshot = nil
         historySnapshot = nil
         guard let listOp = lastListOperation else { return nil }
+        if case let .posts(clubID, _, _) = listOp { return await load(.posts(clubID: clubID, beforeID: nil, limit: 20)) }
         return await load(listOp)
     }
 
@@ -522,6 +527,7 @@ public final class ClubCommunityReadRuntime {
     @discardableResult
     public func refreshOnReturn() async -> ClubCommunitySnapshot? {
         guard let operation = lastOperation else { return nil }
+        if case let .posts(clubID, _, _) = operation { return await load(.posts(clubID: clubID, beforeID: nil, limit: 20)) }
         return await load(operation)
     }
 

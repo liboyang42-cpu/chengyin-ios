@@ -53,7 +53,7 @@ import SwiftUI
                     }
                 }
             }
-        }.privacySensitive().navigationTitle("playx.prefab.title").accessibilityIdentifier("playx.prefab.runtime")
+        }.privacySensitive().navigationTitle("playx.prefab.title").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("playx.prefab.runtime")
             .overlay(alignment: .bottom) {
                 TimelineView(.periodic(from: .now, by: 0.08)) { context in
                     Color.clear.frame(height: 0).onChange(of: context.date) { _, _ in

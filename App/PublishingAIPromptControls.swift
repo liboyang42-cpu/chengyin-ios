@@ -25,13 +25,16 @@ import SwiftUI
     @Environment(\.locale) private var locale
     var body: some View {
         if flow.candidate == nil {
-            VStack(alignment:.leading,spacing:8) {
+            VStack(alignment: .leading, spacing: Theme.Space.s2) {
                 Text("creatorAIPrompts.title",tableName:"CreatorAIPrompts").font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
                 ForEach(PublishingAIPromptSuggestion.allCases) { suggestion in
                     Button(action:controller.action(suggestion,languageCode:locale.identifier,flow:flow,applied:applied)) {
                         Label {
                             Text(LocalizedStringKey(suggestion.titleKey),tableName:"CreatorAIPrompts")
+                                .fixedSize(horizontal: false, vertical: true)
                         } icon: { Image(systemName:"arrow.turn.down.right") }
+                            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                     }.buttonStyle(.borderless).disabled(!controller.canSelect(in:flow))
                         .accessibilityIdentifier("creatorAIPrompts.select." + suggestion.rawValue)
                 }
